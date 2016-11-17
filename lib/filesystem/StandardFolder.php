@@ -223,9 +223,11 @@ class StandardFolder implements FolderType
             $newfile->storage = 'disk';
             $newfile->id = $newfile->getNewId();
             $newfile->connectWithDataFile($file['tmp_path']);
-            //$newfile->store();
         } else {
             $newfile = $file;
+        }
+        if ($newfile->isNew()) {
+            $newfile->store();
         }
         $file_ref =  $this->folderdata->linkFile($newfile);
         if (!is_a($file, "File") && $file['description']) {
@@ -240,11 +242,11 @@ class StandardFolder implements FolderType
         return $file_ref;
     }
 
-    
+
     public function deleteFile($file_ref_id)
     {
         $file_refs = $this->folderdata->file_refs;
-        
+
         if($file_refs) {
             foreach($file_refs as $file_ref) {
                 if($file_ref->id == $file_ref_id) {
@@ -253,23 +255,23 @@ class StandardFolder implements FolderType
                 }
             }
         }
-        
+
         //if no file refs are present or the file ref can't be found
         //we return false:
         return false;
     }
-    
-    
+
+
     public function createSubfolder($folderdata)
     {
 
     }
-    
-    
+
+
     public function deleteSubfolder($subfolder_id)
     {
         $subfolders = $this->folderdata->subfolders;
-        
+
         if($subfolders) {
             foreach($subfolders as $subfolder) {
                 if($subfolder->id == $subfolder_id) {
@@ -278,12 +280,12 @@ class StandardFolder implements FolderType
                 }
             }
         }
-        
+
         //if no subfolders are present or the subfolder can't be found
         //we return false:
         return false;
     }
-    
+
 
     /**
      * @param $fileref_or_id

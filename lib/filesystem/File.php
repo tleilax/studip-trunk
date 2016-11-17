@@ -40,16 +40,19 @@ class File extends SimpleORMap
             'foreign_key' => 'user_id',
         );
         $config['has_many']['refs'] = array(
-            'class_name'  => 'FileReference',
-            'foreign_key' => 'file_id',
+            'class_name'  => 'FileRef',
+            'assoc_foreign_key' => 'file_id',
         );
-        $config['has_one']['url'] = array(
+        $config['has_one']['file_url'] = array(
             'class_name'  => 'FileURL'
         );
         $config['additional_fields']['extension'] = true;
         $config['additional_fields']['path'] = true;
+        $config['additional_fields']['url'] = true;
+        $config['additional_fields']['url_access_type'] = ['get' => 'getURLAccessType', 'set' => 'setURLAccessType'];
 
         $config['registered_callbacks']['after_delete'][] = 'deleteDataFile';
+        $config['registered_callbacks']['before_create'][] = 'cbSetAuthor';
 
         $config['notification_map']['after_create'] = 'FileDidCreate';
         $config['notification_map']['after_store'] = 'FileDidUpdate';
@@ -60,9 +63,37 @@ class File extends SimpleORMap
         parent::configure($config);
     }
 
+    public function getURL()
+    {
+        return $this->storage == 'url' && isset($this->file_url) ? $this->file_url->url : null;
+    }
+
+    public function setURL($url)
+    {
+        $this->storage = 'url';
+        if (!isset($this->file_url)) {
+            $this->file_url = new FileURL;
+        }
+        return $this->file_url->url = $url;
+    }
+
+    public function getURLAccessType()
+    {
+        return $this->storage == 'url' && isset($this->file_url) ? $this->file_url->access_type : null;
+    }
+
+    public function setURLAccessType($type)
+    {
+        $this->storage = 'url';
+        if (!isset($this->file_url)) {
+            $this->file_url = new FileURL;
+        }
+        return $this->file_url->access_type = $type;
+    }
+
     /**
      * Returns the file extension of a file.
-     * 
+     *
      * @return string A string with the file extension.
      */
     public function getExtension()
@@ -72,7 +103,7 @@ class File extends SimpleORMap
 
     /**
      * Returns the path to the file in the operating system's file system.
-     * 
+     *
      * @return null|string Returns the operating system's file system path of the file or null on failure.
      */
     function getPath()
@@ -85,7 +116,7 @@ class File extends SimpleORMap
 
     /**
      * Deletes the data file associated with the File object.
-     * 
+     *
      * @return bool Returns true on success and false on failure.
      */
     public function deleteDataFile()
@@ -95,7 +126,7 @@ class File extends SimpleORMap
 
     /**
      * Connects the File object to a physical file that is stored in the operating system's file system.
-     * 
+     *
      * @param string $path_to_file The path to the physical file.
      * @return bool Returns true on success and false on failure.
      */
@@ -117,6 +148,14 @@ class File extends SimpleORMap
 
     }
 
-
-
+    public function cbSetAuthor()
+    {
+        if (!$this->user_id) {
+            $this->user_id = User::findCurrent()->id;
+        }
+        if (!$this->author_name) {
+            $user = $this->user_id == User::findCurrent()->id ? User::findCurrent() : $this->owner;
+            $this->author_name = $user->getFullName('no_title');
+        }
+    }
 }

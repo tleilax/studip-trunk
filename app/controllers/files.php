@@ -52,7 +52,7 @@ class FilesController extends AuthenticatedController
                 array('data-dialog' => 'size=auto')
             );
             */
-            
+
             //AJAX version:
             $actions->addLink(
                 _('Neuer Ordner'),
@@ -69,7 +69,7 @@ class FilesController extends AuthenticatedController
                     'onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $this->topFolder->getId() . '\', \'' . $this->user->id . '\'); return false;'
                 ]
             );
-            
+
 
         }
 
@@ -276,48 +276,68 @@ class FilesController extends AuthenticatedController
 
     public function add_url_action($folder_id)
     {
-        if (Request::get("to_plugin")) {
-            $to_plugin = PluginManager::getInstance()->getPlugin(Request::get("to_plugin"));
-            $this->to_folder_type = $to_plugin->getFolder($folder_id);
-        } else {
-            $folder = new Folder($folder_id);
-            $this->to_folder_type = new StandardFolder($folder);
+        $this->top_folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
+        if (!$this->top_folder->isWritable($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
         }
+        if (Request::submitted('store')) {
+            CSRFProtection::verifyUnsafeRequest();
+            $url = trim(Request::get('url'));
+            $url_parts = parse_url($url);
+            if (filter_var($url, FILTER_VALIDATE_URL) !== false && in_array($url_parts['scheme'], ['http', 'https','ftp'])) {
+                if (Request::get('access_type') == 'redirect') {
+                    if (in_array($url_parts['scheme'], ['http', 'https'])) {
+                        $file = new File();
+                        $file->url = $url;
+                        $file->url_access_type = 'redirect';
+                        $file->name = Request::get('name');
+                        if (!$file->name) {
+                            $meta = FileManager::fetchURLMetadata($url);
+                            if ($meta['response_code'] === 200) {
+                                $file->name = $meta['filename'] ?: 'unknown';
+                                $file->mime_type = strstr($meta['Content-Type'], ';', true);
+                            }
+                        } else {
+                            $file->mime_type = get_mime_type($file->name);
+                        }
+                    } else {
+                        PageLayout::postError(_("Die angegebene URL muss mit http(s) beginnen."));
+                    }
+                }
+                if (Request::get('access_type') == 'proxy') {
+                    $meta = FileManager::fetchURLMetadata($url);
+                    if ($meta['response_code'] === 200) {
+                        $file = new File();
+                        $file->url = $url;
+                        $file->url_access_type = 'proxy';
+                        $file->name = Request::get('name');
+                        if (!$file->name) {
+                            $file->name = $meta['filename'] ?: 'unknown';
+                        }
+                        $file->mime_type = $meta['Content-Type'] ? strstr($meta['Content-Type'], ';', true) : get_mime_type($file->name);
+                        $file->size = $meta['Content-Length'];
+                    } else {
+                        PageLayout::postError(_("Die angegebene URL kann nicht abgerufen werden."), [_('Fehlercode') . ':' . $meta['response_code']]);
+                    }
+                }
+                if ($file) {
+                    $file['user_id'] = $GLOBALS['user']->id;
 
-        if (Request::isPost()) {
-            $file = new File();
-            $file['storage'] = "url";
-            $file['user_id'] = $GLOBALS['user']->id;
-            $file['mime_type'] = "";
-            $file['name'] = Request::get("name");
-            $file->id = $file->getNewId();
-            $file->url = new FileURL();
-            $file->url->url = Request::get("url");
+                    $this->file_ref = $this->top_folder->createFile($file);
+                    $payload = array();
 
-            $this->file_ref = $this->to_folder_type->createFile($file);
-            $payload = array();
+                    $this->current_folder = $this->top_folder;
+                    $this->marked_element_ids = array();
+                    $payload[] = $this->render_template_as_string("files/_fileref_tr");
 
-            $this->current_folder = $this->to_folder_type;
-            $this->marked_element_ids = array();
-            $payload[] = $this->render_template_as_string("files/_fileref_tr");
-
-            $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
-            $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
-            $this->render_nothing();
-        }
-
-
-        if (Request::get("plugin")) {
-            $this->filesystemplugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
-            $this->top_folder = $this->filesystemplugin->getFolder($folder_id, true);
-        } else {
-            $this->top_folder = new StandardFolder(new Folder($folder_id));
-            if (!$this->top_folder->isReadable($GLOBALS['user']->id)) {
-                throw new AccessException();
+                    $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
+                    $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
+                    $this->render_nothing();
+                }
+            } else {
+                PageLayout::postError(_("Die angegebene URL ist ungültig."));
             }
         }
+
     }
-
-
-
 }

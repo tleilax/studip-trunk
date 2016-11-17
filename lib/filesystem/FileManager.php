@@ -104,15 +104,15 @@ class FileManager
         if(!$file_ref->folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-        
+
         $folder_type = $file_ref->folder->getTypedFolder();
-        
+
         if(!$folder_type) {
             return [_('Ordnertyp konnte nicht ermittelt werden!')];
         }
-        
+
         if($folder_type->isFileEditable($file_ref, $user->id)) {
-            
+
             //check if name is set and is different from the current name
             //of the file reference:
             if(($name !== null) && ($name != $file_ref->name)) {
@@ -148,7 +148,7 @@ class FileManager
                         )
                     ];
                 }
-                
+
                 $file_ref->content_terms_of_use_id = $content_terms_of_use->id;
             }
 
@@ -206,14 +206,14 @@ class FileManager
         if(!$source_folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-        
+
         $source_folder = $source->folder->getTypedFolder();
-        
+
         if(!$source_folder) {
             return [_('Ordnertyp des Quellordners konnte nicht ermittelt werden!')];
         }
-        
-        
+
+
         if($source_folder->isReadable($user->id) && $destination_folder->isWritable($user->id)) {
             //user is permitted to copy a file, but is he the owner?
             if($source->user_id == $user->id) {
@@ -296,7 +296,7 @@ class FileManager
         }
     }
 
-    
+
     /**
      * This method handles moving a file to a new folder.
      *
@@ -313,13 +313,13 @@ class FileManager
         if(!$source_folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-        
+
         $source_folder = $source->folder->getTypedFolder();
-        
+
         if(!$source_folder) {
             return [_('Ordnertyp des Quellordners konnte nicht ermittelt werden!')];
         }
-        
+
 
         if($source_folder->isReadable($user->id) && $destination_folder->isWritable($user->id)) {
 
@@ -357,14 +357,14 @@ class FileManager
         if(!$folder) {
             return [_('Dateireferenz ist keinem Ordner zugeordnet!')];
         }
-        
+
         $folder_type = $folder->getTypedFolder();
-        
+
         if(!$folder_type) {
             return [_('Ordnertyp des Quellordners konnte nicht ermittelt werden!')];
         }
-        
-        
+
+
         if($folder_type->isFileWritable($file_ref->id, $user->id)) {
 
             if($file_ref->delete()) {
@@ -407,13 +407,13 @@ class FileManager
         $description = null)
     {
         $errors = [];
-        
-        
+
+
         if(!$folder_type_class_name) {
             //folder_type_class_name is not set: we can't create a folder!
             return [_('Es wurde kein Ordnertyp angegeben!')];
         }
-        
+
         //check if folder_type_class_name has a valid class:
         if(!is_subclass_of($folder_type_class_name, 'FolderType')) {
             return [
@@ -423,22 +423,22 @@ class FileManager
                 )
             ];
         }
-        
+
         if(!$name) {
             //name is not set: we can't create a folder!
             return [_('Es wurde kein Ordnername angegeben!')];
         }
-        
+
         $sub_folder = new Folder();
         $sub_folder_type = new $folder_type_class_name($sub_folder);
-        
+
         //set name and description of the new folder:
         $sub_folder->name = $name;
-        
+
         if($description) {
             $sub_folder->description = $description;
         }
-        
+
 
         //check if the sub folder type is creatable in a StandardFolder,
         //if the destination folder is a StandardFolder:
@@ -537,7 +537,7 @@ class FileManager
             //edit name or description or both
 
             $data = $folder->getEditTemplate();
-            
+
             if($name) {
                 //get the parent folder to check for duplicate names
                 //and set the folder name to an unique name:
@@ -649,7 +649,7 @@ class FileManager
         return $errors;
     }
 
-    
+
     /**
      * This method handles copying folders, including
      * copying the subfolders and files recursively.
@@ -675,12 +675,12 @@ class FileManager
             if($source_folder->isReadable($user->id) &&
                 $destination_folder->isWritable($user->id)) {
                 //the user has the permissions to copy the folder
-                
+
                 $folder_class_name = get_class($source_folder);
-                
+
                 $new_folder = new $folder_class_name();
                 $data = $new_folder->getEditTemplate();
-                
+
                 $data['user_id'] = $source_folder->user_id;
                 $data['parent_id'] = $destination_folder->id;
                 $data['range_id'] = $destination_folder->range_id;
@@ -689,7 +689,7 @@ class FileManager
                 $data['name'] = $destination_folder->getUniqueName($source_folder->name);
                 $data['data_content'] = $source_folder->data_content;
                 $data['description'] = $source_folder->description;
-                
+
                 //folder is copied, we can store it:
                 $new_folder->setDataFromEditTemplate($data);
 
@@ -773,10 +773,10 @@ class FileManager
                 )
             ];
         }
-        
+
         //get the parent folder and delete the folder from there:
         $folder_data = $folder->getEditTemplate();
-        
+
         $parent_folder = self::getTypedFolder($folder_data['parent_id']);
         if(!$parent_folder instanceof FolderType) {
             return [
@@ -786,8 +786,8 @@ class FileManager
                 )
             ];
         }
-        
-        
+
+
         if(!$parent_folder->deleteSubfolder($folder->id)) {
             return [
                 sprintf(
@@ -905,6 +905,161 @@ class FileManager
                 }
             }
         }
+    }
+
+    public static function fetchURLMetadata($url, $level = 0)
+    {
+
+        if ($level > 5) {
+            return array('response' => 'HTTP/1.0 400 Bad Request', 'response_code' => 400);
+        }
+
+        $url_parts = @parse_url($url);
+        //filter out localhost and reserved or private IPs
+        if (mb_stripos($url_parts["host"], 'localhost') !== false
+            || mb_stripos($url_parts["host"], 'loopback') !== false
+            || (filter_var($url_parts["host"], FILTER_VALIDATE_IP) !== false
+                && (mb_strpos($url_parts["host"], '127') === 0
+                    || filter_var($url_parts["host"], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false)
+            )
+        ) {
+            return array('response' => 'HTTP/1.0 400 Bad Request', 'response_code' => 400);
+        }
+        if ($url_parts['scheme'] === 'ftp') {
+
+            if (preg_match('/[^a-z0-9_.-]/i', $url_parts['host'])) { // exists umlauts ?
+                $IDN = new idna_convert();
+                $out = $IDN->encode(utf8_encode($url_parts['host'])); // false by error
+                $url_parts['host'] = ($out) ? $out : $url_parts['host'];
+            }
+
+            $ftp = @ftp_connect($url_parts['host'],$url_parts['port'] ?: 21, 10);
+            if (!$ftp) {
+                return array('response' => 'HTTP/1.0 502 Bad Gateway', 'response_code' => 502);
+            }
+            if (!$url_parts["user"]) {
+                $url_parts["user"] = "anonymous";
+            }
+            if (!$url_parts["pass"]) {
+                $mailclass = new StudipMail();
+                $url_parts["pass"] = $mailclass->getSenderEmail();
+            }
+            if (!@ftp_login($ftp, $url_parts["user"], $url_parts["pass"])) {
+                ftp_quit($ftp);
+                return array('response' => 'HTTP/1.0 403 Forbidden', 'response_code' => 403);
+            }
+            $parsed_link["Content-Length"] = ftp_size($ftp, $url_parts['path']);
+            ftp_quit($ftp);
+            if ($parsed_link["Content-Length"] != "-1") {
+                $parsed_link["HTTP/1.0 200 OK"] = "HTTP/1.0 200 OK";
+                $parsed_link["response_code"] = 200;
+            } else {
+                return array('response' => 'HTTP/1.0 404 Not Found', 'response_code' => 404);
+            }
+            $parsed_link['filename'] = basename($url_parts['path']);
+            $parsed_link['Content-Type'] = get_mime_type($parsed_link['filename']);
+            return $parsed_link;
+
+        } else {
+            if (!empty($url_parts["path"])) {
+                $documentpath = $url_parts["path"];
+            } else {
+                $documentpath = "/";
+            }
+            if (!empty($url_parts["query"])) {
+                $documentpath .= "?" . $url_parts["query"];
+            }
+            $host = $url_parts["host"];
+            $port = $url_parts["port"];
+            $scheme = mb_strtolower($url_parts['scheme']);
+            if (!in_array($scheme, words('http https'))) {
+                return array('response' => 'HTTP/1.0 400 Bad Request', 'response_code' => 400);
+            }
+            if ($scheme == "https") {
+                $ssl = true;
+                if (empty($port)) {
+                    $port = 443;
+                }
+            } else {
+                $ssl = false;
+            }
+            if (empty($port)) {
+                $port = "80";
+            }
+            if (preg_match('/[^a-z0-9_.-]/i', $host)) { // exists umlauts ?
+                $IDN = new idna_convert();
+                $out = $IDN->encode(utf8_encode($host)); // false by error
+                $host = ($out) ? $out : $host;
+            }
+            $socket = @fsockopen(($ssl ? 'ssl://' : '') . $host, $port, $errno, $errstr, 10);
+            if (!$socket) {
+                return array('response' => 'HTTP/1.0 502 Bad Gateway', 'response_code' => 502);
+            } else {
+                $urlString = "GET " . $documentpath . " HTTP/1.0\r\nHost: $host\r\n";
+                if ($url_parts["user"] && $url_parts["pass"]) {
+                    $pass = $url_parts["pass"];
+                    $user = $url_parts["user"];
+                    $urlString .= "Authorization: Basic " . base64_encode("$user:$pass") . "\r\n";
+                }
+                $urlString .= sprintf("User-Agent: Stud.IP v%s File Crawler\r\n", $GLOBALS['SOFTWARE_VERSION']);
+                $urlString .= "Connection: close\r\n\r\n";
+                fputs($socket, $urlString);
+                stream_set_timeout($socket, 5);
+                $response = '';
+                do {
+                    $response .= fgets($socket, 128);
+                    $info = stream_get_meta_data($socket);
+                } while (!feof($socket) && !$info['timed_out'] && mb_strlen($response) < 1024);
+                fclose($socket);
+            }
+            $header = array();
+            $raw_header = explode("\n",trim($response));
+            if (preg_match("|^HTTP/[^\s]*\s(.*?)\s|", $raw_header[0], $status)) {
+                $header['response_code'] = (int)$status[1];
+                $header['response'] = trim($raw_header[0]);
+            } else {
+                return array('response' => 'HTTP/1.0 502 Bad Gateway', 'response_code' => 502);
+            }
+            for($i = 0; $i < count($raw_header); ++$i){
+                $parts = null;
+                if(trim($raw_header[$i]) == "") break;
+                $matches = preg_match('/^\S+:/', $raw_header[$i], $parts);
+                if ($matches){
+                    $key = trim(mb_substr($parts[0],0,-1));
+                    $value = trim(mb_substr($raw_header[$i], mb_strlen($parts[0])));
+                    $header[$key] = $value;
+                } else {
+                    $header[trim($raw_header[$i])] = trim($raw_header[$i]);
+                }
+            }
+
+            // Anderer Dateiname?
+            $disposition_header = $header['Content-Disposition']
+                ?: $header['content-disposition'];
+            if ($disposition_header) {
+                $header_parts = explode(';', $disposition_header);
+                foreach ($header_parts as $part) {
+                    $part = trim($part);
+                    list($key, $value) = explode('=', $part, 2);
+                    if (mb_strtolower($key) === 'filename') {
+                        $header['filename'] = trim($value, '"');
+                    }
+                }
+            } else {
+                $header['filename'] = basename($url_parts['path']);
+            }
+            // Weg über einen Locationheader:
+            $location_header = $header["Location"]
+                ?: $header["location"];
+            if (in_array($header["response_code"], array(300, 301, 302, 303, 305, 307)) && $location_header) {
+                if (mb_strpos($location_header, 'http') !== 0) {
+                    $location_header = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $location_header;
+                }
+                $header = self::fetchURLMetadata($location_header, $level + 1);
+            }
+            return $header;
+        }
+
     }
 
 }

@@ -69,6 +69,7 @@ class Moadb extends Migration
         $db->exec("CREATE TABLE IF NOT EXISTS `file_urls` (
                  `file_id` varchar(32)  NOT NULL,
                  `url` varchar(4096)  NOT NULL,
+                 `access_type` enum('proxy','redirect') NOT NULL DEFAULT 'proxy',
                  PRIMARY KEY (`file_id`)
                 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC");
         $db->exec("CREATE TABLE IF NOT EXISTS `folders` (
