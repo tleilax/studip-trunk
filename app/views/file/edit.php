@@ -42,22 +42,21 @@
             -->
             
             <? foreach ($content_terms_of_use_entries as $content_terms_of_use_entry) : ?>
-                <label for="content_terms_of_use-<?= htmlReady($content_terms_of_use_entry->id) ?>">
-                    <?= htmlReady($content_terms_of_use_entry['name']) ?>
-                </label>
                 <input type="radio" name="content_terms_of_use_id"
                     value="<?= htmlReady($content_terms_of_use_entry->id) ?>"
                     id="content_terms_of_use-<?= htmlReady($content_terms_of_use_entry->id) ?>"
                     <?= ($content_terms_of_use_entry->id == $file_ref_id->content_terms_of_use_id) ? 'checked="checked"' : '' ?> >
-                <? if ($content_terms_of_use_entry['icon']) : ?>
-                <div>
-                    <? if (filter_var($content_terms_of_use_entry['icon'], FILTER_VALIDATE_URL)) : ?>
-                        <img src="<?= htmlReady($content_terms_of_use_entry['icon']) ?>" width="48px" height="48px">
-                    <? else : ?>
-                        <?= Icon::create($content_terms_of_use_entry['icon'], "clickable")->asImg(50) ?>
+                <label for="content_terms_of_use-<?= htmlReady($content_terms_of_use_entry->id) ?>">
+                    <? if ($content_terms_of_use_entry['icon']) : ?>
+                        <? if (filter_var($content_terms_of_use_entry['icon'], FILTER_VALIDATE_URL)) : ?>
+                            <img src="<?= htmlReady($content_terms_of_use_entry['icon']) ?>" width="48px" height="48px">
+                        <? else : ?>
+                            <?= Icon::create($content_terms_of_use_entry['icon'], "clickable")->asImg(50) ?>
+                        <? endif ?>
                     <? endif ?>
-                <? endif ?>
-                </div>
+                    <?= htmlReady($content_terms_of_use_entry['name']) ?>
+                </label>
+                
             <? endforeach ?>
         </div>
         <? endif ?>
