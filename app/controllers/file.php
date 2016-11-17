@@ -19,7 +19,7 @@
  */
 class FileController extends AuthenticatedController
 {
-    
+
     /**
      * This is a helper method that decides where a redirect shall be made
      * in case of error or success after an action was executed.
@@ -33,16 +33,16 @@ class FileController extends AuthenticatedController
                 PageLayout::postMessage($message);
             }
         }
-        
+
         if (!Request::isDialog()) {
             //we only need to redirect when we're not in a dialog!
-            
+
             $dest_range = $folder->range_id;
-    
+
             switch ($folder->range_type) {
                 case 'course':
                 case 'institute':
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id . '?cid=' . $dest_range));                            
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id . '?cid=' . $dest_range));
                 case 'user':
                     return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $folder->id));
                 default:
@@ -50,8 +50,8 @@ class FileController extends AuthenticatedController
             }
         }
     }
-    
-    
+
+
     public function upload_action($folder_id)
     {
         if (Request::isPost() && is_array($_FILES)) {
@@ -74,9 +74,8 @@ class FileController extends AuthenticatedController
             if (count($validatedFiles['error'])) {
                 //error during upload: display error message:
                 PageLayout::postError(
-                    _('Beim Upload ist ein Fehler aufgetreten ', 
+                    _('Beim Upload ist ein Fehler aufgetreten '),
                     array_map('htmlready', $validatedFiles['error'])
-                    )
                 );
             } else {
                 //all files were uploaded successfully:
@@ -117,29 +116,29 @@ class FileController extends AuthenticatedController
                     }
                     $this->render_json($output);
                 }
-                
+
             }
         }
         $this->folder_id = $folder_id;
     }
-    
-    
+
+
     public function download_action($file_id)
     {
         if($file_id) {
             $file = File::find($file_id);
             if($file) {
                 $dataPath = $file->getPath();
-                
+
                 //STUB! Change this to support big files!
                 $data = file_get_contents($dataPath);
-                
+
                 if($file->mime_type) {
                     $this->set_content_type($file->mime_type);
                 }
-                
+
                 //TODO: send data
-                
+
             } else {
                 //send 404 not found
             }
@@ -147,16 +146,16 @@ class FileController extends AuthenticatedController
             //send 400 bad request
         }
     }
-    
-    
+
+
     /**
-     * This is a one-in-all action that handles editing, copying, moving 
+     * This is a one-in-all action that handles editing, copying, moving
      * and deleting a file, referenced by its file reference ID.
      */
     public function manage_action($file_ref_id)
     {
         global $perm;
-        
+
         $file_ref = FileRef::find($file_ref_id);
         if (!$file_ref) {
             PageLayout::postError(_('Dateireferenz nicht gefunden!'));
@@ -165,7 +164,7 @@ class FileController extends AuthenticatedController
         $this->folder_id = $file_ref->folder_id;
         $this->description = $file_ref->description;
         $this->file_ref = $file_ref;
-        
+
         if ($perm->have_perm('root')) {
             $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                 "FROM Institute " .
@@ -175,13 +174,13 @@ class FileController extends AuthenticatedController
                 "OR Institute.email LIKE :input " .
                 "OR range_tree.name LIKE :input " .
                 "ORDER BY Institute.Name";
-            
+
             $parameters = array(
                 'semtypes' => studygroup_sem_types() ?: array(),
                 'exclude' => array()
             );
         } else {
-            
+
             $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                 "FROM Institute " .
                 "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
@@ -192,18 +191,18 @@ class FileController extends AuthenticatedController
                 "OR Institute.email LIKE :input " .
                 "OR range_tree.name LIKE :input " .
                 "ORDER BY Institute.Name";
-            
-            
+
+
             $parameters = array(
                 'userid' => $user->id,
                 'semtypes' => studygroup_sem_types() ?: array(),
                 'exclude' => array()
             );
         }
-        
+
         $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
         $instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
-        
+
         $this->search = QuickSearch::get('course_id', $coursesearch)
             ->setInputStyle('width:100%')
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
@@ -214,11 +213,11 @@ class FileController extends AuthenticatedController
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
             ->withButton()
             ->render();
-        
+
     }
-    
-    
-    
+
+
+
     /**
      * The action for editing a file reference.
      */
@@ -239,15 +238,15 @@ class FileController extends AuthenticatedController
                 PageLayout::postError(_('Die zu bearbeitende Datei wurde nicht gefunden!'));
             }
         }
-        
+
         $this->content_terms_of_use_entries = ContentTermsOfUse::findBySql('TRUE');
-        
+
         if (Request::submitted('save')) {
             //form was sent
             $this->name = Request::get('name');
             $this->description = Request::get('description');
             $this->content_terms_of_use_id = Request::get('content_terms_of_use_id');
-            
+
             $errors = FileManager::editFileRef($file_ref, User::findCurrent(), $this->name, $this->description, $this->content_terms_of_use_id, $this->license);
             if (empty($errors)) {
                 $this->redirectToFolder(
@@ -267,14 +266,14 @@ class FileController extends AuthenticatedController
             $this->license = $file_ref->license;
         }
     }
-    
-    
+
+
     public function link_action($fileId)
     {
         $targetFolderId = Request::get('folderId');
         $description = Request::get('description', '');
         $license = Request::get('license', 'UnknownLicense');
-        
+
         if($fileId && $targetFolderId) {
             $folder = Folder::find($folderId);
             if($folder) {
@@ -288,44 +287,44 @@ class FileController extends AuthenticatedController
             //file-ID and folder-ID not given: can't build link
         }
     }
-    
-    
+
+
     /**
      * This action handles copying file references to another folder.
      */
     public function copy_action($file_ref_id)
     {
         $destination_folder_id = Request::get('destinationId');
-        
+
         if(!$file_ref_id) {
             PageLayout::postError(_('Datei-ID nicht gesetzt!'));
             return;
         }
-        
+
         $this->file_ref = FileRef::find($file_ref_id);
         if(!$this->file_ref) {
             PageLayout::postError(_('Datei nicht gefunden!'));
             return;
         }
-        
+
         if($destination_folder_id) {
             //form was sent
             $destination_folder = Folder::find($destination_folder_id);
-            
+
             if(!$destination_folder) {
                 PageLayout::postError(_('Zielordner nicht gefunden!'));
                 return;
             }
-            
+
             $this->destination_folder = $destination_folder->getTypedFolder();
             if(!$this->destination_folder) {
                 PageLayout::postError(_('Ordnertyp des Zielordners konnte nicht ermittelt werden!'));
                 return;
             }
-            
-            
+
+
             $errors = FileManager::copyFileRef($this->file_ref, $this->destination_folder, User::findCurrent());
-            
+
             if(empty($errors)) {
                 PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
                 } else {
@@ -333,8 +332,8 @@ class FileController extends AuthenticatedController
             }
         }
     }
-    
-    
+
+
     /**
      * The action for moving a file reference.
      */
@@ -343,62 +342,62 @@ class FileController extends AuthenticatedController
 
         global $perm;
         $user = User::findCurrent();
-        
+
         $this->copymode = Request::get("copymode", 'move');
-        
+
         if (Request::submitted("do_move")) {
-        
+
             $folder_id = Request::get('dest_folder');
-            
+
             if($file_ref_id && $folder_id) {
-                
-                $file_ref = FileRef::find($file_ref_id);                
+
+                $file_ref = FileRef::find($file_ref_id);
                 $source_folder = Folder::find($file_ref->folder_id);
                 $destination_folder = Folder::find($folder_id);
-                
+
                 if(!$destination_folder) {
                 PageLayout::postError(_('Zielordner nicht gefunden!'));
                 return;
                 }
-                
+
                 $destination_folder = $destination_folder->getTypedFolder();
                 if(!$destination_folder) {
                     PageLayout::postError(_('Ordnertyp des Zielordners konnte nicht ermittelt werden!'));
                     return;
                 }
-                
+
                 if($source_folder && $destination_folder) {
-                    
+
                     $errors = [];
-                    
-                    
-                    
+
+
+
                     if($this->copymode == 'move') {
                         $errors = FileManager::moveFileRef($file_ref, $destination_folder, $user);
-                        
-                        if(empty($errors)){   
+
+                        if(empty($errors)){
                             PageLayout::postSuccess(_('Die Datei wurde verschoben.'));
                         } else {
                             PageLayout::postError(_('Fehler beim Verschieben der Datei.'), $errors);
                         }
                     } else {
                         $errors = FileManager::copyFileRef($file_ref, $destination_folder, $user);
-                        
-                        if(empty($errors)){   
+
+                        if(empty($errors)){
                             PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
                         } else {
                             PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
                         }
                     }
-                    
-                    
+
+
                     $dest_range = $destination_folder->range_id;
-                    
+
                     switch ($destination_folder->range_type) {
                         case 'course':
                             return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));
                         case 'institute':
-                            return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$folder_id. '?cid=' . $dest_range));                            
+                            return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$folder_id. '?cid=' . $dest_range));
                         case 'user':
                             return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$folder_id));
                         default:
@@ -406,11 +405,11 @@ class FileController extends AuthenticatedController
                     }
                 }
             }
-            
+
         } else {
-            
-            
-            
+
+
+
             if ($perm->have_perm('root')) {
                 $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                     "FROM Institute " .
@@ -420,16 +419,16 @@ class FileController extends AuthenticatedController
                     "OR Institute.email LIKE :input " .
                     "OR range_tree.name LIKE :input " .
                     "ORDER BY Institute.Name";
-                
+
                 $parameters = array(
                     'semtypes' => studygroup_sem_types() ?: array(),
                     'exclude' => array()
                 );
-                
-                
+
+
             /*} else if ($perm->have_perm('admin')) {
-                
-                
+
+
                 $parameters = array(
                     'semtypes' => studygroup_sem_types() ?: array(),
                     'institutes' => array_map(function ($i) {
@@ -439,7 +438,7 @@ class FileController extends AuthenticatedController
                     );
             */
             } else {
-                
+
                 $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                     "FROM Institute " .
                     "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
@@ -450,15 +449,15 @@ class FileController extends AuthenticatedController
                     "OR Institute.email LIKE :input " .
                     "OR range_tree.name LIKE :input " .
                     "ORDER BY Institute.Name";
-                
-                
+
+
                 $parameters = array(
                     'userid' => $user->id,
                     'semtypes' => studygroup_sem_types() ?: array(),
                     'exclude' => array()
                 );
             }
-            
+
             $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
             //$instsearch = StandardSearch::get('Institut_id');
             $instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
@@ -472,19 +471,19 @@ class FileController extends AuthenticatedController
             ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
             ->withButton()
             ->render();
-            
+
             $this->user_id = $user->id;
             $this->file_ref = $file_ref_id;
         }
     }
-    
-    
+
+
     public function copy_files_window_action($fileref_id)
     {
         $this->fileref_id = $fileref_id;
         $this->plugin = Request::get("to_plugin");
     }
-    
+
     public function choose_folder_from_course_action()
     {
         if (Request::get("course_id")) {
@@ -496,7 +495,7 @@ class FileController extends AuthenticatedController
             )));
         }
 
-        
+
         $this->plugin = Request::get("to_plugin");
         if (!$GLOBALS['perm']->have_perm("admin")) {
             $statement = DBManager::get()->prepare("
@@ -513,10 +512,10 @@ class FileController extends AuthenticatedController
             }
         }
     }
-    
+
     public function choose_folder_from_institute_action()
     {
-        if (Request::get("Institut_id")) {            
+        if (Request::get("Institut_id")) {
             $folder = Folder::findTopFolder(Request::get("Institut_id"));
             header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
                     'to_plugin' => Request::get("to_plugin"),
@@ -524,7 +523,7 @@ class FileController extends AuthenticatedController
                     'copymode' => Request::get("copymode")
             )));
         }
-        
+
         if ($GLOBALS['perm']->have_perm('root')) {
             $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                     "FROM Institute " .
@@ -533,12 +532,12 @@ class FileController extends AuthenticatedController
                     "OR Institute.Strasse LIKE :input " .
                     "OR Institute.email LIKE :input " .
                     "OR range_tree.name LIKE :input " .
-                    "ORDER BY Institute.Name";        
+                    "ORDER BY Institute.Name";
             $parameters = array(
                     'semtypes' => studygroup_sem_types() ?: array(),
                     'exclude' => array()
             );
-        } else {        
+        } else {
             $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                     "FROM Institute " .
                     "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
@@ -554,9 +553,9 @@ class FileController extends AuthenticatedController
                     'semtypes' => studygroup_sem_types() ?: array(),
                     'exclude' => array()
             );
-        }        
+        }
         $this->instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
-        
+
         $this->plugin = Request::get("to_plugin");
         /*if (!$GLOBALS['perm']->have_perm("admin")) {
             $statement = DBManager::get()->prepare("
@@ -572,9 +571,9 @@ class FileController extends AuthenticatedController
                 $this->courses[] = Course::buildExisting($coursedata);
             }
         }*/
-        
+
     }
-    
+
     public function choose_folder_action($folder_id = null)
     {
         /*
@@ -585,10 +584,10 @@ class FileController extends AuthenticatedController
             $folder = new Folder(Request::option("to_folder_id"));
             $this->to_folder_type = new StandardFolder($folder);
         }*/
-        
+
         if (Request::isPost()) {
             //copy
-            
+
             if (Request::get("plugin")) {
                 $plugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
                 //$file = $plugin->getPreparedFile(Request::get("file_id"));
@@ -596,7 +595,7 @@ class FileController extends AuthenticatedController
                 $folder = new Folder($folder_id);
                 $this->to_folder_type = new StandardFolder($folder);
             }
-            
+
             $error = false;//$this->to_folder_type->validateUpload($file, $GLOBALS['user']->id);
             if (!$error) {
                 //do the copy
@@ -613,7 +612,7 @@ class FileController extends AuthenticatedController
                         $this->current_folder = $this->to_folder_type;
                         $this->marked_element_ids = array();
                         $payload = $this->render_template_as_string("files/_fileref_tr");
-    
+
                         $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
                         $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
                         $this->render_nothing();
@@ -621,35 +620,35 @@ class FileController extends AuthenticatedController
                         $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
                     }
                 }*/
-                
+
                 $file_ref_id = Request::get("fileref_id");
 
                 if($file_ref_id && $folder) {
-                
+
                     $file_ref = FileRef::find($file_ref_id);
                     $source_folder = Folder::find($file_ref->folder_id);
                     $destination_folder = $folder;
                     $user = User::findCurrent();
-                
+
                     if($source_folder && $destination_folder) {
-                
+
                         $errors = [];
-                
+
                         if (Request::get("copymode", 'move') == 'move') {
                             $errors = FileManager::moveFileRef($file_ref, $destination_folder->getTypedFolder(), $user);
                         } else {
                             $errors = FileManager::copyFileRef($file_ref, $destination_folder->getTypedFolder(), $user);
                         }
-                
+
                         if(empty($errors)){
                             PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
                         } else {
                             PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
                         }
-                
-                
+
+
                         $dest_range = $destination_folder->range_id;
-                
+
                         switch ($destination_folder->range_type) {
                             case 'course':
                                 return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));
@@ -662,7 +661,7 @@ class FileController extends AuthenticatedController
                         }
                     }
                 }
-                
+
             } else {
                 PageLayout::postMessage(MessageBox::error(_("Konnte die Datei nicht hinzufügen.", array($error))));
             }
@@ -686,10 +685,10 @@ class FileController extends AuthenticatedController
             }
         }
     }
-    
+
     public function getFolders_action()
     {
-        $rangeId = Request::get("range");        
+        $rangeId = Request::get("range");
         $folders = Folder::findBySQL("range_id=?", array($rangeId));
         $folderray = array();
         $pathes = array();
@@ -698,7 +697,7 @@ class FileController extends AuthenticatedController
             $folderray[][$folder->getPath()] = $folder->id;
         }
         array_multisort($pathes, SORT_ASC, SORT_STRING, $folderray);
-        
+
         if (Request::isAjax()) {
             echo json_encode($folderray);
             die();
@@ -706,15 +705,15 @@ class FileController extends AuthenticatedController
             $this->render_nothing();
         }
     }
-    
-    
+
+
     /**
      * The action for deleting a file reference.
      */
     public function delete_action($file_ref_id)
     {
         $folder = null;
-        
+
         if($file_ref_id) {
             $file_ref = FileRef::find($file_ref_id);
             if($file_ref) {

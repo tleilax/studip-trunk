@@ -276,8 +276,10 @@ class FilesController extends AuthenticatedController
 
     public function add_url_action($folder_id)
     {
-        $this->top_folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
-        if (!$this->top_folder->isWritable($GLOBALS['user']->id)) {
+        $this->top_folder = FileManager::getTypedFolder(Request::option('to_folder_id'), Request::get("to_plugin"));
+        URLHelper::addLinkParam('to_folder_id', Request::option('to_folder_id'));
+        URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
+        if (!$this->top_folder || !$this->top_folder->isWritable($GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
         if (Request::submitted('store')) {

@@ -80,7 +80,7 @@ class FileRef extends SimpleORMap
 
     public function cbMakeUniqueFilename()
     {
-        if (isset($this->folder)) {
+        if (isset($this->folder) && $this->isFieldDirty('name')) {
             $this->name = $this->folder->getUniqueName($this->name);
         }
     }

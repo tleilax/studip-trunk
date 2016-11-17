@@ -150,7 +150,7 @@ class Folder extends SimpleORMap
 
     public function cbMakeUniqueName()
     {
-        if (isset($this->parentfolder)) {
+        if (isset($this->parentfolder) && $this->isFieldDirty('name')) {
             $this->name = $this->parentfolder->getUniqueName($this->name);
         }
     }
@@ -287,31 +287,23 @@ class Folder extends SimpleORMap
      * Furthermore license information can be stored via the $license parameter.
      *
      * @param File|string $file_or_id Either a file object or a string containing a File object's ID.
-     * @param string $description The description for the file that shall be used in the FileRef object.
-     * @param string $license A string describing a license, defaults to "UnknownLicense".
-     *
-     * @return FileRef|null On success a FileRef for the given file is returned. On failrue, null is returned.
+     * @param array $file_ref_data The description for the file that shall be used in the FileRef object.
+     * @return FileRef|null On success a FileRef for the given file is returned. On failure, null is returned.
      */
-    public function linkFile($file_or_id, $description = '', $license = 'UnknownLicense')
+    public function linkFile($file_or_id, $file_ref_data = [])
     {
-        if(!$file_or_id) {
-            //empty string or something else that validates to false!
-            return null;
-        }
-
         $file = File::toObject($file_or_id);
-        if(!$file) {
+        if (!$file) {
             //file object wasn't found!
             return null;
         }
 
         $ref = new FileRef();
-        $ref->file_id = $file->id;
-        $ref->folder = $this;
         $ref->name = $file->name;
         $ref->user_id = $file->user_id;
-        $ref->description = $description;
-        $ref->license = $license;
+        $ref->setData($file_ref_data);
+        $ref->file_id = $file->id;
+        $ref->folder = $this;
         if ($ref->store()) {
             return $ref;
         } else {

@@ -9,6 +9,7 @@ if (Request::get("to_folder_id")) {
 if ($folder_id) {
     $options['to_folder_id'] = $folder_id;
 }
+
 ?>
 <div class="files_source_selector" data-folder_id="<?= htmlReady($folder_id) ?>"<?= $hidden ? ' style="display: none;"' : "" ?>>
     <?= _("Quelle auswählen") ?>
