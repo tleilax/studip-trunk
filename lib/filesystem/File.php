@@ -44,7 +44,9 @@ class File extends SimpleORMap
             'assoc_foreign_key' => 'file_id',
         );
         $config['has_one']['file_url'] = array(
-            'class_name'  => 'FileURL'
+            'class_name'  => 'FileURL',
+            'on_store' => "store",
+            'on_delete' => 'delete'
         );
         $config['additional_fields']['extension'] = true;
         $config['additional_fields']['path'] = true;
@@ -82,13 +84,14 @@ class File extends SimpleORMap
         return $this->storage == 'url' && isset($this->file_url) ? $this->file_url->access_type : null;
     }
 
-    public function setURLAccessType($type)
+    public function setURLAccessType($attribute, $value)
     {
         $this->storage = 'url';
         if (!isset($this->file_url)) {
             $this->file_url = new FileURL;
         }
-        return $this->file_url->access_type = $type;
+        $this->file_url->access_type = $value;
+        return;
     }
 
     /**

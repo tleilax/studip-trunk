@@ -196,8 +196,6 @@ class FilesController extends AuthenticatedController
                 if (!$file['tmp_path'] && $file['url']) {
                     $fileobject = new File();
                     $fileobject->url = $file['url'];
-                    //$fileobject->file_url = new FileURL();
-                    //$fileobject->file_url['url'] = $file['url'];
                     $fileobject->url_access_type = $file['url_access_type'] ?: "redirect";
                     $fileobject->name = $file['name'];
                     $meta = FileManager::fetchURLMetadata($file['url']);
