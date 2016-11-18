@@ -193,6 +193,25 @@ class FilesController extends AuthenticatedController
             if (Request::get("plugin")) {
                 $plugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
                 $file = $plugin->getPreparedFile(Request::get("file_id"));
+                if (!$file['tmp_path'] && $file['url']) {
+                    $fileobject = new File();
+                    $fileobject->url = $file['url'];
+                    //$fileobject->file_url = new FileURL();
+                    //$fileobject->file_url['url'] = $file['url'];
+                    $fileobject->url_access_type = $file['url_access_type'] ?: "redirect";
+                    $fileobject->name = $file['name'];
+                    if (!$fileobject->name) {
+                        $meta = FileManager::fetchURLMetadata($file['url']);
+                        if ($meta['response_code'] === 200) {
+                            $fileobject->name = $meta['filename'] ?: 'unknown';
+                            $fileobject->mime_type = strstr($meta['Content-Type'], ';', true);
+                            $fileobject->size = $meta['Content-Length'];
+                        }
+                    } else {
+                        $fileobject->mime_type = get_mime_type($file->name);
+                    }
+                    $file = $fileobject;
+                }
             } else {
                 $file = FileRef::find(Request::get("file_id"))->file;
             }

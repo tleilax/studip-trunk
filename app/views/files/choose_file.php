@@ -17,7 +17,7 @@ if (Request::get("to_folder_id")) {
 ?>
 
 <? if ($filesystemplugin && $filesystemplugin->hasSearch()) : ?>
-    <form action="<?= $controller->url_for('/choose_file/' . $top_folder->parent_id) ?>" method="get" class="default" data-dialog style="margin-bottom: 50px;">
+    <form action="<?= $controller->url_for('/choose_file/' . $top_folder->parent_id) ?>" method="get" class="default" data-dialog style="margin-bottom: 50px;" id="file_search">
         <? foreach ($options as $key => $value) : ?>
             <input type="hidden" name="<?= htmlReady($key) ?>" value="<?= htmlReady($value) ?>">
         <? endforeach ?>
@@ -154,5 +154,8 @@ if (Request::get("to_plugin")) {
 }
 ?>
 <div data-dialog-button>
-    <?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/add_files_window/' . Request::get("to_folder_id"), $options), array('data-dialog' => 1)) ?>
+    <?= \Studip\LinkButton::create(_("Zurück"), $controller->url_for('/add_files_window/' . Request::get("to_folder_id"), $options), array('data-dialog' => 1)) ?>
+    <? if ($filesystemplugin && $filesystemplugin->hasSearch()) : ?>
+        <?= \Studip\Button::create(_("Suche starten"), "startsearch", array('form' => "file_search")) ?>
+    <? endif ?>
 </div>
