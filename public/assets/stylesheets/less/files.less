@@ -62,9 +62,24 @@
         left: -9999px;
     }
     
+    label {
+        font-size:70%;
+        
+        img {
+            width:40%;
+            height:40%;
+            display:block;
+        }
+    }
     
-    input[name=content_terms_of_use_id]:checked ~ label {
-        background-color: blue;
+    
+    input[name=content_terms_of_use_id]:checked + label {
+        background-color: @brand-color-darker;
+        color: @contrast-content-white;
+        
+        img {
+            filter: invert(100%) brightness(200%);
+        }
     }
     
 }
