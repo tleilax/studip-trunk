@@ -7,7 +7,7 @@
     </td>
     <td class="document-icon" data-sort-value="1">
         <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
-        <a href="<?= $file_ref->download_url ?>">
+        <a href="<?= $file_ref->download_url ?>" target="_blank">
             <?= Icon::create(get_icon_for_mimetype($file_ref->mime_type), 'clickable')->asImg(24) ?>
         </a>
         <? else : ?>
@@ -16,7 +16,7 @@
     </td>
     <td data-sort-value="<?= htmlReady($file_ref->name) ?>">
         <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
-        <a href="<?= htmlReady($file_ref->download_url) ?>">
+        <a href="<?= htmlReady($file_ref->download_url) ?>" target="_blank">
             <?= htmlReady($file_ref->name) ?>
         </a>
         <? else : ?>
@@ -32,7 +32,11 @@
         <? endif; ?>
     </td>
     <td title="<?= number_format($file_ref->size, 0, ',', '.') . ' Byte' ?>" data-sort-value="<?= $file_ref->size ?>" class="responsive-hidden">
-        <?= relSize($file_ref->size, false) ?>
+        <? if ($file_ref->file->storage === "url" && $file_ref->file->mime_type === "text/html") : ?>
+            <?= _("Weblink") ?>
+        <? else : ?>
+            <?= relSize($file_ref->size, false) ?>
+        <? endif ?>
     </td>
     <td data-sort-value="<?= htmlReady($file_ref->author_name) ?>" class="responsive-hidden">
         <? if ($file_ref->user_id !== $GLOBALS['user']->id && $file_ref->owner): ?>
