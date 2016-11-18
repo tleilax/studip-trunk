@@ -200,15 +200,13 @@ class FilesController extends AuthenticatedController
                     //$fileobject->file_url['url'] = $file['url'];
                     $fileobject->url_access_type = $file['url_access_type'] ?: "redirect";
                     $fileobject->name = $file['name'];
-                    if (!$fileobject->name) {
-                        $meta = FileManager::fetchURLMetadata($file['url']);
-                        if ($meta['response_code'] === 200) {
+                    $meta = FileManager::fetchURLMetadata($file['url']);
+                    if ($meta['response_code'] === 200) {
+                        if (!$fileobject->name) {
                             $fileobject->name = $meta['filename'] ?: 'unknown';
-                            $fileobject->mime_type = strstr($meta['Content-Type'], ';', true);
-                            $fileobject->size = $meta['Content-Length'];
                         }
-                    } else {
-                        $fileobject->mime_type = get_mime_type($file->name);
+                        $fileobject->mime_type = strstr($meta['Content-Type'], ';', true);
+                        $fileobject->size = $meta['Content-Length'];
                     }
                     $file = $fileobject;
                 }
