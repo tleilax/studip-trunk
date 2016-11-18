@@ -102,6 +102,13 @@ class Moadb extends Migration
             ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;"
         );
 
+        //changes to message table:
+        $db->exec(
+            "ALTER TABLE message
+            ADD COLUMN has_attachments TINYINT(1) NOT NULL DEFAULT '0';"
+        );
+        
+        
         //default terms of use entries:
         $db->exec(
             "INSERT INTO content_terms_of_use_entries (`id`, `name`, `internal_name`, `description`, `download_condition`, `icon`)
@@ -179,9 +186,60 @@ class Moadb extends Migration
             $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
             $this->migrateFolder($folder, $folder['seminar_id'], 'coursetopic', 'CourseTopicFolder');
         }
+        
+        
+        //migrate message attachments:
+        $this->migrateMessageAttachments();
+        
 
     }
-
+    
+    
+    
+    
+    public function migrateMessageAttachments()
+    {
+        //first we retrieve all message-IDs:
+        $message_rows = $db->query("SELECT * FROM message;");
+        
+        foreach($message_rows as $message_row) {
+            //now we loop through each message ID and check if there are
+            //files in the dokumente table with that range-ID:
+            $message_id = $message_row['message_id'];
+            
+            $attachment_rows = $db->query(
+                "SELECT * FROM dokumente WHERE range_id = :range_id",
+                [
+                    'range_id' => $message_id
+                ]
+            );
+            
+            if(!empty($attachment_rows)) {
+                //we found at least one attachment: create a top folder for this message:
+                $insert_folder = $db->prepare("INSERT INTO `folders` (`id`, `user_id`, `parent_id`, `range_id`, `range_type`, `folder_type`, `name`, `data_content`, `description`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                
+                $folder_id = md5($message_id . '_attachments');
+                
+                $insert_folder->execute([
+                    $folder_id,
+                    $message_row['autor_id'],
+                    null,
+                    $message_id,
+                    'message',
+                    'MessageFolder',
+                    $message_row['subject'],
+                    '',
+                    '',
+                    $message_row['mkdate'],
+                    $message_row['mkdate']
+                ]);
+                
+                $this->migrateFiles($attachment_rows, $folder_id);
+            }
+        }
+    }
+    
+    
     public function migrateFolder($folder, $range_id, $range_type, $folder_type)
     {
         $db = DBManager::get();

@@ -22,6 +22,7 @@
  * @property string priority database column
  * @property SimpleORMapCollection receivers has_many MessageUser
  * @property SimpleORMapCollection attachments has_many StudipDocument
+ * @property string has_attachments database column: boolean: true, if the message has attachments
  * @property User author has_one User
  * @property MessageUser originator has_one MessageUser
  */

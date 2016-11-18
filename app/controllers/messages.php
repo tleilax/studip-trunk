@@ -6,6 +6,9 @@
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
+ * 
+ * @author Stud.IP developers
+ * @author Moritz Strohm <strohm@data-quest.de>
  */
 
 require_once 'lib/statusgruppe.inc.php';
@@ -125,6 +128,16 @@ class MessagesController extends AuthenticatedController {
             throw new AccessDeniedException();
         }
 
+        //check, if the message has files attached to it:
+        if($this->message->has_attachments) {
+            //ok, attachments are present: load the message's top folder:
+            $this->attachment_folder = Folder::findTopFolder($this->message->id);
+            if($this->attachment_folder) {
+                $this->attachment_folder = $this->attachment_folder->getTypedFolder();
+            }
+        }
+        
+        
         PageLayout::setTitle(_('Betreff') . ': ' . $this->message['subject']);
 
         if ($this->message['autor_id'] === $GLOBALS['user']->id) {
