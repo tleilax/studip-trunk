@@ -51,7 +51,7 @@ class File extends SimpleORMap
         $config['additional_fields']['extension'] = true;
         $config['additional_fields']['path'] = true;
         $config['additional_fields']['url'] = true;
-        $config['additional_fields']['url_access_type'] = ['get' => 'getURLAccessType', 'set' => 'setURLAccessType'];
+        $config['additional_fields']['url_access_type'] = true;
 
         $config['registered_callbacks']['after_delete'][] = 'deleteDataFile';
         $config['registered_callbacks']['before_create'][] = 'cbSetAuthor';
@@ -79,19 +79,18 @@ class File extends SimpleORMap
         return $this->file_url->url = $url;
     }
 
-    public function getURLAccessType()
+    public function getURL_access_type()
     {
         return $this->storage == 'url' && isset($this->file_url) ? $this->file_url->access_type : null;
     }
 
-    public function setURLAccessType($attribute, $value)
+    public function setURL_access_type($value)
     {
         $this->storage = 'url';
         if (!isset($this->file_url)) {
             $this->file_url = new FileURL;
         }
-        $this->file_url->access_type = $value;
-        return;
+        return $this->file_url->access_type = $value;
     }
 
     /**
