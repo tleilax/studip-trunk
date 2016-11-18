@@ -123,31 +123,6 @@ class FileController extends AuthenticatedController
     }
 
 
-    public function download_action($file_id)
-    {
-        if($file_id) {
-            $file = File::find($file_id);
-            if($file) {
-                $dataPath = $file->getPath();
-
-                //STUB! Change this to support big files!
-                $data = file_get_contents($dataPath);
-
-                if($file->mime_type) {
-                    $this->set_content_type($file->mime_type);
-                }
-
-                //TODO: send data
-
-            } else {
-                //send 404 not found
-            }
-        } else {
-            //send 400 bad request
-        }
-    }
-
-
     /**
      * This is a one-in-all action that handles editing, copying, moving
      * and deleting a file, referenced by its file reference ID.
