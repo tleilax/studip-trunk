@@ -70,6 +70,8 @@ STUDIP.Files = {
                         STUDIP.Dialog.fromURL(json.redirect, {
                             title: 'Lizenz auswählen'.toLocaleString()
                         });
+                    } else if (json.message) {
+                        jQuery(".uploadbar").hide().parent().append(json.message);
                     } else {
                         jQuery.each(json.new_html, function (index, tr) {
                             STUDIP.Files.addFile(tr, index * 200);

@@ -20,11 +20,17 @@
 class FileController extends AuthenticatedController
 {
 
+    public function before_filter(&$action, &$args)
+    {
+        $this->utf8decode_xhr = true;
+        parent::before_filter($action, $args);
+    }
+
     /**
      * This is a helper method that decides where a redirect shall be made
      * in case of error or success after an action was executed.
      */
-    private function redirectToFolder(Folder $folder, $message = null)
+    private function redirectToFolder($folder, $message = null)
     {
         if ($message instanceof MessageBox) {
             if(Request::isDialog()) {
@@ -34,7 +40,6 @@ class FileController extends AuthenticatedController
             }
         }
 
-        if (!Request::isDialog()) {
             //we only need to redirect when we're not in a dialog!
 
             $dest_range = $folder->range_id;
@@ -42,45 +47,40 @@ class FileController extends AuthenticatedController
             switch ($folder->range_type) {
                 case 'course':
                 case 'institute':
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id . '?cid=' . $dest_range));
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/' . $folder->range_type . '/files/index/' . $folder->id . '?cid=' . $dest_range));
                 case 'user':
                     return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $folder->id));
-                default:
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $folder->id));
-            }
         }
     }
 
 
     public function upload_action($folder_id)
     {
-        if (Request::isPost() && is_array($_FILES)) {
-
-            $folder = Folder::find($folder_id);
-            if(!$folder) {
-                PageLayout::postError(
-                    _('Zielordner für Dateiupload nicht gefunden!')
-                );
-                return;
-            }
-
+        $folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
+        URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
+        if (!$folder || !$folder->isWritable($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
+        }
+        if (Request::isPost() && is_array($_FILES['file'])) {
             //CSRFProtection::verifyUnsafeRequest();
             $validatedFiles = FileManager::handleFileUpload(
-                $_FILES['file'],
-                $folder->getTypedFolder(),
+                Request::isXhr() ? studip_utf8decode($_FILES['file']) : $_FILES['file'],
+                $folder,
                 $GLOBALS['user']->id
             );
 
             if (count($validatedFiles['error'])) {
                 //error during upload: display error message:
-                PageLayout::postError(
-                    _('Beim Upload ist ein Fehler aufgetreten '),
-                    array_map('htmlready', $validatedFiles['error'])
-                );
+               $this->render_json(['message' => MessageBox::error(
+                   _('Beim Upload ist ein Fehler aufgetreten '),
+                   array_map('htmlready', $validatedFiles['error'])
+               )]);
+
+                return;
             } else {
                 //all files were uploaded successfully:
                 foreach($validatedFiles['files'] as $file) {
-                    if ($file->store() && ($fileref = $folder->linkFile($file, Request::get('description', "")))) {
+                    if ($file->store() && ($fileref = $folder->createFile($file))) {
                         $storedFiles[] = $fileref;
                     }
                 }
@@ -98,7 +98,7 @@ class FileController extends AuthenticatedController
                     $output = array(
                         "new_html" => array()
                     );
-                    if (in_array($folder['range_type'], array("course", "institute"))) {
+                    if (in_array($folder->range_type, array("course", "institute"))) {
                         $ref_ids = array();
                         foreach ($storedFiles as $file_ref) {
                             $ref_ids[] = $file_ref->getId();
@@ -110,7 +110,7 @@ class FileController extends AuthenticatedController
 
                     foreach ($storedFiles as $fileref) {
                         $this->file_ref = $fileref;
-                        $this->current_folder = $folder->getTypedFolder();
+                        $this->current_folder = $folder;
                         $this->marked_element_ids = array();
                         $output['new_html'][] = $this->render_template_as_string("files/_fileref_tr");
                     }
