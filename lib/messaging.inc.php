@@ -284,8 +284,6 @@ class messaging
             restoreLanguage();
         }
 
-        $message_has_attachments = false;
-        
         // Setzen der Message-ID als Range_ID für angehängte Dateien
         if (isset($this->provisonal_attachment_id) && $GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
             $attachment_folder = MessageFolder::findMessageTopFolder($this->provisonal_attachment_id, $user_id);
@@ -294,7 +292,6 @@ class messaging
                 $attachment_folder->range_id = $tmp_message_id;
                 $attachment_folder->description = $subject;
                 $attachment_folder->store();
-                $message_has_attachments = true;
             }
         }
 
