@@ -50,7 +50,7 @@ class MessageFolder implements FolderType
      */
     static public function findMessageTopFolder($message_id = null, $user_id = null)
     {
-        if(!$message_id or !$user_id) {
+        if(!$message_id) {
             //if no message-ID or no user-ID is given we can't look for a top folder!
             return null;
         }
@@ -60,6 +60,10 @@ class MessageFolder implements FolderType
         
         //check if that was successful:
         if(!$folder) {
+            if(!$user_id) {
+                //we need the user-ID to create a new top folder!
+                return null;
+            }
             //no, it wasn't successful: create the folder manually
             $folder = new Folder();
             $folder->user_id = $user_id;
@@ -70,6 +74,29 @@ class MessageFolder implements FolderType
         }
         
         return new MessageFolder($folder);
+    }
+    
+    
+    static public function getNumMessageAttachments($message_id = null)
+    {
+        if(!$message_id) {
+            return 0;
+        }
+        
+        $message_top_folder = self::findMessageTopFolder($message_id);
+        if(!$message_top_folder) {
+            return 0;
+        }
+        
+        //return the amount of file references that are logically inside the
+        //top folder. This is the amount of message attachments.
+        
+        return FileRef::countBySql(
+            'folder_id = :folder_id',
+            [
+                'folder_id' => $message_top_folder->id
+            ]
+        );
     }
     
     
@@ -193,18 +220,37 @@ class MessageFolder implements FolderType
         //and the message's topic is displayed as the top folder's name.
         //Therefore it doesn't make any sense to change the folder name, too.
         
+        $data_changed = false;
+        
         if($this->folder) {
             if(array_key_exists('parent_id', $edit_template)) {
-                $this->folder->parent_id = $edit_template['parent_id'];
+                if($edit_template['parent_id'] && 
+                    $this->folder->parent_id != $edit_template['parent_id']) {
+                    $data_changed = true;
+                    $this->folder->parent_id = $edit_template['parent_id'];
+                }
             }
             
             if(array_key_exists('range_id', $edit_template)) {
-                $this->folder->range_id = $edit_template['range_id'];
+                if($edit_template['range_id'] &&
+                    $this->folder->range_id != $edit_template['range_id']) {
+                    $data_changed = true;
+                    $this->folder->range_id = $edit_template['range_id'];
+                }
             }
             
             
             if(array_key_exists('description', $edit_template)) {
-                $this->folder->description = $edit_template['description'];
+                //description is optional so it can be empty.
+                if($this->folder->description != $edit_template['description']) {
+                    $data_changed = true;
+                    $this->folder->description = $edit_template['description'];
+                }
+            }
+            
+            if($data_changed) {
+                //we only want to store data if the folder data were changed:
+                $this->folder->store();
             }
         }
     }

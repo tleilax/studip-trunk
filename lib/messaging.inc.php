@@ -289,9 +289,10 @@ class messaging
             $attachment_folder = MessageFolder::findMessageTopFolder($this->provisonal_attachment_id, $user_id);
             
             if($attachment_folder) {
-                $attachment_folder->range_id = $tmp_message_id;
-                $attachment_folder->description = $subject;
-                $attachment_folder->store();
+                $folder_data = $attachment_folder->getEditTemplate();
+                $folder_data['range_id'] = $tmp_message_id;
+                $folder_data['description'] = $subject;
+                $attachment_folder->setDataFromEditTemplate($folder_data);
             }
         }
 
