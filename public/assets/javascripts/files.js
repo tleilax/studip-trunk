@@ -42,7 +42,7 @@ STUDIP.Files = {
         if (files > 0) {
             jQuery(".uploadbar").css("background-size", "0% 100%");
             jQuery.ajax({
-                'url': STUDIP.URLHelper("dispatch.php/file/upload/" + folder_id),
+                'url': STUDIP.URLHelper.getURL("dispatch.php/file/upload/" + folder_id),
                 'data': data,
                 'cache': false,
                 'contentType': false,
