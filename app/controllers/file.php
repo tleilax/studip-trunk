@@ -222,7 +222,7 @@ class FileController extends AuthenticatedController
             $this->description = Request::get('description');
             $this->content_terms_of_use_id = Request::get('content_terms_of_use_id');
 
-            $errors = FileManager::editFileRef($file_ref, User::findCurrent(), $this->name, $this->description, $this->content_terms_of_use_id, $this->license);
+            $errors = FileManager::editFileRef($file_ref, User::findCurrent(), $this->name, $this->description, $this->content_terms_of_use_id);
             if (empty($errors)) {
                 $this->redirectToFolder(
                     $file_ref->folder,
@@ -238,7 +238,6 @@ class FileController extends AuthenticatedController
             //load default data:
             $this->name = $file_ref->name;
             $this->description = $file_ref->description;
-            $this->license = $file_ref->license;
         }
     }
 
@@ -247,12 +246,11 @@ class FileController extends AuthenticatedController
     {
         $targetFolderId = Request::get('folderId');
         $description = Request::get('description', '');
-        $license = Request::get('license', 'UnknownLicense');
 
         if($fileId && $targetFolderId) {
             $folder = Folder::find($folderId);
             if($folder) {
-                $folder->linkFile($fileId, $description, $license);
+                $folder->linkFile($fileId, $description);
                 //maybe it is useful to redirect to the folder from here...
             } else {
                 //file or folder not found: can't link non-existing files

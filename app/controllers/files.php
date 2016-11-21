@@ -192,7 +192,7 @@ class FilesController extends AuthenticatedController
             //copy
             if (Request::get("plugin")) {
                 $plugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
-                $file = $plugin->getPreparedFile(Request::get("file_id"));
+                $filedata = $file = $plugin->getPreparedFile(Request::get("file_id"));
                 if (!$file['tmp_path'] && $file['url']) {
                     $fileobject = new File();
                     $fileobject->url = $file['url'];
@@ -216,6 +216,9 @@ class FilesController extends AuthenticatedController
             if (!$error) {
                 //do the copy
                 $file_ref = $this->to_folder_type->createFile($file);
+                if ($filedata['content_terms_of_use_id']) {
+                    $file_ref['content_terms_of_use_id'] = $filedata['content_terms_of_use_id'];
+                }
                 if (in_array($this->to_folder_type->range_type, array("course", "institute"))) {
                     header("Location: ". URLHelper::getURL("dispatch.php/files/edit_license", array(
                         'file_refs' => array($file_ref->getId())

@@ -56,7 +56,6 @@ class Moadb extends Migration
                  `folder_id` varchar(32) NOT NULL,
                  `downloads` int(10) unsigned NOT NULL DEFAULT 0,
                  `description` text NOT NULL,
-                 `license` varchar(255) NOT NULL,
                  `content_terms_of_use_id` varchar(32) NOT NULL,
                  `user_id` varchar(32) NOT NULL DEFAULT '',
                  `name` varchar(255) NOT NULL DEFAULT '',
@@ -94,7 +93,7 @@ class Moadb extends Migration
             "CREATE TABLE IF NOT EXISTS `content_terms_of_use_entries` (
             `id` VARCHAR(32) NOT NULL,
             `name` VARCHAR(255) NOT NULL,
-            `internal_name` VARCHAR(16) UNIQUE NOT NULL,
+            `position` int(10) unsigned NOT NULL,
             `description` TEXT NOT NULL,
             `download_condition` TINYINT(2) NOT NULL,
             `icon` VARCHAR(128) NULL,
@@ -104,16 +103,17 @@ class Moadb extends Migration
 
         
         //default terms of use entries:
-        $db->exec(
-            "INSERT INTO content_terms_of_use_entries (`id`, `name`, `internal_name`, `description`, `download_condition`, `icon`)
-            VALUES ('e3ce00626924b34cb945f8b9207e43fe', 'Dokument ist frei von Rechten Dritter', '3RD_PARTY_FALSE', '', '0', 'checkbox-checked'),
-            ('93739b2a33dc5d8602434067fbc7d4ac', 'Dokument ist nicht frei von Rechten Dritter', '3RD_PARTY_TRUE', '', '1', 'checkbox-unchecked'),
-            ('87f3194d604723e6ac529e7d7069f907', 'Selbst verfasstes, nicht publiziertes Werk', 'SELFMADE_NONPUB', '', '0', 'person'),
-            ('38c706dbb45afcb5ad73b54c07d04662', 'Werk mit freier Lizenz', 'FREE_LICENSE', '', '0', 'cc'),
-            ('ce7801c11c6eeed2e8b5253e46a22b01', 'Nutzungserlaubnis oder Lizenz liegt vor', 'WITH_LICENSE', '', '1', 'medal'),
-            ('f66fe78c95f721bdfc54c3002bb33bef', 'Abbildungen, Fotos, Filme, Musikstücke, Partituren', 'NON_TEXTUAL', '', '1', 'file-pic'),
-            ('1de7bd86120ddb26abb89e44d5103008', 'Publizierte Texte ohne erworbene Lizenz oder gesonderte Erlaubnis', 'PUB_NO_LICENSE', '', '2', 'literature'),
-            ('2093c5f3733697f297d2f530320b91f8', 'Ungeklärte Lizenz', 'UNDEF_LICENSE', '', '2', 'question-circle')");
+        $db->exec("
+            INSERT INTO content_terms_of_use_entries (`id`, `name`, `position`, `description`, `download_condition`, `icon`)
+            VALUES ('3RD_PARTY_FALSE', 'Dokument ist frei von Rechten Dritter', '0', '', '0', 'check-circle'),
+            ('3RD_PARTY_TRUE', 'Dokument ist nicht frei von Rechten Dritter', '1', '', '1', 'decline-circle'),
+            ('SELFMADE_NONPUB', 'Selbst verfasstes, nicht publiziertes Werk', '2', '', '0', 'own-license'),
+            ('FREE_LICENSE', 'Werk mit freier Lizenz', '3', '', '0', 'cc'),
+            ('WITH_LICENSE', 'Nutzungserlaubnis oder Lizenz liegt vor', '4', '', '1', 'license'),
+            ('NON_TEXTUAL', 'Abbildungen, Fotos, Filme, Musikstücke, Partituren', '5', '', '1', '52a'),
+            ('TEXT_NO_LICENSE', 'Publizierte Texte ohne erworbene Lizenz oder gesonderte Erlaubnis', '6', '', '2', '52a-stopp2'),
+            ('UNDEF_LICENSE', 'Ungeklärte Lizenz', '7', '', '2', 'question-circle')
+        ");
 
 
 
@@ -253,7 +253,7 @@ class Moadb extends Migration
     public function migrateFiles($files, $folder_id)
     {
         $db = DBManager::get();
-        $insert_file_ref = $db->prepare("INSERT INTO `file_refs` (`id`, `file_id`, `folder_id`, `downloads`, `description`, `license`, `user_id`, `name`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $insert_file_ref = $db->prepare("INSERT INTO `file_refs` (`id`, `file_id`, `folder_id`, `downloads`, `description`, `license`, `user_id`, `name`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insert_file = $db->prepare("INSERT INTO `files` (`id`, `user_id`, `mime_type`, `name`, `size`, `storage`, `author_name`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insert_file_url = $db->prepare("INSERT INTO `file_urls` (`file_id`, `url`) VALUES (?, ?)");
         $filenames = array();
@@ -270,7 +270,18 @@ class Moadb extends Migration
                 $filename = $name . '['.++$c.']' . ($ext ? '.' . $ext : '');
             }
             $filenames[] = $filename;
-            $insert_file_ref->execute(array($one['dokument_id'], $one['dokument_id'], $folder_id, $one['downloads'], $one['name'] != $one['filename'] ? trim($one['name'] . "\n" . $one['description']) : (string)$one['description'], $one['protected'] ? 'RestrictedLicense' : 'UnknownLicense', $one['user_id'], $filename, $one['mkdate'], $one['chdate']));
+            $insert_file_ref->execute(array(
+                $one['dokument_id'],
+                $one['dokument_id'],
+                $folder_id,
+                $one['downloads'],
+                $one['name'] != $one['filename'] ? trim($one['name'] . "\n" . $one['description']) : (string) $one['description'],
+                $one['protected'] ? 'RestrictedLicense' : 'UnknownLicense',
+                $one['user_id'],
+                $filename,
+                $one['mkdate'],
+                $one['chdate']
+            ));
             $insert_file->execute(array($one['dokument_id'], $one['user_id'], get_mime_type($one['filename']), $filename, $one['filesize'], $one['url'] ? 'url' : 'disk', $one['author_name'], $one['mkdate'], $one['chdate']));
             if ($one['url']) {
                 $insert_file_url->execute(array($one['dokument_id'], $one['url']));
