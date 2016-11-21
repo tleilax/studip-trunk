@@ -8,7 +8,7 @@
  * the License, or (at your option) any later version.
  * 
  * @author Stud.IP developers
- * @author Moritz Strohm <strohm@data-quest.de>
+ * @author Moritz Strohm <strohm@data-quest.de> (only code related to the new file area)
  */
 
 require_once 'lib/statusgruppe.inc.php';
@@ -304,9 +304,32 @@ class MessagesController extends AuthenticatedController {
                 } else {
                     $message .= $old_message['message'];
                 }
-                if (count($old_message->attachments)) {
-                    Request::set('message_id', $old_message->getNewId());
-                    foreach($old_message->attachments as $attachment) {
+                if ($old_message->getNumAttachments()) {
+                    $forwarded_message_id = $old_message->getNewId();
+                    Request::set('message_id', $forwarded_message_id);
+                    $old_attachment_folder = MessageFolder::findMessageTopFolder($message_id);
+                    
+                    if($old_attachment_folder) {
+                        $new_attachment_folder = MessageFolder::findMessageTopFolder($forwarded_message_id, $GLOBALS['user']->id);
+                        if($new_attachment_folder) {
+                            foreach($old_attachment_folder->getFiles() as $old_attachment) {
+                                $new_attachment = FileManager::copyFileRef(
+                                    $old_attachment,
+                                    $new_attachment_folder,
+                                    $GLOBALS['user']
+                                );
+                                $this->default_attachments[] = [
+                                    'icon' => GetFileIcon(
+                                        $new_attachment->file->getExtension()
+                                        )->asImg(['class' => "text-bottom"]),
+                                    'name' => $new_attachment->name,
+                                    'document_id' => $new_attachment->id,
+                                    'size' => relsize($new_attachment->file->size,false)
+                                ];
+                            }
+                        }
+                    
+                    /*
                         $attachment->range_id = 'provisional';
                         $attachment->seminar_id = $GLOBALS['user']->id;
                         $attachment->autor_host = $_SERVER['REMOTE_ADDR'];
@@ -314,11 +337,8 @@ class MessagesController extends AuthenticatedController {
                         $attachment->description = Request::option('message_id');
                         $new_attachment = $attachment->toArray(array('range_id', 'user_id', 'seminar_id', 'name', 'description', 'filename', 'filesize'));
                         $new_attachment = StudipDocument::createWithFile(get_upload_file_path($attachment->getId()), $new_attachment);
-                        $this->default_attachments[] = array('icon' => GetFileIcon(getFileExtension($new_attachment['filename']))->asImg(['class' => "text-bottom"]),
-                                                             'name' => $new_attachment['filename'],
-                                                             'document_id' => $new_attachment->id,
-                                                             'size' => relsize($new_attachment['filesize'],false));
-
+                    */
+                    
                     }
                 }
                 $this->default_message['subject'] = $messagesubject;

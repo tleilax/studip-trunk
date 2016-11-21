@@ -195,7 +195,7 @@ class FileManager
      * @param FolderType $destination_folder The destination folder for the file.
      * @param User $user The user who wishes to copy the file.
      *
-     * @return string[] Array with error messages: Empty array on success, filled array on failure.
+     * @return FileRef|string[] Either a FileRef object or an Array with error messages on failure.
      */
     public static function copyFileRef(FileRef $source, FolderType $destination_folder, User $user)
     {
@@ -266,7 +266,7 @@ class FileManager
                         $new_reference->license = $source->license;
 
                         if($new_reference->store()) {
-                            return [];
+                            return $new_reference;
                         } else {
                             //file reference can't be created!
                             return[
