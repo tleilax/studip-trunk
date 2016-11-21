@@ -89,5 +89,5 @@
 </table>
 </form>
 
-<?= $this->render_partial("files/upload_window.php") ?>
-<?= $this->render_partial("files/add_files_window.php", array('folder_id' => $topFolder->getId(), 'hidden' => true)) ?>
+<?= $this->render_partial("file/upload_window.php") ?>
+<?= $this->render_partial("file/add_files_window.php", array('folder_id' => $topFolder->getId(), 'hidden' => true)) ?>

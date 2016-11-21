@@ -18,22 +18,22 @@ if ($folder_id) {
             <?= Icon::create("computer", "clickable")->asImg(50) ?>
             <?= _("Mein Computer") ?>
         </a>
-        <a href="<?= $controller->link_for("files/add_url/" . Folder::findTopFolder($GLOBALS['user']->id)->getId(), $options) ?>" data-dialog>
+        <a href="<?= $controller->link_for("file/add_url/" . $folder_id, $options) ?>" data-dialog>
             <?= Icon::create("globe", "clickable")->asImg(50) ?>
             <?= _("Webadresse") ?>
         </a>
-        <a href="<?= $controller->link_for("files/choose_file/" . Folder::findTopFolder($GLOBALS['user']->id)->getId(), $options) ?>" data-dialog>
+        <a href="<?= $controller->link_for("file/choose_file/" . Folder::findTopFolder($GLOBALS['user']->id)->getId(), $options) ?>" data-dialog>
             <?= Icon::create("files", "clickable")->asImg(50) ?>
             <?= _("Meine Dateien") ?>
         </a>
-        <a href="<?= $controller->link_for("files/choose_file_from_course/".htmlReady($folder_id), $options) ?>" data-dialog>
+        <a href="<?= $controller->link_for("file/choose_file_from_course/".htmlReady($folder_id), $options) ?>" data-dialog>
             <?= Icon::create("seminar", "clickable")->asImg(50) ?>
             <?= _("Meine Veranstaltungen") ?>
         </a>
         <? foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) : ?>
             <? $nav = $plugin->getFileSelectNavigation() ?>
             <? if ($nav) : ?>
-                <a href="<?= $controller->link_for("files/choose_file/", array_merge($options, array('plugin' => get_class($plugin)))) ?>" data-dialog>
+                <a href="<?= $controller->link_for("file/choose_file/", array_merge($options, array('plugin' => get_class($plugin)))) ?>" data-dialog>
                     <?= $nav->getImage()->asImg(50) ?>
                     <?= htmlReady($nav->getTitle()) ?>
                 </a>

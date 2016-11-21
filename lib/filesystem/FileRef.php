@@ -222,7 +222,7 @@ class FileRef extends SimpleORMap
         if (class_exists($this->license)) {
             return new $this->license();
         }
-        throw new InvalidValuesException('class: ' . $this->license . ' not found');
+        throw new UnexpectedValueException('class: ' . $this->license . ' not found');
     }
 
     public function isLink()

@@ -8,7 +8,7 @@ STUDIP.Files = {
                 title: 'Datei hinzufügen'.toLocaleString()
             });
         } else {
-            STUDIP.Dialog.fromURL(STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/files/add_files_window/" + folder_id, {
+            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL("dispatch.php/file/add_files_window/" + folder_id), {
                 title: 'Datei hinzufügen'.toLocaleString()
             });
         }
@@ -32,7 +32,7 @@ STUDIP.Files = {
                 title: "Datei hochladen".toLocaleString()
             });
         } else {
-            STUDIP.Dialog.fromURL(STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/files/upload_window", {
+            STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL("dispatch.php/file/upload_window"), {
                 title: 'Datei hochladen'.toLocaleString()
             });
         }
@@ -42,7 +42,7 @@ STUDIP.Files = {
         if (files > 0) {
             jQuery(".uploadbar").css("background-size", "0% 100%");
             jQuery.ajax({
-                'url': STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/file/upload/" + folder_id,
+                'url': STUDIP.URLHelper("dispatch.php/file/upload/" + folder_id),
                 'data': data,
                 'cache': false,
                 'contentType': false,
@@ -106,7 +106,7 @@ STUDIP.Files = {
     removeFile: function (fileref_id) {
         console.log(fileref_id);
         jQuery.ajax({
-            url: STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/file/delete/" + fileref_id,
+            url: STUDIP.URLHelper.getURL("dispatch.php/file/delete/" + fileref_id),
             type: "post",
             success: function () {
                 console.log(jQuery(".documents tbody.files > tr#fileref_" + fileref_id));
@@ -121,14 +121,14 @@ STUDIP.Files = {
         location.reload();
     },
 
-    getFolders: function(name = '') {
-    	
+    getFolders: function(name) {
+
         var element_name = 'folder_select_'+name;
-        
+
     	var context =  $('#'+element_name+'-destination').val();
     	var range = null;
-    	
-    	if ($.inArray( context, [ "courses"] ) > -1) {    		
+
+    	if ($.inArray( context, [ "courses"] ) > -1) {
     		range = $('#'+element_name+'-range-course > div > input').first().val();
     	} else if ($.inArray( context, [ "institutes"] ) > -1) {
     		range = $('#'+element_name+'-range-inst > div > input').first().val();
@@ -150,26 +150,26 @@ STUDIP.Files = {
 				$('#'+element_name+'-subfolder').show();
 			});
     	}
-        
+
     },
-    
-    changeFolderSource: function(name = '') {
+
+    changeFolderSource: function(name) {
         var element_name = 'folder_select_'+name;
-        
+
         console.log(element_name);
-        
+
         $('#'+element_name+'-range-course').hide();
         $('#'+element_name+'-range-inst').hide();
         $('#'+element_name+'-subfolder').hide();
         $('#'+element_name+'-subfolder select').empty();
-                
+
         var elem = jQuery('#'+element_name+'-destination');
-        
-        if ($.inArray( elem.val(), [ "courses"] ) > -1) {   
+
+        if ($.inArray( elem.val(), [ "courses"] ) > -1) {
             $('#'+element_name+'-range-course').show();
-        } else if ($.inArray( elem.val(), [ "institutes" ] ) > -1) {                    
+        } else if ($.inArray( elem.val(), [ "institutes" ] ) > -1) {
             $('#'+element_name+'-range-inst').show();
-        } else if ($.inArray( elem.val(), [ "myfiles" ] ) > -1) {               
+        } else if ($.inArray( elem.val(), [ "myfiles" ] ) > -1) {
             $('#'+element_name+'-subfolder').show();
             STUDIP.Files.getFolders(name);
         }
@@ -280,5 +280,5 @@ jQuery.tablesorter.filter.bindSearch( $table, $('.tablesorterfilter') );
         var filelist = event.originalEvent.dataTransfer.files || {};
         STUDIP.Files.upload(filelist);
     });
-    
+
 });
