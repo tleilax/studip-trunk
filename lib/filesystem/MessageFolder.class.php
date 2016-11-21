@@ -48,7 +48,7 @@ class MessageFolder implements FolderType
      * 
      * @return MessageFolder|null The top folder of the message identified by $message_id. If the folder can't be retrieved, null is returned.
      */
-    static public function getMessageTopFolder($message_id = null, $user_id = null)
+    static public function findMessageTopFolder($message_id = null, $user_id = null)
     {
         if(!$message_id or !$user_id) {
             //if no message-ID or no user-ID is given we can't look for a top folder!
@@ -56,7 +56,7 @@ class MessageFolder implements FolderType
         }
         
         //try to find the top folder:
-        $folder = Folder::getTopFolder($message_id);
+        $folder = Folder::findTopFolder($message_id);
         
         //check if that was successful:
         if(!$folder) {

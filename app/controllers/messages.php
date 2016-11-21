@@ -603,17 +603,17 @@ class MessagesController extends AuthenticatedController {
         $message_id = Request::option('message_id');
         
         
-        $message_top_folder = MessageFolder::getMessageTopFolder($message_id, $user_id);
+        $message_top_folder = MessageFolder::findMessageTopFolder($message_id, $user->id);
         
-        $file = new File();
-        $file->user_id = $user->id;
-        $file->mime_type = ''; //TODO: detect mime type
-        $file->name = $output['name'];
-        $file->size = (int)$output['size'];
-        $file->storage = 'disk';
-        $file->author_name = $user->getFullName();
+        $file_object = new File();
+        $file_object->user_id = $user->id;
+        $file_object->mime_type = ''; //TODO: detect mime type
+        $file_object->name = $output['name'];
+        $file_object->size = (int)$output['size'];
+        $file_object->storage = 'disk';
+        $file_object->author_name = $user->getFullName();
         
-        $file_ref = $message_top_folder->createFile($file);
+        $file_ref = $message_top_folder->createFile($file_object);
         
         /*
         $document = new StudipDocument();
@@ -637,7 +637,7 @@ class MessagesController extends AuthenticatedController {
             throw new Exception('Data of file with ID ' . $file_ref->file_id . ' cannot be stored in path for uploaded files!');
         }
         
-        $output['document_id'] = $file_ref->file_id();
+        $output['document_id'] = $file_ref->file_id;
         
         $output['icon'] = GetFileIcon($file_ref->file->getExtension())->asImg(['class' => "text-bottom"]);
 
