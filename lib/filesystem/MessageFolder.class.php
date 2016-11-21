@@ -33,6 +33,45 @@ class MessageFolder implements FolderType
         
     }
     
+    /**
+     * Retrieves or creates the top folder for a message.
+     * 
+     * Creating top folders for messages is a special task since
+     * message attachments can be stored when the message wasn't sent yet.
+     * This means that message attachments of an unsent message are stored
+     * in a top folder with a range-ID that doesn't belong to a message
+     * table entry (yet). Therefore we must create the top folder
+     * manually when we can't find the top folder by the method
+     * Folder::getTopFolder.
+     * 
+     * @param string $message_id The message-ID of the message whose top folder shall be returned
+     * 
+     * @return MessageFolder|null The top folder of the message identified by $message_id. If the folder can't be retrieved, null is returned.
+     */
+    static public function getMessageTopFolder($message_id = null, $user_id = null)
+    {
+        if(!$message_id or !$user_id) {
+            //if no message-ID or no user-ID is given we can't look for a top folder!
+            return null;
+        }
+        
+        //try to find the top folder:
+        $folder = Folder::getTopFolder($message_id);
+        
+        //check if that was successful:
+        if(!$folder) {
+            //no, it wasn't successful: create the folder manually
+            $folder = new Folder();
+            $folder->user_id = $user_id;
+            $folder->range_id = $message_id;
+            $folder->range_type = 'message';
+            $folder->folder_type = 'MessageFolder';
+            $folder->store();
+        }
+        
+        return new MessageFolder($folder);
+    }
+    
     
     static public function getTypeName()
     {

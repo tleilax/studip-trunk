@@ -598,7 +598,24 @@ class MessagesController extends AuthenticatedController {
             list($type, $error) = explode("§", $GLOBALS['msg']);
             throw new Exception($error);
         }
-
+        
+        $user = User::findCurrent();
+        $message_id = Request::option('message_id');
+        
+        
+        $message_top_folder = MessageFolder::getMessageTopFolder($message_id, $user_id);
+        
+        $file = new File();
+        $file->user_id = $user->id;
+        $file->mime_type = ''; //TODO: detect mime type
+        $file->name = $output['name'];
+        $file->size = (int)$output['size'];
+        $file->storage = 'disk';
+        $file->author_name = $user->getFullName();
+        
+        $file_ref = $message_top_folder->createFile($file);
+        
+        /*
         $document = new StudipDocument();
         $document->setValue('range_id' , 'provisional');
         $document->setValue('seminar_id' , $GLOBALS['user']->id);
@@ -607,18 +624,22 @@ class MessagesController extends AuthenticatedController {
         $document->setValue('filesize' , (int) $output['size']);
         $document->setValue('autor_host' , $_SERVER['REMOTE_ADDR']);
         $document->setValue('user_id' , $GLOBALS['user']->id);
-        $document->setValue('description', Request::option('message_id'));
+        $document->setValue('description', $message_id);
         $success = $document->store();
-        if (!$success) {
-            throw new Exception("Unable to handle uploaded file.");
+        */
+        
+        if (!$file_ref) {
+            throw new Exception('Unable to handle uploaded file!');
         }
-        $file_moved = move_uploaded_file($file['tmp_name'], get_upload_file_path($document->getId()));
-        if(!$file_moved) {
-            throw new Exception("No permission to move file to destination.");
+        
+        $data_stored = move_uploaded_file($file['tmp_name'], get_upload_file_path($file_ref->file_id));
+        if(!$data_stored) {
+            throw new Exception('Data of file with ID ' . $file_ref->file_id . ' cannot be stored in path for uploaded files!');
         }
-
-        $output['document_id'] = $document->getId();
-        $output['icon'] = GetFileIcon(getFileExtension($output['name']))->asImg(['class' => "text-bottom"]);
+        
+        $output['document_id'] = $file_ref->file_id();
+        
+        $output['icon'] = GetFileIcon($file_ref->file->getExtension())->asImg(['class' => "text-bottom"]);
 
         $this->render_json($output);
     }
