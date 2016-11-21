@@ -21,8 +21,7 @@
  * @property string readed database column
  * @property string priority database column
  * @property SimpleORMapCollection receivers has_many MessageUser
- * @property SimpleORMapCollection attachments has_many StudipDocument
- * @property string has_attachments database column: boolean: true, if the message has attachments
+ * @property SimpleORMapCollection attachment_folder has_one Folder
  * @property User author has_one User
  * @property MessageUser originator has_one MessageUser
  */
@@ -120,13 +119,11 @@ class Message extends SimpleORMap
             'on_store' => 'store',
             'on_delete' => 'delete'
         );
-        $config['has_many']['attachments'] = array(
-            'class_name' => 'StudipDocument',
+        $config['has_one']['attachment_folder'] = array(
+            'class_name' => 'Folder',
             'assoc_foreign_key' => 'range_id',
             'on_store' => 'store',
-            'on_delete' => function($message) {
-                return array_sum(array_map('delete_document', $message->attachments->pluck('id')));
-            }
+            'on_delete' => 'delete'
         );
         parent::configure($config);
     }

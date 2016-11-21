@@ -102,12 +102,6 @@ class Moadb extends Migration
             ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;"
         );
 
-        //changes to message table:
-        $db->exec(
-            "ALTER TABLE message
-            ADD COLUMN has_attachments TINYINT(1) NOT NULL DEFAULT '0';"
-        );
-        
         
         //default terms of use entries:
         $db->exec(
