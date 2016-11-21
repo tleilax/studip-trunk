@@ -32,7 +32,7 @@
         <? endif; ?>
     </td>
     <td title="<?= number_format($file_ref->size, 0, ',', '.') . ' Byte' ?>" data-sort-value="<?= $file_ref->size ?>" class="responsive-hidden">
-        <? if ($file_ref->file->storage === "url" && $file_ref->file->mime_type === "text/html") : ?>
+        <? if ($file_ref->is_link) : ?>
             <?= _("Weblink") ?>
         <? else : ?>
             <?= relSize($file_ref->size, false) ?>
@@ -52,14 +52,14 @@
     </td>
     <td class="actions">
         <? $actionMenu = ActionMenu::get() ?>
-        
+
         <? if (Navigation::hasItem('/course/files_new/flat') && Navigation::getItem('/course/files_new/flat')->isActive()) : ?>
          <? $actionMenu->addLink($controller->url_for('course/files/index/' . $file_ref->folder_id),
-                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable')) ?>         
+                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable')) ?>
          <? elseif (Navigation::hasItem('/profile/files/flat') && Navigation::getItem('/profile/files/flat')->isActive()) : ?>
              <? $actionMenu->addLink($controller->url_for('files/index/' . $file_ref->folder_id),
-                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable')) ?>                
-        <? endif; ?>        
+                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable')) ?>
+        <? endif; ?>
         <? if ($current_folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/edit/' . $file_ref->id),
                 _('Datei bearbeiten'),

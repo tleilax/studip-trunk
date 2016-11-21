@@ -57,6 +57,7 @@ class FileRef extends SimpleORMap
         $config['additional_fields']['mime_type'] = ['file', 'mime_type'];
         $config['additional_fields']['download_url']['get'] = 'getDownloadURL';
         $config['additional_fields']['author_name']['get'] = 'getAuthorName';
+        $config['additional_fields']['is_link']['get'] = 'isLink';
 
         $config['registered_callbacks']['after_delete'][] = 'cbRemoveFileIfOrphaned';
         $config['registered_callbacks']['before_store'][] = 'cbMakeUniqueFilename';
@@ -222,5 +223,10 @@ class FileRef extends SimpleORMap
             return new $this->license();
         }
         throw new InvalidValuesException('class: ' . $this->license . ' not found');
+    }
+
+    public function isLink()
+    {
+        return $this->file->url_access_type == 'redirect';
     }
 }

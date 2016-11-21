@@ -56,14 +56,14 @@ $file_id = escapeshellcmd(basename(Request::get('file_id')));
 $type = Request::int('type');
 if($type < 0 || $type > 7) $type = 0;
 
-$file_ref = new FileRef($file_id);
-$folder = $file_ref->folder->getTypedFolder();
-
 $no_access = true;
 
 //download from course or institute or document is a message attachement
-if ($folder && in_array($type, array(0, 6, 7))) {
-    $no_access = !$folder->isFileDownloadable($file_ref, $GLOBALS['user']->id);
+if (in_array($type, array(0, 6, 7))) {
+    if ($file_ref = FileRef::find($file_id)) {
+        $folder = $file_ref->folder->getTypedFolder();
+        $no_access = !$folder->isFileDownloadable($file_ref, $GLOBALS['user']->id);
+    }
 }
 //download from archive, allowed if former participant
 if ($type == 1){
@@ -83,17 +83,9 @@ if ($type == 1){
         }
     }
 }
-//download bibliography
-if ($type == 5){
-    $range_id = Request::option('range_id');
-    $list_id = Request::option('list_id');
-    if ($range_id == $user->id || $perm->have_studip_perm('tutor', $range_id)){
-        $no_access = false;
-        $the_data = StudipLitList::GetTabbedList($range_id, $list_id);
-    }
-}
+
 //download ad hoc created files, always allowed
-if(in_array($type, array(2,3,4))){
+if ($type == 4) {
     $no_access = false;
 }
 
@@ -104,43 +96,25 @@ if ($no_access) {
     throw new AccessDeniedException(_("Sie haben keine Zugriffsberechtigung für diesen Download!"));
 }
 
+//replace bad charakters to avoid problems when saving the file
+$file_name = prepareFilename(basename(Request::get('file_name')));
+
 switch ($type) {
     //We want to download from the archive (this mode performs perm checks)
     case 1:
-        $path_file = $ARCHIV_PATH."/".$file_id;
+        $path_file = $ARCHIV_PATH . "/" . $file_id;
+        $content_type = get_mime_type($file_name);
     break;
-    //We want to download from the tmp/export-folder
-    case 2:
-        $path_file = $TMP_PATH."/export/".$file_id;
-    break;
-    //We want to download an XSL-Script
-    case 3:
-        $path_file = $STUDIP_BASE_PATH . "/" . $PATH_EXPORT . "/".$file_id;
-    break;
-    //we want to download from the studip-tmp folder (this mode performs perm checks)
     case 4:
-        $path_file = $TMP_PATH . "/".$file_id;
+        $path_file = $TMP_PATH . "/". $file_id;
+        $content_type = get_mime_type($file_name);
     break;
-    //download lit list as tab delimited text file
-    case 5:
-        $path_file = false;
-    break;
-    //download linked file
-    case 6:
-        $path_file = $file_ref->file->url->url;
-    break;
-    //we want to download a file attached to a system message (this mode performs perm checks)
-    case 7:
-        $path_file = $file_ref->file->getPath();
-    break;
-    //we want to download from the regular upload-folder (this mode performs perm checks)
     default:
-        $path_file = $file_ref->file->getPath();
+        $path_file = $file_ref->file->storage == 'disk' ? $file_ref->file->path : $file_ref->file->url;
+        $content_type = $file_ref->mime_type ?: get_mime_type($file_name);
     break;
 }
 
-//replace bad charakters to avoid problems when saving the file
-$file_name = prepareFilename(basename(Request::get('file_name')));
 
 if (Request::int('zip') && is_file($path_file)) {
     $tmp_id = md5(uniqid("suppe"));
@@ -158,33 +132,48 @@ if (Request::int('zip') && is_file($path_file)) {
     }
 }
 
-$content_type = get_mime_type($file_name);
+// check if linked file is obtainable
+if (isset($file_ref) && $file_ref->file->url_access_type == 'proxy') {
+    $link_data = FileManager::fetchURLMetadata($file_ref->file->url);
+    if ($link_data['response_code'] != 200) {
+        throw new Exception(_("Diese Datei wird von einem externen Server geladen und ist dort momentan nicht erreichbar!"));
+    }
+    $content_type = $link_data['Content-Type'] ? strstr($link_data['Content-Type'], ';', true) : get_mime_type($file_name);
 
+    $filesize = $link_data['Content-Length'];
+    if (!$filesize) $filesize = false;
+} else {
+    $filesize = @filesize($path_file);
+}
+// close session, download will mostly be a parallel action
+page_close();
+ob_end_clean();
+
+if (isset($file_ref) && $file_ref->file->url_access_type == 'redirect') {
+    header('Location: ' . $file_ref->file->url);
+    die();
+}
+
+$content_blacklisted = function ($mime) {
+    foreach (['html', 'javascript', 'svg', 'xml'] as $check) {
+        if (stripos($mime, $check) !== false) {
+            return true;
+        }
+    }
+    return false;
+};
+
+if ($content_blacklisted($content_type)) {
+    $content_type = 'application/octet-stream';
+}
 if (Request::int('force_download') || $content_type == "application/octet-stream") {
     $content_disposition = "attachment";
 } else {
     $content_disposition = "inline";
 }
 
-// check if linked file is obtainable
-if ($type == 6) {
-    $link_data = parse_link($path_file);
-    if ($link_data['response_code'] != 200) {
-        throw new Exception(_("Diese Datei wird von einem externen Server geladen und ist dort momentan nicht erreichbar!"));
-    }
-    $filesize = $link_data['Content-Length'];
-    if (!$filesize) $filesize = false;
-} elseif ($type != 5){
-    $filesize = @filesize($path_file);
-} else {
-    $filesize = mb_strlen($the_data);
-}
-// close session, download will mostly be a parallel action
-page_close();
-ob_end_clean();
-
 $start = $end = null;
-if ($filesize && $type == 0 && !Request::int('zip')) {
+if ($filesize && $file_ref->file->storage == 'disk' && !Request::int('zip')) {
     header("Accept-Ranges: bytes");
     $start = 0;
     $end = $filesize - 1;
@@ -238,13 +227,9 @@ header("Content-Disposition: $content_disposition; filename=\"$file_name\"");
 
 Metrics::increment('core.file_download');
 
-if ($type != 5) {
-    @readfile_chunked($path_file, $start, $end);
-    if (in_array($type, array(0,6)) && !$start) {
-        $file_ref->incrementDownloadCounter();
-    }
-} else {
-    echo $the_data;
+@readfile_chunked($path_file, $start, $end);
+if (isset($file_ref) && !$start) {
+    $file_ref->incrementDownloadCounter();
 }
 
 //remove temporary file after zipping
