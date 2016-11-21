@@ -91,12 +91,14 @@ class MessageFolder implements FolderType
         //return the amount of file references that are logically inside the
         //top folder. This is the amount of message attachments.
         
-        return FileRef::countBySql(
+        $num_file_ref = FileRef::countBySql(
             'folder_id = :folder_id',
             [
-                'folder_id' => $message_top_folder->id
+                'folder_id' => $message_top_folder->getId()
             ]
         );
+        
+        return $num_file_ref;
     }
     
     

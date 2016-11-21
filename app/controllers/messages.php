@@ -128,13 +128,10 @@ class MessagesController extends AuthenticatedController {
             throw new AccessDeniedException();
         }
 
-        //check, if the message has files attached to it:
-        if($this->message->has_attachments) {
-            //ok, attachments are present: load the message's top folder:
-            $this->attachment_folder = Folder::findTopFolder($this->message->id);
-            if($this->attachment_folder) {
-                $this->attachment_folder = $this->attachment_folder->getTypedFolder();
-            }
+        //load the message's top folder (if any):
+        $attachment_folder = Folder::findTopFolder($this->message->id);
+        if($attachment_folder) {
+            $this->attachment_folder = $attachment_folder->getTypedFolder();
         }
         
         
