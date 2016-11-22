@@ -473,34 +473,6 @@ class FileController extends AuthenticatedController
     {
         if (Request::get("course_id")) {
             $folder = Folder::findTopFolder(Request::get("course_id"));
-            /*header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
-                    'to_plugin' => Request::get("to_plugin"),
-                    'fileref_id' => Request::get("fileref_id"),
-                    'copymode' => Request::get("copymode")
-            )));
-            */
-            $mode = Request::get('copymode');
-            if($mode == 'copy') {
-                header('Location: ' . URLHelper::getURL(
-                    'dispatch.php/file/copy/' . Request::get('fileref_id'),
-                        [
-                            'to_plugin' => Request::get("to_plugin"),
-                            'destinationId' => $folder->getId(),
-                        ]
-                    )
-                );
-            } else {
-                header('Location: ' . URLHelper::getURL(
-                    'dispatch.php/file/move/' . Request::get('fileref_id'),
-                        [
-                            'to_plugin' => Request::get("to_plugin"),
-                            'do_move' => '1',
-                            'dest_folder' => $folder->getId(),
-                            'copymode' => $mode
-                        ]
-                    )
-                );
-            }
             
             header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
                     'to_plugin' => Request::get("to_plugin"),
@@ -608,76 +580,6 @@ class FileController extends AuthenticatedController
             } else {
                 $folder = new Folder($folder_id);
                 $this->to_folder_type = new StandardFolder($folder);
-            }
-
-            $error = false;//$this->to_folder_type->validateUpload($file, $GLOBALS['user']->id);
-            if (!$error) {
-                //do the copy
-                //$this->to_folder_type->createFile($file, $GLOBALS['user']->id);
-                /*$file_ref = $this->to_folder_type->createFile($file);
-                if (in_array($this->to_folder_type->range_type, array("course", "institute"))) {
-                    header("Location: ". URLHelper::getURL("dispatch.php/files/edit_license", array(
-                            'file_refs' => array($file_ref->getId())
-                    )));
-                    $this->render_nothing();
-                } else {
-                    if (Request::isAjax()) {
-                        $this->file_ref = $file_ref;
-                        $this->current_folder = $this->to_folder_type;
-                        $this->marked_element_ids = array();
-                        $payload = $this->render_template_as_string("files/_fileref_tr");
-
-                        $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
-                        $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
-                        $this->render_nothing();
-                    } else {
-                        $this->render_text(MessageBox::success(_("Datei wurde hinzugefügt.")));
-                    }
-                }*/
-
-                $file_ref_id = Request::get("fileref_id");
-
-                if($file_ref_id && $folder) {
-
-                    $file_ref = FileRef::find($file_ref_id);
-                    $source_folder = Folder::find($file_ref->folder_id);
-                    $destination_folder = $folder;
-                    $user = User::findCurrent();
-
-                    if($source_folder && $destination_folder) {
-
-                        $errors = [];
-
-                        if (Request::get("copymode", 'move') == 'move') {
-                            $errors = FileManager::moveFileRef($file_ref, $destination_folder->getTypedFolder(), $user);
-                        } else {
-                            $errors = FileManager::copyFileRef($file_ref, $destination_folder->getTypedFolder(), $user);
-                        }
-
-                        if(!is_array($errors)){
-                            PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
-                        } else {
-                            PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
-                        }
-
-
-                        $dest_range = $destination_folder->range_id;
-
-                        switch ($destination_folder->range_type) {
-                            case 'course':
-                                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id. '?cid=' . $dest_range));
-                            case 'institute':
-                                return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$folder_id. '?cid=' . $dest_range));
-                            case 'user':
-                                return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/'.$folder_id));
-                            default:
-                                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$folder_id));
-                        }
-                    }
-                }
-
-            } else {
-                PageLayout::postMessage(MessageBox::error(_("Konnte die Datei nicht hinzufügen.", array($error))));
             }
         }
         if (Request::get("plugin")) {
