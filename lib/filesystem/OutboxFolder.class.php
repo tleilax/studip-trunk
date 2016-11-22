@@ -45,8 +45,7 @@ class OutboxFolder implements FolderType
     
     public function getIcon($role)
     {
-        //TODO: special icon for this folder type
-        return Icon::create('folder-empty', $role);
+        return Icon::create(count($this->getFiles()) ? 'folder-inbox-full' : 'folder-inbox-empty', $role);
     }
     
     public function getId()
