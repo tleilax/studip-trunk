@@ -303,6 +303,19 @@ class FileController extends AuthenticatedController
             } else {
                 PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $result);
             }
+            
+            $dest_range = $destination_folder->range_id;
+
+            switch ($destination_folder->range_type) {
+                case 'course':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$destination_folder_id . '?cid=' . $dest_range));
+                case 'institute':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/'.$destination_folder_id . '?cid=' . $dest_range));
+                case 'user':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $destination_folder_id));
+                default:
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $destination_folder_id));
+            }
         }
     }
 
@@ -343,12 +356,10 @@ class FileController extends AuthenticatedController
 
                     $errors = [];
 
-
-
                     if($this->copymode == 'move') {
-                        $errors = FileManager::moveFileRef($file_ref, $destination_folder, $user);
+                        $result = FileManager::moveFileRef($file_ref, $destination_folder, $user);
 
-                        if(empty($errors)){
+                        if($result instanceof FileRef) {
                             PageLayout::postSuccess(_('Die Datei wurde verschoben.'));
                         } else {
                             PageLayout::postError(_('Fehler beim Verschieben der Datei.'), $errors);
@@ -457,10 +468,40 @@ class FileController extends AuthenticatedController
         $this->plugin = Request::get("to_plugin");
     }
 
+
     public function choose_folder_from_course_action()
     {
         if (Request::get("course_id")) {
             $folder = Folder::findTopFolder(Request::get("course_id"));
+            /*header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
+                    'to_plugin' => Request::get("to_plugin"),
+                    'fileref_id' => Request::get("fileref_id"),
+                    'copymode' => Request::get("copymode")
+            )));
+            */
+            $mode = Request::get('copymode');
+            if($mode == 'copy') {
+                header('Location: ' . URLHelper::getURL(
+                    'dispatch.php/file/copy/' . Request::get('fileref_id'),
+                        [
+                            'to_plugin' => Request::get("to_plugin"),
+                            'destinationId' => $folder->getId(),
+                        ]
+                    )
+                );
+            } else {
+                header('Location: ' . URLHelper::getURL(
+                    'dispatch.php/file/move/' . Request::get('fileref_id'),
+                        [
+                            'to_plugin' => Request::get("to_plugin"),
+                            'do_move' => '1',
+                            'dest_folder' => $folder->getId(),
+                            'copymode' => $mode
+                        ]
+                    )
+                );
+            }
+            
             header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
                     'to_plugin' => Request::get("to_plugin"),
                     'fileref_id' => Request::get("fileref_id"),

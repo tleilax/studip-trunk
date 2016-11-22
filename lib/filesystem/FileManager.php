@@ -319,7 +319,7 @@ class FileManager
      * @param FolderType $destination_folder The destination folder.
      * @param User $user The user who wishes to move the file.
      *
-     * @returns string[] Array with error messages: Empty array on success, filled array on failure.
+     * @returns FileRef|string[] $source FileRef object on success, Array with error messages on failure.
      */
     public static function moveFileRef(FileRef $source, FolderType $destination_folder, User $user)
     {
@@ -341,7 +341,7 @@ class FileManager
             $source->folder_id = $destination_folder->id;
 
             if($source->store()) {
-                return [];
+                return $source;
             } else {
                 return [_('Datei konnte nicht gespeichert werden.')];
             }
