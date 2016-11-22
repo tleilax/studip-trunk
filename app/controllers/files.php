@@ -35,19 +35,19 @@ class FilesController extends AuthenticatedController
     /**
      * Helper method for filling the sidebar with actions.
      */
-    private function buildSidebar()
+    private function buildSidebar(FolderType $folder)
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/files-sidebar.png');
 
         $actions = new ActionsWidget();
 
-        if ($this->topFolder && $this->topFolder->isSubfolderAllowed($GLOBALS['user']->id)) {
+        if ($folder->isSubfolderAllowed($GLOBALS['user']->id)) {
             //standard dialog version:
             /*$actions->addLink(
                 _('Neuer Ordner'),
                 URLHelper::getUrl('dispatch.php/folder/new',
-                    array('context' => 'user', 'rangeId' => $this->user->id, 'parent_folder_id' => $this->topFolder->getId())),
+                    array('context' => 'user', 'rangeId' => $this->user->id, 'parent_folder_id' => $folder->getId())),
                 Icon::create('folder-empty+add', 'clickable'),
                 array('data-dialog' => 'size=auto')
             );
@@ -61,12 +61,12 @@ class FilesController extends AuthenticatedController
                     [
                         'context' => 'user',
                         'rangeId' => $this->user->id,
-                        'parent_folder_id' => $this->topFolder->getId()
+                        'parent_folder_id' => $folder->getId()
                     ]
                 ),
                 Icon::create('folder-empty+add', 'clickable'),
                 [
-                    'onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $this->topFolder->getId() . '\', \'' . $this->user->id . '\'); return false;'
+                    'onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $folder->getId() . '\', \'' . $this->user->id . '\'); return false;'
                 ]
             );
 
@@ -106,7 +106,7 @@ class FilesController extends AuthenticatedController
 
         $this->topFolder = $folder->getTypedFolder();
 
-        $this->buildSidebar();
+        $this->buildSidebar($this->topFolder);
         
         //check for INBOX and OUTBOX folder:
         
