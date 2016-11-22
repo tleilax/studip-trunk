@@ -301,7 +301,7 @@ class FileController extends AuthenticatedController
             if($result instanceof FileRef) {
                 PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
             } else {
-                PageLayout::postError(_('Fehler beim Kopieren der Datei2.'), $result);
+                PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $result);
             }
         }
     }
