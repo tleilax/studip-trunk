@@ -49,7 +49,7 @@ class UserFileArea
                 $top_folder,
                 $user,
                 'InboxFolder',
-                'inbox',
+                'Inbox',
                 InboxFolder::getTypeName()
             );
             
@@ -97,7 +97,7 @@ class UserFileArea
                 $top_folder,
                 $user,
                 'OutboxFolder',
-                'outbox',
+                'Outbox',
                 OutboxFolder::getTypeName()
             );
             
