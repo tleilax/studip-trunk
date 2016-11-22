@@ -296,12 +296,12 @@ class FileController extends AuthenticatedController
             }
 
 
-            $errors = FileManager::copyFileRef($this->file_ref, $this->destination_folder, User::findCurrent());
+            $result = FileManager::copyFileRef($this->file_ref, $this->destination_folder, User::findCurrent());
 
-            if(empty($errors)) {
+            if($result instanceof FileRef) {
                 PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
-                } else {
-                    PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
+            } else {
+                PageLayout::postError(_('Fehler beim Kopieren der Datei2.'), $result);
             }
         }
     }
@@ -354,12 +354,12 @@ class FileController extends AuthenticatedController
                             PageLayout::postError(_('Fehler beim Verschieben der Datei.'), $errors);
                         }
                     } else {
-                        $errors = FileManager::copyFileRef($file_ref, $destination_folder, $user);
+                        $result = FileManager::copyFileRef($file_ref, $destination_folder, $user);
 
-                        if(empty($errors)){
+                        if($result instanceof FileRef) {
                             PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
                         } else {
-                            PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
+                            PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $result);
                         }
                     }
 
@@ -613,7 +613,7 @@ class FileController extends AuthenticatedController
                             $errors = FileManager::copyFileRef($file_ref, $destination_folder->getTypedFolder(), $user);
                         }
 
-                        if(empty($errors)){
+                        if(!is_array($errors)){
                             PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
                         } else {
                             PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);

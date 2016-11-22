@@ -132,9 +132,41 @@ class MessageFolder implements FolderType
     }
     
     
+    /**
+     * A message folder is readable if the user (specified by User-ID)
+     * is either the sender or the receiver of the message.
+     */
     public function isReadable($user_id)
     {
-        return ($user_id == $this->folder->user_id);
+        if(!$user_id) {
+            //How can we check for read permissions when we don't have
+            //a user-ID?
+            return false;
+        }
+        
+        
+        if(!$this->message) {
+            //We can check the user's permissions without looking at the
+            //message as a fallback solution:
+            //If the user is the owner of the folder he has read permissions:
+            return ($user_id == $this->folder->user_id);
+        }
+        
+        
+        $read_permission = false;
+        //Check if the user_id is the ID of the sender
+        //or of one of the receivers. If so, the user has read permissions:
+        
+        //If there is at least one entry with the message-ID of this message
+        //and the user-ID specified in $user_id, we can grant the user
+        //read permissions:
+        return (MessageUser::countBySql(
+                '(message_id = :message_id) AND (user_id = :user_id)',
+                [
+                    'message_id' => $this->message->id,
+                    'user_id' => $user_id
+                ]
+            ) > 0); 
     }
     
     

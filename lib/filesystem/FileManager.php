@@ -227,7 +227,7 @@ class FileManager
                     return [];
                 } else {
                     return[
-                        _('Fehler beim Kopieren: Neue Referenz kann nicht erzeugt werden!')
+                        _('Neue Referenz kann nicht erzeugt werden!')
                     ];
                 }
             } else {
@@ -247,12 +247,28 @@ class FileManager
 
                 if($file_copy->store()) {
                     //ok, file is stored, now we need to copy the real data:
-
+                    
+                    //first we must create a directory:
+                    $destination_directory = pathinfo($file_copy->getPath(), PATHINFO_DIRNAME);
+                    
+                    if(!$destination_directory) {
+                        return [_('Zielverzeichnis konnte nicht ermittelt werden!')];
+                    }
+                    
+                    if(!is_dir($destination_directory)) {
+                        //if the destination directory doesn't exist,
+                        //we must create it first:
+                        if(!mkdir($destination_directory)) {
+                            return [_('Zielverzeichnis konnte nicht erstellt werden!')];
+                        }
+                    }
+                    
+                    
                     if(copy($source->file->getPath(), $file_copy->getPath())) {
 
                         //ok, create the file ref for the copied file:
                         $new_reference = new FileRef();
-                        $new_reference->file_id = $file_copy->file_id;
+                        $new_reference->file_id = $file_copy->id;
 
                         //Create an unique name for the file reference:
                         $new_reference->name = $file_copy->name;
@@ -266,7 +282,7 @@ class FileManager
                         } else {
                             //file reference can't be created!
                             return[
-                                _('Fehler beim Kopieren: Neue Referenz kann nicht erzeugt werden!')
+                                _('Neue Referenz kann nicht erzeugt werden!')
                             ];
                             //delete $file_copy
                             //(to avoid orphaned entries in the database)
@@ -276,6 +292,9 @@ class FileManager
                         //error while copying: delete $file_copy
                         //(to avoid orphaned entries in the database)
                         $file_copy->delete();
+                        return[
+                            _('Daten konnten nicht kopiert werden!')
+                        ];
                     }
                 }
             }
