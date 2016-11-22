@@ -316,6 +316,13 @@ class StandardFolder implements FolderType
     }
 
     /**
+     * Checks if a user has write permissions to a file.
+     * 
+     * For standard folders write permissions are granted
+     * if the user is the owner of the file or if the user has at least
+     * tutor permissions on the Stud.IP object specified by range_id
+     * (such objects may be courses or institutes for example).
+     *
      * @param $fileref_or_id
      * @param $user_id
      * @return bool
@@ -326,6 +333,5 @@ class StandardFolder implements FolderType
         return $fileref->user_id == $user_id ||
         $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
     }
-
 
 }

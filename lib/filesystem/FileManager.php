@@ -336,7 +336,12 @@ class FileManager
         }
 
 
-        if($source_folder->isReadable($user->id) && $destination_folder->isWritable($user->id)) {
+        //the user must have the permissions to write into the source file,
+        //to read the source folder and to write into the destination folder.
+        if($source_folder->isFileWritable($user->id) &&
+            $source_folder->isReadable($user->id) &&
+            $destination_folder->isWritable($user->id)
+            ) {
 
             $source->folder_id = $destination_folder->id;
 
