@@ -106,7 +106,7 @@ class InboxFolder implements FolderType
         $message_folders = Folder::findBySql(
             "INNER JOIN message_user ON folders.range_id = message_user.message_id
             WHERE
-            folders.folder_type = 'message'
+            folders.range_type = 'message'
             AND
             message_user.user_id = :user_id
             AND
@@ -119,7 +119,13 @@ class InboxFolder implements FolderType
         $files = [];
         
         foreach($message_folders as $folder) {
-            $files = array_merge($files, $folder->file_refs);
+            $file_refs = FileRef::findBySql(
+                'folder_id = :folder_id',
+                [
+                    'folder_id' => $folder->id
+                ]
+            );
+            $files = array_merge($files, $file_refs);
         }
         
         return $files;
