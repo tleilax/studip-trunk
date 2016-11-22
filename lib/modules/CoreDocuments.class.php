@@ -21,15 +21,18 @@ class CoreDocuments implements StudipModule
 
     function getTabNavigation($course_id)
     {
+        //old file area controller:
+        /*
         $navigation = new Navigation(_('Dateien'));
         $navigation->setImage(Icon::create('files', 'info_alt'));
         $navigation->setActiveImage(Icon::create('files', 'info'));
         $navigation->addSubNavigation('tree', new Navigation(_('Ordneransicht'), "folder.php?cmd=tree"));
         $navigation->addSubNavigation('all', new Navigation(_('Alle Dateien'), "folder.php?cmd=all"));
-
+        */
+        
         $range_type = get_object_type($course_id, ['sem', 'inst']) == 'sem' ? 'course' : 'institute';
         //new files controller (/course/files):
-        $newFilesNavigation = new Navigation(_('Dateien (neu)'), 'dispatch.php/' . $range_type . '/files');
+        $newFilesNavigation = new Navigation(_('Dateien'), 'dispatch.php/' . $range_type . '/files');
         $newFilesNavigation->setImage(Icon::create('files', 'info_alt'));
         $newFilesNavigation->setActiveImage(Icon::create('files', 'info'));
         $treeNavigation = new Navigation(_('Standardansicht'), 'dispatch.php/' . $range_type . '/files/index');
