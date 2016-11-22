@@ -451,7 +451,7 @@ class FileController extends AuthenticatedController
     }
 
 
-    public function copy_files_window_action($fileref_id)
+    public function choose_destination_action($fileref_id)
     {
         $this->fileref_id = $fileref_id;
         $this->plugin = Request::get("to_plugin");

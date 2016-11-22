@@ -130,5 +130,5 @@ if (Request::get("to_plugin")) {
 }
 ?>
 <div data-dialog-button>	
-    <?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/copy_files_window/', $options), array('data-dialog' => 1)) ?>
+    <?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/choose_destination/', $options), array('data-dialog' => 1)) ?>
 </div>
