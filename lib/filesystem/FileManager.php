@@ -499,7 +499,16 @@ class FileManager
 
         //check if all necessary attributes of the sub folder are set
         //and if they aren't set, set them here:
-
+        
+        //special case for inbox and outbox folders: these folder types
+        //get a custom ID instead of a generic one, so it has to be set here!
+        
+        if($folder_type_class_name == 'InboxFolder') {
+            $sub_folder->id = md5('INBOX_' . $user->id);
+        } elseif($folder_type_class_name == 'OutboxFolder') {
+            $sub_folder->id = md5('OUTBOX_' . $user->id);
+        }
+        
         $sub_folder->user_id = $user->id;
 
         $sub_folder->range_id = $destination_folder->range_id;
@@ -511,7 +520,7 @@ class FileManager
         $sub_folder->folder_type = get_class($sub_folder_type);
 
         $sub_folder->store();
-
+        
         return $sub_folder_type; //no errors
     }
 

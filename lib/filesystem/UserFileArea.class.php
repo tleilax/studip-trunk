@@ -20,39 +20,50 @@
 class UserFileArea
 {
     /**
-     * Returns a FolderType object for the inbox folder of the given user.
+     * Returns an INBOX folder for the given user.
      * 
      * @param User user The user whose inbox folder is requested.
      * 
-     * @return Folder|null Returns the inbox folder on success, null on failure.
+     * @return FolderType|null Returns the inbox folder on success, null on failure.
      */
     public static function getInboxFolder(User $user)
     {
-        $top_folder = Folder::getTopFolder($user->id, 'user');
+        $top_folder = Folder::findTopFolder($user->id, 'user');
         if(!$top_folder) {
             return null;
         }
         
-        $inbox_folder = Folder::findOneBySql(
-            "(parent_id = :parent_id) AND (name = 'inbox')",
-            ['parent_id' => $top_folder->id]
-        );
+        $top_folder = $top_folder->getTypedFolder();
+        if(!$top_folder) {
+            return null;
+        }
+        
+        $inbox_folder = Folder::find(md5('INBOX_' . $user->id));
         
         if(!$inbox_folder) {
-            //inbox folder doesn't exist: create it!
+            //inbox folder doesn't exist: create it, if necessary.
+            //We need an inbox folder if there is at least one received 
+            //message with at least one attachment.
             
-            $inbox_folder = new Folder();
-            $inbox_folder->name = 'INBOX';
-            $inbox_folder->description = _('Ein Ordner für Dateianhänge eingegangener Nachrichten');
+            $inbox_folder = FileManager::createSubFolder(
+                $top_folder,
+                $user,
+                'InboxFolder',
+                'INBOX',
+                InboxFolder::getTypeName()
+            );
             
-            $errors = self::createSubFolder($inbox_folder, $top_folder, $user);
-            
-            if(empty($errors)) {
+            if($inbox_folder instanceof InboxFolder) {
                 return $inbox_folder;
             } else {
                 return null;
             }
+            
+        } else {
+            $inbox_folder = $inbox_folder->getTypedFolder();
         }
+        
+        return $inbox_folder;
     }
     
     

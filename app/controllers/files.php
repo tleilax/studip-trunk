@@ -90,6 +90,7 @@ class FilesController extends AuthenticatedController
      */
     public function index_action($topFolderId = '')
     {
+        $this->buildSidebar();
 
         Navigation::activateItem('/profile/files/tree');
 
@@ -106,8 +107,21 @@ class FilesController extends AuthenticatedController
         }
 
         $this->topFolder = $folder->getTypedFolder();
-
-        $this->buildSidebar();
+        
+        //check for INBOX and OUTBOX folder:
+        
+        //first the INBOX folder:
+        
+        $inbox_folder = UserFileArea::getInboxFolder($this->user);
+        if(!$inbox_folder) {
+            //no inbox folder
+            PageLayout::postWarning(_('Ordner für Nachrichteneingänge konnte nicht ermittelt werden!'));
+        }
+        
+        //then the OUTBOX folder:
+        
+        //TODO
+        
     }
 
 
