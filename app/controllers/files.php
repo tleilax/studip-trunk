@@ -111,17 +111,18 @@ class FilesController extends AuthenticatedController
         //check for INBOX and OUTBOX folder:
         
         //first the INBOX folder:
-        
         $inbox_folder = UserFileArea::getInboxFolder($this->user);
         if(!$inbox_folder) {
             //no inbox folder
-            PageLayout::postWarning(_('Ordner für Nachrichteneingänge konnte nicht ermittelt werden!'));
+            PageLayout::postWarning(_('Ordner für Anhänge eingegangener Nachrichten konnte nicht ermittelt werden!'));
         }
         
         //then the OUTBOX folder:
-        
-        //TODO
-        
+        $outbox_folder = UserFileArea::getOutboxFolder($this->user);
+        if(!$outbox_folder) {
+            //no inbox folder
+            PageLayout::postWarning(_('Ordner für Anhänge gesendeter Nachrichten konnte nicht ermittelt werden!'));
+        }
     }
 
 

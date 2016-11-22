@@ -1,6 +1,6 @@
 <?php
 /**
- * InboxFolder.class.php
+ * OutboxFolder.class.php
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -15,12 +15,12 @@
 
 
 /**
- * Class InboxFolder
+ * Class OutboxFolder
  * 
  * This is a FolderType implementation for file attachments of messages
- * that were received by a user. It is a read-only folder.
+ * that were sent by a user. It is a read-only folder.
  */
-class InboxFolder implements FolderType
+class OutboxFolder implements FolderType
 {
     protected $user;
     protected $folder;
@@ -39,7 +39,7 @@ class InboxFolder implements FolderType
     
     static public function getTypeName()
     {
-        return _('Ein Ordner für Anhänge eingegangener Nachrichten');
+        return _('Ein Ordner für Anhänge gesendeter Nachrichten');
     }
     
     
@@ -110,7 +110,7 @@ class InboxFolder implements FolderType
             AND
             message_user.user_id = :user_id
             AND
-            message_user.snd_rec = 'rec'",
+            message_user.snd_rec = 'snd'",
             [
                 'user_id' => $this->user->id
             ]
@@ -138,7 +138,7 @@ class InboxFolder implements FolderType
     
     public function setDataFromEditTemplate($folderdata)
     {
-        return MessageBox::error(_('INBOX-Ordner können nicht bearbeitet werden!'));
+        return MessageBox::error(_('Outbox-Ordner können nicht bearbeitet werden!'));
     }
     
     public function validateUpload($file, $user_id)
@@ -149,7 +149,7 @@ class InboxFolder implements FolderType
     
     public function createFile($file)
     {
-        return MessageBox::error(_('In INBOX-Ordnern können keine Dateien erzeugt werden!'));
+        return MessageBox::error(_('In Outbox-Ordnern können keine Dateien erzeugt werden!'));
     }
     
     public function deleteFile($file_ref_id)
@@ -159,7 +159,7 @@ class InboxFolder implements FolderType
     
     public function createSubfolder($folderdata)
     {
-        return MessageBox::error(_('In INBOX-Ordnern können keine nutzerdefinierten Unterordner erzeugt werden!'));
+        return MessageBox::error(_('In Outbox-Ordnern können keine nutzerdefinierten Unterordner erzeugt werden!'));
     }
     
     public function deleteSubfolder($subfolder_id)

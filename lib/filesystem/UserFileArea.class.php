@@ -49,7 +49,7 @@ class UserFileArea
                 $top_folder,
                 $user,
                 'InboxFolder',
-                'INBOX',
+                'inbox',
                 InboxFolder::getTypeName()
             );
             
@@ -71,34 +71,47 @@ class UserFileArea
      * Returns a FolderType object for the outbox folder of the given user.
      * 
      * @param User user The user whose outbox folder is requested.
+     * 
+     * @return FolderType|null Returns the inbox folder on success, null on failure.
      */
     public static function getOutboxFolder(User $user)
     {
-        $top_folder = Folder::getTopFolder($user->id, 'user');
+        $top_folder = Folder::findTopFolder($user->id, 'user');
         if(!$top_folder) {
             return null;
         }
         
-        $outbox_folder = Folder::findOneBySql(
-            "(parent_id = :parent_id) AND (name = 'outbox')",
-            ['parent_id' => $top_folder->id]
-        );
+        $top_folder = $top_folder->getTypedFolder();
+        if(!$top_folder) {
+            return null;
+        }
+        
+        $outbox_folder = Folder::find(md5('OUTBOX_' . $user->id));
         
         if(!$outbox_folder) {
-            //inbox folder doesn't exist: create it!
+            //inbox folder doesn't exist: create it, if necessary.
+            //We need an inbox folder if there is at least one received 
+            //message with at least one attachment.
             
-            $outbox_folder = new Folder();
-            $outbox_folder->name = 'OUTBOX';
-            $outbox_folder->description = _('Ein Ordner für Dateianhänge gesendeter Nachrichten');
+            $outbox_folder = FileManager::createSubFolder(
+                $top_folder,
+                $user,
+                'OutboxFolder',
+                'outbox',
+                OutboxFolder::getTypeName()
+            );
             
-            $errors = self::createSubFolder($outbox_folder, $top_folder, $user);
-            
-            if(empty($errors)) {
+            if($outbox_folder instanceof OutboxFolder) {
                 return $outbox_folder;
             } else {
                 return null;
             }
+            
+        } else {
+            $outbox_folder = $outbox_folder->getTypedFolder();
         }
+        
+        return $outbox_folder;
     }
     
 }
