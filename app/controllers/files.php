@@ -90,8 +90,6 @@ class FilesController extends AuthenticatedController
      */
     public function index_action($topFolderId = '')
     {
-        $this->buildSidebar();
-
         Navigation::activateItem('/profile/files/tree');
 
         $this->marked_element_ids = [];
@@ -107,6 +105,8 @@ class FilesController extends AuthenticatedController
         }
 
         $this->topFolder = $folder->getTypedFolder();
+
+        $this->buildSidebar();
         
         //check for INBOX and OUTBOX folder:
         
