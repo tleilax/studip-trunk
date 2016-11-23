@@ -430,6 +430,12 @@ class MessagesController extends AuthenticatedController {
             
         }
         
+        //we must display a note for the user to avoid sending a message
+        //with the wrong attachements attached to it.
+        if($unattached_files) {
+            PageLayout::postInfo(_('Es wurden Dateianhänge gefunden, welche zwar hochgeladen, aber noch nicht versandt wurden. Diese wurden an diese Nachricht angehängt!'));
+        }
+        
         //create an attachment folder for the new message:
         $new_attachment_folder = MessageFolder::findMessageTopFolder($this->message_id, $GLOBALS['user']->id);
         
