@@ -39,6 +39,12 @@ class FileManager
     public static function handleFileUpload(Array $uploaded_files, FolderType $folder, $user_id)
     {
         $result = array();
+        $error = [];
+        if(!$folder->isWritable($user_id)) {
+            $error[] = _('Keine Schreibrechte für Zielordner!');
+            return array_merge($result, ['error' => $error]);
+        }
+        
         if (is_array($uploaded_files['name'])) {
             $error = [];
             foreach ($uploaded_files['name'] as $key => $filename) {

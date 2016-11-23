@@ -197,10 +197,11 @@ class Moadb extends Migration
         //Such documents were meant to be attached to mails but were left
         //unattached... to remain lonely in the database...
         //So it's time to end this misery and delete them!
+        /*
         $unattached_documents = StudipDocument::deleteBySql(
             "range_id = 'provisional'"
         );
-        
+        */
         
         //then we retrieve all message-IDs:
         $message_rows = $db->query("SELECT * FROM message;");
