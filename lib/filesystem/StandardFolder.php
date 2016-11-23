@@ -34,7 +34,7 @@ class StandardFolder implements FolderType
      */
     static public function getTypeName()
     {
-        return _("Ordner");
+        return _("Ordner ohne besondere Merkmale");
     }
 
     /**
