@@ -390,8 +390,8 @@ class MessagesController extends AuthenticatedController {
         //to a message. These files can be attached to the new message.
         
         //unattached folders are all folders that are from type 'MessageFolder',
-        //belong to the range type 'message' and whose range-ID does not belong
-        //to a message.
+        //belong to the range type 'message', are owned by the current user
+        //and whose range-ID does not belong to a message.
         //Background: Attachment folders of messages that haven't been sent
         //have a "provisional" range-ID. When the message is sent this
         //"provisional" range-ID is replaced by the message-ID.
@@ -399,6 +399,8 @@ class MessagesController extends AuthenticatedController {
             "folder_type = 'MessageFolder'
             AND
             range_type = 'message'
+            AND
+            user_id = :user_id
             AND
             range_id NOT IN (
                 SELECT message_id FROM message
