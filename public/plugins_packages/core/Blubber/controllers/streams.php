@@ -578,109 +578,84 @@ class StreamsController extends PluginController {
                 $document['range_id'] = $context_type === "course" ? $folder_id : $parent_folder_id;
                 $document['filesize'] = $file['size'];
 
-                if ($context === $GLOBALS['user']->id) {
-                    try {
-                        $root_dir = Folder::findTopFolder($GLOBALS['user']->id);
-                        $root_dir = $root_dir->getTypedFolder();
-                        //$root_dir = RootDirectory::find($GLOBALS['user']->id);
-                        $blubber_directory = Folder::findBySql(
-                            "parent_id = ':parent_id'
-                            AND
-                            folder_type = 'PublicFolder'
-                            AND
-                            data_content = 'Blubber'",
-                            [
-                                'parent_id' => $root_dir->getId()
-                            ]
+                try {
+                    $root_dir = Folder::findTopFolder($GLOBALS['user']->id);
+                    $root_dir = $root_dir->getTypedFolder();
+                    $blubber_directory = Folder::findBySql(
+                        "parent_id = ':parent_id'
+                        AND
+                        folder_type = 'PublicFolder'
+                        AND
+                        data_content = 'Blubber'",
+                        [
+                            'parent_id' => $root_dir->getId()
+                        ]
+                    );
+                    
+                    if ($blubber_directory) {
+                        $blubber_directory = $blubber_directory->getTypedFolder();
+                    } else {
+                        //blubber directory not found: create it
+                        $blubber_directory = FileManager::createSubFolder(
+                            $root_dir,
+                            $GLOBALS['user']->getAuthenticatedUser(),
+                            'PublicFolder',
+                            'Blubber',
+                            _('Ihre Dateien aus Blubberstreams')
                         );
                         
-                        
-                        //$blubber_directory = $root_dir->listDirectories()->findOneBy('name', 'Blubber');
-                        if ($blubber_directory) {
-                            //blubber directory was found: convert it to a FolderType instance
-                            $blubber_directory = $blubber_directory->getTypedFolder();
-                        } else {
-                            //blubber directory not found: create it
-                            $blubber_directory = FileManager::createSubFolder(
-                                $root_dir,
-                                $GLOBALS['user']->user,
-                                'PublicFolder',
-                                'Blubber',
-                                _('Ihre Dateien aus Blubberstreams')
-                            );
-                            
-                            if(!$blubber_directory instanceof FolderType) {
-                                $output['error'][] = _('Blubber-Dateiordner konnte nicht erstellt werden!');
-                                $success = false;
-                            }
-                            
-                            //$blubber_directory = $root_dir->mkdir('Blubber', _('Ihre Dateien aus Blubberstreams'));
+                        if(!$blubber_directory instanceof FolderType) {
+                            $output['error'][] = _('Blubber-Dateiordner konnte nicht erstellt werden!');
+                            $success = false;
                         }
+                    }
+                    
+                    if($blubber_directory) {
+                        //ok, blubber directory exists: we can add the file
                         
-                        if($blubber_directory) {
-                            //ok, blubber directory exists: we can add the file
+                        $result = FileManager::handleFileUpload(
+                            [
+                                'name' => [$document['name']],
+                                'type' => [null], //let the get_mime_type guess the file type
+                                'size' => [$document['filesize']],
+                                'tmp_name' => [$file['tmp_name']]
+                            ],
+                            $blubber_directory,
+                            $GLOBALS['user']->id
+                        );
+                        
+                        $newfile = $result['files'][0];
+                        
+                        if($newfile) {
+                            //we must create a file reference and link it to the folder:
+                            $file_ref = new FileRef();
+                            $file_ref->file_id = $newfile->id;
+                            $file_ref->folder_id = $blubber_directory->getId();
+                            $file_ref->user_id = $GLOBALS['user']->id;
+                            $file_ref->name = $newfile->name;
+                            $file_ref->store();
                             
-                            $result = FileManager::handleFileUpload(
-                                [
-                                    'name' => [$document['name']],
-                                    'type' => [null], //let the get_mime_type guess the file type
-                                    'size' => [$document['filesize']],
-                                    'tmp_name' => [$file['tmp_name']]
-                                ],
-                                $blubber_directory,
-                                $GLOBALS['user']->id
-                            );
-                            
-                            /*$newfile = $blubber_directory->file->createFile($document['name']);
-                            $newfile->name = $document['name'];
-                            $newfile->store();
-
-                            $handle = $newfile->file;
-                            $handle->restricted = 0;
-                            $handle->mime_type = $file['type'];
-                            $handle->setContentFromFile($file['tmp_name']);
-                            $handle->update();
-                            */
-                            
-                            $newfile = $result['files'][0];
-                            
-                            if($newfile) {
-                                //we must create a file reference and link it to the folder:
-                                $file_ref = new FileRef();
-                                $file_ref->file_id = $newfile->id;
-                                $file_ref->folder_id = $blubber_directory->getId();
-                                $file_ref->user_id = $GLOBALS['user']->id;
-                                $file_ref->name = $newfile->name;
-                                $file_ref->store();
-                                
-                                $url = $file_ref->getDownloadURL();
-                                $success = true;
-                            }
+                            $url = $file_ref->getDownloadURL();
+                            $success = true;
                         }
-                    } catch (Exception $e) {
-                        $output['error'][] = $e->getMessage();
-                        $success = false;
                     }
-                } else {
-                    $newfile = StudipDocument::createWithFile($file['tmp_name'], $document);
-                    $success = (bool)$newfile;
-
-                    if ($success) {
-                        $url = GetDownloadLink($newfile->getId(), $newfile['filename']);
-                    }
+                } catch (Exception $e) {
+                    $output['error'][] = $e->getMessage();
+                    $success = false;
                 }
-
+                
+                
                 if ($success) {
                     $type = null;
-                    mb_strpos($file['type'], 'image') === false || $type = "img";
-                    mb_strpos($file['type'], 'video') === false || $type = "video";
-                    if (mb_strpos($file['type'], 'audio') !== false || mb_strpos($document['filename'], '.ogg') !== false) {
+                    mb_strpos($file['mime_type'], 'image') === false || $type = "img";
+                    mb_strpos($file['mime_type'], 'video') === false || $type = "video";
+                    if (mb_strpos($file['mime_type'], 'audio') !== false || mb_strpos($document['name'], '.ogg') !== false) {
                          $type = "audio";
                     }
                     if ($type) {
                         $output['inserts'][] = "[".$type."]".$url;
                     } else {
-                        $output['inserts'][] = "[".$document['filename']."]".$url;
+                        $output['inserts'][] = "[".$document['name']."]".$url;
                     }
                 }
             }
