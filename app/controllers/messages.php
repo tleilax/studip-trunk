@@ -165,15 +165,22 @@ class MessagesController extends AuthenticatedController {
     public function write_action()
     {
         PageLayout::setTitle(_("Neue Nachricht schreiben"));
-
-        //collect possible default adressees
+        
+        //the message-ID for the new message:
+        $this->message_id = Request::option("message_id") ?: md5(uniqid("neWMesSagE"));
+        
+        
         $this->to = array();
         $this->default_message = new Message();
+        
+        //check if a receiver is given:
         if (Request::username("rec_uname")) {
             $user = new MessageUser();
             $user->setData(array('user_id' => get_userid(Request::username("rec_uname")), 'snd_rec' => "rec"));
             $this->default_message->receivers[] = $user;
         }
+        
+        //check if a list of receivers is given:
         if (Request::getArray("rec_uname")) {
             foreach (Request::usernameArray("rec_uname") as $username) {
                 $user = new MessageUser();
@@ -181,6 +188,8 @@ class MessagesController extends AuthenticatedController {
                 $this->default_message->receivers[] = $user;
             }
         }
+        
+        //check if the message shall be sent to all members of a status group:
         if (Request::option("group_id")) {
             $this->default_message->receivers = array();
             $group = Statusgruppen::find(Request::option("group_id"));
@@ -194,11 +203,13 @@ class MessagesController extends AuthenticatedController {
             }
         }
 
+        //check if the message shall be sent to all members of an institute:
         if(Request::get('inst_id') && $GLOBALS['perm']->have_perm('admin')) {
             $query = "SELECT user_id FROM user_inst WHERE Institut_id = ? AND inst_perms != 'user'";
             $this->default_message->receivers = DBManager::get()->fetchAll($query, array(Request::option('inst_id')), 'MessageUser::build');
         }
 
+        //check if the message shall be sent to all (or some) members of a course:
         if (Request::get("filter") && Request::option("course_id")) {
             $course = new Course(Request::option('course_id'));
             if ($GLOBALS['perm']->have_studip_perm("tutor", Request::option('course_id')) || $course->getSemClass()['studygroup_mode']) {
@@ -267,6 +278,8 @@ class MessagesController extends AuthenticatedController {
             $this->default_message->receivers = DBManager::get()->fetchAll("SELECT user_id,'rec' as snd_rec FROM auth_user_md5 WHERE username IN(?) ORDER BY Nachname,Vorname", array($_SESSION['sms_data']['p_rec']), 'MessageUser::build');
             unset($_SESSION['sms_data']);
         }
+        
+        //check if the message is a reply or if it shall be forwarded:
         if (Request::option("answer_to")) {
             $this->default_message->receivers = array();
             $old_message = new Message(Request::option("answer_to"));
@@ -274,6 +287,7 @@ class MessagesController extends AuthenticatedController {
                 throw new AccessDeniedException("Message is not for you.");
             }
             if (!Request::get('forward')) {
+                //message is a reply message
                 if (Request::option("quote") === $old_message->getId()) {
                     if (Studip\Markup::isHtml($old_message['message'])) {
                         $this->default_message['message'] = "<div>[quote]\n".$old_message['message']."\n[/quote]</div>";
@@ -287,6 +301,7 @@ class MessagesController extends AuthenticatedController {
                 $this->default_message->receivers[] = $user;
                 $this->answer_to = $old_message->id;
             } else {
+                //message shall be forwarded
                 $messagesubject = 'FWD: ' . $old_message['subject'];
                 $message = _("-_-_ Weitergeleitete Nachricht _-_-");
                 $message .= "\n" . _("Betreff") . ": " . $old_message['subject'];
@@ -305,6 +320,7 @@ class MessagesController extends AuthenticatedController {
                     $message .= $old_message['message'];
                 }
                 if ($old_message->getNumAttachments()) {
+                    //there is at least one attachment: we must copy it
                     $forwarded_message_id = $old_message->getNewId();
                     Request::set('message_id', $forwarded_message_id);
                     $old_attachment_folder = MessageFolder::findMessageTopFolder($message_id);
@@ -324,7 +340,7 @@ class MessagesController extends AuthenticatedController {
                                         )->asImg(['class' => "text-bottom"]),
                                     'name' => $new_attachment->name,
                                     'document_id' => $new_attachment->id,
-                                    'size' => relsize($new_attachment->file->size,false)
+                                    'size' => relsize($new_attachment->file->size, false)
                                 ];
                             }
                         }
@@ -369,6 +385,61 @@ class MessagesController extends AuthenticatedController {
                 $this->default_message['message'] .= "\n\n--\n" . $settings['sms_sig'];
             }
         }
+        
+        //Check if there are files that were uploaded earlier and not attached
+        //to a message. These files can be attached to the new message.
+        
+        //unattached folders are all folders that are from type 'MessageFolder',
+        //belong to the range type 'message' and whose range-ID does not belong
+        //to a message.
+        //Background: Attachment folders of messages that haven't been sent
+        //have a "provisional" range-ID. When the message is sent this
+        //"provisional" range-ID is replaced by the message-ID.
+        $unattached_folders = Folder::findBySql(
+            "folder_type = 'MessageFolder'
+            AND
+            range_type = 'message'
+            AND
+            range_id NOT IN (
+                SELECT message_id FROM message
+                WHERE autor_id = :user_id
+            )",
+            [
+                'user_id' => $GLOBALS['user']->id
+            ]
+        );
+        
+        $unattached_files = [];
+        
+        //loop through all unattached folders, retrieve all file_refs,
+        //add them to the default_attachments array and store them in a
+        //new folder that gets the "provisional" range-ID of this message.
+        //After that, delete the old folders.
+        foreach($unattached_folders as $unattached_folder) {
+            foreach($unattached_folder->file_refs as $file_ref) {
+                $unattached_files[] = $file_ref;
+                $this->default_attachments[] = [
+                    'icon' => GetFileIcon(
+                        $file_ref->file->getExtension()
+                        )->asImg(['class' => "text-bottom"]),
+                    'name' => $file_ref->name,
+                    'document_id' => $file_ref->id,
+                    'size' => relsize($file_ref->file->size, false)
+                ];
+            }
+            
+        }
+        
+        //create an attachment folder for the new message:
+        $new_attachment_folder = MessageFolder::findMessageTopFolder($this->message_id, $GLOBALS['user']->id);
+        
+        //"bend" the folder-ID of each unattached file to the new attachment folder's ID:
+        foreach($unattached_files as $file) {
+            $file->folder_id = $new_attachment_folder->getId();
+            $file->store();
+        }
+        
+        
         NotificationCenter::postNotification("DefaultMessageForComposerCreated", $this->default_message);
 
 

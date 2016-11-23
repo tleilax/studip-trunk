@@ -193,7 +193,16 @@ class Moadb extends Migration
     
     public function migrateMessageAttachments()
     {
-        //first we retrieve all message-IDs:
+        //First we wipe out all documents with range-ID = 'provisional'.
+        //Such documents were meant to be attached to mails but were left
+        //unattached... to remain lonely in the database...
+        //So it's time to end this misery and delete them!
+        $unattached_documents = StudipDocument::deleteBySql(
+            "range_id = 'provisional'"
+        );
+        
+        
+        //then we retrieve all message-IDs:
         $message_rows = $db->query("SELECT * FROM message;");
         
         foreach($message_rows as $message_row) {
