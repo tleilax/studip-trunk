@@ -22,6 +22,8 @@
  */
 class OutboxFolder implements FolderType
 {
+    /*
+    //attributes and constructor of InboxOutboxFolder (just for your convenience):
     protected $user;
     protected $folder;
     
@@ -30,11 +32,7 @@ class OutboxFolder implements FolderType
         $this->folder = $folder;
         $this->user = User::find($folder->user_id);
     }
-    
-    public function __get($attribute)
-    {
-        return $this->folder[$attribute];
-    }
+    */
     
     
     static public function getTypeName()
@@ -48,56 +46,6 @@ class OutboxFolder implements FolderType
         return Icon::create(count($this->getFiles()) ? 'folder-inbox-full' : 'folder-inbox-empty', $role);
     }
     
-    public function getId()
-    {
-        return $this->folder->id;
-    }
-    
-    static public function creatableInStandardFolder($range_type)
-    {
-        return ($range_type == 'user');
-    }
-    
-    public function isVisible($user_id)
-    {
-        return ($user_id == $this->user->id);
-    }
-    
-    public function isReadable($user_id)
-    {
-        return ($user_id == $this->user->id);
-    }
-    
-    public function isWritable($user_id)
-    {
-        return false;
-    }
-    
-    public function isSubfolderAllowed($user_id)
-    {
-        //this folder type does not allow subfolders!
-        return false;
-    }
-    
-    public function getDescriptionTemplate()
-    {
-        return [];
-    }
-    
-    public function getParent()
-    {
-        if($this->folder->parentFolder) {
-            return $this->folder->parentFolder->getTypedFolder();
-        } else {
-            return null;
-        }
-    }
-    
-    public function getSubfolders()
-    {
-        //no subfolders allowed!
-        return [];
-    }
     
     public function getFiles()
     {
@@ -130,57 +78,21 @@ class OutboxFolder implements FolderType
         return $files;
     }
     
-    public function getEditTemplate()
-    {
-        return [];
-    }
     
     public function setDataFromEditTemplate($folderdata)
     {
         return MessageBox::error(_('Outbox-Ordner können nicht bearbeitet werden!'));
     }
     
-    public function validateUpload($file, $user_id)
-    {
-        //no uploads allowed
-        return false;
-    }
     
     public function createFile($file)
     {
         return MessageBox::error(_('In Outbox-Ordnern können keine Dateien erzeugt werden!'));
     }
     
-    public function deleteFile($file_ref_id)
-    {
-        return false;
-    }
     
     public function createSubfolder($folderdata)
     {
         return MessageBox::error(_('In Outbox-Ordnern können keine nutzerdefinierten Unterordner erzeugt werden!'));
-    }
-    
-    public function deleteSubfolder($subfolder_id)
-    {
-        //subfolders must not be deleted!
-        return false;
-    }
-    
-    public function isFileDownloadable($file_ref_id, $user_id)
-    {
-        return ($user_id == $this->user->id);
-    }
-    
-    public function isFileEditable($file_ref_id, $user_id)
-    {
-        //files shall be unchanged in here
-        return false;
-    }
-    
-    public function isFileWritable($file_ref_id, $user_id)
-    {
-        //files shall be unchanged in here
-        return false;
     }
 }
