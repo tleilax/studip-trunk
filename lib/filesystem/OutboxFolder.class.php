@@ -20,7 +20,7 @@
  * This is a FolderType implementation for file attachments of messages
  * that were sent by a user. It is a read-only folder.
  */
-class OutboxFolder implements FolderType
+class OutboxFolder extends InboxOutboxFolder
 {
     /*
     //attributes and constructor of InboxOutboxFolder (just for your convenience):
