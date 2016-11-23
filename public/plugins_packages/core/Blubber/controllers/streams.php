@@ -515,55 +515,14 @@ class StreamsController extends PluginController {
                 || ($context_type === "course" && !$GLOBALS['perm']->have_studip_perm("autor", $context))) {
             throw new AccessDeniedException();
         }
-        //check folders
-        $db = DBManager::get();
-        $folder_id = md5("Blubber_".$context."_".$GLOBALS['user']->id);
-        $parent_folder_id = md5("Blubber_".$context);
-        if ($context_type !== "course") {
-            $folder_id = $parent_folder_id;
-        }
-        $folder = $db->query(
-            "SELECT * " .
-            "FROM folder " .
-            "WHERE folder_id = ".$db->quote($folder_id)." " .
-        "")->fetch(PDO::FETCH_COLUMN, 0);
-        if (!$folder) {
-            $folder = $db->query(
-                "SELECT * " .
-                "FROM folder " .
-                "WHERE folder_id = ".$db->quote($parent_folder_id)." " .
-            "")->fetch(PDO::FETCH_COLUMN, 0);
-            if (!$folder) {
-                $db->exec(
-                    "INSERT IGNORE INTO folder " .
-                    "SET folder_id = ".$db->quote($parent_folder_id).", " .
-                        "range_id = ".$db->quote($context).", " .
-                        "seminar_id = ".$db->quote($context).", " .
-                        "user_id = ".$db->quote($GLOBALS['user']->id).", " .
-                        "name = ".$db->quote("BlubberDateien").", " .
-                        "permission = '7', " .
-                        "mkdate = ".$db->quote(time()).", " .
-                        "chdate = ".$db->quote(time())." " .
-                "");
-            }
-            if ($context_type === "course") {
-                $db->exec(
-                    "INSERT IGNORE INTO folder " .
-                    "SET folder_id = ".$db->quote($folder_id).", " .
-                        "range_id = ".$db->quote($parent_folder_id).", " .
-                        "seminar_id = ".$db->quote($context).", " .
-                        "user_id = ".$db->quote($GLOBALS['user']->id).", " .
-                        "name = ".$db->quote(get_fullname()).", " .
-                        "permission = '7', " .
-                        "mkdate = ".$db->quote(time()).", " .
-                        "chdate = ".$db->quote(time())." " .
-                "");
-            }
-        }
-
+        
         $output = array();
 
         foreach ($_FILES as $file) {
+        
+            $newfile = null; //is filled below
+            $file_ref = null; //is also filled below
+            
             $GLOBALS['msg'] = '';
             validate_upload($file);
             if ($GLOBALS['msg']) {
@@ -571,11 +530,7 @@ class StreamsController extends PluginController {
                 continue;
             }
             if ($file['size']) {
-                $document['name'] = $document['filename'] = studip_utf8decode(mb_strtolower($file['name']));
                 $document['user_id'] = $GLOBALS['user']->id;
-                $document['author_name'] = get_fullname();
-                $document['seminar_id'] = $context;
-                $document['range_id'] = $context_type === "course" ? $folder_id : $parent_folder_id;
                 $document['filesize'] = $file['size'];
 
                 try {
@@ -615,9 +570,9 @@ class StreamsController extends PluginController {
                         
                         $result = FileManager::handleFileUpload(
                             [
-                                'name' => [$document['name']],
+                                'name' => [studip_utf8decode(mb_strtolower($file['filename']))],
                                 'type' => [null], //let the get_mime_type guess the file type
-                                'size' => [$document['filesize']],
+                                'size' => [$file['size']],
                                 'tmp_name' => [$file['tmp_name']]
                             ],
                             $blubber_directory,
@@ -649,13 +604,13 @@ class StreamsController extends PluginController {
                     $type = null;
                     mb_strpos($file['mime_type'], 'image') === false || $type = "img";
                     mb_strpos($file['mime_type'], 'video') === false || $type = "video";
-                    if (mb_strpos($file['mime_type'], 'audio') !== false || mb_strpos($document['name'], '.ogg') !== false) {
+                    if (mb_strpos($file['mime_type'], 'audio') !== false || mb_strpos($file_ref['name'], '.ogg') !== false) {
                          $type = "audio";
                     }
                     if ($type) {
                         $output['inserts'][] = "[".$type."]".$url;
                     } else {
-                        $output['inserts'][] = "[".$document['name']."]".$url;
+                        $output['inserts'][] = "[".$file_ref['name']."]".$url;
                     }
                 }
             }
