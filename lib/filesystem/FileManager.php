@@ -217,7 +217,7 @@ class FileManager
 
                 $new_reference = new FileRef();
                 $new_reference->file_id = $source->file_id;
-                $new_reference->folder_id = $destination_folder->id;
+                $new_reference->folder_id = $destination_folder->getId();
                 $new_reference->name = $source->file->name;
                 $new_reference->description = $source->description;
                 $new_reference->license = $source->license;

@@ -173,6 +173,10 @@ class MessagesController extends AuthenticatedController {
         $this->to = array();
         $this->default_message = new Message();
         
+        //flag to determine if the message is forwarded or not:
+        $forward_message = false;
+        
+        
         //check if a receiver is given:
         if (Request::username("rec_uname")) {
             $user = new MessageUser();
@@ -302,6 +306,8 @@ class MessagesController extends AuthenticatedController {
                 $this->answer_to = $old_message->id;
             } else {
                 //message shall be forwarded
+                $forward_message = true;
+                
                 $messagesubject = 'FWD: ' . $old_message['subject'];
                 $message = _("-_-_ Weitergeleitete Nachricht _-_-");
                 $message .= "\n" . _("Betreff") . ": " . $old_message['subject'];
@@ -321,27 +327,32 @@ class MessagesController extends AuthenticatedController {
                 }
                 if ($old_message->getNumAttachments()) {
                     //there is at least one attachment: we must copy it
-                    $forwarded_message_id = $old_message->getNewId();
-                    Request::set('message_id', $forwarded_message_id);
-                    $old_attachment_folder = MessageFolder::findMessageTopFolder($message_id);
+                    $this->message_id = $old_message->getNewId();
+                    //Request::set('message_id', $forwarded_message_id);
+                    $old_attachment_folder = MessageFolder::findMessageTopFolder($old_message->id);
                     
                     if($old_attachment_folder) {
-                        $new_attachment_folder = MessageFolder::findMessageTopFolder($forwarded_message_id, $GLOBALS['user']->id);
+                        $new_attachment_folder = MessageFolder::findMessageTopFolder($this->message_id, $GLOBALS['user']->id);
                         if($new_attachment_folder) {
                             foreach($old_attachment_folder->getFiles() as $old_attachment) {
-                                $new_attachment = FileManager::copyFileRef(
-                                    $old_attachment,
-                                    $new_attachment_folder,
-                                    $GLOBALS['user']
-                                );
-                                $this->default_attachments[] = [
-                                    'icon' => GetFileIcon(
-                                        $new_attachment->file->getExtension()
-                                        )->asImg(['class' => "text-bottom"]),
-                                    'name' => $new_attachment->name,
-                                    'document_id' => $new_attachment->id,
-                                    'size' => relsize($new_attachment->file->size, false)
-                                ];
+                                $new_attachment = new FileRef();
+                                $new_attachment->file_id = $old_attachment->file_id;
+                                $new_attachment->folder_id = $new_attachment_folder->getId();
+                                $new_attachment->name = $old_attachment->file->name;
+                                $new_attachment->description = $old_attachment->description;
+                                $new_attachment->license = $old_attachment->license;
+                                $new_attachment->user_id = $GLOBALS['user']->id;
+
+                                if($new_attachment->store()) {
+                                    $this->default_attachments[] = [
+                                        'icon' => GetFileIcon(
+                                            $new_attachment->file->getExtension()
+                                            )->asImg(['class' => "text-bottom"]),
+                                        'name' => $new_attachment->name,
+                                        'document_id' => $new_attachment->id,
+                                        'size' => relsize($new_attachment->file->size, false)
+                                    ];
+                                }
                             }
                         }
                     
@@ -386,71 +397,79 @@ class MessagesController extends AuthenticatedController {
             }
         }
         
-        //Check if there are files that were uploaded earlier and not attached
-        //to a message. These files can be attached to the new message.
         
-        //unattached folders are all folders that are from type 'MessageFolder',
-        //belong to the range type 'message', are owned by the current user
-        //and whose range-ID does not belong to a message.
-        //Background: Attachment folders of messages that haven't been sent
-        //have a "provisional" range-ID. When the message is sent this
-        //"provisional" range-ID is replaced by the message-ID.
-        $unattached_folders = Folder::findBySql(
-            "folder_type = 'MessageFolder'
-            AND
-            range_type = 'message'
-            AND
-            user_id = :user_id
-            AND
-            range_id NOT IN (
-                SELECT message_id FROM message
-                WHERE autor_id = :user_id
-            )",
-            [
-                'user_id' => $GLOBALS['user']->id
-            ]
-        );
-        
-        $unattached_files = [];
-        
-        //loop through all unattached folders, retrieve all file_refs,
-        //add them to the default_attachments array and store them in a
-        //new folder that gets the "provisional" range-ID of this message.
-        //After that, delete the old folders.
-        foreach($unattached_folders as $unattached_folder) {
-            foreach($unattached_folder->file_refs as $file_ref) {
-                $unattached_files[] = $file_ref;
-                $this->default_attachments[] = [
-                    'icon' => GetFileIcon(
-                        $file_ref->file->getExtension()
-                        )->asImg(['class' => "text-bottom"]),
-                    'name' => $file_ref->name,
-                    'document_id' => $file_ref->id,
-                    'size' => relsize($file_ref->file->size, false)
-                ];
+        //Files that were uploaded earlier and were left unattached
+        //are only attached to new messages which are not forwarded.
+        //This is because forwarded messages will only have those attachments
+        //that were present in the original message.
+        if(!$forward_message) {
+            
+            //Check if there are files that were uploaded earlier and not attached
+            //to a message. These files can be attached to the new message.
+            
+            //unattached folders are all folders that are from type 'MessageFolder',
+            //belong to the range type 'message', are owned by the current user
+            //and whose range-ID does not belong to a message.
+            //Background: Attachment folders of messages that haven't been sent
+            //have a "provisional" range-ID. When the message is sent this
+            //"provisional" range-ID is replaced by the message-ID.
+            $unattached_folders = Folder::findBySql(
+                "folder_type = 'MessageFolder'
+                AND
+                range_type = 'message'
+                AND
+                user_id = :user_id
+                AND
+                range_id NOT IN (
+                    SELECT message_id FROM message
+                    WHERE autor_id = :user_id
+                )",
+                [
+                    'user_id' => $GLOBALS['user']->id
+                ]
+            );
+            
+            $unattached_files = [];
+            
+            //loop through all unattached folders, retrieve all file_refs,
+            //add them to the default_attachments array and store them in a
+            //new folder that gets the "provisional" range-ID of this message.
+            //After that, delete the old folders.
+            foreach($unattached_folders as $unattached_folder) {
+                foreach($unattached_folder->file_refs as $file_ref) {
+                    $unattached_files[] = $file_ref;
+                    $this->default_attachments[] = [
+                        'icon' => GetFileIcon(
+                            $file_ref->file->getExtension()
+                            )->asImg(['class' => "text-bottom"]),
+                        'name' => $file_ref->name,
+                        'document_id' => $file_ref->id,
+                        'size' => relsize($file_ref->file->size, false)
+                    ];
+                }
+                
             }
             
-        }
-        
-        //we must display a note for the user to avoid sending a message
-        //with the wrong attachements attached to it.
-        if($unattached_files) {
-            PageLayout::postInfo(_('Es wurden Dateianhänge gefunden, welche zwar hochgeladen, aber noch nicht versandt wurden. Diese wurden an diese Nachricht angehängt!'));
-        }
-        
-        //create an attachment folder for the new message:
-        $new_attachment_folder = MessageFolder::findMessageTopFolder($this->message_id, $GLOBALS['user']->id);
-        
-        //"bend" the folder-ID of each unattached file to the new attachment folder's ID:
-        foreach($unattached_files as $file) {
-            $file->folder_id = $new_attachment_folder->getId();
-            $file->store();
-        }
-        
-        //now we can delete the old unattached folders since we transferred
-        //the attachments to a new folder:
-        foreach($unattached_folders as $unattached_folder) {
-            $unattached_folder->delete();
+            //we must display a note for the user to avoid sending a message
+            //with the wrong attachements attached to it.
+            if($unattached_files) {
+                PageLayout::postInfo(_('Es wurden Dateianhänge gefunden, welche zwar hochgeladen, aber noch nicht versandt wurden. Diese wurden an diese Nachricht angehängt!'));
+            }
+            
+            //create an attachment folder for the new message:
+            $new_attachment_folder = MessageFolder::findMessageTopFolder($this->message_id, $GLOBALS['user']->id);
+            
+            //"bend" the folder-ID of each unattached file to the new attachment folder's ID:
+            foreach($unattached_files as $file) {
+                $file->folder_id = $new_attachment_folder->getId();
+                $file->store();
+            }
+            
+            //now we can delete the old unattached folders since we transferred
+            //the attachments to a new folder:
+            foreach($unattached_folders as $unattached_folder) {
+                $unattached_folder->delete();
+            }
         }
         
         
