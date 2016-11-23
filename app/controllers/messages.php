@@ -445,6 +445,12 @@ class MessagesController extends AuthenticatedController {
             $file->store();
         }
         
+        //now we can delete the old unattached folders since we transferred
+        //the attachments to a new folder:
+        foreach($unattached_folders as $unattached_folder) {
+            $unattached_folder->delete();
+        }
+        
         
         NotificationCenter::postNotification("DefaultMessageForComposerCreated", $this->default_message);
 
@@ -741,10 +747,9 @@ class MessagesController extends AuthenticatedController {
     public function delete_attachment_action()
     {
         CSRFProtection::verifyUnsafeRequest();
-        $doc = StudipDocument::find(Request::option('document_id'));
-        if ($doc && $doc->range_id == 'provisional' && $doc->description == Request::option('message_id')) {
-            @unlink(get_upload_file_path($doc->id));
-            $doc->delete();
+        $attachment = FileRef::find(Request::option('document_id'));
+        if($attachment){
+            $attachment->delete();
         }
         $this->render_nothing();
     }
