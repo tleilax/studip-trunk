@@ -536,16 +536,17 @@ class StreamsController extends PluginController {
                 try {
                     $root_dir = Folder::findTopFolder($GLOBALS['user']->id);
                     $root_dir = $root_dir->getTypedFolder();
-                    $blubber_directory = Folder::findBySql(
-                        "parent_id = ':parent_id'
+                    $blubber_directory = Folder::findOneBySql(
+                        "parent_id = :parent_id
                         AND
                         folder_type = 'PublicFolder'
                         AND
-                        data_content = 'Blubber'",
+                        data_content = '[\"Blubber\"]'",
                         [
                             'parent_id' => $root_dir->getId()
                         ]
                     );
+                    
                     
                     if ($blubber_directory) {
                         $blubber_directory = $blubber_directory->getTypedFolder();
@@ -558,6 +559,10 @@ class StreamsController extends PluginController {
                             'Blubber',
                             _('Ihre Dateien aus Blubberstreams')
                         );
+                        
+                        $dir_data = $blubber_directory->getEditTemplate();
+                        $dir_data['data_content'] = ['Blubber'];
+                        $blubber_directory->setDataFromEditTemplate($dir_data);
                         
                         if(!$blubber_directory instanceof FolderType) {
                             $output['error'][] = _('Blubber-Dateiordner konnte nicht erstellt werden!');
