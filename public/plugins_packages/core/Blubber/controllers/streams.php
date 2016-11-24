@@ -570,7 +570,7 @@ class StreamsController extends PluginController {
                         
                         $result = FileManager::handleFileUpload(
                             [
-                                'name' => [studip_utf8decode(mb_strtolower($file['filename']))],
+                                'name' => [studip_utf8decode(mb_strtolower($file['name']))],
                                 'type' => [null], //let the get_mime_type guess the file type
                                 'size' => [$file['size']],
                                 'tmp_name' => [$file['tmp_name']]
