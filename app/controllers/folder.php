@@ -92,12 +92,15 @@ class FolderController extends AuthenticatedController
 
         $folder_types = FileManager::getFolderTypes($parent_folder->range_type);
 
+        $this->current_folder_type = 'StandardFolder';
         $this->folder_types = [];
 
         foreach($folder_types as $folder_type) {
+            $folder_type_instance = new $folder_type(new Folder());
             $this->folder_types[] = [
                 'class' => $folder_type,
-                'name' => $folder_type::getTypeName()
+                'name' => $folder_type::getTypeName(),
+                'icon' => $folder_type_instance->getIcon('clickable')
             ];
         }
 

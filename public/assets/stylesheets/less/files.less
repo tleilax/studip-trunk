@@ -9,7 +9,9 @@
     background-repeat: no-repeat;
     border: @base-color solid 1px;
 }
-.file_select_possibilities {
+
+/* for file/edit view and file/new_edit_folder_form view: */
+.file_select_possibilities, .folder_type_select_possibilities {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -48,20 +50,6 @@
     }
     
     
-    /* for file/edit view: */
-    
-    /*
-    .termsOfUseBox.selected {
-        background-color: black;
-    }*/
-    
-    
-    input[name=content_terms_of_use_id] {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-    
     label {
         font-size:70%;
         
@@ -73,7 +61,33 @@
     }
     
     
+    /* for file/edit view only: */
+    
+    input[name=content_terms_of_use_id] {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
     input[name=content_terms_of_use_id]:checked + label {
+        background-color: @brand-color-darker;
+        color: @contrast-content-white;
+        
+        img {
+            filter: invert(100%) brightness(200%);
+        }
+    }
+    
+    
+    /* for file/new_edit_folder_form view only: */
+    
+    input[name=folder_type] {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    input[name=folder_type]:checked + label {
         background-color: @brand-color-darker;
         color: @contrast-content-white;
         

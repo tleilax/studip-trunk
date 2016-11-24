@@ -5754,18 +5754,18 @@ table.dates .draggable-topic-handle {
   background-repeat: no-repeat;
   border: #28497c solid 1px;
 }
-.file_select_possibilities {
+/* for file/edit view and file/new_edit_folder_form view: */
+.file_select_possibilities,
+.folder_type_select_possibilities {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: stretch;
-  /* for file/edit view: */
-  /*
-    .termsOfUseBox.selected {
-        background-color: black;
-    }*/
+  /* for file/edit view only: */
+  /* for file/new_edit_folder_form view only: */
 }
-.file_select_possibilities > * {
+.file_select_possibilities > *,
+.folder_type_select_possibilities > * {
   background-color: transparent;
   margin: 10px;
   border: thin solid #e7ebf1;
@@ -5783,11 +5783,13 @@ table.dates .draggable-topic-handle {
   align-items: center;
   text-align: center;
 }
-.file_select_possibilities > * > img {
+.file_select_possibilities > * > img,
+.folder_type_select_possibilities > * > img {
   margin-left: auto;
   margin-right: auto;
 }
-.file_select_possibilities > button {
+.file_select_possibilities > button,
+.folder_type_select_possibilities > button {
   cursor: pointer;
   width: 140px;
   min-width: 140px;
@@ -5797,24 +5799,44 @@ table.dates .draggable-topic-handle {
   max-height: 140px;
   color: #28497c;
 }
-.file_select_possibilities input[name=content_terms_of_use_id] {
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
-}
-.file_select_possibilities label {
+.file_select_possibilities label,
+.folder_type_select_possibilities label {
   font-size: 70%;
 }
-.file_select_possibilities label img {
+.file_select_possibilities label img,
+.folder_type_select_possibilities label img {
   width: 40%;
   height: 40%;
   display: block;
 }
-.file_select_possibilities input[name=content_terms_of_use_id]:checked + label {
+.file_select_possibilities input[name=content_terms_of_use_id],
+.folder_type_select_possibilities input[name=content_terms_of_use_id] {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+.file_select_possibilities input[name=content_terms_of_use_id]:checked + label,
+.folder_type_select_possibilities input[name=content_terms_of_use_id]:checked + label {
   background-color: #1f4171;
   color: #ffffff;
 }
-.file_select_possibilities input[name=content_terms_of_use_id]:checked + label img {
+.file_select_possibilities input[name=content_terms_of_use_id]:checked + label img,
+.folder_type_select_possibilities input[name=content_terms_of_use_id]:checked + label img {
+  filter: invert(100%) brightness(200%);
+}
+.file_select_possibilities input[name=folder_type],
+.folder_type_select_possibilities input[name=folder_type] {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+.file_select_possibilities input[name=folder_type]:checked + label,
+.folder_type_select_possibilities input[name=folder_type]:checked + label {
+  background-color: #1f4171;
+  color: #ffffff;
+}
+.file_select_possibilities input[name=folder_type]:checked + label img,
+.folder_type_select_possibilities input[name=folder_type]:checked + label img {
   filter: invert(100%) brightness(200%);
 }
 /* classes for the evaluation modules in Stud.IP ---------------------------- */

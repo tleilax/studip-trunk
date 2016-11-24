@@ -12,18 +12,20 @@
         <?= _('Beschreibung') ?>
         <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($description); ?></textarea>
     </label>
-    <? if($new_folder_form) : ?>
-    <label>
+    <? if($new_folder_form && $folder_types): ?>
         <?= _('Ordnertyp') ?>
-        <select name="folder_type">
-        <? if ($folder_types): ?>
+        <div class="folder_type_select_possibilities">
         <? foreach ($folder_types as $folder_type) : ?>
-        <option value="<?= $folder_type['class'] ?>"
-            <?= ($folder_type['class'] == $current_folder_type) ? 'selected="selected"' : '' ?>
-            ><?= $folder_type['name'] ?></option>
+            <input type="radio" name="folder_type" value="<?= htmlReady($folder_type['class']) ?>"
+                id="folder_type_-<?= htmlReady($folder_type['class']) ?>"
+                <?= ($folder_type['class'] == $current_folder_type) ? 'checked="checked"' : '' ?> >
+            <label for="folder_type_-<?= htmlReady($folder_type['class']) ?>">
+                <? if ($folder_type['icon']) : ?>
+                    <?= $folder_type['icon']->asImg(50) ?>
+                <? endif ?>
+                <?= htmlReady($folder_type['name']) ?>
+            </label>
         <? endforeach ?>
-        <? endif ?>
-        </select>
-    </label>
     <? endif ?>
+    </div>
 </fieldset>
