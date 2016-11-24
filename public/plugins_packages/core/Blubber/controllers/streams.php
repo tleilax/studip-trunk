@@ -591,7 +591,17 @@ class StreamsController extends PluginController {
                             $file_ref->name = $newfile->name;
                             $file_ref->store();
                             
-                            $url = $file_ref->getDownloadURL();
+                            $url = mb_substr($GLOBALS['ABSOLUTE_URI_STUDIP'], 0, -1) . URLHelper::getUrl(
+                                '/sendfile.php',
+                                [
+                                    'type' => '0',
+                                    'file_id' => $file_ref->id,
+                                    'file_name' => $file_ref->name
+                                ],
+                                true
+                            );
+                            
+                            
                             $success = true;
                         }
                     }
