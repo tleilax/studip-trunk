@@ -581,6 +581,7 @@ class StreamsController extends PluginController {
                         
                         $newfile = $result['files'][0];
                         
+                        //check if a new file was created:
                         if($newfile) {
                             //we must create a file reference and link it to the folder:
                             $file_ref = new FileRef();

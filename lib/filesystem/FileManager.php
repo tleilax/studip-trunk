@@ -40,11 +40,17 @@ class FileManager
     {
         $result = array();
         $error = [];
+        
+        //check if user has write permissions for the folder:
         if(!$folder->isWritable($user_id)) {
             $error[] = _('Keine Schreibrechte für Zielordner!');
             return array_merge($result, ['error' => $error]);
         }
         
+        //Check if uploaded files[name] is an array.
+        //This check is necessary to find out, if $uploaded_files is a
+        //two-dimensional array. Each index of the first dimension 
+        //contains an array attribute for uploaded files, one entry per file.
         if (is_array($uploaded_files['name'])) {
             $error = [];
             foreach ($uploaded_files['name'] as $key => $filename) {
@@ -59,6 +65,9 @@ class FileManager
                 $filetype = $uploaded_files['type'][$key] ?: get_mime_type($filename);
                 $tmpname = $uploaded_files['tmp_name'][$key];
                 $size = $uploaded_files['size'][$key];
+                
+                //validate the upload by looking at the folder where the
+                //uploaded file shall be stored:
                 if ($folder_error = $folder->validateUpload(['name' => $filename, 'size' => $size], $user_id)) {
                     $error[] = $folder_error;
                     continue;
@@ -71,6 +80,7 @@ class FileManager
                 $file->storage = 'disk';
                 $file->id = $file->getNewId();
                 if ($file->connectWithDataFile($tmpname)) {
+                    $file->store();
                     $result['files'][] = $file;
                 } else {
                     $error[] = _("Ein Systemfehler ist beim Upload aufgetreten.");
@@ -82,7 +92,7 @@ class FileManager
 
 
     /**
-     * This method handles editing file refernce attributes.
+     * This method handles editing file reference attributes.
      *
      * Checks that have to be made during the editing of a file reference are placed
      * in this method so that a controller can simply call this method

@@ -54,18 +54,21 @@ class PublicFolder extends StandardFolder
 
     public function isFileDownloadable($file_id, $user_id)
     {
-        //to be implemented
+        //public folder => everyone can download a file
+        return true;
     }
 
 
     public function isFileEditable($file_id, $user_id)
     {
-        //to be implemented
+        //only the owner may edit files
+        return ($user_id == $this->folderdata['user_id']);
     }
 
 
     public function isFileWritable($file_id, $user_id)
     {
-        //to be implemented
+        //only the owner may delete files
+        return ($user_id == $this->folderdata['user_id']);
     }
 }
