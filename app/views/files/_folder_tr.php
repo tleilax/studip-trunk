@@ -48,7 +48,7 @@
             <? $actionMenu->addLink($controller->url_for('folder/edit/' . $folder->getId()),
                     _('Ordner bearbeiten'),
                     Icon::create('edit', 'clickable'),
-                    ['data-dialog' => 'size=auto; reload-on-close']) ?>
+                    ['data-dialog' => '1']) ?>
         <? endif; ?>
         <? $actionMenu->addLink($downloadlink,
                 _('Ordner herunterladen'),
