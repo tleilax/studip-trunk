@@ -114,29 +114,23 @@ if (Request::get("copymode")) {
     <? endif ?>
 </table>
 <? endif ?>
+
 <? if ($top_folder->isWritable($GLOBALS['user']->id)) : ?>
-    <? if ($options['copymode'] == 'copy'): ?>
-        <form action="<?= $controller->link_for(
-            '/copy/' . $options['fileref_id'],
-            [
-                'destinationId' => $top_folder->getId(),
-                'plugin' => $options['plugin'],
-                'to_plugin' => $options['to_plugin']
-            ]) ?>"
-            method="post">
-            <?= Studip\Button::createAccept(_('hierher kopieren'), 'do_copy', array()); ?>
-    <? else: ?>
-        <form action="<?= $controller->link_for(
-            '/move/' . $options['fileref_id'],
-            [
-                'dest_folder' => $top_folder->getId(),
-                'plugin' => $options['plugin'],
-                'to_plugin' => $options['to_plugin']
-            ]) ?>"
-            method="post">
-            <?= Studip\Button::createAccept(_('hierher verschieben'), 'do_move', array()); ?>
-    <? endif; ?>
+    
+    <?
+    $action = ($options['copymode'] == 'copy') ? 'copy' : 'move'; 
+    $action_text = ($action == 'copy')? _('hierher kopieren') : _('hierher verschieben'); 
+    ?>  
+    
+    <form action="<?= $controller->link_for('/'.$action.'/' . $options['fileref_id'],
+              array('dest_folder' => $top_folder->getId(),
+                    'plugin' => $options['plugin'], 
+                    'to_plugin' => $options['to_plugin'])) ?>" method="post">
+                    
+    	<?= Studip\Button::createAccept($action_text, 'do_'.$action, array()); ?>    
+    	
     </form>
+    
 <? endif ?>
 <?
 $options = array();

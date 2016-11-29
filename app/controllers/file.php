@@ -197,7 +197,7 @@ class FileController extends AuthenticatedController
      */
     public function copy_action($file_ref_id)
     {
-        $destination_folder_id = Request::get('destinationId');
+        $destination_folder_id = Request::get('dest_folder');
 
         if(!$file_ref_id) {
             PageLayout::postError(_('Datei-ID nicht gesetzt!'));
