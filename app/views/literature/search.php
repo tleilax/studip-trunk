@@ -1,6 +1,6 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <? $attributes['search_plugin'] = $attributes['text']; ?>
-<? $attributes['search_plugin']['onChange'] = 'document.' . $search->outer_form->form_name . '.submit()'; ?>
+<? $attributes['search_plugin']['class'] = 'submit-upon-select'; ?>
 <?= $search->outer_form->getFormStart(URLHelper::getLink('dispatch.php/literature/search?return_range=' . $return_range), array('class' => 'default')); ?>
 
 
@@ -76,7 +76,7 @@
     <? for ($i = $search->start_result; $i <= $end_result; ++$i) : ?>
         <? $element = $search->getSearchResult($i); ?>
         <? if ($element) : ?>
-            <section class="contentbox">
+            <article class="studip">
                 <header>
                     <h1>
                         <? $link = URLHelper::getLink('', array('cmd'        => 'add_to_clipboard',
@@ -143,7 +143,7 @@
                         <?= LinkButton::create(_('In Merkliste'), $link); ?>
                     <? endif ?>
                 </footer>
-            </section>
+            </article>
         <? endif ?>
     <? endfor ?>
     <p style="text-align: right">

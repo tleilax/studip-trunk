@@ -242,6 +242,7 @@ class Calendar_SingleController extends Calendar_CalendarController
                 if (Request::get('import_as_private_imp')) {
                     $import->changePublicToPrivate();
                 }
+                $import->importIntoDatabase($range_id);
                 $import_count = $import->getCount();
                 PageLayout::postMessage(MessageBox::success(
                         sprintf('Es wurden %s Termine importiert.', $import_count)));
@@ -335,7 +336,6 @@ class Calendar_SingleController extends Calendar_CalendarController
             } else {
                 $this->own_perms[$calendar_user->user_id] = Calendar::PERMISSION_FORBIDDEN;
             }
-            var_dump($calendar_user->nachname[0]);
             $this->users[mb_strtoupper(SimpleCollection::translitLatin1(
                     $calendar_user->nachname[0]))][] = $calendar_user;
         }

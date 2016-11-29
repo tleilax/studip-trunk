@@ -113,6 +113,43 @@
     
     $(document).ready(createLengthHint).on('dialog-update', createLengthHint);
 
+    // Automatic form submission handler when a select has changed it's value.
+    // Due to accessibility issues, an intuitive select[onchange=form.submit()]
+    // leads to terrible behaviour when invoked not by mouse. The form is
+    // submitted upon _every_ change, including key strokes.
+    // Thus, we need to overwrite this behaviour. Breakdown of this solution:
+    //
+    // - Only submit when the value has actually changed
+    // - Always submit when pressing enter (keycode 13)
+    // - Always check for change on blur event
+    //
+    // - Store whether the element was activated by click event
+    // - If so, submit upon next change event
+    // - Otherwise submit when enter has been pressed
+    //
+    // Be aware: All select[onchange*="submit()"] will be rewritten to
+    // select.submit-upon-select and have the onchange attribute removed.
+    // This might lead to unexpected behaviour.
+    $(document).on('focus', 'select[onchange*="submit()"]', function () {
+        $(this).removeAttr('onchange').addClass('submit-upon-select');
+    }).on('focus', 'select.submit-upon-select', function () {
+        $(this).data('currentValue', $(this).val());
+    }).on('click', 'select.submit-upon-select', function (event) {
+        $(this).data('shouldSubmit', true);
+    }).on('change', 'select.submit-upon-select', function (event) {
+        if ($(this).data('shouldSubmit')) {
+            $(this).blur();
+        }
+    }).on('blur keyup', 'select.submit-upon-select', function (event) {
+        var shouldSubmit = event.type === 'keyup' ? event.which === 13 : $(this).data('shouldSubmit'),
+            changed      = $(this).val() !== $(this).data('currentValue');
+
+        if (shouldSubmit && changed) {
+            $(this).closest('form').submit();
+            return false;
+        }
+    });
+
     // Use select2 for crossbrowser compliant select styling and
     // handling
     $.fn.select2.amd.define("select2/i18n/de", [], function() {
@@ -258,7 +295,7 @@
     $(document).on('dialog-update', prepareSelect2);
 
     $(document).on('change', 'select:not([multiple])', function () {
-        $(this).toggleClass('has-no-value', this.value === '').blur();
+        $(this).toggleClass('has-no-value', this.value === '');
     }).on('dialog-close', function (event, data) {
         $('select.nested-select:not(:has(optgroup))', data.dialog).each(function () {
             if (!$(this).data('select2')) {
@@ -266,6 +303,8 @@
             }
             $(this).select2('close');
         });
+    }).on('select2:open', 'select', function () {
+        $(this).click();
     });
 
 }(jQuery, STUDIP));

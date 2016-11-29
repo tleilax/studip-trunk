@@ -35,7 +35,7 @@ if ($navigation) {
 <html class="no-js">
 <head>
     <meta charset="utf-8">
-    <title data-original="<?= PageLayout::getTitle() ?>">
+    <title data-original="<?= htmlReady(PageLayout::getTitle()) ?>">
       <?= htmlReady(PageLayout::getTitle() . ' - ' . $GLOBALS['UNI_NAME_CLEAN']) ?>
     </title>
     <?php

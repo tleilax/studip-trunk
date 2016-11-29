@@ -1130,6 +1130,21 @@ form.default fieldset {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: -webkit-box-flex;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  -moz-box-direction: normal;
+  -moz-box-orient: vertical;
+  -webkit-box-orient: vertical;
+  flex-direction: column;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
   border: solid 1px #d0d7e3;
   margin: 0 0 10px;
   padding: 10px;
@@ -1138,20 +1153,20 @@ form.default fieldset {
   break-before: column;
 }
 form.default fieldset > legend {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   background-color: #e7ebf1;
-  border: none;
+  border: 1px solid #d0d7e3;
+  border-bottom: 0;
   color: #28497c;
-  float: left;
   font-size: 12pt;
   font-weight: bold;
   line-height: 2em;
-  margin: 0 -10px 1em -10px;
+  margin: 0 -11px;
   padding: 0;
   text-indent: 10px;
-  width: calc(100% + 20px);
-}
-form.default fieldset > legend + * {
-  clear: left;
+  width: calc(100% + 22px);
 }
 form.default fieldset > :first-child:not(legend),
 form.default fieldset > legend + * {
@@ -3497,6 +3512,153 @@ html.no-js:not(.csstransforms) .action-menu:hover .action-menu-icon {
 .studip-selection .studip-selection-selectable li:hover .studip-selection-label {
   text-decoration: underline;
 }
+article.studip {
+  border-color: #d0d7e3;
+  border-style: solid;
+  border-width: 1px;
+  margin-bottom: 10px;
+  -webkit-transition: all 300ms ease 0s;
+  -moz-transition: all 300ms ease 0s;
+  -o-transition: all 300ms ease 0s;
+  transition: all 300ms ease 0s;
+  padding: 10px;
+}
+article.studip:last-child {
+  margin-bottom: 0;
+}
+article.studip header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 2px;
+  background-color: #e7ebf1;
+  margin: -10px;
+  margin-bottom: 10px;
+}
+article.studip header > * {
+  /* Try to get header aligned by forcing children into centering */
+  display: flex;
+  align-items: center;
+}
+article.studip header > *:first-child {
+  flex: 1;
+}
+article.studip header h1 {
+  padding: 5px;
+  margin: 0;
+  color: #28497c;
+  border-bottom: none;
+  font-size: medium;
+}
+article.studip header h1 > a {
+  display: flex;
+  align-items: center;
+}
+article.studip header h1 > a img,
+article.studip header h1 > a svg {
+  margin-right: 5px;
+}
+article.studip header nav {
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+article.studip header nav > * {
+  border-right: 1px solid #899bba;
+  padding-right: 4px;
+  margin-right: 4px;
+}
+article.studip header nav > *:last-child {
+  border-right: none;
+  padding-right: 0;
+  margin-right: 0;
+}
+article.studip.toggle > header {
+  margin-bottom: -10px;
+}
+article.studip.toggle > header::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 0;
+  background-image: url("../images/icons/blue/arr_1right.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
+article.studip.toggle > header:before {
+  -webkit-transition: all 200ms ease 0s;
+  -moz-transition: all 200ms ease 0s;
+  -o-transition: all 200ms ease 0s;
+  transition: all 200ms ease 0s;
+  margin-left: 5px;
+}
+article.studip.toggle > header > *:first-child {
+  cursor: pointer;
+}
+article.studip.toggle > *:not(header) {
+  display: none;
+}
+article.studip.toggle.open > header {
+  margin-bottom: 10px;
+}
+article.studip.toggle.open > header:before {
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  -o-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+article.studip.toggle.open > *:not(header) {
+  display: inherit;
+}
+article.studip > footer {
+  text-align: center;
+  border-color: #d0d7e3;
+  border-top-style: solid;
+  border-width: 1px;
+  margin: -10px;
+  margin-top: 10px;
+}
+article.studip > footer:empty {
+  display: none !important;
+  border: 0 !important;
+}
+section.comments {
+  text-align: center;
+  border-color: #d0d7e3;
+  border-top-style: none;
+  border-width: 1px;
+  background-color: white;
+  padding: 5px;
+}
+section.comments h1 {
+  font-size: 1em;
+  font-weight: bold;
+  border: none;
+  padding: 0;
+}
+section.comments article.comment {
+  border: 0;
+  border-top: 1px solid #c5c7ca;
+  max-width: 1260px;
+  margin: auto;
+  margin-bottom: 4px;
+  text-align: left;
+}
+section.comments article.comment h1 {
+  margin-bottom: 0px;
+}
+section.comments article.comment time {
+  float: right;
+  font-size: 0.8em;
+  color: #c5c7ca;
+}
 /* --- AJAX indicator ------------------------------------------------------- */
 #ajax_notification {
   background-color: #7387ac;
@@ -4486,6 +4648,9 @@ div.clear {
 .questionnaire_results .ct-series-e .ct-slice-pie {
   fill: #f26e00;
 }
+.questionnaire_results table tbody tr:last-child td {
+  border-bottom: 0;
+}
 .questionnaire_answer > article {
   padding: 7px;
   border: none;
@@ -4505,6 +4670,7 @@ div.clear {
   text-align: center;
   border-top: thin solid #d0d7e3;
   color: #6d737b;
+  margin: 0 -10px;
 }
 .drag-and-drop {
   display: none;
@@ -6482,6 +6648,12 @@ section.course-statusgroups footer {
 .studip-widget section.contentbox > header {
   display: none;
 }
+.studip-widget > div > article.studip {
+  border: none;
+}
+.studip-widget > div > article.studip > header {
+  display: none;
+}
 .studip-widget:hover {
   border: 1px solid #1f4171;
   transition: border-color 300ms ease-in-out;
@@ -8172,9 +8344,6 @@ form.course-wizard-step-0 footer {
 }
 .smiley-toggle.ajax {
   background-image: url("../images/ajax_indicator_small.gif");
-}
-.smiley-select option.single {
-  font-family: monospace;
 }
 .smiley-statistics {
   margin: 0;

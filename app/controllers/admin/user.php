@@ -162,7 +162,9 @@ class Admin_UserController extends AuthenticatedController
         $this->studycourses           = Fach::findBySQL('1 order by name');
         $this->userdomains            = UserDomain::getUserDomains();
         $this->institutes             = Institute::getInstitutes();
-        $this->available_auth_plugins = User::getAvailableAuthPlugins();
+        foreach ($GLOBALS['STUDIP_AUTH_PLUGIN'] as $ap) {
+            $this->available_auth_plugins[mb_strtolower($ap)] = $ap;
+        }
 
         //show datafields search
         if ($advanced
@@ -566,7 +568,6 @@ class Admin_UserController extends AuthenticatedController
             });
         }
 
-        $this->available_auth_plugins = User::getAvailableAuthPlugins();
         $this->available_institutes   = Institute::getMyInstitutes();
         $this->userfields             = DataFieldEntry::getDataFieldEntries($user_id, 'user');
         $this->userdomains            = UserDomain::getUserDomainsForUser($user_id);
@@ -1097,8 +1098,11 @@ class Admin_UserController extends AuthenticatedController
     {
         $this->user     = User::find($user_id);
         $this->fullname = $this->user->getFullname();
-        $this->user     = $this->user->toArray();
+        $this->params   = [];
 
+        if(Request::int('from_index')) {
+            $this->params['from_index'] = 1;
+        }
         if (is_null($this->user)) {
             throw new Exception(_('Nutzer nicht gefunden'));
         }
@@ -1475,6 +1479,17 @@ class Admin_UserController extends AuthenticatedController
                     URLHelper::getLink('dispatch.php/event_log/show?search=' . $this->user->username . '&type=user&object_id=' . $this->user->user_id),
                     Icon::create('log', 'clickable'));
             }
+
+            // Create link to role administration for this user
+            $extra = '';
+            if ($count = count($this->user->getRoles())) {
+                $extra = ' (' . $count . ')';
+            }
+            $views->addLink(
+                _('Zur Rollenverwaltung') . $extra,
+                $this->url_for('admin/role/assign_role/' . $this->user->id),
+                Icon::create('roles2', 'clickable')
+            );
         }
         $sidebar->insertWidget($views, 'user_actions', 'views');
     }

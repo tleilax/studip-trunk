@@ -891,6 +891,9 @@ class SingleCalendar
     private static function createDayViewEvent($event, $lwst, $hgst,
             $cl_start, $cl_end, Array &$events_created)
     {
+        $lwst = mktime(12, 0, 0, date('n', $lwst), date('j', $lwst), date('Y', $lwst));
+        $hgst = mktime(12, 0, 0, date('n', $hgst), date('j', $hgst), date('Y', $hgst));
+        
         // if this date is in the exceptions?
         if ($event->getProperty('EXDATE')) {
             $exdates = explode(',', $event->getProperty('EXDATE'));
@@ -1158,6 +1161,9 @@ class SingleCalendar
         if ($date < $this->getStart() || $date > $this->getEnd()) {
             return false;
         }
+        $lwst = mktime(12, 0, 0, date('n', $lwst), date('j', $lwst), date('Y', $lwst));
+        $hgst = mktime(12, 0, 0, date('n', $hgst), date('j', $hgst), date('Y', $hgst));
+        
         // if this date is in the exceptions return false
         $exdates = explode(',', $properties['EXDATE']);
         foreach ($exdates as $exdate) {

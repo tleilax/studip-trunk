@@ -1,16 +1,22 @@
 <?php use Studip\Button, Studip\LinkButton;?>
 <form action="<?= $controller->url_for('profilemodules/update', compact('username')) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
+    <input name="uebernehmen" value="1" type="hidden">
     <table class="default nohover plus" id="profile_modules">
         <!-- <caption><?=_("Inhaltselemente")?></caption> -->
         <tbody>
 
 <?
     foreach ($sortedList as $category => $pluginlist) {
-        if ($_SESSION['profile_plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') continue;
-        if (isset($_SESSION['profile_plus']) && !$_SESSION['profile_plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') continue;
+        $visibility = "";
+        if ($_SESSION['profile_plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') {
+            $visibility = "invisible";
+        }
+        if (isset($_SESSION['profile_plus']) && !$_SESSION['profile_plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') {
+            $visibility = "invisible";
+        }
 ?>
-        <tr>
+        <tr class="<?= $visibility; ?>">
             <th colspan = 3>
                 <?= $category ?>
             </th>
@@ -22,16 +28,18 @@
             $info = $plugin->getMetadata();
             $pluginname = isset($info['displayname']) ? $info['displayname'] : $plugin->getPluginname();
             $URL = $plugin->getPluginURL();
+            $anchor = 'p_' . $plugin->getPluginId();
             //if(isset($info['complexity']) && isset($_SESSION['profile_plus']) && !$_SESSION['profile_plus']['Komplex'][$info['complexity']])continue;
     ?>
 
-        <tr class="<?= $pre_check != null ? ' quiet' : '' ?>">
+        <tr id="<?= htmlReady($anchor);?>" class="<?= $visibility; ?> <?= $pre_check != null ? ' quiet' : '' ?>">
             <td colspan = 3>
 
                 <div class="plus_basic">
 
                     <!-- checkbox -->
-                    <input type="checkbox" id="<?= $pluginname ?>" name="modules[]" value="<?= $plugin->getPluginId() ?>" <?= $val['activated'] ? 'checked' : '' ?>>
+                    <input type="checkbox" id="<?= $pluginname ?>" name="modules[]" value="<?= $plugin->getPluginId() ?>" <?= $val['activated'] ? 'checked' : '' ?>
+                    onClick="form.submit()">
 
                     <div class="element_header">
 
@@ -223,9 +231,9 @@
 
         </tbody>
         <tfoot>
-            <tr>
-                <td colspan="3">
-                    <?= Studip\Button::createAccept(_('Übernehmen'), 'submit') ?>
+            <tr class="hidden-js">
+                <td align="center" colspan="3">
+                    <?= Button::create(_('An- / Ausschalten'), 'uebernehmen') ?>
                 </td>
             </tr>
         </tfoot>

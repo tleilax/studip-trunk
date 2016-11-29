@@ -222,7 +222,6 @@ class RandomAlgorithm extends AdmissionAlgorithm
                     foreach (array_keys($current_claiming) as $user_id) {
                         if ($bonus_users[$user_id] > 0) {
                             $current_claiming[$user_id] *= $bonus_users[$user_id] * count($current_claiming) + 1;
-                            $bonus_users[$user_id]--;
                         }
                     }
                     $free_seats = round($free_seats_course * $quota / 100, 0, PHP_ROUND_HALF_DOWN);
@@ -235,6 +234,7 @@ class RandomAlgorithm extends AdmissionAlgorithm
                     $this->addUsersToCourse($chosen_ones, $course, $prio_mapper($chosen_ones, $course->id));
                     foreach ($chosen_ones as $one) {
                         $distributed_users[$one]++;
+                        $bonus_users[$one]--;
                     }
                     if ($free_seats < count($current_claiming)) {
                         $remaining_ones = array_slice(array_keys($current_claiming), $free_seats);
@@ -250,7 +250,7 @@ class RandomAlgorithm extends AdmissionAlgorithm
         Log::DEBUG('waiting list: ' . print_r($waiting_users, 1));
         foreach ($waiting_users as $current_prio => $current_prio_waiting_courses) {
             foreach ($current_prio_waiting_courses as $course_id => $users) {
-                $users = array_filter($users, function($user_id) use ($distributed_users, $max_seats_users) {
+                $users = array_filter(array_unique($users), function($user_id) use ($distributed_users, $max_seats_users) {
                     return $distributed_users[$user_id] < $max_seats_users[$user_id];});
                     $course = Course::find($course_id);
                     Log::DEBUG(sprintf('distribute waitlist of %s with prio %s in course %s', count($users), $current_prio, $course->id));
@@ -319,7 +319,12 @@ class RandomAlgorithm extends AdmissionAlgorithm
             $new_admission_member->user_id = $chosen_one;
             $new_admission_member->position = $maxpos;
             $new_admission_member->status = 'awaiting';
-            $course->admission_applicants[] = $new_admission_member;
+            try {
+                $course->admission_applicants[] = $new_admission_member;
+            } catch (InvalidArgumentException $e) {
+                Log::DEBUG($e->getMessage());
+                continue;
+            }
             if ($new_admission_member->store()) {
                 setTempLanguage($chosen_one);
                 $message_title = sprintf(_('Teilnahme an der Veranstaltung %s'), $course->name);
@@ -396,7 +401,8 @@ class RandomAlgorithm extends AdmissionAlgorithm
         };
         $db = DbManager::get();
         $db->fetchAll("SELECT user_id, COUNT(*) as c FROM seminar_user
-            WHERE seminar_id IN(?) AND user_id IN(?) GROUP BY user_id", array($course_ids, $user_ids), $sum);
+            WHERE seminar_id IN(?) AND user_id IN(?) AND status IN (?) GROUP BY user_id",
+            array($course_ids, $user_ids, array('user', 'autor')), $sum);
         $db->fetchAll("SELECT user_id, COUNT(*) as c FROM admission_seminar_user
             WHERE seminar_id IN(?) AND user_id IN(?) GROUP BY user_id", array($course_ids, $user_ids), $sum);
         return $distributed_users;

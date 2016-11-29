@@ -19,12 +19,14 @@
                         <col style="width: 200px">
                         <col>
                         <col style="width: 120px">
+                        <col style="width: 120px">
                         <col style="width: 20px">
                     </colgroup>
                     <thead>
                         <tr>
                             <th><?= _('Veranstaltungsnummer') ?></th>
                             <th><?= _('Veranstaltung') ?></th>
+                            <th><?= _('Typ') ?></th>
                             <th><?= _('Anzahl') ?></th>
                             <th class="actions"><?= _('Aktionen') ?></th>
                         </tr>
@@ -34,7 +36,10 @@
                             <tr>
                                 <td><?= htmlReady($data['course']->veranstaltungsnummer) ?></td>
                                 <td>
-                                    <?= htmlReady($data['course']->getFullName('type-name')) ?>
+                                    <?= htmlReady($data['course']->name) ?>
+                                </td>
+                                <td>
+                                    <?= htmlReady($data['course']->getSemType()['name'])?>
                                 </td>
                                 <td>
                                     <? if ($data['files']) : ?>
@@ -47,7 +52,7 @@
                                     <? if ($data['files']) : ?>
                                         <?
                                         $actionMenu = ActionMenu::get();
-                                        $actionMenu->addLink($controller->url_for('admin/user/list_files/' . $user['user_id'] . '/' . $data['course']->id),
+                                        $actionMenu->addLink($controller->url_for('admin/user/list_files/' . $user['user_id'] . '/' . $data['course']->id, $params),
                                                 _('Dateien auflisten'),
                                                 Icon::create('folder-full', 'clickable'),
                                                 ['data-dialog' => 'size=50%']);
