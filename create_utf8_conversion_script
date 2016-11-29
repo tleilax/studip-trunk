@@ -38,3 +38,6 @@ find . -name '*.php' -exec printf "iconv -f windows-1252 -t utf-8 {} \> {}.new \
 echo cd .. >> ../convert_files.sh
 
 cd ..
+
+echo "iconv -f windows-1252 -t utf-8 ./config/config.inc.php > ./config/config.inc.php.new" >> convert_files.sh
+echo "mv ./config/config.inc.php.new ./config/config.inc.php" >> convert_files.sh  
