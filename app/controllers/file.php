@@ -226,12 +226,12 @@ class FileController extends AuthenticatedController
             }
 
 
-            $result = FileManager::copyFileRef($this->file_ref, $this->destination_folder, User::findCurrent());
+            $errors = FileManager::copyFileRef($this->file_ref, $this->destination_folder, User::findCurrent());
 
-            if($result instanceof FileRef) {
+            if(!$errors) {
                 PageLayout::postSuccess(_('Die Datei wurde kopiert.'));
             } else {
-                PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $result);
+                PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $errors);
             }
             
             $dest_range = $destination_folder->range_id;

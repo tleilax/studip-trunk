@@ -236,7 +236,7 @@ class FileManager
                 $new_reference->folder_id = $destination_folder->getId();
                 $new_reference->name = $source->file->name;
                 $new_reference->description = $source->description;
-                $new_reference->license = $source->license;
+                $new_reference->content_terms_of_use_id = $source->content_terms_of_use_id;
                 $new_reference->user_id = $user->id;
 
                 if($new_reference->store()) {
@@ -291,7 +291,7 @@ class FileManager
 
                         $new_reference->folder_id = $destination_folder->id;
                         $new_reference->description = $source->description;
-                        $new_reference->license = $source->license;
+                        $new_reference->content_terms_of_use_id = $source->content_terms_of_use_id;
 
                         if($new_reference->store()) {
                             return $new_reference;
