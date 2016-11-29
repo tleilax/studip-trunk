@@ -9,6 +9,9 @@ if (Request::get("range_type")) {
 if (Request::get("fileref_id")) {
     $options['fileref_id'] = Request::get("fileref_id");
 }
+if (Request::get("isfolder")) {
+    $options['isfolder'] = Request::get("isfolder");
+}
 if (Request::get("copymode")) {
     $options['copymode'] = Request::get("copymode");
 }

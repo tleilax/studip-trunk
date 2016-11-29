@@ -9,6 +9,9 @@ if (Request::get("to_folder_id")) {
 if (Request::get("copymode")) {
     $options['copymode'] = Request::get("copymode");
 }
+if (Request::get("isfolder")) {
+    $options['isfolder'] = Request::get("isfolder");
+}
 if ($fileref_id) {
     $options['fileref_id'] = $fileref_id;
 }

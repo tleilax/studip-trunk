@@ -338,7 +338,7 @@ class FolderController extends AuthenticatedController
         //check if form was sent:
 
         if(Request::submitted('form_sent')) {
-            $target_folder_id = Request::get('course_dest_folder');
+            /*$target_folder_id = Request::get('course_dest_folder');
             
             if(!$target_folder_id) {
                 $target_folder_id = Request::get('inst_dest_folder');
@@ -346,7 +346,8 @@ class FolderController extends AuthenticatedController
             
             if(!$target_folder_id) {
                 $target_folder_id = Request::get('user_dest_folder');
-            }
+            }*/
+            $target_folder_id = Request::get('dest_folder');
             
             if(!$target_folder_id) {
                 $this->render_text(MessageBox::error(_('Zielordner-ID nicht gefunden!')));
@@ -367,16 +368,16 @@ class FolderController extends AuthenticatedController
                 $errors = FileManager::copyFolder($folder_type, $target_folder_type, $current_user);
 
                 if(!$errors) {
-                    $this->redirectToFolder($this->target_folder, MessageBox::success(_('Ordner erfolgreich kopiert!')));
+                    $this->redirectToFolder($target_folder_type, MessageBox::success(_('Ordner erfolgreich kopiert!')));
                 } else {
-                    $this->redirectToFolder($this->target_folder, MessageBox::error(_('Fehler beim Kopieren des Ordners!'), $errors));
+                    $this->redirectToFolder($target_folder_type, MessageBox::error(_('Fehler beim Kopieren des Ordners!'), $errors));
                 }
             } else {
                 //ok, we can move the folder!
                 $errors = FileManager::moveFolder($folder_type, $target_folder_type, $current_user);
 
                 if(!$errors) {
-                    $this->redirectToFolder($this->target_folder, MessageBox::success(_('Ordner erfolgreich verschoben!')));
+                    $this->redirectToFolder($target_folder_type, MessageBox::success(_('Ordner erfolgreich verschoben!')));
                 } else {
                     $this->redirectToFolder(MessageBox::error(_('Fehler beim Verschieben des Ordners!'), $errors));
                 }

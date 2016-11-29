@@ -54,11 +54,11 @@
                 _('Ordner herunterladen'),
                 Icon::create('download', 'clickable')) ?>
         <? if ($folder->isWritable($GLOBALS['user']->id)): ?>
-            <? $actionMenu->addLink($controller->url_for('folder/move/' . $folder->getId()),
+           <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $folder->getId(), array('copymode' => 'move', 'isfolder' => 1)),
                     _('Ordner verschieben'),
                     Icon::create('folder-empty+move_right', 'clickable'),
                     ['data-dialog' => '1']) ?>
-            <? $actionMenu->addLink($controller->url_for('folder/copy/' . $folder->getId()),
+            <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $folder->getId(), array('copymode' => 'copy', 'isfolder' => 1)),
                     _('Ordner kopieren'),
                     Icon::create('folder-empty+add', 'clickable'),
                     ['data-dialog' => '1']) ?>

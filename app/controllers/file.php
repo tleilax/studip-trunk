@@ -407,7 +407,8 @@ class FileController extends AuthenticatedController
             header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
                     'to_plugin' => Request::get("to_plugin"),
                     'fileref_id' => Request::get("fileref_id"),
-                    'copymode' => Request::get("copymode")
+                    'copymode' => Request::get("copymode"),
+                    'isfolder' => Request::get("isfolder")
             )));
         }
 
@@ -436,7 +437,8 @@ class FileController extends AuthenticatedController
             header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
                     'to_plugin' => Request::get("to_plugin"),
                     'fileref_id' => Request::get("fileref_id"),
-                    'copymode' => Request::get("copymode")
+                    'copymode' => Request::get("copymode"),
+                    'isfolder' => Request::get("isfolder")
             )));
         }
 

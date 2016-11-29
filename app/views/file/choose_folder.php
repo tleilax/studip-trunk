@@ -14,6 +14,9 @@ if (Request::get("plugin")) {
 if (Request::get("fileref_id")) {
     $options['fileref_id'] = Request::get("fileref_id");
 }
+if (Request::get("isfolder")) {
+    $options['isfolder'] = Request::get("isfolder");
+}
 if (Request::get("copymode")) {
     $options['copymode'] = Request::get("copymode");
 }
@@ -122,15 +125,18 @@ if (Request::get("copymode")) {
     $action_text = ($action == 'copy')? _('hierher kopieren') : _('hierher verschieben'); 
     ?>  
     
-    <form action="<?= $controller->link_for('/'.$action.'/' . $options['fileref_id'],
+    <form action="<?= $controller->link_for(($options['isfolder']?'folder':'').'/'.$action.'/' . $options['fileref_id'],
               array('dest_folder' => $top_folder->getId(),
                     'plugin' => $options['plugin'], 
                     'to_plugin' => $options['to_plugin'])) ?>" method="post">
-                    
-    	<?= Studip\Button::createAccept($action_text, 'do_'.$action, array()); ?>    
-    	
-    </form>
     
+    <? if ($options['isfolder']): ?>
+    	<?= Studip\Button::createAccept($action_text, 'form_sent', array()); ?>       	
+    <? else: ?>                       
+    	<?= Studip\Button::createAccept($action_text, 'do_'.$action, array()); ?>      
+    <? endif; ?>
+    
+    </form>
 <? endif ?>
 <?
 $options = array();
