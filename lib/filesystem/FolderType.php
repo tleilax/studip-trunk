@@ -172,6 +172,14 @@ interface FolderType
     
     
     /**
+     * Deletes this folder.
+     * 
+     * @return bool True on success, False on failure.
+     */
+    public function delete();
+    
+    
+    /**
      * Determines if a user may download the file.
      * @param string $file_ref_id The ID of the FileRef object of a file that shall be downloaded.
      * @param string $user_id The user who wishes to download the file.

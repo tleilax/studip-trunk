@@ -281,6 +281,12 @@ class StandardFolder implements FolderType
     }
 
 
+    public function delete()
+    {
+        return $this->folderdata->delete();
+    }
+    
+    
     /**
      * @param $fileref_or_id
      * @param $user_id

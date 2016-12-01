@@ -404,6 +404,12 @@ class MessageFolder implements FolderType
     }
     
     
+    public function delete()
+    {
+        return $this->folder->delete();
+    }
+    
+    
     public function isFileDownloadable($file_ref_id, $user_id)
     {
         //we have to check if the user ID is the sender

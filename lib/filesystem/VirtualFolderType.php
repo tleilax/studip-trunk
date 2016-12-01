@@ -127,6 +127,13 @@ class VirtualFolderType implements FolderType
         return true;
     }
     
+    
+    public function delete()
+    {
+        //TODO
+        return true;
+    }
+    
 
     public function isFileDownloadable($fileref_or_id, $user_id)
     {

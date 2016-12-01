@@ -188,6 +188,12 @@ class UnknownFolderType implements FolderType
         return false;
     }
     
+    
+    public function delete()
+    {
+        return false;
+    }
+    
 
     /**
      * @param $fileref_or_id

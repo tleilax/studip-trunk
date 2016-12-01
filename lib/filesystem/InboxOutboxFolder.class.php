@@ -144,6 +144,13 @@ class InboxOutboxFolder implements FolderType
         return false;
     }
     
+    
+    public function delete()
+    {
+        return $this->folder->delete();
+    }
+    
+    
     public function isFileDownloadable($file_ref_id, $user_id)
     {
         return ($user_id == $this->user->id);
