@@ -152,8 +152,8 @@ class FileController extends AuthenticatedController
             $this->description = Request::get('description');
             $this->content_terms_of_use_id = Request::get('content_terms_of_use_id');
 
-            $errors = FileManager::editFileRef($file_ref, User::findCurrent(), $this->name, $this->description, $this->content_terms_of_use_id);
-            if (empty($errors)) {
+            $result = FileManager::editFileRef($file_ref, User::findCurrent(), $this->name, $this->description, $this->content_terms_of_use_id);
+            if ($result instanceof FileRef) {
                 $this->redirectToFolder(
                     $file_ref->folder,
                     MessageBox::success(_('Änderungen gespeichert!'))
@@ -161,7 +161,7 @@ class FileController extends AuthenticatedController
             } else {
                 $this->redirectToFolder(
                     $file_ref->folder,
-                    MessageBox::error(_('Fehler beim Speichern der Änderungen!'), $errors)
+                    MessageBox::error(_('Fehler beim Speichern der Änderungen!'), $result)
                 );
             }
         } else {

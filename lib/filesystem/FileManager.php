@@ -108,13 +108,13 @@ class FileManager
      * @param string|null content_terms_of_use_id The ID of the new ContentTermsOfUse object.
      * @param string|null license The new license description for the file reference.
      *
-     * @return string[] Array with error messages: Empty array on success, filled array on failure.
+     * @return FileRef|string[] The edited FileRef object on success, string array with error messages on failure.
      */
     public static function editFileRef(FileRef $file_ref, User $user, $name = null, $description = null, $content_terms_of_use_id = null)
     {
         if(!$name && ($description == null) && ($content_terms_of_use_id == null)) {
             //nothing to do, no errors:
-            return [];
+            return $file_ref;
         }
 
         if(!$file_ref->folder) {
@@ -171,7 +171,7 @@ class FileManager
 
             if($file_ref->store()) {
                 //everything went fine
-                return [];
+                return $file_ref;
             } else {
                 //error while saving the changes!
                 return [
