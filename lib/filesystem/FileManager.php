@@ -734,7 +734,8 @@ class FileManager
      * @param FolderType $folder The folder that shall be deleted.
      * @param User $user The user who wishes to delete the folder.
      *
-     * @return string[] Array with error messages: Empty array on success, filled array on failure.
+     * @return FolderType|string[] The deleted folder's FolderType object on success
+     * or an array with error messages on failure.
      */
     public static function deleteFolder(FolderType $folder, User $user)
     {
@@ -770,7 +771,7 @@ class FileManager
             ];
         }
 
-        return [];
+        return $folder;
     }
 
 
