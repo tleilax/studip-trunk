@@ -1,11 +1,9 @@
-<aside style="float:left; width: 20%;">
+<aside id="folder_aside">
     <?= Icon::create(
         ($folder->file_refs) ? 'folder-full' : 'folder-empty',
         'info',
-        [
-            'style' => 'margin-top: 15%; margin-left: 20%; width: 60%; max-height: 16em; height: 100%;'
-        ]) ?>
-    <h3 style="text-align: center; font-size: 140%;"><?= htmlReady($folder->name) ?></h3>
+        []) ?>
+    <h3><?= htmlReady($folder->name) ?></h3>
     <dl>
         <dt><?= _('Erstellt') ?></dt>
         <dd><?= date('d.m.Y H:i', $folder->mkdate) ?></dd>

@@ -1,10 +1,8 @@
-<aside style="float:left; width: 20%;">
+<aside id="file_aside">
     <?= Icon::create(
         'file',
         'info',
-        [
-            'style' => 'margin-top: 15%; margin-left: 20%; width: 60%; max-height: 18em; height: 100%;'
-        ]) ?>
+        []) ?>
     <h3 style="text-align: center; font-size: 140%;"><?= htmlReady($file_ref->name) ?></h3>
     <dl>
         <dt><?= _('Größe') ?></dt>
