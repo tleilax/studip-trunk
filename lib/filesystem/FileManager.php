@@ -294,7 +294,7 @@ class FileManager
                         $new_reference->content_terms_of_use_id = $source->content_terms_of_use_id;
 
                         if($new_reference->store()) {
-                            return $new_reference;
+                            return [];
                         } else {
                             //file reference can't be created!
                             return[
@@ -711,27 +711,26 @@ class FileManager
 
         $errors = [];
 
-        $destination_folder_type = $destination_folder->getTypedFolder();
-        if($destination_folder_type->isWritable($user->id)) {
+        if($destination_folder->isWritable($user->id)) {
 
             //we have to check, if the source folder is a folder from a course.
             //If so, then only users with status dozent or tutor (or root) in that course
             //may copy the folder!
-            if($source_folder->isReadable($user->id) &&
-                $destination_folder->isWritable($user->id)) {
+            if($source_folder->isReadable($user->id)) {
                 //the user has the permissions to copy the folder
 
+                $unique_name = Folder::find($destination_folder->getId())->getUniqueName($source_folder->name);
                 $folder_class_name = get_class($source_folder);
 
-                $new_folder = new $folder_class_name();
-                $data = $new_folder->getEditTemplate();
-
-                $data['user_id'] = $source_folder->user_id;
+                $new_folder = new $folder_class_name(new Folder());                
+                $data = $source_folder->getEditTemplate();
+                $data['id'] = null;
+                $data['user_id'] = $user->id;
                 $data['parent_id'] = $destination_folder->id;
                 $data['range_id'] = $destination_folder->range_id;
                 $data['range_type'] = $destination_folder->range_type;
                 $data['folder_type'] = $source_folder->folder_type;
-                $data['name'] = $destination_folder->getUniqueName($source_folder->name);
+                $data['name'] = $unique_name;
                 $data['data_content'] = $source_folder->data_content;
                 $data['description'] = $source_folder->description;
 
@@ -740,7 +739,7 @@ class FileManager
 
                 //now we go through all subfolders and copy them:
                 foreach($source_folder->getSubfolders() as $sub_folder) {
-                    $errors[] = self::copyFolder($sub_folder, $new_folder, $user);
+                    $errors = self::copyFolder($sub_folder, $new_folder, $user);
                     if($errors) {
                         return $errors;
                     }
@@ -748,8 +747,7 @@ class FileManager
 
                 //now go through all files and copy them, too:
                 foreach($source_folder->getFiles() as $file_ref) {
-                    $errors[] = self::copyFileRef($file_ref, $new_folder, $user);
-
+                    $errors = self::copyFileRef($file_ref, $new_folder, $user);
                     if($errors) {
                         return $errors;
                     }
