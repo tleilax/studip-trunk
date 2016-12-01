@@ -285,13 +285,11 @@ class FileManager
                         //ok, create the file ref for the copied file:
                         $new_reference = new FileRef();
                         $new_reference->file_id = $file_copy->id;
-
-                        //Create an unique name for the file reference:
-                        $new_reference->name = $file_copy->name;
-
                         $new_reference->folder_id = $destination_folder->id;
+                        $new_reference->name = $file_copy->name;
                         $new_reference->description = $source->description;
                         $new_reference->content_terms_of_use_id = $source->content_terms_of_use_id;
+                        $new_reference->user_id = $user->id;
 
                         if($new_reference->store()) {
                             return $new_reference;
