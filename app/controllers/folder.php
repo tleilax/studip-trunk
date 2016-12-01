@@ -473,7 +473,8 @@ class FolderController extends AuthenticatedController
      */
     public function delete_action($folder_id)
     {
-        //we need the ID of the folder:
+        //we need the folder's FolderType object, but first we check for the ID,
+        //the folder object itself and then for the folder type:
         if(!$folder_id) {
             $this->render_text(MessageBox::error(_('Ordner-ID nicht gefunden!')));
             return;
@@ -484,27 +485,21 @@ class FolderController extends AuthenticatedController
             $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;
         }
-
-        //ok, check permissions:
-
-        $currentUser = User::findCurrent();
-
-        if(($this->folder->user_id == $currentUser->id) or $GLOBALS['perm']->have_perm('admin')) {
-            $this->folder->delete();
-            $this->render_text(MessageBox::success(_('Ordner wurde gelöscht!')));
-            return;
-        } else {
-            //not permitted to delete the folder:
-            $this->render_text(MessageBox::error(_('Sie sind nicht dazu berechtigt, diesen Ordner zu löschen!')));
+        
+        $this->folder = $this->folder->getTypedFolder();
+        if(!$this->folder) {
+            $this->render_text(MessageBox::error(_('Ordnertyp konnte nicht ermittelt werden!')));
             return;
         }
-        //DEVELOPMENT STAGE ONLY:
-        //return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/'.$parentFolder->id));
 
-        if(Request::isDialog()) {
-            $this->render_template('file/delete.php');
+        //ok, we can try to delete the folder:
+        
+        $result = FileManager::deleteFolder($this->folder, User::findCurrent());
+        
+        if($result instanceof FolderType) {
+            $this->render_text(MessageBox::success(_('Ordner wurde gelöscht!')));
         } else {
-            $this->render_template('file/delete.php', $GLOBALS['template_factory']->open('layouts/base'));
+            $this->render_text(MessageBox::error(_('Ordner konnte nicht gelöscht werden!', $result)));
         }
     }
 }
