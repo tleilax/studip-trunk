@@ -69,7 +69,10 @@ STUDIP.Folders = {
             data: null,
             cache: false,
             success: function(data) {
-                STUDIP.Folders.removeFolderListEntry(folder_id);
+            	if ($(data).hasClass('messagebox_success')) {
+                	STUDIP.Folders.removeFolderListEntry(folder_id);
+            	}
+            	$('#layout_content').prepend(data);
             }
         });
     }
