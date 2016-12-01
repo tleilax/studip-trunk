@@ -620,96 +620,19 @@ class FileManager
      * This method handles copying folders, including
      * copying the subfolders and files recursively.
      *
-     * @param source_folder The folder that shall be copied.
-     * @param destination_folder The destination folder.
-     * @param user The user who wishes to copy the folder.
-     *
-     * @return string[] Array with error messages: Empty array on success, filled array on failure.
-     */
-    public static function copyFolder_OLD(Folder $source_folder, Folder $destination_folder, User $user)
-    {
-        global $perm;
-
-        $errors = [];
-
-        $destination_folder_type = $destination_folder->getTypedFolder();
-        if($destination_folder_type->isWritable($user->id)) {
-
-            $source_folder_type = Folder::findRangeTypeById($source_folder->range_id);
-
-            //we have to check, if the source folder is a folder from a course.
-            //If so, then only users with status dozent or tutor (or root) in that course
-            //may copy the folder!
-            if($source_folder_type == 'course' &&
-                $perm->have_studip_perm('tutor', $source_folder->range_id, $user->id)
-                || ($source_folder_type != 'course')
-            ) {
-                //the if-query above returns true if the folder type is not course
-                //or if the user has the permissions to copy a course folder
-
-                $new_folder = new Folder();
-                $new_folder->user_id = $source_folder->user_id;
-                $new_folder->parent_id = $destination_folder->id;
-                $new_folder->range_id = $destination_folder->range_id;
-                $new_folder->range_type = $destination_folder->range_type;
-                $new_folder->folder_type = $source_folder->folder_type;
-                $new_folder->name = $destination_folder->getUniqueName($source_folder->name);
-                $new_folder->data_content = $source_folder->data_content;
-                $new_folder->description = $source_folder->description;
-                //folder is copied, we can store it:
-                $new_folder->store();
-
-
-                //now we go through all subfolders and copy them:
-                foreach($source_folder->subfolders as $sub_folder) {
-                    $errors[] = self::copyFolder($sub_folder, $new_folder, $user);
-                    if($errors) {
-                        return $errors;
-                    }
-                }
-
-                //now go through all files and copy them, too:
-                foreach($source_folder->file_refs as $file_ref) {
-                    $errors[] = self::copyFileRef($file_ref, $new_folder, $user);
-
-                    if($errors) {
-                        return $errors;
-                    }
-                }
-            } else {
-                //no permission to copy course folders!
-                $errors[] = sprintf(
-                    _('Unzureichende Berechtigungen zum Kopieren von Veranstaltungsordner %s in Ordner %s!'),
-                    $source_folder->name,
-                    $destination_folder->name
-                );
-            }
-        } else {
-            $errors[] = sprintf(
-                _('Unzureichende Berechtigungen zum Kopieren von Ordner %s in Ordner %s!'),
-                $source_folder->name,
-                $destination_folder->name
-            );
-        }
-        return $errors;
-    }
-
-
-    /**
-     * This method handles copying folders, including
-     * copying the subfolders and files recursively.
-     *
      * @param FolderType $source_folder The folder that shall be copied.
      * @param FolderType $destination_folder The destination folder.
      * @param User $user The user who wishes to copy the folder.
      *
-     * @return string[] Array with error messages: Empty array on success, filled array on failure.
+     * @return FolderType|string[] The copy of the source_folder FolderType object on success
+     * or an array with error messages on failure.
      */
     public static function copyFolder(FolderType $source_folder, FolderType $destination_folder, User $user)
     {
         global $perm;
 
         $errors = [];
+        $new_folder = null;
 
         if($destination_folder->isWritable($user->id)) {
 
@@ -739,35 +662,39 @@ class FileManager
 
                 //now we go through all subfolders and copy them:
                 foreach($source_folder->getSubfolders() as $sub_folder) {
-                    $errors = self::copyFolder($sub_folder, $new_folder, $user);
-                    if($errors) {
-                        return $errors;
+                    $result = self::copyFolder($sub_folder, $new_folder, $user);
+                    if(!$result instanceof FolderType) {
+                        return $result;
                     }
                 }
 
                 //now go through all files and copy them, too:
                 foreach($source_folder->getFiles() as $file_ref) {
-                    $errors = self::copyFileRef($file_ref, $new_folder, $user);
-                    if($errors) {
-                        return $errors;
+                    $result = self::copyFileRef($file_ref, $new_folder, $user);
+                    if(!$result instanceof FileRef) {
+                        return $result;
                     }
                 }
             } else {
                 //no permission to copy course folders!
-                $errors[] = sprintf(
-                    _('Unzureichende Berechtigungen zum Kopieren von Veranstaltungsordner %s in Ordner %s!'),
-                    $source_folder->name,
-                    $destination_folder->name
-                );
+                return [
+                    sprintf(
+                        _('Unzureichende Berechtigungen zum Kopieren von Veranstaltungsordner %s in Ordner %s!'),
+                        $source_folder->name,
+                        $destination_folder->name
+                    )
+                ];
             }
         } else {
-            $errors[] = sprintf(
-                _('Unzureichende Berechtigungen zum Kopieren von Ordner %s in Ordner %s!'),
-                $source_folder->name,
-                $destination_folder->name
-            );
+            return [
+                sprintf(
+                    _('Unzureichende Berechtigungen zum Kopieren von Ordner %s in Ordner %s!'),
+                    $source_folder->name,
+                    $destination_folder->name
+                )
+            ];
         }
-        return $errors;
+        return $new_folder;
     }
 
 

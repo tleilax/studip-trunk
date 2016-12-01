@@ -365,12 +365,12 @@ class FolderController extends AuthenticatedController
             $target_folder_type = $this->target_folder->getTypedFolder();
 
             if($copy) {
-                $errors = FileManager::copyFolder($folder_type, $target_folder_type, $current_user);
+                $result = FileManager::copyFolder($folder_type, $target_folder_type, $current_user);
 
-                if(!$errors) {
+                if($result instanceof FolderType) {
                     $this->redirectToFolder($target_folder_type, MessageBox::success(_('Ordner erfolgreich kopiert!')));
                 } else {
-                    $this->redirectToFolder($target_folder_type, MessageBox::error(_('Fehler beim Kopieren des Ordners!'), $errors));
+                    $this->redirectToFolder($target_folder_type, MessageBox::error(_('Fehler beim Kopieren des Ordners!'), $result));
                 }
             } else {
                 //ok, we can move the folder!

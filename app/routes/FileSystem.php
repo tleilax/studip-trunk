@@ -596,26 +596,26 @@ class FileSystem extends \RESTAPI\RouteMap
             }
         }
         
-        $folder_type = $folder->getTypedFolder();
-        if(!$folder_type) {
+        $folder = $folder->getTypedFolder();
+        if(!$folder) {
             $this->halt(500, 'Source folder type not found!');
         }
         
-        $destination_folder_type = $folder->getTypedFolder();
-        if(!$destination_folder_type) {
+        $destination_folder = $destination_folder->getTypedFolder();
+        if(!$destination_folder) {
             $this->halt(500, 'Destination folder type not found!');
         }
         
         
         $user = \User::findCurrent();
         
-        $errors = \FileManager::copyFolder_OLD($folder, $destination_folder, $user);
+        $result = \FileManager::copyFolder($folder, $destination_folder, $user);
         
-        if(!empty($errors)) {
-            $this->halt(500, 'Error while copying a folder: ' . implode(' ', $errors));
+        if(!$result instanceof FolderType) {
+            $this->halt(500, 'Error while copying a folder: ' . implode(' ', $result));
         }
         
-        return $destination_folder->toRawArray();
+        return $result->toRawArray();
     }
     
     
