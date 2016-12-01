@@ -207,7 +207,7 @@ class FileManager
      * @param FolderType $destination_folder The destination folder for the file.
      * @param User $user The user who wishes to copy the file.
      *
-     * @return FileRef|string[] Either a FileRef object or an Array with error messages on failure.
+     * @return FileRef|string[] The copied FileRef object on success or an array with error messages on failure.
      */
     public static function copyFileRef(FileRef $source, FolderType $destination_folder, User $user)
     {
@@ -240,7 +240,7 @@ class FileManager
                 $new_reference->user_id = $user->id;
 
                 if($new_reference->store()) {
-                    return [];
+                    return $new_reference;
                 } else {
                     return[
                         _('Neue Referenz kann nicht erzeugt werden!')
@@ -294,7 +294,7 @@ class FileManager
                         $new_reference->content_terms_of_use_id = $source->content_terms_of_use_id;
 
                         if($new_reference->store()) {
-                            return [];
+                            return $new_reference;
                         } else {
                             //file reference can't be created!
                             return[
