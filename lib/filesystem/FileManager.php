@@ -384,7 +384,8 @@ class FileManager
      * @param FileRef file_ref The file reference that shall be deleted
      * @param User user The user who wishes to delete the file reference.
      *
-     * @return string[] Array with error messages: Empty array on success, filled array on failure.
+     * @return FileRef|string[] The FileRef object that was deleted from the database on success
+     * or an array with error messages on failure.
      */
     public static function deleteFileRef(FileRef $file_ref, User $user)
     {
@@ -404,7 +405,7 @@ class FileManager
         if($folder_type->isFileWritable($file_ref->id, $user->id)) {
 
             if($file_ref->delete()) {
-                return [];
+                return $file_ref;
             } else {
                 return [_('Dateireferenz konnte nicht gelöscht werden.')];
             }
