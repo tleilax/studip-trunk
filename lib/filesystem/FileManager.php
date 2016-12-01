@@ -550,7 +550,8 @@ class FileManager
      * @param string|null $name The new name for the folder (can be left empty).
      * @param string|null $description The new description for the folder (can be left empty).
      *
-     * @returns string[] Array with error messages: Empty array on success, filled array on failure.
+     * @returns FolderType|string[] Returns the edited FolderType object success
+     * or an array with error messages on failure.
      */
     public static function editFolder(FolderType $folder, User $user, $name = null, $description = null)
     {
@@ -560,8 +561,8 @@ class FileManager
         //If description is an empty string it shall be changed to an empty string
         //if it had a filled string as value.
         if(!$name && ($description == null)) {
-            //neither name nor description are set: we can't do anything.
-            return [_('Keine Änderungen angegeben!')];
+            //neither name nor description are set: nothing to do, no error:
+            return $folder;
         }
 
         //check if folder is not a top folder:
@@ -594,7 +595,7 @@ class FileManager
 
             if($folder->setDataFromEditTemplate($data)) {
                 //folder successfully edited
-                return [];
+                return $folder;
             } else {
                 return [
                     sprintf(

@@ -258,12 +258,12 @@ class FolderController extends AuthenticatedController
                 $this->name = Request::get('name');
                 $this->description = Request::get('description');
 
-                $errors = FileManager::editFolder($this->folder, $current_user, $this->name, $this->description);
+                $result = FileManager::editFolder($this->folder, $current_user, $this->name, $this->description);
 
-                if(empty($errors)) {
+                if($result instanceof FolderType) {
                     $this->redirectToFolder($this->folder, MessageBox::success(_('Ordner wurde bearbeitet!')));
                 } else {
-                    $this->redirectToFolder($this->folder, MessageBox::error(_('Fehler beim Bearbeiten des Ordners!'), $errors));
+                    $this->redirectToFolder($this->folder, MessageBox::error(_('Fehler beim Bearbeiten des Ordners!'), $result));
                 }
                 return;
             } else {
