@@ -26,10 +26,18 @@ class MessageFolder implements FolderType
     protected $message; //folders of this type can be associated with a message object
     
     
-    public function __construct(Folder $folder)
+    /**
+     * @param Folder|null folder The folder object for this FolderType
+     */
+    public function __construct($folder = null)
     {
-        $this->folder = $folder;
-        $this->message = Message::find($folder->range_id);
+        if($folder instanceof Folder) {
+            $this->folder = $folder;
+            $this->message = Message::find($folder->range_id);
+        } else {
+            $this->folder = new Folder();
+            $this->message = null;
+        }
         
     }
     

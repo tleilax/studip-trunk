@@ -21,11 +21,15 @@ class UnknownFolderType implements FolderType
 
     /**
      * StandardFolder constructor.
-     * @param Folder $folderdata
+     * @param Folder|null $folderdata
      */
-    public function __construct(Folder $folderdata)
+    public function __construct($folderdata)
     {
-        $this->folderdata = $folderdata;
+        if($folderdata instanceof Folder) {
+            $this->folderdata = $folderdata;
+        } else {
+            $this->folderdata = new Folder();
+        }
     }
 
 

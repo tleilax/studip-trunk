@@ -28,9 +28,15 @@ class InboxOutboxFolder implements FolderType
     
     public function __construct(Folder $folder)
     {
-        $this->folder = $folder;
-        $this->user = User::find($folder->user_id);
+        if($folderdata instanceof Folder) {
+            $this->folder = $folder;
+            $this->user = User::find($folder->user_id);
+        } else {
+            $this->folder = new Folder();
+            $this->user = null;
+        }
     }
+    
     
     public function __get($attribute)
     {
@@ -61,12 +67,20 @@ class InboxOutboxFolder implements FolderType
     
     public function isVisible($user_id)
     {
-        return ($user_id == $this->user->id);
+        if($this->user) {
+            return ($user_id == $this->user->id);
+        } else {
+            return false;
+        }
     }
     
     public function isReadable($user_id)
     {
-        return ($user_id == $this->user->id);
+        if($this->user) {
+            return ($user_id == $this->user->id);
+        } else {
+            return false;
+        }
     }
     
     public function isWritable($user_id)
@@ -153,7 +167,11 @@ class InboxOutboxFolder implements FolderType
     
     public function isFileDownloadable($file_ref_id, $user_id)
     {
-        return ($user_id == $this->user->id);
+        if($this->user) {
+            return ($user_id == $this->user->id);
+        } else {
+            return false;
+        }
     }
     
     public function isFileEditable($file_ref_id, $user_id)
