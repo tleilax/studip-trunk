@@ -374,12 +374,12 @@ class FolderController extends AuthenticatedController
                 }
             } else {
                 //ok, we can move the folder!
-                $errors = FileManager::moveFolder($folder_type, $target_folder_type, $current_user);
+                $result = FileManager::moveFolder($folder_type, $target_folder_type, $current_user);
 
-                if(!$errors) {
+                if($result instanceof FolderType) {
                     $this->redirectToFolder($target_folder_type, MessageBox::success(_('Ordner erfolgreich verschoben!')));
                 } else {
-                    $this->redirectToFolder(MessageBox::error(_('Fehler beim Verschieben des Ordners!'), $errors));
+                    $this->redirectToFolder(MessageBox::error(_('Fehler beim Verschieben des Ordners!'), $result));
                 }
             }
             return;

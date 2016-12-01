@@ -706,7 +706,8 @@ class FileManager
      * @param FolderType $destination_folder The destination folder.
      * @param User $user The user who wishes to move the folder.
      *
-     * @returns Array with error messages: Empty array on success, filled array on failure.
+     * @return FolderType|string[] The moved folder's FolderType object on success
+     * or an array with error messages on failure.
      */
     public static function moveFolder(FolderType $source_folder, FolderType $destination_folder, User $user)
     {
@@ -714,14 +715,16 @@ class FileManager
             $source_data = $source_folder->getEditTemplate();
             $source_data['parent_id'] = $destination_folder->getId();
             $source_folder->setDataFromEditTemplate($source_data);
+            return $source_folder;
         } else {
-            $errors[] = sprintf(
-                _('Unzureichende Berechtigungen zum Verschieben von Ordner %s in Ordner %s!'),
-                $source_folder->name,
-                $destination_folder->name
-            );
+            return [
+                sprintf(
+                    _('Unzureichende Berechtigungen zum Verschieben von Ordner %s in Ordner %s!'),
+                    $source_folder->name,
+                    $destination_folder->name
+                )
+            ];
         }
-        return [];
     }
 
 
