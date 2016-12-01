@@ -118,7 +118,7 @@ if (Request::get("copymode")) {
 </table>
 <? endif ?>
 
-<? if ($top_folder->isWritable($GLOBALS['user']->id)) : ?>
+<? if ($top_folder->isWritable($GLOBALS['user']->id) && $top_folder->id != $options['fileref_id']) : ?>
     
     <?
     $action = ($options['copymode'] == 'copy') ? 'copy' : 'move'; 
