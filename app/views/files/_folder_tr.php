@@ -4,7 +4,7 @@
 <tr id="row_folder_<?= $folder->id ?>">
     <td>
         <? if ($is_readable) : ?>
-            <input type="checkbox" name="ids[]" value="<?= $folder->getId() ?>" <? if (in_array($folder->getId(), $marked_element_ids)) echo 'checked'; ?>>
+            <input type="checkbox" name="ids[]" value="<?= $folder->getId() ?>" <?= (in_array($folder->getId(), $marked_element_ids)) ? 'checked' : '' ?>>
         <? endif?>
     </td>
     <td class="document-icon" data-sort-value="0">

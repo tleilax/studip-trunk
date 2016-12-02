@@ -1,5 +1,5 @@
 <? $controllerpath = ($topFolder->range_type === "user" ? "" : $topFolder->range_type."/").'files/index' ?>
-<form method="post">
+<form method="post" action="<?= URLHelper::getLink('dispatch.php/files/bulk') ?>">
 <?= CSRFProtection::tokenTag() ?>
 <table class="default documents" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
     <caption>
