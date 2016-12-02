@@ -148,10 +148,138 @@ class FilesController extends AuthenticatedController
         $this->topFolder = $folder->getTypedFolder();
 
         //find all files in all subdirectories:
-        //find all files in all subdirectories:
         list($this->files, $this->folders) = array_values(FileManager::getFolderFilesRecursive($this->topFolder, $GLOBALS['user']->id));
     }
 
-
-
+    
+    private function fillZipArchive(ZipArchive $zip, $zip_path = '/', $filesystem_item = null)
+    {
+        if($filesystem_item instanceof FileRef) {
+            $zip->addFile($filesystem_item->file->getPath(), $filesystem_item->name);
+            $filesystem_item->downloads += 1;
+            $filesystem_item->store();
+        } elseif($filesystem_item instanceof Folder) {
+            $zip->addEmptyDir($filesystem_item->name);
+            
+            //loop through all file_refs and subfolders:
+            foreach($filesystem_item->file_refs as $file_ref) {
+                $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $file_ref);
+            }
+            
+            foreach($filesystem_item->subfolders as $subfolder) {
+                $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $subfolder);
+            }
+        }
+    }
+    
+    
+    
+    /**
+     * This action allows downloading, copying, moving and deleting files and folders in bulk.
+     */
+    public function bulk_action()
+    {
+        //check, if at least one ID was given:
+        
+        $parent_folder_id = Request::get('parent_folder_id', null);
+        $ids = Request::getArray('ids');
+        
+        if(empty($ids)) {
+            $this->redirect('files/index/' . $parent_folder_id);
+        }
+        
+        //check, which action was chosen:
+        
+        if(Request::submitted('download')) {
+            //bulk downloading:
+            
+            //loop through all ids, check if it refers to a file_ref or a folder
+            //and zip them into one big archive:
+            
+            $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
+            $zip = new ZipArchive();
+            
+            $zip_open_result = $zip->open($tmp_file, ZipArchive::CREATE);
+            if($zip_open_result !== true) {
+                throw new Exception('Could not create zip file: ' . $zip_open_result);
+            }
+            
+            $zip_path = '';
+            
+            foreach($ids as $id) {
+                //check if the ID references a FileRef:
+                $filesystem_item = FileRef::find($id);
+                if(!$filesystem_item) {
+                    //check if the ID references a Folder:
+                    $filesystem_item = Folder::find($id);
+                }
+                
+                if(!$filesystem_item) {
+                    //we can't find any file system item for this ID!
+                    continue;
+                }
+                
+                $this->fillZipArchive($zip, '/', $filesystem_item);
+                
+            }
+            
+            //finish writing:
+            $zip->close();
+            
+            
+            //Ok, we have a zip file now: We can send it to the user:
+            //(The following code was taken from the old file area file
+            //download.php)
+            
+            $dispositon = sprintf('%s;filename="%s"',
+                              'inline',
+                              urlencode(basename($tmp_file, '.zip'))
+                            );
+            $this->response->add_header('Content-Disposition', $dispositon);
+            $this->response->add_header('Content-Description', 'File Transfer');
+            $this->response->add_header('Content-Transfer-Encoding' , 'binary');
+            $this->response->add_header('Content-Type', 'application/zip');
+            $this->response->add_header('Content-Length', filesize($tmp_file));
+            
+            $this->render_nothing();
+            $this->download_handle = fopen($tmp_file, 'r');
+            $this->download_remove = $tmp_file;
+            
+        } elseif(Request::submitted('copy')) {
+            //bulk copying
+        } elseif(Request::submitted('move')) {
+            //bulk moving
+        } elseif(Request::submitted('delete')) {
+            //bulk deleting
+        }
+    }
+    
+    /**
+     * The after_filter method of this controller transmits file contens
+     * (if any) and removes temporary files that were created before
+     * bulk downloading.
+     *
+     * @param String $action The executed action.
+     * @param Array  $args Arguments that were passed to the executed action.
+     */
+    public function after_filter($action, $args)
+    {
+        //(The following code was taken from the old file area file
+        //download.php)
+        
+        parent::after_filter($action, $args);
+        
+        //If the handle for the file to be downloaded is opened
+        //we must send the file and then close it.
+        if($this->download_handle && is_resource($this->download_handle)) {
+            fpassthru($this->download_handle);
+            fclose($this->download_handle);
+        }
+        
+        //If a temporary file was created for the download
+        //we must delete if afterwards.
+        if($this->download_remove && file_exists($this->download_remove)) {
+            unlink($this->download_remove);
+        }
+    }
 }
