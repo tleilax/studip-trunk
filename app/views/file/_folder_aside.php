@@ -1,21 +1,22 @@
 <aside id="folder_aside">
-    <?= Icon::create(
-        ($folder->file_refs) ? 'folder-full' : 'folder-empty',
-        'info',
-        []) ?>
+    <?= $folder->getIcon('info') ?>
     <h3><?= htmlReady($folder->name) ?></h3>
-    <dl>
-        <dt><?= _('Erstellt') ?></dt>
-        <dd><?= date('d.m.Y H:i', $folder->mkdate) ?></dd>
-        
-        <dt><?= _('Geändert') ?></dt>
-        <dd><?= date('d.m.Y H:i', $folder->chdate) ?></dd>
-        
-        <dt><?= _('Besitzer/-in') ?></dt>
-        <dd>
-        <? if($folder->owner): ?>
-        <?= htmlReady($folder->owner->getFullName()) ?>
-        <? endif ?>
-        </dd>
-    </dl>
+    <table class="default">
+        <tr>
+            <th><?= _('Erstellt') ?></th>
+            <td><?= date('d.m.Y H:i', $folder->mkdate) ?></td>
+        </tr>
+        <tr>
+            <th><?= _('Geändert') ?></th>
+            <td><?= date('d.m.Y H:i', $folder->chdate) ?></td>
+        </tr>
+        <tr>
+            <th><?= _('Besitzer/-in') ?></th>
+            <td>
+            <? if($folder->owner): ?>
+            <?= htmlReady($folder->owner->getFullName()) ?>
+            <? endif ?>
+            </td>
+        </tr>
+    </table>
 </aside>

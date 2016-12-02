@@ -26,9 +26,9 @@ class InboxOutboxFolder implements FolderType
     protected $user;
     protected $folder;
     
-    public function __construct(Folder $folder)
+    public function __construct($folder)
     {
-        if($folderdata instanceof Folder) {
+        if($folder instanceof Folder) {
             $this->folder = $folder;
             $this->user = User::find($folder->user_id);
         } else {
