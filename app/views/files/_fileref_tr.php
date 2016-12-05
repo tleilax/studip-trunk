@@ -3,7 +3,6 @@
         <input type="checkbox"
                name="ids[]"
                value="<?= $file_ref->id ?>"
-               onchange="javascript:void(STUDIP.Files.toggleBulkButtons());"
                <? if (in_array($file_ref->id, (array) $marked_element_ids)) echo 'checked'; ?>>
     </td>
     <td class="document-icon" data-sort-value="1">

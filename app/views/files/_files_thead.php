@@ -10,8 +10,7 @@
     <thead>
         <tr class="sortable">
             <th data-sort="false">
-                <input type="checkbox" data-proxyfor=":checkbox[name='ids[]']"
-                    onchange="javascript:void(STUDIP.Files.toggleBulkButtons(true));">
+                <input type="checkbox" data-proxyfor=":checkbox[name='ids[]']">
             </th>
             <th data-sort="htmldata"><?= _('Typ') ?></th>
             <th data-sort="text" class="sortasc"><?= _('Name') ?></th>
