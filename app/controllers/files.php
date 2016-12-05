@@ -152,21 +152,21 @@ class FilesController extends AuthenticatedController
     }
 
     
-    private function fillZipArchive(ZipArchive $zip, $zip_path = '/', $filesystem_item = null)
+    private function fillZipArchive(ZipArchive $zip, $zip_path = '', $filesystem_item = null)
     {
         if($filesystem_item instanceof FileRef) {
-            $zip->addFile($filesystem_item->file->getPath(), $filesystem_item->name);
+            $zip->addFile($filesystem_item->file->getPath(), $zip_path . $filesystem_item->name);
             $filesystem_item->downloads += 1;
             $filesystem_item->store();
-        } elseif($filesystem_item instanceof Folder) {
+        } elseif($filesystem_item instanceof FolderType) {
             $zip->addEmptyDir($filesystem_item->name);
             
             //loop through all file_refs and subfolders:
-            foreach($filesystem_item->file_refs as $file_ref) {
+            foreach($filesystem_item->getFiles() as $file_ref) {
                 $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $file_ref);
             }
             
-            foreach($filesystem_item->subfolders as $subfolder) {
+            foreach($filesystem_item->getSubfolders() as $subfolder) {
                 $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $subfolder);
             }
         }
@@ -212,6 +212,9 @@ class FilesController extends AuthenticatedController
                 if(!$filesystem_item) {
                     //check if the ID references a Folder:
                     $filesystem_item = Folder::find($id);
+                    if($filesystem_item) {
+                        $filesystem_item = $filesystem_item->getTypedFolder();
+                    }
                 }
                 
                 if(!$filesystem_item) {
@@ -219,7 +222,7 @@ class FilesController extends AuthenticatedController
                     continue;
                 }
                 
-                $this->fillZipArchive($zip, '/', $filesystem_item);
+                $this->fillZipArchive($zip, '', $filesystem_item);
                 
             }
             
