@@ -80,8 +80,15 @@ class FileController extends AuthenticatedController
             } else {
                 //all files were uploaded successfully:
                 foreach($validatedFiles['files'] as $file) {
-                    if ($file->store() && ($fileref = $folder->createFile($file))) {
+                    if ($fileref = $folder->createFile($file)) {
                         $storedFiles[] = $fileref;
+                    } else {
+                        $this->render_json([
+                            'message' => MessageBox::error(
+                                _('Die hochgeladene Datei konnte nicht dem Ordner zugeordnet werden!')
+                            )
+                        ]);
+                        return;
                     }
                 }
                 if (count($storedFiles) && !Request::isAjax()) {
@@ -107,12 +114,14 @@ class FileController extends AuthenticatedController
                             'file_refs' => $ref_ids
                         ));
                     }
-
-                    foreach ($storedFiles as $fileref) {
-                        $this->file_ref = $fileref;
-                        $this->current_folder = $folder;
-                        $this->marked_element_ids = array();
-                        $output['new_html'][] = $this->render_template_as_string("files/_fileref_tr");
+                    
+                    if($storedFiles) {
+                        foreach ($storedFiles as $fileref) {
+                            $this->file_ref = $fileref;
+                            $this->current_folder = $folder;
+                            $this->marked_element_ids = array();
+                            $output['new_html'][] = $this->render_template_as_string("files/_fileref_tr");
+                        }
                     }
                     $this->render_json($output);
                 }
