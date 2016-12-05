@@ -687,7 +687,18 @@ class FileController extends AuthenticatedController
                         $this->file_ref = $file_ref;
                         $this->current_folder = $this->to_folder_type;
                         $this->marked_element_ids = array();
-                        $payload = $this->render_template_as_string("files/_fileref_tr");
+                        $plugins = PlugineManager::get()->getPlugins("FileUploadHook");
+                        $redirects = array();
+                        foreach ($plugins as $plugin) {
+                            $url = $plugin->getAdditionalUploadWizardPage($file_ref);
+                            if ($url) {
+                                $redirects = $url;
+                            }
+                        }
+                        $payload = array(
+                            'html' => $this->render_template_as_string("files/_fileref_tr"),
+                            'redirect' => $redirects[0]
+                        );
 
                         $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
                         $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
@@ -737,8 +748,18 @@ class FileController extends AuthenticatedController
                     $this->file_ref = $file_ref;
                     $this->current_folder = $file_ref->folder->getTypedFolder();
                     $this->marked_element_ids = array();
-                    $payload[] = $this->render_template_as_string("files/_fileref_tr");
+                    $payload['html'][] = $this->render_template_as_string("files/_fileref_tr");
                 }
+
+                $plugins = PlugineManager::get()->getPlugins("FileUploadHook");
+                $redirects = array();
+                foreach ($plugins as $plugin) {
+                    $url = $plugin->getAdditionalUploadWizardPage($file_ref);
+                    if ($url) {
+                        $redirects = $url;
+                    }
+                }
+                $payload['redirect'] = $redirects[0];
 
                 $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
                 $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
@@ -805,7 +826,17 @@ class FileController extends AuthenticatedController
 
                     $this->current_folder = $this->top_folder;
                     $this->marked_element_ids = array();
-                    $payload[] = $this->render_template_as_string("files/_fileref_tr");
+                    $payload['html'][] = $this->render_template_as_string("files/_fileref_tr");
+
+                    $plugins = PlugineManager::get()->getPlugins("FileUploadHook");
+                    $redirects = array();
+                    foreach ($plugins as $plugin) {
+                        $url = $plugin->getAdditionalUploadWizardPage($file_ref);
+                        if ($url) {
+                            $redirects = $url;
+                        }
+                    }
+                    $payload['html'] = $redirects[0];
 
                     $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
                     $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));

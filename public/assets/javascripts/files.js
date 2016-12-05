@@ -91,7 +91,16 @@ STUDIP.Files = {
         if (typeof delay === "undefined") {
             delay = 0;
         }
-        window.setTimeout(STUDIP.Dialog.close, 20);
+        var redirect = true;
+        if (typeof html.html !== "undefined") {
+            redirect = html.redirect;
+            html = html.html;
+        }
+        if (!redirect) {
+            window.setTimeout(STUDIP.Dialog.close, 20);
+        } else {
+            STUDIP.Dialog.fromURL(redirect);
+        }
         var tr;
         if ((typeof html !== "array") && (typeof html !== "object")) {
             html = [html];
