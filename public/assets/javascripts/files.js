@@ -175,6 +175,42 @@ STUDIP.Files = {
             $('#'+element_name+'-subfolder').show();
             STUDIP.Files.getFolders(name);
         }
+    },
+    
+    toggleBulkButtons: function(bulk_checkbox = false) {
+        //At the bottom of each file list there are buttons for bulk actions.
+        //These have to be activated when at least one element is checked.
+        
+        var buttons = jQuery('table.documents tfoot button');
+        
+        
+        if(bulk_checkbox == true) {
+            //if the bulk checkbox in the table head was clicked
+            //we can skip cheking all of the other elements:
+            //If the bulk checkbox is checked, all other elements
+            //must be checked, too. So we can enable the buttons.
+            var bulk_checkbox = jQuery('table.documents thead th input[data-proxyfor]');
+            if(jQuery(bulk_checkbox).is(':checked')) {
+                //bulk checkbox is checked: enable bulk buttons:
+                jQuery(buttons).removeAttr('disabled');
+            } else {
+                //otherwise: disable bulk buttons:
+                jQuery(buttons).attr('disabled', 'disabled');
+            }
+        } else {
+            //The bulk checkbox wasn't clicked: check each of the elements:
+            var elements = jQuery('table.documents tr[role=row] td input:checked');
+            
+            if(elements.length > 0) {
+                //at least one element is checked: activate buttons
+                jQuery(buttons).removeAttr('disabled');
+            } else {
+                //no element is checked: deactivate buttons
+                jQuery(buttons).attr('disabled', 'disabled');
+                //check if bulk checkbox is checked and uncheck it:
+                jQuery('table.documents thead th input[data-proxyfor]').removeAttr('checked');
+            }
+        }
     }
 };
 

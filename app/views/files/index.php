@@ -64,24 +64,57 @@
     <tfoot>
         <tr>
             <td colspan="100">
-            <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
+            <?= Studip\Button::create(
+                _('Herunterladen'),
+                'download',
+                [
+                    'disabled' => 'disabled'
+                ]) ?>
             <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-                <?= Studip\Button::create(_('Verschieben'), 'move', array('data-dialog' => '')) ?>
-                <?= Studip\Button::create(_('Löschen'), 'delete', array('data-dialog' => '')) ?>
+                <?= Studip\Button::create(
+                    _('Verschieben'),
+                    'move',
+                    [
+                        'data-dialog' => '',
+                        'disabled' => 'disabled'
+                    ]) ?>
+                <?= Studip\Button::create(
+                    _('Löschen'),
+                    'delete',
+                    [
+                        'data-dialog' => '',
+                        'disabled' => 'disabled'
+                    ]) ?>
             <? endif; ?>
 
                 <? if ($topFolder->isReadable($GLOBALS['user']->id)): ?>
-                <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-dialog' => ''))?>
+                <?= Studip\Button::create(
+                    _('Kopieren'),
+                    'copy',
+                    [
+                        'data-dialog' => '',
+                        'disabled' => 'disabled'
+                    ])?>
                 <? endif; ?>
             <span class="responsive-visible">
                 <? if ($topFolder->isSubfolderAllowed($GLOBALS['user']->id)): ?>
-                <?= Studip\LinkButton::create(_("Neuer Ordner"), URLHelper::getUrl(
-                    'dispatch.php/folder/new',
-                    array('parent_folder_id' => $topFolder->getId())
-                ), array('data-dialog' => '')) ?>
+                <?= Studip\LinkButton::create(
+                    _("Neuer Ordner"),
+                    URLHelper::getUrl(
+                        'dispatch.php/folder/new',
+                        array('parent_folder_id' => $topFolder->getId())
+                    ),
+                    array(
+                        'data-dialog' => ''
+                    )) ?>
                 <? endif ?>
                 <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-                <?= Studip\LinkButton::create(_("Datei hinzufügen"), "#", array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")) ?>
+                <?= Studip\LinkButton::create(
+                    _("Datei hinzufügen"),
+                    "#",
+                    array(
+                        'onClick' => "STUDIP.Files.openAddFilesWindow(); return false;"
+                    )) ?>
                 <? endif ?>
             </span>
             </td>
