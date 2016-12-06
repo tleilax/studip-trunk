@@ -159,7 +159,7 @@ class FilesController extends AuthenticatedController
             $filesystem_item->downloads += 1;
             $filesystem_item->store();
         } elseif($filesystem_item instanceof FolderType) {
-            $zip->addEmptyDir($filesystem_item->name);
+            $zip->addEmptyDir($zip_path . $filesystem_item->name);
             
             //loop through all file_refs and subfolders:
             foreach($filesystem_item->getFiles() as $file_ref) {
