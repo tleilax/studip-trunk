@@ -125,18 +125,15 @@ if (Request::get("copymode")) {
     $action_text = ($action == 'copy')? _('hierher kopieren') : _('hierher verschieben'); 
     ?>  
     
-    <form action="<?= $controller->link_for(($options['isfolder']?'folder':'').'/'.$action.'/' . $options['fileref_id'],
-              array('dest_folder' => $top_folder->getId(),
-                    'plugin' => $options['plugin'], 
-                    'to_plugin' => $options['to_plugin'])) ?>" method="post">
-    
-    <? if ($options['isfolder']): ?>
-    	<?= Studip\Button::createAccept($action_text, 'form_sent', array()); ?>       	
-    <? else: ?>                       
-    	<?= Studip\Button::createAccept($action_text, 'do_'.$action, array()); ?>      
-    <? endif; ?>
-    
-    </form>
+    <?= Studip\LinkButton::createAccept(
+            $action_text, 
+            $controller->url_for('files/copyhandler/' . $top_folder->getId(),
+                    array('plugin' => $options['plugin'], 
+                    'to_plugin' => $options['to_plugin'],
+                    'fileref_id'=> $options['fileref_id'],
+                    'copymode' =>  $options['copymode'])),
+            array()); ?>
+
 <? endif ?>
 <?
 $options = array();

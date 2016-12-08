@@ -6,8 +6,8 @@ if (Request::get("to_plugin")) {
 if (Request::get("to_folder_id")) {
     $options['to_folder_id'] = Request::get("to_folder_id");
 }
-if (Request::get("copymode")) {
-    $options['copymode'] = Request::get("copymode");
+if (Request::get("copymode") || $copymode) {
+    $options['copymode'] = Request::get("copymode", $copymode);
 }
 if (Request::get("isfolder")) {
     $options['isfolder'] = Request::get("isfolder");

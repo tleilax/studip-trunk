@@ -250,12 +250,119 @@ class FilesController extends AuthenticatedController
             
         } elseif(Request::submitted('copy')) {
             //bulk copying
-        } elseif(Request::submitted('move')) {
-            //bulk moving
+            $selected_elements = Request::getArray('ids');
+            $this->redirect('file/choose_destination/' . implode('-', $selected_elements) . '/copy');
+            return;
+            
+        } elseif(Request::submitted('move')) {            
+            //bulk moving 
+            $selected_elements = Request::getArray('ids');
+            $this->redirect('file/choose_destination/' . implode('-', $selected_elements) . '/move');
+            return;
+            
         } elseif(Request::submitted('delete')) {
             //bulk deleting
         }
     }
+    
+    public function copyhandler_action($destination_id)
+    {
+        $to_plugin = Request::get("to_plugin", null);
+        $plugin = Request::get("plugin", null);
+        
+        $fileref_id = Request::get("fileref_id", null);
+        $copymode = Request::get("copymode", null);
+        
+        $user = User::findCurrent();
+        $destination_folder = Folder::find($destination_id)->getTypedFolder();
+        
+        $errors = array();
+        $count_files = 0;
+        $count_folders = 0;
+        $count_dracula = 'vampire'; //sorry
+        
+        $filerefs = explode('-', $fileref_id);
+        if (!empty($filerefs)) {
+            foreach ($filerefs as $fileref) {
+                
+                if ($source = FileRef::find($fileref)) {
+                    if ($copymode == 'move') {
+                        $result = FileManager::moveFileRef($source, $destination_folder, $user);
+                    } else {
+                        $result = FileManager::copyFileRef($source, $destination_folder, $user);
+                    }
+                    if (!is_array($result)) $count_files++;
+                } elseif ($source = Folder::find($fileref)) {
+                    $source_folder = $source->getTypedFolder();
+                    if ($copymode == 'move') {
+                        $result = FileManager::moveFolder($source_folder, $destination_folder, $user);
+                    } else {
+                        $result = FileManager::copyFolder($source_folder, $destination_folder, $user);
+                    }
+                    if (!is_array($result)) {
+                        $count_folders++;
+                        $children = $this->countChildren($result);  
+                        $count_files += $children[0];
+                        $count_folders += $children[1];
+                    }
+                }
+                if (is_array($result)) {
+                    $errors = array_merge($errors, $result);
+                }
+            }
+        }
+        
+        $actiontext = $copymode=='copy'?_('kopiert'):_('verschoben');
+        
+        if (empty($errors) || $count_files > 0 || $count_folders > 0) {
+            
+            if (count($filerefs) == 1) {
+                if ($source_folder) {
+                    PageLayout::postSuccess(sprintf(_('Der Ordner wurde %s!'), $actiontext));
+                } else {
+                    PageLayout::postSuccess(_('Die Datei wurde %s!'), $actiontext);
+                } 
+            } else {
+                if ($count_files > 0 && $count_folders > 0) {
+                    PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner und %s Dateien %s!'), $count_folders, $count_files, $actiontext));
+                } elseif ($count_files > 0) {
+                    PageLayout::postSuccess(sprintf(_('Es wurden  %s Dateien %s!'), $count_files, $actiontext));
+                } else {
+                    PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner %s!'), $count_folders, $actiontext));
+                }
+            }
+            
+        } else {
+            PageLayout::postError(_('Etwas ging schief!'), $errors);
+        }
+        
+        $dest_range = $destination_folder->range_id;
+        
+        switch ($destination_folder->range_type) {
+            case 'course':
+            case 'institute':
+                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $destination_folder->getId() . '?cid=' . $dest_range));
+            case 'user':
+                return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $destination_folder->getId()));
+            default:
+                return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $destination_folder->getId()));
+        }
+        
+    }
+    
+    private function countChildren (FolderType $folder) {
+        $file_count = count($folder->getFiles());
+        $folder_count = count($folder->getSubfolders());
+        if ($folder_count > 0) {
+            foreach ($folder->getSubfolders() as $subfolder) {
+                $subs = $this->countChildren($subfolder);
+                $file_count += $subs[0];
+                $folder_count += $subs[1];
+            }            
+        }
+        return array($file_count, $folder_count);
+    }
+    
     
     /**
      * The after_filter method of this controller transmits file contens

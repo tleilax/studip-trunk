@@ -401,8 +401,11 @@ class FileController extends AuthenticatedController
     }
 
 
-    public function choose_destination_action($fileref_id)
+    public function choose_destination_action($fileref_id, $copymode = null)
     {
+        if ($copymode) {
+            $this->copymode = $copymode;
+        }
         $this->fileref_id = $fileref_id;
         $this->plugin = Request::get("to_plugin");
     }

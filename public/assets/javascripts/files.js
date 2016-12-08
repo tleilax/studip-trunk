@@ -190,7 +190,7 @@ STUDIP.Files = {
         //At the bottom of each file list there are buttons for bulk actions.
         //These have to be activated when at least one element is checked.
         
-        var buttons = jQuery('table.documents tfoot button');
+        var buttons = jQuery('table.documents tfoot .button');
 
         //The bulk checkbox wasn't clicked: check each of the elements:
         var elements = jQuery('table.documents tr[role=row] td input:checked');
