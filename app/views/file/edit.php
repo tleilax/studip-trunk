@@ -2,7 +2,7 @@
     [
         'file_ref' => $file_ref
     ])  ?>
-<div id="file_management_forms" style="width:79%; display:table;">
+<div id="file_management_forms">
     <form enctype="multipart/form-data"
         method="post"
         class="default"

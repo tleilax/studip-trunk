@@ -152,9 +152,12 @@ class FilesController extends AuthenticatedController
     }
 
     
-    private function fillZipArchive(ZipArchive $zip, $zip_path = '', $filesystem_item = null)
+    private function fillZipArchive(ZipArchive $zip, $zip_path = '', $filesystem_item = null, User $user)
     {
         if($filesystem_item instanceof FileRef) {
+            //check permissions:
+            
+            
             $zip->addFile($filesystem_item->file->getPath(), $zip_path . $filesystem_item->name);
             $filesystem_item->downloads += 1;
             $filesystem_item->store();
@@ -163,11 +166,11 @@ class FilesController extends AuthenticatedController
             
             //loop through all file_refs and subfolders:
             foreach($filesystem_item->getFiles() as $file_ref) {
-                $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $file_ref);
+                $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $file_ref, $user);
             }
             
             foreach($filesystem_item->getSubfolders() as $subfolder) {
-                $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $subfolder);
+                $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $subfolder, $user);
             }
         }
     }
@@ -206,6 +209,8 @@ class FilesController extends AuthenticatedController
             
             $zip_path = '';
             
+            $user = User::findCurrent();
+            
             foreach($ids as $id) {
                 //check if the ID references a FileRef:
                 $filesystem_item = FileRef::find($id);
@@ -222,7 +227,7 @@ class FilesController extends AuthenticatedController
                     continue;
                 }
                 
-                $this->fillZipArchive($zip, '', $filesystem_item);
+                $this->fillZipArchive($zip, '', $filesystem_item, $user);
                 
             }
             

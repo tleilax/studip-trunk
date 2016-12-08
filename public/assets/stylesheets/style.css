@@ -5858,10 +5858,15 @@ table.dates .draggable-topic-handle {
   #folder_aside h3 {
     text-align: center;
     font-size: 140%;
+    padding-top: 1em;
   }
   #file_aside dl,
   #folder_aside dl {
     display: table;
+  }
+  #file_management_forms {
+    display: table;
+    width: 100%;
   }
 }
 @media screen and (min-width: 801px) {
@@ -5883,6 +5888,10 @@ table.dates .draggable-topic-handle {
   #folder_aside h3 {
     text-align: center;
     font-size: 140%;
+  }
+  #file_management_forms {
+    display: table;
+    width: 79%;
   }
 }
 /* classes for the evaluation modules in Stud.IP ---------------------------- */

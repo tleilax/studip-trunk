@@ -2,7 +2,7 @@
     [
         'folder' => $folder
     ])  ?>
-<div id="file_management_forms" style="width:79%; display:table;">
+<div id="file_management_forms">
     <form method="post" class="default"
         action="<?= $controller->url_for('/edit/' . $folder_id) ?>"
         <? if(Request::isDialog()): ?>
