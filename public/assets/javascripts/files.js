@@ -193,14 +193,31 @@ STUDIP.Files = {
         var buttons = jQuery('table.documents tfoot .button');
 
         //The bulk checkbox wasn't clicked: check each of the elements:
-        var elements = jQuery('table.documents tr[role=row] td input:checked');
+        var total_elements = jQuery('table.documents tbody tr[role=row] td input');
+        var checked_elements = jQuery('table.documents tbody tr[role=row] td input:checked');
 
-        if(elements.length > 0) {
+        if(checked_elements.length > 0) {
             //at least one element is checked: activate buttons
             jQuery(buttons).removeAttr('disabled');
+            //...and set the "select-all-checkbox" in the third state (undefined),
+            //if not all elements are checked:
+            
+            
+            if(checked_elements.length < total_elements.length) {
+                //not all elements checked
+                jQuery('table.documents thead th input[data-proxyfor]').prop('indeterminate', true);
+            } else {
+                //all elements checked
+                jQuery('table.documents thead th input[data-proxyfor]').prop('indeterminate', false);
+                jQuery('table.documents thead th input[data-proxyfor]').attr('checked', 'checked');
+            }
+            
         } else {
             //no element is checked: deactivate buttons
             jQuery(buttons).attr('disabled', 'disabled');
+            //... and uncheck "select-all-checkbox"
+            jQuery('table.documents thead th input[data-proxyfor]').prop('indeterminate', false);
+            jQuery('table.documents thead th input[data-proxyfor]').removeAttr('checked');
         }
     }
 };
