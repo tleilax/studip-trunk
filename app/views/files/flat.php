@@ -9,38 +9,25 @@
             </td>
         </tr>
     </tbody>
-<? elseif (count($files)) : ?>
+<? elseif (count($files)): ?>
     <tbody>
-    <? foreach ($files as $file_ref) : ?>
-        <?= $this->render_partial("files/_fileref_tr", ['file_ref' => $file_ref, 'current_folder' => $folders[$file_ref->folder_id]]) ?>
-    <? endforeach; ?>
+    <? foreach ($files as $file_ref): ?>
+        <?= $this->render_partial("files/_fileref_tr", ['file_ref' => $file_ref, 'current_folder' => $file_ref->folder->getTypedFolder()]) ?>
+    <? endforeach ?>
     </tbody>
 <? endif; ?>
     <tfoot>
         <tr>
             <td colspan="100">
             <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
-            <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-dialog' => ''))?>
+            <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-dialog' => '')) ?>
 
             <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
                 <?= Studip\Button::create(_('Verschieben'), 'move', array('data-dialog' => '')) ?>
                 <?= Studip\Button::create(_('Löschen'), 'delete', array('data-dialog' => '')) ?>
-            <? endif; ?>
+            <? endif ?>
            </td>
         </tr>
     </tfoot>
 </table>
 </form>
-
-<? ob_start(); ?>
-<div align="center">
-<input class="tablesorterfilter" placeholder="Name" data-column="2" type="search" style="width: 100%; margin-bottom: 5px;"><br>
-<input class="tablesorterfilter" placeholder="Autor/in" data-column="4" type="search" style="width: 100%; margin-bottom: 5px;"><br>
-<input class="tablesorterfilter" placeholder="Datum" data-column="5" type="search" style="width: 100%;"><br>
-</div>
-<? $content = ob_get_clean();
-$sidebar = Sidebar::get();
-$widget = new SidebarWidget();
-$widget->setTitle(_('Filter'));
-$widget->addElement(new WidgetElement($content));
-$sidebar->addWidget($widget); ?>

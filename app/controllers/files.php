@@ -132,7 +132,18 @@ class FilesController extends AuthenticatedController
      **/
     public function flat_action()
     {
-
+        $content = '<div align="center">
+<input class="tablesorterfilter" placeholder="Name" data-column="2" type="search" style="width: 100%; margin-bottom: 5px;"><br>
+<input class="tablesorterfilter" placeholder="Autor/in" data-column="4" type="search" style="width: 100%; margin-bottom: 5px;"><br>
+<input class="tablesorterfilter" placeholder="Datum" data-column="5" type="search" style="width: 100%;"><br>
+</div>'; //to be replaced!
+        
+        $sidebar = Sidebar::get();
+        $widget = new SidebarWidget();
+        $widget->setTitle(_('Filter'));
+        $widget->addElement(new WidgetElement($content));
+        $sidebar->addWidget($widget);
+        
         Navigation::activateItem('/profile/files/flat');
 
         $this->marked_element_ids = [];
