@@ -8,7 +8,7 @@
 action="<?= URLHelper::getLink(
     'dispatch.php/admin/content_terms_of_use/delete') ?>">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="entry_id" value="<?= $entry_id ?>">
+    <input type="hidden" name="entry_id" value="<?= htmlReady($entry_id) ?>">
 <? if ($dependent_files_count): ?>
     <p><?= 
         sprintf(

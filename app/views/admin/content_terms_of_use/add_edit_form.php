@@ -9,18 +9,18 @@ action="<?= URLHelper::getLink(
     <? if($add_action): ?>
     <label>
         <?= _('ID') ?>
-        <input type="text" name="entry_id" value="<?= $entry_id ?>">
+        <input type="text" name="entry_id" value="<?= htmlReady($entry_id) ?>">
     </label>
     <? else: ?>
-    <input type="hidden" name="entry_id" value="<?= $entry_id ?>">
+    <input type="hidden" name="entry_id" value="<?= htmlReady($entry_id) ?>">
     <? endif ?>
     <label>
         <?= _('Name') ?>
-        <input type="text" name="entry_name" value="<?= $entry_name ?>">
+        <input type="text" name="entry_name" value="<?= htmlReady($entry_name) ?>">
     </label>
     <label>
         <?= _('Downloadbedingung') ?>
-        <select name="entry_download_condition" value="<?= $entry_download_condition ?>">
+        <select name="entry_download_condition">
             <option value="0" 
                 <?= ($entry_download_condition == '0') ? 'selected="selected"' : '' ?>>
                 <?= _('Ohne Bedingung') ?>
@@ -37,18 +37,18 @@ action="<?= URLHelper::getLink(
     </label>
     <label>
         <?= _('Symbol-Name oder URL') ?>
-        <input type="text" name="entry_icon" value="<?= $entry_icon ?>">
+        <input type="text" name="entry_icon" value="<?= htmlReady($entry_icon) ?>">
     </label>
 </fieldset>
 <fieldset>
     <legend><?= _('Zusätzliche Angaben') ?></legend>
     <label>
         <?= _('Position') ?>
-        <input type="number" name="entry_position" value="<?= $entry_position ?>">
+        <input type="number" name="entry_position" value="<?= htmlReady($entry_position) ?>">
     </label>
     <label>
         <?= _('Beschreibung') ?>
-        <input type="text" name="entry_description" value="<?= $entry_description ?>">
+        <textarea name="entry_description"><?= htmlReady($entry_description) ?></textarea>
     </label>
 </fieldset>
 <div data-dialog-button>
