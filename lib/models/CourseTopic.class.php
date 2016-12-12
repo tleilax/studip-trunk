@@ -62,8 +62,8 @@ class CourseTopic extends SimpleORMap {
             'on_store' => 'store'
         );
         $config['belongs_to']['folder'] = array(
-            'class_name' => 'DocumentFolder',
-            'assoc_foreign_key' => "range_id"
+            'class_name' => 'Folder',
+            'assoc_func' => 'findByTopic_id'
         );
         $config['belongs_to']['course'] = array(
             'class_name'  => 'Course',
@@ -95,12 +95,15 @@ class CourseTopic extends SimpleORMap {
             $document_module = Seminar::getInstance($this->seminar_id)->getSlotModule('documents');
             if ($document_module) {
                 if (!$this->folder) {
-                    $folder = new DocumentFolder();
-                    $folder['range_id'] = $this->getId();
-                    $folder['priority'] = $this['priority'];
-                    $folder['seminar_id'] = $this['seminar_id'];
+                    $folder = new Folder();
+                    $folder['range_id'] = $this['seminar_id'];
+                    $folder['parent_id'] = Folder::findTopFolder($this['seminar_id'])->getId();
+                    $folder['range_type'] = "course";
+                    $folder['folder_type'] = "CourseTopicFolder";
+                    $folder['data_content']['issue_id'] = $this->getId();
                     $folder['user_id'] = $GLOBALS['user']->id;
-                    $folder['permission'] = 15;
+                    $folder->store();
+
                     $this->folder = $folder;
                 }
                 $this->folder['name'] = $this['title'];

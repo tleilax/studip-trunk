@@ -29,6 +29,7 @@
  */
 class Folder extends SimpleORMap
 {
+
     /**
      * @param array $config
      */
@@ -145,6 +146,17 @@ class Folder extends SimpleORMap
             return 'message';
         } else {
             return false;
+        }
+    }
+
+    static public function findByTopic_id($topic_id)
+    {
+        $seminar_id = CourseTopic::find($topic_id)->seminar_id;
+        $topic_folders = self::findBySQL("folder_type = 'CourseTopicFolder' AND range_id = ? AND range_type = 'course'", array($seminar_id));
+        foreach ($topic_folders as $key => $folder) {
+            if ($folder['data_content']['issue_id'] === $topic_id) {
+                return array($folder);
+            }
         }
     }
 
