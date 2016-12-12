@@ -1,4 +1,4 @@
-<tr <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>">
+<tr class="<?= ($file_ref->chdate > $last_visitdate) ? 'new' : ''?>" <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>">
     <td>
         <input type="checkbox"
                name="ids[]"

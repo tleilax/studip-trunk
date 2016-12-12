@@ -5,7 +5,7 @@
         <col width="100px" class="responsive-hidden">
         <col width="150px" class="responsive-hidden">
         <col width="120px" class="responsive-hidden">
-        <col width="121px">
+        <col width="80px">
     </colgroup>
     <thead>
         <tr class="sortable">
