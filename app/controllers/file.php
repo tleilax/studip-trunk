@@ -754,7 +754,7 @@ class FileController extends AuthenticatedController
                     $payload['html'][] = $this->render_template_as_string("files/_fileref_tr");
                 }
 
-                $plugins = PlugineManager::get()->getPlugins("FileUploadHook");
+                $plugins = PluginManager::getInstance()->getPlugins("FileUploadHook");
                 $redirects = array();
                 foreach ($plugins as $plugin) {
                     $url = $plugin->getAdditionalUploadWizardPage($file_ref);
