@@ -3,18 +3,17 @@
 <table class="default">
     <thead>
         <tr>
+            <th></th>
             <th><?= _('ID') ?></th>
             <th><?= _('Name') ?></th>
             <th><?= _('Download-Bedingung') ?></th>
-            <th><?= _('Symbol') ?></th>
-            <th><?= _('Position') ?></th>
-            <th><?= _('Beschreibung') ?></th>
             <th><?= _('Aktionen') ?></th>
         </tr>
     </thead>
     <tbody>
         <? foreach ($content_terms_of_use_entries as $entry): ?>
         <tr>
+            <td><?= Icon::create($entry->icon, "info")->asImg('20px') ?></td>
             <td><?= htmlReady($entry->id) ?></td>
             <td><?= htmlReady($entry->name) ?></td>
             <td><?= (($entry->download_condition == '1')
@@ -24,9 +23,6 @@
                     : _('Ohne Bedingung')
                     )
                 ) ?></td>
-            <td><?= Icon::create($entry->icon)->asImg('20px') ?></td>
-            <td><?= htmlReady($entry->position) ?></td>
-            <td><?= htmlReady($entry->description) ?></td>
             <td>
                 <a href="<?= 
                     URLHelper::getLink(
