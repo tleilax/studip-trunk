@@ -15,27 +15,16 @@ class Moadb extends Migration
     public function up()
     {
         $db = DBManager::get();
-        $firsttime = !$_SESSION['MOADB_MIGRATION_ALREADY_EXECUTED'];
-        if ($firsttime) {
+
+        try {
             $db->exec("RENAME TABLE files TO _files");
             $db->exec("RENAME TABLE file_refs TO _file_refs");
-            $_SESSION['MOADB_MIGRATION_ALREADY_EXECUTED'] = true;
-        } else {
-            $db->exec("TRUNCATE table folders");
-            $db->exec("TRUNCATE table files");
-            $db->exec("TRUNCATE table file_refs");
-            $db->exec("TRUNCATE table file_urls");
+        } catch (PDOException $e)
+        {
+
         }
 
 
-        //delete configuration variables designed for the old file area:
-        $db->exec(
-            "DELETE FROM `config`
-            WHERE
-            (field = 'PERSONALDOCUMENT_OPEN_ACCESS')
-            OR
-            (field = 'PERSONALDOCUMENT_OPEN_ACCESS_ROOT_PRIVILEDGED');"
-        );
 
 
         $db->exec("CREATE TABLE IF NOT EXISTS `files` (
@@ -98,10 +87,10 @@ class Moadb extends Migration
             `download_condition` TINYINT(2) NOT NULL,
             `icon` VARCHAR(128) NULL,
             PRIMARY KEY (`id`)
-            ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;"
+            ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
         );
 
-        
+
         //default terms of use entries:
         $db->exec("
             INSERT INTO content_terms_of_use_entries (`id`, `name`, `position`, `description`, `download_condition`, `icon`)
@@ -123,7 +112,7 @@ class Moadb extends Migration
             $folder['folder_id'] = md5(uniqid('folders', true));
             $folder['range_id'] = '';
             $folder['user_id'] = $GLOBALS['user']->id;
-            $folder['description'] = 'virtual top folder';
+            $folder['description'] = '';
             $folder['mkdate'] = $folder['chdate'] = time();
             $this->migrateFolder($folder, $folder['new_range_id'], 'institute', 'StandardFolder');
             $institute_folders[$folder['new_range_id']] = $folder['folder_id'];
@@ -144,8 +133,8 @@ class Moadb extends Migration
                             FROM `folder` f
                             INNER JOIN `auth_user_md5` a ON a.user_id = f.range_id") as $folder) {
             $folder['range_id'] = '';
-            $folder['description'] = 'virtual top folder';
-            $folder['name'] = 'virtual top folder';
+            $folder['description'] = '';
+            $folder['name'] = '';
             $this->migrateFolder($folder, $folder['seminar_id'], 'user', 'StandardFolder');
         }
         $seminar_folders = array();
@@ -153,7 +142,7 @@ class Moadb extends Migration
             $folder['folder_id'] = md5(uniqid('folders', true));
             $folder['range_id'] = '';
             $folder['user_id'] = $GLOBALS['user']->id;
-            $folder['description'] = 'virtual top folder';
+            $folder['description'] = '';
             $folder['mkdate'] = $folder['chdate'] = time();
             $this->migrateFolder($folder, $folder['new_range_id'], 'course', 'StandardFolder');
             $seminar_folders[$folder['new_range_id']] = $folder['folder_id'];
@@ -172,25 +161,65 @@ class Moadb extends Migration
 
         //group folder
         foreach ($db->query("SELECT f.*, s.range_id AS seminar_id FROM `folder` f INNER JOIN `statusgruppen` s ON s.statusgruppe_id = f.range_id") as $folder) {
+            $data_content = json_encode(['group_id' => $folder['range_id']]);
             $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
-            $this->migrateFolder($folder, $folder['seminar_id'], 'coursegroup', 'CourseGroupFolder');
+            $this->migrateFolder($folder, $folder['seminar_id'], 'course', 'CourseGroupFolder', $data_content);
         }
         //issue folder
         foreach ($db->query("SELECT f.*, t.seminar_id AS seminar_id FROM `folder` f INNER JOIN `themen` t ON t.issue_id = f.range_id") as $folder) {
+            $data_content = json_encode(['issue_id' => $folder['range_id']]);
             $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
-            $this->migrateFolder($folder, $folder['seminar_id'], 'coursetopic', 'CourseTopicFolder');
+            $this->migrateFolder($folder, $folder['seminar_id'], 'course', 'CourseTopicFolder', $data_content);
         }
-        
-        
+
+        //personal documents
+        foreach ($db->fetchFirst("SELECT distinct parent_id FROM `_file_refs` inner join auth_user_md5 where parent_id=user_id") as $user_id) {
+            $top_folder_id = $db->fetchColumn("SELECT id FROM folders WHERE range_type = 'user' AND range_id=?", [$user_id]);
+            if (!$top_folder_id) {
+                $folder = [
+                    'folder_id' => md5(uniqid($user_id)),
+                    'range_id' => '',
+                    'range_type' => 'user',
+                    'parent_id' => '',
+                    'user_id' => $user_id,
+                    'description' => '',
+                    'name' => '',
+                    'mkdate' => time(),
+                    'chdate' => time()
+                ];
+                $this->migratePersonalFolder($folder, $user_id);
+                $top_folder_id = $folder['folder_id'];
+            }
+            $this->migratePersonalFiles($db->fetchAll("SELECT file_id,id,storage_id,mime_type,user_id,filename,description,mkdate,chdate,downloads,size FROM `_files` inner join _file_refs using(file_id) WHERE parent_id = ? and storage_id<>''", array($user_id)), $top_folder_id);
+            $subfolders = $db->fetchAll("SELECT file_id as folder_id,user_id,'{$top_folder_id}' as range_id,name,description,mkdate,chdate FROM _file_refs INNER JOIN _files USING(file_id) WHERE storage_id='' AND parent_id = ?", array($user_id));
+            foreach ($subfolders as $one) {
+                $this->migratePersonalFolder($one, $user_id);
+            }
+        }
+
+
         //migrate message attachments:
         $this->migrateMessageAttachments();
-        
+
+
+
+
+
+        //delete configuration variables designed for the old file area:
+        $db->exec(
+            "DELETE FROM `config`
+            WHERE
+            (field = 'PERSONALDOCUMENT_OPEN_ACCESS')
+            OR
+            (field = 'PERSONALDOCUMENT_OPEN_ACCESS_ROOT_PRIVILEDGED');"
+        );
+
 
     }
-    
-    
-    
-    
+
+
+
+
     public function migrateMessageAttachments()
     {
         //First we wipe out all documents with range-ID = 'provisional'.
@@ -202,34 +231,26 @@ class Moadb extends Migration
             "range_id = 'provisional'"
         );
         */
-        
+
         $db = DBManager::get();
-        
+
         //then we retrieve all message-IDs:
-        $message_rows = $db->query("SELECT * FROM message;");
-        
+        $message_rows = $db->query("SELECT DISTINCT message_id,autor_id,subject,message.mkdate FROM message INNER JOIN dokumente ON range_id = message_id");
+
         foreach($message_rows as $message_row) {
             //now we loop through each message ID and check if there are
             //files in the dokumente table with that range-ID:
             $message_id = $message_row['message_id'];
-            
-            $attachment_rows = $db->query(
-                "SELECT * FROM dokumente WHERE range_id = :range_id",
-                [
-                    'range_id' => $message_id
-                ]
-            );
-            
-            if(!empty($attachment_rows)) {
+
                 //we found at least one attachment: create a top folder for this message:
                 $insert_folder = $db->prepare("INSERT INTO `folders` (`id`, `user_id`, `parent_id`, `range_id`, `range_type`, `folder_type`, `name`, `data_content`, `description`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                
+
                 $folder_id = md5($message_id . '_attachments');
-                
+
                 $insert_folder->execute([
                     $folder_id,
                     $message_row['autor_id'],
-                    null,
+                    '',
                     $message_id,
                     'message',
                     'MessageFolder',
@@ -239,22 +260,29 @@ class Moadb extends Migration
                     $message_row['mkdate'],
                     $message_row['mkdate']
                 ]);
-                
-                $this->migrateFiles($attachment_rows, $folder_id);
-            }
+
+                $this->migrateFiles($db->fetchAll(
+                    "SELECT * FROM dokumente WHERE range_id = :range_id",
+                    [
+                        'range_id' => $message_id
+                    ]
+                ), $folder_id);
+
         }
     }
-    
-    
-    public function migrateFolder($folder, $range_id, $range_type, $folder_type)
+
+
+    public function migrateFolder($folder, $range_id, $range_type, $folder_type, $data_content = '')
     {
         $db = DBManager::get();
         $insert_folder = $db->prepare("INSERT INTO `folders` (`id`, `user_id`, `parent_id`, `range_id`, `range_type`, `folder_type`, `name`, `data_content`, `description`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        $insert_folder->execute(array($folder['folder_id'], $folder['user_id'], $folder['range_id'], $range_id, $range_type, isset($folder['permission']) && $folder['permission'] != 7 ? 'PermissionEnabledFolder' : $folder_type, $folder['name'], isset($folder['permission']) && $folder['permission'] != 7 ? json_encode(['permission' => $folder['permission']]): '', (string)$folder['description'], $folder['mkdate'], $folder['chdate']));
+        $folder_type = $folder_type == 'StandardFolder' && isset($folder['permission']) && $folder['permission'] != 7 ? 'PermissionEnabledFolder' : $folder_type;
+        $data_content = $data_content = '' && isset($folder['permission']) && $folder['permission'] != 7 ? json_encode(['permission' => $folder['permission']]): '';
+        $insert_folder->execute(array($folder['folder_id'], $folder['user_id'], $folder['range_id'], $range_id, $range_type, $folder_type, $folder['name'], $data_content, (string)$folder['description'], $folder['mkdate'], $folder['chdate']));
         $subfolders = $db->fetchAll("SELECT * FROM folder WHERE range_id = ?", array($folder['folder_id']));
         foreach ($subfolders as $one) {
-            $this->migrateFolder($one, $range_id, $range_type, $folder_type);
+            $this->migrateFolder($one, $range_id, $range_type, 'StandardFolder');
         }
         $this->migrateFiles($db->fetchAll("SELECT * FROM dokumente WHERE range_id = ?", array($folder['folder_id'])), $folder['folder_id']);
 
@@ -288,7 +316,7 @@ class Moadb extends Migration
                 $folder_id,
                 $one['downloads'],
                 $one['name'] != $one['filename'] ? trim($one['name'] . "\n" . $one['description']) : (string) $one['description'],
-                $one['protected'] ? 'RestrictedLicense' : 'UnknownLicense',
+                $one['protected'],
                 $one['user_id'],
                 $filename,
                 $one['mkdate'],
@@ -298,6 +326,59 @@ class Moadb extends Migration
             if ($one['url']) {
                 $insert_file_url->execute(array($one['dokument_id'], $one['url']));
             }
+        }
+    }
+
+    public function migratePersonalFolder($folder, $range_id)
+    {
+        $db = DBManager::get();
+        $insert_folder = $db->prepare("INSERT INTO `folders` (`id`, `user_id`, `parent_id`, `range_id`, `range_type`, `folder_type`, `name`, `data_content`, `description`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, 'user', 'StandardFolder', ?, '', ?, ?, ?)");
+
+        $insert_folder->execute(array($folder['folder_id'], $folder['user_id'], $folder['range_id'], $range_id, $folder['name'], (string)$folder['description'], $folder['mkdate'], $folder['chdate']));
+        $subfolders = $db->fetchAll("SELECT file_id as folder_id,user_id,parent_id as range_id,name,description,mkdate,chdate FROM _file_refs INNER JOIN _files USING(file_id) WHERE storage_id='' AND parent_id = ?", array($folder['folder_id']));
+        foreach ($subfolders as $one) {
+            $this->migratePersonalFolder($one, $range_id);
+        }
+        $this->migratePersonalFiles($db->fetchAll("SELECT file_id,id,storage_id,mime_type,user_id,filename,description,mkdate,chdate,downloads,size FROM `_files` inner join _file_refs using(file_id) WHERE parent_id = ? and storage_id<>''", array($folder['folder_id'])), $folder['folder_id']);
+
+
+    }
+
+    public function migratePersonalFiles($files, $folder_id)
+    {
+        $db = DBManager::get();
+        $insert_file_ref = $db->prepare("INSERT INTO `file_refs` (`id`, `file_id`, `folder_id`, `downloads`, `description`, `content_terms_of_use_id`, `user_id`, `name`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $insert_file = $db->prepare("INSERT INTO `files` (`id`, `user_id`, `mime_type`, `name`, `size`, `storage`, `author_name`, `mkdate`, `chdate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $filenames = array();
+        foreach ($files as $one) {
+            $c = 0;
+            $filename = $one['filename'];
+            $ext = getFileExtension($filename);
+            if ($ext) {
+                $name = substr($filename, 0, strrpos($filename, $ext) - 1);
+            } else {
+                $name = $filename;
+            }
+            while (in_array($filename, $filenames)) {
+                $filename = $name . '['.++$c.']' . ($ext ? '.' . $ext : '');
+            }
+            $filenames[] = $filename;
+            $insert_file_ref->execute(array(
+                $one['id'],
+                $one['storage_id'],
+                $folder_id,
+                $one['downloads'],
+                $one['name'] != $one['filename'] ? trim($one['name'] . "\n" . $one['description']) : (string) $one['description'],
+                0,
+                $one['user_id'],
+                $filename,
+                $one['mkdate'],
+                $one['chdate']
+            ));
+            $insert_file->execute(array($one['storage_id'], $one['user_id'], $one['mime_type'], $filename, $one['size'], 'disk', '', $one['mkdate'], $one['chdate']));
+            $new_path = $GLOBALS['UPLOAD_PATH'] . '/' . substr($one['storage_id'], 0, 2) . '/' . $one['storage_id'];
+            $old_path = $GLOBALS['USER_DOC_PATH'] . '/' . substr($one['storage_id'], 0, 2) . '/' . $one['storage_id'];
+            @rename($old_path, $new_path);
         }
     }
 
