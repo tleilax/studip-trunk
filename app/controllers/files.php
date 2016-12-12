@@ -342,7 +342,7 @@ class FilesController extends AuthenticatedController
             }
         }
         
-        $actiontext = $copymode=='copy'?_('kopiert'):_('verschoben');
+        $actiontext = ($copymode == 'copy') ? _('kopiert') : _('verschoben');
         
         if (empty($errors) || $count_files > 0 || $count_folders > 0) {
             
@@ -350,7 +350,7 @@ class FilesController extends AuthenticatedController
                 if ($source_folder) {
                     PageLayout::postSuccess(sprintf(_('Der Ordner wurde %s!'), $actiontext));
                 } else {
-                    PageLayout::postSuccess(_('Die Datei wurde %s!'), $actiontext);
+                    PageLayout::postSuccess(sprintf(_('Die Datei wurde %s!'), $actiontext));
                 } 
             } else {
                 if ($count_files > 0 && $count_folders > 0) {
@@ -363,7 +363,7 @@ class FilesController extends AuthenticatedController
             }
             
         } else {
-            PageLayout::postError(_('Etwas ging schief!'), $errors);
+            PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), $errors);
         }
         
         $dest_range = $destination_folder->range_id;
