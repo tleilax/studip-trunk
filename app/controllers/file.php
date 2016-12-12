@@ -153,7 +153,7 @@ class FileController extends AuthenticatedController
             }
         }
 
-        $this->content_terms_of_use_entries = ContentTermsOfUse::findBySql('TRUE');
+        $this->content_terms_of_use_entries = ContentTermsOfUse::findBySql('TRUE ORDER BY position ASC, id ASC');
 
         if (Request::submitted('save')) {
             //form was sent
@@ -784,7 +784,7 @@ class FileController extends AuthenticatedController
                 //redirect:
             }
         }
-        $this->licenses = ContentTermsOfUse::findBySQL("1=1");
+        $this->licenses = ContentTermsOfUse::findBySQL("TRUE ORDER BY position ASC, id ASC");
     }
 
     public function add_url_action($folder_id)

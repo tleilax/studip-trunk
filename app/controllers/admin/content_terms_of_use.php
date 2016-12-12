@@ -382,7 +382,7 @@ class Admin_ContentTermsOfUseController extends AuthenticatedController
             
             if($this->dependent_files_count > 0) {
                 $this->other_entries = ContentTermsOfUse::findBySql(
-                    'id <> :entry_id',
+                    'id <> :entry_id ORDER BY position ASC, id ASC',
                     [
                         'entry_id' => $this->entry_id
                     ]
