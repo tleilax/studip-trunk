@@ -737,7 +737,7 @@ function get_icon_for_mimetype($mime_type)
 
     $icons_application = [
         'file-pdf' => ['pdf'],
-        'file-presentation' => ['powerpoint','presentation'],
+        'file-ppt' => ['powerpoint','presentation'],
         'file-excel' => ['excel', 'spreadsheet', 'csv'],
         'file-word' => ['word', 'wordprocessingml', 'opendocument.text', 'rtf'],
         'file-archive' => ['zip', 'rar', 'arj', '7z' ]

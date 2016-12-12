@@ -1,7 +1,7 @@
 <aside id="folder_aside">
     <?= $folder->getIcon('info') ?>
     <h3><?= htmlReady($folder->name) ?></h3>
-    <table class="default">
+    <table class="default nohover">
         <tr>
             <td><?= _('Erstellt') ?></td>
             <td><?= date('d.m.Y H:i', $folder->mkdate) ?></td>
