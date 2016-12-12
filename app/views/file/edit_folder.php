@@ -21,3 +21,12 @@
         </div>
     </form>
 </div>
+
+<script type="text/javascript">
+//On focus the whole folder name shall be selected.
+//The input field with id edit_folder_name is in the view new_edit_folder_form!
+var folder_name_edit_input = document.getElementById('edit_folder_name');
+if(folder_name_edit_input) {
+    folder_name_edit_input.select();
+}
+</script>

@@ -6,7 +6,7 @@
     </legend>
     <label>
         <?= _('Name') ?>
-        <input type="text" name="name" placeholder="<?= _('Name') ?>" value="<?= htmlReady($name); ?>">
+        <input id="edit_folder_name" type="text" name="name" placeholder="<?= _('Name') ?>" value="<?= htmlReady($name); ?>">
     </label>
     <label>
         <?= _('Beschreibung') ?>

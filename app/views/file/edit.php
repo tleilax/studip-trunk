@@ -15,7 +15,7 @@
             <legend><?= _("Datei bearbeiten") ?></legend>
             <label>
                 <?= _('Name') ?>
-                <input type="text" name="name" value="<?= htmlReady($name) ?>">
+                <input id="edit_file_name" type="text" name="name" value="<?= htmlReady($name) ?>">
             </label>
             <label>
                 <?= _('Beschreibung') ?>
@@ -57,3 +57,24 @@
     </form>
 </div>
 
+<script type="text/javascript">
+//On focus on the edit file name input field, the whole file name but the
+//extension shall be selected. This can't be done with jQuery directly!
+
+var file_name_edit_input = document.getElementById('edit_file_name');
+if(file_name_edit_input) {
+    file_name_edit_input.addEventListener('focus', function() {
+        //select the whole file name, but the file extension
+        var file_name_edit_input = document.getElementById('edit_file_name');
+        var text = file_name_edit_input.value;
+        
+        //get start position of extension:
+        var extension_start_pos = text.lastIndexOf('.');
+        
+        console.log('text = ' + text + ', last index of . = ' + extension_start_pos);
+        
+        file_name_edit_input.selectionStart = 0;
+        file_name_edit_input.selectionEnd = extension_start_pos;
+    });
+}
+</script>
