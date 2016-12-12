@@ -407,6 +407,13 @@ class FileController extends AuthenticatedController
             $this->copymode = $copymode;
         }
         $this->fileref_id = $fileref_id;
+        
+        $refs = explode('-', $fileref_id);
+        $first_ref = FileRef::find($refs[0]);
+        if ($first_ref) {
+            $this->parent_folder = $first_ref->folder_id;
+        }
+        
         $this->plugin = Request::get("to_plugin");
     }
 

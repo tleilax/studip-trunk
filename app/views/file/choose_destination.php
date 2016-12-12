@@ -19,6 +19,10 @@ if ($fileref_id) {
 <div class="files_source_selector" <?= $hidden ? ' style="display: none;"' : "" ?>>
     <?= _("Ziel auswählen") ?>
     <div class="file_select_possibilities">
+        <a href="<?= $controller->link_for("/choose_folder/" . $parent_folder , $options) ?>" data-dialog>
+            <?= Icon::create("folder-parent", "clickable")->asImg(50) ?>
+            <?= _("Aktueller Ordner") ?>
+        </a>
         <a href="<?= $controller->link_for("/choose_folder/" . Folder::findTopFolder($GLOBALS['user']->id)->getId(), $options) ?>" data-dialog>
             <?= Icon::create("files", "clickable")->asImg(50) ?>
             <?= _("Meine Dateien") ?>
