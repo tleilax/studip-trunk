@@ -25,12 +25,13 @@
  * 
  * @property string id database column: ID of the content terms of use object
  * @property string name database column: Short name of the terms of use object
- * @property string internal_name database column: unique name for the terms of use object
+ * @property string position database column: sorting of the entries can be made possible with this attribute
  * @property string description database column: Description text of the terms of use object
  * @property int download_condition: database column
  *      0 = no conditions (downloadable by anyone)
  *      1 = closed groups (e.g. courses with signup rules)
  *      2 = only for owner
+ * @property string icon database column: either the name of the icon or the URL that points to the icon
  */
 class ContentTermsOfUse extends SimpleORMap
 {
