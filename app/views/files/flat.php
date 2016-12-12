@@ -1,5 +1,5 @@
 <form method="post" action="<?= URLHelper::getLink('dispatch.php/files/bulk') ?>">
-<table class="default documents">
+<table class="default documents sortable-table" data-sortlist="[[5, 1]]">
     <?= $this->render_partial("files/_files_thead.php") ?>
 <? if (count($files) === 0): ?>
     <tbody>
@@ -38,12 +38,12 @@
 
 <? ob_start(); ?>
 <div align="center">
-<input class="tablesorterfilter filter-select" placeholder="<?=_('Name oder Autor/-in')?>" data-column="2,4" type="search" style="width: 100%; margin-bottom: 5px;"><br>
+<input class="tablesorterfilter" placeholder="<?=_('Name oder Autor/-in')?>" data-column="2,4" type="search" style="width: 100%; margin-bottom: 5px;"><br>
 </div>
 <? $content = ob_get_clean();
 $sidebar = Sidebar::get();
 $widget = new SidebarWidget();
 $widget->setTitle(_('Filter'));
 $widget->addElement(new WidgetElement($content));
-$sidebar->addWidget($widget); 
+$sidebar->addWidget($widget);
 ?>

@@ -47,8 +47,8 @@
             <?= htmlReady($file_ref->author_name) ?>
         <? endif; ?>
     </td>
-    <td title="<?= strftime('%x %X', $file_ref->mkdate) ?>" data-sort-value="<?= $file_ref->mkdate ?>" class="responsive-hidden">
-        <?= reltime($file_ref->mkdate) ?>
+    <td title="<?= strftime('%x %X', $file_ref->chdate) ?>" data-sort-value="<?= $file_ref->chdate ?>" class="responsive-hidden">
+        <?= reltime($file_ref->chdate) ?>
     </td>
     <td class="actions">
         <? $actionMenu = ActionMenu::get() ?>

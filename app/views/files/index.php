@@ -2,7 +2,7 @@
 <form method="post" action="<?= URLHelper::getLink('dispatch.php/files/bulk') ?>">
 <?= CSRFProtection::tokenTag() ?>
 <input type="hidden" name="parent_folder_id" value="<?= $topFolder->getId() ?>" >
-<table class="default documents" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
+<table class="default documents sortable-table" data-sortlist="[[2, 0]]" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">
     <caption>
         <div class="caption-container">
             <?
