@@ -38,29 +38,27 @@
     </caption>
     <?= $this->render_partial("files/_files_thead.php") ?>
 
-<? if (count($topFolder->getSubfolders()) + count($topFolder->getFiles()) === 0): ?>
-    <tbody>
-        <tr>
-            <td colspan="8" class="empty">
+
+    <tbody class="subfolders">
+        <tr class="empty"<?= count($topFolder->getFiles()) + count($topFolder->getSubfolders()) > 0 ? ' style="display: none;"' : "" ?>>
+            <td colspan="8">
                 <?= _('Dieser Ordner ist leer') ?>
             </td>
         </tr>
+    <? if (count($topFolder->getSubfolders())) : ?>
+        <? foreach ($topFolder->getSubfolders() as $folder) : ?>
+            <? if (!$folder->isVisible($GLOBALS['user']->id)) continue; ?>
+            <?= $this->render_partial('files/_folder_tr', ['folder' => $folder, 'marked_element_ids' => $marked_element_ids]) ?>
+        <? endforeach ?>
+    <? endif ?>
     </tbody>
-<? elseif (count($topFolder->getSubfolders())) : ?>
-    <tbody>
-    <? foreach ($topFolder->getSubfolders() as $folder) : ?>
-        <? if (!$folder->isVisible($GLOBALS['user']->id)) continue; ?>
-        <?= $this->render_partial('files/_folder_tr', ['folder' => $folder, 'marked_element_ids' => $marked_element_ids]) ?>
-    <? endforeach ?>
-    </tbody>
-<? endif; ?>
-<? if (count($topFolder->getFiles()) && $topFolder->isReadable($GLOBALS['user']->id)) : ?>
     <tbody class="files">
-    <? foreach ($topFolder->getFiles() as $file_ref) : ?>
-        <?= $this->render_partial("files/_fileref_tr", ['file_ref' => $file_ref, 'current_folder' => $topFolder]) ?>
-    <? endforeach; ?>
+    <? if (count($topFolder->getFiles()) && $topFolder->isReadable($GLOBALS['user']->id)) : ?>
+        <? foreach ($topFolder->getFiles() as $file_ref) : ?>
+            <?= $this->render_partial("files/_fileref_tr", ['file_ref' => $file_ref, 'current_folder' => $topFolder]) ?>
+        <? endforeach; ?>
+    <? endif; ?>
     </tbody>
-<? endif; ?>
     <tfoot>
         <tr>
             <td colspan="100">

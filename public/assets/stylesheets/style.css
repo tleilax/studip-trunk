@@ -5761,6 +5761,12 @@ table.dates .draggable-topic-handle {
   background-repeat: no-repeat;
   border: #28497c solid 1px;
 }
+.subfolders .empty {
+  display: none;
+}
+.subfolders .empty:only-child {
+  display: table-row;
+}
 /* for file/edit view and file/new_edit_folder_form view: */
 div.file_select_possibilities,
 .folder_type_select_possibilities {
@@ -5811,6 +5817,7 @@ div.file_select_possibilities > label:not(.undecorated),
   display: flex;
   justify-content: center;
   font-size: 0.7em;
+  cursor: pointer;
 }
 div.file_select_possibilities > label:not(.undecorated) img,
 .folder_type_select_possibilities > label:not(.undecorated) img {

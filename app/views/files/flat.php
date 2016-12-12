@@ -1,5 +1,5 @@
 <form method="post" action="<?= URLHelper::getLink('dispatch.php/files/bulk') ?>">
-<table class="default documents sortable-table" data-sortlist="[[5, 1]]">
+<table class="default documents sortable-table flat" data-sortlist="[[5, 1]]">
     <?= $this->render_partial("files/_files_thead.php") ?>
 <? if (count($files) === 0): ?>
     <tbody>

@@ -113,19 +113,22 @@ STUDIP.Files = {
                 tr.hide().appendTo(".documents[data-folder_id] tbody.files").delay(500 + delay + i * 200).fadeIn(300);
             }
         }
+        jQuery(".subfolders .empty").hide("fade");
     },
     removeFile: function (fileref_id) {
-        console.log(fileref_id);
         jQuery.ajax({
             url: STUDIP.URLHelper.getURL("dispatch.php/file/delete/" + fileref_id),
             type: "post",
             success: function () {
-                console.log(jQuery(".documents tbody.files > tr#fileref_" + fileref_id));
                 jQuery(".documents tbody.files > tr#fileref_" + fileref_id).fadeOut(300, function () {
                     jQuery(this).remove();
+                    if (jQuery(".subfolders > *").length + jQuery(".files > *").length < 2) {
+                        jQuery(".subfolders .empty").show("fade");
+                    }
                 });
             }
         });
+
     },
     reloadPage: function () {
         STUDIP.Dialog.close();
@@ -246,7 +249,7 @@ jQuery(function () {
     	    filter_ignoreCase  : true,
     	    filter_startsWith  : false
     	  };
-    	$('table.documents').trigger('applyWidgets');
+    	$('table.documents.flat').trigger('applyWidgets');
     	$.tablesorter.filter.bindSearch( $('table.documents'), $('.tablesorterfilter') );
     });
 });
