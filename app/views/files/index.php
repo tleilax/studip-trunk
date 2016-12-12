@@ -82,8 +82,8 @@
                     _('Löschen'),
                     'delete',
                     [
-                        'data-dialog' => '',
-                        'disabled' => 'disabled'
+                        'disabled' => 'disabled',
+                        'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
                     ]) ?>
             <? endif; ?>
 

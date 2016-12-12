@@ -292,6 +292,67 @@ class FilesController extends AuthenticatedController
             
         } elseif(Request::submitted('delete')) {
             //bulk deleting
+            $errors = array();
+            $count_files = 0;
+            $count_folders = 0;
+                        
+            $user = User::findCurrent();
+            $selected_elements = Request::getArray('ids');
+            foreach ($selected_elements as $element) {
+                if ($file_ref = FileRef::find($element)) {
+                    $result = FileManager::deleteFileRef($file_ref, $user);
+                    if (!is_array($result)) $count_files++;
+                } elseif ($folder = Folder::find($element)) {
+                    $foldertype = $folder->getTypedFolder();
+                    $result = FileManager::deleteFolder($foldertype, $user);
+                    if (!is_array($result)) {
+                        $count_folders++;
+                        $children = $this->countChildren($result);
+                        $count_files += $children[0];
+                        $count_folders += $children[1];
+                    }
+                }
+                if (is_array($result)) {
+                    $errors = array_merge($errors, $result);
+                }
+            }            
+            
+            if (empty($errors) || $count_files > 0 || $count_folders > 0) {
+            
+                if (count($filerefs) == 1) {
+                    if ($source_folder) {
+                        PageLayout::postSuccess(_('Der Ordner wurde gelöscht!'));
+                    } else {
+                        PageLayout::postSuccess(_('Die Datei wurde gelöscht!'));
+                    }
+                } else {
+                    if ($count_files > 0 && $count_folders > 0) {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner und %s Dateien gelöscht!'), $count_folders, $count_files));
+                    } elseif ($count_files > 0) {
+                        PageLayout::postSuccess(sprintf(_('Es wurden  %s Dateien gelöscht!'), $count_files));
+                    } else {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner gelöscht!'), $count_folders));
+                    }
+                }
+            
+            } else {
+                PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), $errors);
+            }
+            
+            
+            $dest_range = Request::option('cid');
+            $destination_folder = Folder::find($parent_folder_id);
+            
+            switch ($destination_folder->range_type) {
+                case 'course':
+                case 'institute':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $parent_folder_id . '?cid=' . $dest_range));
+                case 'user':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $parent_folder_id));
+                default:
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $parent_folder_id));
+            }
+            
         }
     }
     
