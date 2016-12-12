@@ -17,7 +17,7 @@ if (Request::get("to_folder_id")) {
 ?>
 
 <? if ($filesystemplugin && $filesystemplugin->hasSearch()) : ?>
-    <form action="<?= $controller->url_for('/choose_file/' . $top_folder->parent_id) ?>" method="get" class="default" data-dialog style="margin-bottom: 50px;" id="file_search">
+    <form action="<?= $controller->url_for('file/choose_file/' . $top_folder->parent_id) ?>" method="get" class="default" data-dialog style="margin-bottom: 50px;" id="file_search">
         <? foreach ($options as $key => $value) : ?>
             <input type="hidden" name="<?= htmlReady($key) ?>" value="<?= htmlReady($value) ?>">
         <? endforeach ?>
@@ -62,7 +62,7 @@ if (Request::get("to_folder_id")) {
         <tbody>
             <tr>
                 <td colspan="2">
-                    <a href="<?= $controller->url_for('/choose_file/' . $top_folder->parent_id, $options) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>" data-dialog>
+                    <a href="<?= $controller->url_for('file/choose_file/' . $top_folder->parent_id, $options) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>" data-dialog>
                         <small><?= _('Ein Verzeichnis nach oben wechseln') ?></small>
                     </a>
                 </td>
@@ -82,7 +82,7 @@ if (Request::get("to_folder_id")) {
             <tr <? if ($full_access) printf('data-file="%s"', $subfolder->getId()) ?> <? if ($full_access) printf('data-folder="%s"', $subfolder->id); ?>>
                 <td class="document-icon" data-sort-value="0">
                     <? if ($subfolder->isReadable($GLOBALS['user']->id)) : ?>
-                    <a href="<?= $controller->link_for('/choose_file/' . $subfolder->getId(), $options) ?>" data-dialog>
+                    <a href="<?= $controller->link_for('file/choose_file/' . $subfolder->getId(), $options) ?>" data-dialog>
                     <? endif ?>
                         <? if ($is_empty): ?>
                             <?= Icon::create('folder-empty', 'clickable')->asImg(24) ?>
@@ -95,7 +95,7 @@ if (Request::get("to_folder_id")) {
                 </td>
                 <td>
                     <? if ($subfolder->isReadable($GLOBALS['user']->id)) : ?>
-                    <a href="<?= $controller->link_for('/choose_file/' . $subfolder->id, $options) ?>" data-dialog>
+                    <a href="<?= $controller->link_for('file/choose_file/' . $subfolder->id, $options) ?>" data-dialog>
                     <? endif ?>
                         <?= htmlReady($subfolder->name) ?>
                     <? if ($subfolder->isReadable($GLOBALS['user']->id)) : ?>
@@ -114,7 +114,7 @@ if (Request::get("to_folder_id")) {
                 <tr>
                     <td class="document-icon" data-sort-value="1">
                         <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
-                        <form action="<?= $controller->link_for('/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
+                        <form action="<?= $controller->link_for('file/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
                             <input type="hidden" name="file_id" value="<?= htmlReady($fileref->id) ?>">
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>
@@ -126,7 +126,7 @@ if (Request::get("to_folder_id")) {
                     </td>
                     <td>
                         <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
-                        <form action="<?= $controller->link_for('/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
+                        <form action="<?= $controller->link_for('file/choose_file/' . $top_folder->getId(), $options) ?>" method="post" data-dialog>
                             <input type="hidden" name="file_id" value="<?= htmlReady($fileref->id) ?>">
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>

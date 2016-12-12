@@ -19,7 +19,7 @@ if (Request::get("copymode")) {
 
 <? if ($GLOBALS['perm']->have_perm("admin")) : ?>
     <form id="folderchooser_course_search"
-          action="<?= $controller->link_for("/choose_folder_from_course/", $options) ?>"
+          action="<?= $controller->link_for("file/choose_folder_from_course/", $options) ?>"
           method="get"
           data-dialog>
         <?= QuickSearch::get("course_id", new StandardSearch("Seminar_id"))
@@ -41,12 +41,12 @@ if (Request::get("copymode")) {
             <? foreach ($courses as $course) : ?>
                 <tr>
                     <td>
-                        <a href="<?= $controller->link_for("/choose_folder_from_course/", array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
+                        <a href="<?= $controller->link_for("file/choose_folder_from_course/", array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
                             <?= CourseAvatar::getAvatar($course->getId())->getImageTag(Avatar::MEDIUM, array('style' => "width: 50px; height: 50px;")) ?>
                         </a>
                     </td>
                     <td>
-                        <a href="<?= $controller->link_for("/choose_folder_from_course/", array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
+                        <a href="<?= $controller->link_for("file/choose_folder_from_course/", array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
                             <?= htmlReady($course->name) ?>
                         </a>
                     </td>
@@ -54,7 +54,7 @@ if (Request::get("copymode")) {
                         <?= htmlReady($course->start_semester->name) ?>
                     </td>
                     <td>
-                        <a href="<?= $controller->link_for("/choose_folder_from_course/", array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
+                        <a href="<?= $controller->link_for("file/choose_folder_from_course/", array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
                             <?= Icon::create("folder-full", "clickable")->asImg(30) ?>
                         </a>
                     </td>
@@ -65,5 +65,5 @@ if (Request::get("copymode")) {
 <? endif ?>
 
 <div data-dialog-button>
-    <?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/choose_destination/', $options), array('data-dialog' => 1)) ?>
+    <?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('file/choose_destination/', $options), array('data-dialog' => 1)) ?>
 </div>

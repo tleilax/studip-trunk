@@ -10,7 +10,7 @@ if (Request::get("range_type")) {
 
 <? if ($GLOBALS['perm']->have_perm("admin")) : ?>
     <form id="filechooser_course_search"
-          action="<?= $controller->link_for("files/choose_file_from_course/".$folder_id) ?>"
+          action="<?= $controller->link_for("file/choose_file_from_course/".$folder_id) ?>"
           method="get"
           data-dialog>
         <?= QuickSearch::get("course_id", new StandardSearch("Seminar_id"))
@@ -32,12 +32,12 @@ if (Request::get("range_type")) {
             <? foreach ($courses as $course) : ?>
                 <tr>
                     <td>
-                        <a href="<?= $controller->link_for("files/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
+                        <a href="<?= $controller->link_for("file/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
                             <?= CourseAvatar::getAvatar($course->getId())->getImageTag(Avatar::MEDIUM, array('style' => "width: 50px; height: 50px;")) ?>
                         </a>
                     </td>
                     <td>
-                        <a href="<?= $controller->link_for("files/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
+                        <a href="<?= $controller->link_for("file/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
                             <?= htmlReady($course->name) ?>
                         </a>
                     </td>
@@ -45,7 +45,7 @@ if (Request::get("range_type")) {
                         <?= htmlReady($course->start_semester->name) ?>
                     </td>
                     <td>
-                        <a href="<?= $controller->link_for("files/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
+                        <a href="<?= $controller->link_for("file/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
                             <?= Icon::create("folder-full", "clickable")->asImg(30) ?>
                         </a>
                     </td>

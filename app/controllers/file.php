@@ -620,7 +620,7 @@ class FileController extends AuthenticatedController
     {
         if (Request::get("course_id")) {
             $folder = Folder::findTopFolder(Request::get("course_id"));
-            header("Location: ". URLHelper::getURL("dispatch.php/files/choose_file/".$folder->getId(), array(
+            header("Location: ". URLHelper::getURL("dispatch.php/file/choose_file/".$folder->getId(), array(
                     'to_plugin' => Request::get("to_plugin"),
                     'to_folder_id' => $folder_id
                 )));
