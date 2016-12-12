@@ -82,9 +82,7 @@ div.file_select_possibilities, .folder_type_select_possibilities {
     /* for file/new_edit_folder_form view only: */
     
     input[name=folder_type] {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
+        display: none;
     }
     
     input[name=folder_type]:checked + label {
@@ -162,5 +160,21 @@ div.file_select_possibilities, .folder_type_select_possibilities {
     #file_management_forms {
         width: calc(70% - 10px);
         max-width: calc(70% - 10px);
+    }
+}
+
+@media screen and (max-width: 800px) {
+    #file_edit_window {
+        flex-direction: column;
+    }
+
+    #file_aside, #folder_aside {
+        width: 100%;
+        max-width: none;
+    }
+
+    #file_management_forms {
+        width: 100%;
+        max-width: none;
     }
 }
