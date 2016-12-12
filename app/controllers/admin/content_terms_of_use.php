@@ -44,7 +44,7 @@ class Admin_ContentTermsOfUseController extends AuthenticatedController
      */
     public function index_action()
     {
-        PageLayout::setTitle(_('Nutzungsbedingungen für Inhalte'));
+        PageLayout::setTitle(_('Inhalts-Nutzungsbedingungen'));
         
         //build sidebar:
         $sidebar = Sidebar::get();
