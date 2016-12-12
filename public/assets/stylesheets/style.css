@@ -769,6 +769,13 @@ table.default > tbody > tr > td.dragHandle {
 table.default > tbody > tr.dragover > td {
   background-color: #fce2cc;
 }
+table.default > tbody > tr.new > td {
+  font-weight: bold;
+}
+table.default > tbody > tr.new > td:first-child {
+  padding-left: 2px;
+  border-left: 2px solid #d60000;
+}
 table.default > tbody:last-of-type > tr:last-child > td {
   border-bottom: 1px solid #1f4171;
 }
