@@ -16,20 +16,20 @@ action="<?= URLHelper::getLink(
     <? endif ?>
     <label>
         <?= _('Name') ?>
-        <input type="text" name="entry_name" value="<?= htmlReady($entry_name) ?>">
+        <?= I18N::input('entry_name', $entry_name)?>
     </label>
     <label>
         <?= _('Downloadbedingung') ?>
         <select name="entry_download_condition">
-            <option value="0" 
+            <option value="0"
                 <?= ($entry_download_condition == '0') ? 'selected="selected"' : '' ?>>
                 <?= _('Ohne Bedingung') ?>
             </option>
-            <option value="0" 
+            <option value="0"
                 <?= ($entry_download_condition == '1') ? 'selected="selected"' : '' ?>>
                 <?= _('Nur für geschlossene Gruppen') ?>
             </option>
-            <option value="0" 
+            <option value="0"
                 <?= ($entry_download_condition == '2') ? 'selected="selected"' : '' ?>>
                 <?= _('Nur für Eigentümer') ?>
             </option>
@@ -48,7 +48,7 @@ action="<?= URLHelper::getLink(
     </label>
     <label>
         <?= _('Beschreibung') ?>
-        <textarea name="entry_description"><?= htmlReady($entry_description) ?></textarea>
+        <?= I18N::textarea('entry_description', $entry_description)?>
     </label>
 </fieldset>
 <div data-dialog-button>

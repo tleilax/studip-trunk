@@ -19,10 +19,10 @@
  * The ContentTermsOfUse class provides information about the terms under which
  * a content object in Stud.IP can be used. Each entry in the database table
  * content_terms_of_use_entries corresponds to one terms of use variant.
- * 
+ *
  * Content can be a file or another Stud.IP object that is capable
  * of storing copyrighted material.
- * 
+ *
  * @property string id database column: ID of the content terms of use object
  * @property string name database column: Short name of the terms of use object
  * @property string position database column: sorting of the entries can be made possible with this attribute
@@ -38,20 +38,21 @@ class ContentTermsOfUse extends SimpleORMap
     protected static function configure($config = [])
     {
         $config['db_table'] = 'content_terms_of_use_entries';
-        
+        $config['i18n_fields']['name'] = true;
+        $config['i18n_fields']['description'] = true;
         //TODO: define has_many relationship for FileRef
         //(and later: other object types)
         parent::configure($config);
     }
-    
-    
+
+
     /**
      * Determines if a user is permitted to download a file.
-     * 
+     *
      * Depening on the value of the download_condition attribute a decision
      * is made regarding the permission of the given user to download
      * a file, given by one of its associated FileRef objects.
-     * 
+     *
      * The folder condition can have the values 0, 1 and 2.
      * - 0 means that there are no conditions for downloading, therefore the
      *   file is downloadable by anyone.
@@ -74,7 +75,7 @@ class ContentTermsOfUse extends SimpleORMap
                 //when this download condition is set!
                 return false;
             }
-            
+
             //the content is only downloadable when the user is inside a closed group
             //(referenced by range_id). If download_condition is set to 2
             //the group must also have a terminated signup deadline.
@@ -95,10 +96,10 @@ class ContentTermsOfUse extends SimpleORMap
                         //or is one of 'user', 'autor', 'tutor', 'dozent' (seminar_user table).
                         //If download condition is set to 1 we must also check
                         //if the course admission is closed!
-                        
+
                         $seminar = new Seminar($course);
-                        
-                        
+
+
                         if($seminar->isPasswordProtected() || $seminar->isAdmissionLocked()) {
                             //course is password protected or locked:
                             return true;
@@ -107,9 +108,9 @@ class ContentTermsOfUse extends SimpleORMap
                             //Either the course has a timed admission that
                             //is closed or the course is a study group
                             //without open admission.
-                            
+
                             $admission_timeframe = $seminar->getAdmissionTimeFrame();
-                            
+
                             if(is_array($admission_timeframe)) {
                                 //There is a timed admission for this course:
                                 //Check if it has ended.
@@ -118,7 +119,7 @@ class ContentTermsOfUse extends SimpleORMap
                                     //it has ended!
                                     return true;
                                 }
-                                
+
                             } else {
                                 //There is no timed admission: One last chance:
                                 //Is the course a closed studygroup?
