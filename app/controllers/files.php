@@ -300,9 +300,11 @@ class FilesController extends AuthenticatedController
             $selected_elements = Request::getArray('ids');
             foreach ($selected_elements as $element) {
                 if ($file_ref = FileRef::find($element)) {
+                    $parent_folder_id = $file_ref->folder_id;
                     $result = FileManager::deleteFileRef($file_ref, $user);
                     if (!is_array($result)) $count_files++;
                 } elseif ($folder = Folder::find($element)) {
+                    $parent_folder_id = $folder->parent_id;
                     $foldertype = $folder->getTypedFolder();
                     $result = FileManager::deleteFolder($foldertype, $user);
                     if (!is_array($result)) {

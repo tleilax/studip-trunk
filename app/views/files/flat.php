@@ -1,4 +1,4 @@
-<form method="post">
+<form method="post" action="<?= URLHelper::getLink('dispatch.php/files/bulk') ?>">
 <table class="default documents">
     <?= $this->render_partial("files/_files_thead.php") ?>
 <? if (count($files) === 0): ?>
@@ -20,11 +20,15 @@
         <tr>
             <td colspan="100">
             <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
+            
+            <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+                <?= Studip\Button::create(_('Verschieben'), 'move', array('data-dialog' => '')) ?>
+            <? endif ?>
+            
             <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-dialog' => '')) ?>
 
             <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-                <?= Studip\Button::create(_('Verschieben'), 'move', array('data-dialog' => '')) ?>
-                <?= Studip\Button::create(_('Löschen'), 'delete', array('data-dialog' => '')) ?>
+                <?= Studip\Button::create(_('Löschen'), 'delete', array('data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?'))) ?>
             <? endif ?>
            </td>
         </tr>
