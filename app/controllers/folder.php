@@ -62,7 +62,10 @@ class FolderController extends AuthenticatedController
     {
         $folder = Folder::find($folder_id);
         if($folder) {
-            $this->redirectToFolder($folder);
+            $folder = $folder->getTypedFolder();
+            if($folder) {
+                $this->redirectToFolder($folder);
+            }
         }
     }
 
