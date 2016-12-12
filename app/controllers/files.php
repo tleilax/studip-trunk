@@ -345,8 +345,9 @@ class FilesController extends AuthenticatedController
             
             switch ($destination_folder->range_type) {
                 case 'course':
-                case 'institute':
                     return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $parent_folder_id . '?cid=' . $dest_range));
+                case 'institute':
+                    return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/' . $parent_folder_id . '?cid=' . $dest_range));
                 case 'user':
                     return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $parent_folder_id));
                 default:
@@ -431,8 +432,9 @@ class FilesController extends AuthenticatedController
         
         switch ($destination_folder->range_type) {
             case 'course':
-            case 'institute':
                 return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $destination_folder->getId() . '?cid=' . $dest_range));
+            case 'institute':
+                return $this->redirect(URLHelper::getUrl('dispatch.php/institute/files/index/' . $destination_folder->getId() . '?cid=' . $dest_range));
             case 'user':
                 return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $destination_folder->getId()));
             default:
