@@ -78,16 +78,10 @@
                         'data-dialog' => '',
                         'disabled' => 'disabled'
                     ]) ?>
-                <?= Studip\Button::create(
-                    _('Löschen'),
-                    'delete',
-                    [
-                        'disabled' => 'disabled',
-                        'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
-                    ]) ?>
+
             <? endif; ?>
 
-                <? if ($topFolder->isReadable($GLOBALS['user']->id)): ?>
+            <? if ($topFolder->isReadable($GLOBALS['user']->id)): ?>
                 <?= Studip\Button::create(
                     _('Kopieren'),
                     'copy',
@@ -95,7 +89,17 @@
                         'data-dialog' => '',
                         'disabled' => 'disabled'
                     ])?>
-                <? endif; ?>
+            <? endif; ?>
+            
+            <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+	            <?= Studip\Button::create(
+                    _('Löschen'),
+                    'delete',
+                    [
+                        'disabled' => 'disabled',
+                        'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
+                    ]) ?>
+          <? endif; ?>  
             <span class="responsive-visible">
                 <? if ($topFolder->isSubfolderAllowed($GLOBALS['user']->id)): ?>
                 <?= Studip\LinkButton::create(

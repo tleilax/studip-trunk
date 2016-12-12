@@ -118,7 +118,32 @@ if (Request::get("copymode")) {
 </table>
 <? endif ?>
 
-<? if ($top_folder->isWritable($GLOBALS['user']->id) && $top_folder->id != $options['fileref_id']) : ?>
+<?
+$mods = new Modules();
+switch ($top_folder->range_type) {
+    case 'user': 
+        $check = true;
+        break;
+    case 'course':
+    case 'institute':
+        $check = $mods->getStatus('documents', $top_folder->range_id) > 0;
+        break;
+    default:
+        $check = false;
+        break;
+}
+
+?>
+
+<? if(!$check): ?>
+	<? if ($top_folder->range_type == 'course') : ?>
+		<?= MessageBox::error(_('Der Dateibereich ist für diese Veranstaltung nicht aktiviert.')); ?>
+	<? elseif($top_folder->range_type == 'institute'): ?>
+		<?= MessageBox::error(_('Der Dateibereich ist für diese Einrichtung nicht aktiviert.')); ?>
+	<? endif; ?>
+<? endif; ?>
+
+<? if ($check && $top_folder->isWritable($GLOBALS['user']->id) && $top_folder->id != $options['fileref_id']) : ?>
     
     <?
     $action = ($options['copymode'] == 'copy') ? 'copy' : 'move'; 
