@@ -68,7 +68,7 @@ STUDIP.Files = {
                     jQuery(".uploadbar").css("background-size", "100% 100%");
                     if (json.redirect) {
                         STUDIP.Dialog.fromURL(json.redirect, {
-                            title: 'Lizenz auswählen'.toLocaleString()
+                            title: json.window_title || 'Lizenz auswählen'.toLocaleString()
                         });
                     } else if (json.message) {
                         jQuery(".uploadbar").hide().parent().append(json.message);

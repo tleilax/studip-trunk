@@ -755,14 +755,20 @@ class FileController extends AuthenticatedController
                 }
 
                 $plugins = PluginManager::getInstance()->getPlugins("FileUploadHook");
-                $redirects = array();
+                $redirect = null;
                 foreach ($plugins as $plugin) {
                     $url = $plugin->getAdditionalUploadWizardPage($file_ref);
                     if ($url) {
-                        $redirects = $url;
+                        $redirect = $url;
+                        break;
                     }
                 }
-                $payload['redirect'] = $redirects[0];
+
+                if (count($redirect)) {
+                    $payload['redirect'] = $redirect;
+                    $this->redirect($redirect);
+                    return;
+                }
 
                 $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
                 $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
