@@ -118,6 +118,15 @@ class AdminNavigation extends Navigation
             }
 
             $navigation->addSubNavigation('sem_classes', new Navigation(_('Veranstaltungskategorien'), 'dispatch.php/admin/sem_classes/overview'));
+            
+            $navigation->addSubNavigation(
+                'content_terms_of_use',
+                new Navigation(
+                    _('Inhalts-Nutzungsbedingungen'),
+                    'dispatch.php/admin/content_terms_of_use/index'
+                )
+            );
+                    
         }
         $this->addSubNavigation('locations', $navigation);
 
