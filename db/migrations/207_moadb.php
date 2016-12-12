@@ -203,6 +203,8 @@ class Moadb extends Migration
         );
         */
         
+        $db = DBManager::get();
+        
         //then we retrieve all message-IDs:
         $message_rows = $db->query("SELECT * FROM message;");
         
