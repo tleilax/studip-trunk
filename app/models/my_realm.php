@@ -29,16 +29,162 @@ require_once 'lib/object.inc.php';
 class MyRealmModel
 {
     /**
-     * Check for changes in folders for a course
-     * @param      $my_obj
-     * @param      $user_id
-     * @param null $modules
+     * Checks for changes in folders for a course.
+     * @param mixed $my_obj
+     * @param string $user_id
+     * @param string $object_id 
      */
     public static function checkDocuments(&$my_obj, $user_id, $object_id)
     {
         if ($my_obj["modules"]["documents"]) {
+            //the document module is available in the object
+            
+            $top_folder = Folder::findTopFolder($object_id);
+            if(!$top_folder) {
+                return null;
+            }
+            
+            $top_folder = $top_folder->getTypedFolder();
+            if(!$top_folder) {
+                //we can't do anything useful if no top folder can be found.
+                return null;
+            }
+            
+            //count all files in standard folders for the object.
+            $files_count = FileRef::countBySql(
+                "INNER JOIN folders ON folders.id = file_refs.folder_id
+                WHERE 
+                folders.folder_type = 'StandardFolder'
+                AND folders.range_id = :range_id ",
+                [
+                    'range_id' => $object_id
+                ]
+            );
+            
+            //Count all new files in standard folders for the object.
+            //Permission checks for standard folders are omitted
+            //to allow a wider use of this method.
+            $new_files_count = FileRef::countBySql(
+                "INNER JOIN folders ON folders.id = file_refs.folder_id
+                WHERE 
+                (file_refs.mkdate > :last_visit_date
+                OR file_refs.chdate > :last_visit_date)
+                AND folders.folder_type = 'StandardFolder'
+                AND folders.range_id = :range_id ",
+                [
+                    'last_visit_date' => $my_obj['last_modified'],
+                    'range_id' => $object_id
+                ]
+            );
+            
+            
+            //For nonstandard folders we must loop through all files
+            //if those folders are visible for the selected user.
+            //First we get all nonstandard folders of a course
+            //and then add those files to a list if the folder is readable
+            //for the current user.
+            $nonstandard_folders = Folder::findBySql(
+                "folder_type <> 'StandardFolder'
+                AND range_id = :range_id",
+                [
+                    'range_id' => $object_id
+                ]
+            );
+            
+            
+            foreach($nonstandard_folders as $folder) {
+                $folder = $folder->getTypedFolder();
+                
+                if($folder->isReadable($user_id)) {
+                    //first get the amount of all files:
+                    $files = $folder->getFiles();
+                    $files_count += count($files);
+                    
+                    
+                    //then filter them to get only the new files:
+                    
+                    $filter_closure = function($file_ref) {
+                        if(!($fileref instanceof FileRef)) {
+                            //we only want FileRef objects!
+                            return false;
+                        }
+                        if(($file_ref->chdate > $my_obj['last_modified']) ||
+                            ($file_ref->mkdate > $my_obj['last_modified'])) {
+                            return true;
+                        }
+                        //if this is executed the file is not new:
+                        return false;
+                    };
+                    
+                    $new_files = array_filter($files, $filter_closure);
+                    
+                    $new_files_count += count($new_files);
+                }
+            }
+            
+            echo sprintf(
+                                '%s Datei(en), %s neue',
+                                $files_count,
+                                $new_files_count
+                            );
+            
+            
+            $navigation = new Navigation('files');
+            if ($new_files_count > 0) {
+                $navigation->setURL(
+                    URLHelper::getURL(
+                        'dispatch.php/course/files/flat',
+                        [
+                            'select' => 'new'
+                        ]
+                    )
+                );
+                
+                $navigation->setImage(
+                    Icon::create(
+                        'files+new',
+                        'attention',
+                        [
+                            'title' => sprintf(
+                                '%s Datei(en), %s neue',
+                                $files_count,
+                                $new_files_count
+                            )
+                        ]
+                    )
+                );
+                
+                $navigation->setBadgeNumber($new_files_count);
+            } else {
+                $navigation->setURL(
+                    URLHelper::getURL(
+                        'dispatch.php/course/files/index'
+                    )
+                );
+                $navigation->setImage(
+                    Icon::create(
+                        'files',
+                        'inactive',
+                        [
+                            'title' => sprintf(
+                                '%s Datei(en)',
+                                $files_count
+                            )
+                        ]
+                    )
+                );
+            }
+            return $navigation;
+            
+            
+            //BELOW LIES THE DEAD CODE FROM THE OLD FILE AREA!
+            //May it rest in peace...
+            
             if (!$GLOBALS['perm']->have_perm('admin')) {
-                if ($my_obj['modules']['documents_folder_permissions'] || ($my_obj['obj_type'] == 'sem' && StudipDocumentTree::ExistsGroupFolders($object_id))) {
+                //the current user has no admin permissions
+                if ($my_obj['modules']['documents_folder_permissions'] ||
+                    ($my_obj['obj_type'] == 'sem' && 
+                    StudipDocumentTree::ExistsGroupFolders($object_id))) {
                     $must_have_perm = $my_obj['obj_type'] == 'sem' ? 'tutor' : 'autor';
                     if ($GLOBALS['perm']->permissions[$my_obj['user_status']] < $GLOBALS['perm']->permissions[$must_have_perm]) {
                         $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree',
@@ -67,6 +213,7 @@ class MyRealmModel
                 return $nav;
             }
         }
+        
         return null;
     }
 
