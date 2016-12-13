@@ -39,6 +39,22 @@ class MyRealmModel
         if ($my_obj["modules"]["documents"]) {
             //the document module is available in the object
             
+            $db = DBManager::get();
+            $result = $db->query(
+                "SELECT last_visitdate FROM object_user_visits
+                WHERE user_id = " . $db->quote($user_id) . "
+                AND object_id = " . $db->quote($object_id) . "
+                AND type = 'sem'
+                LIMIT 1"
+            );
+            
+            $last_visit_date = 0;
+            
+            if($result) {
+                $last_visit_date = $result->fetchColumn(0);
+            }
+            
+            
             $top_folder = Folder::findTopFolder($object_id);
             if(!$top_folder) {
                 return null;
@@ -55,7 +71,7 @@ class MyRealmModel
                 "INNER JOIN folders ON folders.id = file_refs.folder_id
                 WHERE 
                 folders.folder_type = 'StandardFolder'
-                AND folders.range_id = :range_id ",
+                AND folders.range_id = :range_id",
                 [
                     'range_id' => $object_id
                 ]
@@ -70,10 +86,12 @@ class MyRealmModel
                 (file_refs.mkdate > :last_visit_date
                 OR file_refs.chdate > :last_visit_date)
                 AND folders.folder_type = 'StandardFolder'
-                AND folders.range_id = :range_id ",
+                AND folders.range_id = :range_id
+                AND file_refs.user_id <> :user_id",
                 [
-                    'last_visit_date' => $my_obj['last_modified'],
-                    'range_id' => $object_id
+                    'last_visit_date' => $last_visit_date,
+                    'range_id' => $object_id,
+                    'user_id' => $user_id
                 ]
             );
             
@@ -92,6 +110,21 @@ class MyRealmModel
             );
             
             
+            $filter_closure = function($file_ref) use ($last_visit_date) {
+                if(!($file_ref instanceof FileRef)) {
+                    //we only want FileRef objects!
+                    return false;
+                }
+                
+                if($file_ref->mkdate > $last_visit_date) {
+                    return true;
+                }
+                //if this is executed the file is not new:
+                return false;
+            };
+                
+            
+            
             foreach($nonstandard_folders as $folder) {
                 $folder = $folder->getTypedFolder();
                 
@@ -100,34 +133,12 @@ class MyRealmModel
                     $files = $folder->getFiles();
                     $files_count += count($files);
                     
-                    
                     //then filter them to get only the new files:
-                    
-                    $filter_closure = function($file_ref) {
-                        if(!($fileref instanceof FileRef)) {
-                            //we only want FileRef objects!
-                            return false;
-                        }
-                        if(($file_ref->chdate > $my_obj['last_modified']) ||
-                            ($file_ref->mkdate > $my_obj['last_modified'])) {
-                            return true;
-                        }
-                        //if this is executed the file is not new:
-                        return false;
-                    };
-                    
                     $new_files = array_filter($files, $filter_closure);
                     
                     $new_files_count += count($new_files);
                 }
             }
-            
-            echo sprintf(
-                                '%s Datei(en), %s neue',
-                                $files_count,
-                                $new_files_count
-                            );
-            
             
             $navigation = new Navigation('files');
             if ($new_files_count > 0) {
@@ -146,7 +157,7 @@ class MyRealmModel
                         'attention',
                         [
                             'title' => sprintf(
-                                '%s Datei(en), %s neue',
+                                _('%s Datei(en), %s neue'),
                                 $files_count,
                                 $new_files_count
                             )
@@ -167,7 +178,7 @@ class MyRealmModel
                         'inactive',
                         [
                             'title' => sprintf(
-                                '%s Datei(en)',
+                                _('%s Datei(en)'),
                                 $files_count
                             )
                         ]
