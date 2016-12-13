@@ -9,7 +9,7 @@
     </colgroup>
     <thead>
         <tr class="sortable">
-            <th data-sort="false">
+            <th data-sort="false" style="padding-left: 1px;">
                 <input type="checkbox"
                        data-proxyfor=":checkbox[name='ids[]']"
                        class="document-checkbox"
