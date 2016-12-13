@@ -871,62 +871,18 @@ class UserManagement
         // store user preferred language for sending mail
         $user_language = getUserLanguagePath($this->user_data['auth_user_md5.user_id']);
 
+        $user_folder = Folder::findTopFolder($this->user->id);
+        $this->msg .= "info§" . _("Persönlicher Dateibereich gelöscht.") . "§";
+        $user_folder->delete();
+        
         // delete documents of this user
         if ($delete_documents) {
-            // Remove private file space of this user
-            $root_dir = new RootDirectory($this->user_data['auth_user_md5.user_id']);
-            $root_dir->delete();
-
-            // Remove other files
-            $temp_count = 0;
-            $query = "SELECT dokument_id FROM dokumente WHERE user_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-            while ($document_id = $statement->fetchColumn()) {
-                if (delete_document($document_id)) {
-                    $temp_count++;
-                }
-            }
-
-            if ($temp_count) {
-                $this->msg .= "info§" . sprintf(_("%s Dokumente gelöscht."), $temp_count) . "§";
-            }
-
-            // delete empty folders of this user
-            $temp_count = 0;
-
-            $query = "SELECT COUNT(*) FROM folder WHERE range_id = ?";
-            $count_content = DBManager::get()->prepare($query);
-
-            $query = "DELETE FROM folder WHERE folder_id = ?";
-            $delete_folder = DBManager::get()->prepare($query);
-
-            $query = "SELECT folder_id FROM folder WHERE user_id = ? ORDER BY mkdate DESC";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-            while ($folder_id = $statement->fetchColumn()) {
-                $count_content->execute(array($folder_id));
-                $count = $count_content->fetchColumn();
-                $count_content->closeCursor();
-
-                if (!$count && !doc_count($folder_id)) {
-                    $delete_folder->execute(array($folder_id));
-                    $temp_count += $delete_folder->rowCount();
-                }
-            }
-            if ($temp_count) {
-                $this->msg .= "info§" . sprintf(_("%s leere Ordner gelöscht."), $temp_count) . "§";
-            }
-
-            // folder left?
-            $query = "SELECT COUNT(*) FROM folder WHERE user_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-            $count = $statement->fetchColumn();
-            if ($count) {
-                $this->msg .= sprintf("info§" . _("%s Ordner konnten nicht gelöscht werden, da sie noch Dokumente anderer BenutzerInnen enthalten.") . "§", $count);
+            $db_filecount = FileRef::deleteBySQL('user_id = ?', [$this->user_data['auth_user_md5.user_id']]);
+            if ($db_filecount > 0) {
+                $this->msg .= "info§" . sprintf(_("%s Dateien aus Veranstaltungen und Einrichtungen gelöscht."), $db_filecount) . "§";
             }
         }
+
         // kill all the ressources that are assigned to the user (and all the linked or subordinated stuff!)
         if (Config::get()->RESOURCES_ENABLE) {
             $killAssign = new DeleteResourcesUser($this->user_data['auth_user_md5.user_id']);
