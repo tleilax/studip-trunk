@@ -58,33 +58,33 @@
 
         <? if (Navigation::hasItem('/course/files_new/flat') && Navigation::getItem('/course/files_new/flat')->isActive()) : ?>
          <? $actionMenu->addLink($controller->url_for('course/files/index/' . $file_ref->folder_id),
-                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable')) ?>
+                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable', array('size' => 20))) ?>
          <? elseif (Navigation::hasItem('/profile/files/flat') && Navigation::getItem('/profile/files/flat')->isActive()) : ?>
              <? $actionMenu->addLink($controller->url_for('files/index/' . $file_ref->folder_id),
-                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable')) ?>
+                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable', array('size' => 20))) ?>
         <? endif; ?>
         <? if ($current_folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/edit/' . $file_ref->id),
                 _('Datei bearbeiten'),
-                Icon::create('edit', 'clickable'),
+                Icon::create('edit', 'clickable', array('size' => 20)),
                 ['data-dialog' => '1', '' => '']) ?>
         <? endif; ?>
         <? if ($current_folder->isFileWritable($file_ref->id, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $file_ref->id, array('copymode' => 'move')),
                 _('Datei verschieben'),
-                Icon::create('file+move_right', 'clickable'),
+                Icon::create('file+move_right', 'clickable', array('size' => 20)),
                 ['data-dialog' => 'size=auto']) ?>
         <? endif; ?>
         <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $file_ref->id, array('copymode' => 'copy')),
                 _('Datei kopieren'),
-                Icon::create('file+add', 'clickable'),
+                Icon::create('file+add', 'clickable', array('size' => 20)),
                 ['data-dialog' => 'size=auto']) ?>
         <? endif; ?>
         <? if ($current_folder->isFileWritable($file_ref->id, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/delete/' . $file_ref->id),
                 _('Datei löschen'),
-                Icon::create('trash', 'clickable'),
+                Icon::create('trash', 'clickable', array('size' => 20)),
                 [
                     //'data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->name)),
                     //'data-dialog' => '1'//,

@@ -55,25 +55,25 @@
         <? if ($folder->isWritable($GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('folder/edit/' . $folder->getId()),
                     _('Ordner bearbeiten'),
-                    Icon::create('edit', 'clickable'),
+                    Icon::create('edit', 'clickable', array('size' => 20)),
                     ['data-dialog' => '1']) ?>
         <? endif; ?>
         <? $actionMenu->addLink($downloadlink,
                 _('Ordner herunterladen'),
-                Icon::create('download', 'clickable')) ?>
+                Icon::create('download', 'clickable', array('size' => 20))) ?>
         <? if ($folder->isWritable($GLOBALS['user']->id)): ?>
            <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $folder->getId(), array('copymode' => 'move', 'isfolder' => 1)),
                     _('Ordner verschieben'),
-                    Icon::create('folder-empty+move_right', 'clickable'),
+                    Icon::create('folder-empty+move_right', 'clickable', array('size' => 20)),
                     ['data-dialog' => '1']) ?>
             <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $folder->getId(), array('copymode' => 'copy', 'isfolder' => 1)),
                     _('Ordner kopieren'),
-                    Icon::create('folder-empty+add', 'clickable'),
+                    Icon::create('folder-empty+add', 'clickable', array('size' => 20)),
                     ['data-dialog' => '1']) ?>
             <? $actionMenu->addLink(
                     $controller->url_for('folder/delete/' . $folder->getId()),
                     _('Ordner löschen'),
-                    Icon::create('trash', 'clickable'),
+                    Icon::create('trash', 'clickable', array('size' => 20)),
                     [
                         'onclick' => "STUDIP.Dialog.confirm('".sprintf(_('Soll der Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name))."', function () { STUDIP.Folders.delete('". $folder->getId() . "'); }); return false;"
                     ]) ?>
