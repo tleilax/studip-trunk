@@ -5595,10 +5595,6 @@ table.contact-header td.empty a {
 .documents .chdir-up a {
   display: block;
 }
-.documents .document-icon,
-.documents .empty {
-  text-align: center;
-}
 .documents .options {
   text-align: right;
 }
