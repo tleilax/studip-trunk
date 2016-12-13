@@ -29,6 +29,7 @@ class FilesController extends AuthenticatedController
         PageLayout::addSqueezePackage('tablesorterfork');
 
         $this->user = User::findCurrent();
+        $this->last_visitdate = time();
     }
 
 

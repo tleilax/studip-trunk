@@ -114,6 +114,10 @@ STUDIP.Files = {
             }
         }
         jQuery(".subfolders .empty").hide("fade");
+        // update tablesorter cache
+        jQuery('table.documents').trigger('update');    
+        var $sort = jQuery('table.documents').get(0).config.sortList;
+        jQuery("table.documents").trigger("sorton",[$sort]);
     },
     removeFile: function (fileref_id) {
         jQuery.ajax({
