@@ -22,7 +22,8 @@
                 <? if(!empty($breadcrumbs)): ?>
                     <? if (count($breadcrumbs) > 5): ?>/...<?
                         $breadcrumbs = array_slice($breadcrumbs, count($breadcrumbs) - 5, 5);
-                        ?><? endif ?>
+                        ?>
+                    <? endif ?>
 
                     <? foreach ($breadcrumbs as $crumb): ?>
                             /<a href="<?= $controller->url_for($controllerpath . '/' . $crumb->getId()) ?>">
@@ -97,7 +98,7 @@
                         'disabled' => 'disabled',
                         'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
                     ]) ?>
-          <? endif; ?>  
+          <? endif; ?>
             <span class="responsive-visible">
                 <? if ($topFolder->isSubfolderAllowed($GLOBALS['user']->id)): ?>
                 <?= Studip\LinkButton::create(

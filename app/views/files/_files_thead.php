@@ -10,7 +10,11 @@
     <thead>
         <tr class="sortable">
             <th data-sort="false">
-                <input type="checkbox" data-proxyfor=":checkbox[name='ids[]']">
+                <input type="checkbox"
+                       data-proxyfor=":checkbox[name='ids[]']"
+                       class="document-checkbox"
+                       id="all_files_checkbox">
+                <label for="all_files_checkbox"><span></span></label>
             </th>
             <th data-sort="htmldata"><?= _('Typ') ?></th>
             <th data-sort="text"><?= _('Name') ?></th>

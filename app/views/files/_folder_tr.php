@@ -4,11 +4,14 @@
 <tr id="row_folder_<?= $folder->id ?>">
     <td>
         <? if ($is_readable) : ?>
-            <input type="checkbox"
+        <input type="checkbox"
                 name="ids[]"
+                class="document-checkbox"
+                id="file_checkbox_<?=$folder->getId()?>"
                 value="<?= $folder->getId() ?>"
                 onchange="javascript:void(STUDIP.Files.toggleBulkButtons());"
                 <?= (in_array($folder->getId(), $marked_element_ids)) ? 'checked' : '' ?>>
+        <label for="file_checkbox_<?=$folder->getId()?>"><span></span></label>
         <? endif?>
     </td>
     <td class="document-icon" data-sort-value="0">
@@ -22,7 +25,8 @@
     </td>
     <td>
         <? if ($is_readable) : ?>
-            <a href="<?= $controller->url_for($controllerpath . '/' . $folder->getId()) ?>">                       <? endif ?>
+            <a href="<?= $controller->url_for($controllerpath . '/' . $folder->getId()) ?>">
+        <? endif ?>
             <?= htmlReady($folder->name) ?>
         <? if ($is_readable) : ?>
             </a>

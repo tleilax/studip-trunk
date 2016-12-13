@@ -1,9 +1,12 @@
 <tr class="<?= ($file_ref->chdate > $last_visitdate) ? 'new' : ''?>" <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>">
     <td>
         <input type="checkbox"
+               class="document-checkbox"
                name="ids[]"
+               id="file_checkbox_<?=$file_ref->id?>"
                value="<?= $file_ref->id ?>"
                <? if (in_array($file_ref->id, (array) $marked_element_ids)) echo 'checked'; ?>>
+        <label for="file_checkbox_<?=$file_ref->id?>"><span></span></label>
     </td>
     <td class="document-icon" data-sort-value="1">
         <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>

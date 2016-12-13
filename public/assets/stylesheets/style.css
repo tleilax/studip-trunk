@@ -5851,6 +5851,29 @@ div.file_select_possibilities input[name=folder_type]:checked + label img,
 .folder_type_select_possibilities input[name=folder_type]:checked + label img {
   filter: invert(100%) brightness(200%);
 }
+input.document-checkbox[type="checkbox"] {
+  display: none;
+}
+input.document-checkbox[type="checkbox"] + label span {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin: 0px 0px 0 0;
+  vertical-align: middle;
+  background-image: url("../images/icons/blue/checkbox-unchecked.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  cursor: pointer;
+}
+input.document-checkbox[type="checkbox"]:checked + label span {
+  background-image: url("../images/icons/blue/checkbox-checked.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+}
 /* for file/edit and folder/edit only: */
 @media screen and (max-width: 800px) {
   /* mobile view: */
