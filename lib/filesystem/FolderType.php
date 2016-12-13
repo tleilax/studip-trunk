@@ -104,7 +104,7 @@ interface FolderType
     public function isSubfolderAllowed($user_id);
 
     /**
-     * 
+     *
      * @return string
      */
     public function getDescriptionTemplate();
@@ -115,7 +115,7 @@ interface FolderType
      */
     public function getSubfolders();
 
-    
+
     /**
      * Returns a list of files of this folder.
      * @return Array List of FileRef objects
@@ -132,7 +132,7 @@ interface FolderType
 
     /**
      * Validates a file upload.
-     * 
+     *
      * @param mixed file The file to be validated.
      * @param string user_id The ID of the user who uploaded the file.
      */
@@ -140,45 +140,49 @@ interface FolderType
 
     /**
      * This method is responsible for creating a file and the associated FileRef object.
-     * 
+     *
      * @param ArrayAccess|Array $file Data which are required to create a file.
      * @return File|MessageBox : File of the created file or MessageBox if an error occured
      */
     public function createFile($file);
-    
+
     /**
      * Deletes a file in this folder.
      * @param string $file_ref_id The ID of the FileRef object of the file that shall be deleted.
      * @return bool True on success, False on failure.
      */
     public function deleteFile($file_ref_id);
-    
-    
-    /**
-     * @param ArrayAccess|Array $folderdata
-     * @return FolderType|MessageBox : FolderType of the created folder or MessageBox if an error occured
-     */
-    public function createSubfolder($folderdata);
 
-    
+
+    /**
+     * @param  $foldertype FolderType
+     * @return bool
+     */
+    public function createSubfolder(FolderType $foldertype);
+
+
     /**
      * Deletes a subfolder in this folder.
-     * 
+     *
      * @param string $subfolder_id The ID of the subfolder that shall be deleted.
-     * 
+     *
      * @return bool True on success, False on failure.
      */
     public function deleteSubfolder($subfolder_id);
-    
-    
+
+
     /**
      * Deletes this folder.
-     * 
+     *
      * @return bool True on success, False on failure.
      */
     public function delete();
-    
-    
+
+    /**
+     * @return bool
+     */
+    public function store();
+
     /**
      * Determines if a user may download the file.
      * @param string $file_ref_id The ID of the FileRef object of a file that shall be downloaded.

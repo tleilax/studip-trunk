@@ -44,30 +44,14 @@ class FilesController extends AuthenticatedController
         $actions = new ActionsWidget();
 
         if ($folder->isSubfolderAllowed($GLOBALS['user']->id)) {
-            //standard dialog version:
-            /*$actions->addLink(
-                _('Neuer Ordner'),
-                URLHelper::getUrl('dispatch.php/folder/new',
-                    array('context' => 'user', 'rangeId' => $this->user->id, 'parent_folder_id' => $folder->getId())),
-                Icon::create('folder-empty+add', 'clickable'),
-                array('data-dialog' => 'size=auto')
-            );
-            */
-
-            //AJAX version:
             $actions->addLink(
                 _('Neuer Ordner'),
                 URLHelper::getUrl(
-                    'dispatch.php/folder/new',
-                    [
-                        'context' => 'user',
-                        'rangeId' => $this->user->id,
-                        'parent_folder_id' => $folder->getId()
-                    ]
+                    'dispatch.php/file/new_folder/' . $folder->getId()
                 ),
                 Icon::create('folder-empty+add', 'clickable'),
                 [
-                    'onclick' => 'STUDIP.Folders.openAddFoldersWindow(\''. $folder->getId() . '\', \'' . $this->user->id . '\'); return false;'
+                    'data-dialog' => 1
                 ]
             );
 
@@ -108,16 +92,16 @@ class FilesController extends AuthenticatedController
         $this->topFolder = $folder->getTypedFolder();
 
         $this->buildSidebar($this->topFolder);
-        
+
         //check for INBOX and OUTBOX folder:
-        
+
         //first the INBOX folder:
         $inbox_folder = UserFileArea::getInboxFolder($this->user);
         if(!$inbox_folder) {
             //no inbox folder
             PageLayout::postWarning(_('Ordner für Anhänge eingegangener Nachrichten konnte nicht ermittelt werden!'));
         }
-        
+
         //then the OUTBOX folder:
         $outbox_folder = UserFileArea::getOutboxFolder($this->user);
         if(!$outbox_folder) {
@@ -132,7 +116,7 @@ class FilesController extends AuthenticatedController
     Displays the files in flat view
      **/
     public function flat_action()
-    {        
+    {
         Navigation::activateItem('/profile/files/flat');
 
         $this->marked_element_ids = [];
@@ -151,7 +135,7 @@ class FilesController extends AuthenticatedController
         list($this->files, $this->folders) = array_values(FileManager::getFolderFilesRecursive($this->topFolder, $GLOBALS['user']->id));
     }
 
-    
+
     private function fillZipArchive(ZipArchive $zip, $zip_path = '', $filesystem_item = null, User $user)
     {
         if($filesystem_item instanceof FileRef) {
@@ -160,12 +144,12 @@ class FilesController extends AuthenticatedController
             if(!$folder) {
                 return;
             }
-            
+
             $folder = $folder->getTypedFolder();
             if(!$folder) {
                 return;
             }
-            
+
             if($folder->isFileDownloadable($filesystem_item->id, $user->id)) {
                 $zip->addFile($filesystem_item->file->getPath(), $zip_path . $filesystem_item->name);
                 $filesystem_item->downloads += 1;
@@ -176,55 +160,55 @@ class FilesController extends AuthenticatedController
             if($filesystem_item->isReadable($user->id)) {
                 //add directory:
                 $zip->addEmptyDir($zip_path . $filesystem_item->name);
-                
+
                 //loop through all file_refs and subfolders:
                 foreach($filesystem_item->getFiles() as $file_ref) {
                         $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $file_ref, $user);
                 }
-                
+
                 foreach($filesystem_item->getSubfolders() as $subfolder) {
                     $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $subfolder, $user);
                 }
             }
         }
     }
-    
-    
-    
+
+
+
     /**
      * This action allows downloading, copying, moving and deleting files and folders in bulk.
      */
     public function bulk_action()
     {
         //check, if at least one ID was given:
-        
+
         $parent_folder_id = Request::get('parent_folder_id', null);
         $ids = Request::getArray('ids');
-        
+
         if(empty($ids)) {
             $this->redirect('files/index/' . $parent_folder_id);
         }
-        
+
         //check, which action was chosen:
-        
+
         if(Request::submitted('download')) {
             //bulk downloading:
-            
+
             //loop through all ids, check if it refers to a file_ref or a folder
             //and zip them into one big archive:
-            
+
             $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
             $zip = new ZipArchive();
-            
+
             $zip_open_result = $zip->open($tmp_file, ZipArchive::CREATE);
             if($zip_open_result !== true) {
                 throw new Exception('Could not create zip file: ' . $zip_open_result);
             }
-            
+
             $zip_path = '';
-            
+
             $user = User::findCurrent();
-            
+
             foreach($ids as $id) {
                 //check if the ID references a FileRef:
                 $filesystem_item = FileRef::find($id);
@@ -235,24 +219,24 @@ class FilesController extends AuthenticatedController
                         $filesystem_item = $filesystem_item->getTypedFolder();
                     }
                 }
-                
+
                 if(!$filesystem_item) {
                     //we can't find any file system item for this ID!
                     continue;
                 }
-                
+
                 $this->fillZipArchive($zip, '', $filesystem_item, $user);
-                
+
             }
-            
+
             //finish writing:
             $zip->close();
-            
-            
+
+
             //Ok, we have a zip file now: We can send it to the user:
             //(The following code was taken from the old file area file
             //download.php)
-            
+
             $dispositon = sprintf('%s;filename="%s"',
                               'inline',
                               urlencode(basename($tmp_file, '.zip'))
@@ -262,29 +246,29 @@ class FilesController extends AuthenticatedController
             $this->response->add_header('Content-Transfer-Encoding' , 'binary');
             $this->response->add_header('Content-Type', 'application/zip');
             $this->response->add_header('Content-Length', filesize($tmp_file));
-            
+
             $this->render_nothing();
             $this->download_handle = fopen($tmp_file, 'r');
             $this->download_remove = $tmp_file;
-            
+
         } elseif(Request::submitted('copy')) {
             //bulk copying
             $selected_elements = Request::getArray('ids');
             $this->redirect('file/choose_destination/' . implode('-', $selected_elements) . '/copy');
             return;
-            
-        } elseif(Request::submitted('move')) {            
-            //bulk moving 
+
+        } elseif(Request::submitted('move')) {
+            //bulk moving
             $selected_elements = Request::getArray('ids');
             $this->redirect('file/choose_destination/' . implode('-', $selected_elements) . '/move');
             return;
-            
+
         } elseif(Request::submitted('delete')) {
             //bulk deleting
             $errors = array();
             $count_files = 0;
             $count_folders = 0;
-                        
+
             $user = User::findCurrent();
             $selected_elements = Request::getArray('ids');
             foreach ($selected_elements as $element) {
@@ -306,10 +290,10 @@ class FilesController extends AuthenticatedController
                 if (is_array($result)) {
                     $errors = array_merge($errors, $result);
                 }
-            }            
-            
+            }
+
             if (empty($errors) || $count_files > 0 || $count_folders > 0) {
-            
+
                 if (count($filerefs) == 1) {
                     if ($source_folder) {
                         PageLayout::postSuccess(_('Der Ordner wurde gelöscht!'));
@@ -325,15 +309,15 @@ class FilesController extends AuthenticatedController
                         PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner gelöscht!'), $count_folders));
                     }
                 }
-            
+
             } else {
                 PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), $errors);
             }
-            
-            
+
+
             $dest_range = Request::option('cid');
             $destination_folder = Folder::find($parent_folder_id);
-            
+
             switch ($destination_folder->range_type) {
                 case 'course':
                     return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $parent_folder_id . '?cid=' . $dest_range));
@@ -344,30 +328,30 @@ class FilesController extends AuthenticatedController
                 default:
                     return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $parent_folder_id));
             }
-            
+
         }
     }
-    
+
     public function copyhandler_action($destination_id)
     {
         $to_plugin = Request::get("to_plugin", null);
         $plugin = Request::get("plugin", null);
-        
+
         $fileref_id = Request::get("fileref_id", null);
         $copymode = Request::get("copymode", null);
-        
+
         $user = User::findCurrent();
         $destination_folder = Folder::find($destination_id)->getTypedFolder();
-        
+
         $errors = array();
         $count_files = 0;
         $count_folders = 0;
         $count_dracula = 'vampire'; //sorry
-        
+
         $filerefs = explode('-', $fileref_id);
         if (!empty($filerefs)) {
             foreach ($filerefs as $fileref) {
-                
+
                 if ($source = FileRef::find($fileref)) {
                     if ($copymode == 'move') {
                         $result = FileManager::moveFileRef($source, $destination_folder, $user);
@@ -384,7 +368,7 @@ class FilesController extends AuthenticatedController
                     }
                     if (!is_array($result)) {
                         $count_folders++;
-                        $children = $this->countChildren($result);  
+                        $children = $this->countChildren($result);
                         $count_files += $children[0];
                         $count_folders += $children[1];
                     }
@@ -394,17 +378,17 @@ class FilesController extends AuthenticatedController
                 }
             }
         }
-        
+
         $actiontext = ($copymode == 'copy') ? _('kopiert') : _('verschoben');
-        
+
         if (empty($errors) || $count_files > 0 || $count_folders > 0) {
-            
+
             if (count($filerefs) == 1) {
                 if ($source_folder) {
                     PageLayout::postSuccess(sprintf(_('Der Ordner wurde %s!'), $actiontext));
                 } else {
                     PageLayout::postSuccess(sprintf(_('Die Datei wurde %s!'), $actiontext));
-                } 
+                }
             } else {
                 if ($count_files > 0 && $count_folders > 0) {
                     PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner und %s Dateien %s!'), $count_folders, $count_files, $actiontext));
@@ -414,13 +398,13 @@ class FilesController extends AuthenticatedController
                     PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner %s!'), $count_folders, $actiontext));
                 }
             }
-            
+
         } else {
             PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), $errors);
         }
-        
+
         $dest_range = $destination_folder->range_id;
-        
+
         switch ($destination_folder->range_type) {
             case 'course':
                 return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $destination_folder->getId() . '?cid=' . $dest_range));
@@ -431,9 +415,9 @@ class FilesController extends AuthenticatedController
             default:
                 return $this->redirect(URLHelper::getUrl('dispatch.php/course/files/index/' . $destination_folder->getId()));
         }
-        
+
     }
-    
+
     private function countChildren (FolderType $folder) {
         $file_count = count($folder->getFiles());
         $folder_count = count($folder->getSubfolders());
@@ -442,12 +426,12 @@ class FilesController extends AuthenticatedController
                 $subs = $this->countChildren($subfolder);
                 $file_count += $subs[0];
                 $folder_count += $subs[1];
-            }            
+            }
         }
         return array($file_count, $folder_count);
     }
-    
-    
+
+
     /**
      * The after_filter method of this controller transmits file contens
      * (if any) and removes temporary files that were created before
@@ -460,16 +444,16 @@ class FilesController extends AuthenticatedController
     {
         //(The following code was taken from the old file area file
         //download.php)
-        
+
         parent::after_filter($action, $args);
-        
+
         //If the handle for the file to be downloaded is opened
         //we must send the file and then close it.
         if($this->download_handle && is_resource($this->download_handle)) {
             fpassthru($this->download_handle);
             fclose($this->download_handle);
         }
-        
+
         //If a temporary file was created for the download
         //we must delete if afterwards.
         if($this->download_remove && file_exists($this->download_remove)) {

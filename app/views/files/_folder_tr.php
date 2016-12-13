@@ -53,7 +53,7 @@
     <td class="actions">
         <? $actionMenu = ActionMenu::get() ?>
         <? if ($folder->isWritable($GLOBALS['user']->id)): ?>
-            <? $actionMenu->addLink($controller->url_for('folder/edit/' . $folder->getId()),
+            <? $actionMenu->addLink($controller->url_for('file/edit_folder/' . $folder->getId()),
                     _('Ordner bearbeiten'),
                     Icon::create('edit', 'clickable', array('size' => 20)),
                     ['data-dialog' => '1']) ?>

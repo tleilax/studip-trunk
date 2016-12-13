@@ -89,7 +89,7 @@
                         'disabled' => 'disabled'
                     ])?>
             <? endif; ?>
-            
+
             <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
 	            <?= Studip\Button::create(
                     _('Löschen'),
@@ -104,9 +104,8 @@
                 <?= Studip\LinkButton::create(
                     _("Neuer Ordner"),
                     URLHelper::getUrl(
-                        'dispatch.php/folder/new',
-                        array('parent_folder_id' => $topFolder->getId())
-                    ),
+                        'dispatch.php/file/new_folder/' . $topFolder->getId())
+                    ,
                     array(
                         'data-dialog' => ''
                     )) ?>

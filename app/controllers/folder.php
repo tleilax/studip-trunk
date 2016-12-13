@@ -78,9 +78,9 @@ class FolderController extends AuthenticatedController
         if (!$parent_folder_object = Folder::find(Request::option('parent_folder_id'))) {
             throw new Trails_Exception(404, 'parent folder not found');
         }
-        
+
         $parent_folder = $parent_folder_object->getTypedFolder();
-        
+
         /*
         TEMPORARY DISABLED!
         if (!$parent_folder->isSubfolderAllowed($GLOBALS['user']->id)) {
@@ -142,7 +142,7 @@ class FolderController extends AuthenticatedController
                         $this->name,
                         $this->description
                     );
-                    
+
 
                     if(!is_array($result)) {
                         $folder_type = $result;
@@ -152,12 +152,12 @@ class FolderController extends AuthenticatedController
                             //special return value for JavaScript dialogs
                             $this->folder = $folder_type; //FolderType is the interface for all folders!
                             $this->marked_element_ids = [];
-                            
+
                             $result_json = [];
                             $result_json['tr'] = $this->render_template_as_string('files/_folder_tr');
                             $result_json['folder_id'] = $folder_type->getId();
                             // (unsused code) $payload = array("func" => "STUDIP.Folders.updateFolderListEntry", 'payload' => $payload);
-                        
+
                             $this->render_json($result_json);
                         } else {
                             $this->redirectToFolder($parent_folder, MessageBox::success(_('Ordner wurde angelegt!')));
@@ -237,7 +237,7 @@ class FolderController extends AuthenticatedController
             );
             return;
         }
-        
+
         $this->folder = $this->folder->getTypedFolder();
         if(!$this->folder) {
             $this->render_text(
@@ -245,8 +245,8 @@ class FolderController extends AuthenticatedController
             );
             return;
         }
-        
-        
+
+
         $this->folder_id = $this->folder->getId();
         $this->parent_folder_id = $this->folder->parent_id;
 
@@ -342,16 +342,16 @@ class FolderController extends AuthenticatedController
 
         if(Request::submitted('form_sent')) {
             /*$target_folder_id = Request::get('course_dest_folder');
-            
+
             if(!$target_folder_id) {
                 $target_folder_id = Request::get('inst_dest_folder');
             }
-            
+
             if(!$target_folder_id) {
                 $target_folder_id = Request::get('user_dest_folder');
             }*/
             $target_folder_id = Request::get('dest_folder');
-            
+
             if(!$target_folder_id) {
                 $this->render_text(MessageBox::error(_('Zielordner-ID nicht gefunden!')));
                 return;
@@ -488,7 +488,7 @@ class FolderController extends AuthenticatedController
             $this->render_text(MessageBox::error(_('Ordner nicht gefunden!')));
             return;
         }
-        
+
         $this->folder = $this->folder->getTypedFolder();
         if(!$this->folder) {
             $this->render_text(MessageBox::error(_('Ordnertyp konnte nicht ermittelt werden!')));
@@ -496,9 +496,9 @@ class FolderController extends AuthenticatedController
         }
 
         //ok, we can try to delete the folder:
-        
+
         $result = FileManager::deleteFolder($this->folder, User::findCurrent());
-        
+
         if($result instanceof FolderType) {
             $this->render_text(MessageBox::success(_('Ordner wurde gelöscht!')));
         } else {

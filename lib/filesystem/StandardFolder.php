@@ -25,11 +25,12 @@ class StandardFolder implements FolderType
      */
     public function __construct($folderdata = null)
     {
-        if($folderdata instanceof Folder) {
+        if ($folderdata instanceof Folder) {
             $this->folderdata = $folderdata;
         } else {
-            $this->folderdata = new Folder();
+            $this->folderdata = Folder::build($folderdata);
         }
+        $this->folderdata['folder_type'] = get_class($this);
     }
 
 
@@ -78,6 +79,16 @@ class StandardFolder implements FolderType
     public function __get($attribute)
     {
         return $this->folderdata[$attribute];
+    }
+
+    /**
+     * @param $name
+     * @param $value
+     * @return mixed
+     */
+    public function __set($name, $value)
+    {
+        return $this->folderdata[$name] = $value;
     }
 
 
@@ -130,22 +141,25 @@ class StandardFolder implements FolderType
      */
     public function getEditTemplate()
     {
-        $template = [];
-        foreach ($this->folderdata as $name => $value) {
-            $template[$name] = $this->folderdata[$name];
-        }
-        return $template;
+
     }
 
     /**
      * @param $request
-     * @return bool|number
+     * @return FolderType|MessageBox
      */
     public function setDataFromEditTemplate($request)
     {
-        foreach ($this->folderdata as $name => $value) {
-            $this->folderdata[$name] = $request[$name];
+        if (!$request['name']) {
+            return MessageBox::error(_("Die Bezeichnung des Ordners fehlt."));
         }
+        $this->folderdata['name'] = $request['name'];
+        $this->folderdata['description'] = $request['description'];
+        return $this;
+    }
+
+    public function store()
+    {
         return $this->folderdata->store();
     }
 
@@ -259,8 +273,12 @@ class StandardFolder implements FolderType
     }
 
 
-    public function createSubfolder($folderdata)
+    public function createSubfolder(FolderType $foldertype)
     {
+        $foldertype->range_id = $this->folderdata['range_id'];
+        $foldertype->range_type = $this->folderdata['range_type'];
+        $foldertype->parent_id = $this->folderdata['id'];
+        return $foldertype->store();
 
     }
 
@@ -288,8 +306,8 @@ class StandardFolder implements FolderType
     {
         return $this->folderdata->delete();
     }
-    
-    
+
+
     /**
      * @param $fileref_or_id
      * @param $user_id
@@ -326,7 +344,7 @@ class StandardFolder implements FolderType
 
     /**
      * Checks if a user has write permissions to a file.
-     * 
+     *
      * For standard folders write permissions are granted
      * if the user is the owner of the file or if the user has at least
      * tutor permissions on the Stud.IP object specified by range_id

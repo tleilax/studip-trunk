@@ -16,7 +16,7 @@
 
 /**
  * Class OutboxFolder
- * 
+ *
  * This is a FolderType implementation for file attachments of messages
  * that were sent by a user. It is a read-only folder.
  */
@@ -26,27 +26,27 @@ class OutboxFolder extends InboxOutboxFolder
     //attributes and constructor of InboxOutboxFolder (just for your convenience):
     protected $user;
     protected $folder;
-    
+
     public function __construct(Folder $folder)
     {
         $this->folder = $folder;
         $this->user = User::find($folder->user_id);
     }
     */
-    
-    
+
+
     static public function getTypeName()
     {
         return _('Ein Ordner für Anhänge gesendeter Nachrichten');
     }
-    
-    
+
+
     public function getIcon($role)
     {
         return Icon::create(count($this->getFiles()) ? 'folder-inbox-full' : 'folder-inbox-empty', $role);
     }
-    
-    
+
+
     public function getFiles()
     {
         //get all folders of the user that belongs to a received message:
@@ -62,9 +62,9 @@ class OutboxFolder extends InboxOutboxFolder
                 'user_id' => $this->user->id
             ]
         );
-        
+
         $files = [];
-        
+
         foreach($message_folders as $folder) {
             $file_refs = FileRef::findBySql(
                 'folder_id = :folder_id',
@@ -74,25 +74,21 @@ class OutboxFolder extends InboxOutboxFolder
             );
             $files = array_merge($files, $file_refs);
         }
-        
+
         return $files;
     }
-    
-    
+
+
     public function setDataFromEditTemplate($folderdata)
     {
         return MessageBox::error(_('Outbox-Ordner können nicht bearbeitet werden!'));
     }
-    
-    
+
+
     public function createFile($file)
     {
         return MessageBox::error(_('In Outbox-Ordnern können keine Dateien erzeugt werden!'));
     }
-    
-    
-    public function createSubfolder($folderdata)
-    {
-        return MessageBox::error(_('In Outbox-Ordnern können keine nutzerdefinierten Unterordner erzeugt werden!'));
-    }
+
+
 }

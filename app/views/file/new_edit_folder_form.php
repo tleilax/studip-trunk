@@ -1,5 +1,3 @@
-<?= CSRFProtection::tokenTag() ?>
-<input type="hidden" name="form_sent" value="1">
 <fieldset>
     <legend>
         <?= _("Ordnereigenschaften") ?>
@@ -12,11 +10,12 @@
         <?= _('Beschreibung') ?>
         <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($description); ?></textarea>
     </label>
+    <?=$folder_template instanceof Flexi_Template ? $folder_template->render() : $folder_template ?>
     <? if($new_folder_form && $folder_types): ?>
         <?= _('Ordnertyp') ?>
         <div class="folder_type_select_possibilities">
         <? foreach ($folder_types as $folder_type) : ?>
-            <input type="radio" name="folder_type" value="<?= htmlReady($folder_type['class']) ?>"
+            <input type="radio" onChange="$(this).closest('form').submit()" name="folder_type" value="<?= htmlReady($folder_type['class']) ?>"
                 id="folder_type_-<?= htmlReady($folder_type['class']) ?>"
                 <?= ($folder_type['class'] == $current_folder_type) ? 'checked="checked"' : '' ?> >
             <label for="folder_type_-<?= htmlReady($folder_type['class']) ?>">

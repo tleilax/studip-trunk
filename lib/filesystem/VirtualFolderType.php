@@ -106,34 +106,38 @@ class VirtualFolderType implements FolderType
         }
         $this->files[] = $filedata;
     }
-    
-    
+
+
     public function deleteFile($file_ref_id)
     {
         //TODO
         return true;
     }
-    
 
-    public function createSubfolder($folderdata)
+
+    public function createSubfolder(FolderType $folderdata)
     {
         $this->subfolders[] = $folderdata;
         return $folderdata;
     }
-    
+
     public function deleteSubfolder($subfolder_id)
     {
         //TODO
         return true;
     }
-    
-    
+
+
     public function delete()
     {
         //TODO
         return true;
     }
-    
+
+    public function store()
+    {
+
+    }
 
     public function isFileDownloadable($fileref_or_id, $user_id)
     {

@@ -121,7 +121,7 @@ class FileController extends AuthenticatedController
                             'file_refs' => $ref_ids
                         ));
                     }
-                    
+
                     if ($storedFiles) {
                         foreach ($storedFiles as $fileref) {
                             $this->file_ref = $fileref;
@@ -304,7 +304,7 @@ class FileController extends AuthenticatedController
             } else {
                 PageLayout::postError(_('Fehler beim Kopieren der Datei.'), $result);
             }
-            
+
             $dest_range = $destination_folder->range_id;
 
             switch ($destination_folder->range_type) {
@@ -469,7 +469,7 @@ class FileController extends AuthenticatedController
             $this->copymode = $copymode;
         }
         $this->fileref_id = $fileref_id;
-        
+
         $refs = explode('-', $fileref_id);
         $first_ref = FileRef::find($refs[0]);
         if ($first_ref) {
@@ -481,7 +481,7 @@ class FileController extends AuthenticatedController
             }
         
         }
-        
+
         $this->plugin = Request::get("to_plugin");
     }
 
@@ -490,7 +490,7 @@ class FileController extends AuthenticatedController
     {
         if (Request::get("course_id")) {
             $folder = Folder::findTopFolder(Request::get("course_id"));
-            
+
             header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
                     'to_plugin' => Request::get("to_plugin"),
                     'fileref_id' => Request::get("fileref_id"),
@@ -915,7 +915,7 @@ class FileController extends AuthenticatedController
                     $plugins = PlugineManager::get()->getPlugins("FileUploadHook");
                     $redirects = array();
                     foreach ($plugins as $plugin) {
-                        $url = $plugin->getAdditionalUploadWizardPage($file_ref);
+                        $url = $plugin->getAdditionalUploadWizardPage($this->file_ref);
                         if ($url) {
                             $redirects = $url;
                         }
@@ -931,5 +931,136 @@ class FileController extends AuthenticatedController
             }
         }
 
+    }
+
+    /**
+     * Action for creating a new folder.
+     */
+    public function new_folder_action($folder_id)
+    {
+
+        $parent_folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
+        URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
+        if (!$parent_folder || !$parent_folder->isWritable($GLOBALS['user']->id)|| !$parent_folder->isSubfolderAllowed($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
+        }
+
+        $this->parent_folder_id = $parent_folder->getId();
+
+        $folder_types = FileManager::getFolderTypes($parent_folder->range_type);
+
+        $this->current_folder_type = Request::get('folder_type', 'StandardFolder');
+        $this->name = Request::get('name');
+        $this->description = Request::get('description');
+        if (!is_subclass_of($this->current_folder_type, 'FolderType') || !class_exists($this->current_folder_type)) {
+            throw new InvalidArgumentException(_('Unbekannter Ordnertyp!'));
+        }
+
+        $new_folder = new $this->current_folder_type;
+        $this->folder_template = $new_folder->getEditTemplate();
+
+        $this->folder_types = [];
+
+        foreach($folder_types as $folder_type) {
+            $folder_type_instance = new $folder_type(new Folder());
+            $this->folder_types[] = [
+                'class' => $folder_type,
+                'name' => $folder_type::getTypeName(),
+                'icon' => $folder_type_instance->getIcon('clickable')
+            ];
+        }
+
+        if (Request::submitted('create')) {
+            CSRFProtection::verifyUnsafeRequest();
+            $ok = $new_folder->setDataFromEditTemplate(Request::getInstance());
+            if ($ok instanceof FolderType) {
+                $new_folder->user_id = User::findCurrent()->id;
+                if ($parent_folder->createSubfolder($new_folder)) {
+                    PageLayout::postSuccess(_('Der Ordner wurde angelegt.'));
+                    $this->response->add_header('X-Dialog-Close');
+                    $this->render_nothing();
+                    return;
+                }
+            } else {
+                PageLayout::postMessage($ok);
+            }
+        }
+    }
+
+
+    /**
+     * Action for editing an existing folder, referenced by its ID.
+     *
+     * @param string folder_id The ID of the folder that shall be edited.
+     */
+    public function edit_folder_action($folder_id)
+    {
+        //we need the folder-ID of the folder that is to be edited:
+        if(!$folder_id) {
+            $this->render_text(
+                MessageBox::error(_('Ordner-ID nicht gefunden!'))
+            );
+            return;
+        }
+
+        $this->folder = Folder::find($folder_id);
+        if(!$this->folder) {
+            $this->render_text(
+                MessageBox::error(_('Ordner nicht gefunden!'))
+            );
+            return;
+        }
+
+        $this->folder = $this->folder->getTypedFolder();
+        if(!$this->folder) {
+            $this->render_text(
+                MessageBox::error(_('Ordnertyp des Ordners konnte nicht ermittelt werden!'))
+            );
+            return;
+        }
+
+
+        $this->folder_id = $this->folder->getId();
+        $this->parent_folder_id = $this->folder->parent_id;
+
+        $current_user = User::findCurrent();
+
+        //permission check: is the current allowed to edit the folder?
+
+        if($this->folder->isWritable($current_user->id)) {
+
+            if(Request::get('form_sent')) {
+                //update edited fields
+                $this->name = Request::get('name');
+                $this->description = Request::get('description');
+
+                $result = FileManager::editFolder($this->folder, $current_user, $this->name, $this->description);
+
+                if($result instanceof FolderType) {
+                    $this->redirectToFolder($this->folder, MessageBox::success(_('Ordner wurde bearbeitet!')));
+                } else {
+                    $this->redirectToFolder($this->folder, MessageBox::error(_('Fehler beim Bearbeiten des Ordners!'), $result));
+                }
+                return;
+            } else {
+                //show current field values:
+
+                $this->name = $this->folder->name;
+                $this->description = $this->folder->description;
+            }
+        } else {
+            //current user isn't permitted to change this folder:
+            $error_message = MessageBox::error(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'));
+
+            $this->redirectToFolder($this->folder, $error_message);
+
+            return;
+        }
+
+        if(Request::isDialog()) {
+            $this->render_template('file/edit_folder.php');
+        } else {
+            $this->render_template('file/edit_folder.php', $GLOBALS['template_factory']->open('layouts/base'));
+        }
     }
 }
