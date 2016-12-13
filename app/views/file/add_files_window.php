@@ -45,3 +45,7 @@ if ($folder_id) {
         <input type="file" name="files[]" multiple onChange="STUDIP.Files.upload(this.files);">
     </form>
 </div>
+
+<div style="display: none;">
+    <?= _("Soll die hochgeladene ZIP-Datei entpackt werden?") ?>
+</div>

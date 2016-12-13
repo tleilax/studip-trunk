@@ -101,11 +101,18 @@ class FileController extends AuthenticatedController
                     );
                 }
                 if (Request::isAjax()) {
-                    $new_html = array();
                     $output = array(
                         "new_html" => array()
                     );
-                    if (in_array($folder->range_type, array("course", "institute"))) {
+                    if (count($storedFiles) === 1 && $storedFiles[0]['mime_type'] === "application/zip") {
+                        $ref_ids = array();
+                        foreach ($storedFiles as $file_ref) {
+                            $ref_ids[] = $file_ref->getId();
+                        }
+                        $output['redirect'] = URLHelper::getURL("dispatch.php/file/unzipquestion", array(
+                            'file_refs' => $ref_ids
+                        ));
+                    } elseif (in_array($folder->range_type, array("course", "institute"))) {
                         $ref_ids = array();
                         foreach ($storedFiles as $file_ref) {
                             $ref_ids[] = $file_ref->getId();
@@ -115,7 +122,7 @@ class FileController extends AuthenticatedController
                         ));
                     }
                     
-                    if($storedFiles) {
+                    if ($storedFiles) {
                         foreach ($storedFiles as $fileref) {
                             $this->file_ref = $fileref;
                             $this->current_folder = $folder;
@@ -129,6 +136,35 @@ class FileController extends AuthenticatedController
             }
         }
         $this->folder_id = $folder_id;
+    }
+
+    public function unzipquestion_action()
+    {
+        $this->file_refs = FileRef::findMany(Request::getArray("file_refs"));
+        $this->file_ref = $this->file_refs[0];
+        $this->current_folder = $this->file_ref->folder->getTypedFolder();
+        if (Request::isPost()) {
+            if (Request::submitted("unzip")) {
+                //unzip!
+                $ref_ids = array();
+            } else {
+                $ref_ids = array($this->file_ref->getId());
+            }
+            if (in_array($this->current_folder->range_type, array("course", "institute"))) {
+
+                header("Location: ". URLHelper::getURL("dispatch.php/file/edit_license", array(
+                    'file_refs' => $ref_ids
+                )));
+                $this->render_nothing();
+            } else {
+                $payload = array(
+                    'html' => $this->render_template_as_string("files/_fileref_tr")
+                );
+                $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
+                $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
+                $this->render_nothing();
+            }
+        }
     }
 
 
