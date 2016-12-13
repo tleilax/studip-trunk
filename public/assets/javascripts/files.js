@@ -245,15 +245,17 @@ jQuery(function () {
 
     // workaround to wait for tables.js to be executed first
     jQuery(function () {
-    	$('table.documents').data('tablesorter').widgets = ['filter'];
-    	$('table.documents').data('tablesorter').widgetOptions = {
-    	    filter_columnFilters: false,
-    	    filter_saveFilters : true,
-    	    filter_reset: '.reset',
-    	    filter_ignoreCase  : true,
-    	    filter_startsWith  : false
-    	  };
-    	$('table.documents.flat').trigger('applyWidgets');
-    	$.tablesorter.filter.bindSearch( $('table.documents'), $('.tablesorterfilter') );
+        if (jQuery('table.documents').length > 0) {
+            jQuery('table.documents').data('tablesorter').widgets = ['filter'];
+            jQuery('table.documents').data('tablesorter').widgetOptions = {
+                filter_columnFilters: false,
+                filter_saveFilters: true,
+                filter_reset: '.reset',
+                filter_ignoreCase: true,
+                filter_startsWith: false
+            };
+            jQuery('table.documents.flat').trigger('applyWidgets');
+            jQuery.tablesorter.filter.bindSearch(jQuery('table.documents'), jQuery('.tablesorterfilter'));
+        }
     });
 });
