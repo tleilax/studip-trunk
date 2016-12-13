@@ -227,7 +227,6 @@ class StandardFolder implements FolderType
             $newfile->id = $newfile->getNewId();
             $newfile->connectWithDataFile($file['tmp_path']);
             $file_ref_data['description'] = $file['description'];
-            $file_ref_data['license'] = $file['license'];
             $file_ref_data['content_terms_of_use_id'] = $file['content_terms_of_use_id'];
         } else {
             $newfile = $file;

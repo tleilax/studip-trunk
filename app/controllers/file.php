@@ -146,12 +146,22 @@ class FileController extends AuthenticatedController
         if (Request::isPost()) {
             if (Request::submitted("unzip")) {
                 //unzip!
-                $ref_ids = array();
+                $tmp_folder = $GLOBALS['TMP_PATH']."/".md5(uniqid());
+                mkdir($tmp_folder);
+                extract_zip($this->file_ref->file->getPath(), $tmp_folder);
+                var_dump($this->current_folder);
+                $ref_ids = $this->recursivleyReferenceFiles(
+                    $tmp_folder,
+                    $this->current_folder,
+                    $this->current_folder->isSubfolderAllowed($GLOBALS['user']->id)
+                );
+                $ref_ids = array_map(function ($fileref) { return $fileref->getId(); }, $ref_ids);
+                rmdirr($tmp_folder);
+                $this->file_ref->delete();
             } else {
                 $ref_ids = array($this->file_ref->getId());
             }
             if (in_array($this->current_folder->range_type, array("course", "institute"))) {
-
                 header("Location: ". URLHelper::getURL("dispatch.php/file/edit_license", array(
                     'file_refs' => $ref_ids
                 )));
@@ -165,6 +175,42 @@ class FileController extends AuthenticatedController
                 $this->render_nothing();
             }
         }
+    }
+
+    private function recursivleyReferenceFiles($folder_path, $foldertype, $createfolder = true)
+    {
+        $filerefs = array();
+        foreach (scandir($folder_path) as $file) {
+            if ($file !== "." && $file !== "..") {
+                if (is_dir($folder_path . "/" . $file)) {
+                    //create folder
+                    if ($createfolder) {
+                        $subfolder = $foldertype->createSubfolder(array(
+                            'name' => $file,
+                            'folder_type' => "StandardFolder",
+                            'user_id' => $GLOBALS['user']->id
+                        ));
+                    } else {
+                        $subfolder = $foldertype;
+                    }
+                    $reflist = $this->recursivleyReferenceFiles(
+                        $folder_path . "/" . $file,
+                        $subfolder,
+                        $createfolder
+                    );
+                    $filerefs = array_merge($filerefs, $reflist);
+                } else {
+                    $fileref = $foldertype->createFile(array(
+                        'name' => $file,
+                        'type' => get_mime_type($file),
+                        'size' => filesize($folder_path . "/" . $file),
+                        'tmp_path' => $folder_path . "/" . $file
+                    ));
+                    $filerefs[] = $fileref;
+                }
+            }
+        }
+        return $filerefs;
     }
 
 
@@ -213,26 +259,6 @@ class FileController extends AuthenticatedController
             //load default data:
             $this->name = $file_ref->name;
             $this->description = $file_ref->description;
-        }
-    }
-
-
-    public function link_action($fileId)
-    {
-        $targetFolderId = Request::get('folderId');
-        $description = Request::get('description', '');
-
-        if($fileId && $targetFolderId) {
-            $folder = Folder::find($folderId);
-            if($folder) {
-                $folder->linkFile($fileId, $description);
-                //maybe it is useful to redirect to the folder from here...
-            } else {
-                //file or folder not found: can't link non-existing files
-                //or link existing files to non-existing folders!
-            }
-        } else {
-            //file-ID and folder-ID not given: can't build link
         }
     }
 
@@ -725,8 +751,8 @@ class FileController extends AuthenticatedController
                 }
                 if (in_array($this->to_folder_type->range_type, array("course", "institute"))) {
                     header("Location: ". URLHelper::getURL("dispatch.php/file/edit_license", array(
-                            'file_refs' => array($file_ref->getId())
-                        )));
+                        'file_refs' => array($file_ref->getId())
+                    )));
                     $this->render_nothing();
                 } else {
                     if (Request::isAjax()) {
