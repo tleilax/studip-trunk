@@ -209,7 +209,12 @@ class FileRef extends SimpleORMap
     public function incrementDownloadCounter()
     {
         $this->downloads++;
-        return $this->store();
+        if (!$this->isNew()) {
+            $where_query = $this->getWhereQuery();
+            $query = "UPDATE `{$this->db_table}` SET downloads=downloads+1";
+            $query .= " WHERE " . join(" AND ", $where_query);
+            return DBManager::get()->exec($query);
+        }
     }
 
     /**
