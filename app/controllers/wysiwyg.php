@@ -88,9 +88,9 @@ class WysiwygController extends \AuthenticatedController
     {
         try {
             WysiwygRequest::verifyWritePermission(self::UPLOAD_PERMISSION);
-            $folder_id = WysiwygDocument::createFolder(
+            $foldertype = WysiwygDocument::createFolder(
                 self::FOLDER_NAME, self::FOLDER_DESCRIPTION);
-            $response = WysiwygDocument::storeUploadedFilesIn($folder_id);
+            $response = WysiwygDocument::storeUploadedFilesIn($foldertype);
         } catch (AccessDeniedException $e) {
             $response = $e->getMessage();
         }
