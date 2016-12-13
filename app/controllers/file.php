@@ -474,6 +474,12 @@ class FileController extends AuthenticatedController
         $first_ref = FileRef::find($refs[0]);
         if ($first_ref) {
             $this->parent_folder = $first_ref->folder_id;
+        } else {
+            $folder = Folder::find($refs[0]);
+            if ($folder) {
+                $this->parent_folder = $folder->parent_id;
+            }
+        
         }
         
         $this->plugin = Request::get("to_plugin");

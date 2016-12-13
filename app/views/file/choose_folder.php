@@ -60,7 +60,7 @@ if (Request::get("copymode")) {
 <table class="default">
     <thead>
         <tr>
-            <th width="20px"><?= _("Typ") ?></th>
+            <th width="25px"><?= _("Typ") ?></th>
             <th><?= _("Name") ?></th>
         </tr>
     </thead>
