@@ -17,6 +17,14 @@ if (Request::get("copymode")) {
 }
 ?>
 
+<script type="text/javascript">
+jQuery(function () {
+    jQuery("#folderchooser_institute_search select option").on("click", function (event) {
+    	jQuery('#folderchooser_institute_search').submit();
+    });
+});
+</script>
+
 <? if ($GLOBALS['perm']->have_perm("admin")) : ?>
     <form id="folderchooser_institute_search"
           action="<?= $controller->link_for("/choose_folder_from_institute/", $options) ?>"
