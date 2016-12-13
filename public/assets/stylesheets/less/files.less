@@ -109,15 +109,16 @@ input.document-checkbox[type="checkbox"] {
 }
 input.document-checkbox[type="checkbox"] + label span {
     display:inline-block;
-    width:16px;
-    height:16px;
+    width:30px;
+    height:20px;
     margin:0px 0px 0 0;
-    vertical-align:middle;
-    .background-icon("checkbox-unchecked", 'clickable');
+    vertical-align:bottom;
+    text-align: center;
+    .icon('after', "checkbox-unchecked", 'clickable', 16, 4);
     cursor:pointer;
 }
 input.document-checkbox[type="checkbox"]:checked + label span {
-    .background-icon("checkbox-checked", 'clickable');
+    .icon('after', "checkbox-checked", 'clickable', 16, 4);
 }
 
 /* for file/edit and folder/edit only: */
