@@ -31,12 +31,14 @@ if ($folder_id) {
             <?= _("Meine Veranstaltungen") ?>
         </a>
         <? foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) : ?>
-            <? $nav = $plugin->getFileSelectNavigation() ?>
-            <? if ($nav) : ?>
-                <a href="<?= $controller->link_for("file/choose_file/", array_merge($options, array('plugin' => get_class($plugin)))) ?>" data-dialog>
-                    <?= $nav->getImage()->asImg(50) ?>
-                    <?= htmlReady($nav->getTitle()) ?>
-                </a>
+            <? if ($plugin->isSource()) : ?>
+                <? $nav = $plugin->getFileSelectNavigation() ?>
+                <? if ($nav) : ?>
+                    <a href="<?= $controller->link_for("file/choose_file/", array_merge($options, array('plugin' => get_class($plugin)))) ?>" data-dialog>
+                        <?= $nav->getImage()->asImg(50) ?>
+                        <?= htmlReady($nav->getTitle()) ?>
+                    </a>
+                <? endif ?>
             <? endif ?>
         <? endforeach ?>
     </div>

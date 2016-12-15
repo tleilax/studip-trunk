@@ -150,7 +150,14 @@ class ProfileNavigation extends Navigation
             
             $filesSubNav = new Navigation(_('Flache Ansicht'), 'dispatch.php/files/flat');
             $navigation->addSubNavigation('flat', $filesSubNav);
-            
+
+            foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) {
+                if ($plugin->isPersonalFileArea()) {
+                    $subnav = $plugin->getFileSelectNavigation();
+                    $subnav->setURL(URLHelper::getURL("dispatch.php/files/system/".$plugin->getPluginId()));
+                    $navigation->addSubNavigation(get_class($plugin), $subnav);
+                }
+            }
         }
     }
 }

@@ -43,19 +43,42 @@ class FilesController extends AuthenticatedController
 
         $actions = new ActionsWidget();
 
+        $config_urls = array();
+        foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) {
+            $url = $plugin->filesystemConfigurationURL();
+            $navigation = $plugin->getFileSelectNavigation();
+            if ($url) {
+                $config_urls[] = array(
+                    'name' => $navigation->getTitle(),
+                    'icon' => $navigation->getImage(),
+                    'url' => $url
+                );
+            }
+        }
+        if (count($config_urls)) {
+            if (count($config_urls) > 1) {
+                $actions->addLink(
+                    _("Dateibereiche konfigurieren"),
+                    URLHelper::getUrl('dispatch.php/files/configure'),
+                    Icon::create("admin", "clickable"),
+                    array('data-dialog' => 1)
+                );
+            } else {
+                $actions->addLink(
+                    sprintf(_("%s konfigurieren"), $config_urls[0]['name']),
+                    $config_urls[0]['url'],
+                    $config_urls[0]['icon'],
+                    array('data-dialog' => 1)
+                );
+            }
+        }
+
         if ($folder->isSubfolderAllowed($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Neuer Ordner'),
-                URLHelper::getUrl(
-                    'dispatch.php/file/new_folder/' . $folder->getId()
-                ),
-                Icon::create('folder-empty+add', 'clickable'),
-                [
-                    'data-dialog' => 1
-                ]
+                URLHelper::getUrl('dispatch.php/file/new_folder/' . $folder->getId()),
+                Icon::create('folder-empty+add', 'clickable'), ['data-dialog' => 1]
             );
-
-
         }
 
         $actions->addLink(
@@ -330,6 +353,37 @@ class FilesController extends AuthenticatedController
             }
 
         }
+    }
+
+    /**
+     * Action to configure the different FileSystem-plugins
+     */
+    public function configure_action()
+    {
+        $this->configure_urls = array();
+        PageLayout::setTitle(_("Dateibereich zur Konfiguration auswählen"));
+        foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) {
+            $url = $plugin->filesystemConfigurationURL();
+            $navigation = $plugin->getFileSelectNavigation();
+            if ($url) {
+                $this->configure_urls[] = array(
+                    'name' => $navigation->getTitle(),
+                    'icon' => $navigation->getImage(),
+                    'url' => $url
+                );
+            }
+        }
+    }
+
+    public function system_action($plugin_id)
+    {
+        $this->plugin = PluginManager::getInstance()->getPluginById($plugin_id);
+        if (!$this->plugin->isPersonalFileArea()) {
+            throw new Exception("Dieser Bereich ist nicht verfügbar.");
+        }
+        Navigation::activateItem('/profile/files/'.get_class($this->plugin));
+        $this->topFolder = $this->plugin->getFolder();
+        $this->buildSidebar($this->topFolder);
     }
 
     public function copyhandler_action($destination_id)

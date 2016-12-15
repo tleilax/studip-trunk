@@ -16,6 +16,21 @@ interface FilesystemPlugin
     public function filesystemConfigurationURL();
 
     /**
+     * Determines if this filesystem plugin should be a source for copying or a search.
+     * This may be dependend on the current user and his/her configurations.
+     * @return boolean
+     */
+    public function isSource();
+
+    /**
+     * Determines if this filesystem-plugin should show up as a personal file-area and be a destination
+     * for copied files.
+     * This may be dependend on the current user and his/her configurations.
+     * @return boolean
+     */
+    public function isPersonalFileArea();
+
+    /**
      * This method is used to get a folder-object for this plugin.
      * Not recommended but still possible is to return a Flexi_Template for the folder, if you want to
      * take care of the frontend of displaying the folder as well.

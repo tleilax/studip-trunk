@@ -35,17 +35,15 @@ if ($fileref_id) {
             <?= Icon::create("institute", "clickable")->asImg(50) ?>
             <?= _("Meine Einrichtungen") ?>
         </a>
-  <!--  <a href="">
-            <?= Icon::create("cloud", "clickable")->asImg(50) ?>
-            <?= _("OwnCloud") ?>
-        </a>  -->
         <? foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) : ?>
-            <? $nav = $plugin->getFileSelectNavigation() ?>
-            <? if ($nav) : ?>
-                <a href="<?= $controller->link_for("/choose_folder/", array_merge($options, array('plugin' => get_class($plugin)))) ?>" data-dialog>
-                    <?= $nav->getImage()->asImg(50) ?>
-                    <?= htmlReady($nav->getTitle()) ?>
-                </a>
+            <? if ($plugin->isPersonalFileArea()) : ?>
+                <? $nav = $plugin->getFileSelectNavigation() ?>
+                <? if ($nav) : ?>
+                    <a href="<?= $controller->link_for("/choose_folder/", array_merge($options, array('plugin' => get_class($plugin)))) ?>" data-dialog>
+                        <?= $nav->getImage()->asImg(50) ?>
+                        <?= htmlReady($nav->getTitle()) ?>
+                    </a>
+                <? endif ?>
             <? endif ?>
         <? endforeach ?>
     </div>
