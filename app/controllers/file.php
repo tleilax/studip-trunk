@@ -40,6 +40,7 @@ class FileController extends AuthenticatedController
             }
         }
 
+        if(!Request::isDialog()) {
             //we only need to redirect when we're not in a dialog!
 
             $dest_range = $folder->range_id;
@@ -47,9 +48,13 @@ class FileController extends AuthenticatedController
             switch ($folder->range_type) {
                 case 'course':
                 case 'institute':
+                    echo "t1";
                     return $this->redirect(URLHelper::getUrl('dispatch.php/' . $folder->range_type . '/files/index/' . $folder->id . '?cid=' . $dest_range));
                 case 'user':
+                    echo "t2";
                     return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $folder->id));
+                    die();
+            }
         }
     }
 
@@ -1029,7 +1034,7 @@ class FileController extends AuthenticatedController
 
         if($this->folder->isWritable($current_user->id)) {
 
-            if(Request::get('form_sent')) {
+            if(Request::submitted('edit')) {
                 //update edited fields
                 $this->name = Request::get('name');
                 $this->description = Request::get('description');
@@ -1037,11 +1042,10 @@ class FileController extends AuthenticatedController
                 $result = FileManager::editFolder($this->folder, $current_user, $this->name, $this->description);
 
                 if($result instanceof FolderType) {
-                    $this->redirectToFolder($this->folder, MessageBox::success(_('Ordner wurde bearbeitet!')));
+                    return $this->redirectToFolder($this->folder, MessageBox::success(_('Ordner wurde bearbeitet!')));
                 } else {
-                    $this->redirectToFolder($this->folder, MessageBox::error(_('Fehler beim Bearbeiten des Ordners!'), $result));
+                    return $this->redirectToFolder($this->folder, MessageBox::error(_('Fehler beim Bearbeiten des Ordners!'), $result));
                 }
-                return;
             } else {
                 //show current field values:
 
@@ -1052,9 +1056,7 @@ class FileController extends AuthenticatedController
             //current user isn't permitted to change this folder:
             $error_message = MessageBox::error(_('Sie sind nicht dazu berechtigt, diesen Ordner zu bearbeiten!'));
 
-            $this->redirectToFolder($this->folder, $error_message);
-
-            return;
+            return $this->redirectToFolder($this->folder, $error_message);
         }
 
         if(Request::isDialog()) {

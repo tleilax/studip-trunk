@@ -25,6 +25,6 @@
                 <?= htmlReady($folder_type['name']) ?>
             </label>
         <? endforeach ?>
+        </div>
     <? endif ?>
-    </div>
 </fieldset>

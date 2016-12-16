@@ -21,6 +21,7 @@ STUDIP.Folders = {
         var parent_folder_id = jQuery(new_folder_form).find('input[name="parent_folder_id"]').val();
         
         if(folder_name && folder_type && parent_folder_id) {
+            console.log('data present!');
             jQuery.ajax({
                 method: 'POST',
                 url: STUDIP.ABSOLUTE_URI_STUDIP + 'dispatch.php/folder/new',
@@ -32,6 +33,8 @@ STUDIP.Folders = {
                 }
             });
             
+        } else {
+            console.log('data missing!');
         }
     },
     

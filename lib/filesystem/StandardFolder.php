@@ -154,7 +154,10 @@ class StandardFolder implements FolderType
             return MessageBox::error(_("Die Bezeichnung des Ordners fehlt."));
         }
         $this->folderdata['name'] = $request['name'];
-        $this->folderdata['description'] = $request['description'];
+        if($request['description'] !== null) {
+            //A database error occurs when description is null!
+            $this->folderdata['description'] = $request['description'];
+        }
         return $this;
     }
 

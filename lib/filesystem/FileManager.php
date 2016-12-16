@@ -593,7 +593,8 @@ class FileManager
                 $data['description'] = $description;
             }
 
-            if($folder->setDataFromEditTemplate($data)) {
+            $folder->setDataFromEditTemplate($data);
+            if($folder->store()) {
                 //folder successfully edited
                 return $folder;
             } else {
