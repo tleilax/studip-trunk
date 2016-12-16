@@ -668,45 +668,54 @@ function in_archiv ($sem_id)
         }
     }
 
+    
     $Modules = new Modules;
     $Modules = $Modules->getLocalModules($sem_id);
+    //get top folder
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $sem_id,'entity_type' => 'sem'));
 
+    //get all folders which are invisible for author users:
     if ($Modules['documents_folder_permissions'] || StudipDocumentTree::ExistsGroupFolders($sem_id)) {
         $unreadable_folders = $folder_tree->getUnReadableFolders('nobody');
     }
-
+    
+    //get list of documents
     $query = "SELECT COUNT(dokument_id) FROM dokumente WHERE seminar_id = ? AND url = ''";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($seminar_id));
     $count = $statement->fetchColumn();
     if ($count) {
+        //list of documents is not empty
         $hash_secret = "frauen";
         $archiv_file_id = md5(uniqid($hash_secret,1));
 
-        //temporaeres Verzeichnis anlegen
+        //create temporary directory
         $tmp_full_path = "$TMP_PATH/$archiv_file_id";
         mkdir($tmp_full_path, 0700);
 
+        //get list of files and subfolders
         if($folder_tree->getNumKids('root')) {
             $list = $folder_tree->getKids('root');
         }
         if (is_array($list) && count($list) > 0) {
+            //files or subfolders exist
             $query = "SELECT folder_id, name
                       FROM folder WHERE range_id IN (?)
                       ORDER BY name";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($list));
 
+            //foreach subfolder:
             $folder = 0;
             while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+                //create subfolder in the temporary folder:
                 $folder += 1;
                 $temp_folder = $tmp_full_path . "/[$folder]_" . prepareFilename($row['name'], FALSE);
                 mkdir($temp_folder, 0700);
                 createTempFolder($row['folder_id'], $temp_folder, $seminar_id, 'nobody');
             }
 
-            //zip all the stuff
+            //zip all files
             $archiv_full_path = "$ARCHIV_PATH/$archiv_file_id";
             create_zip_from_directory($tmp_full_path, $tmp_full_path);
             @rename($tmp_full_path . '.zip', $archiv_full_path);
@@ -721,6 +730,7 @@ function in_archiv ($sem_id)
             @rename("$TMP_PATH/$archiv_protected_file_id", "$ARCHIV_PATH/$archiv_protected_file_id");
         }
     } else {
+        //a course without files: no zip file
         $archiv_file_id = '';
     }
 
