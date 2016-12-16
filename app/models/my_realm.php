@@ -41,7 +41,7 @@ class MyRealmModel
             
             $db = DBManager::get();
             $result = $db->query(
-                "SELECT last_visitdate FROM object_user_visits
+                "SELECT visitdate FROM object_user_visits
                 WHERE user_id = " . $db->quote($user_id) . "
                 AND object_id = " . $db->quote($object_id) . "
                 AND type = 'sem'
