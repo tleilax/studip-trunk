@@ -215,16 +215,16 @@ STUDIP.Files = {
                 jQuery('table.documents thead th input[data-proxyfor]').prop('indeterminate', true);
             } else {
                 //all elements checked
-                jQuery('table.documents thead th input[data-proxyfor]').prop('indeterminate', false);
-                jQuery('table.documents thead th input[data-proxyfor]').attr('checked', 'checked');
+                jQuery('table.documents thead th input[data-proxyfor]').prop('indeterminate', null);
+                jQuery('table.documents thead th input[data-proxyfor]').prop('checked', true);
             }
             
         } else {
             //no element is checked: deactivate buttons
             jQuery(buttons).attr('disabled', 'disabled');
             //... and uncheck "select-all-checkbox"
-            jQuery('table.documents thead th input[data-proxyfor]').prop('indeterminate', false);
-            jQuery('table.documents thead th input[data-proxyfor]').removeAttr('checked');
+            jQuery('table.documents thead th input[data-proxyfor]').prop('indeterminate', null);
+            jQuery('table.documents thead th input[data-proxyfor]').prop('checked', false);
         }
     }
 };
