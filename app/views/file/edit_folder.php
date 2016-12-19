@@ -1,24 +1,13 @@
 <div id="file_edit_window">
-    <?= $this->render_partial('file/_folder_aside.php',
-        [
-            'folder' => $folder
-        ])  ?>
+    <?= $this->render_partial('file/_folder_aside.php') ?>
     <div id="file_management_forms">
         <form method="post" class="default"
-            action="<?= $controller->url_for('/edit_folder/' . $folder_id) ?>"
-            <? if(Request::isDialog()): ?>
-            data-dialog="reload-on-close"
-            <? endif ?>
-            >
+            action="<?= $controller->url_for('/edit_folder/' . $folder->id) ?>"
+            data-dialog="reload-on-close">
             <?= CSRFProtection::tokenTag() ?>
-            <?= $this->render_partial('file/new_edit_folder_form.php',
-                [
-                    'name' => $name,
-                    'description' => $description
-                ]) ?>
+            <?= $this->render_partial('file/new_edit_folder_form.php') ?>
             <div data-dialog-button>
                 <?= Studip\Button::createAccept(_('Speichern'), 'edit') ?>
-                <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->url_for('/goto/' . $parent_folder_id)) ?>
             </div>
         </form>
     </div>

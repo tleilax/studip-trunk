@@ -21,11 +21,13 @@ class StandardFolder implements FolderType
 
     /**
      * StandardFolder constructor.
-     * @param Folder|null $folderdata
+     * @param Folder|StandardFolder|null $folderdata
      */
     public function __construct($folderdata = null)
     {
-        if ($folderdata instanceof Folder) {
+        if ($folderdata instanceof StandardFolder) {
+            $this->folderdata = $folderdata->folderdata;
+        } elseif ($folderdata instanceof Folder) {
             $this->folderdata = $folderdata;
         } else {
             $this->folderdata = Folder::build($folderdata);
@@ -154,10 +156,7 @@ class StandardFolder implements FolderType
             return MessageBox::error(_("Die Bezeichnung des Ordners fehlt."));
         }
         $this->folderdata['name'] = $request['name'];
-        if($request['description'] !== null) {
-            //A database error occurs when description is null!
-            $this->folderdata['description'] = $request['description'];
-        }
+        $this->folderdata['description'] = $request['description'] ?: '';
         return $this;
     }
 

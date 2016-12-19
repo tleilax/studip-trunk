@@ -11,7 +11,7 @@
         <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($description); ?></textarea>
     </label>
     <?=$folder_template instanceof Flexi_Template ? $folder_template->render() : $folder_template ?>
-    <? if($new_folder_form && $folder_types): ?>
+    <? if($folder_types): ?>
         <?= _('Ordnertyp') ?>
         <div class="folder_type_select_possibilities">
         <? foreach ($folder_types as $folder_type) : ?>
