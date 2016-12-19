@@ -736,7 +736,7 @@ function in_archiv ($sem_id)
         //move archive zip to archive path:
         @rename($archive_tmp_dir_path . '.zip', $archive_path);
         //delete temporary folder (and by that: all subfolders in it)
-        rmdir($archive_tmp_dir_path);
+        rmdirr($archive_tmp_dir_path);
 
         
         if (!empty($unreadable_folders)) {
@@ -780,7 +780,7 @@ function in_archiv ($sem_id)
             );
             
             //delete temporary folder (and all of its content):
-            rmdir($archive_protected_files_zip_path);
+            rmdirr($archive_protected_files_zip_path);
         }
     }
     

@@ -982,7 +982,7 @@ class FileController extends AuthenticatedController
                 $new_folder->user_id = User::findCurrent()->id;
                 if ($parent_folder->createSubfolder($new_folder)) {
                     PageLayout::postSuccess(_('Der Ordner wurde angelegt.'));
-                    $this->response->add_header('X-Dialog-Close');
+                    $this->response->add_header('X-Dialog-Close', '1');
                     $this->render_nothing();
                     return;
                 }
