@@ -652,7 +652,7 @@ function in_archiv ($sem_id)
     restoreLanguage();
 
     //OK, naechster Schritt: Kopieren der Personendaten aus seminar_user in archiv_user
-    $query = "INSERT INTO archiv_user (seminar_id, user_id, status)
+    $query = "INSERT IGNORE INTO archiv_user (seminar_id, user_id, status)
               SELECT Seminar_id, user_id, status FROM seminar_user WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($seminar_id));
@@ -669,72 +669,123 @@ function in_archiv ($sem_id)
     }
 
     
-    $Modules = new Modules;
-    $Modules = $Modules->getLocalModules($sem_id);
-    //get top folder
-    $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $sem_id,'entity_type' => 'sem'));
-
-    //get all folders which are invisible for author users:
-    if ($Modules['documents_folder_permissions'] || StudipDocumentTree::ExistsGroupFolders($sem_id)) {
-        $unreadable_folders = $folder_tree->getUnReadableFolders('nobody');
+    //Archive files:
+    
+    
+    //Get the top folder of the course:
+    $top_folder = Folder::findTopFolder($sem_id);
+    if($top_folder) {
+        $top_folder = $top_folder->getTypedFolder();
     }
     
-    //get list of documents
-    $query = "SELECT COUNT(dokument_id) FROM dokumente WHERE seminar_id = ? AND url = ''";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($seminar_id));
-    $count = $statement->fetchColumn();
-    if ($count) {
-        //list of documents is not empty
-        $hash_secret = "frauen";
-        $archiv_file_id = md5(uniqid($hash_secret,1));
+    //Collect all folders which are not public folders:
+    $unreadable_folders = [];
+    foreach($top_folder->getSubfolders() as $subfolder) {
+        if(!$subfolder->isReadable('nobody')) {
+            $unreadable_folders[] = $subfolder;
+        }
+    }
+    
+    
+    
+    //Count files in course: If at least one file or one subfolder
+    //is inside the top folder we must create a zip archive for the course.
+    $files_count = FileRef::countBySql(
+        'folder_id = :folder_id',
+        [
+            'folder_id' => $top_folder->getId()
+        ]
+    );
+    
+    $folders_count = Folder::countBySql(
+        'parent_id = :folder_id',
+        [
+            'folder_id' => $top_folder->getId()
+        ]
+    );
+    
+    
+    $archive_file_id = '';
+    $archive_protected_files_zip_id = '';
+    
+    
+    if ($files_count || $folders_count) {
+        //list of files or folders is not empty
+        
+        //create name for the archive ZIP file:
+        $archive_file_id = md5('archive_' . $sem_id);
 
         //create temporary directory
-        $tmp_full_path = "$TMP_PATH/$archiv_file_id";
-        mkdir($tmp_full_path, 0700);
+        $archive_tmp_dir_path = "$TMP_PATH/$archive_file_id";
+        mkdir($archive_tmp_dir_path, 0700);
+        
+        echo 'PUB ';
+        
+        //copy files and subfolders into the temporary path:
+        FileManager::copyFolderContentIntoPath(
+            $top_folder,
+            $archive_tmp_dir_path,
+            User::findCurrent()->id,
+            'autor'
+        );
+        
+        //We zip all the files we could copy with FileManager::copyFolderContentIntoPath.
+        
+        $archive_path = $ARCHIV_PATH . '/' . $archive_file_id;
+        create_zip_from_directory($archive_tmp_dir_path, $archive_tmp_dir_path);
+        //move archive zip to archive path:
+        @rename($archive_tmp_dir_path . '.zip', $archive_path);
+        //delete temporary folder (and by that: all subfolders in it)
+        rmdir($archive_tmp_dir_path);
 
-        //get list of files and subfolders
-        if($folder_tree->getNumKids('root')) {
-            $list = $folder_tree->getKids('root');
-        }
-        if (is_array($list) && count($list) > 0) {
-            //files or subfolders exist
-            $query = "SELECT folder_id, name
-                      FROM folder WHERE range_id IN (?)
-                      ORDER BY name";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($list));
-
-            //foreach subfolder:
-            $folder = 0;
-            while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-                //create subfolder in the temporary folder:
-                $folder += 1;
-                $temp_folder = $tmp_full_path . "/[$folder]_" . prepareFilename($row['name'], FALSE);
-                mkdir($temp_folder, 0700);
-                createTempFolder($row['folder_id'], $temp_folder, $seminar_id, 'nobody');
+        
+        if (!empty($unreadable_folders)) {
+            //We must store the files in unreadable folders differently:
+            //Such files are stored without the folder hierarchy in one
+            //ZIP file.
+            
+            echo 'PRIV ';
+            
+            $archive_protected_files_zip_id = md5('protected_archive_'.$sem_id);
+            $archive_protected_files_zip_path = $TMP_PATH . '/' . $archive_protected_files_zip_id;
+            
+            //create temporary folder:
+            mkdir($archive_protected_files_zip_path);
+            
+            foreach($unreadable_folders as $unreadable_folder) {
+                $unreadable_folder_path = $archive_protected_files_zip_path . '/' . $unreadable_folder->name;
+                
+                mkdir($unreadable_folder_path);
+                
+                FileManager::copyFolderContentIntoPath(
+                    $unreadable_folder,
+                    $unreadable_folder_path,
+                    '',
+                    '',
+                    true //ignore permission checks
+                );
             }
-
-            //zip all files
-            $archiv_full_path = "$ARCHIV_PATH/$archiv_file_id";
-            create_zip_from_directory($tmp_full_path, $tmp_full_path);
-            @rename($tmp_full_path . '.zip', $archiv_full_path);
+            
+            //Ok, the content of unreadable folders is copied.
+            //We can create a ZIP file from it:
+            create_zip_from_directory(
+                $archive_protected_files_zip_path,
+                $archive_protected_files_zip_path
+            );
+            
+            //move archive zip with unreadable folders to archive path:
+            @rename(
+                $archive_protected_files_zip_path . '.zip',
+                $ARCHIV_PATH . '/' . $archive_protected_files_zip_id
+            );
+            
+            //delete temporary folder (and all of its content):
+            rmdir($archive_protected_files_zip_path);
         }
-        rmdirr($tmp_full_path);
-
-        if (is_array($unreadable_folders)) {
-            $query = "SELECT dokument_id FROM dokumente WHERE seminar_id = ? AND url = '' AND range_id IN (?)";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($seminar_id, $unreadable_folders));
-            $archiv_protected_file_id = createSelectedZip($statement->fetchAll(PDO::FETCH_COLUMN), false, false);
-            @rename("$TMP_PATH/$archiv_protected_file_id", "$ARCHIV_PATH/$archiv_protected_file_id");
-        }
-    } else {
-        //a course without files: no zip file
-        $archiv_file_id = '';
     }
+    
 
-    //Reinschreiben von diversem Klumpatsch in die Datenbank
+    //We're done with archiving: Store a new archived course in the database.
     $query = "INSERT INTO archiv
                 (seminar_id, name, untertitel, beschreibung, start_time,
                  semester, heimat_inst_id, institute, dozenten, fakultaet,
@@ -755,8 +806,8 @@ function in_archiv ($sem_id)
         $dozenten ?: '',
         $fakultaet ?: '',
         $dump ?: '',
-        $archiv_file_id ?: '',
-        $archiv_protected_file_id ?: '',
+        $archive_file_id ?: '',
+        $archive_protected_files_zip_id ?: '',
         $forumdump ?: '',
         $wikidump ?: '',
         $studienbereiche ?: '',

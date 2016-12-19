@@ -817,6 +817,78 @@ class FileManager
 
 
     /**
+     * Copies the content of a folder (files and subfolders) into a given
+     * path in the operating system's file system.
+     * 
+     * @param FolderType folder The folder whose content shall be copied.
+     * @param string path The path in the operating system's file system where the content shall be copied into.
+     * @param string user_id The user who wishes to copy the content.
+     * @param string min_perms If set, the selection of subfolders and files is limited to those
+     *     which are visible for users having the minimum permissions.
+     * @param bool ignore_perms If set to true, files are copied without checking
+     *     the minimum permissions or the permissions of the user given by user_id.
+     * @return bool True on success, false on error.
+     */
+    public static function copyFolderContentIntoPath(
+        FolderType $folder,
+        $path = null,
+        $user_id = 'nobody',
+        $min_perms = 'nobody',
+        $ignore_perms = false
+    ) {
+        if(!$path) {
+            return false;
+        }
+        
+        global $perm;
+        
+        //loop through all subfolders, create a directory for each subfolder
+        //and call this method recursively:
+        foreach($folder->getSubfolders() as $subfolder) {
+            //TODO: finalise permission check:
+            if($subfolder->isReadable($user_id) /*and
+                $perm->have_studip_perm($user_id, $folder->range_id)
+                and $perm->have_perm($min_perms)*/
+                or $ignore_perms) {
+                //User has permissions to read the folder or permission checks
+                //are ignored.
+                
+                $subfolder_path = $path . '/' . $subfolder->name;
+                mkdir($subfolder_path, 0700);
+                $success = self::copyFolderContentIntoPath(
+                    $subfolder,
+                    $subfolder_path,
+                    $user_id,
+                    $min_perms
+                );
+                if(!$success) {
+                    return false;
+                }
+            }
+        }
+        
+        //loop through all files and copy them to the folder path:
+        foreach($folder->getFiles() as $file_ref) {
+            if($folder->isFileDownloadable($file_ref, $user_id)
+                or $ignore_perms) {
+                //The user (given by user_id) has the required permissions
+                //to download the file or the permission checks are
+                //ignored.
+                
+                $file_path = $path . '/' . $file_ref->name;
+                $success = copy($file_ref->file->getPath(), $file_path);
+                if(!$success) {
+                    return false;
+                }
+            }
+        }
+        
+        //Everything went fine.
+        return true;
+    }
+    
+    
+    /**
      * Returns a FolderType object for the public folder of the given user.
      *
      * @param User user The user whose public folder is requested.
