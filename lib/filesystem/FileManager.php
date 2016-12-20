@@ -419,35 +419,96 @@ class FileManager
 
 
     /**
-     * Packs a list of files into one file archive.
+     * Puts files (identified by their file refs) into one file archive.
      * 
      * @param Array $file_ref_ids List of FileRef object IDs.
      * @param User $user The user who wishes to pack files.
+     * @param string $path The path in which the archive shall be created
      * @param string $format The archive format: 'zip' or 'targz'
      * 
-     * @return TODO
+     * @return ZipArchive|null The created ZipArchive object on success, null on failure.
      */
-    public static function packFiles(
+    public static function createArchiveFromFileRefs(
         $file_ref_ids = [],
         User $user,
-        $format = 'zip'
-    ){
-        global $TMP_PATH, $ZIP_PATH;
+        $path = ''){
         
         $zip_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
         $zip_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE;
         
+        //$file_ref_ids must be an array!
+        if(!is_array($file_ref_ids)) {
+            return null;
+        }
+        
+        //If there are no FileRef IDs, we can stop here.
         if(empty($file_ref_ids)) {
+            return null;
+        }
+        
+        if(!$path) {
             return null;
         }
         
         $check_size = true;
         
+        //check if the maximum number of files and maximum archive file size
+        //is set. If not, we can't check for the file sizes.
         if(!$zip_max_num_files && !$zip_max_size) {
             $check_size = false;
         }
         
+        //check if more files than allowed shall be packed:
+        //In that case, stop here.
+        if(count($file_ref_ids) > $zip_max_num_files) {
+            return null;
+        }
         
+        $file_refs = FileRef::findMany($file_ref_ids);
+        
+        //For each FileRef we must check if the user is allowed to download it.
+        
+        $downloadable_file_refs = [];
+        
+        foreach($file_refs as $file_ref) {
+            $folder = $file_ref->folder;
+            if($folder) {
+                $folder = $folder->getTypedFolder();
+                if($folder) {
+                    if($folder->isFileDownloadable($file_ref->id, $user->id)) {
+                        $downloadable_file_refs[] = $file_ref;
+                    }
+                }
+            }
+        }
+        
+        
+        //Ok, we have only those FileRefs that can be downloaded by the user.
+        //We must now collect all the files from these FileRefs and copy them
+        //into the new archive file.
+        
+        $archive_file_id = md5(uniqid('FileManager::packFiles', true));
+        $archive_path = "$TMP_PATH/$archive_file_id";
+        
+        $archive = new ZipArchive();
+        $archive->open($archive_path, ZipArchive::OVERWRITE);
+        
+        foreach($downloadable_file_refs as $file_ref) {
+            $file = $file_ref->file;
+            if($file) {
+                $file_path = $file->getPath();
+                if($file_path) {
+                    $archive->addFile($file_path, $file_ref->name);
+                }
+            }
+        }
+        
+        //Ok, archive file is finished. Close it and return the
+        //ZipArchive object.
+        
+        $archive->close();
+        
+        return $archive;
     }
     
     
