@@ -29,6 +29,10 @@ use Studip\Button, Studip\LinkButton;
 
 require_once 'vendor/idna_convert/idna_convert.class.php';
 
+/*
+used in:
+public/sendfile.php:230:@readfile_chunked($path_file, $start, $end);
+*/
 function readfile_chunked($filename, $start = null, $end = null) {
     if (isset($start) && $start < $end) {
         $chunksize = 1024 * 1024; // how many bytes per chunk
@@ -53,6 +57,10 @@ function readfile_chunked($filename, $start = null, $end = null) {
     }
 }
 
+/*
+used in:
+lib/datei.inc.php:192:        $parsed_link = parse_header($response);
+*/
 function parse_header($header){
     $ret = array();
     if (!is_array($header)){
@@ -79,6 +87,15 @@ function parse_header($header){
     return $ret;
 }
 
+/*
+used in:
+lib/models/OpenGraphURL.class.php:114:     * @todo The combination of parse_link() and the following request
+lib/models/OpenGraphURL.class.php:124:        $response = parse_link($this['url']);
+lib/datei.inc.php:220:            $parsed_link = parse_link($location_header, $level + 1);
+lib/datei.inc.php:1369:        $link_data = parse_link(Request::get('the_link'));
+app/routes/Files_old.php:434:        $link_data = parse_link($file->getValue('url'));
+app/models/media_proxy.php:172:        $response = parse_link($url);
+*/
 function parse_link($link, $level=0) {
     global $name, $the_file_name, $the_link, $locationheader, $parsed_link, $link_update;
     if ($level > 3)
@@ -225,6 +242,12 @@ function parse_link($link, $level=0) {
  * @param bool $size_check if true, number and size of files are checked against config values
  * @return string filename(id) of the created zip without path
  */
+ /*
+ used in:
+ app/controllers/admin/user.php:1361:        $zip_file_id  = createSelectedZip($download_ids, false);
+public/folder.php:113:        $zip_file_id = createSelectedZip($download_ids, true, true);
+public/folder.php:126:        $zip_file_id = createSelectedZip($download_ids, true, true);
+*/
 function createSelectedZip ($file_ids, $perm_check = TRUE, $size_check = false) {
     global $TMP_PATH, $ZIP_PATH, $SessSemName;
     $zip_file_id = false;
@@ -289,6 +312,10 @@ function createSelectedZip ($file_ids, $perm_check = TRUE, $size_check = false) 
  * @param bool $size_check if true, number and size of files are checked against config values
  * @return string filename(id) of the created zip without path
  */
+ /*
+ used in:
+ public/folder.php:75:    $zip_file_id = createFolderZip(Request::option('folderzip'), true, true);
+*/
 function createFolderZip ($folder_id, $perm_check = TRUE, $size_check = false) {
     global $TMP_PATH, $ZIP_PATH, $SessSemName;
     $zip_file_id = false;
@@ -326,6 +353,11 @@ function createFolderZip ($folder_id, $perm_check = TRUE, $size_check = false) {
  * @param bool $in_recursion used internally to indicate recursive call
  * @return array assoc array with metadata from zipped files
  */
+/*
+used in:
+lib/datei.inc.php:334:        $filelist = createTempFolder($folder_id, $tmp_full_path, $SessSemName[1], $perm_check);
+lib/datei.inc.php:412:        createTempFolder($row['folder_id'], $tmp_sub_full_path, $sem_id, $perm_check, true);
+*/
 function createTempFolder($folder_id, $tmp_full_path, $sem_id, $perm_check = TRUE, $in_recursion = false)
 {
     static $filelist;
@@ -398,7 +430,11 @@ function createTempFolder($folder_id, $tmp_full_path, $sem_id, $perm_check = TRU
  * @folder_id: id of the target folder
  * @return: array($subfolders, $numberofsubfolders)
  */
-
+/*
+used in:
+lib/datei.inc.php:459:        $kids = getFolderChildren($parent_id);
+lib/datei.inc.php:2524:        list($subfolders, $num_subfolders) = getFolderChildren($folder_id);
+*/
 function getFolderChildren($folder_id){
     global $SessionSeminar, $user;
 
@@ -419,6 +455,13 @@ function getFolderChildren($folder_id){
     }
 }
 
+/*
+used in:
+lib/datei.inc.php:467:                getFolderId($kids[0][$i],true);
+lib/datei.inc.php:614:            $folder = getFolderId($item_id);
+lib/datei.inc.php:682:            $folder = getFolderId($item_id);
+lib/datei.inc.php:788:        $folder = getFolderId($folder_id);
+*/
 function getFolderId($parent_id, $in_recursion = false){
     static $kidskids;
         if (!$kidskids || !$in_recursion){
@@ -442,6 +485,15 @@ function getFolderId($parent_id, $in_recursion = false){
  * @param $range_id      the range id for the folder, course or institute id
  * @return integer
  */
+/*
+used in:
+lib/dates.inc.php:365:        if (!doc_count($termin_id))
+lib/datei.inc.php:326:    if(!($size_check && (doc_count($folder_id) > $max_files || doc_sum_filesize($folder_id) > $max_size))){
+lib/datei.inc.php:488:function doc_count($parent_id, $range_id = null)
+lib/datei.inc.php:650:                    return array(1, doc_count($item_id));
+lib/datei.inc.php:1820:    $document_count = doc_count($folder_id);
+lib/datei.inc.php:2190:    $document_count = doc_count($folder_id);
+*/
 function doc_count($parent_id, $range_id = null)
 {
     global $SessionSeminar, $user;
@@ -465,6 +517,11 @@ function doc_count($parent_id, $range_id = null)
     return $statement->fetchColumn();
 }
 
+/*
+used in:
+lib/datei.inc.php:326:    if(!($size_check && (doc_count($folder_id) > $max_files || doc_sum_filesize($folder_id) > $max_size))){
+lib/datei.inc.php:491:lib/datei.inc.php:326:    if(!($size_check && (doc_count($folder_id) > $max_files || doc_sum_filesize($folder_id) > $max_size))){
+*/
 function doc_sum_filesize ($parent_id)
 {
     global $SessionSeminar, $user;
@@ -2684,6 +2741,10 @@ function unzip_file($file_name, $dir_name = '', $testonly = false) {
     return !extract_zip($file_name, $dir_name, $testonly);
 }
 
+/*
+TODO: replace in:
+public/folder.php:494:            $uploaded_files = upload_zip_item();
+*/
 function upload_zip_item() {
     if(!$_FILES['the_file']['name']) {
         PageLayout::postError(_("Sie haben keine Datei zum Hochladen ausgewählt!"));
@@ -2751,6 +2812,10 @@ function upload_zip_item() {
  * @param dir
  * @return (no return value)
  */
+ /*
+ lib/datei.inc.php:2713:        $ret = upload_recursively($GLOBALS['folder_system_data']['upload'], $tmpdirname);
+lib/datei.inc.php:2836:        upload_recursively($dir_id, $subdir);
+*/
 function upload_recursively($range_id, $dir) {
     static $count = array(
         'files'       => 0,
@@ -2838,6 +2903,10 @@ function upload_recursively($range_id, $dir) {
 /**
  * Eine einzelne Datei in das Verzeichnis mit der dir_id einfuegen.
  */
+ /*
+ TODO: replace in:
+ lib/datei.inc.php:2816:            $count['files'] += upload_zip_file($range_id, $file);
+*/
 function upload_zip_file($dir_id, $file) {
 
     global $user;
@@ -2907,6 +2976,20 @@ function get_flash_player ($document_id, $filename, $type) {
  *
  * @param string MD5 id of the uploaded file
  */
+/*TODO: replace in:
+lib/classes/StudipMail.class.php:287:            $this->addFileAttachment(get_upload_file_path($doc->getId()), $doc->getValue('filename'));
+lib/classes/exportdocument/ExportPDF.class.php:178:            $path = get_upload_file_path($doc->getId());
+lib/classes/exportdocument/ExportPDF.class.php:307:                        $convurl = get_upload_file_path($matches[1]);
+lib/models/StudipDocument.class.php:241:        $newpath = get_upload_file_path($this->getId());
+lib/models/StudipDocument.class.php:267:            @unlink(get_upload_file_path($this->getId()));
+lib/datei.inc.php:267:                    if (@copy(get_upload_file_path($file['dokument_id']), $tmp_full_path.'/'.$filename)) {
+lib/datei.inc.php:362:            if (copy(get_upload_file_path($row['dokument_id']), $tmp_full_path . '/' . $filename)) {
+lib/datei.inc.php:699:        return (bool) StudipDocument::createWithFile(get_upload_file_path($doc_id), $new);
+lib/datei.inc.php:2461:            @unlink(get_upload_file_path($dokument_id));
+app/routes/Files_old.php:70:            if (!file_exists($real_file = get_upload_file_path($file_id))) {
+app/controllers/messages.php:366:                        $new_attachment = StudipDocument::createWithFile(get_upload_file_path($attachment->getId()), $new_attachment);
+app/controllers/messages.php:756:        $data_stored = move_uploaded_file($file['tmp_name'], get_upload_file_path($file_ref->file_id));
+*/
 function get_upload_file_path ($document_id)
 {
     global $UPLOAD_PATH;
@@ -2932,6 +3015,16 @@ function get_upload_file_path ($document_id)
  * @param string MD5 id of the file
  * @return bool
  */
+ /*
+ TODO: replace in:
+ lib/datei.inc.php:265:                if(check_protected_download($file['dokument_id'])) {
+lib/datei.inc.php:360:        } else if(check_protected_download($row['dokument_id'])) {
+lib/datei.inc.php:1573:        if (check_protected_download($datei['dokument_id'])) {
+lib/datei.inc.php:1614:        if(check_protected_download($datei["dokument_id"])){
+lib/datei.inc.php:1704:        if (check_protected_download($datei["dokument_id"])) {
+lib/datei.inc.php:1742:      if ((!$upload) && ($datei["url"]=="") && check_protected_download($datei["dokument_id"])) {
+public/folder.php:106:            && check_protected_download($dl_id['dokument_id']) && $dl_id['url'] == "") {
+*/
 function check_protected_download($document_id) {
     $ok = true;
     if (Config::GetInstance()->getValue('ENABLE_PROTECTED_DOWNLOAD_RESTRICTION')) {
