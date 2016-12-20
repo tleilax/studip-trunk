@@ -418,6 +418,40 @@ class FileManager
     }
 
 
+    /**
+     * Packs a list of files into one file archive.
+     * 
+     * @param Array $file_ref_ids List of FileRef object IDs.
+     * @param User $user The user who wishes to pack files.
+     * @param string $format The archive format: 'zip' or 'targz'
+     * 
+     * @return TODO
+     */
+    public static function packFiles(
+        $file_ref_ids = [],
+        User $user,
+        $format = 'zip'
+    ){
+        global $TMP_PATH, $ZIP_PATH;
+        
+        $zip_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
+        $zip_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE;
+        
+        if(empty($file_ref_ids)) {
+            return null;
+        }
+        
+        $check_size = true;
+        
+        if(!$zip_max_num_files && !$zip_max_size) {
+            $check_size = false;
+        }
+        
+        
+    }
+    
+    
+    
 
     // FOLDER METHODS
 
