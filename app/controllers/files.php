@@ -387,6 +387,7 @@ class FilesController extends AuthenticatedController
         $this->topFolder = $this->plugin->getFolder($folder_id);
         $this->buildSidebar($this->topFolder);
         $this->controllerpath = "files/system/".$plugin_id;
+        URLHelper::bindLinkParam("to_plugin", get_class($this->plugin));
         $this->render_template("files/index", $GLOBALS['template_factory']->open("layouts/base"));
     }
 
