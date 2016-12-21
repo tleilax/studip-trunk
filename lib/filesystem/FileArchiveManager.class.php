@@ -92,7 +92,37 @@ class FileArchiveManager
         $archive_file_name = '',
         $keep_hierarchy = true
     ) {
-    
+        /*
+        TODO:
+        - loop over all $file_area_objects
+        - foreach $file_area_objects as $file_area_object:
+          - check, if it is an instance of FileRef, FileURL, Folder or FolderType
+          - if not: continue to next item in array (do not process object)
+          - if instance of FileRef, FileURL, Folder or FolderType:
+          
+          - if FileRef:
+            - check permissions: isReadable, isFileDownloadable (via FolderType)
+            - if permission check successful:
+              - get file path (if file exists) and add file to archive
+            - if permission check not successful:
+              - continue to next item in array (do not process object)
+          
+          - if FileURL:
+            - same as for FileRef, but add it as .url file which contains
+              the URL the FileURL points to.
+          
+          - if Folder or FolderType:
+            - in case of Folder: get the associated FolderType
+            - check if folder is readable, continue to next object, if not
+            - create empty folder in archive
+            - call self::addToArchive for $folder->getFiles()
+                with path to empty folder in archive
+            
+            - foreach($folder->getSubfolders() as $subfolder):
+                - add empty folder to archive
+                - call self::addToArchive for $subfolder with $subfolder and
+                    $keep_hierarchy parameter (if the subfolder has subfolders, too)
+        */
     }
     
     
