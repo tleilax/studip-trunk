@@ -243,7 +243,7 @@ function parse_link($link, $level=0) {
  * @return string filename(id) of the created zip without path
  */
  /*
- TODO: REPLACE BY FileManager::createArchiveFromFileRefs
+ TODO: REPLACE BY FileArchiveManager::createArchiveFromFileRefs
  used in:
  app/controllers/admin/user.php:1361:        $zip_file_id  = createSelectedZip($download_ids, false);
 public/folder.php:113:        $zip_file_id = createSelectedZip($download_ids, true, true);
