@@ -1362,7 +1362,9 @@ class Admin_UserController extends AuthenticatedController
             $sql_params
         );
         
-        $archive_file_name = 'user_files_'.$user_id . '_' . date('Ymd-Hi') . '.zip';
+        $user = User::find($user_id);
+        
+        $archive_file_name = $user->username . '_files_' . date('Ymd-Hi') . '.zip';
         
         $archive = FileArchiveManager::createArchiveFromFileRefs(
             $file_refs,

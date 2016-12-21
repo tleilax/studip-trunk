@@ -27,6 +27,76 @@ class FileArchiveManagerException extends Exception
  */
 class FileArchiveManager
 {
+    //ARCHIVE HELPER METHODS
+    
+    /**
+     * Returns the download URL of an archive file.
+     * 
+     * This is a replacement of the getDownloadLink function from datei.inc.php.
+     * 
+     * @param ZipArchive $archive The archive whose download URL shall be returned.
+     * 
+     * @return string The download URL of the archive. Empty string on failure.
+     */
+    public static function getArchiveUrl(ZipArchive $archive)
+    {
+        $zip_file_path = $archive->filename;
+        
+        if(!$zip_file_path) {
+            //Archive does not exist or was closed.
+            return '';
+        }
+        
+        $zip_file_name = basename($zip_file_path);
+        
+        $archive_url = $GLOBALS['ABSOLUTE_URI_STUDIP'];
+        
+        $sendfile_mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
+        
+        if($sendfile_mode == 'rewrite') {
+            $archive_url .= 'zip/zip'. rawurlencode(prepareFilename($zip_file_name));
+        } else {
+            //normal mode (default):
+            $archive_url .= 'sendfile.php?type=4&file_id=' .
+                rawurlencode(prepareFilename($zip_file_name)) . 
+                '&file_name='.rawurlencode(prepareFilename($zip_file_name));
+        }
+        
+        return $archive_url;
+    }
+    
+    
+    //ARCHIVE CREATION METHODS
+    
+    
+    /**
+     * General method for creating file archives.
+     * 
+     * This method is a generalisation for all archive creation methods.
+     * For easier archive creation you may use the other archive creation
+     * methods which work with less arguments.
+     * 
+     * @param Array $file_area_objects Array of FileRef, FileURL, Folder or FolderType objects.
+     *     $file_area_objects may contain a mix between those object types.
+     * @param User $user The user who wishes to pack files.
+     * @param string $archive_path The path in which the archive shall be created.
+     * @param string $archive_file_name An optional file name for the archive. If omitted, an 
+     
+     */
+    public static function createArchive(
+        $file_area_objects = [],
+        $range_id = null,
+        $range_type = '',
+        $user_id = null,
+        $archive_path = ''
+        $archive_file_name = '',
+        $keep_hierarchy = true
+    ) {
+    
+    }
+    
+    
+    
     /**
      * Puts files (identified by their file refs) into one file archive.
      * 
@@ -144,40 +214,113 @@ class FileArchiveManager
     }
     
     
+    
     /**
-     * Returns the download URL of an archive file.
+     * Creates an archive that contains all files of a course the given user
+     * is allowed to download.
      * 
-     * This is a replacement of the getDownloadLink function from datei.inc.php.
-     * 
-     * @param ZipArchive $archive The archive whose download URL shall be returned.
-     * 
-     * @return string The download URL of the archive. Empty string on failure.
+     * @param FolderType $folder The folder whose files shall be put inside an archive.
+     * @param string $user_id The ID of the user who wishes to put the course's files into an archive
+     * @param string $archive_path The path where the archive shall be placed.
+     * @param string $archive_file_name (optional) The file name of the archive.
+     * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
+     *     If $keep_hierarchy is set to false you will get an archive that contains only files
+     *     and no subdirectories.
      */
-    public static function getArchiveUrl(ZipArchive $archive)
+    public static function createArchiveFromFolder(
+        FolderType $folder,
+        $user_id = null,
+        $archive_path = '',
+        $archive_file_name = '',
+        $keep_hierarchy = true)
     {
-        $zip_file_path = $archive->filename;
-        
-        if(!$zip_file_path) {
-            //Archive does not exist or was closed.
-            return '';
-        }
-        
-        $zip_file_name = basename($zip_file_path);
-        
-        $archive_url = $GLOBALS['ABSOLUTE_URI_STUDIP'];
-        
-        $sendfile_mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
-        
-        if($sendfile_mode == 'rewrite') {
-            $archive_url .= 'zip/zip'. rawurlencode(prepareFilename($zip_file_name));
-        } else {
-            //normal mode (default):
-            $archive_url .= 'sendfile.php?type=4&file_id=' .
-                rawurlencode(prepareFilename($zip_file_name)) . 
-                '&file_name='.rawurlencode(prepareFilename($zip_file_name));
-        }
-        
-        return $archive_url;
+        //to be implemented
     }
     
+    
+    
+    /**
+     * Creates an archive that contains all files of a course the given user
+     * is allowed to download.
+     * 
+     * @param string $course_id The ID of the course whose files shall be put inside an archive.
+     * @param string $user_id The ID of the user who wishes to put the course's files into an archive
+     * @param string $archive_path The path where the archive shall be placed.
+     * @param string $archive_file_name (optional) The file name of the archive.
+     * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
+     *     If $keep_hierarchy is set to false you will get an archive that contains only files
+     *     and no subdirectories.
+     */
+    public static function createArchiveFromCourse(
+        $course_id = null,
+        $user_id = null,
+        $archive_path = '',
+        $archive_file_name = '',
+        $keep_hierarchy = true)
+    {
+        //to be implemented
+    }
+    
+    
+    /**
+     * Creates an archive that contains all files of an institute the given user
+     * is allowed to download.
+     * 
+     * @param string $institute_id The ID of the institute whose files shall be put inside an archive.
+     * @param string $user_id The ID of the user who wishes to put the institute's files into an archive
+     * @param string $archive_path The path where the archive shall be placed.
+     * @param string $archive_file_name (optional) The file name of the archive.
+     * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
+     *     If $keep_hierarchy is set to false you will get an archive that contains only files
+     *     and no subdirectories.
+     */
+    public static function createArchiveFromInstitute(
+        $institute_id = null,
+        $user_id = null,
+        $archive_path = '',
+        $archive_file_name = '',
+        $keep_hierarchy = true)
+    {
+        //to be implemented
+    }
+    
+    
+    /**
+     * Creates an archive that contains all files of a user, if the current
+     * user has root permissions to do this.
+     * 
+     * @param string $user_id The ID of the user whose files shall be put inside an archive.
+     * @param string $archive_path The path where the archive shall be placed.
+     * @param string $archive_file_name (optional) The file name of the archive.
+     * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
+     *     If $keep_hierarchy is set to false you will get an archive that contains only files
+     *     and no subdirectories.
+     */
+    public static function createArchiveFromUser(
+        $user_id = null,
+        $archive_path = '',
+        $archive_file_name = '',
+        $keep_hierarchy = true)
+    {
+        //to be implemented
+    }
+    
+    
+    
+    //ARCHIVE EXTRACTION METHODS
+    
+    /**
+     * Extracts an archive into a folder inside the Stud.IP file area.
+     * 
+     * @param ZipArchive $archive The archive which shall be extracted.
+     * @param FolderType $folder The folder where the archive shall be extracted.
+     * @param string $user_id The ID of the user who wants to extract the archive.
+     */
+    public static function extractArchiveToFolder(
+        ZipArchive $archive,
+        FolderType $folder,
+        $user_id = null)
+    {
+        //to be implemented
+    }
 }
