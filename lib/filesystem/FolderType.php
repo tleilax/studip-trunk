@@ -122,6 +122,12 @@ interface FolderType
      */
     public function getFiles();
 
+    /**
+     * Returns the FolderType of the parent folder or null if this is the top folder.
+     * @return null|FolderType
+     */
+    public function getParent();
+
     public function getEditTemplate();
 
     /**

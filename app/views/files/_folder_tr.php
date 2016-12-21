@@ -1,4 +1,6 @@
-<? $controllerpath = ($topFolder->range_type === "user" ? "" : $topFolder->range_type."/").'files/index' ?>
+<? if (!$controllerpath) : ?>
+    <? $controllerpath = ($topFolder->range_type === "user" ? "" : $topFolder->range_type."/").'files/index' ?>
+<? endif ?>
 <? $is_readable = $folder->isReadable($GLOBALS['user']->id) ?>
 <? $owner = User::find($folder->user_id) ?: new User() ?>
 <tr id="row_folder_<?= $folder->id ?>">
@@ -10,7 +12,7 @@
                 id="file_checkbox_<?=$folder->getId()?>"
                 value="<?= $folder->getId() ?>"
                 onchange="javascript:void(STUDIP.Files.toggleBulkButtons());"
-                <?= (in_array($folder->getId(), $marked_element_ids)) ? 'checked' : '' ?>>
+                <?= (in_array($folder->getId(), (array) $marked_element_ids)) ? 'checked' : '' ?>>
         <label for="file_checkbox_<?=$folder->getId()?>"><span></span></label>
         <? endif?>
     </td>

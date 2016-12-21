@@ -37,7 +37,7 @@ class OutboxFolder extends InboxOutboxFolder
 
     static public function getTypeName()
     {
-        return _('Ein Ordner für Anhänge gesendeter Nachrichten');
+        return _('Alle Anhänge gesendeter Nachrichten');
     }
 
 

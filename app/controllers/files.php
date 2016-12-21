@@ -81,12 +81,14 @@ class FilesController extends AuthenticatedController
             );
         }
 
-        $actions->addLink(
-            _('Datei hinzufügen'),
-            "#",
-            Icon::create('file+add', 'clickable'),
-            array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
-        );
+        if ($folder->isWritable($GLOBALS['user']->id)) {
+            $actions->addLink(
+                _('Datei hinzufügen'),
+                "#",
+                Icon::create('file+add', 'clickable'),
+                array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
+            );
+        }
 
         $sidebar->addWidget($actions);
     }
@@ -375,15 +377,17 @@ class FilesController extends AuthenticatedController
         }
     }
 
-    public function system_action($plugin_id)
+    public function system_action($plugin_id, $folder_id = null)
     {
         $this->plugin = PluginManager::getInstance()->getPluginById($plugin_id);
         if (!$this->plugin->isPersonalFileArea()) {
             throw new Exception("Dieser Bereich ist nicht verfügbar.");
         }
         Navigation::activateItem('/profile/files/'.get_class($this->plugin));
-        $this->topFolder = $this->plugin->getFolder();
+        $this->topFolder = $this->plugin->getFolder($folder_id);
         $this->buildSidebar($this->topFolder);
+        $this->controllerpath = "files/system/".$plugin_id;
+        $this->render_template("files/index", $GLOBALS['template_factory']->open("layouts/base"));
     }
 
     public function copyhandler_action($destination_id)

@@ -1,4 +1,6 @@
-<? $controllerpath = ($topFolder->range_type === "user" ? "" : $topFolder->range_type."/").'files/index' ?>
+<? if (!$controllerpath) : ?>
+    <? $controllerpath = ($topFolder->range_type === "user" ? "" : $topFolder->range_type."/").'files/index' ?>
+<? endif ?>
 <form method="post" action="<?= URLHelper::getLink('dispatch.php/files/bulk') ?>">
 <?= CSRFProtection::tokenTag() ?>
 <input type="hidden" name="parent_folder_id" value="<?= $topFolder->getId() ?>" >
@@ -49,14 +51,22 @@
     <? if (count($topFolder->getSubfolders())) : ?>
         <? foreach ($topFolder->getSubfolders() as $folder) : ?>
             <? if (!$folder->isVisible($GLOBALS['user']->id)) continue; ?>
-            <?= $this->render_partial('files/_folder_tr', ['folder' => $folder, 'marked_element_ids' => $marked_element_ids]) ?>
+            <?= $this->render_partial('files/_folder_tr', [
+                    'folder' => $folder,
+                    'marked_element_ids' => $marked_element_ids,
+                    'controllerpath' => $controllerpath
+            ]) ?>
         <? endforeach ?>
     <? endif ?>
     </tbody>
     <tbody class="files">
     <? if (count($topFolder->getFiles()) && $topFolder->isReadable($GLOBALS['user']->id)) : ?>
         <? foreach ($topFolder->getFiles() as $file_ref) : ?>
-            <?= $this->render_partial("files/_fileref_tr", ['file_ref' => $file_ref, 'current_folder' => $topFolder]) ?>
+            <?= $this->render_partial("files/_fileref_tr", [
+                    'file_ref' => $file_ref,
+                    'current_folder' => $topFolder,
+                    'controllerpath' => $controllerpath
+            ]) ?>
         <? endforeach; ?>
     <? endif; ?>
     </tbody>
