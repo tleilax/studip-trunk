@@ -88,7 +88,7 @@ class FileArchiveManager
         $range_id = null,
         $range_type = '',
         $user_id = null,
-        $archive_path = ''
+        $archive_path = '',
         $archive_file_name = '',
         $keep_hierarchy = true
     ) {
