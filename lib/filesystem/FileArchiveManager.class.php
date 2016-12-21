@@ -30,37 +30,53 @@ class FileArchiveManager
     /**
      * Puts files (identified by their file refs) into one file archive.
      * 
-     * @param Array $file_ref_ids List of FileRef object IDs.
+     * @param FileRef[] $file_refs Array of FileRef objects.
      * @param User $user The user who wishes to pack files.
      * @param string $archive_path The path in which the archive shall be created.
      * @param string $archive_file_name An optional file name for the archive. If omitted, an 
-     * @param string $format The archive format: 'zip' or 'targz'
      * 
-     * @return PharData The created PharData object
+     * @return ZipArchive The created ZipArchive object.
      * 
      * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more special exception is thrown.
      */
     public static function createArchiveFromFileRefs(
-        $file_ref_ids = [],
+        $file_refs = [],
         User $user,
-        $archive_path = ''){
+        $archive_path = '',
+        $archive_file_name = ''
+        ){
         
         $archive_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
         $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE;
         
+        if(!$archive_path) {
+            throw new FileArchiveManagerException(
+                'Destination path for file archive is not set!'
+            );
+        }
+        
+        if(!$archive_file_name) {
+            $archive_file_name = md5(uniqid('FileArchiveManager::createArchiveFromFileRefs', true));
+        }
+        $archive_path = $archive_path . '/' . $archive_file_name;
+        
+        $archive = new ZipArchive();
+        if(!$archive->open($archive_path, ZipArchive::CREATE)) {
+            throw new FileArchiveManagerException(
+                'Error opening new ZIP archive!'
+            );
+        }
+        
         //$file_ref_ids must be an array!
-        if(!is_array($file_ref_ids)) {
-            return null; //TODO: return PharData
+        if(!is_array($file_refs)) {
+            return $archive;
         }
         
         //If there are no FileRef IDs, we can stop here.
-        if(empty($file_ref_ids)) {
-            return null; //TODO: return PharData
+        if(empty($file_refs)) {
+            return $archive;
         }
         
-        if(!$archive_path) {
-            return null; //TODO: return PharData
-        }
         
         $check_size = true;
         
@@ -72,11 +88,9 @@ class FileArchiveManager
         
         //check if more files than allowed shall be packed:
         //In that case, stop here.
-        if(count($file_ref_ids) > $archive_max_num_files) {
-            return null; //TODO: return PharData
+        if(count($file_refs) > $archive_max_num_files) {
+            return $archive;
         }
-        
-        $file_refs = FileRef::findMany($file_ref_ids);
         
         //For each FileRef we must check if the user is allowed to download it.
         
@@ -84,12 +98,15 @@ class FileArchiveManager
         $downloadable_files_total_size = 0;
         
         foreach($file_refs as $file_ref) {
-            $folder = $file_ref->folder;
-            if($folder) {
-                $folder = $folder->getTypedFolder();
+            //we handle only FileRef instances here
+            if($file_ref instanceof FileRef) {
+                $folder = $file_ref->folder;
                 if($folder) {
-                    if($folder->isFileDownloadable($file_ref->id, $user->id)) {
-                        $downloadable_file_refs[] = $file_ref;
+                    $folder = $folder->getTypedFolder();
+                    if($folder) {
+                        if($folder->isFileDownloadable($file_ref->id, $user->id)) {
+                            $downloadable_file_refs[] = $file_ref;
+                        }
                     }
                 }
             }
@@ -103,44 +120,13 @@ class FileArchiveManager
             if($downloadable_files_total_size > $archive_max_size) {
                 //The total size of all downloadable files exceeds the
                 //maximum allowed size for file archives. We must stop here!
-                return null; //TODO: return PharData
+                return $archive;
             }
         }
         
         
         //We must now collect all the files from these FileRefs and copy them
         //into the new archive file.
-        
-        if(!$archive_file_name) {
-            $archive_file_name = md5(uniqid('FileArchiveManager::createArchiveFromFileRefs', true));
-        }
-        $archive_path = $archive_path . '/' . $archive_file_name;
-        
-        $archive = null;
-        
-        $format = trim(strtolower($format)); //convert all to lowercase letters and trim whitespaces
-        
-        if($format == 'zip') {
-            $archive = new PharData(
-                $archive_path,
-                Phar::CURRENT_AS_FILEINFO | Phar::KEY_AS_FILENAME,
-                '',
-                Phar::ZIP
-            );
-        } elseif($format == 'targz') {
-            $archive = new PharData(
-                $archive_path,
-                Phar::CURRENT_AS_FILEINFO | Phar::KEY_AS_FILENAME,
-                '',
-                Phar::TAR
-            );
-        }
-        
-        if($archive === null) {
-            throw FileArchiveManagerException(
-                "Archive format $format is not recognized!"
-            );
-        }
         
         foreach($downloadable_file_refs as $file_ref) {
             $file = $file_ref->file;
@@ -152,11 +138,46 @@ class FileArchiveManager
             }
         }
         
-        if($format == 'targz') {
-            $archive = $archive->compress(Phar::GZ, '');
-        }
         
-        //Ok, archive file is finished. Return the PharData object:
+        //Ok, archive file is finished. Return the ZipArchive object:
         return $archive;
     }
+    
+    
+    /**
+     * Returns the download URL of an archive file.
+     * 
+     * This is a replacement of the getDownloadLink function from datei.inc.php.
+     * 
+     * @param ZipArchive $archive The archive whose download URL shall be returned.
+     * 
+     * @return string The download URL of the archive. Empty string on failure.
+     */
+    public static function getArchiveUrl(ZipArchive $archive)
+    {
+        $zip_file_path = $archive->filename;
+        
+        if(!$zip_file_path) {
+            //Archive does not exist or was closed.
+            return '';
+        }
+        
+        $zip_file_name = basename($zip_file_path);
+        
+        $archive_url = $GLOBALS['ABSOLUTE_URI_STUDIP'];
+        
+        $sendfile_mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
+        
+        if($sendfile_mode == 'rewrite') {
+            $archive_url .= 'zip/zip'. rawurlencode(prepareFilename($zip_file_name));
+        } else {
+            //normal mode (default):
+            $archive_url .= 'sendfile.php?type=4&file_id=' .
+                rawurlencode(prepareFilename($zip_file_name)) . 
+                '&file_name='.rawurlencode(prepareFilename($zip_file_name));
+        }
+        
+        return $archive_url;
+    }
+    
 }

@@ -1347,6 +1347,48 @@ class Admin_UserController extends AuthenticatedController
      */
     public function download_user_files_action($user_id, $course_id = '')
     {
+        global $TMP_PATH;
+        
+        $sql = 'user_id = :user_id';
+        $sql_params = ['user_id' => $user_id];
+        
+        if($course_id) {
+            $sql .= ' AND range_id = :course_id';
+            $sql_params['course_id'] = $course_id;
+        }
+        
+        $file_refs = FileRef::findBySql(
+            $sql,
+            $sql_params
+        );
+        
+        $archive_file_name = 'user_files_'.$user_id . '_' . date('Ymd-Hi') . '.zip';
+        
+        $archive = FileArchiveManager::createArchiveFromFileRefs(
+            $file_refs,
+            User::findCurrent(),
+            $TMP_PATH,
+            $archive_file_name
+        );
+        
+        
+        //print_r($archive);
+        
+        
+        $archive_download_link = FileArchiveManager::getArchiveUrl($archive);
+        
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="' 
+            . rawurlencode(prepareFilename($archive_file_name)) . '"'
+        );
+        header('Location: ' . $archive_download_link);
+        header('Pragma: public');
+        
+        $this->render_nothing();
+        
+        
+        /*
+        //OLD:
         $query      = "SELECT dokument_id FROM dokumente WHERE user_id = ?";
         $parameters = [$user_id];
 
@@ -1368,7 +1410,7 @@ class Admin_UserController extends AuthenticatedController
         header('Pragma: public');
 
         $this->render_nothing();
-
+        */
     }
 
     /**
