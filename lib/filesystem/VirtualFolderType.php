@@ -61,6 +61,11 @@ class VirtualFolderType implements FolderType
         return false;
     }
 
+    public function isEditable($user_id)
+    {
+        return false;
+    }
+
     public function isSubfolderAllowed($user_id)
     {
         return false;

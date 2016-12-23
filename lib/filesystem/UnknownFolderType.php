@@ -110,6 +110,15 @@ class UnknownFolderType implements FolderType
      * @param $user_id
      * @return bool
      */
+    public function isEditable($user_id)
+    {
+        return false;
+    }
+
+    /**
+     * @param $user_id
+     * @return bool
+     */
     public function isSubfolderAllowed($user_id)
     {
         return false;

@@ -4,27 +4,26 @@
             'file_ref' => $file_ref
         ])  ?>
     <div id="file_management_forms">
-        <form enctype="multipart/form-data"
+        <form
             method="post"
+            data-dialog
             class="default"
-            action="<?= $controller->url_for('/edit/' . $file_ref_id) ?>">
+            action="<?= $controller->link_for('/edit/' . $file_ref->id) ?>">
 
             <?= CSRFProtection::tokenTag() ?>
-            <input type="hidden" name="fileref_id" value="<?=htmlReady($file_ref_id)?>">
-            <input type="hidden" name="folder_id" value="<?=htmlReady($file_ref_id)?>">
             <fieldset>
                 <legend><?= _("Datei bearbeiten") ?></legend>
                 <label>
                     <?= _('Name') ?>
-                    <input id="edit_file_name" type="text" name="name" value="<?= htmlReady($name) ?>">
+                    <input id="edit_file_name" type="text" name="name" value="<?= htmlReady($file_ref->name) ?>">
                 </label>
                 <label>
                     <?= _('Beschreibung') ?>
-                    <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($description); ?></textarea>
+                    <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($file_ref->description); ?></textarea>
                 </label>
 
                 <? if ($content_terms_of_use_entries): ?>
-                <?= _("Nutzungsbedingungen wählen") ?>
+                <?= _("Nutzungsbedingungen sswählen") ?>
 
                 <div class="file_select_possibilities" id="file_license_chooser_1">
 
@@ -52,8 +51,6 @@
 
             <div data-dialog-button>
                 <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
-                <?= Studip\LinkButton::createCancel(_('Abbrechen'),
-                    $controller->url_for('/index/' . $folder_id)) ?>
             </div>
         </form>
     </div>
@@ -69,12 +66,12 @@ if(file_name_edit_input) {
         //select the whole file name, but the file extension
         var file_name_edit_input = document.getElementById('edit_file_name');
         var text = file_name_edit_input.value;
-        
+
         //get start position of extension:
         var extension_start_pos = text.lastIndexOf('.');
-        
+
         console.log('text = ' + text + ', last index of . = ' + extension_start_pos);
-        
+
         file_name_edit_input.selectionStart = 0;
         file_name_edit_input.selectionEnd = extension_start_pos;
     });

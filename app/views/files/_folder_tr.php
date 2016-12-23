@@ -54,7 +54,7 @@
     </td>
     <td class="actions">
         <? $actionMenu = ActionMenu::get() ?>
-        <? if ($folder->isWritable($GLOBALS['user']->id)): ?>
+        <? if ($folder->isEditable($GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/edit_folder/' . $folder->getId()),
                     _('Ordner bearbeiten'),
                     Icon::create('edit', 'clickable', array('size' => 20)),
@@ -63,7 +63,7 @@
         <? $actionMenu->addLink($downloadlink,
                 _('Ordner herunterladen'),
                 Icon::create('download', 'clickable', array('size' => 20))) ?>
-        <? if ($folder->isWritable($GLOBALS['user']->id)): ?>
+        <? if ($folder->isEditable($GLOBALS['user']->id)): ?>
            <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $folder->getId(), array('copymode' => 'move', 'isfolder' => 1)),
                     _('Ordner verschieben'),
                     Icon::create('folder-empty+move_right', 'clickable', array('size' => 20)),
@@ -73,11 +73,11 @@
                     Icon::create('folder-empty+add', 'clickable', array('size' => 20)),
                     ['data-dialog' => '1']) ?>
             <? $actionMenu->addLink(
-                    $controller->url_for('folder/delete/' . $folder->getId()),
+                    $controller->url_for('file/delete_folder/' . $folder->getId()),
                     _('Ordner löschen'),
                     Icon::create('trash', 'clickable', array('size' => 20)),
                     [
-                        'onclick' => "STUDIP.Dialog.confirm('".sprintf(_('Soll der Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name))."', function () { STUDIP.Folders.delete('". $folder->getId() . "'); }); return false;"
+                        'onclick' => "STUDIP.Dialog.confirm('".sprintf(_('Soll der Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name))."');return false;"
                     ]) ?>
         <? endif; ?>
         <?= $actionMenu->render() ?>

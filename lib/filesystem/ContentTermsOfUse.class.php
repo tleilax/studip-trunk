@@ -45,6 +45,10 @@ class ContentTermsOfUse extends SimpleORMap
         parent::configure($config);
     }
 
+    public static function findAll()
+    {
+        return self::findBySQL("1 ORDER by position,id");
+    }
 
     /**
      * Determines if a user is permitted to download a file.

@@ -30,32 +30,21 @@ class FileController extends AuthenticatedController
      * This is a helper method that decides where a redirect shall be made
      * in case of error or success after an action was executed.
      */
-    private function redirectToFolder($folder, $message = null)
+    private function redirectToFolder($folder)
     {
-        if ($message instanceof MessageBox) {
-            if(Request::isDialog()) {
-                $this->render_text($message);
-            } else {
-                PageLayout::postMessage($message);
-            }
-        }
+        $params = [];
+        switch ($folder->range_type) {
 
-        if(!Request::isDialog()) {
-            //we only need to redirect when we're not in a dialog!
-
-            $dest_range = $folder->range_id;
-
-            switch ($folder->range_type) {
                 case 'course':
                 case 'institute':
-                    echo "t1";
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/' . $folder->range_type . '/files/index/' . $folder->id . '?cid=' . $dest_range));
+                   $params['cid'] = $folder->range_id;
+                   break;
                 case 'user':
-                    echo "t2";
-                    return $this->redirect(URLHelper::getUrl('dispatch.php/files/index/' . $folder->id));
-                    die();
+                    $params['cid'] = null;
+
             }
-        }
+
+        $this->relocate($folder->range_type . '/files/index/' . $folder->getId(), $params);
     }
 
 
@@ -225,46 +214,31 @@ class FileController extends AuthenticatedController
     public function edit_action($file_ref_id)
     {
         $file_ref = FileRef::find($file_ref_id);
-        if ($file_ref) {
-            $this->file_ref_id = $file_ref->id;
-            $this->folder_id = $file_ref->folder_id;
-            $this->description = $file_ref->description;
-            $this->file_ref = $file_ref;
-        } else {
-            if(Request::isDialog()) {
-                $this->render_text(
-                    MessageBox::error(_('Die zu bearbeitende Datei wurde nicht gefunden!'))
-                );
-            } else {
-                PageLayout::postError(_('Die zu bearbeitende Datei wurde nicht gefunden!'));
-            }
+        $folder = FileManager::getTypedFolder($file_ref->folder_id);
+        if (!$folder || !$folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
         }
 
-        $this->content_terms_of_use_entries = ContentTermsOfUse::findBySql('TRUE ORDER BY position ASC, id ASC');
-
+        $this->content_terms_of_use_entries = ContentTermsOfUse::findAll();
+        $this->file_ref = $file_ref;
         if (Request::submitted('save')) {
+            CSRFProtection::verifyUnsafeRequest();
             //form was sent
-            $this->name = Request::get('name');
-            $this->description = Request::get('description');
-            $this->content_terms_of_use_id = Request::get('content_terms_of_use_id');
-
-            $result = FileManager::editFileRef($file_ref, User::findCurrent(), $this->name, $this->description, $this->content_terms_of_use_id);
-            if ($result instanceof FileRef) {
-                $this->redirectToFolder(
-                    $file_ref->folder,
-                    MessageBox::success(_('Änderungen gespeichert!'))
-                );
+            $file_ref->name = trim(Request::get('name'));
+            $file_ref->description = Request::get('description');
+            $file_ref->content_terms_of_use_id = Request::get('content_terms_of_use_id');
+            if ($file_ref->name) {
+                if ($file_ref->store()) {
+                    PageLayout::postSuccess(_('Änderungen gespeichert!'));
+                } else {
+                    PageLayout::postError(_('Fehler beim Speichern der Änderungen!'));
+                }
+                $this->redirectToFolder($folder);
             } else {
-                $this->redirectToFolder(
-                    $file_ref->folder,
-                    MessageBox::error(_('Fehler beim Speichern der Änderungen!'), $result)
-                );
+                PageLayout::postError(_('Bitte geben Sie einen Namen für die Datei ein!'));
             }
-        } else {
-            //load default data:
-            $this->name = $file_ref->name;
-            $this->description = $file_ref->description;
         }
+
     }
 
 
@@ -1002,10 +976,10 @@ class FileController extends AuthenticatedController
     {
         $folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
         URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
-        if (!$folder || !$folder->isWritable($GLOBALS['user']->id)) {
+        if (!$folder || !$folder->isEditable($GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
-        $parent_folder = FileManager::getTypedFolder($folder->parent_id, Request::get("to_plugin"));
+        $parent_folder = $folder->getParent();
         $folder_types = FileManager::getFolderTypes($parent_folder->range_type);
 
         $this->current_folder_type = Request::get('folder_type', get_class($folder));
@@ -1046,6 +1020,24 @@ class FileController extends AuthenticatedController
                 PageLayout::postMessage($ok);
             }
         }
+    }
+
+    public function delete_folder_action($folder_id)
+    {
+        $folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
+        URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
+        if (!$folder || !$folder->isEditable($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
+        }
+
+        $parent_folder = $folder->getParent();
+
+        if ($folder->delete()) {
+            PageLayout::postSuccess(_('Ordner wurde gelöscht!'));
+        } else {
+            PageLayout::postError(_('Ordner konnte nicht gelöscht werden!'));
+        }
+        $this->redirectToFolder($parent_folder);
     }
 
 }

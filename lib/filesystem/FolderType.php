@@ -96,6 +96,8 @@ interface FolderType
      */
     public function isWritable($user_id);
 
+    public function isEditable($user_id);
+
     /**
      * Determines if a user may create a subfolder in this folder.
      * @param $user_id The user who wishes to create a subfolder.

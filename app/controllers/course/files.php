@@ -54,12 +54,14 @@ class Course_FilesController extends AuthenticatedController
             );
 
         }
-        $actions->addLink(
-            _('Datei hinzufügen'),
-            "#",
-            Icon::create('file+add', 'clickable'),
-            array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
-        );
+        if ($this->topFolder && $this->topFolder->isWritable($GLOBALS['user']->id)) {
+            $actions->addLink(
+                _('Datei hinzufügen'),
+                "#",
+                Icon::create('file+add', 'clickable'),
+                array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
+            );
+        }
 
         $sidebar->addWidget($actions);
     }

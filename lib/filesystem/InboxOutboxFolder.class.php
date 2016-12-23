@@ -88,6 +88,11 @@ class InboxOutboxFolder implements FolderType
         return false;
     }
 
+    public function isEditable($user_id)
+    {
+        return false;
+    }
+
     public function isSubfolderAllowed($user_id)
     {
         //this folder type does not allow subfolders!

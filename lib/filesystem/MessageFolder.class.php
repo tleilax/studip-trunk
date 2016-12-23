@@ -183,6 +183,11 @@ class MessageFolder implements FolderType
         return ($user_id == $this->folder->user_id);
     }
 
+    public function isEditable($user_id)
+    {
+        return false;
+    }
+
 
     public function isSubfolderAllowed($user_id)
     {
