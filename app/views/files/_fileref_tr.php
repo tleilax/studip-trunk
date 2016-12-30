@@ -86,10 +86,7 @@
                 _('Datei löschen'),
                 Icon::create('trash', 'clickable', array('size' => 20)),
                 [
-                    //'data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->name)),
-                    //'data-dialog' => '1'//,
-                    'onClick' => "STUDIP.Dialog.confirm('".sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->name))."', function () { STUDIP.Files.removeFile('". $file_ref->id . "'); }); return false;"
-                    //'formaction' => $controller->url_for('file/delete/' . $file_ref->id)
+                    'onClick' => "return STUDIP.Dialog.confirmAsPost('" . sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->name)) . "', this.href);"
                 ]) ?>
         <? endif; ?>
         <?= $actionMenu->render() ?>

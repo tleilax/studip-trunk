@@ -34,17 +34,15 @@ class FileController extends AuthenticatedController
     {
         $params = [];
         switch ($folder->range_type) {
-
                 case 'course':
                 case 'institute':
-                   $params['cid'] = $folder->range_id;
+                    $this->relocate($folder->range_type . '/files/index/' . $folder->getId(), ['cid' => $folder->range_id]);
                    break;
                 case 'user':
-                    $params['cid'] = null;
-
+                    $this->relocate('files/index/' . $folder->getId(), ['cid' => null]);
             }
 
-        $this->relocate($folder->range_type . '/files/index/' . $folder->getId(), $params);
+
     }
 
 
@@ -143,7 +141,6 @@ class FileController extends AuthenticatedController
                 $tmp_folder = $GLOBALS['TMP_PATH']."/".md5(uniqid());
                 mkdir($tmp_folder);
                 extract_zip($this->file_ref->file->getPath(), $tmp_folder);
-                var_dump($this->current_folder);
                 $ref_ids = $this->recursivleyReferenceFiles(
                     $tmp_folder,
                     $this->current_folder,
@@ -179,11 +176,11 @@ class FileController extends AuthenticatedController
                 if (is_dir($folder_path . "/" . $file)) {
                     //create folder
                     if ($createfolder) {
-                        $subfolder = $foldertype->createSubfolder(array(
+                        $subfolder = new StandardFolder(array(
                             'name' => $file,
-                            'folder_type' => "StandardFolder",
                             'user_id' => $GLOBALS['user']->id
                         ));
+                        $foldertype->createSubfolder($subfolder);
                     } else {
                         $subfolder = $foldertype;
                     }
@@ -626,30 +623,21 @@ class FileController extends AuthenticatedController
      */
     public function delete_action($file_ref_id)
     {
-        $folder = null;
-
-        if($file_ref_id) {
-            $file_ref = FileRef::find($file_ref_id);
-            if($file_ref) {
-                $folder = $file_ref->folder;
-                $file_ref->delete();
-                if (Request::isAjax() && !Request::isDialog()) {
-                    $this->render_nothing();
-                } else {
-                    return $this->redirectToFolder(
-                        $folder,
-                        MessageBox::success(_('Datei wurde gelöscht!'))
-                    );
-                }
-            } else {
-                //file not found
-                PageLayout::postError(_('Datei nicht gefunden!'));
-                return;
+        CSRFProtection::verifyUnsafeRequest();
+        $file_ref = FileRef::find($file_ref_id);
+        if ($file_ref) {
+            $folder = $file_ref->folder->getTypedFolder();
+            if (!$folder || !$folder->isFileWritable($file_ref->id, $GLOBALS['user']->id)) {
+                throw new AccessDeniedException();
             }
+            if ($folder->deleteFile($file_ref->id)) {
+                PageLayout::postSuccess(_('Datei wurde gelöscht.'));
+            } else {
+                PageLayout::postError(_('Datei konnte nicht gelöscht werden.'));
+            }
+            $this->redirectToFolder($folder);
         } else {
-            //you can't delete things you don't know
-            PageLayout::postError(_('Datei-ID nicht angegeben!'));
-            return;
+            throw new Trails_Exception(404, _('Datei nicht gefunden.'));
         }
     }
 
@@ -1024,6 +1012,7 @@ class FileController extends AuthenticatedController
 
     public function delete_folder_action($folder_id)
     {
+        CSRFProtection::verifyUnsafeRequest();
         $folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
         URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
         if (!$folder || !$folder->isEditable($GLOBALS['user']->id)) {
@@ -1038,6 +1027,176 @@ class FileController extends AuthenticatedController
             PageLayout::postError(_('Ordner konnte nicht gelöscht werden!'));
         }
         $this->redirectToFolder($parent_folder);
+    }
+
+    /**
+     * This action allows downloading, copying, moving and deleting files and folders in bulk.
+     */
+    public function bulk_action($folder_id)
+    {
+        CSRFProtection::verifyUnsafeRequest();
+        $folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
+        URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
+        if (!$folder || !$folder->isReadable($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
+        }
+
+        //check, if at least one ID was given:
+        $ids = Request::getArray('ids');
+
+        if (empty($ids)) {
+            $this->redirectToFolder($folder);
+            return;
+        }
+
+        //check, which action was chosen:
+
+        if (Request::submitted('download')) {
+            //bulk downloading:
+
+            //loop through all ids, check if it refers to a file_ref or a folder
+            //and zip them into one big archive:
+
+            $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
+            $zip = new ZipArchive();
+
+            $zip_open_result = $zip->open($tmp_file, ZipArchive::CREATE);
+            if($zip_open_result !== true) {
+                throw new Exception('Could not create zip file: ' . $zip_open_result);
+            }
+
+            $zip_path = '';
+
+            $user = User::findCurrent();
+
+            foreach ($ids as $id) {
+                //check if the ID references a FileRef:
+                $filesystem_item = FileRef::find($id);
+                if(!$filesystem_item) {
+                    //check if the ID references a Folder:
+                    $filesystem_item = Folder::find($id);
+                    if($filesystem_item) {
+                        $filesystem_item = $filesystem_item->getTypedFolder();
+                    }
+                }
+
+                if(!$filesystem_item) {
+                    //we can't find any file system item for this ID!
+                    continue;
+                }
+
+                $this->fillZipArchive($zip, '', $filesystem_item, $user);
+
+            }
+
+            //finish writing:
+            $zip->close();
+
+            $this->redirect(GetDownloadLink(basename($tmp_file), basename($tmp_file) . '.zip', 4, 'force'));
+        } elseif(Request::submitted('copy')) {
+            //bulk copying
+            $selected_elements = Request::getArray('ids');
+            $this->redirect('file/choose_destination/' . implode('-', $selected_elements) . '/copy');
+            return;
+
+        } elseif(Request::submitted('move')) {
+            //bulk moving
+            $selected_elements = Request::getArray('ids');
+            $this->redirect('file/choose_destination/' . implode('-', $selected_elements) . '/move');
+            return;
+
+        } elseif(Request::submitted('delete')) {
+            //bulk deleting
+            $errors = array();
+            $count_files = 0;
+            $count_folders = 0;
+
+            $user = User::findCurrent();
+            $selected_elements = Request::getArray('ids');
+            foreach ($selected_elements as $element) {
+                if ($file_ref = FileRef::find($element)) {
+                    $parent_folder_id = $file_ref->folder_id;
+                    $result = FileManager::deleteFileRef($file_ref, $user);
+                    if (!is_array($result)) $count_files++;
+                } elseif ($folder = Folder::find($element)) {
+                    $parent_folder_id = $folder->parent_id;
+                    $foldertype = $folder->getTypedFolder();
+                    $result = FileManager::deleteFolder($foldertype, $user);
+                    if (!is_array($result)) {
+                        $count_folders++;
+                        $children = $this->countChildren($result);
+                        $count_files += $children[0];
+                        $count_folders += $children[1];
+                    }
+                }
+                if (is_array($result)) {
+                    $errors = array_merge($errors, $result);
+                }
+            }
+
+            if (empty($errors) || $count_files > 0 || $count_folders > 0) {
+
+                if (count($filerefs) == 1) {
+                    if ($source_folder) {
+                        PageLayout::postSuccess(_('Der Ordner wurde gelöscht!'));
+                    } else {
+                        PageLayout::postSuccess(_('Die Datei wurde gelöscht!'));
+                    }
+                } else {
+                    if ($count_files > 0 && $count_folders > 0) {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner und %s Dateien gelöscht!'), $count_folders, $count_files));
+                    } elseif ($count_files > 0) {
+                        PageLayout::postSuccess(sprintf(_('Es wurden  %s Dateien gelöscht!'), $count_files));
+                    } else {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner gelöscht!'), $count_folders));
+                    }
+                }
+
+            } else {
+                PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), $errors);
+            }
+
+
+            $this->redirectToFolder($folder);
+
+        }
+    }
+
+    private function fillZipArchive(ZipArchive $zip, $zip_path = '', $filesystem_item = null, User $user)
+    {
+        if($filesystem_item instanceof FileRef) {
+            //check permissions:
+            $folder = $filesystem_item->folder;
+            if(!$folder) {
+                return;
+            }
+
+            $folder = $folder->getTypedFolder();
+            if(!$folder) {
+                return;
+            }
+
+            if($folder->isFileDownloadable($filesystem_item->id, $user->id)) {
+                $zip->addFile($filesystem_item->file->getPath(), $zip_path . $filesystem_item->name);
+                $filesystem_item->downloads += 1;
+                $filesystem_item->store();
+            }
+        } elseif($filesystem_item instanceof FolderType) {
+            //check permissions:
+            if($filesystem_item->isReadable($user->id)) {
+                //add directory:
+                $zip->addEmptyDir($zip_path . $filesystem_item->name);
+
+                //loop through all file_refs and subfolders:
+                foreach($filesystem_item->getFiles() as $file_ref) {
+                    $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $file_ref, $user);
+                }
+
+                foreach($filesystem_item->getSubfolders() as $subfolder) {
+                    $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $subfolder, $user);
+                }
+            }
+        }
     }
 
 }

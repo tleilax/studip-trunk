@@ -267,20 +267,11 @@ class StandardFolder implements FolderType
 
     public function deleteFile($file_ref_id)
     {
-        $file_refs = $this->folderdata->file_refs;
+        $file_ref = $this->folderdata->file_refs->find($file_ref_id);
 
-        if($file_refs) {
-            foreach($file_refs as $file_ref) {
-                if($file_ref->id == $file_ref_id) {
-                    //we found the FileRef that shall be deleted
-                    return $file_ref->delete();
-                }
-            }
+        if ($file_ref) {
+            return $file_ref->delete();
         }
-
-        //if no file refs are present or the file ref can't be found
-        //we return false:
-        return false;
     }
 
 

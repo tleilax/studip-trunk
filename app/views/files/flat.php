@@ -1,5 +1,6 @@
-<form method="post" action="<?= URLHelper::getLink('dispatch.php/files/bulk') ?>">
-<table class="default documents sortable-table flat" data-sortlist="[[5, 1]]">
+<form method="post" action="<?= URLHelper::getLink('dispatch.php/file/bulk/' . $topFolder->getId()) ?>">
+    <?= CSRFProtection::tokenTag() ?>
+    <table class="default documents sortable-table flat" data-sortlist="[[5, 1]]">
     <?= $this->render_partial("files/_files_thead.php") ?>
 <? if (count($files) === 0): ?>
     <tbody>
@@ -20,11 +21,11 @@
         <tr>
             <td colspan="100">
             <?= Studip\Button::create(_('Herunterladen'), 'download') ?>
-            
+
             <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
                 <?= Studip\Button::create(_('Verschieben'), 'move', array('data-dialog' => '')) ?>
             <? endif ?>
-            
+
             <?= Studip\Button::create(_('Kopieren'), 'copy', array('data-dialog' => '')) ?>
 
             <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>

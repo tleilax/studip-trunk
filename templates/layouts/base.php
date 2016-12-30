@@ -55,6 +55,7 @@ if ($navigation) {
         STUDIP.jsupdate_enable = true;
         <? endif ?>
         STUDIP.URLHelper.parameters = <?= json_encode(studip_utf8encode(URLHelper::getLinkParams())) ?>;
+        STUDIP.CSRF_TOKEN = {name: '<?=CSRFProtection::TOKEN?>', value: '<?=CSRFProtection::token()?>'};
     </script>
     <?php
         // needs to be included in lib/include/html_head.inc.php as well

@@ -1,7 +1,7 @@
 <? if (!$controllerpath) : ?>
     <? $controllerpath = ($topFolder->range_type === "user" ? "" : $topFolder->range_type."/").'files/index' ?>
 <? endif ?>
-<form method="post" action="<?= URLHelper::getLink('dispatch.php/files/bulk') ?>">
+<form method="post" action="<?= URLHelper::getLink('dispatch.php/file/bulk/' . $topFolder->getId()) ?>">
 <?= CSRFProtection::tokenTag() ?>
 <input type="hidden" name="parent_folder_id" value="<?= $topFolder->getId() ?>" >
 <table class="default documents sortable-table" data-sortlist="[[2, 0]]" data-folder_id="<?= htmlReady($topFolder->getId()) ?>">

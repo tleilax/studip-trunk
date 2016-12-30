@@ -77,7 +77,7 @@
                     _('Ordner löschen'),
                     Icon::create('trash', 'clickable', array('size' => 20)),
                     [
-                        'onclick' => "STUDIP.Dialog.confirm('".sprintf(_('Soll der Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name))."');return false;"
+                        'onclick' => "return STUDIP.Dialog.confirmAsPost('".sprintf(_('Soll der Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name))."', this.href);"
                     ]) ?>
         <? endif; ?>
         <?= $actionMenu->render() ?>
