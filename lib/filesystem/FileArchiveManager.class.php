@@ -66,6 +66,110 @@ class FileArchiveManager
     }
     
     
+    /**
+     * Adds a FileRef to a Zip archive.
+     * 
+     * @param ZipArchive $archive The Zip archive where the FileRef shall be added to.
+     * @param FileRef $file_ref The FileRef which shall be added to the zip archive.
+     * @param string $user_id The user who wishes to add the FileRef to the archive.
+     * @param string $archive_path The path of the folder inside the archive.
+     * 
+     * @return bool True on success, false on failure.
+     * 
+     * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more
+     *     special exception is thrown.
+     */
+    public static function addFileRefToArchive(
+        ZipArchive $archive,
+        FileRef $file_ref,
+        $user_id = null,
+        $archive_path = ''
+    ) {
+        //For FileRef objects we first have to do permission checks
+        //using the FileRef's folder object.
+        $file_ref = $file_area_object;
+        $folder = $file_ref->folder;
+        if($folder) {
+            $folder = $folder->getTypedFolder();
+            if($folder) {
+                if($folder->isReadable($user_id) and $folder->isFileDownloadable($file_ref->id, $user->id)) {
+                    //FileRef is readable and downloadable for the user (identified by $user_id):
+                    //Get the file's path (if the file exists) and add the file to the archive:
+                    $file = $file_ref->file;
+                    if($file) {
+                        //Check if the FileRef references a file
+                        //in the file system or a link:
+                        if(!$file_ref->isLink()) {
+                            //The FileRef references a file:
+                            $file_path = $file->getPath();
+                            if($file_path and file_exists($file_path)) {
+                                $archive->addFile($file_path, $archive_path . $file_ref->name);
+                                return true;
+                            }
+                        } else {
+                            //The FileRef references a link:
+                            //TODO: put the URL into a file ending with .url
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        //Something must have gone wrong:
+        return false;
+    }
+        
+    
+    /**
+     * Adds a FolderType instance to a Zip archive.
+     * 
+     * @param ZipArchive $archive The Zip archive where the FileRef shall be added to.
+     * @param FileRef $file_ref The FileRef which shall be added to the zip archive.
+     * @param string $user_id The user who wishes to add the FileRef to the archive.
+     * @param bool $keep_hierarchy True, if the folder hierarchy shall be kept.
+     *     False, if the folder hierarchy shall be flattened.
+     * @param string $archive_path The path of the folder inside the archive.
+     * 
+     * @return bool True on success, false on failure.
+     * 
+     * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more
+     *     special exception is thrown.
+     */
+    public static function addFolderToArchive(
+        ZipArchive $archive,
+        FolderType $folder,
+        $user_id = null,
+        $keep_hierarchy = true,
+        $archive_path = ''
+    ) {
+        //Check if the folder is readable for the user (identified by $user_id):
+        if($folder->isReadable($user_id)) {
+            $folder_zip_path = $archive_path;
+            if($keep_hierarchy) {
+                $folder_zip_path .= $folder->name;
+                $archive->addEmptyDir($folder_zip_path);
+            }
+            foreach($folder->getFiles() as $file_ref) {
+                if($keep_hierarchy) {
+                    //keep hierarchy in zip file (files and subdirectories)
+                    self::addFileRefToArchive($archive, $file_ref, $user_id, $folder_zip_path . '/');
+                } else {
+                    //don't keep hierarchy (files only)
+                    self::addFileRefToArchive($archive, $file_ref, $user_id, $archive_path);
+                }
+            }
+            
+            foreach($folder->getSubfolders() as $subfolder) {
+                self::addFolderToArchive($archive, $subfolder, $user_id, $keep_hierarchy, $folder_zip_path);
+            }
+            return true;
+        }
+
+        //Folder is not readable:
+        return false;
+    }
+    
+    
     //ARCHIVE CREATION METHODS
     
     
@@ -80,8 +184,15 @@ class FileArchiveManager
      *     $file_area_objects may contain a mix between those object types.
      * @param User $user The user who wishes to pack files.
      * @param string $archive_path The path in which the archive shall be created.
-     * @param string $archive_file_name An optional file name for the archive. If omitted, an 
-     
+     * @param string $archive_file_name An optional file name for the archive.
+     *     If omitted, a random name is generated.
+     * @param bool $keep_hierarchy True, if the folder hierarchy shall be kept.
+     *     False, if the folder hierarchy shall be flattened.
+     * 
+     * @return ZipArchive A ZipArchive object for the created archive.
+     * 
+     * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more
+     *     special exception is thrown.
      */
     public static function createArchive(
         $file_area_objects = [],
@@ -92,37 +203,91 @@ class FileArchiveManager
         $archive_file_name = '',
         $keep_hierarchy = true
     ) {
-        /*
-        TODO:
-        - loop over all $file_area_objects
-        - foreach $file_area_objects as $file_area_object:
-          - check, if it is an instance of FileRef, FileURL, Folder or FolderType
-          - if not: continue to next item in array (do not process object)
-          - if instance of FileRef, FileURL, Folder or FolderType:
-          
-          - if FileRef:
-            - check permissions: isReadable, isFileDownloadable (via FolderType)
-            - if permission check successful:
-              - get file path (if file exists) and add file to archive
-            - if permission check not successful:
-              - continue to next item in array (do not process object)
-          
-          - if FileURL:
-            - same as for FileRef, but add it as .url file which contains
-              the URL the FileURL points to.
-          
-          - if Folder or FolderType:
-            - in case of Folder: get the associated FolderType
-            - check if folder is readable, continue to next object, if not
-            - create empty folder in archive
-            - call self::addToArchive for $folder->getFiles()
-                with path to empty folder in archive
-            
-            - foreach($folder->getSubfolders() as $subfolder):
-                - add empty folder to archive
-                - call self::addToArchive for $subfolder with $subfolder and
-                    $keep_hierarchy parameter (if the subfolder has subfolders, too)
-        */
+        
+        $archive_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
+        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE;
+        
+        //check if archive path is set:
+        if(!$archive_path) {
+            throw new FileArchiveManagerException(
+                'Destination path for file archive is not set!'
+            );
+        }
+        
+        //check if archive path exists:
+        if(!file_exists($archive_path)) {
+            throw new FileArchiveManagerException(
+                'Destination path for file archive does not exist!'
+            );
+        }
+        
+        if(!$archive_file_name) {
+            $archive_file_name = md5(uniqid('FileArchiveManager::createArchiveFromFileRefs', true));
+        }
+        $archive_path = $archive_path . '/' . $archive_file_name;
+        
+        //We can create the Zip archive now since its path exists in the file system.
+        
+        $archive = new ZipArchive();
+        if(!$archive->open($archive_path, ZipArchive::CREATE)) {
+            throw new FileArchiveManagerException(
+                'Error opening new ZIP archive!'
+            );
+        }
+        
+        //$file_area_objects must be an array!
+        //Otherwise we return an empty Zip archive.
+        if(!is_array($file_area_objects)) {
+            return $archive;
+        }
+        
+        //If there are no File area objects, we can stop here
+        //and return an empty Zip archive.
+        if(empty($file_area_objects)) {
+            return $archive;
+        }
+        
+        
+        $check_size = true;
+        
+        //check if the maximum number of files and maximum archive file size
+        //is set. If not, we can't check for the file sizes.
+        if(!$archive_max_num_files && !$archive_max_size) {
+            $check_size = false;
+        }
+        
+        //Check if more file area objects than allowed shall be packed:
+        //In that case, stop here.
+        if(count($file_area_objects) > $archive_max_num_files) {
+            throw new FileArchiveManagerException(
+                "Too many file area objects! Limit is $archive_max_num_files!"
+            );
+        }
+        
+        
+        foreach($file_area_objects as $file_area_object) {
+            if($file_area_object instanceof FileRef) {
+                self::addFileRefToArchive(
+                    $archive,
+                    $file_area_object,
+                    $user_id
+                );
+            } elseif(($file_area_object instanceof Folder) or
+                ($file_area_object instanceof FolderType)) {
+                $folder = $file_area_object;
+                if($folder instanceof Folder) {
+                    //We use FolderType instances here.
+                    $folder = $folder->getTypedFolder();
+                }
+                
+                self::addFolderToArchive(
+                    $archive,
+                    $folder,
+                    $user_id,
+                    $keep_hierarchy
+                );
+            }
+        }
     }
     
     
