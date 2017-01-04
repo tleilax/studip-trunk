@@ -1362,6 +1362,7 @@ class Admin_UserController extends AuthenticatedController
             $sql_params
         );
         
+        
         $user = User::find($user_id);
         
         $archive_file_name = $user->username . '_files_' . date('Ymd-Hi') . '.zip';
@@ -1370,11 +1371,9 @@ class Admin_UserController extends AuthenticatedController
             $file_refs,
             User::findCurrent(),
             $TMP_PATH,
-            $archive_file_name
+            $archive_file_name,
+            false //we want ALL files of the user and therefore skip permission checks
         );
-        
-        
-        //print_r($archive);
         
         
         $archive_download_link = FileArchiveManager::getArchiveUrl($archive);

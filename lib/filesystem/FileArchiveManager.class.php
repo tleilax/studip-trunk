@@ -37,14 +37,19 @@ class FileArchiveManager
      * @param ZipArchive $archive The archive whose download URL shall be returned.
      * 
      * @return string The download URL of the archive. Empty string on failure.
+     * 
+     * @throws FileArchiveManagerException If the archive does not exist or was closed
+     *     so that the archive's file name is inaccessible a FileArchiveManagerException
+     *     is thrown.
      */
     public static function getArchiveUrl(ZipArchive $archive)
     {
         $zip_file_path = $archive->filename;
         
         if(!$zip_file_path) {
-            //Archive does not exist or was closed.
-            return '';
+            throw new FileArchiveManagerException(
+                'Cannot retrieve archive file name: Archive does not exist or was closed!'
+            );
         }
         
         $zip_file_name = basename($zip_file_path);
@@ -73,6 +78,8 @@ class FileArchiveManager
      * @param FileRef $file_ref The FileRef which shall be added to the zip archive.
      * @param string $user_id The user who wishes to add the FileRef to the archive.
      * @param string $archive_path The path of the folder inside the archive.
+     * @param bool $do_permission_check Set to true if reading/downloading permissions
+     *     shall be checked. False otherwise. Default is true.
      * 
      * @return bool True on success, false on failure.
      * 
@@ -83,38 +90,66 @@ class FileArchiveManager
         ZipArchive $archive,
         FileRef $file_ref,
         $user_id = null,
-        $archive_path = ''
+        $archive_path = '',
+        $do_permission_check = true
     ) {
+        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
+        
         //For FileRef objects we first have to do permission checks
         //using the FileRef's folder object.
-        $file_ref = $file_area_object;
-        $folder = $file_ref->folder;
-        if($folder) {
+        
+        $adding_allowed = false;
+        
+        if($do_permission_check) {
+            $folder = $file_ref->folder;
+            if(!$folder) {
+                return false;
+            }
             $folder = $folder->getTypedFolder();
-            if($folder) {
-                if($folder->isReadable($user_id) and $folder->isFileDownloadable($file_ref->id, $user->id)) {
-                    //FileRef is readable and downloadable for the user (identified by $user_id):
-                    //Get the file's path (if the file exists) and add the file to the archive:
-                    $file = $file_ref->file;
-                    if($file) {
-                        //Check if the FileRef references a file
-                        //in the file system or a link:
-                        if(!$file_ref->isLink()) {
-                            //The FileRef references a file:
-                            $file_path = $file->getPath();
-                            if($file_path and file_exists($file_path)) {
-                                $archive->addFile($file_path, $archive_path . $file_ref->name);
-                                return true;
+            if(!$folder) {
+                return false;
+            }
+            if($folder->isReadable($user_id) and $folder->isFileDownloadable($file_ref->id, $user->id)) {
+                //FileRef is readable and downloadable for the user (identified by $user_id).
+                $adding_allowed = true;
+            }
+        } else {
+            //Skip permission checks:
+            $adding_allowed = true;
+        }
+        
+        if($adding_allowed) {
+            //Adding the FileRef is allowed:
+            //Get the file's path (if the file exists) and add the file to the archive:
+            $file = $file_ref->file;
+            if($file) {
+                //Check if the FileRef references a file
+                //in the file system or a link:
+                if(!$file_ref->isLink()) {
+                    //The FileRef references a file:
+                    $file_path = $file->getPath();
+                    if($file_path and file_exists($file_path)) {
+                        $archive->addFile($file_path, $archive_path . $file_ref->name);
+                        
+                        //The archive file may not exist if it is empty!
+                        if(file_exists($archive->filename)) {
+                            if(filesize($archive->filename) > $archive_max_size) {
+                                throw new FileArchiveManagerException(
+                                    "Zip archive is too big! Limit is $archive_max_size bytes!"
+                                );
                             }
-                        } else {
-                            //The FileRef references a link:
-                            //TODO: put the URL into a file ending with .url
-                            return true;
                         }
+                        
+                        return true;
                     }
+                } else {
+                    //The FileRef references a link:
+                    //TODO: put the URL into a file ending with .url
+                    return true;
                 }
             }
         }
+        
         //Something must have gone wrong:
         return false;
     }
@@ -126,9 +161,11 @@ class FileArchiveManager
      * @param ZipArchive $archive The Zip archive where the FileRef shall be added to.
      * @param FileRef $file_ref The FileRef which shall be added to the zip archive.
      * @param string $user_id The user who wishes to add the FileRef to the archive.
+     * @param string $archive_path The path of the folder inside the archive.
+     * @param bool $do_permission_check Set to true if reading/downloading permissions
+     *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the folder hierarchy shall be kept.
      *     False, if the folder hierarchy shall be flattened.
-     * @param string $archive_path The path of the folder inside the archive.
      * 
      * @return bool True on success, false on failure.
      * 
@@ -139,34 +176,65 @@ class FileArchiveManager
         ZipArchive $archive,
         FolderType $folder,
         $user_id = null,
-        $keep_hierarchy = true,
-        $archive_path = ''
+        $archive_path = '',
+        $do_permission_check = true,
+        $keep_hierarchy = true
     ) {
-        //Check if the folder is readable for the user (identified by $user_id):
-        if($folder->isReadable($user_id)) {
-            $folder_zip_path = $archive_path;
-            if($keep_hierarchy) {
-                $folder_zip_path .= $folder->name;
-                $archive->addEmptyDir($folder_zip_path);
+        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
+        
+        if($do_permission_check) {
+            //Check if the folder is readable for the user (identified by $user_id):
+            if(!$folder->isReadable($user_id)) {
+                //Folder is not readable:
+                return false;
             }
-            foreach($folder->getFiles() as $file_ref) {
-                if($keep_hierarchy) {
-                    //keep hierarchy in zip file (files and subdirectories)
-                    self::addFileRefToArchive($archive, $file_ref, $user_id, $folder_zip_path . '/');
-                } else {
-                    //don't keep hierarchy (files only)
-                    self::addFileRefToArchive($archive, $file_ref, $user_id, $archive_path);
-                }
-            }
-            
-            foreach($folder->getSubfolders() as $subfolder) {
-                self::addFolderToArchive($archive, $subfolder, $user_id, $keep_hierarchy, $folder_zip_path);
-            }
-            return true;
         }
-
-        //Folder is not readable:
-        return false;
+        
+        $folder_zip_path = $archive_path;
+        if($keep_hierarchy) {
+            $folder_zip_path .= $folder->name;
+            $archive->addEmptyDir($folder_zip_path);
+        }
+        foreach($folder->getFiles() as $file_ref) {
+            if($keep_hierarchy) {
+                //keep hierarchy in zip file (files and subdirectories)
+                self::addFileRefToArchive(
+                    $archive,
+                    $file_ref,
+                    $user_id,
+                    $folder_zip_path . '/',
+                    $do_permission_check
+                );
+            } else {
+                //don't keep hierarchy (files only)
+                self::addFileRefToArchive(
+                    $archive,
+                    $file_ref,
+                    $user_id,
+                    $do_permission_check,
+                    $archive_path
+                );
+            }
+        }
+        
+        foreach($folder->getSubfolders() as $subfolder) {
+            self::addFolderToArchive(
+                $archive,
+                $subfolder,
+                $user_id,
+                $folder_zip_path,
+                $do_permission_check,
+                $keep_hierarchy
+            );
+        }
+        
+        if(filesize($archive->filename) > $archive_max_size) {
+            throw new FileArchiveManagerException(
+                "Zip archive is too big! Limit is $archive_max_size bytes!"
+            );
+        }
+        
+        return true;
     }
     
     
@@ -182,12 +250,13 @@ class FileArchiveManager
      * 
      * @param Array $file_area_objects Array of FileRef, FileURL, Folder or FolderType objects.
      *     $file_area_objects may contain a mix between those object types.
-     * @param User $user The user who wishes to pack files.
      * @param string $archive_path The path in which the archive shall be created.
      * @param string $archive_file_name An optional file name for the archive.
      *     If omitted, a random name is generated.
+     * @param bool $do_permission_check Set to true if reading/downloading permissions
+     *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the folder hierarchy shall be kept.
-     *     False, if the folder hierarchy shall be flattened.
+     *     False, if the folder hierarchy shall be flattened. Default is true.
      * 
      * @return ZipArchive A ZipArchive object for the created archive.
      * 
@@ -196,16 +265,15 @@ class FileArchiveManager
      */
     public static function createArchive(
         $file_area_objects = [],
-        $range_id = null,
-        $range_type = '',
         $user_id = null,
         $archive_path = '',
         $archive_file_name = '',
+        $do_permission_check = true,
         $keep_hierarchy = true
     ) {
         
         $archive_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
-        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE;
+        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
         
         //check if archive path is set:
         if(!$archive_path) {
@@ -229,7 +297,7 @@ class FileArchiveManager
         //We can create the Zip archive now since its path exists in the file system.
         
         $archive = new ZipArchive();
-        if(!$archive->open($archive_path, ZipArchive::CREATE)) {
+        if(!$archive->open($archive_path, ZipArchive::CREATE | ZipArchive::OVERWRITE)) {
             throw new FileArchiveManagerException(
                 'Error opening new ZIP archive!'
             );
@@ -238,27 +306,21 @@ class FileArchiveManager
         //$file_area_objects must be an array!
         //Otherwise we return an empty Zip archive.
         if(!is_array($file_area_objects)) {
+            echo 'no array!';
             return $archive;
         }
         
         //If there are no File area objects, we can stop here
         //and return an empty Zip archive.
         if(empty($file_area_objects)) {
+            echo 'empty array!';
             return $archive;
         }
         
         
-        $check_size = true;
-        
-        //check if the maximum number of files and maximum archive file size
-        //is set. If not, we can't check for the file sizes.
-        if(!$archive_max_num_files && !$archive_max_size) {
-            $check_size = false;
-        }
-        
         //Check if more file area objects than allowed shall be packed:
         //In that case, stop here.
-        if(count($file_area_objects) > $archive_max_num_files) {
+        if($archive_max_num_files and (count($file_area_objects) > $archive_max_num_files)) {
             throw new FileArchiveManagerException(
                 "Too many file area objects! Limit is $archive_max_num_files!"
             );
@@ -270,7 +332,9 @@ class FileArchiveManager
                 self::addFileRefToArchive(
                     $archive,
                     $file_area_object,
-                    $user_id
+                    $user_id,
+                    '',
+                    $do_permission_check
                 );
             } elseif(($file_area_object instanceof Folder) or
                 ($file_area_object instanceof FolderType)) {
@@ -284,10 +348,14 @@ class FileArchiveManager
                     $archive,
                     $folder,
                     $user_id,
+                    '',
+                    $do_permission_check,
                     $keep_hierarchy
                 );
             }
         }
+        
+        return $archive;
     }
     
     
@@ -298,7 +366,10 @@ class FileArchiveManager
      * @param FileRef[] $file_refs Array of FileRef objects.
      * @param User $user The user who wishes to pack files.
      * @param string $archive_path The path in which the archive shall be created.
-     * @param string $archive_file_name An optional file name for the archive. If omitted, an 
+     * @param string $archive_file_name An optional file name for the archive.
+     *     If omitted, a random name is generated.
+     * @param bool $do_permission_check Set to true if reading/downloading permissions
+     *     shall be checked. False otherwise. Default is true.
      * 
      * @return ZipArchive The created ZipArchive object.
      * 
@@ -308,7 +379,8 @@ class FileArchiveManager
         $file_refs = [],
         User $user,
         $archive_path = '',
-        $archive_file_name = ''
+        $archive_file_name = '',
+        $do_permission_check = true
         ){
         
         $archive_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
@@ -323,86 +395,24 @@ class FileArchiveManager
         if(!$archive_file_name) {
             $archive_file_name = md5(uniqid('FileArchiveManager::createArchiveFromFileRefs', true));
         }
-        $archive_path = $archive_path . '/' . $archive_file_name;
-        
-        $archive = new ZipArchive();
-        if(!$archive->open($archive_path, ZipArchive::CREATE)) {
-            throw new FileArchiveManagerException(
-                'Error opening new ZIP archive!'
-            );
-        }
-        
-        //$file_ref_ids must be an array!
-        if(!is_array($file_refs)) {
-            return $archive;
-        }
-        
-        //If there are no FileRef IDs, we can stop here.
-        if(empty($file_refs)) {
-            return $archive;
-        }
-        
-        
-        $check_size = true;
-        
-        //check if the maximum number of files and maximum archive file size
-        //is set. If not, we can't check for the file sizes.
-        if(!$archive_max_num_files && !$archive_max_size) {
-            $check_size = false;
-        }
-        
-        //check if more files than allowed shall be packed:
-        //In that case, stop here.
-        if(count($file_refs) > $archive_max_num_files) {
-            return $archive;
-        }
-        
-        //For each FileRef we must check if the user is allowed to download it.
-        
-        $downloadable_file_refs = [];
-        $downloadable_files_total_size = 0;
-        
-        foreach($file_refs as $file_ref) {
-            //we handle only FileRef instances here
-            if($file_ref instanceof FileRef) {
-                $folder = $file_ref->folder;
-                if($folder) {
-                    $folder = $folder->getTypedFolder();
-                    if($folder) {
-                        if($folder->isFileDownloadable($file_ref->id, $user->id)) {
-                            $downloadable_file_refs[] = $file_ref;
-                        }
-                    }
-                }
-            }
-        }
-        
-        //Ok, we have only those FileRefs that can be downloaded by the user.
-        //Now we must check, if the size of those files exceed the maximum
-        //allowed size for file archives, if we can check for that.
-        
-        if($check_size) {
-            if($downloadable_files_total_size > $archive_max_size) {
-                //The total size of all downloadable files exceeds the
-                //maximum allowed size for file archives. We must stop here!
-                return $archive;
-            }
-        }
-        
         
         //We must now collect all the files from these FileRefs and copy them
         //into the new archive file.
         
-        foreach($downloadable_file_refs as $file_ref) {
-            $file = $file_ref->file;
-            if($file) {
-                $file_path = $file->getPath();
-                if($file_path) {
-                    $archive->addFile($file_path, $file_ref->name);
-                }
-            }
-        }
+        $archive = self::createArchive(
+            $file_refs,
+            $user->id,
+            $archive_path,
+            $archive_file_name,
+            $do_permission_check,
+            false //do not keep the file hierarchy
+        );
         
+        if($archive === null) {
+            throw new FileArchiveManagerException(
+                'Error during archive creation!'
+            );
+        }
         
         //Ok, archive file is finished. Return the ZipArchive object:
         return $archive;
