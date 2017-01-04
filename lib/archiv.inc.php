@@ -714,7 +714,16 @@ function in_archiv ($sem_id)
         
         //create name for the archive ZIP file:
         $archive_file_id = md5('archive_' . $sem_id);
-
+        
+        $public_files_archive = FileArchiveManager::createArchiveFromCourse(
+            $sem_id,
+            'nobody',
+            $ARCHIV_PATH,
+            $archive_file_id
+        );
+        
+        /*
+        $archive_path = $ARCHIV_PATH . '/' . $archive_file_id;
         //create temporary directory
         $archive_tmp_dir_path = "$TMP_PATH/$archive_file_id";
         mkdir($archive_tmp_dir_path, 0700);
@@ -731,22 +740,32 @@ function in_archiv ($sem_id)
         
         //We zip all the files we could copy with FileManager::copyFolderContentIntoPath.
         
-        $archive_path = $ARCHIV_PATH . '/' . $archive_file_id;
         create_zip_from_directory($archive_tmp_dir_path, $archive_tmp_dir_path);
         //move archive zip to archive path:
         @rename($archive_tmp_dir_path . '.zip', $archive_path);
         //delete temporary folder (and by that: all subfolders in it)
         rmdirr($archive_tmp_dir_path);
-
+        */
         
         if (!empty($unreadable_folders)) {
             //We must store the files in unreadable folders differently:
             //Such files are stored without the folder hierarchy in one
             //ZIP file.
             
+            $archive_protected_files_zip_id = md5('protected_archive_'.$sem_id);
+            
+            $unreadable_folders_zip = FileArchiveManager::createArchive(
+                $unreadable_folders,
+                null,
+                $ARCHIV_PATH,
+                $archive_protected_files_zip_id,
+                false, //no permission checks
+                false //do not keep the folder hierarchy
+            );
+            
+            /*
             echo 'PRIV ';
             
-            $archive_protected_files_zip_id = md5('protected_archive_'.$sem_id);
             $archive_protected_files_zip_path = $TMP_PATH . '/' . $archive_protected_files_zip_id;
             
             //create temporary folder:
@@ -781,6 +800,7 @@ function in_archiv ($sem_id)
             
             //delete temporary folder (and all of its content):
             rmdirr($archive_protected_files_zip_path);
+            */
         }
     }
     

@@ -428,6 +428,8 @@ class FileArchiveManager
      * @param string $user_id The ID of the user who wishes to put the course's files into an archive
      * @param string $archive_path The path where the archive shall be placed.
      * @param string $archive_file_name (optional) The file name of the archive.
+     * @param bool $do_permission_checks Set to true if reading/downloading permissions
+     *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
      *     If $keep_hierarchy is set to false you will get an archive that contains only files
      *     and no subdirectories.
@@ -437,9 +439,24 @@ class FileArchiveManager
         $user_id = null,
         $archive_path = '',
         $archive_file_name = '',
+        $do_permission_checks = true,
         $keep_hierarchy = true)
     {
-        //to be implemented
+        $folder_children = [];
+        foreach($folder->subfolders as $subfolder) {
+            $folder_children[] = $subfolder;
+        }
+        foreach($folder->file_refs as $file_ref) {
+            $folder_children[] = $file_ref;
+        }
+        
+        return self::createArchive(
+            $folder_children,
+            $archive_path,
+            $archive_file_name,
+            $do_permission_checks,
+            $keep_hierarchy
+        );
     }
     
     
@@ -452,6 +469,8 @@ class FileArchiveManager
      * @param string $user_id The ID of the user who wishes to put the course's files into an archive
      * @param string $archive_path The path where the archive shall be placed.
      * @param string $archive_file_name (optional) The file name of the archive.
+     * @param bool $do_permission_checks Set to true if reading/downloading permissions
+     *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
      *     If $keep_hierarchy is set to false you will get an archive that contains only files
      *     and no subdirectories.
@@ -461,9 +480,34 @@ class FileArchiveManager
         $user_id = null,
         $archive_path = '',
         $archive_file_name = '',
+        $do_permission_checks = true,
         $keep_hierarchy = true)
     {
-        //to be implemented
+        $folder = Folder::findTopFolder($course_id);
+        if(!$folder) {
+            return null;
+        }
+        
+        $folder = $folder->getTypedFolder();
+        if(!$folder) {
+            return null;
+        }
+        
+        $folder_children = [];
+        foreach($folder->subfolders as $subfolder) {
+            $folder_children[] = $subfolder;
+        }
+        foreach($folder->file_refs as $file_ref) {
+            $folder_children[] = $file_ref;
+        }
+        
+        return self::createArchive(
+            $folder_children,
+            $archive_path,
+            $archive_file_name,
+            $do_permission_checks,
+            $keep_hierarchy
+        );
     }
     
     
@@ -475,6 +519,8 @@ class FileArchiveManager
      * @param string $user_id The ID of the user who wishes to put the institute's files into an archive
      * @param string $archive_path The path where the archive shall be placed.
      * @param string $archive_file_name (optional) The file name of the archive.
+     * @param bool $do_permission_checks Set to true if reading/downloading permissions
+     *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
      *     If $keep_hierarchy is set to false you will get an archive that contains only files
      *     and no subdirectories.
@@ -484,9 +530,34 @@ class FileArchiveManager
         $user_id = null,
         $archive_path = '',
         $archive_file_name = '',
+        $do_permission_checks = true,
         $keep_hierarchy = true)
     {
-        //to be implemented
+        $folder = Folder::findTopFolder($institute_id);
+        if(!$folder) {
+            return null;
+        }
+        
+        $folder = $folder->getTypedFolder();
+        if(!$folder) {
+            return null;
+        }
+        
+        $folder_children = [];
+        foreach($folder->subfolders as $subfolder) {
+            $folder_children[] = $subfolder;
+        }
+        foreach($folder->file_refs as $file_ref) {
+            $folder_children[] = $file_ref;
+        }
+        
+        return self::createArchive(
+            $folder_children,
+            $archive_path,
+            $archive_file_name,
+            $do_permission_checks,
+            $keep_hierarchy
+        );
     }
     
     
@@ -497,17 +568,49 @@ class FileArchiveManager
      * @param string $user_id The ID of the user whose files shall be put inside an archive.
      * @param string $archive_path The path where the archive shall be placed.
      * @param string $archive_file_name (optional) The file name of the archive.
+     * @param bool $do_permission_checks Set to true if reading/downloading permissions
+     *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
      *     If $keep_hierarchy is set to false you will get an archive that contains only files
      *     and no subdirectories.
+     * 
+     * @return ZipArchive|null The created ZipArchive object or null if the requirements
+     *     to create a Zip archive are not met.
+     * 
+     * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more special exception is thrown.
      */
     public static function createArchiveFromUser(
         $user_id = null,
         $archive_path = '',
         $archive_file_name = '',
+        $do_permission_checks = true,
         $keep_hierarchy = true)
     {
-        //to be implemented
+        $folder = Folder::findTopFolder($user_id);
+        if(!$folder) {
+            return null;
+        }
+        
+        $folder = $folder->getTypedFolder();
+        if(!$folder) {
+            return null;
+        }
+        
+        $folder_children = [];
+        foreach($folder->subfolders as $subfolder) {
+            $folder_children[] = $subfolder;
+        }
+        foreach($folder->file_refs as $file_ref) {
+            $folder_children[] = $file_ref;
+        }
+        
+        return self::createArchive(
+            $folder_children,
+            $archive_path,
+            $archive_file_name,
+            $do_permission_checks,
+            $keep_hierarchy
+        );
     }
     
     

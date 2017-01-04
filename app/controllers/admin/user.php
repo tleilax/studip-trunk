@@ -1303,19 +1303,31 @@ class Admin_UserController extends AuthenticatedController
             'query' => "SELECT COUNT(*) FROM resources_objects WHERE owner_id = ? GROUP BY owner_id",
         ];
         $queries[] = [
-            'desc'    => _("Anzahl der Dateien (hochgeladen / verlinkt)"),
-            'query'   => "SELECT CONCAT_WS(' / ', COUNT(*) - COUNT(NULLIF(url,'')), COUNT(NULLIF(url,'')))
-                  FROM dokumente
-                  WHERE user_id = ?
-                  GROUP BY user_id",
+            'desc'    => _("Anzahl der Dateien in Veranstaltungen und Einrichtungen"),
+            'query'   => "SELECT COUNT(file_refs.id)
+                  FROM (file_refs INNER JOIN files ON file_refs.file_id = files.id)
+                  INNER JOIN folders ON file_refs.folder_id = folders.id
+                  WHERE (file_refs.user_id = ?)
+                  AND (files.storage <> 'url')
+                  AND (
+                    (folders.range_type = 'course') 
+                    OR (folders.range_type = 'institute')
+                  )
+                  GROUP BY file_refs.user_id",
             'details' => "files",
         ];
         $queries[] = [
-            'desc'    => _("Gesamtgröße der hochgeladenen Dateien (MB)"),
-            'query'   => "SELECT FORMAT(SUM(filesize)/1024/1024,2)
-                  FROM dokumente
-                  WHERE user_id = ? AND (url IS NULL OR url = '')
-                  GROUP BY user_id",
+            'desc'    => _("Gesamtgröße der hochgeladenen Dateien in Veranstaltungen und Einrichtungen (in Megabytes)"),
+            'query'   => "SELECT FORMAT(SUM(files.size)/1000000,2)
+                  FROM (file_refs INNER JOIN files ON file_refs.file_id = files.id)
+                  INNER JOIN folders ON file_refs.folder_id = folders.id
+                  WHERE (file_refs.user_id = ?)
+                  AND (files.storage <> 'url')
+                  AND (
+                    (folders.range_type = 'course') 
+                    OR (folders.range_type = 'institute')
+                  )
+                  GROUP BY file_refs.user_id",
             'details' => "files",
         ];
 
@@ -1347,7 +1359,7 @@ class Admin_UserController extends AuthenticatedController
      */
     public function download_user_files_action($user_id, $course_id = '')
     {
-        global $TMP_PATH;
+        global $TMP_PATH, $perm;
         
         $sql = 'user_id = :user_id';
         $sql_params = ['user_id' => $user_id];
@@ -1371,8 +1383,7 @@ class Admin_UserController extends AuthenticatedController
             $file_refs,
             User::findCurrent(),
             $TMP_PATH,
-            $archive_file_name,
-            false //we want ALL files of the user and therefore skip permission checks
+            $archive_file_name
         );
         
         
@@ -1492,7 +1503,7 @@ class Admin_UserController extends AuthenticatedController
         }
 
         if ($this->action == 'activities') {
-            $user_actions->addLink(_('Alle Dateien als ZIP herunterladen'),
+            $user_actions->addLink(_('Alle Dateien des Nutzers aus Veranstaltungen und Einrichtungen als ZIP herunterladen'),
                 $this->url_for('admin/user/download_user_files/' . $this->user->user_id),
                 Icon::create('folder-full', 'clickable'));
         }
