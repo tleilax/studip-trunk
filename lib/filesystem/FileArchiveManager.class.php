@@ -78,7 +78,7 @@ class FileArchiveManager
      * @param FileRef $file_ref The FileRef which shall be added to the zip archive.
      * @param string $user_id The user who wishes to add the FileRef to the archive.
      * @param string $archive_path The path of the folder inside the archive.
-     * @param bool $do_permission_check Set to true if reading/downloading permissions
+     * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * 
      * @return bool True on success, false on failure.
@@ -91,7 +91,7 @@ class FileArchiveManager
         FileRef $file_ref,
         $user_id = null,
         $archive_path = '',
-        $do_permission_check = true
+        $do_permission_checks = true
     ) {
         $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
         
@@ -100,7 +100,7 @@ class FileArchiveManager
         
         $adding_allowed = false;
         
-        if($do_permission_check) {
+        if($do_permission_checks) {
             $folder = $file_ref->folder;
             if(!$folder) {
                 return false;
@@ -162,7 +162,7 @@ class FileArchiveManager
      * @param FileRef $file_ref The FileRef which shall be added to the zip archive.
      * @param string $user_id The user who wishes to add the FileRef to the archive.
      * @param string $archive_path The path of the folder inside the archive.
-     * @param bool $do_permission_check Set to true if reading/downloading permissions
+     * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the folder hierarchy shall be kept.
      *     False, if the folder hierarchy shall be flattened.
@@ -177,12 +177,12 @@ class FileArchiveManager
         FolderType $folder,
         $user_id = null,
         $archive_path = '',
-        $do_permission_check = true,
+        $do_permission_checks = true,
         $keep_hierarchy = true
     ) {
         $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
         
-        if($do_permission_check) {
+        if($do_permission_checks) {
             //Check if the folder is readable for the user (identified by $user_id):
             if(!$folder->isReadable($user_id)) {
                 //Folder is not readable:
@@ -203,7 +203,7 @@ class FileArchiveManager
                     $file_ref,
                     $user_id,
                     $folder_zip_path . '/',
-                    $do_permission_check
+                    $do_permission_checks
                 );
             } else {
                 //don't keep hierarchy (files only)
@@ -211,7 +211,7 @@ class FileArchiveManager
                     $archive,
                     $file_ref,
                     $user_id,
-                    $do_permission_check,
+                    $do_permission_checks,
                     $archive_path
                 );
             }
@@ -223,7 +223,7 @@ class FileArchiveManager
                 $subfolder,
                 $user_id,
                 $folder_zip_path,
-                $do_permission_check,
+                $do_permission_checks,
                 $keep_hierarchy
             );
         }
@@ -253,7 +253,7 @@ class FileArchiveManager
      * @param string $archive_path The path in which the archive shall be created.
      * @param string $archive_file_name An optional file name for the archive.
      *     If omitted, a random name is generated.
-     * @param bool $do_permission_check Set to true if reading/downloading permissions
+     * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the folder hierarchy shall be kept.
      *     False, if the folder hierarchy shall be flattened. Default is true.
@@ -268,7 +268,7 @@ class FileArchiveManager
         $user_id = null,
         $archive_path = '',
         $archive_file_name = '',
-        $do_permission_check = true,
+        $do_permission_checks = true,
         $keep_hierarchy = true
     ) {
         
@@ -334,7 +334,7 @@ class FileArchiveManager
                     $file_area_object,
                     $user_id,
                     '',
-                    $do_permission_check
+                    $do_permission_checks
                 );
             } elseif(($file_area_object instanceof Folder) or
                 ($file_area_object instanceof FolderType)) {
@@ -349,7 +349,7 @@ class FileArchiveManager
                     $folder,
                     $user_id,
                     '',
-                    $do_permission_check,
+                    $do_permission_checks,
                     $keep_hierarchy
                 );
             }
@@ -368,7 +368,7 @@ class FileArchiveManager
      * @param string $archive_path The path in which the archive shall be created.
      * @param string $archive_file_name An optional file name for the archive.
      *     If omitted, a random name is generated.
-     * @param bool $do_permission_check Set to true if reading/downloading permissions
+     * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * 
      * @return ZipArchive The created ZipArchive object.
@@ -380,7 +380,7 @@ class FileArchiveManager
         User $user,
         $archive_path = '',
         $archive_file_name = '',
-        $do_permission_check = true
+        $do_permission_checks = true
         ){
         
         $archive_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
@@ -404,7 +404,7 @@ class FileArchiveManager
             $user->id,
             $archive_path,
             $archive_file_name,
-            $do_permission_check,
+            $do_permission_checks,
             false //do not keep the file hierarchy
         );
         
