@@ -228,10 +228,12 @@ class FileArchiveManager
             );
         }
         
-        if(filesize($archive->filename) > $archive_max_size) {
-            throw new FileArchiveManagerException(
-                "Zip archive is too big! Limit is $archive_max_size bytes!"
-            );
+        if(file_exists($archive->filename)) {
+            if(filesize($archive->filename) > $archive_max_size) {
+                throw new FileArchiveManagerException(
+                    "Zip archive is too big! Limit is $archive_max_size bytes!"
+                );
+            }
         }
         
         return true;
@@ -290,14 +292,14 @@ class FileArchiveManager
         }
         
         if(!$archive_file_name) {
-            $archive_file_name = md5(uniqid('FileArchiveManager::createArchiveFromFileRefs', true));
+            $archive_file_name = md5(uniqid('FileArchiveManager', true));
         }
-        $archive_path = $archive_path . '/' . $archive_file_name;
+        $archive_file_path = $archive_path . '/' . $archive_file_name;
         
         //We can create the Zip archive now since its path exists in the file system.
         
         $archive = new ZipArchive();
-        if(!$archive->open($archive_path, ZipArchive::CREATE | ZipArchive::OVERWRITE)) {
+        if(!$archive->open($archive_file_path, ZipArchive::CREATE | ZipArchive::OVERWRITE)) {
             throw new FileArchiveManagerException(
                 'Error opening new ZIP archive!'
             );
@@ -306,14 +308,12 @@ class FileArchiveManager
         //$file_area_objects must be an array!
         //Otherwise we return an empty Zip archive.
         if(!is_array($file_area_objects)) {
-            echo 'no array!';
             return $archive;
         }
         
         //If there are no File area objects, we can stop here
         //and return an empty Zip archive.
         if(empty($file_area_objects)) {
-            echo 'empty array!';
             return $archive;
         }
         
@@ -393,7 +393,7 @@ class FileArchiveManager
         }
         
         if(!$archive_file_name) {
-            $archive_file_name = md5(uniqid('FileArchiveManager::createArchiveFromFileRefs', true));
+            $archive_file_name = md5(uniqid('FileArchiveManager', true));
         }
         
         //We must now collect all the files from these FileRefs and copy them
@@ -503,6 +503,7 @@ class FileArchiveManager
         
         return self::createArchive(
             $folder_children,
+            $user_id,
             $archive_path,
             $archive_file_name,
             $do_permission_checks,

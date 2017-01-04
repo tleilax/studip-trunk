@@ -715,6 +715,8 @@ function in_archiv ($sem_id)
         //create name for the archive ZIP file:
         $archive_file_id = md5('archive_' . $sem_id);
         
+        echo 'PUB ';
+        
         $public_files_archive = FileArchiveManager::createArchiveFromCourse(
             $sem_id,
             'nobody',
@@ -722,13 +724,16 @@ function in_archiv ($sem_id)
             $archive_file_id
         );
         
+        if(file_exists($public_files_archive->filename)) {
+            $public_files_archive->close();
+        }
+        
         /*
         $archive_path = $ARCHIV_PATH . '/' . $archive_file_id;
         //create temporary directory
         $archive_tmp_dir_path = "$TMP_PATH/$archive_file_id";
         mkdir($archive_tmp_dir_path, 0700);
         
-        echo 'PUB ';
         
         //copy files and subfolders into the temporary path:
         FileManager::copyFolderContentIntoPath(
@@ -754,6 +759,8 @@ function in_archiv ($sem_id)
             
             $archive_protected_files_zip_id = md5('protected_archive_'.$sem_id);
             
+            echo 'PRIV ';
+            
             $unreadable_folders_zip = FileArchiveManager::createArchive(
                 $unreadable_folders,
                 null,
@@ -763,8 +770,11 @@ function in_archiv ($sem_id)
                 false //do not keep the folder hierarchy
             );
             
+            if(file_exists($unreadable_folders_zip->filename)) {
+                $unreadable_folders_zip->close();
+            }
+            
             /*
-            echo 'PRIV ';
             
             $archive_protected_files_zip_path = $TMP_PATH . '/' . $archive_protected_files_zip_id;
             
