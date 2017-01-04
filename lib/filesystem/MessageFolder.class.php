@@ -242,6 +242,21 @@ class MessageFolder implements FolderType
             return new SimpleORMapCollection();
         }
     }
+    
+    
+    public function getParent()
+    {
+        if(!$this->folder) {
+            return null;
+        }
+        
+        $parent_folder = $this->folder->parentfolder;
+        if(!$parent_folder) {
+            return null;
+        }
+        
+        return $parent_folder->getTypedFolder();
+    }
 
 
     public function getEditTemplate()
