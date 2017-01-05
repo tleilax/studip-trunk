@@ -1399,31 +1399,6 @@ class Admin_UserController extends AuthenticatedController
         
         $this->render_nothing();
         
-        
-        /*
-        //OLD:
-        $query      = "SELECT dokument_id FROM dokumente WHERE user_id = ?";
-        $parameters = [$user_id];
-
-        if ($course_id !== '') {
-            $query .= " AND seminar_id = ?";
-            $parameters[] = $course_id;
-        }
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute($parameters);
-
-        $download_ids = $statement->fetchAll(PDO::FETCH_COLUMN);
-        $zip_file_id  = createSelectedZip($download_ids, false);
-
-        $user     = User::find($user_id);
-        $filename = prepareFilename($user->username . '-' . _("Dokumente") . '.zip');
-        header('Content-Type: application/zip');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Location: ' . getDownloadLink($zip_file_id, $filename, 4));
-        header('Pragma: public');
-
-        $this->render_nothing();
-        */
     }
 
     /**

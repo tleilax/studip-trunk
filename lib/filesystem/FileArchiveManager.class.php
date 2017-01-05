@@ -360,7 +360,8 @@ class FileArchiveManager
      * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * 
-     * @return ZipArchive The created ZipArchive object.
+     * @return bool True, if the archive file was created and saved successfully 
+     *     at $archive_file_path, false otherwise.
      * 
      * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more special exception is thrown.
      */
@@ -384,22 +385,13 @@ class FileArchiveManager
         //We must now collect all the files from these FileRefs and copy them
         //into the new archive file.
         
-        $archive = self::createArchive(
+        return self::createArchive(
             $file_refs,
             $user->id,
             $archive_file_path,
             $do_permission_checks,
             false //do not keep the file hierarchy
         );
-        
-        if($archive === null) {
-            throw new FileArchiveManagerException(
-                'Error during archive creation!'
-            );
-        }
-        
-        //Ok, archive file is finished. Return the ZipArchive object:
-        return $archive;
     }
     
     
