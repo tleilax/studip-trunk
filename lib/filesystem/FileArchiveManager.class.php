@@ -340,7 +340,12 @@ class FileArchiveManager
             }
         }
         
-        return $archive->close();
+        if($archive->numFiles > 0) {
+            return $archive->close();
+        } else {
+            //empty archive
+            return false;
+        }
         
     }
     
