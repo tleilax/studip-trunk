@@ -242,13 +242,11 @@ function parse_link($link, $level=0) {
  * @param bool $size_check if true, number and size of files are checked against config values
  * @return string filename(id) of the created zip without path
  */
- /*
- TODO: REPLACE BY FileArchiveManager::createArchiveFromFileRefs
- used in:
- app/controllers/admin/user.php:1361:        $zip_file_id  = createSelectedZip($download_ids, false);
-public/folder.php:113:        $zip_file_id = createSelectedZip($download_ids, true, true);
-public/folder.php:126:        $zip_file_id = createSelectedZip($download_ids, true, true);
+/*
+used in:
+public/folder.php
 */
+//DEPRECATED: replaced by FileArchiveManager::createArchiveFromFileRefs
 function createSelectedZip ($file_ids, $perm_check = TRUE, $size_check = false) {
     global $TMP_PATH, $ZIP_PATH, $SessSemName;
     $zip_file_id = false;
@@ -315,9 +313,9 @@ function createSelectedZip ($file_ids, $perm_check = TRUE, $size_check = false) 
  */
 /*
 used in:
-lib/datei.inc.php:459:        $kids = getFolderChildren($parent_id);
-lib/datei.inc.php:2524:        list($subfolders, $num_subfolders) = getFolderChildren($folder_id);
+lib/datei.inc.php
 */
+//DEPRECATED: only used by DEPRECATED functions getFolderId and delete_folder
 function getFolderChildren($folder_id){
     global $SessionSeminar, $user;
 
@@ -340,11 +338,9 @@ function getFolderChildren($folder_id){
 
 /*
 used in:
-lib/datei.inc.php:467:                getFolderId($kids[0][$i],true);
-lib/datei.inc.php:614:            $folder = getFolderId($item_id);
-lib/datei.inc.php:682:            $folder = getFolderId($item_id);
-lib/datei.inc.php:788:        $folder = getFolderId($folder_id);
+lib/datei.inc.php
 */
+//DEPRECATED: only used by move_item function which is also DEPRECATED!
 function getFolderId($parent_id, $in_recursion = false){
     static $kidskids;
         if (!$kidskids || !$in_recursion){
@@ -370,12 +366,8 @@ function getFolderId($parent_id, $in_recursion = false){
  */
 /*
 used in:
-lib/dates.inc.php:365:        if (!doc_count($termin_id))
-lib/datei.inc.php:326:    if(!($size_check && (doc_count($folder_id) > $max_files || doc_sum_filesize($folder_id) > $max_size))){
-lib/datei.inc.php:488:function doc_count($parent_id, $range_id = null)
-lib/datei.inc.php:650:                    return array(1, doc_count($item_id));
-lib/datei.inc.php:1820:    $document_count = doc_count($folder_id);
-lib/datei.inc.php:2190:    $document_count = doc_count($folder_id);
+lib/dates.inc.php
+lib/datei.inc.php
 */
 function doc_count($parent_id, $range_id = null)
 {
@@ -466,6 +458,7 @@ function doc_challenge ($parent_id)
     return $statement->fetchAll(PDO::FETCH_COLUMN);
 }
 
+//DEPRECATED: used only in DEPRECATED function display_folder_body
 function get_user_documents_in_folder($folder_id, $user_id)
 {
     $query = "SELECT filename, filesize, chdate
@@ -489,6 +482,7 @@ lib/dates.inc.php:373:            move_item($folder_id, $sem_id, $sem_id);
 public/folder.php:563:                $done = move_item($folder_system_data["move"], $new_range_id, $sid);
 public/folder.php:587:        $done = move_item($folder_system_data["move"], $open_id);
 */
+//DEPRECATED: replaced by FileManager::moveFileRef and FileManager::moveFolder
 function move_item($item_id, $new_parent, $change_sem_to = false)
 {
     global $SessionSeminar;
@@ -562,9 +556,10 @@ function move_item($item_id, $new_parent, $change_sem_to = false)
 
 /*
 used by:
-lib/datei.inc.php:1157:                edit_item(
-public/folder.php:295:        edit_item($open_id, Request::int('type'), Request::get('change_name'), Request::get('change_description'), Request::int('change_protected', 0));
+lib/datei.inc.php
+public/folder.php
 */
+//DEPRECATED: replaced by FileManager::editFileRef and FileManager::editFolder
 function edit_item($item_id, $type, $name, $description, $protected = 0, $url = '', $filesize = '')
 {
     global $SessionSeminar;
@@ -661,6 +656,7 @@ public/folder.php:185:if ($rechte || $owner || $create_folder_perm) {
 public/folder.php:188:        $change = create_folder(_("Neuer Ordner"), '', $open_id );
 public/folder.php:228:        $open_id = create_folder($titel, $description, $open_id, $permission);
 */
+//DEPRECATED: replaced by FileManager::createSubFolder
 function create_folder ($name, $description, $parent_id, $permission = 7, $seminar_id = null)
 {
     global $user;
@@ -695,10 +691,9 @@ function create_folder ($name, $description, $parent_id, $permission = 7, $semin
 //Ausgabe des Formulars
 /*
 used by:
-lib/datei.inc.php:1105:            echo form($refresh);
-lib/datei.inc.php:1109:            return form($refresh);
-lib/datei.inc.php:1676:        $content .= form($refresh);
+lib/datei.inc.php
 */
+//DEPRECATED: replaced by file/upload controller and its views
 function form($refresh = FALSE)
 {
     global $UPLOAD_TYPES,$range_id,$SessSemName,$user,$folder_system_data;
@@ -839,18 +834,11 @@ function form($refresh = FALSE)
  */
 /*
 used by:
-lib/datei.inc.php:290:                    $filename = prepareFilename($file['filename'], FALSE, $tmp_full_path);
-lib/datei.inc.php:840:function prepareFilename($filename, $shorten = FALSE, $checkfolder = false) {
-lib/datei.inc.php:2219:            $link[] =  rawurlencode(prepareFilename($file_id));
-lib/datei.inc.php:2221:        $link[] = '/' . rawurlencode(prepareFilename($file_name));
-lib/datei.inc.php:2237:            $link[] = '&file_id=' . rawurlencode(prepareFilename($file_id));
-lib/datei.inc.php:2239:        $link[] = '&file_name=' . rawurlencode(prepareFilename($file_name ));
-app/controllers/admin/user.php:1364:        $filename = prepareFilename($user->username . '-' . _("Dokumente") . '.zip');
-app/controllers/course/dates.php:352:        $filename = prepareFilename($course['name'] . '-' . _("Ablaufplan")) . '.doc';
-public/sendfile.php:100:$file_name = prepareFilename(basename(Request::get('file_name')));
-public/folder.php:82:        $zip_name = prepareFilename(_('Dateiordner') . '_' . $name . '.zip');
-public/folder.php:115:            $zip_name = prepareFilename($SessSemName[0].'-'._("Neue Dokumente").'.zip');
-public/folder.php:128:            $zip_name = prepareFilename($SessSemName[0].'-'._("Dokumente").'.zip');
+lib/datei.inc.php
+app/controllers/admin/user.php
+app/controllers/course/dates.php
+public/sendfile.php
+public/folder.php
 */
 function prepareFilename($filename, $shorten = FALSE, $checkfolder = false) {
     $bad_characters = array (":", chr(92), "/", "\"", ">", "<", "*", "|", "?", " ", "(", ")", "&", "[", "]", "#", chr(36), "'", "*", ";", "^", "`", "{", "}", "|", "~", chr(255));
@@ -889,20 +877,12 @@ function prepareFilename($filename, $shorten = FALSE, $checkfolder = false) {
 //Diese Funktion dient zur Abfrage der Dateierweiterung
 /*
 used by:
-db/migrations/207_moadb.php:303:            $ext = getFileExtension($filename);
-db/migrations/207_moadb.php:356:            $ext = getFileExtension($filename);
-lib/calendar/CalendarImportFile.class.php:131:    public function _getFileExtension()
-lib/datei.inc.php:871:        $ext = getFileExtension ($filename);
-lib/datei.inc.php:876:        $ext = getFileExtension($filename);
-lib/datei.inc.php:890:function getFileExtension($str) {
-lib/datei.inc.php:944:        $pext = mb_strtolower(getFileExtension($real_file_name ? $real_file_name : $the_file_name));
-lib/datei.inc.php:1395:            $fext = getFileExtension(mb_strtolower($datei['filename']));
-lib/datei.inc.php:1514:        print GetFileIcon(getFileExtension($datei['filename']))->asImg();
-lib/datei.inc.php:1523:            print "<a href=\"".GetDownloadLink( $datei["dokument_id"], $datei["filename"], $type, "normal")."\" class=\"extern\">".GetFileIcon(getFileExtension($datei['filename']))->asImg()."</a>";
-lib/datei.inc.php:2192:    $extension = mb_strtolower(getFileExtension($filename));
-lib/datei.inc.php:2514:    $ext = mb_strtolower(getFileExtension($_FILES['the_file']['name']));
-app/views/admin/user/list_files.php:18:                        GetFileIcon(getFileExtension($file->filename), true));
+db/migrations/207_moadb.php
+lib/calendar/CalendarImportFile.class.php
+lib/datei.inc.php
+app/views/admin/user/list_files
 */
+//DEPRECATED(?): use PHP's built-in pathinfo ($path, PATHINFO_EXTENSION) instead
 function getFileExtension($str) {
     $i = mb_strrpos($str,".");
     if (!$i) { return ""; }
@@ -925,15 +905,13 @@ function getFileExtension($str) {
  */
 /*
 used by:
-lib/datei.inc.php:1040:    if (!validate_upload($the_file)) {
-lib/datei.inc.php:2657:        if (validate_upload(array('name' => $file, 'size' => filesize($file)))) {
-app/routes/Files_old.php:102:                validate_upload($file);
-app/routes/Files_old.php:169:                validate_upload($file);
-app/models/WysiwygDocument.php:162:        $GLOBALS['msg'] = ''; // validate_upload will store messages here
-app/models/WysiwygDocument.php:163:        if (! \validate_upload($file)) { // upload is forbidden
-app/controllers/messages.php:718:        if (!validate_upload($file)) {
-public/plugins_packages/core/Blubber/controllers/streams.php:527:            validate_upload($file);
+lib/datei.inc.php
+app/routes/Files_old.php
+app/models/WysiwygDocument.php
+app/controllers/messages.php
+public/plugins_packages/core/Blubber/controllers/streams.php
 */
+//DEPRECATED: replaced by FolderType::validateUpload
 function validate_upload($the_file, $real_file_name='') {
     global $UPLOAD_TYPES, $SessSemName;
 
@@ -1046,8 +1024,9 @@ function validate_upload($the_file, $real_file_name='') {
 //der eigentliche Upload
 /*
 used by:
-lib/datei.inc.php:1155:        upload($the_file, $refresh, $range_id);
+lib/datei.inc.php
 */
+//DEPRECATED: replaced by FileManager::handleFileUpload
 function upload($the_file, $refresh, $range_id)
 {
     global $dokument_id;
@@ -1075,7 +1054,7 @@ function upload($the_file, $refresh, $range_id)
 //Erzeugen des Datenbankeintrags zur Datei
 /*
 used by:
-lib/datei.inc.php:1089:    $data = getUploadMetadata($range_id, $refresh);
+lib/datei.inc.php
 */
 function getUploadMetadata($range_id, $refresh = FALSE) {
     global $user;
@@ -1115,7 +1094,7 @@ function getUploadMetadata($range_id, $refresh = FALSE) {
 //Steuerungsfunktion
 /*
 used by:
-lib/datei.inc.php:1380:        $content.=upload_item ($upload,FALSE,FALSE,$refresh);
+lib/datei.inc.php
 */
 function upload_item ($range_id, $create = FALSE, $echo = FALSE, $refresh = FALSE) {
     $the_file = $_FILES["the_file"];
@@ -1137,10 +1116,8 @@ function upload_item ($range_id, $create = FALSE, $echo = FALSE, $refresh = FALS
 
 /*
 used by:
-lib/datei.inc.php:1403:        $content .= link_item($datei["dokument_id"],FALSE,FALSE,$datei["dokument_id"]);
-lib/datei.inc.php:1664:        $content .= link_item($folder_id);
-public/folder.php:506:        if (link_item ($folder_system_data["link"], TRUE, FALSE, $folder_system_data["refresh"],FALSE)) {
-public/folder.php:520:        if (link_item ($range_id, TRUE, FALSE, FALSE, Request::option('link_update'))) {
+lib/datei.inc.php
+public/folder.php
 */
 function link_item ($range_id, $create = FALSE, $echo = FALSE, $refresh = FALSE, $link_update = FALSE) {
     global $filesize;
@@ -1187,8 +1164,7 @@ function link_item ($range_id, $create = FALSE, $echo = FALSE, $refresh = FALSE,
 
 /*
 used by:
-lib/datei.inc.php:1177:            echo link_form($refresh,$link_update);
-lib/datei.inc.php:1180:            return link_form($refresh,$link_update);
+lib/datei.inc.php
 */
 function link_form ($range_id, $updating=FALSE)
 {
@@ -1292,8 +1268,8 @@ function link_form ($range_id, $updating=FALSE)
  */
 /*
 used by:
-lib/datei.inc.php:1550:        display_file_body($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh, $filelink);
-public/folder.php:681:            display_file_body($datei, null, $folder_system_data["open"], null, $folder_system_data["move"], $folder_system_data["upload"], $all, $folder_system_data["refresh"], $folder_system_data["link"]);
+lib/datei.inc.php
+public/folder.php
 */
 function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh=FALSE, $filelink="") {
     global $rechte, $user, $SessionSeminar;
@@ -1428,9 +1404,10 @@ $countfiles = 0;
  *
  */
 /*
-lib/datei.inc.php:1822:                display_file_line($datei, $folder_id, $open, $change, $move, $upload, FALSE, $refresh, $filelink, $anchor_id, $file_pos);
-public/folder.php:1209:                    display_file_line($datei,
+lib/datei.inc.php
+public/folder.php
 */
+//DEPRECATED: replaced by template views/files/_fileref_tr.php and views/files/_folder_tr.php
 function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh=FALSE, $filelink="", $anchor_id, $position = "middle") {
     global $_fullname_sql,$SessionSeminar,$SessSemName, $rechte, $anfang,
         $user, $SemSecLevelWrite, $SemUserStatus, $check_all, $countfiles;
@@ -1572,6 +1549,7 @@ used by:
 lib/datei.inc.php:2059:        display_folder_body($folder_id, $open, $change, $move, $upload, $refresh, $filelink, $anchor_id, $depth - 3);
 public/folder.php:688:            display_folder_body(Request::quoted("getfolderbody"), $folder_system_data["open"], null, $folder_system_data["move"], null, null, null, null);
 */
+//DEPRECATED: replaced by template views/files/_folder_tr.php
 function display_folder_body($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $level = 0) {
     global $_fullname_sql, $SessionSeminar, $SemUserStatus, $SessSemName, $user, $perm, $rechte, $countfolder;
     $db = DBManager::get();
@@ -1858,6 +1836,7 @@ public/folder.php:1009:                display_folder($general_folder["folder_id
 public/folder.php:1036:                  display_folder($row['folder_id'],
 public/folder.php:1082:                        display_folder($folder["folder_id"],
 */
+//DEPRECATED: replaced by template views/files/_folder_tr.php
 function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $position="middle", $isissuefolder = false) {
     global $_fullname_sql,$SessionSeminar,$SessSemName, $rechte, $anfang,
         $user, $SemSecLevelWrite, $SemUserStatus, $check_all, $countfolder, $droppable_folder;
@@ -2088,6 +2067,7 @@ used by:
 lib/datei.inc.php:104:        $link = getLinkPath($link_update);
 public/folder.php:265:        if (getLinkPath($open_id)) {
 */
+//DEPRECATED: replaced by File::getURL()
 function getLinkPath($file_id)
 {
     $query = "SELECT url FROM dokumente WHERE dokument_id = ?";
@@ -2269,6 +2249,7 @@ public/eval_summary.php:321:        $txt .= '<IMG SRC="' . GetDownloadLink('eval
 templates/mail/text.php:13:        <?= GetDownloadLink($one['dokument_id'], $one['filename'], 7, 'force') ?>
 templates/mail/html.php:21:            <a href="<?=GetDownloadLink($one['dokument_id'], $one['filename'], 7, 'force')?>"><?= htmlReady($one['filename'] . ' (' . relsize($one['filesize'], false) . ')') ?></a> 
 */
+//DEPRECATED: replaced by FileRef::getDownloadURL
 function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $range_id = '', $list_id = ''){
     $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
     $link[] = $GLOBALS['ABSOLUTE_URI_STUDIP'];
@@ -2337,6 +2318,7 @@ lib/datei.inc.php:2443:            if (delete_document($file_id)) {
 public/folder.php:274:        if (delete_document($open_id))
 public/folder.php:652:        $deleted += delete_document($one);
 */
+//DEPRECATED: replaced by FileManager::deleteFileRef
 function delete_document($dokument_id, $delete_only_file = FALSE)
 {
     $query = "SELECT url FROM dokumente WHERE dokument_id = ?";
@@ -2364,6 +2346,7 @@ used by:
 lib/datei.inc.php:1154:                        delete_link($refresh, TRUE);
 public/folder.php:282:        if (delete_link($open_id))
 */
+//DEPRECATED: replaced by FileManager::deleteFileRef
 function delete_link($dokument_id) {
     // eintrag aus der Datenbank werfen
     $doc = new StudipDocument($dokument_id);
@@ -2386,6 +2369,7 @@ lib/datei.inc.php:2388:                delete_folder($one_folder, true);
 public/folder.php:240:            delete_folder($open_id, true);
 public/folder.php:249:        delete_folder($open_id, true);
 */
+//DEPRECATED: replaced by FileManager::deleteFolder
 function delete_folder($folder_id, $delete_subfolders = false)
 {
     if ($delete_subfolders){
@@ -2443,6 +2427,7 @@ lib/dates.inc.php:366:            recursiv_folder_delete($termin_id);
 lib/datei.inc.php:2457:        $doc_count += recursiv_folder_delete($folder_id);
 lib/datei.inc.php:2481:            $count += recursiv_folder_delete($folder_id);
 */
+//DEPRECATED: replaced by FileManager::deleteFolder
 function recursiv_folder_delete($parent_id)
 {
     // Prepare files statement
@@ -2868,6 +2853,8 @@ lib/datei.inc.php:1704:        if (check_protected_download($datei["dokument_id"
 lib/datei.inc.php:1742:      if ((!$upload) && ($datei["url"]=="") && check_protected_download($datei["dokument_id"])) {
 public/folder.php:106:            && check_protected_download($dl_id['dokument_id']) && $dl_id['url'] == "") {
 */
+//DEPRECATED: replaced by ContentTermsOfUse::download_condition in conjunction
+//with a FileRef instance.
 function check_protected_download($document_id) {
     $ok = true;
     if (Config::GetInstance()->getValue('ENABLE_PROTECTED_DOWNLOAD_RESTRICTION')) {
