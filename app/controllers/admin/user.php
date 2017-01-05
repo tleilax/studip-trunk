@@ -1379,15 +1379,16 @@ class Admin_UserController extends AuthenticatedController
         
         $archive_file_name = $user->username . '_files_' . date('Ymd-Hi') . '.zip';
         
-        $archive = FileArchiveManager::createArchiveFromFileRefs(
+        $archive_path = $TMP_PATH . '/' . $archive_file_name;
+        
+        $result = FileArchiveManager::createArchiveFromFileRefs(
             $file_refs,
             User::findCurrent(),
-            $TMP_PATH,
-            $archive_file_name
+            $archive_path
         );
         
         
-        $archive_download_link = FileArchiveManager::getArchiveUrl($archive);
+        $archive_download_link = FileArchiveManager::getDownloadLink_TEMP($archive_path);
         
         header('Content-Type: application/zip');
         header('Content-Disposition: attachment; filename="' 

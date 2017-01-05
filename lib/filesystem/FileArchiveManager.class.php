@@ -33,41 +33,39 @@ class FileArchiveManager
      * Returns the download URL of an archive file.
      * 
      * This is a replacement of the getDownloadLink function from datei.inc.php.
+     * THIS METHOD MAY BE REPLACED BY A CLASS THAT REPLACES SENDFILE.PHP
+     * AND THEREFORE THE NEED TO BUILD DOWNLOAD LINKS!
      * 
-     * @param ZipArchive $archive The archive whose download URL shall be returned.
+     * @param string $file_path The path to a file whose download URL shall be returned.
      * 
-     * @return string The download URL of the archive. Empty string on failure.
+     * @return string The download URL of the file. Empty string on failure.
      * 
-     * @throws FileArchiveManagerException If the archive does not exist or was closed
-     *     so that the archive's file name is inaccessible a FileArchiveManagerException
-     *     is thrown.
+     * @throws FileArchiveManagerException If the file path is not set.
      */
-    public static function getArchiveUrl(ZipArchive $archive)
+    public static function getDownloadLink_TEMP($file_path)
     {
-        $zip_file_path = $archive->filename;
-        
-        if(!$zip_file_path) {
+        if(!$file_path) {
             throw new FileArchiveManagerException(
-                'Cannot retrieve archive file name: Archive does not exist or was closed!'
+                'Cannot retrieve file name: File path is not set!'
             );
         }
         
-        $zip_file_name = basename($zip_file_path);
+        $file_name = basename($file_path);
         
-        $archive_url = $GLOBALS['ABSOLUTE_URI_STUDIP'];
+        $file_url = $GLOBALS['ABSOLUTE_URI_STUDIP'];
         
         $sendfile_mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
         
         if($sendfile_mode == 'rewrite') {
-            $archive_url .= 'zip/zip'. rawurlencode(prepareFilename($zip_file_name));
+            $file_url .= 'zip/zip'. rawurlencode(prepareFilename($file_name));
         } else {
             //normal mode (default):
-            $archive_url .= 'sendfile.php?type=4&file_id=' .
-                rawurlencode(prepareFilename($zip_file_name)) . 
-                '&file_name='.rawurlencode(prepareFilename($zip_file_name));
+            $file_url .= 'sendfile.php?type=4&file_id=' .
+                rawurlencode(prepareFilename($file_name)) . 
+                '&file_name='.rawurlencode(prepareFilename($file_name));
         }
         
-        return $archive_url;
+        return $file_url;
     }
     
     
@@ -77,7 +75,7 @@ class FileArchiveManager
      * @param ZipArchive $archive The Zip archive where the FileRef shall be added to.
      * @param FileRef $file_ref The FileRef which shall be added to the zip archive.
      * @param string $user_id The user who wishes to add the FileRef to the archive.
-     * @param string $archive_path The path of the folder inside the archive.
+     * @param string $archive_fs_path The path of the file inside the archive's file system.
      * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * 
@@ -90,7 +88,7 @@ class FileArchiveManager
         ZipArchive $archive,
         FileRef $file_ref,
         $user_id = null,
-        $archive_path = '',
+        $archive_fs_path = '',
         $do_permission_checks = true
     ) {
         $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
@@ -129,7 +127,7 @@ class FileArchiveManager
                     //The FileRef references a file:
                     $file_path = $file->getPath();
                     if($file_path and file_exists($file_path)) {
-                        $archive->addFile($file_path, $archive_path . $file_ref->name);
+                        $archive->addFile($file_path, $archive_fs_path . $file_ref->name);
                         
                         //The archive file may not exist if it is empty!
                         if(file_exists($archive->filename)) {
@@ -161,7 +159,7 @@ class FileArchiveManager
      * @param ZipArchive $archive The Zip archive where the FileRef shall be added to.
      * @param FileRef $file_ref The FileRef which shall be added to the zip archive.
      * @param string $user_id The user who wishes to add the FileRef to the archive.
-     * @param string $archive_path The path of the folder inside the archive.
+     * @param string $archive_fs_path The path of the folder inside the archive's file system.
      * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the folder hierarchy shall be kept.
@@ -176,7 +174,7 @@ class FileArchiveManager
         ZipArchive $archive,
         FolderType $folder,
         $user_id = null,
-        $archive_path = '',
+        $archive_fs_path = '',
         $do_permission_checks = true,
         $keep_hierarchy = true
     ) {
@@ -190,7 +188,7 @@ class FileArchiveManager
             }
         }
         
-        $folder_zip_path = $archive_path;
+        $folder_zip_path = $archive_fs_path;
         if($keep_hierarchy) {
             $folder_zip_path .= $folder->name;
             $archive->addEmptyDir($folder_zip_path);
@@ -212,7 +210,7 @@ class FileArchiveManager
                     $file_ref,
                     $user_id,
                     $do_permission_checks,
-                    $archive_path
+                    $archive_fs_path
                 );
             }
         }
@@ -252,15 +250,15 @@ class FileArchiveManager
      * 
      * @param Array $file_area_objects Array of FileRef, FileURL, Folder or FolderType objects.
      *     $file_area_objects may contain a mix between those object types.
-     * @param string $archive_path The path in which the archive shall be created.
-     * @param string $archive_file_name An optional file name for the archive.
-     *     If omitted, a random name is generated.
+     * @param string $user_id The user who wishes to pack files.
+     * @param string $archive_file_path The path for the archive file.
      * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the folder hierarchy shall be kept.
      *     False, if the folder hierarchy shall be flattened. Default is true.
      * 
-     * @return ZipArchive A ZipArchive object for the created archive.
+     * @return bool True, if the archive file was created and saved successfully 
+     *     at $archive_file_path, false otherwise.
      * 
      * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more
      *     special exception is thrown.
@@ -268,8 +266,7 @@ class FileArchiveManager
     public static function createArchive(
         $file_area_objects = [],
         $user_id = null,
-        $archive_path = '',
-        $archive_file_name = '',
+        $archive_file_path = '',
         $do_permission_checks = true,
         $keep_hierarchy = true
     ) {
@@ -278,23 +275,11 @@ class FileArchiveManager
         $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
         
         //check if archive path is set:
-        if(!$archive_path) {
+        if(!$archive_file_path) {
             throw new FileArchiveManagerException(
                 'Destination path for file archive is not set!'
             );
         }
-        
-        //check if archive path exists:
-        if(!file_exists($archive_path)) {
-            throw new FileArchiveManagerException(
-                'Destination path for file archive does not exist!'
-            );
-        }
-        
-        if(!$archive_file_name) {
-            $archive_file_name = md5(uniqid('FileArchiveManager', true));
-        }
-        $archive_file_path = $archive_path . '/' . $archive_file_name;
         
         //We can create the Zip archive now since its path exists in the file system.
         
@@ -355,7 +340,8 @@ class FileArchiveManager
             }
         }
         
-        return $archive;
+        return $archive->close();
+        
     }
     
     
@@ -365,9 +351,7 @@ class FileArchiveManager
      * 
      * @param FileRef[] $file_refs Array of FileRef objects.
      * @param User $user The user who wishes to pack files.
-     * @param string $archive_path The path in which the archive shall be created.
-     * @param string $archive_file_name An optional file name for the archive.
-     *     If omitted, a random name is generated.
+     * @param string $archive_file_path The path for the archive file.
      * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * 
@@ -378,23 +362,19 @@ class FileArchiveManager
     public static function createArchiveFromFileRefs(
         $file_refs = [],
         User $user,
-        $archive_path = '',
-        $archive_file_name = '',
+        $archive_file_path = '',
         $do_permission_checks = true
         ){
         
         $archive_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
         $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE;
         
-        if(!$archive_path) {
+        if(!$archive_file_path) {
             throw new FileArchiveManagerException(
                 'Destination path for file archive is not set!'
             );
         }
         
-        if(!$archive_file_name) {
-            $archive_file_name = md5(uniqid('FileArchiveManager', true));
-        }
         
         //We must now collect all the files from these FileRefs and copy them
         //into the new archive file.
@@ -402,8 +382,7 @@ class FileArchiveManager
         $archive = self::createArchive(
             $file_refs,
             $user->id,
-            $archive_path,
-            $archive_file_name,
+            $archive_file_path,
             $do_permission_checks,
             false //do not keep the file hierarchy
         );
@@ -426,8 +405,7 @@ class FileArchiveManager
      * 
      * @param FolderType $folder The folder whose files shall be put inside an archive.
      * @param string $user_id The ID of the user who wishes to put the course's files into an archive
-     * @param string $archive_path The path where the archive shall be placed.
-     * @param string $archive_file_name (optional) The file name of the archive.
+     * @param string $archive_file_path The path for the archive file.
      * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
@@ -437,8 +415,7 @@ class FileArchiveManager
     public static function createArchiveFromFolder(
         FolderType $folder,
         $user_id = null,
-        $archive_path = '',
-        $archive_file_name = '',
+        $archive_file_path = '',
         $do_permission_checks = true,
         $keep_hierarchy = true)
     {
@@ -452,8 +429,7 @@ class FileArchiveManager
         
         return self::createArchive(
             $folder_children,
-            $archive_path,
-            $archive_file_name,
+            $archive_file_path,
             $do_permission_checks,
             $keep_hierarchy
         );
@@ -467,8 +443,7 @@ class FileArchiveManager
      * 
      * @param string $course_id The ID of the course whose files shall be put inside an archive.
      * @param string $user_id The ID of the user who wishes to put the course's files into an archive
-     * @param string $archive_path The path where the archive shall be placed.
-     * @param string $archive_file_name (optional) The file name of the archive.
+     * @param string $archive_file_path The path for the archive file.
      * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
@@ -478,8 +453,7 @@ class FileArchiveManager
     public static function createArchiveFromCourse(
         $course_id = null,
         $user_id = null,
-        $archive_path = '',
-        $archive_file_name = '',
+        $archive_file_path = '',
         $do_permission_checks = true,
         $keep_hierarchy = true)
     {
@@ -504,8 +478,7 @@ class FileArchiveManager
         return self::createArchive(
             $folder_children,
             $user_id,
-            $archive_path,
-            $archive_file_name,
+            $archive_file_path,
             $do_permission_checks,
             $keep_hierarchy
         );
@@ -518,8 +491,7 @@ class FileArchiveManager
      * 
      * @param string $institute_id The ID of the institute whose files shall be put inside an archive.
      * @param string $user_id The ID of the user who wishes to put the institute's files into an archive
-     * @param string $archive_path The path where the archive shall be placed.
-     * @param string $archive_file_name (optional) The file name of the archive.
+     * @param string $archive_file_path The path for the archive file.
      * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
@@ -529,8 +501,7 @@ class FileArchiveManager
     public static function createArchiveFromInstitute(
         $institute_id = null,
         $user_id = null,
-        $archive_path = '',
-        $archive_file_name = '',
+        $archive_file_path = '',
         $do_permission_checks = true,
         $keep_hierarchy = true)
     {
@@ -554,7 +525,7 @@ class FileArchiveManager
         
         return self::createArchive(
             $folder_children,
-            $archive_path,
+            $archive_file_path,
             $archive_file_name,
             $do_permission_checks,
             $keep_hierarchy
@@ -567,8 +538,7 @@ class FileArchiveManager
      * user has root permissions to do this.
      * 
      * @param string $user_id The ID of the user whose files shall be put inside an archive.
-     * @param string $archive_path The path where the archive shall be placed.
-     * @param string $archive_file_name (optional) The file name of the archive.
+     * @param string $archive_file_path The path for the archive file.
      * @param bool $do_permission_checks Set to true if reading/downloading permissions
      *     shall be checked. False otherwise. Default is true.
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
@@ -582,8 +552,7 @@ class FileArchiveManager
      */
     public static function createArchiveFromUser(
         $user_id = null,
-        $archive_path = '',
-        $archive_file_name = '',
+        $archive_file_path = '',
         $do_permission_checks = true,
         $keep_hierarchy = true)
     {
@@ -607,8 +576,7 @@ class FileArchiveManager
         
         return self::createArchive(
             $folder_children,
-            $archive_path,
-            $archive_file_name,
+            $archive_file_path,
             $do_permission_checks,
             $keep_hierarchy
         );

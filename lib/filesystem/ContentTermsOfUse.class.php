@@ -87,6 +87,13 @@ class ContentTermsOfUse extends SimpleORMap
                 //check where this range_id comes from:
                 if($folder->range_type == 'course') {
                     $course = Course::find($folder->range_id);
+                    //check if course exists:
+                    if(!$course) {
+                        //A deleted course's file can't be checked for its
+                        //download status:
+                        return false;
+                    }
+                    
                     //ok, range is a course:
                     $status = $course->getParticipantStatus($user_id);
                     if(!$status || ($status == 'awaiting')) {
