@@ -150,11 +150,12 @@ $rules = [
     
     //MOADB:
     //old datei.inc.php functions:
-    'createSelectedZip' => 'Removed. Use #{yellow:FileArchiveManager::createArchiveFromFileRefs} instead.',
+    'createSelectedZip' => 'Removed(?). Use #{yellow:FileArchiveManager::createArchiveFromFileRefs} instead.',
     
     //StudipDocument:
-    'StudipDocument(' => 'Removed. Use class #{yellow:FileRef} instead.',
-    'StudipDocumentTree(' => 'Removed. Use class #{yellow:Folder} or #{yellow:FolderType} instead.',
+    'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
+    'StudipDocumentTree(' => 'Removed(?). Use class #{yellow:Folder} or #{yellow:FolderType} instead.',
+    
 ];
 
 
