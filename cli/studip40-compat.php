@@ -149,12 +149,15 @@ $rules = [
     'Table' => 'No longer neccessary. Use #{table.default} instead.',
     
     //MOADB:
+    
     //old datei.inc.php functions:
     'createSelectedZip' => 'Removed(?). Use #{yellow:FileArchiveManager::createArchiveFromFileRefs} instead.',
     
     //StudipDocument:
     'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
     'StudipDocumentTree(' => 'Removed(?). Use class #{yellow:Folder} or #{yellow:FolderType} instead.',
+    
+    'ZIP_USE_INTERNAL' => 'Not used anymore. Please avoid querying the value of this configuration variable!',
     
 ];
 

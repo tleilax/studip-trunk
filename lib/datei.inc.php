@@ -59,7 +59,7 @@ function readfile_chunked($filename, $start = null, $end = null) {
 
 /*
 used in:
-lib/datei.inc.php:192:        $parsed_link = parse_header($response);
+lib/datei.inc.php (parse_link)
 */
 function parse_header($header){
     $ret = array();
@@ -89,12 +89,10 @@ function parse_header($header){
 
 /*
 used in:
-lib/models/OpenGraphURL.class.php:114:     * @todo The combination of parse_link() and the following request
-lib/models/OpenGraphURL.class.php:124:        $response = parse_link($this['url']);
-lib/datei.inc.php:220:            $parsed_link = parse_link($location_header, $level + 1);
-lib/datei.inc.php:1369:        $link_data = parse_link(Request::get('the_link'));
-app/routes/Files_old.php:434:        $link_data = parse_link($file->getValue('url'));
-app/models/media_proxy.php:172:        $response = parse_link($url);
+lib/models/OpenGraphURL.class.php
+lib/datei.inc.php
+app/routes/Files_old.php
+app/models/media_proxy.php
 */
 function parse_link($link, $level=0) {
     global $name, $the_file_name, $the_link, $locationheader, $parsed_link, $link_update;
@@ -392,11 +390,7 @@ function doc_count($parent_id, $range_id = null)
     return $statement->fetchColumn();
 }
 
-/*
-used in:
-lib/datei.inc.php:326:    if(!($size_check && (doc_count($folder_id) > $max_files || doc_sum_filesize($folder_id) > $max_size))){
-lib/datei.inc.php:491:lib/datei.inc.php:326:    if(!($size_check && (doc_count($folder_id) > $max_files || doc_sum_filesize($folder_id) > $max_size))){
-*/
+//DEPRECATED: not used anywhere!
 function doc_sum_filesize ($parent_id)
 {
     global $SessionSeminar, $user;
@@ -418,6 +412,11 @@ function doc_sum_filesize ($parent_id)
     return $statement->fetchColumn();
 }
 
+/*
+used in:
+lib/datei.inc.php
+*/
+//DEPRECATED: only used by DEPRECATED functions display_file_line and display_folder
 function doc_newest ($parent_id)
 {
     global $SessionSeminar, $user;
@@ -439,6 +438,7 @@ function doc_newest ($parent_id)
     return $statement->fetchColumn();
 }
 
+//DEPRECATED: not used anywhere
 function doc_challenge ($parent_id)
 {
     global $SessionSeminar, $user;
@@ -478,9 +478,8 @@ function get_user_documents_in_folder($folder_id, $user_id)
 
 /*
 used by:
-lib/dates.inc.php:373:            move_item($folder_id, $sem_id, $sem_id);
-public/folder.php:563:                $done = move_item($folder_system_data["move"], $new_range_id, $sid);
-public/folder.php:587:        $done = move_item($folder_system_data["move"], $open_id);
+lib/dates.inc.php
+public/folder.php
 */
 //DEPRECATED: replaced by FileManager::moveFileRef and FileManager::moveFolder
 function move_item($item_id, $new_parent, $change_sem_to = false)
@@ -648,13 +647,9 @@ function edit_item($item_id, $type, $name, $description, $protected = 0, $url = 
  */
 /*
 used by:
-lib/datei.inc.php:2625:        $dir_id = create_folder($name, "", $range_id);
-app/controllers/institute/basicdata.php:278:                create_folder(
-public/folder.php:170:    $create_folder_perm = $folder_tree->checkCreateFolder($open_id, $user->id);
-public/folder.php:172:    $create_folder_perm = false;
-public/folder.php:185:if ($rechte || $owner || $create_folder_perm) {
-public/folder.php:188:        $change = create_folder(_("Neuer Ordner"), '', $open_id );
-public/folder.php:228:        $open_id = create_folder($titel, $description, $open_id, $permission);
+lib/datei.inc.php
+app/controllers/institute/basicdata.php
+public/folder.php
 */
 //DEPRECATED: replaced by FileManager::createSubFolder
 function create_folder ($name, $description, $parent_id, $permission = 7, $seminar_id = null)
@@ -882,7 +877,7 @@ lib/calendar/CalendarImportFile.class.php
 lib/datei.inc.php
 app/views/admin/user/list_files
 */
-//DEPRECATED(?): use PHP's built-in pathinfo ($path, PATHINFO_EXTENSION) instead
+//DEPRECATED(?): use PHP's built-in pathinfo($path, PATHINFO_EXTENSION) instead
 function getFileExtension($str) {
     $i = mb_strrpos($str,".");
     if (!$i) { return ""; }
@@ -1056,6 +1051,7 @@ function upload($the_file, $refresh, $range_id)
 used by:
 lib/datei.inc.php
 */
+//DEPRECATED: replaced by code in file/upload action and FileManager::handleFileUpload
 function getUploadMetadata($range_id, $refresh = FALSE) {
     global $user;
     $upload_seminar_id = Request::option('upload_seminar_id');
@@ -1271,6 +1267,7 @@ used by:
 lib/datei.inc.php
 public/folder.php
 */
+//DEPRECATED: replaced by template views/files/_fileref_tr.php
 function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh=FALSE, $filelink="") {
     global $rechte, $user, $SessionSeminar;
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
@@ -1546,8 +1543,8 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
  */
 /*
 used by:
-lib/datei.inc.php:2059:        display_folder_body($folder_id, $open, $change, $move, $upload, $refresh, $filelink, $anchor_id, $depth - 3);
-public/folder.php:688:            display_folder_body(Request::quoted("getfolderbody"), $folder_system_data["open"], null, $folder_system_data["move"], null, null, null, null);
+lib/datei.inc.php
+public/folder.php
 */
 //DEPRECATED: replaced by template views/files/_folder_tr.php
 function display_folder_body($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $level = 0) {
@@ -1825,16 +1822,8 @@ $droppable_folder = 0;
  */
 /*
 used by:
-lib/datei.inc.php:1572:lib/datei.inc.php:2059:        display_folder_body($folder_id, $open, $change, $move, $upload, $refresh, $filelink, $anchor_id, $depth - 3);
-lib/datei.inc.php:1573:public/folder.php:688:            display_folder_body(Request::quoted("getfolderbody"), $folder_system_data["open"], null, $folder_system_data["move"], null, null, null, null);
-lib/datei.inc.php:1575:function display_folder_body($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $level = 0) {
-lib/datei.inc.php:1811:                display_folder($subfolder, $open, $change, $move, $upload, $refresh, $filelink, $anchor_id, $folder_pos, false);
-lib/datei.inc.php:2064:        display_folder_body($folder_id, $open, $change, $move, $upload, $refresh, $filelink, $anchor_id, $depth - 3);
-public/folder.php:688:            display_folder_body(Request::quoted("getfolderbody"), $folder_system_data["open"], null, $folder_system_data["move"], null, null, null, null);
-public/folder.php:989:                display_folder($general_folder["folder_id"],
-public/folder.php:1009:                display_folder($general_folder["folder_id"],
-public/folder.php:1036:                  display_folder($row['folder_id'],
-public/folder.php:1082:                        display_folder($folder["folder_id"],
+lib/datei.inc.php
+public/folder.php
 */
 //DEPRECATED: replaced by template views/files/_folder_tr.php
 function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $position="middle", $isissuefolder = false) {
@@ -2064,8 +2053,8 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
 
 /*
 used by:
-lib/datei.inc.php:104:        $link = getLinkPath($link_update);
-public/folder.php:265:        if (getLinkPath($open_id)) {
+lib/datei.inc.php
+public/folder.php
 */
 //DEPRECATED: replaced by File::getURL()
 function getLinkPath($file_id)
@@ -2079,16 +2068,10 @@ function getLinkPath($file_id)
 
 /*
 used by:
-lib/evaluation/evaluation_admin_overview.lib.php:909:                $link->addHTMLContent(GetFileIcon('csv')->asImg());
-lib/datei.inc.php:900:lib/datei.inc.php:1514:        print GetFileIcon(getFileExtension($datei['filename']))->asImg();
-lib/datei.inc.php:901:lib/datei.inc.php:1523:            print "<a href=\"".GetDownloadLink( $datei["dokument_id"], $datei["filename"], $type, "normal")."\" class=\"extern\">".GetFileIcon(getFileExtension($datei['filename']))->asImg()."</a>";
-lib/datei.inc.php:904:app/views/admin/user/list_files.php:18:                        GetFileIcon(getFileExtension($file->filename), true));
-lib/datei.inc.php:1497:        print GetFileIcon(getFileExtension($datei['filename']))->asImg();
-lib/datei.inc.php:1506:            print "<a href=\"".GetDownloadLink( $datei["dokument_id"], $datei["filename"], $type, "normal")."\" class=\"extern\">".GetFileIcon(getFileExtension($datei['filename']))->asImg()."</a>";
-app/views/admin/user/list_files.php:18:                        GetFileIcon(getFileExtension($file->filename), true));
-app/controllers/messages.php:348:                                        'icon' => GetFileIcon(
-app/controllers/messages.php:442:                        'icon' => GetFileIcon(
-app/controllers/messages.php:763:        $output['icon'] = GetFileIcon($file_ref->file->getExtension())->asImg(['class' => "text-bottom"]);
+lib/evaluation/evaluation_admin_overview.lib.php
+lib/datei.inc.php
+app/views/admin/user/list_files.php
+app/controllers/messages.php
 */
 function GetFileIcon($ext){
     //Icon auswaehlen
@@ -2139,22 +2122,18 @@ function GetFileIcon($ext){
  * @param string $filename      file name to check
  */
 /*
-db/migrations/207_moadb.php:325:            $insert_file->execute(array($one['dokument_id'], $one['user_id'], get_mime_type($one['filename']), $filename, $one['filesize'], $one['url'] ? 'url' : 'disk', $one['author_name'], $one['mkdate'], $one['chdate']));
-lib/classes/restapi/RouteMap.php:858:            $this->contentType(get_mime_type($path));
-lib/filesystem/FileManager.php:65:                $filetype = $uploaded_files['type'][$key] ?: get_mime_type($filename);
-lib/filesystem/FileManager.php:1090:            $parsed_link['Content-Type'] = get_mime_type($parsed_link['filename']);
-lib/datei.inc.php:1322:        $media_type = get_mime_type($datei['filename']);
-app/routes/Files_old.php:441:            "Content-Type"        => get_mime_type($filename),
-app/controllers/course/dates.php:354:        $this->set_content_type(get_mime_type($filename));
-app/controllers/file.php:210:                        'type' => get_mime_type($file),
-app/controllers/file.php:888:                            $file->mime_type = get_mime_type($file->name);
-app/controllers/file.php:904:                        $file->mime_type = $meta['Content-Type'] ? strstr($meta['Content-Type'], ';', true) : get_mime_type($file->name);
-public/sendfile.php:106:        $content_type = get_mime_type($file_name);
-public/sendfile.php:110:        $content_type = get_mime_type($file_name);
-public/sendfile.php:114:        $content_type = $file_ref->mime_type ?: get_mime_type($file_name);
-public/sendfile.php:141:    $content_type = $link_data['Content-Type'] ? strstr($link_data['Content-Type'], ';', true) : get_mime_type($file_name);
-public/plugins_packages/core/Blubber/controllers/streams.php:579:                                'type' => [null], //let the get_mime_type guess the file type
+db/migrations/207_moadb.php
+lib/classes/restapi/RouteMap.php
+lib/filesystem/FileManager.php
+lib/datei.inc.php
+app/routes/Files_old.php
+app/controllers/course/dates.php
+app/controllers/file.php
+public/sendfile.php
+public/plugins_packages/core/Blubber/controllers/streams.php
 */
+//DEPRECATED(?): can be replaced by built-in PHP function mime_content_type
+//when the path to the physical file is given.
 function get_mime_type($filename)
 {
     static $mime_types = array(
@@ -2227,27 +2206,21 @@ function get_mime_type($filename)
 */
 /*
 used by:
-lib/datei.inc.php:2758:    $movie_url = GetDownloadLink($document_id, $filename, $type, 'force');
-lib/extern/modules/ExternModuleDownload.class.php:220:                $download_link = GetDownloadLink($row['dokument_id'], $row['filename']);
-lib/extern/modules/ExternModuleTemplateDownload.class.php:250:                $download_link = GetDownloadLink($row['dokument_id'], $row['filename']);
-app/views/admin/user/list_files.php:16:                $actionMenu->addLink(GetDownloadLink($file->id, $file->filename, $type),
-app/views/admin/user/list_files.php:20:                    $actionMenu->addLink(GetDownloadLink($file->id, $file->filename, $type, 'zip'),
-app/views/search/archive/index.php:82:                <a href="<?= URLHelper::getLink(GetDownloadLink($course->archiv_file_id, $filename, 1)) ?>">
-app/views/search/archive/index.php:88:                <a href="<?= URLHelper::getLink(GetDownloadLink($course->archiv_protected_file_id, $filename, 1)) ?>">
-app/views/my_courses/archive.php:50:                            <a href="<?= URLHelper::getLink(GetDownloadLink($row['archiv_file_id'], $filename, 1)) ?>">
-app/views/my_courses/archive.php:56:                            <a href="<?= URLHelper::getLink(GetDownloadLink($row['archiv_protected_file_id'], $filename, 1)) ?>">
-app/models/WysiwygDocument.php:62:        return \GetDownloadLink($this->studipDocument->getId(),
-app/controllers/admin/user.php:157:                    $this->redirect(GetDownloadLink($tmpname, 'nutzer-export.csv', 4));
-app/controllers/admin/courses.php:621:            $this->redirect(GetDownloadLink($tmpname, 'Veranstaltungen_Export.csv', 4, 'force'));
-app/controllers/admission/restricted_courses.php:103:                $this->redirect(GetDownloadLink($tmpname, 'teilnahmebeschraenkteVeranstaltungen.csv', 4, 'force'));
-app/controllers/admission/courseset.php:431:                $this->redirect(GetDownloadLink($tmpname, 'Veranstaltungen_' . $courseset->getName() . '.csv', 4, 'force'));
-app/controllers/admission/courseset.php:454:                        $this->redirect(GetDownloadLink($tmpname, 'Gesamtteilnehmerliste_' . $courseset->getName() . '.csv', 4, 'force'));
-app/controllers/admission/courseset.php:479:                        $this->redirect(GetDownloadLink($tmpname, 'Mehrfachanmeldungen_' . $courseset->getName() . '.csv', 4, 'force'));
-app/controllers/admission/courseset.php:573:                $this->redirect(GetDownloadLink($tmpname, 'Anmeldungen_' . $courseset->getName() . '.csv', 4, 'force'));
-app/controllers/course/members.php:1274:            $this->redirect(GetDownloadLink($tmp_name, _('Zusatzangaben') . '.csv', 4, 'force'));
-public/eval_summary.php:321:        $txt .= '<IMG SRC="' . GetDownloadLink('evalsum'.$parent_id.$auth->auth['uid'].'.'.Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT, 'evalsum'.$parent_id.$auth->auth['uid'].'.'.Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT, 2) .'">'."\n";
-templates/mail/text.php:13:        <?= GetDownloadLink($one['dokument_id'], $one['filename'], 7, 'force') ?>
-templates/mail/html.php:21:            <a href="<?=GetDownloadLink($one['dokument_id'], $one['filename'], 7, 'force')?>"><?= htmlReady($one['filename'] . ' (' . relsize($one['filesize'], false) . ')') ?></a> 
+lib/datei.inc.php
+lib/extern/modules/ExternModuleDownload.class.php
+lib/extern/modules/ExternModuleTemplateDownload.class.php
+app/views/admin/user/list_files.php
+app/views/search/archive/index.php
+app/views/my_courses/archive.php
+app/models/WysiwygDocument.php
+app/controllers/admin/user.php
+app/controllers/admin/courses.php
+app/controllers/admission/restricted_courses.php
+app/controllers/admission/courseset.php
+app/controllers/course/members.php
+public/eval_summary.php
+templates/mail/text.php
+templates/mail/html.php
 */
 //DEPRECATED: replaced by FileRef::getDownloadURL
 function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $range_id = '', $list_id = ''){
@@ -2310,13 +2283,10 @@ dies muss das aufrufende Script sicherstellen.
 */
 /*
 used by:
-lib/classes/UserManagement.class.php:774:    function deleteUser($delete_documents = true)
-lib/classes/UserManagement.class.php:879:        if ($delete_documents) {
-lib/messaging.inc.php:83:            array_map('delete_document', $document_ids);
-lib/datei.inc.php:2391:            if (delete_document($dokument_id)) {
-lib/datei.inc.php:2443:            if (delete_document($file_id)) {
-public/folder.php:274:        if (delete_document($open_id))
-public/folder.php:652:        $deleted += delete_document($one);
+lib/classes/UserManagement.class.php
+lib/messaging.inc.php
+lib/datei.inc.php
+public/folder.php
 */
 //DEPRECATED: replaced by FileManager::deleteFileRef
 function delete_document($dokument_id, $delete_only_file = FALSE)
@@ -2343,8 +2313,8 @@ function delete_document($dokument_id, $delete_only_file = FALSE)
 
 /*
 used by:
-lib/datei.inc.php:1154:                        delete_link($refresh, TRUE);
-public/folder.php:282:        if (delete_link($open_id))
+lib/datei.inc.php
+public/folder.php
 */
 //DEPRECATED: replaced by FileManager::deleteFileRef
 function delete_link($dokument_id) {
@@ -2364,10 +2334,9 @@ dies muss das aufrufende Script sicherstellen.
 */
 /*
 used by:
-lib/models/Statusgruppen.php:249:            delete_folder($this->hasFolder(), true);
-lib/datei.inc.php:2388:                delete_folder($one_folder, true);
-public/folder.php:240:            delete_folder($open_id, true);
-public/folder.php:249:        delete_folder($open_id, true);
+lib/models/Statusgruppen.php
+lib/datei.inc.php
+public/folder.php
 */
 //DEPRECATED: replaced by FileManager::deleteFolder
 function delete_folder($folder_id, $delete_subfolders = false)
@@ -2422,10 +2391,8 @@ function delete_folder($folder_id, $delete_subfolders = false)
 //Rekursive Loeschfunktion, loescht erst jeweils enthaltene Dokumente und dann den entsprechenden Ordner
 /*
 used by:
-lib/dates.inc.php:362:        recursiv_folder_delete ($termin_id);
-lib/dates.inc.php:366:            recursiv_folder_delete($termin_id);
-lib/datei.inc.php:2457:        $doc_count += recursiv_folder_delete($folder_id);
-lib/datei.inc.php:2481:            $count += recursiv_folder_delete($folder_id);
+lib/dates.inc.php
+lib/datei.inc.php
 */
 //DEPRECATED: replaced by FileManager::deleteFolder
 function recursiv_folder_delete($parent_id)
@@ -2466,8 +2433,8 @@ function recursiv_folder_delete($parent_id)
 
 /*
 used by:
-lib/classes/Seminar.class.php:1923:        if (($db_ar = delete_all_documents($s_id)) > 0) {
-app/controllers/institute/basicdata.php:443:            $db_ar = delete_all_documents($i_id);
+lib/classes/Seminar.class.php
+app/controllers/institute/basicdata.php
 */
 function delete_all_documents($range_id){
     if (!$range_id){
@@ -2491,24 +2458,12 @@ function delete_all_documents($range_id){
 */
 /*
 used by:
-db/migrations/101_step00246_blubber.php:95:                @rmdirr($GLOBALS['PLUGINS_PATH']."/".$old_blubber['pluginpath']);
-db/migrations/199_step_00302_modulverwaltung.php:21:                @rmdirr($GLOBALS['PLUGINS_PATH'] . '/' . $old_mvv['pluginpath']);
-lib/archiv.inc.php:739:        rmdirr($archive_tmp_dir_path);
-lib/archiv.inc.php:783:            rmdirr($archive_protected_files_zip_path);
-lib/datei.inc.php:301:            rmdirr($tmp_full_path);
-lib/datei.inc.php:2525:            rmdirr("$dirname/$entry");
-lib/datei.inc.php:2625:            @rmdirr($tmpdirname);
-lib/datei.inc.php:2646:            @rmdirr($tmpdirname);
-lib/datei.inc.php:2651:    @rmdirr($tmpdirname);
-app/models/plugin_administration.php:42:            rmdirr($packagedir);
-app/models/plugin_administration.php:68:            rmdirr($packagedir);
-app/models/plugin_administration.php:81:            rmdirr($packagedir);
-app/models/plugin_administration.php:98:            rmdirr($plugindir);
-app/models/plugin_administration.php:103:                rmdirr($plugindir_old);
-app/models/plugin_administration.php:122:            rmdirr($plugindir);
-app/models/plugin_administration.php:134:        rmdirr($packagedir);
-app/models/plugin_administration.php:199:        rmdirr($plugindir);
-app/controllers/file.php:164:                rmdirr($tmp_folder);
+db/migrations/101_step00246_blubber.php
+db/migrations/199_step_00302_modulverwaltung.php
+lib/archiv.inc.php
+lib/datei.inc.php
+app/models/plugin_administration.php
+app/controllers/file.php
 */
 function rmdirr($dirname){
     // Simple delete for a file
@@ -2540,7 +2495,7 @@ function rmdirr($dirname){
 
 /*
 used by:
-public/sendfile.php:124:    if (create_zip_from_file( $tmp_file_name, "$zip_path_file.zip") === false) {
+public/sendfile.php
 */
 function create_zip_from_file($file_name, $zip_file_name){
     if ($GLOBALS['ZIP_USE_INTERNAL']){
@@ -2563,13 +2518,18 @@ function create_zip_from_file($file_name, $zip_file_name){
 
 /*
 used by:
-lib/archiv.inc.php:735:        create_zip_from_directory($archive_tmp_dir_path, $archive_tmp_dir_path);
-lib/archiv.inc.php:771:            create_zip_from_directory(
-lib/datei.inc.php:300:            create_zip_from_directory($tmp_full_path, $tmp_full_path);
-app/controllers/admin/plugin.php:306:        create_zip_from_directory($pluginpath, $filepath);
-app/controllers/admission/ruleadministration.php:212:        create_zip_from_directory($dirname, $filepath);
+lib/datei.inc.php
+app/controllers/admin/plugin.php
+app/controllers/admission/ruleadministration.php
 */
+//DEPRECATED: replaced by FileArchiveManager::createArchiveFromPhysicalFolder
 function create_zip_from_directory($fullpath, $zip_file_name) {
+    return FileArchiveManager::createArchiveFromPhysicalFolder(
+        $fullpath,
+        $zip_file_name
+    );
+    
+    /*
     if ($GLOBALS['ZIP_USE_INTERNAL']) {
         $archive = Studip\ZipArchive::create($zip_file_name);
         $added = $archive->addFromPath($fullpath);
@@ -2588,15 +2548,14 @@ function create_zip_from_directory($fullpath, $zip_file_name) {
         }
         return $ret;
     }
+    */
 }
 
 /*
 used by:
-lib/datei.inc.php:2630:    return !extract_zip($file_name, $dir_name, $testonly);
-lib/datei.inc.php:2649:        if(!extract_zip($GLOBALS['TMP_PATH'] . '/' . $tmpname, false, true)) {
-lib/datei.inc.php:2656:        if (!extract_zip($GLOBALS['TMP_PATH'] . '/' . $tmpname , $tmpdirname)){
-app/models/plugin_administration.php:41:        if (!extract_zip($filename, $packagedir)) {
-app/controllers/file.php:156:                extract_zip($this->file_ref->file->getPath(), $tmp_folder);
+lib/datei.inc.php
+app/models/plugin_administration.php
+app/controllers/file.php
 */
 function extract_zip($file_name, $dir_name = '', $testonly = false) {
     $ret = false;
@@ -2634,9 +2593,7 @@ function extract_zip($file_name, $dir_name = '', $testonly = false) {
  */
  /*
 used in:
-lib/datei.inc.php:2713:        $ret = upload_recursively($GLOBALS['folder_system_data']['upload'], $tmpdirname);
-lib/datei.inc.php:2836:        upload_recursively($dir_id, $subdir);
-lib/datei.inc.php:2733:        upload_recursively($dir_id, $subdir);
+lib/datei.inc.php
 */
 function upload_recursively($range_id, $dir) {
     static $count = array(
@@ -2727,8 +2684,7 @@ function upload_recursively($range_id, $dir) {
  */
  /*
 used in:
-lib/datei.inc.php:2718:            $count['files'] += upload_zip_file($range_id, $file);
-lib/datei.inc.php:2745: lib/datei.inc.php:2816:            $count['files'] += upload_zip_file($range_id, $file);
+lib/datei.inc.php
 */
 function upload_zip_file($dir_id, $file) {
 
@@ -2758,7 +2714,7 @@ function upload_zip_file($dir_id, $file) {
 
 /*
 used in:
-lib/datei.inc.php:1327:                $flash_player = get_flash_player($datei['dokument_id'], $datei['filename'], $type);
+lib/datei.inc.php
 */
 function get_flash_player ($document_id, $filename, $type) {
     global $auth;
@@ -2805,18 +2761,12 @@ function get_flash_player ($document_id, $filename, $type) {
  */
 /*
 used in:
-lib/classes/StudipMail.class.php:287:            $this->addFileAttachment(get_upload_file_path($doc->getId()), $doc->getValue('filename'));
-lib/classes/exportdocument/ExportPDF.class.php:178:            $path = get_upload_file_path($doc->getId());
-lib/classes/exportdocument/ExportPDF.class.php:307:                        $convurl = get_upload_file_path($matches[1]);
-lib/models/StudipDocument.class.php:241:        $newpath = get_upload_file_path($this->getId());
-lib/models/StudipDocument.class.php:267:            @unlink(get_upload_file_path($this->getId()));
-lib/datei.inc.php:267:                    if (@copy(get_upload_file_path($file['dokument_id']), $tmp_full_path.'/'.$filename)) {
-lib/datei.inc.php:362:            if (copy(get_upload_file_path($row['dokument_id']), $tmp_full_path . '/' . $filename)) {
-lib/datei.inc.php:699:        return (bool) StudipDocument::createWithFile(get_upload_file_path($doc_id), $new);
-lib/datei.inc.php:2461:            @unlink(get_upload_file_path($dokument_id));
-app/routes/Files_old.php:70:            if (!file_exists($real_file = get_upload_file_path($file_id))) {
-app/controllers/messages.php:366:                        $new_attachment = StudipDocument::createWithFile(get_upload_file_path($attachment->getId()), $new_attachment);
-app/controllers/messages.php:756:        $data_stored = move_uploaded_file($file['tmp_name'], get_upload_file_path($file_ref->file_id));
+lib/classes/StudipMail.class.php
+lib/classes/exportdocument/ExportPDF.class.php
+lib/models/StudipDocument.class.php
+lib/datei.inc.php
+app/routes/Files_old.php
+app/controllers/messages.php
 */
 function get_upload_file_path ($document_id)
 {
@@ -2845,13 +2795,8 @@ function get_upload_file_path ($document_id)
  */
  /*
 used in:
-lib/datei.inc.php:265:                if(check_protected_download($file['dokument_id'])) {
-lib/datei.inc.php:360:        } else if(check_protected_download($row['dokument_id'])) {
-lib/datei.inc.php:1573:        if (check_protected_download($datei['dokument_id'])) {
-lib/datei.inc.php:1614:        if(check_protected_download($datei["dokument_id"])){
-lib/datei.inc.php:1704:        if (check_protected_download($datei["dokument_id"])) {
-lib/datei.inc.php:1742:      if ((!$upload) && ($datei["url"]=="") && check_protected_download($datei["dokument_id"])) {
-public/folder.php:106:            && check_protected_download($dl_id['dokument_id']) && $dl_id['url'] == "") {
+lib/datei.inc.php
+public/folder.php
 */
 //DEPRECATED: replaced by ContentTermsOfUse::download_condition in conjunction
 //with a FileRef instance.
@@ -2897,18 +2842,14 @@ function check_protected_download($document_id) {
  */
 /*
 used in:
-lib/cronjobs/check_admission.class.php:96:                          if (array_to_csv($data, $applicants_file, $captions)) {
-lib/datei.inc.php:298:            array_to_csv($filelist, $tmp_full_path . '/' . _("dateiliste.csv"), $caption);
-app/controllers/admin/user.php:156:                if (array_to_csv(array_map($mapper, $this->users), $GLOBALS['TMP_PATH'] . '/' . $tmpname, $captions)) {
-app/controllers/admin/courses.php:620:        if (array_to_csv($data, $GLOBALS['TMP_PATH'] . '/' . $tmpname, $captions)) {
-app/controllers/admission/restricted_courses.php:102:            if (array_to_csv($data, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-app/controllers/admission/courseset.php:430:            if (array_to_csv($data, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-app/controllers/admission/courseset.php:453:                    if (array_to_csv($liste, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-app/controllers/admission/courseset.php:478:                    if (array_to_csv($liste, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-app/controllers/admission/courseset.php:572:            if (array_to_csv($data, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-app/controllers/questionnaire.php:424:        $this->render_text(array_to_csv($csv));
-app/controllers/course/members.php:1273:            array_to_csv($aux['rows'], $GLOBALS['TMP_PATH'] . '/' . $tmp_name, $aux['head']);
-app/controllers/course/members.php:1594:        $csv = array_to_csv($data);
+lib/cronjobs/check_admission.class.php
+lib/datei.inc.php
+app/controllers/admin/user.php
+app/controllers/admin/courses.php
+app/controllers/admission/restricted_courses.php
+app/controllers/admission/courseset.php
+app/controllers/questionnaire.php
+app/controllers/course/members.php
 */
 function array_to_csv($data, $filename = null, $caption = null, $delimiter = ';' , $enclosure = '"', $eol = "\r\n" )
 {

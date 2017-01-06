@@ -408,6 +408,11 @@ class FileArchiveManager
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
      *     If $keep_hierarchy is set to false you will get an archive that contains only files
      *     and no subdirectories.
+     *
+     * @return bool True, if the archive file was created and saved successfully 
+     *     at $archive_file_path, false otherwise.
+     * 
+     * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more special exception is thrown.
      */
     public static function createArchiveFromFolder(
         FolderType $folder,
@@ -446,6 +451,11 @@ class FileArchiveManager
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
      *     If $keep_hierarchy is set to false you will get an archive that contains only files
      *     and no subdirectories.
+     * 
+     * @return bool True, if the archive file was created and saved successfully 
+     *     at $archive_file_path, false otherwise.
+     * 
+     * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more special exception is thrown.
      */
     public static function createArchiveFromCourse(
         $course_id = null,
@@ -494,6 +504,11 @@ class FileArchiveManager
      * @param bool $keep_hierarchy True, if the file hierarchy shall be kept inside the archive.
      *     If $keep_hierarchy is set to false you will get an archive that contains only files
      *     and no subdirectories.
+     * 
+     * @return bool True, if the archive file was created and saved successfully 
+     *     at $archive_file_path, false otherwise.
+     * 
+     * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more special exception is thrown.
      */
     public static function createArchiveFromInstitute(
         $institute_id = null,
@@ -542,8 +557,8 @@ class FileArchiveManager
      *     If $keep_hierarchy is set to false you will get an archive that contains only files
      *     and no subdirectories.
      * 
-     * @return ZipArchive|null The created ZipArchive object or null if the requirements
-     *     to create a Zip archive are not met.
+     * @return bool True, if the archive file was created and saved successfully 
+     *     at $archive_file_path, false otherwise.
      * 
      * @throws Exception|FileArchiveManagerException If an error occurs a general exception or a more special exception is thrown.
      */
@@ -551,8 +566,8 @@ class FileArchiveManager
         $user_id = null,
         $archive_file_path = '',
         $do_permission_checks = true,
-        $keep_hierarchy = true)
-    {
+        $keep_hierarchy = true
+    ) {
         $folder = Folder::findTopFolder($user_id);
         if(!$folder) {
             return null;
@@ -577,6 +592,59 @@ class FileArchiveManager
             $do_permission_checks,
             $keep_hierarchy
         );
+    }
+    
+    
+    /**
+     * This method creates an archive with the content of a physical folder
+     * (A folder inside the operating system's file system).
+     * 
+     * @param string $folder_path The path to the physical folder 
+     *     which content shall be added to a file archive.
+     * @param string $archive_file_path The path to the archive file which
+     *     shall be created.
+     * 
+     * @return True, if the archive was created successfully, false otherwise.
+     * 
+     * @throws Exception|FileArchiveManagerException If an error occurs 
+     *     a general exception or a more special exception is thrown.
+     */
+    public static function createArchiveFromPhysicalFolder(
+        $folder_path = null,
+        $archive_file_path = null
+    ) {
+        
+        if(!$folder_path or !$archive_file_path) {
+            //we can't work with empty paths!
+            return false;
+        }
+        
+        if(!file_exists($folder_path)) {
+            //path to physical folder does not exist!
+            throw new FileArchiveManagerException(
+                'Physical folder does not exist!'
+            );
+        }
+        
+        //taken from datei.inc.php:
+        if ($GLOBALS['ZIP_USE_INTERNAL']) {
+            $archive = Studip\ZipArchive::create($archive_file_path);
+            $result = $archive->addFromPath($folder_path);
+            $archive->close();
+            return $result;
+        } else if (@file_exists($GLOBALS['ZIP_PATH']) || ini_get('safe_mode')){
+            if (mb_strtolower(mb_substr($archive_file_path, -3)) != 'zip' ) {
+                $archive_file_path = $archive_file_path . '.zip';
+            }
+
+            //zip stuff
+            $zippara = (ini_get('safe_mode')) ? ' -R ':' -r ';
+            if (@chdir($folder_path)) {
+                exec ($GLOBALS['ZIP_PATH'] . ' -q -D ' . $GLOBALS['ZIP_OPTIONS'] . ' ' . $zippara . $archive_file_path . ' *',$output, $ret);
+                @chdir($GLOBALS['ABSOLUTE_PATH_STUDIP']);
+            }
+            return $ret;
+        }
     }
     
     
