@@ -604,7 +604,7 @@ class FileArchiveManager
      * @param string $archive_file_path The path to the archive file which
      *     shall be created.
      * 
-     * @return True, if the archive was created successfully, false otherwise.
+     * @return True, if all files were added successfully, false otherwise.
      * 
      * @throws Exception|FileArchiveManagerException If an error occurs 
      *     a general exception or a more special exception is thrown.
@@ -626,25 +626,11 @@ class FileArchiveManager
             );
         }
         
-        //taken from datei.inc.php:
-        if ($GLOBALS['ZIP_USE_INTERNAL']) {
-            $archive = Studip\ZipArchive::create($archive_file_path);
-            $result = $archive->addFromPath($folder_path);
-            $archive->close();
-            return $result;
-        } else if (@file_exists($GLOBALS['ZIP_PATH']) || ini_get('safe_mode')){
-            if (mb_strtolower(mb_substr($archive_file_path, -3)) != 'zip' ) {
-                $archive_file_path = $archive_file_path . '.zip';
-            }
-
-            //zip stuff
-            $zippara = (ini_get('safe_mode')) ? ' -R ':' -r ';
-            if (@chdir($folder_path)) {
-                exec ($GLOBALS['ZIP_PATH'] . ' -q -D ' . $GLOBALS['ZIP_OPTIONS'] . ' ' . $zippara . $archive_file_path . ' *',$output, $ret);
-                @chdir($GLOBALS['ABSOLUTE_PATH_STUDIP']);
-            }
-            return $ret;
-        }
+        //Put all the content of the folder inside an archive:
+        $archive = Studip\ZipArchive::create($archive_file_path);
+        $result = $archive->addFromPath($folder_path);
+        $archive->close();
+        return $result;
     }
     
     
