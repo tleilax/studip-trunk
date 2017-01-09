@@ -152,19 +152,14 @@ class FileController extends AuthenticatedController
             } else {
                 $ref_ids = array($this->file_ref->getId());
             }
-            if (in_array($this->current_folder->range_type, array("course", "institute"))) {
-                header("Location: ". URLHelper::getURL("dispatch.php/file/edit_license", array(
+            
+            header('Location: ' . URLHelper::getURL(
+                'dispatch.php/file/edit_license',
+                [
                     'file_refs' => $ref_ids
-                )));
-                $this->render_nothing();
-            } else {
-                $payload = array(
-                    'html' => $this->render_template_as_string("files/_fileref_tr")
-                );
-                $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
-                $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
-                $this->render_nothing();
-            }
+                ]
+            ));
+            $this->render_nothing();
         }
     }
 
