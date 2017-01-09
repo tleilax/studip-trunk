@@ -678,32 +678,38 @@ function in_archiv ($sem_id)
         $top_folder = $top_folder->getTypedFolder();
     }
     
-    //Collect all subfolders and files which are directly below
-    //the top folder:
-    $readable_items = []; //files and folders which are readable
-    $unreadable_items = []; //files and folders which aren't readable
+    //Collect all subfolders and files which are directly below the top folder:
+    
+    $readable_items = []; //files and folders which are readable for all course participants
+    $protected_archive_items = []; //all files and folders of the course
     
     foreach($top_folder->getSubfolders() as $subfolder) {
-        if($subfolder->isReadable('nobody')) {
+        $protected_archive_items[] = $subfolder;
+        if($subfolder instanceof StandardFolder) {
+            //StandardFolder instances inside a course are always readable
+            //for everyone. For other folder types we can't be sure
+            //about that so that these folder types aren't included
+            //in the standard file archive.
             $readable_items[] = $subfolder;
-        } else {
-            $unreadable_items[] = $subfolder;
         }
     }
     
     foreach($top_folder->getFiles() as $file_ref) {
-        if($top_folder->isFileDownloadable('nobody', $file_ref->id)) {
-            $readable_items[] = $file_ref;
-        } else {
-            $unreadable_items[] = $file_ref;
+        $protected_archive_items[] = $file_ref;
+        if($file_ref->terms_of_use) {
+            if($file_ref->terms_of_use->download_condition == 0) {
+                //only Files which are downloadable by everyone in the course
+                //can be added to the standard file archive.
+                $readable_items[] = $file_ref;
+            }
         }
     }
     
     
+    //Create the standard file archive if there are files and folders which
+    //are readable (or downloadable) for everyone in the course:
     
     $archive_file_id = '';
-    $archive_protected_files_zip_id = '';
-    
     
     if (!empty($readable_items)) {
         //list of readable items isn't empty
@@ -713,10 +719,13 @@ function in_archiv ($sem_id)
         
         $archive_path = $ARCHIV_PATH . '/' . $archive_file_id;
         
-        $result = FileArchiveManager::createArchive(
+        FileArchiveManager::createArchive(
             $readable_items,
             'nobody',
-            $archive_path
+            $archive_path,
+            false, //don't do individual permission checks
+            true, //keep hierarchy
+            true //skip check for user permissions
         );
         
         if(!file_exists($archive_path)) {
@@ -724,94 +733,29 @@ function in_archiv ($sem_id)
             $archive_file_id = ''; //no archive
         }
         
-        /*
-        $archive_path = $ARCHIV_PATH . '/' . $archive_file_id;
-        //create temporary directory
-        $archive_tmp_dir_path = "$TMP_PATH/$archive_file_id";
-        mkdir($archive_tmp_dir_path, 0700);
-        
-        
-        //copy files and subfolders into the temporary path:
-        FileManager::copyFolderContentIntoPath(
-            $top_folder,
-            $archive_tmp_dir_path,
-            User::findCurrent()->id,
-            'autor'
-        );
-        
-        //We zip all the files we could copy with FileManager::copyFolderContentIntoPath.
-        
-        create_zip_from_directory($archive_tmp_dir_path, $archive_tmp_dir_path);
-        //move archive zip to archive path:
-        @rename($archive_tmp_dir_path . '.zip', $archive_path);
-        //delete temporary folder (and by that: all subfolders in it)
-        rmdirr($archive_tmp_dir_path);
-        */
     }
     
-    if (!empty($unreadable_items)) {
-        //We must store the files in unreadable folders differently:
-        //Such files are stored without the folder hierarchy in one
-        //ZIP file.
-        
-        $archive_protected_files_zip_id = md5('protected_archive_'.$sem_id);
-        
-        $archive_protected_files_path = $ARCHIV_PATH . '/' . $archive_protected_files_zip_id;
-        
-        $unreadable_folders_zip = FileArchiveManager::createArchive(
-            $unreadable_items,
-            null,
-            $archive_protected_files_path,
-            false, //no permission checks
-            false //do not keep the folder hierarchy
-        );
-        
-        if(!file_exists($archive_protected_files_path)) {
-            //empty archive or error during archive creation:
-            $archive_protected_files_zip_id = ''; //no protected files archive
-        }
-        
-        /*
-        
-        $archive_protected_files_zip_path = $TMP_PATH . '/' . $archive_protected_files_zip_id;
-        
-        //create temporary folder:
-        mkdir($archive_protected_files_zip_path);
-        
-        foreach($unreadable_folders as $unreadable_folder) {
-            $unreadable_folder_path = $archive_protected_files_zip_path . '/' . $unreadable_folder->name;
-            
-            mkdir($unreadable_folder_path);
-            
-            FileManager::copyFolderContentIntoPath(
-                $unreadable_folder,
-                $unreadable_folder_path,
-                '',
-                '',
-                true //ignore permission checks
-            );
-        }
-        
-        //Ok, the content of unreadable folders is copied.
-        //We can create a ZIP file from it:
-        create_zip_from_directory(
-            $archive_protected_files_zip_path,
-            $archive_protected_files_zip_path
-        );
-        
-        //move archive zip with unreadable folders to archive path:
-        @rename(
-            $archive_protected_files_zip_path . '.zip',
-            $ARCHIV_PATH . '/' . $archive_protected_files_zip_id
-        );
-        
-        //delete temporary folder (and all of its content):
-        rmdirr($archive_protected_files_zip_path);
-        */
+    
+    //Create the protected file archive which contains all files of the course.
+    
+    $archive_protected_files_zip_id = md5('protected_archive_' . $sem_id);
+    
+    $archive_protected_files_path = $ARCHIV_PATH . '/' . $archive_protected_files_zip_id;
+    
+    FileArchiveManager::createArchive(
+        $protected_archive_items,
+        null,
+        $archive_protected_files_path,
+        false //no permission checks
+    );
+    
+    if(!file_exists($archive_protected_files_path)) {
+        //empty archive or error during archive creation:
+        $archive_protected_files_zip_id = ''; //no protected files archive
     }
     
-
-    //We're done with archiving: Store a new archived course in the database.
+    
+    //We're done with archiving: Store a new archived course in the database:
     $query = "INSERT INTO archiv
                 (seminar_id, name, untertitel, beschreibung, start_time,
                  semester, heimat_inst_id, institute, dozenten, fakultaet,
