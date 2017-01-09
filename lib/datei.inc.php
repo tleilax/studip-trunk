@@ -2426,21 +2426,13 @@ function rmdirr($dirname){
 used by:
 public/sendfile.php
 */
-function create_zip_from_file($file_name, $zip_file_name){
-    if ($GLOBALS['ZIP_USE_INTERNAL']){
-        $archive = Studip\ZipArchive::create($zip_file_name);
-        $localfilename = $archive->addFile($file_name);
-        $archive->close();
-        return [$localfilename];
-    } else if (@file_exists($GLOBALS['ZIP_PATH']) || ini_get('safe_mode')){
-        if (mb_strtolower(mb_substr($zip_file_name, -3)) != 'zip' ) {
-            $zip_file_name = $zip_file_name . '.zip';
-        }
-
-        exec($GLOBALS['ZIP_PATH'] . ' -q ' . $GLOBALS['ZIP_OPTIONS'] . " -j {$zip_file_name} $file_name", $output, $ret);
-        return $ret;
-    }
-
+function create_zip_from_file($file_name, $zip_file_name) {
+    $archive = Studip\ZipArchive::create($zip_file_name);
+    $localfilename = $archive->addFile($file_name);
+    $archive->close();
+    
+    return [$localfilename];
+    
     // return false, if nothing worked
     return false;
 }
@@ -2457,27 +2449,6 @@ function create_zip_from_directory($fullpath, $zip_file_name) {
         $fullpath,
         $zip_file_name
     );
-    
-    /*
-    if ($GLOBALS['ZIP_USE_INTERNAL']) {
-        $archive = Studip\ZipArchive::create($zip_file_name);
-        $added = $archive->addFromPath($fullpath);
-        $archive->close();
-        return $added;
-    } else if (@file_exists($GLOBALS['ZIP_PATH']) || ini_get('safe_mode')){
-        if (mb_strtolower(mb_substr($zip_file_name, -3)) != 'zip' ) {
-            $zip_file_name = $zip_file_name . '.zip';
-        }
-
-        //zip stuff
-        $zippara = (ini_get('safe_mode')) ? ' -R ':' -r ';
-        if (@chdir($fullpath)) {
-            exec ($GLOBALS['ZIP_PATH'] . ' -q -D ' . $GLOBALS['ZIP_OPTIONS'] . ' ' . $zippara . $zip_file_name . ' *',$output, $ret);
-            @chdir($GLOBALS['ABSOLUTE_PATH_STUDIP']);
-        }
-        return $ret;
-    }
-    */
 }
 
 /*
@@ -2487,22 +2458,11 @@ app/models/plugin_administration.php
 app/controllers/file.php
 */
 function extract_zip($file_name, $dir_name = '', $testonly = false) {
-    $ret = false;
-    if ($GLOBALS['ZIP_USE_INTERNAL']) {
-        if ($testonly) {
-            return Studip\ZipArchive::test($file_name);
-        }
-
-        return Studip\ZipArchive::extractToPath($file_name, $dir_name);
-    } else if (@file_exists($GLOBALS['UNZIP_PATH']) || ini_get('safe_mode')){
-        if ($testonly){
-            exec($GLOBALS['UNZIP_PATH'] . " -t -qq $file_name ", $output, $ret);
-        } else {
-            exec($GLOBALS['UNZIP_PATH'] . " -qq $file_name " . ($dir_name ? "-d $dir_name" : ""), $output, $ret);
-        }
-        $ret = $ret === 0;
+    if ($testonly) {
+        return Studip\ZipArchive::test($file_name);
     }
-    return $ret;
+    
+    return Studip\ZipArchive::extractToPath($file_name, $dir_name);
 }
 
 
