@@ -230,8 +230,79 @@ class FileRef extends SimpleORMap
         throw new UnexpectedValueException('class: ' . $this->license . ' not found');
     }
 
+    
     public function isLink()
     {
         return $this->file->url_access_type == 'redirect';
+    }
+    
+    
+    /**
+     * Determines if the FileRef references an image file.
+     * 
+     * @return bool True, if the file is an image file, false otherwise.
+     */
+    public function isImage()
+    {
+        $mime_types = [
+            'image/png',
+            'image/jpeg',
+            'image/gif',
+            'image/svg+xml'
+        ];
+        
+        if($this->file) {
+            if(in_array($this->file->mime_type, $mime_types)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    
+    /**
+     * Determines if the FileRef references an audio file.
+     * 
+     * @return bool True, if the file is an audio file, false otherwise.
+     */
+    public function isAudio()
+    {
+        $mime_types = [
+            'audio/ogg',
+            'audio/webm',
+            'audio/wav',
+            'audio/mpeg',
+            'audio/opus'
+        ];
+        
+        if($this->file) {
+            if(in_array($this->file->mime_type, $mime_types)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    
+    /**
+     * Determines if the FileRef references a video file.
+     * 
+     * @return bool True, if the file is a video file, false otherwise.
+     */
+    public function isVideo()
+    {
+        $mime_types = [
+            'video/ogg',
+            'video/webm',
+            'video/mp4',
+            'video/3gpp'
+        ];
+        
+        if($this->file) {
+            if(in_array($this->file->mime_type, $mime_types)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

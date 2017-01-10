@@ -1,3 +1,7 @@
+<? if($show_preview): ?>
+<div id="file_details_window">
+<aside id="file_aside">
+<? endif ?>
 <?= Icon::create(
     'file',
     'info',
@@ -29,12 +33,9 @@
     </tr>
     <? if($file_ref->terms_of_use): ?>
     <tr>
-        <td><?= _('Nutzungsbedingungen') ?></td>
-        <td>
-            <h3>
-                <?= Icon::create($file_ref->terms_of_use->icon, 'info') ?>
-                <span><?= htmlReady($file_ref->terms_of_use->name) ?></span>
-            </h3>
+        <td colspan="2">
+            <?= Icon::create($file_ref->terms_of_use->icon, 'info') ?>
+            <h3><?= htmlReady($file_ref->terms_of_use->name) ?></h3>
             <article><?= htmlReady($file_ref->terms_of_use->description) ?></article>
             
             <h3><?= _('Downloadbedingungen') ?></h3>
@@ -52,4 +53,20 @@
     </tr>
     <? endif ?>
 </table>
+<? if($show_preview): ?>
+</aside>
+<div id="preview_container">
+<? if($file_ref->isImage()): ?>
+<img src="<?= htmlReady($file_ref->getDownloadURL()) ?>"
+    <?= $file_ref->file ? 'type="' . $file_ref->file->mime_type . '"' : '' ?> class="file_preview"></img>
+<? elseif($file_ref->isAudio()): ?>
+<audio controls="controls" src="<?= htmlReady($file_ref->getDownloadURL()) ?>"
+    <?= $file_ref->file ? 'type="' . $file_ref->file->mime_type . '"' : '' ?> class="file_preview"></audio>
+<? elseif($file_ref->isVideo()): ?>
+<video controls="controls" src="<?= htmlReady($file_ref->getDownloadURL()) ?>"
+    <?= $file_ref->file ? 'type="' . $file_ref->file->mime_type . '"' : '' ?> class="file_preview"></video>
+<? endif ?>
+</div>
+</div>
+<? endif ?>
 <article><?= htmlReady($file_ref->description); ?></article>

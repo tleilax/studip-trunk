@@ -155,17 +155,22 @@ input.document-checkbox[type="checkbox"]:indeterminate + label span {
         width: 100%;
     }
     
-}
-
-#file_edit_window {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    align-content: flex-start;
+    .file_preview {
+        max-width: 100%;
+    }
+    
 }
 
 @media screen and (min-width: 801px) {
     /* desktop view: */
+    
+    #file_edit_window, #file_details_window {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        align-content: flex-start;
+    }
+
     #file_aside, #folder_aside {
         width: calc(30% - 10px);
         max-width: calc(30% - 10px);
@@ -185,10 +190,16 @@ input.document-checkbox[type="checkbox"]:indeterminate + label span {
         }
     }
     
-    #file_management_forms {
+    #file_management_forms, #preview_container {
         width: calc(70% - 10px);
         max-width: calc(70% - 10px);
+        
+        .file_preview {
+            max-width: 100%;
+        }
     }
+    
+    
 }
 
 @media screen and (max-width: 800px) {

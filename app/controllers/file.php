@@ -246,6 +246,35 @@ class FileController extends AuthenticatedController
         if($this->file_ref) {
             //file system object is a FileRef
             PageLayout::setTitle($this->file_ref->name);
+            
+            //Check if file is downloadable for the current user:
+            
+            $this->show_preview = false;
+            
+            $is_downloadable = false;
+            
+            $folder = $this->file_ref->folder;
+            if($folder) {
+                $folder = $folder->getTypedFolder();
+                if($folder) {
+                    $is_downloadable = $folder->isFileDownloadable($file_ref->id, User::findCurrent()->id);
+                }
+            }
+            
+            
+            if($is_downloadable) {
+                //If the file is downloadable for the current user
+                //we can check if the file has a preview. If so,
+                //we can display that besides the standard information.
+                if($this->file_ref->isImage() or
+                    $this->file_ref->isAudio() or
+                    $this->file_ref->isVideo()) {
+                    //The file can be previewed.
+                    $this->show_preview = true;
+                }
+            }
+            
+            
             if(Request::isDialog()) {
                 $this->render_template('file/file_details');
             } else {
