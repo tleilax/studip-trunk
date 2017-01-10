@@ -88,9 +88,55 @@ class WysiwygController extends \AuthenticatedController
     {
         try {
             WysiwygRequest::verifyWritePermission(self::UPLOAD_PERMISSION);
-            $foldertype = WysiwygDocument::createFolder(
-                self::FOLDER_NAME, self::FOLDER_DESCRIPTION);
-            $response = WysiwygDocument::storeUploadedFilesIn($foldertype);
+            
+            $user = User::findCurrent();
+            
+            //get the top folder of the user's personal file area and its FolderType:
+            $top_folder = Folder::findTopFolder($user->id);
+            
+            if(!$top_folder) {
+                $this->render_json(_('Hauptordner der Veranstaltung/Einrichtung nicht gefunden!'));
+                return;
+            }
+            
+            $top_folder = $top_folder->getTypedFolder();
+            if(!$top_folder) {
+                $this->render_json(_('Ordnertyp des Hauptordners konnte nicht ermittelt werden!'));
+                return;
+            }
+            
+            //try to find an already existing WYSIWYG folder inside the
+            //user's personal file area:
+            $wysiwyg_folder = Folder::findOneBySql(
+                "user_id = :user_id
+                AND parent_id = :parent_id
+                AND folder_type = 'PublicFolder'
+                AND name = :wysiwyg_name ",
+                [
+                    'user_id' => $user->id,
+                    'parent_id' => $top_folder->id,
+                    'wysiwyg_name' => self::FOLDER_NAME
+                ]
+            );
+            
+            if(!$wysiwyg_folder) {
+                //folder does not exist: create it
+                $wysiwyg_folder = FileManager::createSubFolder(
+                    $top_folder,
+                    $user,
+                    'PublicFolder',
+                    self::FOLDER_NAME,
+                    self::FOLDER_DESCRIPTION
+                );
+                
+                if(!$wysiwyg_folder instanceof PublicFolder) {
+                    $this->render_json(_('WYSIWYG-Ordner für hochgeladene Dateien konnte nicht erstellt werden!'));
+                    return;
+                }
+            }
+            
+            //Ok, we have our folder where we can store the uploaded files in:
+            $response = WysiwygDocument::storeUploadedFilesIn($wysiwyg_folder);
         } catch (AccessDeniedException $e) {
             $response = $e->getMessage();
         }

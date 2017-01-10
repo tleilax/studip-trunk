@@ -30,7 +30,15 @@ class FileManager
     /**
      * Handles uploading one or more files
      *
-     * @param uploaded_files An array with file data for all uploaded files
+     * @param uploaded_files A two-dimensional array with file data for all uploaded files.
+     *     The array has the following structure in the second dimension:
+            [
+                'name': The name of the file
+                'error': An integer telling if there were errors. 0, if no errors occured.
+                'type': The uploaded file's mime type.
+                'tmp_name': Name of the temporary file that was created right after the upload.
+                'size': Size of the uploaded file in bytes.
+            ]
      * @param folder the folder where the files are inserted
      * @param user_id the ID of the user who wants to upload files
      *
