@@ -116,12 +116,12 @@ $SEM_TREE_TYPES[0] = array("name" => "", "editable" => true); //default type, mu
 $UPLOAD_TYPES=array(    "default" =>
                 array(  "type"=>"allow",
                         "file_types" => array ("exe"),
-                        "file_sizes" => array ( "root" => 30 * 1048576,
-                                    "admin" => 30 * 1048576,
-                                    "dozent" => 30 * 1048576,
-                                    "tutor" => 30 * 1048576,
-                                    "autor" => 7 * 1048576,
-                                    "nobody" => 1.38 * 1048576
+                        "file_sizes" => array ( "root" => 240 * 1048576,
+                                    "admin" => 240 * 1048576,
+                                    "dozent" => 240 * 1048576,
+                                    "tutor" => 240 * 1048576,
+                                    "autor" => 240 * 1048576,
+                                    "nobody" => 16 * 1048576
                                     )
                 ),
 // rules for futher course-types can be added below (please adhere exactly to the structure given above)
@@ -158,11 +158,11 @@ $UPLOAD_TYPES["attachments"] =
 $UPLOAD_TYPES["personalfiles"] =
                 array(  "type" => "allow",
                         "file_types" => array ("exe",'pdf'),
-                        "file_sizes" => array ( "root" => 1 * 1048576,
-                                    "admin" => 1 * 1048576,
-                                    "tutor" => 1 * 1048576,
-                                    "dozent" =>1 * 1048576,
-                                    "autor" => 1 * 1048576,
+                        "file_sizes" => array ( "root" => 240* 1048576,
+                                    "admin" => 240 * 1048576,
+                                    "tutor" => 240 * 1048576,
+                                    "dozent" =>240 * 1048576,
+                                    "autor" => 240 * 1048576,
                                     "nobody" => 0
                                     )
                 );
