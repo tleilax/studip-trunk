@@ -158,7 +158,10 @@ $rules = [
     'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
     'StudipDocumentTree(' => 'Removed(?). Use class #{yellow:Folder} or #{yellow:FolderType} instead.',
     
-    'ZIP_USE_INTERNAL' => 'Not used anymore. Please avoid querying the value of this configuration variable!',
+    'ZIP_USE_INTERNAL' => 'Removed. Please avoid querying the value of this configuration variable!',
+    'ZIP_PATH' => 'Removed. Please avoid querying the value of this configuration variable!',
+    'ZIP_OPTIONS' => 'Removed. Please avoid querying the value of this configuration variable!',
+    'UNZIP_PATH' => 'Removed. Please avoid querying the value of this configuration variable!',
     
 ];
 

@@ -110,10 +110,6 @@ $DYNAMIC_CONTENT_URL  = $ABSOLUTE_URI_STUDIP  . "pictures";
 //path to the temporary folder
 $TMP_PATH ="/tmp/studip";                                   //the system temp path
 if (!is_dir($TMP_PATH)) mkdir($TMP_PATH,0777);
-//paths to the command line tools, used in Stud.IP
-$ZIP_PATH = "/usr/bin/zip";                             //zip tool
-$ZIP_OPTIONS = "";                                    //command line options for zip, e.g. when using SuSE try "-K" to correct long filenames for windows
-$UNZIP_PATH = "/usr/bin/unzip";
 
 // media proxy settings
 $MEDIA_CACHE_PATH = $STUDIP_BASE_PATH . '/data/media_cache';

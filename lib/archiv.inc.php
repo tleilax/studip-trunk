@@ -556,7 +556,7 @@ function dumpDateTableRows($data)
 //Funktion zum archivieren eines Seminars, sollte in der Regel vor dem Loeschen ausgfuehrt werden.
 function in_archiv ($sem_id)
 {
-    global $SEM_CLASS,$SEM_TYPE, $ARCHIV_PATH, $TMP_PATH, $ZIP_PATH, $ZIP_OPTIONS, $_fullname_sql;
+    global $SEM_CLASS,$SEM_TYPE, $ARCHIV_PATH, $TMP_PATH, $_fullname_sql;
 
     NotificationCenter::postNotification('CourseWillArchive', $sem_id);
 
