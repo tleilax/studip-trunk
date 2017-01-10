@@ -17,13 +17,9 @@
         <? endif?>
     </td>
     <td class="document-icon" data-sort-value="0">
-        <? if ($is_readable) : ?>
-            <a href="<?= $controller->url_for($controllerpath . '/' . $folder->getId()) ?>">
-        <? endif ?>
+        <a href="<?= $controller->url_for('file/details/' . $folder->getId()) ?>" data-dialog="1">
             <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(26) ?>
-        <? if ($is_readable) : ?>
         </a>
-        <? endif ?>
     </td>
     <td>
         <? if ($is_readable) : ?>

@@ -198,6 +198,75 @@ class FileController extends AuthenticatedController
         }
         return $filerefs;
     }
+    
+    
+    /**
+     * Displays details about a file or a folder.
+     * 
+     * @param string $file_area_object_id A file area object like a Folder or a FileRef.
+     */
+    public function details_action($file_area_object_id = null)
+    {
+        if($file_area_object_id == null) {
+            //invalid ID:
+            $this->render_text(
+                MessageBox::error(_('Es wurde keine gültige ID angegeben!'))
+            );
+            return;
+        }
+        
+        
+        //check if the file area object is a FileRef:
+        $this->file_ref = FileRef::find($file_area_object_id);
+        
+        $this->folder = null;
+        
+        if(!$this->file_ref) {
+            //file area object is not a FileRef: maybe it's a folder:
+            $this->folder = Folder::find($file_area_object_id);
+            
+            if(!$this->folder) {
+                //file area object not found in database:
+                $this->render_text(
+                    MessageBox::error(_('Das Dateisystem-Objekt wurde nicht in der Datenbank gefunden!'))
+                );
+                return;
+            }
+            
+            $this->folder = $this->folder->getTypedFolder();
+            if(!$this->folder) {
+                //folder type can't be determined
+                $this->render_text(
+                    MessageBox::error(_('Ordnertyp konnte nicht ermittelt werden!'))
+                );
+                return;
+            }
+        }
+        
+        if($this->file_ref) {
+            //file system object is a FileRef
+            PageLayout::setTitle($this->file_ref->name);
+            if(Request::isDialog()) {
+                $this->render_template('file/file_details');
+            } else {
+                $this->render_template(
+                    'file/file_details',
+                    $GLOBALS['template_factory']->open('layouts/base')
+                );
+            }
+        } else {
+            //file system object is a Folder
+            PageLayout::setTitle($this->folder->name);
+            if(Request::isDialog()) {
+                $this->render_template('file/folder_details');
+            } else {
+                $this->render_template(
+                    'file/folder_details',
+                    $GLOBALS['template_factory']->open('layouts/base')
+                );
+            }
+        }
+    }
 
 
     /**

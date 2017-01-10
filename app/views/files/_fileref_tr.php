@@ -9,13 +9,13 @@
         <label for="file_checkbox_<?=$file_ref->id?>"><span></span></label>
     </td>
     <td class="document-icon" data-sort-value="1">
-        <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
-        <a href="<?= $file_ref->download_url ?>" target="_blank">
-            <?= Icon::create(get_icon_for_mimetype($file_ref->mime_type), 'clickable')->asImg(24) ?>
+        <a href="<?= $controller->url_for('file/details/' . $file_ref->id) ?>" data-dialog="1">
+            <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
+                <?= Icon::create(get_icon_for_mimetype($file_ref->mime_type), 'clickable')->asImg(24) ?>
+            <? else : ?>
+                <?= Icon::create(get_icon_for_mimetype($file_ref->mime_type), "inactive")->asImg(24) ?>
+            <? endif ?>
         </a>
-        <? else : ?>
-            <?= Icon::create(get_icon_for_mimetype($file_ref->mime_type), "inactive")->asImg(24) ?>
-        <? endif ?>
     </td>
     <td data-sort-value="<?= htmlReady($file_ref->name) ?>">
         <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
