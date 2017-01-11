@@ -1,8 +1,5 @@
 <aside id="file_aside">
-    <?= Icon::create(
-        'file',
-        'info',
-        []) ?>
+    <div class="FileIcon"><?= Icon::create('file','info',[]) ?></div>
     <h3><?= htmlReady($file_ref->name) ?></h3>
     <table class="default">
         <tr>

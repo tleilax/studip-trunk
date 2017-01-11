@@ -1,5 +1,5 @@
 <aside id="folder_aside">
-    <?= $folder->getIcon('info') ?>
+    <div class="FolderIcon"><?= $folder->getIcon('info') ?></div>
     <h3><?= htmlReady($folder->name) ?></h3>
     <table class="default nohover">
         <tr>
