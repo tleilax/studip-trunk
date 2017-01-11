@@ -29,9 +29,6 @@
         <? if ($is_readable) : ?>
             </a>
         <? endif ?>
-    <? if ($folder->description): ?>
-        <small class="responsive-hidden"><?= htmlReady($folder->description) ?></small>
-    <? endif; ?>
     </td>
     <? // -number + file count => directories should be sorted apart from files ?>
     <td data-sort-value="<?= -1000000 ?>" class="responsive-hidden">

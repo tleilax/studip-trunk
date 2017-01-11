@@ -26,12 +26,9 @@
             <?= htmlReady($file_ref->name) ?>
         <? endif ?>
         <? if ($file_ref->terms_of_use): ?>
-            <? if($file_ref->terms_of_use->download_condition > 1): ?>
-                <?= Icon::create('lock-locked', 'info')->asImg(['class' => 'text-top', 'title' => _('Diese Datei ist nicht frei von Rechten Dritter.')]) ?>
+            <? if($file_ref->terms_of_use->download_condition > 0): ?>
+                <?= Icon::create('lock-locked', 'info')->asImg(['class' => 'text-top', 'title' => _('Das Herunterladen dieser Datei ist nur eingeschränkt möglich.')]) ?>
             <? endif ?>
-        <? endif; ?>
-        <? if ($file_ref->description): ?>
-            <small class="responsive-hidden"><?= htmlReady($file_ref->description) ?></small>
         <? endif; ?>
     </td>
     <td title="<?= number_format($file_ref->size, 0, ',', '.') . ' Byte' ?>" data-sort-value="<?= $file_ref->size ?>" class="responsive-hidden">
