@@ -18,4 +18,5 @@
         </td>
     </tr>
 </table>
+<h3><?= _('Beschreibung') ?></h3>
 <article><?= htmlReady($folder->description); ?></article>

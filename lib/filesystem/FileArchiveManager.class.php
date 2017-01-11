@@ -220,7 +220,7 @@ class FileArchiveManager
         
         $folder_zip_path = $archive_fs_path;
         if($keep_hierarchy) {
-            $folder_zip_path .= $folder->name;
+            $folder_zip_path .= '/' . $folder->name;
             $archive->addEmptyDir($folder_zip_path);
         }
         foreach($folder->getFiles() as $file_ref) {
@@ -230,7 +230,7 @@ class FileArchiveManager
                     $archive,
                     $file_ref,
                     $user_id,
-                    $folder_zip_path . '/',
+                    $folder_zip_path,
                     $do_user_permission_checks,
                     $skip_check_for_user_permissions
                 );
@@ -240,6 +240,7 @@ class FileArchiveManager
                     $archive,
                     $file_ref,
                     $user_id,
+                    '',
                     $do_user_permission_checks,
                     $skip_check_for_user_permissions
                 );

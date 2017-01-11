@@ -74,11 +74,15 @@
         <? if($file_ref->description): ?>
         <?= htmlReady($file_ref->description); ?>
         <? else: ?>
-        <?= _('Keine Beschreibung vorhanden!') ?>
-        <a href="<?= $controller->url_for('file/edit/' . $file_ref->id) ?>" data-dialog="1">
-            <?= Icon::create('edit', 'clickable')->asImg('16px', ['class' => 'text-bottom']) ?>
-            <?= _('Beschreibung hinzufügen') ?>
-        </a>
+            <? if($file_ref->folder): ?>
+            <?= _('Keine Beschreibung vorhanden!') ?>
+                <? if($file_ref->folder->getTypedFolder()->isFileEditable($file_ref->id, User::findCurrent()->id)): ?>
+                <a href="<?= $controller->url_for('file/edit/' . $file_ref->id) ?>" data-dialog="1">
+                    <?= Icon::create('edit', 'clickable')->asImg('16px', ['class' => 'text-bottom']) ?>
+                    <?= _('Beschreibung hinzufügen') ?>
+                </a>
+                <? endif ?>
+            <? endif ?>
         <? endif ?>
         </article>
     </div>
