@@ -737,38 +737,9 @@ app/controllers/course/dates.php
 public/sendfile.php
 public/folder.php
 */
+//TO BE REMOVED! 
 function prepareFilename($filename, $shorten = FALSE, $checkfolder = false) {
-    $bad_characters = array (":", chr(92), "/", "\"", ">", "<", "*", "|", "?", " ", "(", ")", "&", "[", "]", "#", chr(36), "'", "*", ";", "^", "`", "{", "}", "|", "~", chr(255));
-    $replacements = array ("", "", "", "", "", "", "", "", "", "_", "", "", "+", "", "", "", "", "", "", "-", "", "", "", "", "-", "", "");
-
-    //delete all ASCII control characters
-    for($i = 0; $i < 0x20; $i++) {
-        $bad_characters[] = chr($i);
-        $replacements[] = "";
-    }
-
-    $filename=str_replace($bad_characters, $replacements, $filename);
-
-    if ($filename{0} == ".")
-        $filename = mb_substr($filename, 1, mb_strlen($filename));
-
-    if ($shorten) {
-        $ext = getFileExtension ($filename);
-        $filename = mb_substr(mb_substr($filename, 0, mb_strrpos($filename,$ext)-1), 0, (30 - mb_strlen($ext))).".".$ext;
-    }
-    if ($checkfolder !== false) {
-        $c = 0;
-        $ext = getFileExtension($filename);
-        if ($ext) {
-          $name = mb_substr($filename, 0, mb_strrpos($filename,$ext)-1);
-        } else {
-            $name = $filename;
-}
-        while (file_exists($checkfolder . '/' . $filename)) {
-            $filename = $name . '['.++$c.']' . ($ext ? '.' . $ext : '');
-        }
-    }
-    return $filename;
+    return FileManager::cleanFileName($filename, $shorten);
 }
 
 //Diese Funktion dient zur Abfrage der Dateierweiterung

@@ -24,7 +24,60 @@
  */
 class FileManager
 {
-
+    
+    //FILE HELPER METHODS
+    
+    /**
+     * Removes special characters from the file name (and by that cleaning the file name)
+     * so that the file name which is returned by this method works on every operating system.
+     * 
+     * @param string $file_name The file name that shall be "cleaned".
+     * @param bool $shorten_name True, if the file name shall be shortened to 31 characters.
+     *     False, if the full length shall be kept (default).
+     * 
+     * @return string The "cleaned" file name.
+     */
+    public static function cleanFileName($file_name = null, $shorten_name = false)
+    {
+        if(!$file_name) {
+            //If you put an empty string in, you will get an empty string out!
+            return $file_name;
+        }
+        
+        $bad_characters = [':', chr(92), '/', '"', '>', '<', '*', '|', '?', ' ', '(', ')', '&', '[', ']', '#', chr(36), '\'', '*', ';', '^', '`', '{', '}', '|', '~', chr(255)];
+        
+        $replacement_characters = ['', '', '', '', '', '', '', '', '', '_', '', '', '+', '', '', '', '', '', '', '-', '', '', '', '', '-', '', ''];
+        
+        //All control characters shall be deleted:
+        for($i = 0; $i < 0x20; $i++) {
+            $bad_characters[] = chr($i);
+            $replacement_characters[] = '';
+        }
+        
+        $clean_file_name = str_replace($bad_characters, $replacement_characters, $file_name);
+        
+        if($clean_file_name[0] == '.') {
+            $clean_file_name = mb_substr($clean_file_name, 1, mb_strlen($clean_file_name));
+        }
+        
+        if($shorten_name === true) {
+            //If we have to shorten the file name we have to split it up
+            //into file name and extension.
+            
+            $tmp_file_name = pathinfo($clean_file_name, PATHINFO_FILENAME);
+            $file_extension = pathinfo($clean_file_name, PATHINFO_EXTENSION);
+            
+            $clean_file_name = mb_substr($tmp_file_name, 0, 28)
+                . '.'
+                . $file_extension;
+            
+        }
+        
+        return $clean_file_name;
+    }
+    
+    
+    
     //FILE METHODS
 
     /**
