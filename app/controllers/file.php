@@ -253,6 +253,9 @@ class FileController extends AuthenticatedController
             
             $is_downloadable = false;
             
+            //NOTE: The following can only work properly for folders which are
+            //stored in the database, since remote folders
+            //(for example owncloud/nextcloud folders) are not stored in the database.
             $folder = $this->file_ref->folder;
             if($folder) {
                 $folder = $folder->getTypedFolder();
@@ -271,6 +274,33 @@ class FileController extends AuthenticatedController
                     $this->file_ref->isVideo()) {
                     //The file can be previewed.
                     $this->show_preview = true;
+                }
+            }
+            
+            //load the previous and next file in the folder,
+            //if the folder is of type FolderType.
+            
+            if(is_subclass_of($folder, 'FolderType')) {
+                $last_file_ref_id = null;
+                $current_file_ref_id = null;
+                
+                
+                foreach($folder->getFiles() as $folder_file_ref) {
+                    $last_file_ref_id = $current_file_ref_id;
+                    $current_file_ref_id = $folder_file_ref->id;
+                    
+                    if($folder_file_ref->id == $this->file_ref->id) {
+                        $this->previous_file_ref_id = $last_file_ref_id;
+                    }
+                    
+                    if($last_file_ref_id == $this->file_ref->id) {
+                        $this->next_file_ref_id = $folder_file_ref->id;
+                        //at this point we have the ID of the previous
+                        //and the next file ref so that we can exit
+                        //the foreach loop:
+                        break;
+                    }
+                    
                 }
             }
             

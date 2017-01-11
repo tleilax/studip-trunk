@@ -87,3 +87,17 @@
         </article>
     </div>
 </div>
+<div data-dialog-button>
+    <? if($previous_file_ref_id): ?>
+    <?= \Studip\LinkButton::create(_('Vorherige Datei'), 
+            $controller->url_for('file/details/' . $previous_file_ref_id),
+            ['data-dialog' => '1']
+        ) ?>
+    <? endif ?>
+    <? if($next_file_ref_id): ?>
+    <?= \Studip\LinkButton::create(_('Nächste Datei'), 
+            $controller->url_for('file/details/' . $next_file_ref_id),
+            ['data-dialog' => '1']
+        ) ?>
+    <? endif ?>
+</div>
