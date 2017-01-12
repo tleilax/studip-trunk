@@ -212,9 +212,8 @@ function parse_link($link, $level=0) {
  * @return: array($subfolders, $numberofsubfolders)
  */
 /*
-used in:
-lib/datei.inc.php
-*/
+// used in:
+// lib/datei.inc.php
 //DEPRECATED: only used by DEPRECATED functions getFolderId and delete_folder
 function getFolderChildren($folder_id){
     global $SessionSeminar, $user;
@@ -235,11 +234,10 @@ function getFolderChildren($folder_id){
         return array($kids, count($kids));
     }
 }
-
-/*
-used in:
-lib/datei.inc.php
 */
+/*
+// used in:
+// lib/datei.inc.php
 //DEPRECATED: only used by move_item function which is also DEPRECATED!
 function getFolderId($parent_id, $in_recursion = false){
     static $kidskids;
@@ -255,7 +253,7 @@ function getFolderId($parent_id, $in_recursion = false){
         }
         return (!$in_recursion) ? $kidskids : null;
 }
-
+*/
 /**
  * Counts and returns the number files in the given folder and subfolders.
  * Files not visible to the current user are not counted
@@ -264,11 +262,9 @@ function getFolderId($parent_id, $in_recursion = false){
  * @param $range_id      the range id for the folder, course or institute id
  * @return integer
  */
-/*
-used in:
-lib/dates.inc.php
-lib/datei.inc.php
-*/
+// used in:
+// lib/dates.inc.php
+// lib/datei.inc.php
 function doc_count($parent_id, $range_id = null)
 {
     global $SessionSeminar, $user;
@@ -292,6 +288,7 @@ function doc_count($parent_id, $range_id = null)
     return $statement->fetchColumn();
 }
 
+/*
 //DEPRECATED: not used anywhere!
 function doc_sum_filesize ($parent_id)
 {
@@ -313,11 +310,11 @@ function doc_sum_filesize ($parent_id)
     $statement->execute(array($arr));
     return $statement->fetchColumn();
 }
+*/
 
 /*
-used in:
-lib/datei.inc.php
-*/
+// used in:
+// lib/datei.inc.php
 //DEPRECATED: only used by DEPRECATED functions display_file_line and display_folder
 function doc_newest ($parent_id)
 {
@@ -339,7 +336,9 @@ function doc_newest ($parent_id)
     $statement->execute(array($arr));
     return $statement->fetchColumn();
 }
+*/
 
+/*
 //DEPRECATED: not used anywhere
 function doc_challenge ($parent_id)
 {
@@ -359,7 +358,9 @@ function doc_challenge ($parent_id)
     $statement->execute(array($arr));
     return $statement->fetchAll(PDO::FETCH_COLUMN);
 }
+*/
 
+/*
 //DEPRECATED: used only in DEPRECATED function display_folder_body
 function get_user_documents_in_folder($folder_id, $user_id)
 {
@@ -377,12 +378,12 @@ function get_user_documents_in_folder($folder_id, $user_id)
     }
     return $ret;
 }
+*/
 
 /*
-used by:
-lib/dates.inc.php
-public/folder.php
-*/
+// used by:
+// lib/dates.inc.php
+// public/folder.php
 //DEPRECATED: replaced by FileManager::moveFileRef and FileManager::moveFolder
 function move_item($item_id, $new_parent, $change_sem_to = false)
 {
@@ -452,14 +453,13 @@ function move_item($item_id, $new_parent, $change_sem_to = false)
     }
     return false;
 }
-
+*/
 
 
 /*
-used by:
-lib/datei.inc.php
-public/folder.php
-*/
+// used by:
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by FileManager::editFileRef and FileManager::editFolder
 function edit_item($item_id, $type, $name, $description, $protected = 0, $url = '', $filesize = '')
 {
@@ -513,6 +513,8 @@ function edit_item($item_id, $type, $name, $description, $protected = 0, $url = 
         return !!$doc->store();
     }
 }
+*/
+
 
 /**
  * Create a 'folder' in the files module of a course or institution.
@@ -548,11 +550,10 @@ function edit_item($item_id, $type, $name, $description, $protected = 0, $url = 
  * @return the ID of the folder if successful, otherwise NULL
  */
 /*
-used by:
-lib/datei.inc.php
-app/controllers/institute/basicdata.php
-public/folder.php
-*/
+// used by:
+// lib/datei.inc.php
+// app/controllers/institute/basicdata.php TODO
+// public/folder.php
 //DEPRECATED: replaced by FileManager::createSubFolder
 function create_folder ($name, $description, $parent_id, $permission = 7, $seminar_id = null)
 {
@@ -582,14 +583,14 @@ function create_folder ($name, $description, $parent_id, $permission = 7, $semin
         return $id;
     }
 }
+*/
 
 ## Upload Funktionen ################################################################################
 
 //Ausgabe des Formulars
 /*
-used by:
-lib/datei.inc.php
-*/
+// used by:
+// lib/datei.inc.php
 //DEPRECATED: replaced by file/upload controller and its views
 function form($refresh = FALSE)
 {
@@ -717,6 +718,8 @@ function form($refresh = FALSE)
 
     return $print;
 }
+*/
+
 
 /**
  * kills forbidden characters in filenames,
@@ -732,9 +735,9 @@ function form($refresh = FALSE)
 /*
 used by:
 lib/datei.inc.php
-app/controllers/admin/user.php
-app/controllers/course/dates.php
-public/sendfile.php
+app/controllers/admin/user.php TODO
+app/controllers/course/dates.php TODO
+public/sendfile.php TODO
 public/folder.php
 */
 //TO BE REMOVED! 
@@ -750,7 +753,6 @@ lib/calendar/CalendarImportFile.class.php
 lib/datei.inc.php
 app/views/admin/user/list_files
 */
-//DEPRECATED(?): use PHP's built-in pathinfo($path, PATHINFO_EXTENSION) instead
 function getFileExtension($str) {
     $i = mb_strrpos($str,".");
     if (!$i) { return ""; }
@@ -772,13 +774,12 @@ function getFileExtension($str) {
  * @return Can the given file be uploaded to Stud.IP?
  */
 /*
-used by:
-lib/datei.inc.php
-app/routes/Files_old.php
-app/models/WysiwygDocument.php
-app/controllers/messages.php
-public/plugins_packages/core/Blubber/controllers/streams.php
-*/
+// used by:
+// lib/datei.inc.php
+// app/routes/Files_old.php
+// app/models/WysiwygDocument.php
+// app/controllers/messages.php  TODO
+// public/plugins_packages/core/Blubber/controllers/streams.php TODO
 //DEPRECATED: replaced by FolderType::validateUpload
 function validate_upload($the_file, $real_file_name='') {
     global $UPLOAD_TYPES, $SessSemName;
@@ -888,12 +889,13 @@ function validate_upload($the_file, $real_file_name='') {
         return true;
     }
 }
+*/
+
 
 //der eigentliche Upload
 /*
-used by:
-lib/datei.inc.php
-*/
+// used by:
+// lib/datei.inc.php
 //DEPRECATED: replaced by FileManager::handleFileUpload
 function upload($the_file, $refresh, $range_id)
 {
@@ -917,13 +919,13 @@ function upload($the_file, $refresh, $range_id)
     PageLayout::postSuccess(_("Die Datei wurde erfolgreich auf den Server übertragen!"));
     return TRUE;
 }
+*/
 
 
 //Erzeugen des Datenbankeintrags zur Datei
 /*
-used by:
-lib/datei.inc.php
-*/
+// used by:
+// lib/datei.inc.php
 //DEPRECATED: replaced by code in file/upload action and FileManager::handleFileUpload
 function getUploadMetadata($range_id, $refresh = FALSE) {
     global $user;
@@ -957,14 +959,13 @@ function getUploadMetadata($range_id, $refresh = FALSE) {
 
     return $result;
 }
-
+*/
 
 
 //Steuerungsfunktion
 /*
-used by:
-lib/datei.inc.php
-*/
+// used by:
+// lib/datei.inc.php
 function upload_item ($range_id, $create = FALSE, $echo = FALSE, $refresh = FALSE) {
     $the_file = $_FILES["the_file"];
 
@@ -981,13 +982,13 @@ function upload_item ($range_id, $create = FALSE, $echo = FALSE, $refresh = FALS
             return form($refresh);
     }
 }
+*/
 
 
 /*
-used by:
-lib/datei.inc.php
-public/folder.php
-*/
+// used by:
+// lib/datei.inc.php
+// public/folder.php
 function link_item ($range_id, $create = FALSE, $echo = FALSE, $refresh = FALSE, $link_update = FALSE) {
     global $filesize;
 
@@ -1029,12 +1030,12 @@ function link_item ($range_id, $create = FALSE, $echo = FALSE, $refresh = FALSE,
         }
     }
 }
+*/
 
 
 /*
-used by:
-lib/datei.inc.php
-*/
+// used by:
+// lib/datei.inc.php
 function link_form ($range_id, $updating=FALSE)
 {
     global $SessSemName, $the_link, $protect, $description, $name, $folder_system_data, $user;
@@ -1128,6 +1129,8 @@ function link_form ($range_id, $updating=FALSE)
     return $print;
 
 }
+*/
+
 
 ## Ende Upload Funktionen ################################################################################
 
@@ -1136,10 +1139,9 @@ function link_form ($range_id, $updating=FALSE)
  *
  */
 /*
-used by:
-lib/datei.inc.php
-public/folder.php
-*/
+// used by:
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by template views/files/_fileref_tr.php
 function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh=FALSE, $filelink="") {
     global $rechte, $user, $SessionSeminar;
@@ -1266,6 +1268,8 @@ function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $
     printcontent ("100%",TRUE, $content, $edit);
     print "</table>";
 }
+*/
+
 
 //$countfiles is important, so that each file_line has its own unique id and can be found by javascript.
 $countfiles = 0;
@@ -1274,9 +1278,9 @@ $countfiles = 0;
  *
  */
 /*
-lib/datei.inc.php
-public/folder.php
-*/
+// used by:
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by template views/files/_fileref_tr.php and views/files/_folder_tr.php
 function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh=FALSE, $filelink="", $anchor_id, $position = "middle") {
     global $_fullname_sql,$SessionSeminar,$SessSemName, $rechte, $anfang,
@@ -1409,16 +1413,17 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
     }
     print "</div></td></tr></table>\n\t</div>";
 }
+*/
+
 
 /**
  * Displays the body of a folder including the description, changeform, subfolder and files
  *
  */
 /*
-used by:
-lib/datei.inc.php
-public/folder.php
-*/
+// used by:
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by template views/files/_folder_tr.php
 function display_folder_body($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $level = 0) {
     global $_fullname_sql, $SessionSeminar, $SemUserStatus, $SessSemName, $user, $perm, $rechte, $countfolder;
@@ -1685,6 +1690,8 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
     }
     print "</table>";   //Ende der zweiten Tabelle
 }
+*/
+
 
 $countfolder = 0;
 $droppable_folder = 0;
@@ -1694,10 +1701,9 @@ $droppable_folder = 0;
  *
  */
 /*
-used by:
-lib/datei.inc.php
-public/folder.php
-*/
+// used by:
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by template views/files/_folder_tr.php
 function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $position="middle", $isissuefolder = false) {
     global $_fullname_sql,$SessionSeminar,$SessSemName, $rechte, $anfang,
@@ -1922,13 +1928,13 @@ function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FA
     print "</div></td></tr></table>";
     print "</div>";
 }
+*/
 
 
 /*
-used by:
-lib/datei.inc.php
-public/folder.php
-*/
+// used by:
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by File::getURL()
 function getLinkPath($file_id)
 {
@@ -1937,6 +1943,7 @@ function getLinkPath($file_id)
     $statement->execute(array($file_id));
     return $statement->fetchColumn() ?: false;
 }
+*/
 
 
 /*
@@ -2000,22 +2007,22 @@ function GetFileIcon($ext){
 * @return   string  downloadlink
 */
 /*
-used by:
-lib/datei.inc.php
-lib/extern/modules/ExternModuleDownload.class.php
-lib/extern/modules/ExternModuleTemplateDownload.class.php
-app/views/admin/user/list_files.php
-app/views/search/archive/index.php
-app/views/my_courses/archive.php
-app/models/WysiwygDocument.php
-app/controllers/admin/user.php
-app/controllers/admin/courses.php
-app/controllers/admission/restricted_courses.php
-app/controllers/admission/courseset.php
-app/controllers/course/members.php
-public/eval_summary.php
-templates/mail/text.php
-templates/mail/html.php
+// used by:
+// lib/datei.inc.php
+// lib/extern/modules/ExternModuleDownload.class.php
+// lib/extern/modules/ExternModuleTemplateDownload.class.php
+// app/views/admin/user/list_files.php
+// app/views/search/archive/index.php
+// app/views/my_courses/archive.php
+// app/models/WysiwygDocument.php
+// app/controllers/admin/user.php
+// app/controllers/admin/courses.php
+// app/controllers/admission/restricted_courses.php
+// app/controllers/admission/courseset.php
+// app/controllers/course/members.php
+// public/eval_summary.php
+// templates/mail/text.php
+// templates/mail/html.php
 */
 //DEPRECATED: replaced by FileRef::getDownloadURL
 function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $range_id = '', $list_id = ''){
@@ -2078,11 +2085,10 @@ dies muss das aufrufende Script sicherstellen.
 */
 /*
 used by:
-lib/classes/UserManagement.class.php
-lib/messaging.inc.php
-lib/datei.inc.php
-public/folder.php
-*/
+// lib/classes/UserManagement.class.php TODO
+// lib/messaging.inc.php TODO
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by FileManager::deleteFileRef
 function delete_document($dokument_id, $delete_only_file = FALSE)
 {
@@ -2104,19 +2110,21 @@ function delete_document($dokument_id, $delete_only_file = FALSE)
     $doc = new StudipDocument($dokument_id);
     return $doc->delete();
 }
+*/
 
 
 /*
-used by:
-lib/datei.inc.php
-public/folder.php
-*/
+// used by:
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by FileManager::deleteFileRef
 function delete_link($dokument_id) {
     // eintrag aus der Datenbank werfen
     $doc = new StudipDocument($dokument_id);
     return $doc->delete();
 }
+*/
+
 
 /*
 Die function delete_folder löscht einen kompletten Dateiordner.
@@ -2128,11 +2136,10 @@ Es erfolgt keine Überprüfung der Berechtigung innerhalb der Funktion,
 dies muss das aufrufende Script sicherstellen.
 */
 /*
-used by:
-lib/models/Statusgruppen.php
-lib/datei.inc.php
-public/folder.php
-*/
+// used by:
+// lib/models/Statusgruppen.php TODO
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by FileManager::deleteFolder
 function delete_folder($folder_id, $delete_subfolders = false)
 {
@@ -2182,13 +2189,14 @@ function delete_folder($folder_id, $delete_subfolders = false)
         }
     }
 }
+*/
+
 
 //Rekursive Loeschfunktion, loescht erst jeweils enthaltene Dokumente und dann den entsprechenden Ordner
 /*
-used by:
-lib/dates.inc.php
-lib/datei.inc.php
-*/
+// used by:
+// lib/dates.inc.php TODO
+// lib/datei.inc.php
 //DEPRECATED: replaced by FileManager::deleteFolder
 function recursiv_folder_delete($parent_id)
 {
@@ -2224,6 +2232,7 @@ function recursiv_folder_delete($parent_id)
     }
     return $doc_count;
 }
+*/
 
 
 /*
@@ -2425,9 +2434,8 @@ function upload_zip_file($dir_id, $file) {
 }
 
 /*
-used in:
-lib/datei.inc.php
-*/
+// used in:
+// lib/datei.inc.php
 function get_flash_player ($document_id, $filename, $type) {
     global $auth;
     // width of image in pixels
@@ -2462,6 +2470,8 @@ function get_flash_player ($document_id, $filename, $type) {
 
     return array('player' => $flash_object, 'width' => $width, 'height' => $height);
 }
+*/
+
 
 /**
  * Return the absolute path of an uploaded file. The uploaded files
@@ -2506,10 +2516,9 @@ function get_upload_file_path ($document_id)
  * @return bool
  */
  /*
-used in:
-lib/datei.inc.php
-public/folder.php
-*/
+// used in:
+// lib/datei.inc.php
+// public/folder.php
 //DEPRECATED: replaced by ContentTermsOfUse::download_condition in conjunction
 //with a FileRef instance.
 function check_protected_download($document_id) {
@@ -2540,5 +2549,6 @@ function check_protected_download($document_id) {
 
     return $ok;
 }
+*/
 
 
