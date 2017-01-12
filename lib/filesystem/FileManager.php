@@ -77,6 +77,63 @@ class FileManager
     }
     
     
+    /**
+     * Returns the icon name for a given mime type.
+     *
+     * @param string $mime_type The mime type whose icon is requested.
+     * 
+     * @return string The icon name for the mime type.
+     */
+    public static function getIconNameForMimeType($mime_type = null)
+    {
+        $application_category_icons = [
+            'file-pdf' => ['pdf'],
+            'file-ppt' => ['powerpoint','presentation'],
+            'file-excel' => ['excel', 'spreadsheet', 'csv'],
+            'file-word' => ['word', 'wordprocessingml', 'opendocument.text', 'rtf'],
+            'file-archive' => ['zip', 'rar', 'arj', '7z' ]
+        ];
+        
+        if(!$mime_type) {
+            //No mime type given: We can only assume it is a generic file.
+            return 'file-generic';
+        }
+        
+        list($category, $type) = explode('/', $mime_type);
+        
+        
+        switch($category) {
+            case 'image': {
+                return 'file-pic';
+            } case 'audio': {
+                return 'file-audio';
+            } case 'video': {
+                return 'file-video';
+            } case 'text': {
+                if($type == 'csv') {
+                    //CSV files:
+                    return 'file-excel';
+                }
+                //other text files:
+                return 'file-text';
+            } case 'application': {
+                //loop through all application category icons
+                //and return the icon name that matches the regular expression
+                //for an application mime type:
+                foreach($application_category_icons as $icon_name => $type_name) {
+                    if(preg_match('/' . implode($type_name, '|') . '/i', $type)) {
+                        return $icon_name;
+                    }
+                }
+            }
+        }
+        
+        //If code execution reaches this point, no special mime type icon
+        //was detected.
+        return 'file-generic';
+    }
+    
+    
     
     //FILE METHODS
 
