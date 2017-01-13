@@ -357,31 +357,9 @@ function delete_date($termin_id, $topic_delete = TRUE, $folder_move = TRUE, $sem
         include_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
     }
 
-    if (!$folder_move) {
-        ## Dateiordner muessen weg!
-        recursiv_folder_delete ($termin_id);
-    } else {
-        ## Dateiordner werden verschoben, wenn Ordner nicht leer, ansonsten auch weg
-        if (!doc_count($termin_id))
-            recursiv_folder_delete($termin_id);
-        else {
-            $query = "SELECT folder_id FROM folder WHERE range_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($termin_id));
-            $folder_id = $statement->fetchColumn();
-
-            move_item($folder_id, $sem_id, $sem_id);
-
-            $query = "UPDATE folder SET name = ?, description = ? WHERE folder_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array(
-                _('Dateiordner zu gelöschtem Termin'),
-                _('Dieser Ordner enthält Dokumente und Termine eines gelöschten Termins'),
-                $folder_id,
-            ));
-        }
-    }
-
+    //Deleting folders was removed since folders can't be assigned to
+    //single dates, only to topics.
+    
     ## Und den Termin selbst loeschen
     $query = "DELETE FROM termine WHERE termin_id = ?";
     $statement = DBManager::get()->prepare($query);
