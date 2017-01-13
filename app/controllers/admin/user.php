@@ -1206,8 +1206,19 @@ class Admin_UserController extends AuthenticatedController
     public function list_files_action($user_id, $range_id)
     {
         $this->user  = User::find($user_id);
-        $this->files = StudipDocument::findBySQL('user_id = ? AND seminar_id = ? ORDER BY name', [$user_id, $range_id]);
-
+        $folder = Folder::findTopFolder($range_id);
+        if($folder) {
+            $folder = $folder->getTypedFolder();
+        }
+        
+        if($folder) {
+            //Folder exists: We can collect all subfolders in the folder.
+            $this->folders = FileManager::getFolderFilesRecursive($folder, $this->user->id)['folders'];
+        } else {
+            //Folder does not exist: We can't collect any subfolders.
+            $this->folders = [];
+        }
+        
         $this->range = Course::find($range_id);
         if (is_null($this->range)) {
             $this->range = Institute::find($range_id);

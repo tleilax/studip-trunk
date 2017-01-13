@@ -2,7 +2,8 @@
     <header>
         <h1><?= _('Dateiübersicht') ?></h1>
     </header>
-    <? foreach ($files as $file) : ?>
+    <? foreach ($folders as $folder) : ?>
+        <? foreach($folder->getFiles() as $file): ?>
         <article id="<?= $file->id ?>" class="<?= ContentBoxHelper::classes($file->id) ?>">
             <header>
                 <h1>
@@ -10,38 +11,33 @@
                         <?= htmlReady($file->name) ?>
                     </a>
                 </h1>
+                <? if($folder->isFileDownloadable($file->id, $user->id)): ?>
                 <?
-                $type = empty($file->url) ? 0 : 6;
                 $actionMenu = ActionMenu::get();
-                $actionMenu->addLink(GetDownloadLink($file->id, $file->filename, $type),
-                        _('Datei herunterladen'),
-                        GetFileIcon(pathinfo($file->filename, PATHINFO_EXTENSION), true));
-                if ($type != 6 && !in_array($document['extension'], words('bz2 gzip tgz zip'))) {
-                    $actionMenu->addLink(GetDownloadLink($file->id, $file->filename, $type, 'zip'),
-                            _('Als ZIP herunterladen'),
-                            Icon::create('folder-full', 'clickable'));
-                }
+                $actionMenu->addLink(
+                    $file->getDownloadURL(),
+                    _('Datei herunterladen'),
+                    Icon::create('download', 'clickable')
+                );
                 echo $actionMenu->render();
                 ?>
-
+                <? endif ?>
             </header>
             <section>
                 <article>
                     <p><?= htmlReady($file->description ?: _('Keine Beschreibung vorhanden'), true, true) ?></p>
-                    <p><?= sprintf(_('<strong>Dateigröße:</strong> %u kB '), round($file->filesize / 1024)) ?></p>
-                    <p><?= sprintf(_('<strong>Dateiname:</strong> %s '), $file->filename) ?></p>
+                    <p><?= sprintf(_('<strong>Dateigröße:</strong> %u KB '), round($file->file->size / 1000)) ?></p>
+                    <p><?= sprintf(_('<strong>Dateiname:</strong> %s '), $file->name) ?></p>
                 </article>
 
-                <? if ($file->protected): ?>
-                    <article>
-                        <?= MessageBox::warning(_('Diese Datei ist urheberrechtlich geschützt'), [
-                                _('Sie darf nur im Rahmen dieser Veranstaltung verwendet werden, jede weitere '
-                                  . 'Verbreitung ist strafbar!')]) ?>
-                    </article>
+                <? if($file->terms_of_use->download_condition > 0): ?>
+                <article>
+                    <?= MessageBox::warning(_('Der Download dieser Datei ist aus aufgrund von Nutzungsbedingungen nur eingeschränkt möglich!')) ?>
+                </article>
                 <? endif ?>
             </section>
         </article>
-
+        <? endforeach ?>
     <? endforeach ?>
 </section>
 
