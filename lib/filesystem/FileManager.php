@@ -176,6 +176,25 @@ class FileManager
     }
     
     
+    /**
+     * Builds a download link for temporary files.
+     */
+    public static function getDownloadLinkForTemporaryFile(
+        $temporary_file_name = null,
+        $download_file_name = null)
+    {
+        return URLHelper::getLink(
+            'sendfile.php',
+            [
+                'type' => '4',
+                'file_id' => $temporary_file_name,
+                'file_name' => $download_file_name
+            ],
+            true
+        );
+    }
+    
+    
     //FILE METHODS
 
     /**

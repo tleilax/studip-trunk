@@ -2014,9 +2014,7 @@ function GetFileIcon($ext){
 // lib/datei.inc.php
 // lib/extern/modules/ExternModuleDownload.class.php TODO
 // lib/extern/modules/ExternModuleTemplateDownload.class.php TODO
-// app/views/admin/user/list_files.php TODO
 // app/models/WysiwygDocument.php TODO
-// app/controllers/admin/user.php TODO
 // app/controllers/admin/courses.php TODO
 // app/controllers/admission/restricted_courses.php TODO
 // app/controllers/admission/courseset.php TODO

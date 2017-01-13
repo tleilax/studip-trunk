@@ -154,7 +154,12 @@ class Admin_UserController extends AuthenticatedController
                             strftime('%x', $u['changed_timestamp'])];
                 };
                 if (array_to_csv(array_map($mapper, $this->users), $GLOBALS['TMP_PATH'] . '/' . $tmpname, $captions)) {
-                    $this->redirect(GetDownloadLink($tmpname, 'nutzer-export.csv', 4));
+                    $this->redirect(
+                        FileManager::getDownloadLinkForTemporaryFile(
+                            $tmpname,
+                            'nutzer-export.csv'
+                        )
+                    );
                 }
             }
         }
