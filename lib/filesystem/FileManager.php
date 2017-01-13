@@ -165,7 +165,8 @@ class FileManager
                 [
                     'type' => '1',
                     'file_id' => $file_id,
-                    'file_name' => $file_name
+                    'file_name' => $file_name,
+                    'force_download' => '1' //because archive files are ZIP files
                 ],
                 true
             );
@@ -188,7 +189,28 @@ class FileManager
             [
                 'type' => '4',
                 'file_id' => $temporary_file_name,
-                'file_name' => $download_file_name
+                'file_name' => $download_file_name,
+                'force_download' => '1' //because temporary files have a reason for their name
+            ],
+            true
+        );
+    }
+    
+    
+    /**
+     * Builds a download link for temporary files.
+     */
+    public static function getDownloadURLForTemporaryFile(
+        $temporary_file_name = null,
+        $download_file_name = null)
+    {
+        return URLHelper::getUrl(
+            'sendfile.php',
+            [
+                'type' => '4',
+                'file_id' => $temporary_file_name,
+                'file_name' => $download_file_name,
+                'force_download' => '1' //because temporary files have a reason for their name
             ],
             true
         );

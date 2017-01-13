@@ -155,7 +155,7 @@ class Admin_UserController extends AuthenticatedController
                 };
                 if (array_to_csv(array_map($mapper, $this->users), $GLOBALS['TMP_PATH'] . '/' . $tmpname, $captions)) {
                     $this->redirect(
-                        FileManager::getDownloadLinkForTemporaryFile(
+                        FileManager::getDownloadURLForTemporaryFile(
                             $tmpname,
                             'nutzer-export.csv'
                         )
