@@ -154,12 +154,18 @@ class FileManager
         }
         
         if($file_id) {
+            $file_name = _('Dateisammlung')
+                . '-' 
+                . mb_substr($archived_course->name, 0, 200) 
+                . '.zip';
+            
             //file_id is set: file archive exists
-            return URLHelper::getUrl(
+            return URLHelper::getLink(
                 'sendfile.php',
                 [
                     'type' => '1',
-                    'file_id' => $file_id
+                    'file_id' => $file_id,
+                    'file_name' => $file_name
                 ],
                 true
             );
