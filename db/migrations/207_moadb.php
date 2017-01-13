@@ -300,7 +300,7 @@ class Moadb extends Migration
         foreach ($files as $one) {
             $c = 0;
             $filename = $one['filename'];
-            $ext = getFileExtension($filename);
+            $ext = pathinfo($filename, PATHINFO_EXTENSION);
             if ($ext) {
                 $name = substr($filename, 0, strrpos($filename, $ext) - 1);
             } else {
@@ -353,7 +353,7 @@ class Moadb extends Migration
         foreach ($files as $one) {
             $c = 0;
             $filename = $one['filename'];
-            $ext = getFileExtension($filename);
+            $ext = pathinfo($filename, PATHINFO_EXTENSION);
             if ($ext) {
                 $name = substr($filename, 0, strrpos($filename, $ext) - 1);
             } else {

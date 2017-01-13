@@ -2318,7 +2318,7 @@ function get_mime_type($filename)
         'webm' => 'video/webm',
     );
 
-    $extension = mb_strtolower(getFileExtension($filename));
+    $extension = mb_strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
     if (isset($mime_types[$extension])) {
         return $mime_types[$extension];

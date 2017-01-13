@@ -15,7 +15,7 @@
                 $actionMenu = ActionMenu::get();
                 $actionMenu->addLink(GetDownloadLink($file->id, $file->filename, $type),
                         _('Datei herunterladen'),
-                        GetFileIcon(getFileExtension($file->filename), true));
+                        GetFileIcon(pathinfo($file->filename, PATHINFO_EXTENSION), true));
                 if ($type != 6 && !in_array($document['extension'], words('bz2 gzip tgz zip'))) {
                     $actionMenu->addLink(GetDownloadLink($file->id, $file->filename, $type, 'zip'),
                             _('Als ZIP herunterladen'),

@@ -254,6 +254,8 @@ function getFolderId($parent_id, $in_recursion = false){
         return (!$in_recursion) ? $kidskids : null;
 }
 */
+
+
 /**
  * Counts and returns the number files in the given folder and subfolders.
  * Files not visible to the current user are not counted
@@ -263,8 +265,10 @@ function getFolderId($parent_id, $in_recursion = false){
  * @return integer
  */
 // used in:
-// lib/dates.inc.php
 // lib/datei.inc.php
+// folder.php.php
+//DEPRECATED: only used by DEPRECATED functions in datei.inc.php and folder.php
+/*
 function doc_count($parent_id, $range_id = null)
 {
     global $SessionSeminar, $user;
@@ -287,6 +291,7 @@ function doc_count($parent_id, $range_id = null)
     $statement->execute(array($arr));
     return $statement->fetchColumn();
 }
+*/
 
 /*
 //DEPRECATED: not used anywhere!
@@ -747,12 +752,9 @@ function prepareFilename($filename, $shorten = FALSE, $checkfolder = false) {
 
 //Diese Funktion dient zur Abfrage der Dateierweiterung
 /*
-used by:
-db/migrations/207_moadb.php
-lib/calendar/CalendarImportFile.class.php
-lib/datei.inc.php
-app/views/admin/user/list_files
-*/
+// used by:
+// lib/datei.inc.php
+//DEPRECATED: used only by DEPRECATED function validate_upload
 function getFileExtension($str) {
     $i = mb_strrpos($str,".");
     if (!$i) { return ""; }
@@ -762,6 +764,7 @@ function getFileExtension($str) {
 
     return $ext;
 }
+*/
 
 /**
  * Checks whether a given file upload is valid and allowed.
@@ -777,10 +780,11 @@ function getFileExtension($str) {
 // used by:
 // lib/datei.inc.php
 // app/routes/Files_old.php
-// app/models/WysiwygDocument.php
+// app/models/WysiwygDocument.php TODO
 // app/controllers/messages.php  TODO
 // public/plugins_packages/core/Blubber/controllers/streams.php TODO
 //DEPRECATED: replaced by FolderType::validateUpload
+*/
 function validate_upload($the_file, $real_file_name='') {
     global $UPLOAD_TYPES, $SessSemName;
 
@@ -889,7 +893,6 @@ function validate_upload($the_file, $real_file_name='') {
         return true;
     }
 }
-*/
 
 
 //der eigentliche Upload
@@ -2312,9 +2315,7 @@ function extract_zip($file_name, $dir_name = '', $testonly = false) {
  * @return (no return value)
  */
  /*
-used in:
-lib/datei.inc.php
-*/
+DEPRECATED: not used anywhere instead in the function itself!
 function upload_recursively($range_id, $dir) {
     static $count = array(
         'files'       => 0,
@@ -2397,15 +2398,16 @@ function upload_recursively($range_id, $dir) {
     }
     return $count;
 }
+*/
 
 
 /**
  * Eine einzelne Datei in das Verzeichnis mit der dir_id einfuegen.
  */
  /*
-used in:
-lib/datei.inc.php
-*/
+// used in:
+// lib/datei.inc.php
+//DEPRECATED: only used in DEPRECATED unused function upload_recursively!
 function upload_zip_file($dir_id, $file) {
 
     global $user;
@@ -2431,6 +2433,8 @@ function upload_zip_file($dir_id, $file) {
     $ret = StudipDocument::createWithFile($file, $data);
     return (int)$ret;
 }
+*/
+
 
 /*
 // used in:
