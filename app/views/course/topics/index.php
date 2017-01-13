@@ -40,8 +40,10 @@
                                     <? $folder = $topic->folder ?>
                                     <? if ($documents_activated && $folder) : ?>
                                         <li>
-                                            <a href="<?= URLHelper::getLink("folder.php#anker", array('data[cmd]' => "tree", 'open' => $folder->getId())) ?>">
-                                                <?= Icon::create('folder-empty', 'clickable')->asImg(['class' => "text-bottom"]) ?>
+                                            <a href="<?= URLHelper::getLink(
+                                                'dispatch.php/course/files/index/' . $folder->id
+                                                ) ?>">
+                                                <?= $folder->getTypedFolder()->getIcon('clickable')->asImg(['class' => "text-bottom"]) ?>
                                                 <?= _("Dateiordner") ?>
                                             </a>
                                         </li>
