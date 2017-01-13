@@ -2195,7 +2195,6 @@ function delete_folder($folder_id, $delete_subfolders = false)
 //Rekursive Loeschfunktion, loescht erst jeweils enthaltene Dokumente und dann den entsprechenden Ordner
 /*
 // used by:
-// lib/dates.inc.php TODO
 // lib/datei.inc.php
 //DEPRECATED: replaced by FileManager::deleteFolder
 function recursiv_folder_delete($parent_id)
