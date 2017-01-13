@@ -29,45 +29,6 @@ class FileArchiveManager
 {
     //ARCHIVE HELPER METHODS
     
-    /**
-     * Returns the download URL of an archive file.
-     * 
-     * This is a replacement of the getDownloadLink function from datei.inc.php.
-     * THIS METHOD MAY BE REPLACED BY A CLASS THAT REPLACES SENDFILE.PHP
-     * AND THEREFORE THE NEED TO BUILD DOWNLOAD LINKS!
-     * 
-     * @param string $file_path The path to a file whose download URL shall be returned.
-     * 
-     * @return string The download URL of the file. Empty string on failure.
-     * 
-     * @throws FileArchiveManagerException If the file path is not set.
-     */
-    public static function getDownloadLink_TEMP($file_path)
-    {
-        if(!$file_path) {
-            throw new FileArchiveManagerException(
-                'Cannot retrieve file name: File path is not set!'
-            );
-        }
-        
-        $file_name = basename($file_path);
-        
-        $file_url = $GLOBALS['ABSOLUTE_URI_STUDIP'];
-        
-        $sendfile_mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
-        
-        if($sendfile_mode == 'rewrite') {
-            $file_url .= 'zip/zip'. rawurlencode(prepareFilename($file_name));
-        } else {
-            //normal mode (default):
-            $file_url .= 'sendfile.php?type=4&file_id=' .
-                rawurlencode(prepareFilename($file_name)) . 
-                '&file_name='.rawurlencode(prepareFilename($file_name));
-        }
-        
-        return $file_url;
-    }
-    
     
     /**
      * Adds a FileRef to a Zip archive.

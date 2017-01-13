@@ -1404,17 +1404,12 @@ class Admin_UserController extends AuthenticatedController
         );
         
         
-        $archive_download_link = FileArchiveManager::getDownloadLink_TEMP($archive_path);
-        
-        header('Content-Type: application/zip');
-        header('Content-Disposition: attachment; filename="' 
-            . rawurlencode(prepareFilename($archive_file_name)) . '"'
+        $archive_download_link = FileManager::getDownloadURLForTemporaryFile(
+            $archive_path,
+            $archive_file_name
         );
-        header('Location: ' . $archive_download_link);
-        header('Pragma: public');
         
-        $this->render_nothing();
-        
+        $this->redirect($archive_download_link);
     }
 
     /**

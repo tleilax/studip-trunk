@@ -198,7 +198,7 @@ class FileManager
     
     
     /**
-     * Builds a download link for temporary files.
+     * Builds a download URL for temporary files.
      */
     public static function getDownloadURLForTemporaryFile(
         $temporary_file_name = null,
