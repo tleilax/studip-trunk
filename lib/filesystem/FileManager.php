@@ -134,6 +134,41 @@ class FileManager
     }
     
     
+    /**
+     * Builds a download link for the file archive of an archived course.
+     * 
+     * @param ArchivedCourse $archived_course An archived course whose file archive is requested.
+     * @param bool $protected_archive True, if the protected file archive is requested.
+     *     False, if the "readable for everyone" file archive is requested (default).
+     * 
+     * @return string The download link for the file or an empty string on failure.
+     */
+    public static function getDownloadLinkForArchivedCourse(
+        ArchivedCourse $archived_course,
+        $protected_archive = false)
+    {
+        $file_id = $archived_course->archiv_file_id;
+        
+        if($protected_archive) {
+            $file_id = $archived_course->archiv_protected_file_id;
+        }
+        
+        if($file_id) {
+            //file_id is set: file archive exists
+            return URLHelper::getUrl(
+                'sendfile.php',
+                [
+                    'type' => '1',
+                    'file_id' => $file_id
+                ],
+                true
+            );
+        } else {
+            //file_id is empty: no file archive available
+            return '';
+        }
+    }
+    
     
     //FILE METHODS
 
