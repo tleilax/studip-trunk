@@ -2015,8 +2015,6 @@ function GetFileIcon($ext){
 // lib/extern/modules/ExternModuleDownload.class.php TODO
 // lib/extern/modules/ExternModuleTemplateDownload.class.php TODO
 // app/views/admin/user/list_files.php TODO
-// app/views/search/archive/index.php TODO
-// app/views/my_courses/archive.php TODO
 // app/models/WysiwygDocument.php TODO
 // app/controllers/admin/user.php TODO
 // app/controllers/admin/courses.php TODO
