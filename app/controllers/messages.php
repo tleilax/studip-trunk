@@ -728,8 +728,6 @@ class MessagesController extends AuthenticatedController {
         
         $user = User::find($GLOBALS['user']->id);
         
-        
-        
         $file_object = new File();
         $file_object->user_id = $user->id;
         $file_object->mime_type = ''; //TODO: detect mime type
@@ -739,19 +737,6 @@ class MessagesController extends AuthenticatedController {
         $file_object->author_name = $user->getFullName();
         
         $file_ref = $message_top_folder->createFile($file_object);
-        
-        /*
-        $document = new StudipDocument();
-        $document->setValue('range_id' , 'provisional');
-        $document->setValue('seminar_id' , $GLOBALS['user']->id);
-        $document->setValue('name' , $output['name']);
-        $document->setValue('filename' , $document->getValue('name'));
-        $document->setValue('filesize' , (int) $output['size']);
-        $document->setValue('autor_host' , $_SERVER['REMOTE_ADDR']);
-        $document->setValue('user_id' , $GLOBALS['user']->id);
-        $document->setValue('description', $message_id);
-        $success = $document->store();
-        */
         
         if (!$file_ref) {
             throw new Exception('Unable to handle uploaded file!');

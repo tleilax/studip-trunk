@@ -182,10 +182,10 @@ class messaging
         $attachments = array();
         if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
             $attachment_folder = MessageFolder::findMessageTopFolder($msg->id, $msg->autor_id);
-            $attachment_list = FileManager::getFolderFilesRecursive($attachment_folder, $msg->autor_id)['files'];
+            $attachments = FileManager::getFolderFilesRecursive($attachment_folder, $msg->autor_id)['files'];
             
             $size_of_attachments = 0;
-            foreach($attachment_list as $attachment) {
+            foreach($attachments as $attachment) {
                 $size_of_attachments += $attachment->file->size;
             }
             //assume base64 takes 33% more space

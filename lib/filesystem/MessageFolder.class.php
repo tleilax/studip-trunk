@@ -237,7 +237,7 @@ class MessageFolder implements FolderType
     public function getFiles()
     {
         if($this->folder) {
-            return $this->folder->file_refs;
+            return $this->folder->file_refs->getArrayCopy();
         } else {
             return [];
         }
