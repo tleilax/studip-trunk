@@ -57,7 +57,7 @@ class FileArchiveManager
         $do_user_permission_checks = true,
         $skip_check_for_user_permissions = false
     ) {
-        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
+        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1048576; //1048576 bytes = 1 Mebibyte
         
         //For FileRef objects we first have to do permission checks
         //using the FileRef's folder object.
@@ -157,7 +157,7 @@ class FileArchiveManager
         $keep_hierarchy = true,
         $skip_check_for_user_permissions = false
     ) {
-        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
+        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1048576; //1048576 bytes = 1 Mebibyte
         
         if($do_user_permission_checks) {
             //Check if the folder is readable for the user (identified by $user_id):
@@ -287,7 +287,7 @@ class FileArchiveManager
     ) {
         
         $archive_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
-        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1000000;
+        $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1048576; //1048576 bytes = 1 Mebibyte
         
         //check if archive path is set:
         if(!$archive_file_path) {
