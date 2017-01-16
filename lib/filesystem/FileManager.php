@@ -1102,6 +1102,53 @@ class FileManager
 
     }
 
+    
+    
+    /**
+     * Counts the number of files inside a folder and its subfolders.
+     * The search result can be limited to the files belonging to one user.
+     * 
+     * @param FolderType $folder The folder whose files shall be counted.
+     * @param bool $count_subfolders True, if files subfolders shall be counted, too (default). False otherwise.
+     * @param string $user_id Optional user_id to count only files of one user specified by his ID.
+     * 
+     * @return int The amount of files inside the folder (and its subfolders).
+     */
+    public static function countFilesInFolder(FolderType $folder, $count_subfolders = true, $user_id = null)
+    {
+        $num_files = 0;
+        
+        if($user_id == null) {
+            //If the user_id is not set we can simply count the number of all files.
+            $num_files = count($folder->getFiles());
+        } else {
+            //If the user_id is set we must check who owns the file
+            //and count only those files whose user_id matches the user_id specified.
+            foreach($folder->getFiles() as $file) {
+                if($file->user_id == $user_id) {
+                    $num_files++;
+                }
+            }
+        }
+        
+        
+        if($count_subfolders === true) {
+            //If files in subfolders shall be counted too,
+            //we must call this method recursively.
+            foreach($folder->getSubFolders() as $subfolder) {
+                $num_files += self::countFilesInFolder(
+                    $subfolder,
+                    $count_subfolders,
+                    $user_id
+                );
+            }
+        }
+        
+        return $num_files;
+    }
+    
+    
+    
     /**
      * @param FolderType $top_folder
      * @param string $user_id

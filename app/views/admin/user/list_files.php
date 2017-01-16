@@ -4,6 +4,7 @@
     </header>
     <? foreach ($folders as $folder) : ?>
         <? foreach($folder->getFiles() as $file): ?>
+        <? if($file->user_id == $user->id): ?>
         <article id="<?= $file->id ?>" class="<?= ContentBoxHelper::classes($file->id) ?>">
             <header>
                 <h1>
@@ -37,6 +38,7 @@
                 <? endif ?>
             </section>
         </article>
+        <? endif ?>
         <? endforeach ?>
     <? endforeach ?>
 </section>

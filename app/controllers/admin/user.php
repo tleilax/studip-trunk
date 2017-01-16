@@ -1131,7 +1131,11 @@ class Admin_UserController extends AuthenticatedController
         foreach ($memberships as $membership) {
             if (!Request::get('view') || Request::get('view') === 'files') {
                 // count files for course
-                $count = StudipDocument::countBySql('user_id = ? AND seminar_id =?', [$user_id, $membership->seminar_id]);
+                
+                $top_folder = Folder::findTopFolder($membership->seminar_id);
+                $top_folder = $top_folder->getTypedFolder();
+                $count = FileManager::countFilesInFolder($top_folder, true, $user_id);
+                
 
                 if ($count) {
                     if (!isset($course_files[$membership->seminar_id])) {
@@ -1159,8 +1163,12 @@ class Admin_UserController extends AuthenticatedController
             $institutes = Institute::getMyInstitutes($user_id);
             if (!empty($institutes)) {
                 foreach ($institutes as $index => $institute) {
-                    $count = StudipDocument::countBySql('user_id = ? AND seminar_id =?', [$user_id, $institute['Institut_id']]);
-
+                    $top_folder = Folder::findTopFolder($institute['Institut_id']);
+                    
+                    $top_folder = $top_folder->getTypedFolder();
+                    
+                    $count = FileManager::countFilesInFolder($top_folder, true, $user_id);
+                    
                     if ($count) {
                         $institutes[$index]['files'] = $count;
                     } else {
