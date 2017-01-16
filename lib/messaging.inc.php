@@ -181,9 +181,15 @@ class messaging
         }
         $attachments = array();
         if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
-            $size_of_attachments = array_sum($msg->attachments->pluck('filesize')) ?: 0;
+            $attachment_folder = MessageFolder::findMessageTopFolder($msg->id, $msg->autor_id);
+            $attachment_list = FileManager::getFolderFilesRecursive($attachment_folder, $msg->autor_id)['files'];
+            
+            $size_of_attachments = 0;
+            foreach($attachment_list as $attachment) {
+                $size_of_attachments += $attachment->file->size;
+            }
             //assume base64 takes 33% more space
-            $attachments_as_links = $size_of_attachments * 1.33 > $GLOBALS['MAIL_ATTACHMENTS_MAX_SIZE'] * 1024 * 1024;
+            $attachments_as_links = $size_of_attachments * 1.33 > $GLOBALS['MAIL_ATTACHMENTS_MAX_SIZE'] * 1000000; //1MB = 1000 KB = 1000000 Bytes
         }
         $template = $GLOBALS['template_factory']->open('mail/text');
         $template->set_attribute('message', kill_format($message));
@@ -225,7 +231,7 @@ class messaging
 
         if (count($attachments) && !$attachments_as_links) {
             foreach ($attachments as $attachment) {
-                $mail->addStudipAttachment($attachment['dokument_id']);
+                $mail->addStudipAttachment($attachment);
             }
         }
         if (!get_config("MAILQUEUE_ENABLE")) {

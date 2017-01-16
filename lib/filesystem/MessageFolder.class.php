@@ -239,7 +239,7 @@ class MessageFolder implements FolderType
         if($this->folder) {
             return $this->folder->file_refs;
         } else {
-            return new SimpleORMapCollection();
+            return [];
         }
     }
     
@@ -320,7 +320,9 @@ class MessageFolder implements FolderType
 
     public function validateUpload($uploaded_file, $user_id)
     {
-        $upload_type = $GLOBALS['UPLOAD_TYPES']['default'];
+        $status = $GLOBALS['perm']->get_perm($user_id);
+        $upload_type = $GLOBALS['UPLOAD_TYPES']['attachments'];
+        
         if ($upload_type["file_sizes"][$status] < $uploaded_file['size']) {
             return sprintf(_("Die maximale Größe für einen Upload (%s) wurde überschritten."), relsize($upload_type["file_sizes"][$status]));
         }

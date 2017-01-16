@@ -714,17 +714,21 @@ class MessagesController extends AuthenticatedController {
             'name' => $file['name'],
             'size' => $file['size']
         );
-        $output['message_id'] = Request::option("message_id");
-        if (!validate_upload($file)) {
+        
+        $message_id = Request::option('message_id');
+        $output['message_id'] = $message_id;
+        
+        $message_top_folder = MessageFolder::findMessageTopFolder($message_id, $GLOBALS['user']->id);
+        
+        $error = $message_top_folder->validateUpload($file, $GLOBALS['user']->id);
+        if ($error != null) {
             list($type, $error) = explode("§", $GLOBALS['msg']);
             throw new Exception($error);
         }
         
-        $user = User::findCurrent();
-        $message_id = Request::option('message_id');
+        $user = User::find($GLOBALS['user']->id);
         
         
-        $message_top_folder = MessageFolder::findMessageTopFolder($message_id, $user->id);
         
         $file_object = new File();
         $file_object->user_id = $user->id;
