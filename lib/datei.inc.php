@@ -2011,18 +2011,22 @@ function GetFileIcon($ext){
 */
 /*
 // used by:
-// lib/datei.inc.php
+// lib/classes/StudipLitListViewAdmin.class.php TODO
+// lib/evaluation/evaluation_admin_overview.lib.php TODO
+// lib/export/export_run_xslt.inc.php TODO
+// lib/export/export_xml.inc.php TODO
+// lib/export/export_choose_xslt.inc.php TODO
+// lib/export/export_run_fop.inc.php TODO
+// lib/calendar/CalendarExportFile.class.php TODO
+// lib/datei.inc.php TODO
 // lib/extern/modules/ExternModuleDownload.class.php TODO
 // lib/extern/modules/ExternModuleTemplateDownload.class.php TODO
 // app/models/WysiwygDocument.php TODO
-// app/controllers/admission/restricted_courses.php TODO
-// app/controllers/admission/courseset.php TODO
-// app/controllers/course/members.php TODO
 // public/eval_summary.php TODO
 // templates/mail/text.php TODO
 // templates/mail/html.php TODO
 */
-//DEPRECATED: replaced by FileManager::getDownloadLink
+//DEPRECATED: replaced by FileManager::getDownloadLinkFor...
 function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $range_id = '', $list_id = ''){
     $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
     $link[] = $GLOBALS['ABSOLUTE_URI_STUDIP'];
