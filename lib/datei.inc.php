@@ -2011,20 +2011,20 @@ function GetFileIcon($ext){
 */
 /*
 // used by:
-// lib/classes/StudipLitListViewAdmin.class.php TODO
-// lib/evaluation/evaluation_admin_overview.lib.php TODO
-// lib/export/export_run_xslt.inc.php TODO
-// lib/export/export_xml.inc.php TODO
-// lib/export/export_choose_xslt.inc.php TODO
-// lib/export/export_run_fop.inc.php TODO
-// lib/calendar/CalendarExportFile.class.php TODO
+// lib/classes/StudipLitListViewAdmin.class.php TODO: problem: $type = 5
+// lib/evaluation/evaluation_admin_overview.lib.php TODO: problem: $type = 2
+// lib/export/export_run_xslt.inc.php TODO: problem: $type = 2
+// lib/export/export_xml.inc.php TODO: problem: $type = 2
+// lib/export/export_choose_xslt.inc.php TODO: problem: $type = 2
+// lib/export/export_run_fop.inc.php TODO: problem: $type = 2
+// lib/calendar/CalendarExportFile.class.php TODO: problem: $type = 2
 // lib/datei.inc.php TODO
 // lib/extern/modules/ExternModuleDownload.class.php TODO
 // lib/extern/modules/ExternModuleTemplateDownload.class.php TODO
 // app/models/WysiwygDocument.php TODO
-// public/eval_summary.php TODO
-// templates/mail/text.php TODO
-// templates/mail/html.php TODO
+// public/eval_summary.php TODO: problem: $type = 2
+// templates/mail/text.php TODO: problem: $type = 7
+// templates/mail/html.php TODO: problem: $type = 7
 */
 //DEPRECATED: replaced by FileManager::getDownloadLinkFor...
 function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $range_id = '', $list_id = ''){
