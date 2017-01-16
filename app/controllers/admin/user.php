@@ -1383,21 +1383,22 @@ class Admin_UserController extends AuthenticatedController
      */
     public function download_user_files_action($user_id, $course_id = '')
     {
-        global $TMP_PATH, $perm;
+        global $TMP_PATH;
         
-        $sql = 'user_id = :user_id';
-        $sql_params = ['user_id' => $user_id];
         
-        if($course_id) {
-            $sql .= ' AND range_id = :course_id';
-            $sql_params['course_id'] = $course_id;
+        $top_folder = Folder::findTopFolder($course_id);
+        $top_folder = $top_folder->getTypedFolder();
+        
+        $element_lists = FileManager::getFolderFilesRecursive($top_folder, $user_id);
+        
+        //We want only those FileRefs which belong to the user identified by $user_id:
+        $file_refs = [];
+        
+        foreach($element_lists['files'] as $file_ref) {
+            if($file_ref->user_id == $user_id) {
+                $file_refs[] = $file_ref;
+            }
         }
-        
-        $file_refs = FileRef::findBySql(
-            $sql,
-            $sql_params
-        );
-        
         
         $user = User::find($user_id);
         
@@ -1408,7 +1409,8 @@ class Admin_UserController extends AuthenticatedController
         $result = FileArchiveManager::createArchiveFromFileRefs(
             $file_refs,
             User::findCurrent(),
-            $archive_path
+            $archive_path,
+            false
         );
         
         
