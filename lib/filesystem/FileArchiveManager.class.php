@@ -73,7 +73,7 @@ class FileArchiveManager
             if(!$folder) {
                 return false;
             }
-            if($folder->isReadable($user_id) and $folder->isFileDownloadable($file_ref->id, $user->id)) {
+            if($folder->isReadable($user_id) and $folder->isFileDownloadable($file_ref->id, $user_id)) {
                 //FileRef is readable and downloadable for the user (identified by $user_id).
                 $adding_allowed = true;
             }

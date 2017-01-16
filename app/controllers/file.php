@@ -1176,22 +1176,14 @@ class FileController extends AuthenticatedController
 
         if (Request::submitted('download')) {
             //bulk downloading:
-
-            //loop through all ids, check if it refers to a file_ref or a folder
-            //and zip them into one big archive:
-
+            
             $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
-            $zip = new ZipArchive();
-
-            $zip_open_result = $zip->open($tmp_file, ZipArchive::CREATE);
-            if($zip_open_result !== true) {
-                throw new Exception('Could not create zip file: ' . $zip_open_result);
-            }
-
-            $zip_path = '';
-
+            
             $user = User::findCurrent();
 
+            //collect file area objects by looking at their IDs:
+            
+            $file_area_objects = [];
             foreach ($ids as $id) {
                 //check if the ID references a FileRef:
                 $filesystem_item = FileRef::find($id);
@@ -1199,23 +1191,32 @@ class FileController extends AuthenticatedController
                     //check if the ID references a Folder:
                     $filesystem_item = Folder::find($id);
                     if($filesystem_item) {
-                        $filesystem_item = $filesystem_item->getTypedFolder();
+                        $file_area_objects[] = $filesystem_item->getTypedFolder();
                     }
+                } else {
+                    $file_area_objects[] = $filesystem_item;
                 }
-
-                if(!$filesystem_item) {
-                    //we can't find any file system item for this ID!
-                    continue;
-                }
-
-                $this->fillZipArchive($zip, '', $filesystem_item, $user);
-
             }
 
-            //finish writing:
-            $zip->close();
-
-            $this->redirect(GetDownloadLink(basename($tmp_file), basename($tmp_file) . '.zip', 4, 'force'));
+            //create a ZIP archive:
+            $result = FileArchiveManager::createArchive(
+                $file_area_objects,
+                $user->id,
+                $tmp_file
+            );
+            
+            if($result) {
+                //ZIP file was created successfully
+                $this->redirect(
+                    FileManager::getDownloadURLForTemporaryFile(
+                        basename($tmp_file),
+                        basename($tmp_file) . '.zip'
+                    )
+                );
+            } else {
+                throw new Exception('Error while creating ZIP archive!');
+            }
+            
         } elseif(Request::submitted('copy')) {
             //bulk copying
             $selected_elements = Request::getArray('ids');
@@ -1284,42 +1285,4 @@ class FileController extends AuthenticatedController
 
         }
     }
-
-    private function fillZipArchive(ZipArchive $zip, $zip_path = '', $filesystem_item = null, User $user)
-    {
-        if($filesystem_item instanceof FileRef) {
-            //check permissions:
-            $folder = $filesystem_item->folder;
-            if(!$folder) {
-                return;
-            }
-
-            $folder = $folder->getTypedFolder();
-            if(!$folder) {
-                return;
-            }
-
-            if($folder->isFileDownloadable($filesystem_item->id, $user->id)) {
-                $zip->addFile($filesystem_item->file->getPath(), $zip_path . $filesystem_item->name);
-                $filesystem_item->downloads += 1;
-                $filesystem_item->store();
-            }
-        } elseif($filesystem_item instanceof FolderType) {
-            //check permissions:
-            if($filesystem_item->isReadable($user->id)) {
-                //add directory:
-                $zip->addEmptyDir($zip_path . $filesystem_item->name);
-
-                //loop through all file_refs and subfolders:
-                foreach($filesystem_item->getFiles() as $file_ref) {
-                    $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $file_ref, $user);
-                }
-
-                foreach($filesystem_item->getSubfolders() as $subfolder) {
-                    $this->fillZipArchive($zip, $zip_path . $filesystem_item->name . '/', $subfolder, $user);
-                }
-            }
-        }
-    }
-
 }
