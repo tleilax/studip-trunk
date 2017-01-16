@@ -189,7 +189,7 @@ class messaging
                 $size_of_attachments += $attachment->file->size;
             }
             //assume base64 takes 33% more space
-            $attachments_as_links = $size_of_attachments * 1.33 > $GLOBALS['MAIL_ATTACHMENTS_MAX_SIZE'] * 1000000; //1MB = 1000 KB = 1000000 Bytes
+            $attachments_as_links = $size_of_attachments * 1.33 > $GLOBALS['MAIL_ATTACHMENTS_MAX_SIZE'] * 1048576; //1MiB = 1024 KiB = 1048576 Bytes
         }
         $template = $GLOBALS['template_factory']->open('mail/text');
         $template->set_attribute('message', kill_format($message));
