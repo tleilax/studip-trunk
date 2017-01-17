@@ -38,7 +38,7 @@ class CalendarExportFile extends CalendarExport
         }
 
         if (!$path) {
-            $this->path = $TMP_PATH . '/export/';
+            $this->path = $TMP_PATH . '/';
         }
 
         $this->_writer = $writer;
@@ -61,7 +61,7 @@ class CalendarExportFile extends CalendarExport
     public function sendFile()
     {
         if (file_exists($this->path . $this->tmp_file_name)) {
-            header('Location: ' . GetDownloadLink($this->tmp_file_name, $this->file_name, 2, 'force'));
+            header('Location: ' . FileManager::getDownloadURLForTemporaryFile($this->tmp_file_name, $this->file_name));
         } else {
             throw new CalendarExportException(_('Die Export-Datei konnte nicht erstellt werden!'));
         }

@@ -2012,7 +2012,7 @@ function GetFileIcon($ext){
 /*
 // used by:
 // lib/classes/StudipLitListViewAdmin.class.php TODO: problem: $type = 5
-// lib/export/export_run_fop.inc.php TODO: problem: $type = 2
+// TODO: test exports in all formats!
 // lib/calendar/CalendarExportFile.class.php TODO: problem: $type = 2
 // lib/datei.inc.php TODO
 // lib/extern/modules/ExternModuleDownload.class.php TODO
