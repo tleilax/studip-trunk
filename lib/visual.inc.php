@@ -740,6 +740,7 @@ function display_exception($exception, $as_html = false, $deep = false) {
 //app/views/file/choose_file.php DONE
 //app/views/file/file_details.php DONE
 //app/controllers/document/files.php DEPRECATED
+/*
 function get_icon_for_mimetype($mime_type)
 {
 
@@ -782,6 +783,7 @@ function get_icon_for_mimetype($mime_type)
 
     return $ret;
 }
+*/
 
 
 if (!function_exists('preg_replace_callback_array')) {
