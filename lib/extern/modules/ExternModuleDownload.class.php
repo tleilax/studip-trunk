@@ -271,10 +271,10 @@ class ExternModuleDownload extends ExternModule {
                 if (GetRoleNames(GetAllStatusgruppen($this->config->range_id, $row['user_id']))) {
                     $table_row_data['content']['fullname'] = 
                             $this->elements['LinkIntern']->toString(array('content' =>
-                            htmlReady($downloadable_file_ref->name), 'module' => 'Persondetails',
+                            htmlReady($downloadable_file_ref->owner->getFullName), 'module' => 'Persondetails',
                             'link_args' => 'username=' . $downloadable_file_ref->owner->username));
                 } else {
-                    $table_row_data['content']['fullname'] = htmlReady($downloadable_file_ref->owner->username ? $downloadable_file_ref->owner->username : $downloadable_file_ref->user_id);
+                    $table_row_data['content']['fullname'] = htmlReady($downloadable_file_ref->owner->username);
                 }
                 $out .= $this->elements["TableRow"]->toString($table_row_data);
             //}while($row = $statement->fetch(PDO::FETCH_ASSOC));
