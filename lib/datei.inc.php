@@ -2239,7 +2239,7 @@ function recursiv_folder_delete($parent_id)
 /*
 used by:
 app/controllers/institute/basicdata.php TODO: TEST
-*/
+//DEPRECATED
 function delete_all_documents($range_id){
     if (!$range_id){
         return false;
@@ -2252,6 +2252,7 @@ function delete_all_documents($range_id){
     }
     return $count;
 }
+*/
 
 
 /*
@@ -2484,12 +2485,12 @@ function get_flash_player ($document_id, $filename, $type) {
  */
 /*
 used in:
-lib/classes/StudipMail.class.php
-lib/classes/exportdocument/ExportPDF.class.php
-lib/models/StudipDocument.class.php
-lib/datei.inc.php
-app/routes/Files_old.php
-app/controllers/messages.php
+lib/classes/StudipMail.class.php TODO
+lib/classes/exportdocument/ExportPDF.class.php UNTESTED (not used anywhere!)
+lib/models/StudipDocument.class.php DEPRECATED
+lib/datei.inc.php TODO
+app/routes/Files_old.php DEPRECATED
+app/controllers/messages.php TODO
 */
 function get_upload_file_path ($document_id)
 {
