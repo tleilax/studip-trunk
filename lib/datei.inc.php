@@ -2011,15 +2011,14 @@ function GetFileIcon($ext){
 */
 /*
 // used by:
-// TODO: test exports in all formats!
-// TODO: test public/eval_summary.php
+// TODO: test: exports in all formats!
+// TODO: test: public/eval_summary.php
+// TODO: test: templates/mail/text.php, templates/mail/html.php
 // lib/classes/StudipLitListViewAdmin.class.php TODO: $type = 5 => rewrite code for getDownloadLinkForTemporaryFile
 // lib/datei.inc.php TODO
 // lib/extern/modules/ExternModuleDownload.class.php TODO
 // lib/extern/modules/ExternModuleTemplateDownload.class.php TODO
 // app/models/WysiwygDocument.php TODO
-// templates/mail/text.php TODO: problem: $type = 7
-// templates/mail/html.php TODO: problem: $type = 7
 */
 //DEPRECATED: replaced by FileManager::getDownloadLinkFor...
 function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $range_id = '', $list_id = ''){
