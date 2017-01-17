@@ -232,7 +232,7 @@ class ExternModuleTemplateDownload extends ExternModule {
             foreach($downloadable_file_refs as $downloadable_file_ref) {
                 
                 $content['FILES']['FILE'][$i]['FILE_ICON-HREF'] = Icon::create(
-                    get_icon_for_mimetype($downloadable_file_ref->file->mime_type),
+                    FileManager::getIconNameForMimeType($downloadable_file_ref->file->mime_type),
                     'clickable'
                     )->asImagePath(16);
                 

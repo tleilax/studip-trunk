@@ -118,7 +118,7 @@ if (Request::get("to_folder_id")) {
                             <input type="hidden" name="file_id" value="<?= htmlReady($fileref->id) ?>">
                             <a href="#" onClick="jQuery(this).closest('form').submit(); return false;">
                         <? endif ?>
-                                <?= Icon::create(get_icon_for_mimetype($fileref->mime_type), 'clickable')->asImg(24) ?>
+                                <?= Icon::create(FileManager::getIconNameForMimeType($fileref->mime_type), 'clickable')->asImg(24) ?>
                         <? if ($top_folder->isFileDownloadable($fileref, $GLOBALS['user']->id)) : ?>
                             </a>
                         </form>

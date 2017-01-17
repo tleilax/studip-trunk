@@ -1,7 +1,7 @@
 <div id="file_details_window">
     <aside id="file_aside">
         <div class="FileIcon"><?= Icon::create(
-            get_icon_for_mimetype($file_ref->mime_type),
+            FileManager::getIconNameForMimeType($file_ref->mime_type),
             'info'
             ) ?></div>
         <h1><?= htmlReady($file_ref->name) ?></h1>

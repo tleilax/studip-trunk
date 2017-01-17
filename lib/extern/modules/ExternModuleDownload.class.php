@@ -195,7 +195,7 @@ class ExternModuleDownload extends ExternModule {
             $table_row_data["data_fields"] = $this->data_fields;
             
             foreach($downloadable_file_refs as $downloadable_file_ref) {
-                $icon = Icon::create(get_icon_for_mimetype($downloadable_file_ref->file->mime_type), 'clickable');
+                $icon = Icon::create(FileManager::getIconNameForMimeType($downloadable_file_ref->file->mime_type), 'clickable');
                 /*
                 preg_match("/^.+\.([a-z1-9_-]+)$/i", $row['filename'], $file_suffix);
 
