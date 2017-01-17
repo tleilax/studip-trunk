@@ -2011,13 +2011,13 @@ function GetFileIcon($ext){
 */
 /*
 // used by:
-// lib/classes/StudipLitListViewAdmin.class.php TODO: problem: $type = 5
 // TODO: test exports in all formats!
+// TODO: test public/eval_summary.php
+// lib/classes/StudipLitListViewAdmin.class.php TODO: $type = 5 => rewrite code for getDownloadLinkForTemporaryFile
 // lib/datei.inc.php TODO
 // lib/extern/modules/ExternModuleDownload.class.php TODO
 // lib/extern/modules/ExternModuleTemplateDownload.class.php TODO
 // app/models/WysiwygDocument.php TODO
-// public/eval_summary.php TODO: problem: $type = 2
 // templates/mail/text.php TODO: problem: $type = 7
 // templates/mail/html.php TODO: problem: $type = 7
 */

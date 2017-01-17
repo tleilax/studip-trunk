@@ -16,9 +16,9 @@
     <span class="minor"> 
       <?=_("Dateianhänge:")?>
         <ul> 
-        <? foreach($attachments as $one) : ?>
+        <? foreach($attachments as $attachment) : ?>
        	  <li> 
-            <a href="<?=GetDownloadLink($one['dokument_id'], $one['filename'], 7, 'force')?>"><?= htmlReady($one['filename'] . ' (' . relsize($one['filesize'], false) . ')') ?></a> 
+            <a href="<?= $attachment->getDownloadURL() ?>"><?= htmlReady($attachment->name . ' (' . relsize($attachment->file->size, false) . ')') ?></a> 
           </li>
         <? endforeach;?>
      	</ul> 

@@ -7,10 +7,10 @@
 
     <?= _("Dateianhänge:") ?>
 
-    <? foreach ($attachments as $one) : ?>
-        <?= $one['filename'] . ' (' . relsize($one['filesize'], false) . ')' ?>
+    <? foreach ($attachments as $attachment) : ?>
+        <?= $attachment->name . ' (' . relsize($attachment->file->size, false) . ')' ?>
 
-        <?= GetDownloadLink($one['dokument_id'], $one['filename'], 7, 'force') ?>
+        <?= $attachment->getDownloadURL() ?>
 
 
     <? endforeach; ?>
