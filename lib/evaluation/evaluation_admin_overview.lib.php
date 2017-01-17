@@ -903,14 +903,6 @@ class EvalOverview {
                 /* -------------------------------------- end: export evaluation */
 
 
-                /* Create link ------------------------------------------------- */
-                $link = new HTML("a");
-                $link->addAttr('href', GetDownloadLink($exportManager->getTempFilename(), $exportManager->getFilename(), 2));
-                $link->addHTMLContent(GetFileIcon('csv')->asImg());
-                $link->addContent(_("auf diese Verknüpfung"));
-                /* -------------------------------------------- end: create link */
-
-
                 /* Create report ----------------------------------------------- */
                 if ($exportManager->isError()) {
                     $report = EvalCommon::createErrorReport($exportManager, _("Fehler beim Exportieren"));
