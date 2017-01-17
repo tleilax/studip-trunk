@@ -155,6 +155,7 @@ $rules = [
     'create_zip_from_directory' => 'Removed(?). Use #{yellow:FileArchiveManager::createArchiveFromPhysicalFolder} instead.',
     'getFileExtension' => 'Removed. Use PHP\'s built-in #{yellow:pathinfo($filename, PATHINFO_EXTENSION)} instead.',
     'get_icon_for_mimetype' => 'Removed. Use #{yellow:FileManager::getIconNameForMimeType} instead.',
+    'get_upload_file_path' => 'Removed. Use #{yellow:File->getPath()} instead.',
     
     //StudipDocument:
     'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
