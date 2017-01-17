@@ -125,7 +125,7 @@ else
         $xslt_info = _("Die Daten sind nun im gew&auml;hlten Format verf&uuml;gbar.");
         $xslt_process = true;
         $link1 = "<a href=\"" . $TMP_PATH . "/" . $result_file . "\">";
-        $link2 = '<a href="'. GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2) . '">';
+        $link2 = '<a href="'. FileManager::getDownloadLinkForTemporaryFile($result_file, $xslt_filename .'.'. $format) . '">';
 
     } elseif ($o_mode != "passthrough") {
 
@@ -138,7 +138,7 @@ else
 
     if ($o_mode == "passthrough")
     {
-        header("Location: " . GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2, 'force'));
+        header("Location: " . FileManager::getDownloadURLForTemporaryFile($result_file, $xslt_filename .'.'. $format));
         unlink( $TMP_PATH . "/export/" . $xml_file_id);
     } else {
 
@@ -170,25 +170,25 @@ else
         }
 
 
-        $xml_printimage = ' <a href="' . GetDownloadLink($xml_file_id, $xml_filename, 2) . '" target="_blank">';
+        $xml_printimage = ' <a href="' . FileManager::getDownloadLinkForTemporaryFile($xml_file_id, $xml_filename) . '" target="_blank">';
         $xml_printimage.= Icon::create($export_icon['xml'], 'clickable')->asImg(['class' => 'text-top']);
         $xml_printimage.= '</a>';
-        $xml_printlink = ' <a href="'. GetDownloadLink($xml_file_id, $xml_filename, 2) . '" class="tree">' . htmlReady($xml_filename) . '</a>';
+        $xml_printlink = ' <a href="'. FileManager::getDownloadLinkForTemporaryFile($xml_file_id, $xml_filename) . '" class="tree">' . htmlReady($xml_filename) . '</a>';
         $xml_printdesc = _("XML-Daten");
         $xml_printcontent = _("In dieser Datei sind die Daten als XML-Tags gespeichert. Diese Tags können mit einem XSLT-Script verarbeitet werden.") . '<br>';
 
-        $xslt_printimage = ' <a href="'. GetDownloadLink($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl', 3) . '">';
+        $xslt_printimage = ' <a href="'. FileManager::getDownloadLinkForTemporaryFile($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl') . '">';
         $xslt_printimage.= Icon::create($export_icon['xslt'], 'clickable')->asImg(['class' => 'text-top']);
         $xslt_printimage.= '</a>';
-        $xslt_printlink = ' <a href="' . GetDownloadLink($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl', 3) .  '" class="tree"> ' . $xslt_files[$choose]['name'] . '.xsl</a>';
+        $xslt_printlink = ' <a href="' . FileManager::getDownloadLinkForTemporaryFile($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl') .  '" class="tree"> ' . $xslt_files[$choose]['name'] . '.xsl</a>';
         $xslt_printdesc = _("XSLT-Datei");
         $xslt_printcontent = _("Dies ist das XSLT-Script zur Konvertierung der Daten. Klicken Sie auf den Dateinamen, um die Datei zu öffnen.") . '<br>';
 
         if ($xslt_process) {
-            $result_printimage = '<a href="'. GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2) . '">';
+            $result_printimage = '<a href="'. FileManager::getDownloadLinkForTemporaryFile($result_file, $xslt_filename .'.'. $format) . '">';
             $result_printimage.= Icon::create($export_icon[$format], 'clickable')->asImg(['class' => 'text-top']);
             $result_printimage.= '</a>';
-            $result_printlink = '<a href="'. GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2) . '" class="tree"> ' . htmlReady($xslt_filename) . '.' . htmlReady($format) . '</a>';
+            $result_printlink = '<a href="'. FileManager::getDownloadLinkForTemporaryFile($result_file, $xslt_filename .'.'. $format) . '" class="tree"> ' . htmlReady($xslt_filename) . '.' . htmlReady($format) . '</a>';
             $result_printdesc = _("Ausgabe-Datei");
             $result_printcontent = _("Dies ist die fertige Ausgabedatei.") . "<br>";
         }
