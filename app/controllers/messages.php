@@ -732,7 +732,7 @@ class MessagesController extends AuthenticatedController {
         }
         
         $result = move_uploaded_file($file['tmp_name'], $file_object->getPath());
-        if(!$data_stored) {
+        if(!$result) {
             throw new Exception('Data of file with ID ' . $file_ref->file_id . ' cannot be stored in path for uploaded files!');
         }
         

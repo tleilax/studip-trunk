@@ -102,7 +102,7 @@ else
     // Process the document
     $result_file = md5(uniqid(rand())) . "." . $format;
     $result = "" . $TMP_PATH . "/" . $result_file;
-    $xml_process_file = "" . $TMP_PATH . "/export/" . $xml_file_id;
+    $xml_process_file = "" . $TMP_PATH . "/" . $xml_file_id;
     $xslt_process_file = $GLOBALS['STUDIP_BASE_PATH'] . '/' . $PATH_EXPORT . "/" . $xslt_files[$choose]["file"];
 
     $xh = new XSLTProcessor();
@@ -139,7 +139,7 @@ else
     if ($o_mode == "passthrough")
     {
         header("Location: " . FileManager::getDownloadURLForTemporaryFile($result_file, $xslt_filename .'.'. $format));
-        unlink( $TMP_PATH . "/export/" . $xml_file_id);
+        unlink( $TMP_PATH . "/" . $xml_file_id);
     } else {
 
         $export_weiter_button = "<form method=\"POST\" action=\"" . URLHelper::getURL() . "\">";
