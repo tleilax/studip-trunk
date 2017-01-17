@@ -2479,7 +2479,7 @@ function get_flash_player ($document_id, $filename, $type) {
  */
 /*
 used in:
-lib/classes/exportdocument/ExportPDF.class.php UNTESTED (not used anywhere!)
+TODO: lib/classes/exportdocument/ExportPDF.class.php (convertURL method)
 TODO: test: app/controllers/messages.php
 */
 function get_upload_file_path ($document_id)

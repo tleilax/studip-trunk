@@ -311,15 +311,20 @@ class ExportPDF extends TCPDF implements ExportDocument {
                 }
             } else if (mb_stripos($url, 'dispatch.php/document/download') !== false) {
                 if (preg_match('#([a-f0-9]{32})#', $url, $matches)) {
-                    $convurl = DirectoryEntry::find($matches[1])->file->getStorageObject()->getPath();
+                    $file_ref = FileRef::find($matches[1]);
+                    $folder = $file_ref->folder->getTypedFolder();
+                    if($folder->isFileDownloadable($file_ref->id, $GLOBALS['user']->id)) {
+                        $convurl = $file_ref->file->getPath();
+                    }
                 }
             } else if (mb_stripos($url, 'download') !== false
                     || mb_stripos($url, 'sendfile.php') !== false) {
                 //// get file id
                 if (preg_match('#([a-f0-9]{32})#', $url, $matches)) {
-                    $document = new StudipDocument($matches[1]);
-                    if ($document->checkAccess($GLOBALS['user']->id)) {
-                        $convurl = get_upload_file_path($matches[1]);
+                    $file_ref = FileRef::find($matches[1]);
+                    $folder = $file_ref->folder->getTypedFolder();
+                    if($folder->isFileDownloadable($file_ref->id, $GLOBALS['user']->id)) {
+                        $convurl = $file_ref->file->getPath();
                     } else {
                         $convurl = Assets::image_path('messagebox/exception.png');
                     }
