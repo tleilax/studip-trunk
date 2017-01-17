@@ -2238,8 +2238,7 @@ function recursiv_folder_delete($parent_id)
 
 /*
 used by:
-lib/classes/Seminar.class.php
-app/controllers/institute/basicdata.php
+app/controllers/institute/basicdata.php TODO: TEST
 */
 function delete_all_documents($range_id){
     if (!$range_id){
