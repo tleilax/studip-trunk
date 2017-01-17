@@ -2479,12 +2479,8 @@ function get_flash_player ($document_id, $filename, $type) {
  */
 /*
 used in:
-lib/classes/StudipMail.class.php TODO
 lib/classes/exportdocument/ExportPDF.class.php UNTESTED (not used anywhere!)
-lib/models/StudipDocument.class.php DEPRECATED
-lib/datei.inc.php TODO
-app/routes/Files_old.php DEPRECATED
-app/controllers/messages.php TODO
+TODO: test: app/controllers/messages.php
 */
 function get_upload_file_path ($document_id)
 {

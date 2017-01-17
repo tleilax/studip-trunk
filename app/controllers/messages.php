@@ -355,17 +355,6 @@ class MessagesController extends AuthenticatedController {
                                 }
                             }
                         }
-                    
-                    /*
-                        $attachment->range_id = 'provisional';
-                        $attachment->seminar_id = $GLOBALS['user']->id;
-                        $attachment->autor_host = $_SERVER['REMOTE_ADDR'];
-                        $attachment->user_id = $GLOBALS['user']->id;
-                        $attachment->description = Request::option('message_id');
-                        $new_attachment = $attachment->toArray(array('range_id', 'user_id', 'seminar_id', 'name', 'description', 'filename', 'filesize'));
-                        $new_attachment = StudipDocument::createWithFile(get_upload_file_path($attachment->getId()), $new_attachment);
-                    */
-                    
                     }
                 }
                 $this->default_message['subject'] = $messagesubject;
@@ -742,7 +731,7 @@ class MessagesController extends AuthenticatedController {
             throw new Exception('Unable to handle uploaded file!');
         }
         
-        $data_stored = move_uploaded_file($file['tmp_name'], get_upload_file_path($file_ref->file_id));
+        $result = move_uploaded_file($file['tmp_name'], $file_object->getPath());
         if(!$data_stored) {
             throw new Exception('Data of file with ID ' . $file_ref->file_id . ' cannot be stored in path for uploaded files!');
         }
