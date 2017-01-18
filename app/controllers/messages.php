@@ -719,7 +719,7 @@ class MessagesController extends AuthenticatedController {
         
         $file_object = new File();
         $file_object->user_id = $user->id;
-        $file_object->mime_type = ''; //TODO: detect mime type
+        $file_object->mime_type = get_mime_type($output['name']);
         $file_object->name = $output['name'];
         $file_object->size = (int)$output['size'];
         $file_object->storage = 'disk';
