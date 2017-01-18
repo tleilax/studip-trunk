@@ -731,9 +731,9 @@ class MessagesController extends AuthenticatedController {
             throw new Exception('Unable to handle uploaded file!');
         }
         
-        $result = move_uploaded_file($file['tmp_name'], $file_object->getPath());
+        $result = $file_object->connectWithDataFile($file['tmp_name']);
         if(!$result) {
-            throw new Exception('Data of file with ID ' . $file_ref->file_id . ' cannot be stored in path for uploaded files!');
+            throw new Exception('Data of file with ID ' . $file_object->id . ' cannot be stored in path for uploaded files!');
         }
         
         $output['document_id'] = $file_ref->file_id;
