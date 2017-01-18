@@ -21,7 +21,6 @@
  */
 
 use Studip\WysiwygRequest;
-//use Studip\WysiwygDocument;
 
 use Studip\MarkupPrivate\MediaProxy; // TODO remove  debug code
 
