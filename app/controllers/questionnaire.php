@@ -96,7 +96,8 @@ class QuestionnaireController extends AuthenticatedController
                 $questionnaire_data['visible'] = ($questionnaire_data['startdate'] <= time() && (!$questionnaire_data['stopdate'] || $questionnaire_data['stopdate'] >= time())) ? 1 : 0;
             }
             $this->questionnaire->setData($questionnaire_data);
-            foreach (Request::getArray("question_types") as $question_id => $question_type) {
+            $question_types_data = Request::getArray("question_types");
+            foreach ($question_types_data as $question_id => $question_type) {
                 $question = null;
                 foreach ($this->questionnaire->questions as $index => $q) {
                     if ($q->getId() === $question_id) {
@@ -106,11 +107,15 @@ class QuestionnaireController extends AuthenticatedController
                 }
                 if (!$question) {
                     $question = new $question_type($question_id);
-                    $question['questiontype'] = $question_type;
                     $this->questionnaire->questions[] = $question;
                 }
                 $question['position'] = $index + 1;
                 $question->createDataFromRequest();
+            }
+            foreach ($this->questionnaire->questions as $q) {
+                if (!in_array($q->getId(), array_keys($question_types_data))) {
+                    $q->delete();
+                }
             }
             if (Request::submitted("questionnaire_store")) {
                 //save everything
@@ -166,14 +171,12 @@ class QuestionnaireController extends AuthenticatedController
                     } else {
                         $this->redirect("questionnaire/overview");
                     }
-                    $this->redirect("questionnaire/overview");
                 }
             }
         }
         if ($this->questionnaire->isNew() && count($this->questionnaire->questions) === 0) {
             $question = new Vote();
             $question->setId($question->getNewId());
-            $question['questiontype'] = "Vote";
             $this->questionnaire->questions[] = $question;
         }
     }
@@ -226,7 +229,6 @@ class QuestionnaireController extends AuthenticatedController
         }
         $class = Request::get("questiontype");
         $this->question = new $class();
-        $this->question['questiontype'] = $class;
         $this->question->setId($this->question->getNewId());
 
         $template = $this->get_template_factory()->open("questionnaire/_question.php");
@@ -404,8 +406,13 @@ class QuestionnaireController extends AuthenticatedController
         }
 
         foreach ($user_ids as $key => $user_id) {
-            $user = new User($user_id);
-            $csv_line = array($key + 1, $user['username'], $user['Nachname'], $user['Vorname'], $user['Email']);
+            $user = User::find($user_id);
+            if ($user) {
+                $csv_line = array($key + 1, $user['username'], $user['Nachname'], $user['Vorname'], $user['Email']);
+            } else {
+                $csv_line = array($key + 1, $user_id, '', '', '');
+            }
+
             foreach ($results as $result) {
                 foreach ($result as $frage => $value) {
                     $csv_line[] = $value[$user_id];

@@ -97,8 +97,14 @@ abstract class ModuleManagementModel extends SimpleORMap
             }
         }
 
-        // check the permissions for every single field
-        foreach (array_keys($this->db_fields) as $field) {
+        // check the permissions for every single db field except primary keys
+        if ($this->isNew()) {
+            $fields = array_diff(array_keys($this->db_fields),
+                    array_values($this->pk));
+        } else {
+            $fields = array_keys($this->db_fields);
+        }
+        foreach ($fields as $field) {
             if ($this->isFieldDirty($field)
                     && !$perm->haveFieldPerm($field, MvvPerm::PERM_WRITE, $user_id)) {
                 throw new Exception(sprintf(
@@ -125,13 +131,14 @@ abstract class ModuleManagementModel extends SimpleORMap
                                     if (!$perm->haveDfEntryPerm($entry, MvvPerm::PERM_WRITE)) {
                                         throw new Exception(sprintf(
                                             'Permission denied! The user is not '
-                                            . 'allowed to change value of field %s::datafields.', get_called_class()));
+                                            . 'allowed to change value of field %s::datafields[%s] ("%s").', get_called_class(), $entry->datafield->datafield_id, $entry->datafield->name));
                                     }
                                 }
                             }
-                        }
-                        foreach ($this->{$relation} as $r) {
-                            $this->checkRelation($relation, $r, $perm, $user_id);
+                        } else {
+                            foreach ($this->{$relation} as $r) {
+                                $this->checkRelation($relation, $r, $perm, $user_id);
+                            }
                         }
                     }
                 }
@@ -668,7 +675,7 @@ abstract class ModuleManagementModel extends SimpleORMap
      */
     public static final function setLanguage($language)
     {
-        $language = mb_strtoupper(mb_strstr($language, '_', true));
+        $language = mb_strtoupper(mb_strstr($language . '_', '_', true));
         if (isset($GLOBALS['MVV_LANGUAGES']['values'][$language])) {
             setLocaleEnv($GLOBALS['MVV_LANGUAGES']['values'][$language]['locale']);
             self::$language = $language;

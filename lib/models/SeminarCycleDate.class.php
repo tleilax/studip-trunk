@@ -220,10 +220,27 @@ class SeminarCycleDate extends SimpleORMap
         if ($result) {
             $stmt = DBManager::get()->prepare('DELETE FROM schedule_seminare WHERE metadate_id = :metadate_id');
             $stmt->execute(array('metadate_id' => $metadate_id));
-            
+
             StudipLog::log('SEM_DELETE_CYCLE', $seminar_id, null, $cycle_info);
         }
 
+        return $result;
+    }
+
+    /**
+     * Set date-type for all dates
+     * @param $type
+     * @return int
+     */
+    public function setSingleDateType($type)
+    {
+        $result = 0;
+        if(count($this->dates)) {
+            foreach($this->dates as $date) {
+                $date->date_typ = $type;
+                $result += $date->store();
+            }
+        }
         return $result;
     }
 
@@ -254,39 +271,42 @@ class SeminarCycleDate extends SimpleORMap
             }
             return 0;
         }
-        
+
         //change existing cycledate, changes also corresponding single dates
         $old_cycle = SeminarCycleDate::find($this->metadate_id);
         if (!parent::store()) {
             return false;
         }
 
-        if ($this->start_time != $old_cycle->start_time 
-                || $this->end_time != $old_cycle->end_time 
-                || $old_cycle->weekday != $this->weekday ) 
+        if ($this->start_time != $old_cycle->start_time
+                || $this->end_time != $old_cycle->end_time
+                || $old_cycle->weekday != $this->weekday )
         {
-            
+
             $update_count = $this->updateExistingDates($old_cycle);
         }
-        
+
         if ($old_cycle->week_offset != $this->week_offset
-            || $old_cycle->end_offset != $this->end_offset 
+            || $old_cycle->end_offset != $this->end_offset
             || $old_cycle->cycle != $this->cycle )
         {
-          
+
             $update_count = $this->generateNewDates($old_cycle);
         }
-        
-        StudipLog::log('SEM_CHANGE_CYCLE', $this->seminar_id, NULL, 
+
+        StudipLog::log('SEM_CHANGE_CYCLE', $this->seminar_id, NULL,
                 $old_cycle->toString() .' -> ' . $this->toString());
-        
+
         return $update_count;
     }
 
-    private function updateExistingDates($old_cycle) 
+    private function updateExistingDates($old_cycle)
     {
         $update_count = 0;
         foreach ($this->getAllDates() as $date) {
+            // ignore dates in the past
+            if ($date->date < time()) continue;
+
             $tos = $date->date;
             $toe = $date->end_time;
             $day = (date('D', $date->date) - $old_cycle->weekday) + $this->weekday;
@@ -336,7 +356,7 @@ class SeminarCycleDate extends SimpleORMap
         $this->restore();
         return $update_count;
     }
-    
+
     private function generateNewDates($old_cycle)
     {
         $course = Course::find($this->seminar_id);
@@ -349,8 +369,22 @@ class SeminarCycleDate extends SimpleORMap
                     $topics[] = $topics_tmp;
                 }
             }
+
+            if($this->end_offset == null) {
+                // check if seminar is endless (duration_time == -1)
+                if($course->duration_time == -1) {
+                    $last_sem = Semester::findOneBySQL("1 ORDER BY vorles_ende DESC");
+                    $end_time_offset = $last_sem->vorles_ende;
+                } else {
+                    $end_time_offset = $course->end_semester->vorles_ende;
+                }
+            } else {
+                $end_time_offset = $course->start_semester->vorles_beginn + $this->end_offset * 7 * 24 * 60 * 60;
+            }
+
+
             if ($date->date < $course->start_semester->vorles_beginn + $this->week_offset * 7 * 24 * 60 * 60 ||
-                $date->date > $course->start_semester->vorles_beginn + $this->end_offset * 7 * 24 * 60 * 60
+                $date->date > $end_time_offset
             ) {
                 $date->delete();
             }
@@ -394,20 +428,31 @@ class SeminarCycleDate extends SimpleORMap
     {
         $course = Course::find($this->seminar_id);
         $ret = array();
-        
+
         if ($startAfterTimeStamp == 0) {
             $sem_begin = $course->start_semester->vorles_beginn;
         } else {
             $sem_begin = $startAfterTimeStamp;
         }
-        
-        $sem_end = $course->start_semester->vorles_beginn + $this->end_offset*7*24*60*60;
-        
+
+        // check if cycle has a fix end (end_offset == null -> endless)
+        if($this->end_offset == null) {
+            // check if seminar is endless (duration_time == -1)
+            if($course->duration_time == -1) {
+                $last_sem = Semester::findOneBySQL("1 ORDER BY vorles_ende DESC");
+                $sem_end = $last_sem->vorles_ende;
+            } else {
+                $sem_end = $course->end_semester->vorles_ende;
+            }
+        } else {
+            $sem_end = $course->start_semester->vorles_beginn + $this->end_offset * 7 * 24 * 60 * 60;
+        }
+
         $semester = Semester::findBySQL('beginn <= :ende AND ende >= :start',
                 array('start' => $sem_begin, 'ende' => $sem_end));
-       
+
         foreach ($semester as $val) {
-                
+
                 // correction calculation, if the semester does not start on monday
                 $dow = date("w", $val['vorles_beginn']);
                 if ($dow <= 5) {
@@ -419,13 +464,13 @@ class SeminarCycleDate extends SimpleORMap
                 } else {
                     $corr = 0;
                 }
-                
+
                 if ($val['vorles_beginn'] < $sem_begin) {
                     $start = $sem_begin;
                 } else {
                     $start = $val['vorles_beginn'];
                 }
-                
+
                 $ret[$val['semester_id']] = $this->createSemesterTerminSlots($start, $val['vorles_ende'], $startAfterTimeStamp, $corr);
         }
         return $ret;
@@ -444,14 +489,14 @@ class SeminarCycleDate extends SimpleORMap
      */
     private function createSemesterTerminSlots($sem_begin, $sem_end, $startAfterTimeStamp, $corr)
     {
-        
+
         $dates = array();
         $dates_to_delete = array();
 
         // The currently existing singledates for the by metadate_id denoted  regular time-entry
         //$existingSingleDates =& $this->cycles[$metadate_id]->getSingleDates();
         $existingSingleDates =& $this->getAllDates();
-        
+
         $start_woche = $this->week_offset;
 
         // This variable is used to check if a given singledate shall be created in a bi-weekly seminar.
@@ -484,12 +529,23 @@ class SeminarCycleDate extends SimpleORMap
             date("Y", $stamp));                                 // Year
 
         $course = Course::find($this->seminar_id);
-        $end_time_offset = $course->start_semester->vorles_beginn + $this->end_offset*7*24*60*60;
-        
-        
+
+        // check if cycle has a fix end (end_offset == null -> endless)
+        if($this->end_offset == null) {
+            // check if seminar is endless (duration_time == -1)
+            if($course->duration_time == -1) {
+                $last_sem = Semester::findOneBySQL("1 ORDER BY vorles_ende DESC");
+                $end_time_offset = $last_sem->vorles_ende;
+            } else {
+                $end_time_offset = $course->end_semester->vorles_ende;
+            }
+        } else {
+            $end_time_offset = $course->start_semester->vorles_beginn + $this->end_offset * 7 * 24 * 60 * 60;
+        }
+
         // loop through all possible singledates for this regular time-entry
         do {
-            
+
             // if dateExists is true, the singledate will not be created. Default is of course to create the singledate
             $dateExists = false;
 
@@ -503,14 +559,15 @@ class SeminarCycleDate extends SimpleORMap
             $date_values['metadate_id'] = $this->metadate_id;
             foreach ($existingSingleDates as $key => $val) {
                 // take only the singledate into account, that maps the current timepoint
-                if ($start_time > $startAfterTimeStamp && ($val->date == $start_time) && ($val->end_time == $end_time)) {
+                // only compare the week and year, because dates in the past may differ on time or day
+                if ($start_time > $startAfterTimeStamp && date('W Y', $val->date) == date('W Y', $start_time)) {
                     $dateExists = true;
                     if (isset($existingSingleDates[$key])) {
                         $dates[] = $val;
                     }
                 }
             }
-            
+
             if (!$dateExists) {
                 $termin = new CourseDate();
 
@@ -543,7 +600,7 @@ class SeminarCycleDate extends SimpleORMap
             $week++;
 
         } while ($end_time < $sem_end && $end_time < $end_time_offset );
-        
+
         //calulate trurnus
         if ($this->cycle != 0) {
            return $this->calculateTurnusDates($dates);
@@ -551,20 +608,20 @@ class SeminarCycleDate extends SimpleORMap
         return array('dates' => $dates, 'dates_to_delete' => $dates_to_delete);
     }
 
-    
+
     /**
-     * Calculate turnus for singledate entries 
-     * 
+     * Calculate turnus for singledate entries
+     *
      * @param array $dates
      * @return array
      */
-    public function calculateTurnusDates($dates) 
+    public function calculateTurnusDates($dates)
     {
         $week_count = 0;
         $dates_to_store = array();
         $dates_to_delete = array();
         foreach ($dates as $date) {
-            
+
             if ($this->cycle == 1 && $week_count % 2 != 0 && $week_count > 0) {
                 if (!$date->isNew()) {
                     $dates_to_delete[] = $date;
@@ -580,7 +637,7 @@ class SeminarCycleDate extends SimpleORMap
         }
         return array('dates' => $dates_to_store, 'dates_to_delete' => $dates_to_delete);
     }
-    
+
     /**
      * removes all singleDates which are NOT between $start and $end
      *

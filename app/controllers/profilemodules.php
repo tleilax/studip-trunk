@@ -66,9 +66,9 @@ class ProfileModulesController extends AuthenticatedController
                 htmlReady($current_user->Nachname),
                 htmlReady($current_user->username),
                 htmlReady($current_user->perms));
-            PageLayout::postMessage(MessageBox::info($message));
+            $mbox = MessageBox::info($message);
+            PageLayout::postMessage($mbox, 'settings-user-anncouncement');
         }
-
 
         $this->setupSidebar();
     }
@@ -191,6 +191,7 @@ class ProfileModulesController extends AuthenticatedController
         $modules = Request::optionArray('modules');
 
         $success = null;
+        $anchor = "";
         // Plugins
         foreach ($this->plugins as $plugin) {
             // Check local activation status.
@@ -203,19 +204,24 @@ class ProfileModulesController extends AuthenticatedController
                 $updated = $manager->setPluginActivated($id, $this->user_id, $state_after, 'user');
 
                 $success = $success || $updated;
+                
+                if ($state_after) {
+                    PageLayout::postSuccess(sprintf(_('"%s" wurde aktiviert.'), $plugin->getPluginName()));
+                } else {
+                    PageLayout::postSuccess(sprintf(_('"%s" wurde deaktiviert.'), $plugin->getPluginName()));
+                }
+                $anchor = '#p_' . $plugin->getPluginId();
             }
         }
 
-        if ($success === true) {
-            $message = MessageBox::success(_('Ihre Änderungen wurden gespeichert.'));
-        } elseif ($success === false) {
+        if ($success === false) {
             $message = MessageBox::error(_('Ihre Änderungen konnten nicht gespeichert werden.'));
         }
         if ($message) {
             PageLayout::postMessage($message);
         }
 
-        $this->redirect($this->url_for('profilemodules/index', array('username' => $this->username)));
+        $this->redirect($this->url_for('profilemodules/index' . $anchor, array('username' => $this->username)));
     }
 
     /**
@@ -255,12 +261,10 @@ class ProfileModulesController extends AuthenticatedController
                  
                 $key = isset($info['displayname']) ? $info['displayname'] : $plugin->getPluginname();
                  
-                if (($_SESSION['profile_plus']['Komplex'][$metadata['complexity']] || !isset($metadata['complexity']))
-                        || !isset($_SESSION['profile_plus'])
-                ) {
-                    $list['Funktionen von A-Z'][mb_strtolower($key)]['object'] = $plugin;
-                    $list['Funktionen von A-Z'][mb_strtolower($key)]['activated'] = $activated;
-                }
+
+                $list['Funktionen von A-Z'][mb_strtolower($key)]['object'] = $plugin;
+                $list['Funktionen von A-Z'][mb_strtolower($key)]['activated'] = $activated;
+
                  
             } else {            
             
@@ -270,14 +274,9 @@ class ProfileModulesController extends AuthenticatedController
     
                 $key = isset($metadata['displayname']) ? $metadata['displayname'] : $plugin->getPluginname();
     
-                if ($_SESSION['profile_plus']['Kategorie'][$cat]
-                    && ($_SESSION['profile_plus']['Komplex'][$metadata['complexity']] || !isset($metadata['complexity']))
-                    || !isset($_SESSION['profile_plus'])
-                ) {
-    
-                    $list[$cat][mb_strtolower($key)]['object'] = $plugin;
-                    $list[$cat][mb_strtolower($key)]['activated'] = $activated;
-                }
+                $list[$cat][mb_strtolower($key)]['object'] = $plugin;
+                $list[$cat][mb_strtolower($key)]['activated'] = $activated;
+                
             }
         }
 

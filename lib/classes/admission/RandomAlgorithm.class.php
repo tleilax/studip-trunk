@@ -222,7 +222,6 @@ class RandomAlgorithm extends AdmissionAlgorithm
                     foreach (array_keys($current_claiming) as $user_id) {
                         if ($bonus_users[$user_id] > 0) {
                             $current_claiming[$user_id] *= $bonus_users[$user_id] * count($current_claiming) + 1;
-                            $bonus_users[$user_id]--;
                         }
                     }
                     $free_seats = round($free_seats_course * $quota / 100, 0, PHP_ROUND_HALF_DOWN);
@@ -235,6 +234,7 @@ class RandomAlgorithm extends AdmissionAlgorithm
                     $this->addUsersToCourse($chosen_ones, $course, $prio_mapper($chosen_ones, $course->id));
                     foreach ($chosen_ones as $one) {
                         $distributed_users[$one]++;
+                        $bonus_users[$one]--;
                     }
                     if ($free_seats < count($current_claiming)) {
                         $remaining_ones = array_slice(array_keys($current_claiming), $free_seats);
@@ -401,7 +401,8 @@ class RandomAlgorithm extends AdmissionAlgorithm
         };
         $db = DbManager::get();
         $db->fetchAll("SELECT user_id, COUNT(*) as c FROM seminar_user
-            WHERE seminar_id IN(?) AND user_id IN(?) GROUP BY user_id", array($course_ids, $user_ids), $sum);
+            WHERE seminar_id IN(?) AND user_id IN(?) AND status IN (?) GROUP BY user_id",
+            array($course_ids, $user_ids, array('user', 'autor')), $sum);
         $db->fetchAll("SELECT user_id, COUNT(*) as c FROM admission_seminar_user
             WHERE seminar_id IN(?) AND user_id IN(?) GROUP BY user_id", array($course_ids, $user_ids), $sum);
         return $distributed_users;

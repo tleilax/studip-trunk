@@ -103,19 +103,39 @@ $privileges = array(
                 'MVVFreigabe'   => 3
             ),
             'genehmigt' => array(
-                'MVVEntwickler' => 3,
-                'MVVRedakteur'  => 3,
+                'MVVEntwickler' => 1,
+                'MVVRedakteur'  => 1,
                 'MVVTranslator' => 1,
                 'MVVFreigabe'   => 3
             )
         ),
         // wird beim Erstellen vorgegeben
         'sprache' => array(
-            'default' => array(
+            'planung' => array(
+                'MVVEntwickler' => 3,
+                'MVVRedakteur'  => 1,
+                'MVVTranslator' => 1,
+                'MVVFreigabe'   => 3
+            ),
+            'genehmigt' => array(
                 'MVVEntwickler' => 1,
                 'MVVRedakteur'  => 1,
                 'MVVTranslator' => 1,
-                'MVVFreigabe'   => 1
+                'MVVFreigabe'   => 3
+            )
+        ),
+        'modulteil_id' => array(
+            'planung' => array(
+                'MVVEntwickler' => 3,
+                'MVVRedakteur'  => 1,
+                'MVVTranslator' => 1,
+                'MVVFreigabe'   => 3
+            ),
+            'genehmigt' => array(
+                'MVVEntwickler' => 1,
+                'MVVRedakteur'  => 1,
+                'MVVTranslator' => 1,
+                'MVVFreigabe'   => 3
             )
         ),
         'voraussetzung' => array(
@@ -272,7 +292,24 @@ $privileges = array(
                     'MVVTranslator' => 1,
                     'MVVFreigabe'   => 1
                 )
+            ),
+            /* Use id of datafield as key :
+            'da02d4d437c8bf08fd3f10d9974aca46' => array(
+                'planung' => array(
+                    'MVVEntwickler' => 3,
+                    'MVVRedakteur'  => 1,
+                    'MVVTranslator' => 1,
+                    'MVVFreigabe'   => 3
+                ),
+                'genehmigt' => array(
+                    'MVVEntwickler' => 1,
+                    'MVVRedakteur'  => 3,
+                    'MVVTranslator' => 1,
+                    'MVVFreigabe'   => 1
+                )
             )
+             * 
+             */
         )
     )
 );

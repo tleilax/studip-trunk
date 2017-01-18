@@ -25,6 +25,8 @@ class CalendarParserICalendar extends CalendarParser
     {
         parent::__construct();
         $this->type = 'iCalendar';
+        // initialize error handler
+        $GLOBALS['_calendar_error'] = new ErrorHandler();
     }
 
     public function getCount($data)
@@ -195,8 +197,7 @@ class CalendarParserICalendar extends CalendarParser
                             $values = array();
                             $dates = array();
                             preg_match_all('/,([^,]*)/', ',' . $value, $values);
-
-                            foreach ($values as $value) {
+                            foreach ($values[1] as $value) {
                                 if (array_key_exists('VALUE', $params)) {
                                     if ($params['VALUE'] == 'DATE-TIME') {
                                         $dates[] = $this->_parseDateTime($value);
@@ -282,8 +283,6 @@ class CalendarParserICalendar extends CalendarParser
 
                 if (!$properties['RRULE']['rtype'])
                     $properties['RRULE'] = array('rtype' => 'SINGLE');
-
-                $properties['RRULE'] = CalendarEvent::createRepeat($properties['RRULE'], $properties['DTSTART'], $properties['DTEND']);
 
                 if (!$properties['LAST-MODIFIED'])
                     $properties['LAST-MODIFIED'] = $properties['CREATED'];

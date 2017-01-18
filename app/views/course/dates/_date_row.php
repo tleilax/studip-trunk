@@ -1,6 +1,6 @@
 <tr id="date_<?= $date->id ?>" class="<?= $date instanceof CourseExDate ? 'ausfall' : '' ?><?= $is_next_date ? 'nextdate' : ''?>" <?= $is_next_date ? 'title="' . _('Der nächste Termin') . '"' : '' ?> data-termin-id="<?= htmlReady($date->id) ?>">
 
-    <td data-timestamp="<?= htmlReady($date->date) ?>" class="date_name">
+    <td data-sort-value="<?= htmlReady($date->date) ?>" class="date_name">
     <? $icon = 'date+' . ($date->chdate > $last_visitdate ? 'new' : '');?>
     <? if ($date instanceof CourseExDate): ?>
         <?= Icon::create($icon, 'info')->asImg(['class' => 'text-bottom']) ?>
@@ -20,9 +20,9 @@
         (<?= htmlReady(implode(', ', $date->dozenten->getFullname())) ?>)
     <? endif; ?>
     </td>
-    <td class="responsive-hidden"><?= htmlReady($date->getTypeName()) ?></td>
+    <td class="hidden-small-down"><?= htmlReady($date->getTypeName()) ?></td>
 <? if (count($course->statusgruppen) > 0) : ?>
-    <td class="responsive-hidden">
+    <td class="hidden-small-down">
     <? if (count($date->statusgruppen) > 0) : ?>
         <ul class="clean">
         <? foreach ($date->statusgruppen as $statusgruppe) : ?>
@@ -35,7 +35,7 @@
     </td>
 <? endif ?>
 <? if (!$date instanceof CourseExDate): ?>
-    <td class="responsive-hidden">
+    <td class="hidden-small-down">
         <div style="display: flex; flex-direction: row;">
             <ul class="themen_list clean">
             <? foreach ($date->topics as $topic): ?>

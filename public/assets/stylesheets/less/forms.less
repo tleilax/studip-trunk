@@ -54,29 +54,28 @@ form.default {
         }
     }
 
-    label.col-4 {
+    // TODO: How is 15% percent related to anything column-wise?
+    label.col-2, label.col-3, label.col-4 {
+//        .flex-align-self(flex-end);
         display: inline-block;
-        min-width: 60%;
         padding-right: 1em;
         vertical-align: bottom;
     }
-
-    label.col-3 {
-        display: inline-block;
-        min-width: 45%;
-        padding-right: 1em;
-        vertical-align: bottom;
-    }
-
     label.col-2 {
-        display: inline-block;
+//        flex: 1 0 30%;
         min-width: 30%;
-        padding-right: 1em;
-        vertical-align: bottom;
+    }
+    label.col-3 {
+//        flex: 1 0 45%;
+        min-width: 45%;
+    }
+    label.col-4 {
+//        flex: 1 0 60%;
+        min-width: 60%;
     }
 
     fieldset {
-        .box-sizing(border-box);
+        box-sizing: border-box;
 
         border: solid 1px @content-color-40;
         margin: 0 0 10px;
@@ -87,21 +86,18 @@ form.default {
         break-before: column;
 
         > legend {
+            box-sizing: border-box;
             background-color: @fieldset-header;
-            border: none;
+            border: 1px solid @content-color-40;
+            border-bottom: 0;
             color: @brand-color-dark;
-            float: left;
             font-size: 12pt;
             font-weight: bold;
             line-height: 2em;
-            margin: 0 -10px 1em -10px;
+            margin: 0 -11px;
             padding: 0;
             text-indent: 10px;
-            width: calc(100% + 20px);
-            
-            + * {
-                clear: left;
-            }
+            width: calc(100% + 22px);
         }
 
         > :first-child:not(legend), > legend + * {
@@ -141,6 +137,8 @@ form.default {
         background-size: 20px 20px;
         cursor: pointer;
         padding-left: 30px;
+        color: @base-color;
+
         input[type=file] {
             display: none;
         }
@@ -151,9 +149,9 @@ form.default {
     }
 
     // Group elements in a row
-    .hgroup {
+    .hgroup, .hgroup-btn {
         .flex();
-        .flex-align-items(flex-start);
+        .flex-align-items(flex-end);
         max-width: @max-width-m;
 
         &.size-s {
@@ -187,6 +185,16 @@ form.default {
                 margin-top: 0;
                 width: auto;
             }
+        }
+    }
+
+    .hgroup-btn {
+        .flex-align-items(baseline);
+        .form-control {
+            .flex-item(1);
+        }
+        .button {
+            .flex-item(0);
         }
     }
 

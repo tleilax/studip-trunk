@@ -155,9 +155,8 @@ td.tree-elbow-line, td.tree-elbow-end {
 
 /* --- Table details -------------------------------------------------------- */
 .loaded-details {
-    > td { padding: 0 20px 5px 20px !important; }
+    > td { padding: 0 0 5px 20px !important; }
     table {
-        border: 1px solid #888;
         border-top: 0;
     }
 }
@@ -423,6 +422,8 @@ table.default {
                 cursor: move;
             }
         }
+    }
+    > tbody:last-of-type {
         > tr:last-child > td {
             border-bottom: 1px solid @brand-color-darker;
         }
@@ -573,6 +574,19 @@ table.withdetails {
     display: table-row;
 }
 
+.sortable-dreieck(@direction) {
+    &::after {
+        background-repeat: no-repeat;
+        content: ' ';
+        display: inline-block;
+        height: 16px;
+        margin-left: 0;
+        .retina-background-image('dreieck_@{direction}.png', 'dreieck_@{direction}@2x.png', 16px, 16px);
+        vertical-align: text-top;
+        width: 16px;
+    }
+}
+
 .sortable-table {
     .header, .tablesorter-header:not(.sorter-false) {
         white-space: nowrap;
@@ -584,13 +598,13 @@ table.withdetails {
         }
     }
     .headerSortUp, .tablesorter-headerDesc .tablesorter-header-inner {
-        .retina-image-after('dreieck_down.png', 'dreieck_down@2x.png', 16px, 16px);
+        .sortable-dreieck('down');
         &::after {
             vertical-align: inherit;
         }
     }
     .headerSortDown, .tablesorter-headerAsc .tablesorter-header-inner {
-        .retina-image-after('dreieck_up.png', 'dreieck_up@2x.png', 16px, 16px);
+        .sortable-dreieck('up');
         &::after {
             vertical-align: inherit;
         }
@@ -632,4 +646,9 @@ table#schedule_data {
             padding: 0px;
         }
     }
+}
+
+// Responsive helper
+.table-scrollbox-horizontal {
+  .scrollbox-horizontal();
 }

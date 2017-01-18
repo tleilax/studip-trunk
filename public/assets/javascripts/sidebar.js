@@ -93,4 +93,5 @@
     $(document).ready(function () {
         STUDIP.Sidebar.setSticky();
     });
+
 }(jQuery, STUDIP));
