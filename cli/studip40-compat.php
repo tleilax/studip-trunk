@@ -157,9 +157,10 @@ $rules = [
     'get_icon_for_mimetype' => 'Removed. Use #{yellow:FileManager::getIconNameForMimeType} instead.',
     'get_upload_file_path' => 'Removed. Use #{yellow:File->getPath()} instead.',
     
-    //StudipDocument:
+    //StudipDocument and related classes:
     'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
     'StudipDocumentTree(' => 'Removed(?). Use class #{yellow:Folder} or #{yellow:FolderType} instead.',
+    'WysiwygDocument' => 'Deprecated/To be removed. Use class #{yellow:FileRef} in conjunction with a #{yellow:FolderType} implementation instead.',
     
     'ZIP_USE_INTERNAL' => 'Removed. Please avoid querying the value of this configuration variable!',
     'ZIP_PATH' => 'Removed. Please avoid querying the value of this configuration variable!',
