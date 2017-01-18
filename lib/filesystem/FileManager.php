@@ -155,8 +155,8 @@ class FileManager
         
         if($file_id) {
             $file_name = _('Dateisammlung')
-                . '-' 
-                . mb_substr($archived_course->name, 0, 200) 
+                . '-'
+                . mb_substr($archived_course->name, 0, 200)
                 . '.zip';
             
             //file_id is set: file archive exists

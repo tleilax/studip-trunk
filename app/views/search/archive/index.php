@@ -76,12 +76,12 @@
                 </a>
                 <? endif ?>
                 
-                <? if ($course->archiv_file_id and archiv_check_perm($course->id)): ?>
-                <a href="<?= FileManager::getDownloadLinkForArchivedCourse($course, false) ?>">
+                <? if ($course->archiv_protected_file_id and in_array(archiv_check_perm($course->id), ['tutor', 'dozent', 'admin'])): ?>
+                <a href="<?= FileManager::getDownloadLinkForArchivedCourse($course, true) ?>">
                     <?= Icon::create('file-archive', 'clickable')->asImg('16px') ?>
                 </a>
-                <? elseif ($course->archiv_protected_file_id and in_array(archiv_check_perm($course->id), ['tutor', 'dozent', 'admin'])): ?>
-                <a href="<?= FileManager::getDownloadLinkForArchivedCourse($course, true) ?>">
+                <? elseif ($course->archiv_file_id and archiv_check_perm($course->id)): ?>
+                <a href="<?= FileManager::getDownloadLinkForArchivedCourse($course, false) ?>">
                     <?= Icon::create('file-archive', 'clickable')->asImg('16px') ?>
                 </a>
                 <? endif ?>
