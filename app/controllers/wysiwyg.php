@@ -21,7 +21,7 @@
  */
 
 use Studip\WysiwygRequest;
-use Studip\WysiwygDocument;
+//use Studip\WysiwygDocument;
 
 use Studip\MarkupPrivate\MediaProxy; // TODO remove  debug code
 
@@ -136,7 +136,37 @@ class WysiwygController extends \AuthenticatedController
             }
             
             //Ok, we have our folder where we can store the uploaded files in:
-            $response = WysiwygDocument::storeUploadedFilesIn($wysiwyg_folder);
+            $response = [];
+            foreach($_FILES['files'] as $key => $file_attr) {
+                if(!empty($_FILES['files']['errors'][$key]) ||
+                    !empty($_FILES['files']['tmp_name'][$key])) {
+                    //Some error occured: go to next file
+                    continue;
+                }
+                
+                try {
+                    //if the following is executed everything went fine:
+                    $file_ref = $wysiwyg_folder->createFile([
+                        'name' => $_FILES['files']['name'][$key],
+                        'type' => $_FILES['files']['type'][$key],
+                        'tmp_name' => $_FILES['files']['tmp_name'][$key],
+                        'error' => $_FILES['files']['error'][$key],
+                        'size' => $_FILES['files']['size'][$key]
+                    ]);
+                    
+                    $response[] = [
+                        'name' => $file_ref->name,
+                        'type' => $file_ref->file->mime_type,
+                        'url' => $file_ref->getDownloadURL()
+                    ];
+                } catch(Exception $e) {
+                    $response[] = [
+                        'name' => $_FILES['files']['name'][$key],
+                        'type' => $_FILES['files']['type'][$key],
+                        'error' => $e->getMessage()
+                    ];
+                }
+            }
         } catch (AccessDeniedException $e) {
             $response = $e->getMessage();
         }

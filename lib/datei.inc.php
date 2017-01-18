@@ -2016,8 +2016,8 @@ function GetFileIcon($ext){
 // TODO: test: templates/mail/text.php, templates/mail/html.php
 // TODO: test: lib/extern/modules/ExternModuleDownload.class.php
 // TODO: test: lib/extern/modules/ExternModuleTemplateDownload.class.php
-// lib/classes/StudipLitListViewAdmin.class.php TODO: $type = 5 => rewrite code for getDownloadLinkForTemporaryFile
-// lib/datei.inc.php TODO
+// TODO: test: lib/classes/StudipLitListViewAdmin.class.php
+// lib/datei.inc.php DEPRECATED
 // app/models/WysiwygDocument.php TODO
 */
 //DEPRECATED: replaced by FileManager::getDownloadLinkFor...
