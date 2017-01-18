@@ -1,5 +1,7 @@
 <aside id="file_aside">
-    <div class="FileIcon"><?= Icon::create('file','info',[]) ?></div>
+    <div class="FileIcon"><?= Icon::create(
+        FileManager::getIconNameForMimeType($file_ref->file->mime_type),
+        'info') ?></div>
     <h3><?= htmlReady($file_ref->name) ?></h3>
     <table class="default">
         <tr>
