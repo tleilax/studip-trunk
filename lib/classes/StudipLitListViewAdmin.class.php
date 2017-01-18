@@ -535,9 +535,26 @@ class StudipLitListViewAdmin extends TreeView
     }
     
     function getExportButton($item_id){
+        global $perm, $TMP_PATH;
+        
+        $temporary_file_name = md5(uniqid('StudipLitListViewAdmin::getExportButton', true));
+        
+        //build a temporary file containing the data (if the user is permitted to do so):
+        if ($this->tree->range_id == $user->id || $perm->have_studip_perm('tutor', $this->tree->range_id)) {
+            
+            $data = StudipLitList::GetTabbedList($this->tree->range_id, $item_id);
+            
+            file_put_contents($TMP_PATH . '/' . $temporary_file_name, $data);
+        }
+        
+        //output the link to the file via a link button:
         $content = LinkButton::create(_('Export'),
-            GetDownloadLink('', $this->tree->tree_data[$item_id]['name'] . '.txt', 5, 'force', $this->tree->range_id, $item_id),
-            array('title' => _('Export der Liste in EndNote kompatiblem Forma')));
+            FileManager::getDownloadLinkForTemporaryFile(
+                $temporary_file_name, 
+                $this->tree->tree_data[$item_id]['name'] . '.txt'
+            ),
+            ['title' => _('Export der Liste in EndNote kompatiblem Forma')]
+        );
         $content .= '&nbsp;';
         
         return $content;
