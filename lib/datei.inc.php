@@ -2016,11 +2016,7 @@ function GetFileIcon($ext){
 // TODO: test: templates/mail/text.php, templates/mail/html.php
 // TODO: test: lib/extern/modules/ExternModuleDownload.class.php
 // TODO: test: lib/extern/modules/ExternModuleTemplateDownload.class.php
-// TODO: test: lib/classes/StudipLitListViewAdmin.class.php
-// lib/datei.inc.php DEPRECATED
-// app/models/WysiwygDocument.php TODO
-*/
-//DEPRECATED: replaced by FileManager::getDownloadLinkFor...
+//DEPRECATED: replaced by FileRef->getDownloadURL and several FileManager::getDownloadLinkFor... methods.
 function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $range_id = '', $list_id = ''){
     $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
     $link[] = $GLOBALS['ABSOLUTE_URI_STUDIP'];
@@ -2068,6 +2064,7 @@ function GetDownloadLink($file_id, $file_name, $type = 0, $dltype = 'normal', $r
     }
     return implode('', $link);
 }
+*/
 
 
 /*
@@ -2478,10 +2475,7 @@ function get_flash_player ($document_id, $filename, $type) {
  * @param string MD5 id of the uploaded file
  */
 /*
-used in:
-TODO: test: lib/classes/exportdocument/ExportPDF.class.php (convertURL method)
-TODO: test: app/controllers/messages.php
-*/
+DEPRECATED: Replaced by File->getPath().
 function get_upload_file_path ($document_id)
 {
     global $UPLOAD_PATH;
@@ -2498,6 +2492,7 @@ function get_upload_file_path ($document_id)
 
     return $directory.'/'.$document_id;
 }
+*/
 
 /**
  *

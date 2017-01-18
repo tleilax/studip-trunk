@@ -549,7 +549,7 @@ class StudipLitListViewAdmin extends TreeView
         
         //output the link to the file via a link button:
         $content = LinkButton::create(_('Export'),
-            FileManager::getDownloadLinkForTemporaryFile(
+            FileManager::getDownloadURLForTemporaryFile(
                 $temporary_file_name, 
                 $this->tree->tree_data[$item_id]['name'] . '.txt'
             ),
