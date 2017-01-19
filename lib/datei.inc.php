@@ -1953,7 +1953,7 @@ lib/evaluation/evaluation_admin_overview.lib.php
 lib/datei.inc.php
 app/views/admin/user/list_files.php
 app/controllers/messages.php
-*/
+DEPRECATED: replaced by FileManager::getIconNameForMimeType
 function GetFileIcon($ext){
     //Icon auswaehlen
     switch (mb_strtolower($ext)){
@@ -1995,6 +1995,7 @@ function GetFileIcon($ext){
     }
     return Icon::create($icon, 'clickable');
 }
+*/
 
 
 /**

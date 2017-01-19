@@ -148,7 +148,9 @@ $rules = [
     'ZebraTable' => 'No longer neccessary. Use #{table.default} instead.',
     'Table' => 'No longer neccessary. Use #{table.default} instead.',
     
+    
     //MOADB:
+    
     
     //old datei.inc.php and visual.inc.php functions:
     'createSelectedZip' => 'Removed. Use #{yellow:FileArchiveManager::createArchiveFromFileRefs} instead.',
@@ -158,6 +160,9 @@ $rules = [
     'get_upload_file_path' => 'Removed. Use #{yellow:File->getPath()} instead.',
     'GetDownloadLink' => 'Removed. Use one of the following alternatives instead: #{yellow:FileRef->getDownloadURL()}, #{yellow:FileManager::getDownloadLinkForArchivedCourse}, #{yellow:FileManager::getDownloadLinkForTemporaryFile} or #{yellow:FileManager::getDownloadURLForTemporaryFile}',
     'prepareFilename' => 'Removed. Use #{yellow:FileManager::cleanFileName} instead.',
+    'GetFileIcon' => 'Removed. Use #{yellow:FileManager::getIconNameForMimeType} instead.',
+    'parse_link' => 'Removed. Use #{yellow:FileManager::fetchURLMetadata} instead.',
+    
     
     //StudipDocument and related classes:
     'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
