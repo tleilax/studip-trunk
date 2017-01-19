@@ -2261,12 +2261,12 @@ function create_zip_from_file($file_name, $zip_file_name) {
 }
 */
 
+
 /*
 used by:
 lib/datei.inc.php
 app/controllers/admin/plugin.php
 app/controllers/admission/ruleadministration.php
-*/
 //DEPRECATED: replaced by FileArchiveManager::createArchiveFromPhysicalFolder
 function create_zip_from_directory($fullpath, $zip_file_name) {
     return FileArchiveManager::createArchiveFromPhysicalFolder(
@@ -2274,6 +2274,8 @@ function create_zip_from_directory($fullpath, $zip_file_name) {
         $zip_file_name
     );
 }
+*/
+
 
 /*
 used by:
