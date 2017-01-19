@@ -345,8 +345,11 @@ class MessagesController extends AuthenticatedController {
 
                                 if($new_attachment->store()) {
                                     $this->default_attachments[] = [
-                                        'icon' => GetFileIcon(
-                                            $new_attachment->file->getExtension()
+                                        'icon' => Icon::create(
+                                            FileManager::getIconNameForMimeType(
+                                                $new_attachment->file->mime_type
+                                                ),
+                                            'clickable'
                                             )->asImg(['class' => "text-bottom"]),
                                         'name' => $new_attachment->name,
                                         'document_id' => $new_attachment->id,
@@ -428,8 +431,11 @@ class MessagesController extends AuthenticatedController {
                 foreach($unattached_folder->file_refs as $file_ref) {
                     $unattached_files[] = $file_ref;
                     $this->default_attachments[] = [
-                        'icon' => GetFileIcon(
-                            $file_ref->file->getExtension()
+                        'icon' => Icon::create(
+                            FileManager::getIconNameForMimeType(
+                                $file_ref->file->mime_type
+                                ),
+                            'clickable'
                             )->asImg(['class' => "text-bottom"]),
                         'name' => $file_ref->name,
                         'document_id' => $file_ref->id,
@@ -738,7 +744,12 @@ class MessagesController extends AuthenticatedController {
         
         $output['document_id'] = $file_ref->file_id;
         
-        $output['icon'] = GetFileIcon($file_ref->file->getExtension())->asImg(['class' => "text-bottom"]);
+        $output['icon'] = Icon::create(
+            FileManager::getIconNameForMimeType(
+                $file_ref->file->mime_type
+                ),
+                'clickable'
+            )->asImg(['class' => "text-bottom"]);
 
         $this->render_json($output);
     }
