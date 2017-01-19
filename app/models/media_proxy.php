@@ -169,7 +169,7 @@ class MediaProxy
      */
     private function cacheURL($url)
     {
-        $response = parse_link($url);
+        $response = FileManager::fetchURLMetadata($url);
 
         foreach ($response as $key => $value) {
             $response[mb_strtolower($key)] = $value;

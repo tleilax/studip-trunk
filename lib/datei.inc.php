@@ -62,10 +62,10 @@ function parse_header($header){
 
 /*
 used in:
-lib/models/OpenGraphURL.class.php
+TODO: test: lib/models/OpenGraphURL.class.php
+TODO: test: app/models/media_proxy.php
 lib/datei.inc.php (only itself and a DEPRECATED function)
 app/routes/Files_old.php (DEPRECATED)
-app/models/media_proxy.php
 */
 function parse_link($link, $level=0) {
     global $name, $the_file_name, $the_link, $locationheader, $parsed_link, $link_update;
