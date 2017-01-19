@@ -776,9 +776,8 @@ function getFileExtension($str) {
 /*
 // used by:
 // lib/datei.inc.php
-// app/routes/Files_old.php
-// app/models/WysiwygDocument.php TODO
-// app/controllers/messages.php  TODO
+// app/routes/Files_old.php DEPRECATED
+// app/models/WysiwygDocument.php DEPRECATED
 // public/plugins_packages/core/Blubber/controllers/streams.php TODO
 //DEPRECATED: replaced by FolderType::validateUpload
 */

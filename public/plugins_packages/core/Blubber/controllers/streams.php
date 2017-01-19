@@ -523,12 +523,14 @@ class StreamsController extends PluginController {
             $newfile = null; //is filled below
             $file_ref = null; //is also filled below
             
+            /*
             $GLOBALS['msg'] = '';
             validate_upload($file);
             if ($GLOBALS['msg']) {
                 $output['errors'][] = $file['name'] . ': ' . decodeHTML(trim(mb_substr($GLOBALS['msg'],6), '§'));
                 continue;
             }
+            */
             if ($file['size']) {
                 $document['user_id'] = $GLOBALS['user']->id;
                 $document['filesize'] = $file['size'];
@@ -560,19 +562,50 @@ class StreamsController extends PluginController {
                             _('Ihre Dateien aus Blubberstreams')
                         );
                         
-                        $dir_data = $blubber_directory->getEditTemplate();
-                        $dir_data['data_content'] = ['Blubber'];
-                        $blubber_directory->setDataFromEditTemplate($dir_data);
-                        
                         if(!$blubber_directory instanceof FolderType) {
-                            $output['error'][] = _('Blubber-Dateiordner konnte nicht erstellt werden!');
-                            $success = false;
+                            throw new Exception('Cannot create Blubber folder!');
                         }
+                        
+                        $blubber_directory->data_content = ['Blubber'];
+                        $blubber_directory->store();
                     }
                     
                     if($blubber_directory) {
-                        //ok, blubber directory exists: we can add the file
+                        //ok, blubber directory exists: we can handle the uploaded file
                         
+                        $error_string = $blubber_directory->validateUpload(
+                            $file,
+                            $GLOBALS['user']->id
+                        );
+                        
+                        if($error_string) {
+                            throw new Exception($error_string);
+                        }
+                        
+                        
+                        $file['tmp_path'] = $file['tmp_name'];
+                        
+                        $file_ref = $blubber_directory->createFile($file);
+                        
+                        if($file_ref) {
+                            //we can't use the FileRef's getDownloadURL() here,
+                            //because the getDownloadURL method does not provide
+                            //the full URL!
+                            $url = mb_substr($GLOBALS['ABSOLUTE_URI_STUDIP'], 0, -1) . URLHelper::getUrl(
+                                '/sendfile.php',
+                                [
+                                    'type' => '0',
+                                    'file_id' => $file_ref->id,
+                                    'file_name' => $file_ref->name
+                                ],
+                                true
+                            );
+                            $success = true;
+                        } else {
+                            throw new Exception('File cannot be created!');
+                        }
+                        
+                        /*
                         $result = FileManager::handleFileUpload(
                             [
                                 'name' => [studip_utf8decode(mb_strtolower($file['name']))],
@@ -609,6 +642,8 @@ class StreamsController extends PluginController {
                             
                             $success = true;
                         }
+                        */
+                        
                     }
                 } catch (Exception $e) {
                     $output['error'][] = $e->getMessage();
