@@ -779,7 +779,6 @@ function getFileExtension($str) {
 // app/routes/Files_old.php DEPRECATED
 // app/models/WysiwygDocument.php DEPRECATED
 //DEPRECATED: replaced by FolderType::validateUpload
-*/
 function validate_upload($the_file, $real_file_name='') {
     global $UPLOAD_TYPES, $SessSemName;
 
@@ -888,6 +887,7 @@ function validate_upload($the_file, $real_file_name='') {
         return true;
     }
 }
+*/
 
 
 //der eigentliche Upload
