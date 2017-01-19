@@ -738,17 +738,14 @@ function form($refresh = FALSE)
  * @return string the modified filename
  */
 /*
-used by:
-lib/datei.inc.php
-app/controllers/admin/user.php TODO
-app/controllers/course/dates.php TODO
-public/sendfile.php TODO
-public/folder.php
-*/
-//TO BE REMOVED! 
+used in:
+lib/datei.inc.php DEPRECATED
+public/folder.php DEPRECATED
+//DEPRECATED: replaced by FileManager::cleanFileName
 function prepareFilename($filename, $shorten = FALSE, $checkfolder = false) {
     return FileManager::cleanFileName($filename, $shorten);
 }
+*/
 
 //Diese Funktion dient zur Abfrage der Dateierweiterung
 /*

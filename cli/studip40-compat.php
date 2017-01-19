@@ -157,7 +157,7 @@ $rules = [
     'get_icon_for_mimetype' => 'Removed. Use #{yellow:FileManager::getIconNameForMimeType} instead.',
     'get_upload_file_path' => 'Removed. Use #{yellow:File->getPath()} instead.',
     'GetDownloadLink' => 'Removed. Use one of the following alternatives instead: #{yellow:FileRef->getDownloadURL()}, #{yellow:FileManager::getDownloadLinkForArchivedCourse}, #{yellow:FileManager::getDownloadLinkForTemporaryFile} or #{yellow:FileManager::getDownloadURLForTemporaryFile}',
-    
+    'prepareFilename' => 'Removed. Use #{yellow:FileManager::cleanFileName} instead.',
     
     //StudipDocument and related classes:
     'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
