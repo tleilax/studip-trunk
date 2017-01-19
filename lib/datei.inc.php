@@ -33,7 +33,7 @@ require_once 'vendor/idna_convert/idna_convert.class.php';
 /*
 used in:
 lib/datei.inc.php (parse_link)
-*/
+DEPRECATED
 function parse_header($header){
     $ret = array();
     if (!is_array($header)){
@@ -59,6 +59,8 @@ function parse_header($header){
     }
     return $ret;
 }
+*/
+
 
 /*
 used in:
@@ -66,7 +68,7 @@ TODO: test: lib/models/OpenGraphURL.class.php
 TODO: test: app/models/media_proxy.php
 lib/datei.inc.php (only itself and a DEPRECATED function)
 app/routes/Files_old.php (DEPRECATED)
-*/
+DEPRECATED: Replaced by FileManager::fetchURLMetadata
 function parse_link($link, $level=0) {
     global $name, $the_file_name, $the_link, $locationheader, $parsed_link, $link_update;
     if ($level > 3)
@@ -203,6 +205,7 @@ function parse_link($link, $level=0) {
         return $parsed_link;
     }
 }
+*/
 
 
 
