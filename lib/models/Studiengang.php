@@ -383,8 +383,8 @@ class Studiengang extends ModuleManagementModelTreeItem
 
     public function getDisplayName()
     {
-        return $this->name . ($this->kategorie_name ?
-                ' (' . $this->kategorie_name . ')' : '');
+        return $this->name . ($this->abschluss->category->name ?
+                ' (' . $this->abschluss->category->name . ')' : '');
     }
 
     /**

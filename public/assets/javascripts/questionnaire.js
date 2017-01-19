@@ -1,5 +1,5 @@
 /*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
-/*global window, $, jQuery, _ */
+/*global window, jQuery, STUDIP */
 
 STUDIP.Questionnaire = {
     lastUpdate: null,
@@ -89,15 +89,6 @@ STUDIP.Questionnaire = {
         }
 
     },
-    Test: {
-        updateCheckboxValues: function () {
-            jQuery(".questionnaire_edit .question.test").each(function () {
-                jQuery(this).find(".options > li").each(function (index, li) {
-                    jQuery(li).find("input[type=checkbox]").val(index + 1);
-                });
-            });
-        }
-    },
     addQuestion: function (questiontype) {
         jQuery.ajax({
             "url": STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/questionnaire/add_question",
@@ -116,46 +107,48 @@ jQuery(function () {
         var event = ui.originalEvent;
         var text = event.clipboardData.getData("text");
         text = text.split(/[\n\t]/);
-        if (text[0]) {
-            this.value = text.shift().trim();
+        if (text.length > 1) {
+            if (text[0]) {
+                this.value += text.shift().trim();
+            }
+            var current = jQuery(this).closest("li");
+            for (var i in text) {
+                if (text[i].trim()) {
+                    var li = jQuery(jQuery(this).closest(".options").data("optiontemplate"));
+                    li.find("input").val(text[i].trim());
+                    li.insertAfter(current);
+                    current = li;
+                }
+            }
+            STUDIP.Questionnaire.Test.updateCheckboxValues();
+            event.preventDefault();
         }
-        var current = jQuery(this).closest("li");
-        for (var i in text) {
-            var li = jQuery(jQuery(this).closest(".options").data("optiontemplate"));
-            li.find("input").val(text[i].trim());
-            li.insertAfter(current);
-            current = li;
-        }
-        event.preventDefault();
     });
-    jQuery(document).on("blur", ".questionnaire_edit .options > li:last-child input:text", function (event) {
+    jQuery(document).on("blur", ".questionnaire_edit .options > li:last-child input:text", function () {
         if (this.value) {
             jQuery(this).closest(".options").append(jQuery(this).closest(".options").data("optiontemplate"));
             jQuery(this).closest(".options").find("li:last-child input").focus();
-            STUDIP.Questionnaire.Test.updateCheckboxValues();
         }
     });
     jQuery(document).on("click", ".questionnaire_edit .options .delete", function () {
         var icon = this;
         STUDIP.Dialog.confirm(jQuery(this).closest(".questionnaire_edit").find(".delete_question").text(), function () {
             jQuery(icon).closest("li").fadeOut(function() {
-                jQuery(icon).remove();
-                STUDIP.Questionnaire.Test.updateCheckboxValues();
+                jQuery(this).remove();
             });
         });
     });
     jQuery(document).on("click", ".questionnaire_edit .options .add", function () {
         jQuery(this).closest(".options").append(jQuery(this).closest(".options").data("optiontemplate"));
         jQuery(this).closest(".options").find("li:last-child input:text").focus();
-        STUDIP.Questionnaire.Test.updateCheckboxValues();
     });
 
     /*
      * This fixes the tab problem in chartist see:
      * https://github.com/gionkunz/chartist-js/issues/119
      */
-    jQuery(document).on("click", "article.studip .toggle", function (e, tab) {
-        jQuery(this).find('.ct-chart').each(function(i, e) {
+    jQuery(document).on("click", "article.studip .toggle", function () {
+        jQuery(this).find('.ct-chart').each(function (i, e) {
             e.__chartist__.update();
         });
     });

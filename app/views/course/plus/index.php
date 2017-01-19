@@ -91,7 +91,7 @@ foreach ($available_modules as $category => $pluginlist) {
         ?>
 
         <tr id="<?= htmlReady($anchor);?>" class="<?= $visibility; ?> <?= $pre_check != null ? ' quiet' : '' ?>">
-            <td colspan=3>
+            <td class="element" colspan=3>
 
                 <div class="plus_basic">
 
@@ -186,7 +186,7 @@ foreach ($available_modules as $category => $pluginlist) {
 
                 <? if ($_SESSION['plus']['View'] == 'openall' || !isset($_SESSION['plus'])) { ?>
 
-                    <div class="plus_expert">
+                    <div class="plus_expert hidden-tiny-down">
 
                         <div class="screenshot_holder">
                             <? if (isset($info['screenshot']) || isset($info['screenshots'])) : 
