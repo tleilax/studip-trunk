@@ -136,7 +136,7 @@ SQL
         foreach ($answers as $answer) {
             list($answerID, $answerData) = $answer;
 
-            $data = studip_utf8decode((array)json_decode($answerData, true));
+            $data = (array)json_decode($answerData, true);
             if (is_array($data['answers'])) {
                 $dataAnswers = array_map($decr, $data['answers']);
             } else {
@@ -147,7 +147,7 @@ SQL
 
             $updateStmt->execute(
                 [
-                    json_encode(studip_utf8encode($data)),
+                    json_encode($data),
                     $answerID
                 ]
             );
@@ -177,7 +177,7 @@ SQL
 
     private function migrateTypeDatefinder($questionAry)
     {
-        $oldData = studip_utf8decode((array)json_decode($questionAry['questiondata'], true));
+        $oldData = (array)json_decode($questionAry['questiondata'], true);
 
         $description = $oldData['question'] ?: '';
         $userID = $this->findOwner($questionAry['question_id']);
@@ -212,7 +212,7 @@ SQL
 
     private function migrateTypeVoteOrTest($questionAry)
     {
-        $oldData = studip_utf8decode((array)json_decode($questionAry['questiondata'], true));
+        $oldData = (array)json_decode($questionAry['questiondata'], true);
 
         $description = $oldData['question'] ?: '';
         $userID = $this->findOwner($questionAry['question_id']);
@@ -282,7 +282,7 @@ SQL
         $taskID = $questionAry['etask_task_id'];
         $task = $this->fetchTask($taskID);
 
-        $options = studip_utf8decode((array)json_decode($task['options'], true));
+        $options = (array)json_decode($task['options'], true);
         $questiontype = $options['questionnaire_questiontype'];
         $questiondata = $options['questionnaire_questiondata'];
 
