@@ -654,18 +654,133 @@ class FileArchiveManager
     
     //ARCHIVE EXTRACTION METHODS
     
+    
+    /**
+     * Extracts one file from an opened archive and stores it in a folder.
+     * 
+     * TODO: description!!
+     * 
+     * @return FileRef|null FileRef instance on success, null otherwise.
+     */
+    public static function extractFileFromArchive(
+        ZipArchive $archive,
+        $archive_path = null,
+        FolderType $target_folder,
+        User $user)
+    {
+        $file_resource = $archive->getStream($archive_path);
+        $file_info = $archive->statName($archive_path);
+        
+        if(!$file_resource) {
+            return null;
+        }
+        
+        $file = new File();
+        $file->user_id = $user_id;
+        $file->name = basename($archive_path);
+        $file->mime_type = get_mime_type($file->name);
+        $file->size = $file_info['size'];
+        $file->storage = 'disk';
+        $file->store();
+        
+        //Ok, we have a file object in the database. Now we must connect
+        //it with the data file by extracting the data file into
+        //the place, where the file's content has to be placed.
+        
+        $file_path = pathinfo($file->getPath(), PATHINFO_DIRNAME);
+        
+        //Create the directory for the file, if necessary:
+        if (!is_dir($file_path)) {
+            mkdir($file_path);
+        }
+        
+        //Ok, now we read all data from $file_resource and put it into
+        //the file's path:
+        
+        if(file_put_contents($file->getPath(), $file_resource) === false) {
+            //Something went wrong: abort and clean up!
+            unlink($file->getPath());
+            $file->delete();
+            return null;
+        }
+        
+        //Ok, we now must create a FileRef:
+        
+        $file_ref = new FileRef();
+        $file_ref->file_id = $file->id;
+        $file_ref->folder_id = $target_folder->getId();
+        $file_ref->user_id = $user->id;
+        $file_ref->name = $file->name;
+        if($file_ref->store()) {
+            return $file_ref;
+        } else {
+            //Something went wrong: abort and clean up!
+            unlink($file->getPath());
+            $file_ref->delete();
+            return null;
+        }
+    }
+    
+    
+    
     /**
      * Extracts an archive into a folder inside the Stud.IP file area.
      * 
-     * @param ZipArchive $archive The archive which shall be extracted.
+     * @param FileRef $archive_file_ref The archive file which shall be extracted.
      * @param FolderType $folder The folder where the archive shall be extracted.
      * @param string $user_id The ID of the user who wants to extract the archive.
      */
-    public static function extractArchiveToFolder(
-        ZipArchive $archive,
+    public static function extractArchiveFileToFolder(
+        FileRef $archive_file_ref,
         FolderType $folder,
         $user_id = null)
     {
-        //to be implemented
+        global $TMP_PATH;
+        
+        if(!$user_id) {
+            return false;
+        }
+        
+        $user = User::find($user_id);
+        
+        if(!$user) {
+            return false;
+        }
+        
+        
+        //Determine, if the folder is writable for the user identified by $user_id:
+        if(!$folder->isWritable($user_id)) {
+            return false;
+        }
+        
+        //Determine if we can keep the zip archive's folder hierarchy:
+        //$keep_hierarchy = $folder->isSubfolderAllowed($user_id);
+        $keep_hierarchy = false;
+        
+        $archive = new ZipArchive();
+        $archive->open($archive_file_ref->file->getPath());
+        
+        //loop over all entries in the zip archive and put each entry
+        //in the current folder or one of its subfolders:
+        
+        for($i = 0; $i < $archive->numFiles; $i++) {
+            $file_info = $archive->statIndex($i);
+            
+            if($keep_hierarchy) {
+                $file_archive_path = pathinfo($file_info['name'], PATHINFO_DIRNAME);
+                
+                
+                //TODO:
+            } else {
+                //Do not keep hierarchy: Put all files into $folder:
+                self::extractFileFromArchive(
+                    $archive,
+                    $file_info['name'],
+                    $folder,
+                    $user
+                );
+            }
+        }
+        
     }
 }

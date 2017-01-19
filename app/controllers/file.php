@@ -138,6 +138,19 @@ class FileController extends AuthenticatedController
         if (Request::isPost()) {
             if (Request::submitted("unzip")) {
                 //unzip!
+                
+                
+                $file_ref = FileArchiveManager::extractArchiveFileToFolder(
+                    $this->file_ref,
+                    $this->current_folder,
+                    $GLOBALS['user']->id
+                );
+                
+                if($file_ref) {
+                    $ref_ids[] = $file_ref->id;
+                }
+                
+                /*
                 $tmp_folder = $GLOBALS['TMP_PATH']."/".md5(uniqid());
                 mkdir($tmp_folder);
                 extract_zip($this->file_ref->file->getPath(), $tmp_folder);
@@ -148,6 +161,8 @@ class FileController extends AuthenticatedController
                 );
                 $ref_ids = array_map(function ($fileref) { return $fileref->getId(); }, $ref_ids);
                 rmdirr($tmp_folder);
+                */
+                
                 $this->file_ref->delete();
             } else {
                 $ref_ids = array($this->file_ref->getId());
