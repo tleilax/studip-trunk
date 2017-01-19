@@ -523,14 +523,7 @@ class StreamsController extends PluginController {
             $newfile = null; //is filled below
             $file_ref = null; //is also filled below
             
-            /*
-            $GLOBALS['msg'] = '';
-            validate_upload($file);
-            if ($GLOBALS['msg']) {
-                $output['errors'][] = $file['name'] . ': ' . decodeHTML(trim(mb_substr($GLOBALS['msg'],6), '§'));
-                continue;
-            }
-            */
+            
             if ($file['size']) {
                 $document['user_id'] = $GLOBALS['user']->id;
                 $document['filesize'] = $file['size'];
@@ -604,45 +597,6 @@ class StreamsController extends PluginController {
                         } else {
                             throw new Exception('File cannot be created!');
                         }
-                        
-                        /*
-                        $result = FileManager::handleFileUpload(
-                            [
-                                'name' => [studip_utf8decode(mb_strtolower($file['name']))],
-                                'type' => [null], //let the get_mime_type guess the file type
-                                'size' => [$file['size']],
-                                'tmp_name' => [$file['tmp_name']]
-                            ],
-                            $blubber_directory,
-                            $GLOBALS['user']->id
-                        );
-                        
-                        $newfile = $result['files'][0];
-                        
-                        //check if a new file was created:
-                        if($newfile) {
-                            //we must create a file reference and link it to the folder:
-                            $file_ref = new FileRef();
-                            $file_ref->file_id = $newfile->id;
-                            $file_ref->folder_id = $blubber_directory->getId();
-                            $file_ref->user_id = $GLOBALS['user']->id;
-                            $file_ref->name = $newfile->name;
-                            $file_ref->store();
-                            
-                            $url = mb_substr($GLOBALS['ABSOLUTE_URI_STUDIP'], 0, -1) . URLHelper::getUrl(
-                                '/sendfile.php',
-                                [
-                                    'type' => '0',
-                                    'file_id' => $file_ref->id,
-                                    'file_name' => $file_ref->name
-                                ],
-                                true
-                            );
-                            
-                            
-                            $success = true;
-                        }
-                        */
                         
                     }
                 } catch (Exception $e) {

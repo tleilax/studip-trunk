@@ -778,7 +778,6 @@ function getFileExtension($str) {
 // lib/datei.inc.php
 // app/routes/Files_old.php DEPRECATED
 // app/models/WysiwygDocument.php DEPRECATED
-// public/plugins_packages/core/Blubber/controllers/streams.php TODO
 //DEPRECATED: replaced by FolderType::validateUpload
 */
 function validate_upload($the_file, $real_file_name='') {
