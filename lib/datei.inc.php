@@ -2248,7 +2248,7 @@ function delete_all_documents($range_id){
 /*
 used by:
 public/sendfile.php
-*/
+DEPRECATED
 function create_zip_from_file($file_name, $zip_file_name) {
     $archive = Studip\ZipArchive::create($zip_file_name);
     $localfilename = $archive->addFile($file_name);
@@ -2259,6 +2259,7 @@ function create_zip_from_file($file_name, $zip_file_name) {
     // return false, if nothing worked
     return false;
 }
+*/
 
 /*
 used by:

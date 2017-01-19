@@ -116,22 +116,6 @@ switch ($type) {
 }
 
 
-if (Request::int('zip') && is_file($path_file)) {
-    $tmp_id = md5(uniqid("suppe"));
-    $zip_path_file = "$TMP_PATH/$tmp_id";
-    $tmp_file_name = escapeshellcmd("$TMP_PATH/$file_name");
-    @copy($path_file, $tmp_file_name);
-    if (create_zip_from_file( $tmp_file_name, "$zip_path_file.zip") === false) {
-        @unlink($zip_path_file . '.zip');
-        @unlink($tmp_file_name);
-        throw new Exception(_("Fehler beim Erstellen des Zip-Archivs!"));
-    } else {
-        $file_name = $file_name . ".zip";
-        $path_file = $zip_path_file . ".zip";
-        @unlink($tmp_file_name);
-    }
-}
-
 // check if linked file is obtainable
 if (isset($file_ref) && $file_ref->file->url_access_type == 'proxy') {
     $link_data = FileManager::fetchURLMetadata($file_ref->file->url);
