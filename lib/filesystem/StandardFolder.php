@@ -231,7 +231,10 @@ class StandardFolder implements FolderType
      */
     public function getFiles()
     {
-        return $this->folderdata->file_refs->getArrayCopy();
+        //We must load the files (FileRefs) directly from the database
+        //since files that were added to this folder object after it was
+        //created are not included in the file_refs attribute:
+        return FileRef::findByFolder_id($this->getId());
     }
 
     /**
