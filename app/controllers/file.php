@@ -140,13 +140,15 @@ class FileController extends AuthenticatedController
                 //unzip!
                 
                 
-                $file_ref = FileArchiveManager::extractArchiveFileToFolder(
+                $file_refs = FileArchiveManager::extractArchiveFileToFolder(
                     $this->file_ref,
                     $this->current_folder,
                     $GLOBALS['user']->id
                 );
                 
-                if($file_ref) {
+                $ref_ids = [];
+                
+                foreach($file_refs as $file_ref) {
                     $ref_ids[] = $file_ref->id;
                 }
                 
@@ -163,6 +165,7 @@ class FileController extends AuthenticatedController
                 rmdirr($tmp_folder);
                 */
                 
+                //Delete the original zip file:
                 $this->file_ref->delete();
             } else {
                 $ref_ids = array($this->file_ref->getId());

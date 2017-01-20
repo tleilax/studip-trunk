@@ -656,6 +656,84 @@ class FileArchiveManager
     
     
     /**
+     * This is a helper method that builds a subfolder hierarchy inside 
+     * a folder by looking at a string representing a file system path.
+     * 
+     * The variable $path contains a hierarchy of subfolders that shall be created
+     * inside the given folder. If $path contains "folder1/folder2/folder3" then
+     * the given folder will get a subfolder named "folder1". The folder
+     * "folder1" itself will get a subfolder named "folder2" and so on.
+     * 
+     * @param FolderType $folder The folder where a subfolder path shall be created.
+     * @param User $user The user who wishes to create the path.
+     * @param string $path The path which shall be created inside $folder.
+     * 
+     * @return FolderType[] An array with FolderType objects representing
+     *     each element of $path.
+     */
+    public static function createFolderPath(
+        FolderType $folder,
+        User $user,
+        $path = '')
+    {
+        $folder_path = [];
+        
+        //first let's check if $path is empty:
+        if(!$path) {
+            //Empty path means we don't have to create any folder:
+            return [];
+        }
+        
+        //now we strip leading and trailing slashes, whitespaces and other characters:
+        $path = trim($path);
+        $path = trim($path, '/');
+        
+        //then we convert path into an array of strings:
+        $path = explode('/', $path);
+        
+        
+        //now we loop through path and build subfolders:
+        $current_folder = $folder;
+        foreach($path as $new_folder_name) {
+            //first we check if the folder already exists:
+            foreach($current_folder->getSubfolders() as $subfolder) {
+                if($subfolder->name = $new_folder_name) {
+                    //We have found a folder that has the name $new_folder_name:
+                    //No need to create a new folder, we can use that folder
+                    //and continue with it:
+                    $current_folder = $subfolder;
+                    $folder_path[] = $subfolder;
+                    
+                    //start next iteration of the outer foreach loop:
+                    continue 2;
+                }
+            }
+            //If code execution has reached this point we have looped
+            //throug all subfolders of the current folder and couldn't find
+            //any subfolder that matches the name given in $new_folder_name.
+            //Therefore we must create a new folder here, if possible:
+            
+            //Check the user's permissions first:
+            if($current_folder->isSubfolderAllowed($user->id)) {
+                //Create a subfolder:
+                $result = FileManager::createSubfolder(
+                    $current_folder,
+                    $user,
+                    $current_folder->getTypeName(),
+                    $new_folder_name
+                );
+                
+                if($result instanceof FolderType) {
+                    $folder_path[] = $result;
+                }
+            }
+        }
+        return $folder_path;
+    }
+    
+    
+    
+    /**
      * Extracts one file from an opened archive and stores it in a folder.
      * 
      * TODO: description!!
@@ -729,6 +807,8 @@ class FileArchiveManager
      * @param FileRef $archive_file_ref The archive file which shall be extracted.
      * @param FolderType $folder The folder where the archive shall be extracted.
      * @param string $user_id The ID of the user who wants to extract the archive.
+     * 
+     * @return FileRef[] Array with extracted files, represented as FileRef objects.
      */
     public static function extractArchiveFileToFolder(
         FileRef $archive_file_ref,
@@ -738,24 +818,24 @@ class FileArchiveManager
         global $TMP_PATH;
         
         if(!$user_id) {
-            return false;
+            return [];
         }
         
         $user = User::find($user_id);
         
         if(!$user) {
-            return false;
+            return [];
         }
         
         
         //Determine, if the folder is writable for the user identified by $user_id:
         if(!$folder->isWritable($user_id)) {
-            return false;
+            return [];
         }
         
         //Determine if we can keep the zip archive's folder hierarchy:
-        //$keep_hierarchy = $folder->isSubfolderAllowed($user_id);
-        $keep_hierarchy = false;
+        $keep_hierarchy = $folder->isSubfolderAllowed($user_id);
+        //$keep_hierarchy = false;
         
         $archive = new ZipArchive();
         $archive->open($archive_file_ref->file->getPath());
@@ -763,24 +843,55 @@ class FileArchiveManager
         //loop over all entries in the zip archive and put each entry
         //in the current folder or one of its subfolders:
         
+        $file_refs = [];
+        
         for($i = 0; $i < $archive->numFiles; $i++) {
             $file_info = $archive->statIndex($i);
             
+            $extracted_file_folder = $folder;
+            
             if($keep_hierarchy) {
-                $file_archive_path = pathinfo($file_info['name'], PATHINFO_DIRNAME);
+                //Extract the path from the Archive's file entry.
+                //We also have to trim any . at the begin of the string to
+                //avoid a path named '.';
+                $file_archive_path = ltrim(pathinfo($file_info['name'], PATHINFO_DIRNAME), '.');
                 
-                
-                //TODO:
-            } else {
-                //Do not keep hierarchy: Put all files into $folder:
-                self::extractFileFromArchive(
-                    $archive,
-                    $file_info['name'],
-                    $folder,
-                    $user
-                );
+                if(basename($file_archive_path) != '') {
+                    //The file doesn't lie in the "top folder" of the archive:
+                    //Pass the path to createFolderPath and let it generate
+                    //a folder path before extracting the file:
+                    $folder_path = self::createFolderPath(
+                        $folder,
+                        $user,
+                        $file_archive_path
+                    );
+                    
+                    //Get the last element of $folder_path:
+                    $last_folder_path = array_pop($folder_path);
+                    
+                    //Compare $extracted_file_folder's name with the name of the
+                    //last path item in $file_archive_path. Only if they are equal
+                    //we can use that folder to store the file. Otherwise
+                    //we must continue with the next file entry in the archive:
+                    if($last_folder_path->name == basename($file_archive_path)) {
+                        $extracted_file_folder = $last_folder_path;
+                    } else {
+                        continue;
+                    }
+                }
+            }
+            $file_ref = self::extractFileFromArchive(
+                $archive,
+                $file_info['name'],
+                $extracted_file_folder,
+                $user
+            );
+            
+            if($file_ref instanceof FileRef) {
+                $file_refs[] = $file_ref;
             }
         }
         
+        return $file_refs;
     }
 }
