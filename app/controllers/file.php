@@ -1263,12 +1263,13 @@ class FileController extends AuthenticatedController
                 } elseif ($folder = Folder::find($element)) {
                     $parent_folder_id = $folder->parent_id;
                     $foldertype = $folder->getTypedFolder();
+                    $folder_files = count($foldertype->getFiles());
+                    $folder_subfolders = count($foldertype->getSubfolders());
                     $result = FileManager::deleteFolder($foldertype, $user);
                     if (!is_array($result)) {
                         $count_folders++;
-                        $children = $this->countChildren($result);
-                        $count_files += $children[0];
-                        $count_folders += $children[1];
+                        $count_files += $folder_files;
+                        $count_folders += $folder_subfolders;
                     }
                 }
                 if (is_array($result)) {
