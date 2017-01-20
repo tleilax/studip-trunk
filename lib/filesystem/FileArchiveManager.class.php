@@ -696,7 +696,9 @@ class FileArchiveManager
         $current_folder = $folder;
         foreach($path as $new_folder_name) {
             //first we check if the folder already exists:
+            
             foreach($current_folder->getSubfolders() as $subfolder) {
+                PageLayout::postInfo("TEST " . $subfolder->name . " == $new_folder_name");
                 if($subfolder->name == $new_folder_name) {
                     PageLayout::postInfo("FOUND $new_folder_name");
                     //We have found a folder that has the name $new_folder_name:
@@ -709,6 +711,9 @@ class FileArchiveManager
                     continue 2;
                 }
             }
+            
+            PageLayout::postInfo("NOTFOUND $new_folder_name");
+            
             //If code execution has reached this point we have looped
             //throug all subfolders of the current folder and couldn't find
             //any subfolder that matches the name given in $new_folder_name.
@@ -716,6 +721,7 @@ class FileArchiveManager
             
             //Check the user's permissions first:
             if($current_folder->isSubfolderAllowed($user->id)) {
+                PageLayout::postError("SUBFOLDERS in " . $current_folder->name);
                 //Create a subfolder:
                 $result = FileManager::createSubFolder(
                     $current_folder,
@@ -883,29 +889,21 @@ class FileArchiveManager
                         $entry_path
                     );
                     
-                    /*
-                    foreach($folder_path as $fp) {
-                        echo $fp->name . '; ';
-                    }
-                    
-                    die();
-                    */
-                    
                     //Get the last element of $folder_path:
-                    $last_folder_path = array_pop($folder_path);
+                    $last_folder_path_element = array_pop($folder_path);
                     
-                    //PageLayout::postInfo("last_folder_path = $last_folder_path");
+                    //PageLayout::postInfo("last_folder_path = $last_folder_path_element");
                     
-                    if($last_folder_path) {
-                        //$last_folder_path is not null:
+                    if($last_folder_path_element) {
+                        //$last_folder_path_element is not null:
                         
                         //Compare $extracted_entry_destination_folder's name with the name of the
                         //last path item in $file_archive_path. Only if they are equal
                         //we can use that folder to store the file. Otherwise
                         //we must continue with the next file entry in the archive:
-                        if($last_folder_path->name == basename($entry_path)) {
+                        if($last_folder_path_element->name == basename($entry_path)) {
                             //PageLayout::postInfo("FOLDER $entry_name");
-                            $extracted_entry_destination_folder = $last_folder_path;
+                            $extracted_entry_destination_folder = $last_folder_path_element;
                         } else {
                             //We can't extract the file, because its folder
                             //wasn't created:

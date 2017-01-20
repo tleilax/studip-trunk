@@ -39,6 +39,7 @@ class FileController extends AuthenticatedController
                     $this->relocate($folder->range_type . '/files/index/' . $folder->getId(), ['cid' => $folder->range_id]);
                    break;
                 case 'user':
+                default:
                     $this->relocate('files/index/' . $folder->getId(), ['cid' => null]);
             }
 
@@ -1301,7 +1302,6 @@ class FileController extends AuthenticatedController
 
 
             $this->redirectToFolder($folder);
-
         }
     }
 }
