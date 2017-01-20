@@ -2281,7 +2281,6 @@ function create_zip_from_directory($fullpath, $zip_file_name) {
 used by:
 DONE: app/models/plugin_administration.php
 DEPRECATED: Replaced by Studip\ZipArchive::extractToPath
-*/
 function extract_zip($file_name, $dir_name = '', $testonly = false) {
     if ($testonly) {
         return Studip\ZipArchive::test($file_name);
@@ -2289,6 +2288,7 @@ function extract_zip($file_name, $dir_name = '', $testonly = false) {
     
     return Studip\ZipArchive::extractToPath($file_name, $dir_name);
 }
+*/
 
 
 
