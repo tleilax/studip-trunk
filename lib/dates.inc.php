@@ -23,7 +23,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-require_once 'lib/datei.inc.php';  // benötigt zum Löschen von Dokumenten
 require_once 'lib/calendar_functions.inc.php';
 require_once 'lib/raumzeit/raumzeit_functions.inc.php'; // Helper-Funktionen
 

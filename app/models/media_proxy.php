@@ -13,7 +13,6 @@
  * @category    Stud.IP
  */
 
-require_once 'lib/datei.inc.php';
 
 /**
  * Special Exception class for proxy errors. The exception message

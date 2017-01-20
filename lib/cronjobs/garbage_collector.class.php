@@ -35,7 +35,7 @@ class GarbageCollectorJob extends CronJob
 
     public function setUp()
     {
-        require_once 'lib/datei.inc.php';
+        
     }
 
     public function execute($last_result, $parameters = array())

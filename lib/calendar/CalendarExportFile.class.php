@@ -15,7 +15,6 @@
  * @category    Stud.IP
  * @package     calendar
  */
-require_once('lib/datei.inc.php');
 
 class CalendarExportFile extends CalendarExport
 {

@@ -40,7 +40,6 @@
 
 require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
 require_once 'lib/statusgruppe.inc.php';
-require_once 'lib/datei.inc.php';
 
 
 class ExternModuleDownload extends ExternModule {
