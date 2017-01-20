@@ -689,7 +689,6 @@ class FileArchiveManager
         $path = trim($path, '/');
         
         //then we convert path into an array of strings:
-        PageLayout::postInfo("PATH = $path");
         $path = explode('/', $path);
         
         //now we loop through path and build subfolders:
@@ -698,9 +697,7 @@ class FileArchiveManager
             //first we check if the folder already exists:
             
             foreach($current_folder->getSubfolders() as $subfolder) {
-                PageLayout::postInfo("TEST " . $subfolder->name . " == $new_folder_name");
                 if($subfolder->name == $new_folder_name) {
-                    PageLayout::postInfo("FOUND $new_folder_name");
                     //We have found a folder that has the name $new_folder_name:
                     //No need to create a new folder, we can use that folder
                     //and continue with it:
@@ -712,8 +709,6 @@ class FileArchiveManager
                 }
             }
             
-            PageLayout::postInfo("NOTFOUND $new_folder_name");
-            
             //If code execution has reached this point we have looped
             //throug all subfolders of the current folder and couldn't find
             //any subfolder that matches the name given in $new_folder_name.
@@ -721,7 +716,6 @@ class FileArchiveManager
             
             //Check the user's permissions first:
             if($current_folder->isSubfolderAllowed($user->id)) {
-                PageLayout::postError("SUBFOLDERS in " . $current_folder->name);
                 //Create a subfolder:
                 $result = FileManager::createSubFolder(
                     $current_folder,
@@ -731,13 +725,8 @@ class FileArchiveManager
                 );
                 
                 if($result instanceof FolderType) {
-                    PageLayout::postInfo("NEWFOLDER " . $result->name);
                     $folder_path[] = $result;
-                } else {
-                    PageLayout::postError("ERROR NEWFOLDER: " . implode(';', $result));
                 }
-            } else {
-                PageLayout::postError("NO SUBFOLDERS in " . $current_folder->name);
             }
         }
         return $folder_path;
