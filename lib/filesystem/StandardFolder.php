@@ -213,8 +213,13 @@ class StandardFolder implements FolderType
      */
     public function getSubfolders()
     {
-        $subfolders = array();
-        foreach ($this->folderdata->subfolders as $subfolder) {
+        //We must load the subfolders from the database instead
+        //of using $this->folderdata->subfolders, because subfolders
+        //that have been added to this folder aren't included in
+        //$this->folderdata->subfolders although they are in the database.
+        $subfolders = [];
+        $database_subfolders = Folder::findByParent_id($this->getId());
+        foreach ($database_subfolders as $subfolder) {
             //check FolderType of subfolder
             $subfolders[] = $subfolder->getTypedFolder();
         }
