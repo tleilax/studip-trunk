@@ -162,7 +162,8 @@ $rules = [
     'prepareFilename' => 'Removed. Use #{yellow:FileManager::cleanFileName} instead.',
     'GetFileIcon' => 'Removed. Use #{yellow:FileManager::getIconNameForMimeType} instead.',
     'parse_link' => 'Removed. Use #{yellow:FileManager::fetchURLMetadata} instead.',
-    
+    'extract_zip' => 'Removed. Use #{yellow:Studip\ZipArchive::extractToPath} or #yellow:Studip\ZipArchive::test} instead.',
+    'datei.inc.php' => 'Removed. Use methods in functions.inc.php, FileManager, FileArchiveManager, FileRef, File or FolderType instead.',
     
     //StudipDocument and related classes:
     'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
