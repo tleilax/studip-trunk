@@ -151,19 +151,6 @@ class FileController extends AuthenticatedController
                     $ref_ids[] = $file_ref->id;
                 }
                 
-                /*
-                $tmp_folder = $GLOBALS['TMP_PATH']."/".md5(uniqid());
-                mkdir($tmp_folder);
-                extract_zip($this->file_ref->file->getPath(), $tmp_folder);
-                $ref_ids = $this->recursivleyReferenceFiles(
-                    $tmp_folder,
-                    $this->current_folder,
-                    $this->current_folder->isSubfolderAllowed($GLOBALS['user']->id)
-                );
-                $ref_ids = array_map(function ($fileref) { return $fileref->getId(); }, $ref_ids);
-                rmdirr($tmp_folder);
-                */
-                
                 //Delete the original zip file:
                 $this->file_ref->delete();
             } else {
@@ -180,42 +167,6 @@ class FileController extends AuthenticatedController
         }
     }
 
-    private function recursivleyReferenceFiles($folder_path, $foldertype, $createfolder = true)
-    {
-        $filerefs = array();
-        foreach (scandir($folder_path) as $file) {
-            if ($file !== "." && $file !== "..") {
-                if (is_dir($folder_path . "/" . $file)) {
-                    //create folder
-                    if ($createfolder) {
-                        $subfolder = new StandardFolder(array(
-                            'name' => $file,
-                            'user_id' => $GLOBALS['user']->id
-                        ));
-                        $foldertype->createSubfolder($subfolder);
-                    } else {
-                        $subfolder = $foldertype;
-                    }
-                    $reflist = $this->recursivleyReferenceFiles(
-                        $folder_path . "/" . $file,
-                        $subfolder,
-                        $createfolder
-                    );
-                    $filerefs = array_merge($filerefs, $reflist);
-                } else {
-                    $fileref = $foldertype->createFile(array(
-                        'name' => $file,
-                        'type' => get_mime_type($file),
-                        'size' => filesize($folder_path . "/" . $file),
-                        'tmp_path' => $folder_path . "/" . $file
-                    ));
-                    $filerefs[] = $fileref;
-                }
-            }
-        }
-        return $filerefs;
-    }
-    
     
     /**
      * Displays details about a file or a folder.
