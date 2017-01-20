@@ -39,11 +39,13 @@ class FileController extends AuthenticatedController
                     $this->relocate($folder->range_type . '/files/index/' . $folder->getId(), ['cid' => $folder->range_id]);
                    break;
                 case 'user':
+                    $this->relocate('files/index/' . $folder->getId(), ['cid' => null]);
+                    break;
                 default:
+                    //Display a development error message:
+                    PageLayout::postWarning('file controller: DEVELOPMENT ERROR: Couldn\'t detect range type of folder ' . $folder->getId());
                     $this->relocate('files/index/' . $folder->getId(), ['cid' => null]);
             }
-
-
     }
 
 
