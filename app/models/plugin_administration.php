@@ -38,7 +38,7 @@ class PluginAdministration
             throw new PluginInstallationException(_('Fehler beim Entpacken des Plugins (fehlende Schreibrechte?).'));
         }
 
-        if (!extract_zip($filename, $packagedir)) {
+        if (!Studip\ZipArchive::extractToPath($filename, $packagedir)) {
             rmdirr($packagedir);
             throw new PluginInstallationException(_('Fehler beim Entpacken des Plugins.'));
         } else {

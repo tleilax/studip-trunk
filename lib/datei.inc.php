@@ -2279,9 +2279,8 @@ function create_zip_from_directory($fullpath, $zip_file_name) {
 
 /*
 used by:
-lib/datei.inc.php
-app/models/plugin_administration.php
-app/controllers/file.php
+DONE: app/models/plugin_administration.php
+DEPRECATED: Replaced by Studip\ZipArchive::extractToPath
 */
 function extract_zip($file_name, $dir_name = '', $testonly = false) {
     if ($testonly) {
