@@ -17,13 +17,13 @@
         <? endif?>
     </td>
     <td class="document-icon" data-sort-value="0">
-        <a href="<?= $controller->url_for('file/details/' . $folder->getId()) ?>" data-dialog="1">
+        <a href="<?= $controller->url_for($controllerpath . '/' . $folder->getId())  ?>" >
             <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(26) ?>
         </a>
     </td>
     <td>
         <? if ($is_readable) : ?>
-            <a href="<?= $controller->url_for($controllerpath . '/' . $folder->getId()) ?>">
+            <a href="<?= $controller->url_for('file/details/' . $folder->getId()) ?>" data-dialog>
         <? endif ?>
             <?= htmlReady($folder->name) ?>
         <? if ($is_readable) : ?>

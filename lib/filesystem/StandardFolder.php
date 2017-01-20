@@ -144,7 +144,7 @@ class StandardFolder implements FolderType
      */
     public function getDescriptionTemplate()
     {
-
+        return self::getTypeName();
     }
 
     /**

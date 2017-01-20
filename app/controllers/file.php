@@ -138,26 +138,26 @@ class FileController extends AuthenticatedController
         if (Request::isPost()) {
             if (Request::submitted("unzip")) {
                 //unzip!
-                
-                
+
+
                 $file_refs = FileArchiveManager::extractArchiveFileToFolder(
                     $this->file_ref,
                     $this->current_folder,
                     $GLOBALS['user']->id
                 );
-                
+
                 $ref_ids = [];
-                
+
                 foreach($file_refs as $file_ref) {
                     $ref_ids[] = $file_ref->id;
                 }
-                
+
                 //Delete the original zip file:
                 $this->file_ref->delete();
             } else {
                 $ref_ids = array($this->file_ref->getId());
             }
-            
+
             header('Location: ' . URLHelper::getURL(
                 'dispatch.php/file/edit_license',
                 [
@@ -168,131 +168,71 @@ class FileController extends AuthenticatedController
         }
     }
 
-    
+
     /**
      * Displays details about a file or a folder.
-     * 
+     *
      * @param string $file_area_object_id A file area object like a Folder or a FileRef.
      */
     public function details_action($file_area_object_id = null)
     {
-        if($file_area_object_id == null) {
-            //invalid ID:
-            $this->render_text(
-                MessageBox::error(_('Es wurde keine gültige ID angegeben!'))
-            );
-            return;
-        }
-        
-        
+
         //check if the file area object is a FileRef:
-        $this->file_ref = FileRef::find($file_area_object_id);
-        
-        $this->folder = null;
-        
-        if(!$this->file_ref) {
-            //file area object is not a FileRef: maybe it's a folder:
-            $this->folder = Folder::find($file_area_object_id);
-            
-            if(!$this->folder) {
-                //file area object not found in database:
-                $this->render_text(
-                    MessageBox::error(_('Das Dateisystem-Objekt wurde nicht in der Datenbank gefunden!'))
-                );
-                return;
-            }
-            
-            $this->folder = $this->folder->getTypedFolder();
-            if(!$this->folder) {
-                //folder type can't be determined
-                $this->render_text(
-                    MessageBox::error(_('Ordnertyp konnte nicht ermittelt werden!'))
-                );
-                return;
-            }
-        }
-        
-        if($this->file_ref) {
+
+        if ($this->file_ref = FileRef::find($file_area_object_id)) {
             //file system object is a FileRef
             PageLayout::setTitle($this->file_ref->name);
-            
+
             //Check if file is downloadable for the current user:
-            
+
             $this->show_preview = false;
-            
-            $is_downloadable = false;
-            
+
+            $this->is_downloadable = false;
+
             //NOTE: The following can only work properly for folders which are
             //stored in the database, since remote folders
             //(for example owncloud/nextcloud folders) are not stored in the database.
-            $folder = $this->file_ref->folder;
-            if($folder) {
-                $folder = $folder->getTypedFolder();
-                if($folder) {
-                    $is_downloadable = $folder->isFileDownloadable($file_ref->id, User::findCurrent()->id);
-                }
+            $folder = $this->file_ref->folder->getTypedFolder();
+            if (!$folder->isVisible(User::findCurrent()->id)) {
+                throw new AccessDeniedException();
             }
-            
-            
-            if($is_downloadable) {
-                //If the file is downloadable for the current user
-                //we can check if the file has a preview. If so,
-                //we can display that besides the standard information.
-                if($this->file_ref->isImage() or
-                    $this->file_ref->isAudio() or
-                    $this->file_ref->isVideo()) {
-                    //The file can be previewed.
-                    $this->show_preview = true;
-                }
-            }
-            
+            $this->is_downloadable = $folder->isFileDownloadable($this->file_ref->id, User::findCurrent()->id);
+            $this->is_editable = $folder->isFileEditable($this->file_ref->id, User::findCurrent()->id);
+
+
             //load the previous and next file in the folder,
             //if the folder is of type FolderType.
-            
-            if(is_subclass_of($folder, 'FolderType')) {
-                $last_file_ref_id = null;
-                $current_file_ref_id = null;
-                
-                
-                foreach($folder->getFiles() as $folder_file_ref) {
-                    $last_file_ref_id = $current_file_ref_id;
-                    $current_file_ref_id = $folder_file_ref->id;
-                    
-                    if($folder_file_ref->id == $this->file_ref->id) {
-                        $this->previous_file_ref_id = $last_file_ref_id;
-                    }
-                    
-                    if($last_file_ref_id == $this->file_ref->id) {
-                        $this->next_file_ref_id = $folder_file_ref->id;
-                        //at this point we have the ID of the previous
-                        //and the next file ref so that we can exit
-                        //the foreach loop:
-                        break;
-                    }
-                    
+
+
+            foreach ($folder->getFiles() as $folder_file_ref) {
+                $last_file_ref_id = $current_file_ref_id;
+                $current_file_ref_id = $folder_file_ref->id;
+
+                if ($folder_file_ref->id == $this->file_ref->id) {
+                    $this->previous_file_ref_id = $last_file_ref_id;
                 }
+
+                if ($last_file_ref_id == $this->file_ref->id) {
+                    $this->next_file_ref_id = $folder_file_ref->id;
+                    //at this point we have the ID of the previous
+                    //and the next file ref so that we can exit
+                    //the foreach loop:
+                    break;
+                }
+
             }
-            
-            
-            if(Request::isDialog()) {
-                $this->render_template('file/file_details');
-            } else {
-                $this->render_template(
-                    'file/file_details',
-                    $GLOBALS['template_factory']->open('layouts/base')
-                );
-            }
+
+
+            $this->render_template('file/file_details');
         } else {
+            //file area object is not a FileRef: maybe it's a folder:
+            $this->folder = FileManager::getTypedFolder($file_area_object_id);
+            if (!$this->folder || !$this->folder->isVisible($GLOBALS['user']->id)) {
+                throw new AccessDeniedException();
+            }
             //file system object is a Folder
             PageLayout::setTitle($this->folder->name);
-            if(Request::isDialog()) {
-                $this->render_template('file/folder_details');
-            } else {
-                $this->render_template(
-                    'file/folder_details',
-                    $GLOBALS['template_factory']->open('layouts/base')
-                );
-            }
+            $this->render_template('file/folder_details');
         }
     }
 
@@ -1145,13 +1085,13 @@ class FileController extends AuthenticatedController
 
         if (Request::submitted('download')) {
             //bulk downloading:
-            
+
             $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
-            
+
             $user = User::findCurrent();
 
             //collect file area objects by looking at their IDs:
-            
+
             $file_area_objects = [];
             foreach ($ids as $id) {
                 //check if the ID references a FileRef:
@@ -1173,7 +1113,7 @@ class FileController extends AuthenticatedController
                 $user->id,
                 $tmp_file
             );
-            
+
             if($result) {
                 //ZIP file was created successfully
                 $this->redirect(
@@ -1185,7 +1125,7 @@ class FileController extends AuthenticatedController
             } else {
                 throw new Exception('Error while creating ZIP archive!');
             }
-            
+
         } elseif(Request::submitted('copy')) {
             //bulk copying
             $selected_elements = Request::getArray('ids');
@@ -1253,5 +1193,15 @@ class FileController extends AuthenticatedController
 
             $this->redirectToFolder($parent_folder);
         }
+    }
+
+    public function open_folder_action($folder_id)
+    {
+        $folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
+        URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
+        if (!$folder || !$folder->isVisible($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
+        }
+        $this->redirectToFolder($folder);
     }
 }

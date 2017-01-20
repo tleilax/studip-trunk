@@ -39,9 +39,9 @@ class PermissionEnabledFolder extends StandardFolder
         return join('', array_reverse($r));
     }
 
-    protected function checkPermission($perm, $user_id)
+    protected function checkPermission($perm, $user_id = null)
     {
-        if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id)) {
+        if ($user_id && is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id)) {
             return true;
         }
         return (bool)($this->permission & $this->perms[$perm]);
@@ -53,29 +53,32 @@ class PermissionEnabledFolder extends StandardFolder
         return Icon::create($shape, $role);
     }
 
-    public function isVisible($user_id)
+    public function isVisible($user_id = null)
     {
         return $this->checkPermission('x', $user_id);
     }
 
-    public function isReadable($user_id)
+    public function isReadable($user_id = null)
     {
         return $this->checkPermission('r', $user_id);
     }
 
-    public function isWritable($user_id)
+    public function isWritable($user_id = null)
     {
         return $this->checkPermission('w', $user_id);
     }
 
-    public function isSubfolderAllowed($user_id)
+    public function isSubfolderAllowed($user_id = null)
     {
         return $this->checkPermission('f', $user_id);
     }
 
     public function getDescriptionTemplate()
     {
-
+        $template = $GLOBALS['template_factory']->open('filesystem/permission_enabled_folder/description.php');
+        $template->set_attribute('type', self::getTypeName());
+        $template->set_attribute('folder', $this);
+        return $template;
     }
 
     static public function getTypeName()
@@ -96,5 +99,25 @@ class PermissionEnabledFolder extends StandardFolder
         } else {
             return parent::validateUpload($uploadedfile, $user_id);
         }
+    }
+
+    public function getEditTemplate()
+    {
+        $template = $GLOBALS['template_factory']->open('filesystem/permission_enabled_folder/edit.php');
+        $template->set_attribute('folder', $this);
+        return $template;
+    }
+
+    public function setDataFromEditTemplate($request)
+    {
+        foreach (['r' => 'read', 'w' => 'write', 'x' => 'visible'] as $p => $v) {
+            if ($request['perm_' . $v]) {
+                $this->permission |= $this->perms[$p];
+            } else {
+                $this->permission &= ~$this->perms[$p];
+            }
+        }
+        $this->folderdata['data_content']['permission'] = $this->permission;
+        return parent::setDataFromEditTemplate($request);
     }
 }
