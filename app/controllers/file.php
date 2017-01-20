@@ -41,10 +41,6 @@ class FileController extends AuthenticatedController
                 case 'user':
                     $this->relocate('files/index/' . $folder->getId(), ['cid' => null]);
                     break;
-                default:
-                    //Display a development error message:
-                    PageLayout::postWarning('file controller: DEVELOPMENT ERROR: Couldn\'t detect range type of folder ' . $folder->getId());
-                    $this->relocate('files/index/' . $folder->getId(), ['cid' => null]);
             }
     }
 
@@ -1179,9 +1175,9 @@ class FileController extends AuthenticatedController
     public function bulk_action($folder_id)
     {
         CSRFProtection::verifyUnsafeRequest();
-        $folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
+        $parent_folder = FileManager::getTypedFolder($folder_id, Request::get("to_plugin"));
         URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
-        if (!$folder || !$folder->isReadable($GLOBALS['user']->id)) {
+        if (!$parent_folder || !$parent_folder->isReadable($GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
 
@@ -1189,7 +1185,7 @@ class FileController extends AuthenticatedController
         $ids = Request::getArray('ids');
 
         if (empty($ids)) {
-            $this->redirectToFolder($folder);
+            $this->redirectToFolder($parent_folder);
             return;
         }
 
@@ -1303,7 +1299,7 @@ class FileController extends AuthenticatedController
             }
 
 
-            $this->redirectToFolder($folder);
+            $this->redirectToFolder($parent_folder);
         }
     }
 }
