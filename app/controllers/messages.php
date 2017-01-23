@@ -285,8 +285,10 @@ class MessagesController extends AuthenticatedController {
                     $message .= "\n" . _("An") . ": " . $GLOBALS['user']->getFullname() . ($num_recipients > 1 ? ' ' . sprintf(_('(und %d weitere)'), $num_recipients) : '');
                 }
                 $message .= "\n\n";
-                if (Config::get()->WYSIWYG) {
+                if (Studip\Markup::editorEnabled()) {
                     $message = Studip\Markup::markupToHtml($message, false) . Studip\Markup::markupToHtml($old_message['message']);
+                } else if (Studip\Markup::isHtml($old_message['message'])) {
+                    $message .= Studip\Markup::removeHtml($old_message['message']);
                 } else {
                     $message .= $old_message['message'];
                 }
@@ -320,7 +322,7 @@ class MessagesController extends AuthenticatedController {
         $settings = UserConfig::get($GLOBALS['user']->id)->MESSAGING_SETTINGS;
         $this->mailforwarding = Request::get('emailrequest') ? true : $settings['request_mail_forward'];
         if (trim($settings['sms_sig'])) {
-            if (Config::get()->WYSIWYG) {
+            if (Studip\Markup::editorEnabled()) {
                 $this->default_message['message'] .= Studip\Markup::markAsHtml('<br><hr>' . Studip\Markup::markupToHtml($settings['sms_sig']));
             } else {
                 $this->default_message['message'] .= "\n\n--\n" . $settings['sms_sig'];

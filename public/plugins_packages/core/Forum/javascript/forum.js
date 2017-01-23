@@ -306,10 +306,9 @@ STUDIP.Forum = {
         // usually the wysiwyg editor does this automatically,
         // but since there is no submit event the editor does not
         // get notified
-        var w = STUDIP.wysiwyg;
-        if (w && !w.disabled) {
+        if (STUDIP.wysiwyg && !STUDIP.wysiwyg.disabled) {
             // wysiwyg is active, ensure HTML markers are set
-            textarea.val(w.markAsHtml(textarea.val()));
+            textarea.val(STUDIP.wysiwyg.markAsHtml(textarea.val()));
         }
 
         // remember current textarea value
@@ -418,10 +417,6 @@ STUDIP.Forum = {
         ).val();
 
         var content = STUDIP.Forum.quote(originalContent, name);
-        var w = STUDIP.wysiwyg;
-        if (w && w.isHtml(originalContent)) {
-            content = w.markAsHtml(content);
-        }
 
         jQuery('#new_entry_box textarea').val(content);
         jQuery('#new_entry_box').insertAfter('form[data-topicid=' + topic_id + ']');
@@ -441,7 +436,7 @@ STUDIP.Forum = {
         // - studipQuotePlugin > insertStudipQuote
         //   public/assets/javascripts/ckeditor/plugins/studip-quote/plugin.js
 
-        if (!STUDIP.wysiwyg.disabled) {
+        if (STUDIP.wysiwyg && !STUDIP.wysiwyg.disabled) {
             // quote with HTML markup
             var author = '';
             if (name) {
@@ -451,6 +446,11 @@ STUDIP.Forum = {
                     + '</div>';
             }
             return '<blockquote>' + author + text + '</blockquote><p>&nbsp;</p>';
+        }
+
+        if (STUDIP.wysiwyg && STUDIP.wysiwyg.isHtml(text)) {
+            // remove HTML before quoting
+            text = jQuery(text).text()
         }
 
         // quote with Stud.IP markup

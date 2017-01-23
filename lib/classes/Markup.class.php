@@ -62,6 +62,16 @@ class Markup
     const HTML_MARKER_REGEXP = '/^\s*<!--\s*HTML.*?-->/i';
 
     /**
+     * Return `true` if the WYSIWYG editor is enabled for this user.
+     *
+     * @return boolean  `true` if the editor is enabled.
+     */
+    public static function editorEnabled()
+    {
+        return \Config::get()->WYSIWYG && !$GLOBALS['user']->cfg->WYSIWYG_DISABLED;
+    }
+
+    /**
      * Return `true` for HTML code and `false` for plain text.
      *
      * HTML code must either match `HTML_MARKER_REGEXP` or begin
@@ -200,8 +210,8 @@ class Markup
         if ($purifier === NULL) {
             $purifier = self::createPurifier();
         }
-        return studip_utf8decode(
-            $purifier->purify(studip_utf8encode($dirty_html)));
+        return studip_utf8decode(trim(
+            $purifier->purify(studip_utf8encode($dirty_html))));
     }
 
     /**
@@ -378,7 +388,7 @@ class Markup
     public static function wysiwygReady(
         $text, $trim = true, $br = false, $double_encode = true
     ) {
-        if (\Config::get()->WYSIWYG) {
+        if (self::editorEnabled()) {
             $text = self::markupToHtml($text, $trim);
         }
         return self::htmlReady($text, $trim, $br, $double_encode);

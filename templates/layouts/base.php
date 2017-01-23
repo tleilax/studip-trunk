@@ -38,10 +38,6 @@ if ($navigation) {
     <title data-original="<?= htmlReady(PageLayout::getTitle()) ?>">
       <?= htmlReady(PageLayout::getTitle() . ' - ' . $GLOBALS['UNI_NAME_CLEAN']) ?>
     </title>
-    <?php
-        // needs to be included in lib/include/html_head.inc.php as well
-        include 'app/views/WysiwygHtmlHeadBeforeJS.php';
-    ?>
     <?= PageLayout::getHeadElements() ?>
 
     <script src="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>

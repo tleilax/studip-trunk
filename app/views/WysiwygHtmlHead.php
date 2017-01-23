@@ -11,7 +11,7 @@ if (Settings::getInstance()->isGloballyDisabled()) {
 }
 ?>
 <script type="text/javascript">
-    if (<?= Settings::getInstance()->isDisabled() ? 'true' : 'false' ?> || CKEDITOR.env.isCompatible) {
+    if (CKEDITOR.env.isCompatible) {
         STUDIP.wysiwyg = {
             disabled: <?= Settings::getInstance()->isDisabled() ? 'true' : 'false' ?>,
             settings: <?= Settings::getInstance()->asJson() ?>,

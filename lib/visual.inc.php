@@ -79,7 +79,7 @@ function quotes_encode($text, $author = '')
     // - studipQuotePlugin > insertStudipQuote
     //   public/assets/javascripts/ckeditor/plugins/studip-quote/plugin.js
 
-    if (\Config::get()->WYSIWYG) {
+    if (Markup::editorEnabled()) {
         // quote with HTML markup
         $text = Markup::markupToHtml($text);
 
@@ -89,6 +89,11 @@ function quotes_encode($text, $author = '')
         }
         $text = sprintf('<blockquote>%s</blockquote><p>&nbsp;</p>', $text);
         return Markup::markAsHtml($text);
+    }
+
+    if (Markup::isHtml($text)) {
+        // remove HTML before quoting
+        $text = Markup::removeHtml($text);
     }
 
     // quote with Stud.IP markup

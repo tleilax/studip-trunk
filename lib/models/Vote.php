@@ -27,7 +27,6 @@ class Vote extends QuestionnaireQuestion implements QuestionType
     {
         $questions = Request::getArray('questions');
         $data = $questions[$this->getId()];
-        $question_data['question'] = Studip\Markup::purifyHtml($question_data['question']);
 
         // create a new eTask if this is a new question
         if (!$this->etask) {
@@ -41,7 +40,7 @@ class Vote extends QuestionnaireQuestion implements QuestionType
         }
 
         // update description
-        $this->etask->description = $data['description'];
+        $this->etask->description = Studip\Markup::purifyHtml($data['description']);
 
         // update task's type (single|multiple)
         $task = [

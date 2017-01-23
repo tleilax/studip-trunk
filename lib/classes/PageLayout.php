@@ -117,7 +117,7 @@ class PageLayout
         ));
 
         self::setSqueezePackages("base");
-        if (Config::get()->WYSIWYG) {
+        if (Studip\Markup::editorEnabled()) {
             self::addSqueezePackage("wysiwyg");
         }
         self::addScript("mathjax/MathJax.js?config=TeX-AMS_HTML,default");
