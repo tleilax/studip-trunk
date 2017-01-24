@@ -306,7 +306,7 @@ STUDIP.Forum = {
         // usually the wysiwyg editor does this automatically,
         // but since there is no submit event the editor does not
         // get notified
-        if (STUDIP.wysiwyg && !STUDIP.wysiwyg.disabled) {
+        if (STUDIP.editor_enabled) {
             // wysiwyg is active, ensure HTML markers are set
             textarea.val(STUDIP.wysiwyg.markAsHtml(textarea.val()));
         }
@@ -436,7 +436,7 @@ STUDIP.Forum = {
         // - studipQuotePlugin > insertStudipQuote
         //   public/assets/javascripts/ckeditor/plugins/studip-quote/plugin.js
 
-        if (STUDIP.wysiwyg && !STUDIP.wysiwyg.disabled) {
+        if (STUDIP.editor_enabled) {
             // quote with HTML markup
             var author = '';
             if (name) {
@@ -448,7 +448,7 @@ STUDIP.Forum = {
             return '<blockquote>' + author + text + '</blockquote><p>&nbsp;</p>';
         }
 
-        if (STUDIP.wysiwyg && STUDIP.wysiwyg.isHtml(text)) {
+        if (STUDIP.wysiwyg.isHtml(text)) {
             // remove HTML before quoting
             text = jQuery(text).text()
         }
@@ -519,7 +519,7 @@ STUDIP.Forum = {
     preview: function (text_element_id, preview_id) {
         var posting = {};
         posting.posting = jQuery('textarea[data-textarea=' + text_element_id + ']').val();
-        if (STUDIP.wysiwyg && !STUDIP.wysiwyg.disabled) {
+        if (STUDIP.editor_enabled) {
             posting.posting = STUDIP.wysiwyg.markAsHtml(posting.posting);
         }
 

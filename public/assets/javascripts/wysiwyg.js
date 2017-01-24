@@ -16,8 +16,39 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
+
 jQuery(function ($) {
-    if (!STUDIP.wysiwyg || STUDIP.wysiwyg.disabled) {
+    STUDIP.wysiwyg = {
+        disabled: !STUDIP.editor_enabled,
+        // NOTE keep this function in sync with Markup class
+        htmlMarker: '<!--HTML-->',
+        htmlMarkerRegExp: /^\s*<!--\s*HTML.*?-->/i,
+
+        isHtml: function isHtml(text) {
+            // NOTE keep this function in sync with
+            // Markup::isHtml in Markup.class.php
+            if (this.hasHtmlMarker(text)) {
+                return true;
+            }
+            text = text.trim();
+            return text[0] === '<' && text[text.length - 1] === '>';
+        },
+        hasHtmlMarker: function hasHtmlMarker(text) {
+            // NOTE keep this function in sync with
+            // Markup::hasHtmlMarker in Markup.class.php
+            return this.htmlMarkerRegExp.test(text);
+        },
+        markAsHtml: function markAsHtml(text) {
+            // NOTE keep this function in sync with
+            // Markup::markAsHtml in Markup.class.php
+            if (this.hasHtmlMarker(text)) {
+                return text; // marker already set, don't set twice
+            }
+            return this.htmlMarker + '\n' + text;
+        }
+    };
+
+    if (!STUDIP.editor_enabled) {
         return;
     }
 
@@ -322,7 +353,7 @@ jQuery(function ($) {
             ),
             on: { pluginsLoaded: onPluginsLoaded },
             title: false
-        }); // CKEDITOR.replace(textarea[0], {
+        });
 
         CKEDITOR.on('instanceReady', function (event) {
             var editor = event.editor,
@@ -343,8 +374,7 @@ jQuery(function ($) {
             form.submit(function (event) {
                 // make sure HTML marker is always set, in
                 // case contents are cut-off by the backend
-                var w = STUDIP.wysiwyg;
-                editor.setData(w.markAsHtml(editor.getData()));
+                editor.setData(STUDIP.wysiwyg.markAsHtml(editor.getData()));
                 editor.updateElement(); // update textarea, in case it's accessed by other JS code
             });
 
@@ -425,7 +455,7 @@ jQuery(function ($) {
         }
         return prefix + i;
     }
-}); // jQuery(function($){
+});
 
 // Hotfix for Dialogs
 $.widget( "ui.dialog", $.ui.dialog, {
