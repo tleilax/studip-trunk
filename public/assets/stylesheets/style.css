@@ -5758,6 +5758,24 @@ table.dates .draggable-topic-handle {
   background-repeat: no-repeat;
   border: #28497c solid 1px;
 }
+.uploadbar .ufo {
+  float: right;
+  animation: ufoflight 1.5s linear infinite;
+}
+@keyframes ufoflight {
+  25% {
+    transform: translateX(-2px) translateY(4px);
+  }
+  50% {
+    transform: translateX(0px) translateY(8px);
+  }
+  75% {
+    transform: translateX(-2px) translateY(4px);
+  }
+  100% {
+    transform: translateX(0px) translateY(0px);
+  }
+}
 .subfolders .empty {
   display: none;
 }

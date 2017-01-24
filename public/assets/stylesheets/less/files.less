@@ -8,6 +8,25 @@
     background-size: 0% 100%;
     background-repeat: no-repeat;
     border: @base-color solid 1px;
+    .ufo {
+        float: right;
+        animation: ufoflight 1.5s linear infinite;
+    }
+}
+
+@keyframes ufoflight {
+    25% {
+        transform: translateX(-2px) translateY(4px);
+    }
+    50% {
+        transform: translateX(-0px) translateY(8px);
+    }
+    75% {
+        transform: translateX(-2px) translateY(4px);
+    }
+    100% {
+        transform: translateX(0px) translateY(0px);
+    }
 }
 
 .subfolders .empty {
