@@ -13,7 +13,7 @@
      private static function getStudipVersion($major)
      {
          if ($major) {
-             return substr($GLOBALS['SOFTWARE_VERSION'], 0, 3);
+             return mb_substr($GLOBALS['SOFTWARE_VERSION'], 0, 3);
          } else {
              return $GLOBALS['SOFTWARE_VERSION'];
          }
