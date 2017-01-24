@@ -78,7 +78,7 @@ class StudipAuthStandard extends StudipAuthAbstract
         $check = $hasher->CheckPassword($password, $pass);
         $old_encoding_check = $hasher->CheckPassword(studip_utf8decode($password), $pass);
 
-        if ($old_encoding_check && !$check) {
+        if (($migrated_check || $old_style_check || $old_encoding_check) && !$check) {
             // time to convert the password
             $user->password = $hasher->HashPassword($password);
             $user->store();
