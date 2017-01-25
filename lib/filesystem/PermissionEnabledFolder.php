@@ -23,10 +23,10 @@ class PermissionEnabledFolder extends StandardFolder
         return $range_type == 'course' || $range_type == 'institute';
     }
 
-    public function setFolderData($folderdata)
+    public function __construct($folderdata = null)
     {
-        $this->folderdata = $folderdata;
-        $this->permission = $folderdata['data_content']['permission'] ?: 7;
+        parent::__construct($folderdata);
+        $this->permission = isset($folderdata['data_content']['permission']) ? $folderdata['data_content']['permission'] : 7;
         $this->must_have_perm = $this->range_type == 'course' ? 'tutor' : 'autor';
     }
 
@@ -55,17 +55,17 @@ class PermissionEnabledFolder extends StandardFolder
 
     public function isVisible($user_id = null)
     {
-        return $this->checkPermission('x', $user_id);
+        return $this->checkPermission('x', $user_id) && parent::isVisible($user_id);
     }
 
     public function isReadable($user_id = null)
     {
-        return $this->checkPermission('r', $user_id);
+        return $this->checkPermission('r', $user_id) && parent::isReadable($user_id);
     }
 
     public function isWritable($user_id = null)
     {
-        return $this->checkPermission('w', $user_id);
+        return $this->checkPermission('w', $user_id) && parent::isWritable($user_id);
     }
 
     public function isSubfolderAllowed($user_id = null)

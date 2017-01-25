@@ -100,7 +100,12 @@ class StandardFolder implements FolderType
      */
     public function isVisible($user_id)
     {
-        return ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
+        $visible = ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
+        if ($visible && $parent_folder = $this->getParent()) {
+            return $parent_folder->isVisible($user_id);
+        } else {
+            return $visible;
+        }
     }
 
     /**
@@ -109,7 +114,12 @@ class StandardFolder implements FolderType
      */
     public function isReadable($user_id)
     {
-        return ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
+        $readable = ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
+        if ($readable && $parent_folder = $this->getParent()) {
+            return $parent_folder->isReadable($user_id);
+        } else {
+            return $readable;
+        }
     }
 
     /**
