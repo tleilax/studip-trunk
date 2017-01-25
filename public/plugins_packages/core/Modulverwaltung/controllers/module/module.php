@@ -47,8 +47,8 @@ class Module_ModuleController extends MVVController
         $search_result = $this->getSearchResult('Modul');
 
         // set default semester filter
-        if (!$this->filter['start_sem.beginn']
-                || !$this->filter['end_sem.ende']) {
+        if (!isset($this->filter['start_sem.beginn'])
+                || !isset($this->filter['end_sem.ende'])) {
             $sem_time_switch = Config::get()->getValue('SEMESTER_TIME_SWITCH');
             // switch semester according to time switch
             // (n weeks before next semester)
@@ -62,7 +62,7 @@ class Module_ModuleController extends MVVController
 
         // Nur Module von verantwortlichen Einrichtungen an denen der User
         // eine Rolle hat
-        $filter = array_merge(
+        $this->filter = array_merge(
                 array(
                     'mvv_modul.modul_id' => $search_result,
                     'mvv_modul_inst.institut_id' => MvvPerm::getOwnInstitutes()),
@@ -74,7 +74,7 @@ class Module_ModuleController extends MVVController
                 $this->order ?: 'DESC',
                 self::$items_per_page,
                 self::$items_per_page * (($this->page ?: 1) - 1),
-                $filter);
+                $this->filter);
 
         if (!empty($this->filter)) {
             $this->search_result['Modul'] = $this->module->pluck('id');
@@ -87,7 +87,7 @@ class Module_ModuleController extends MVVController
                 PageLayout::postInfo(_('Es wurden noch keine Module angelegt.'));
             }
         }
-        $this->count = Modul::getCount($filter);
+        $this->count = Modul::getCount($this->filter);
         $this->show_sidebar_search = true;
         $this->show_sidebar_filter = true;
         $this->setSidebar();
@@ -164,8 +164,9 @@ class Module_ModuleController extends MVVController
             }
 
             $action_widget->addLink( _('Log-Einträge dieses Moduls'),
-                $this->url_for('shared/log_event/show', $this->modul->id, $this->deskriptor->id),
-                Icon::create('log', 'clickable'), ['data-dialog' => 'size=auto']);
+                $this->url_for('shared/log_event/show/Modul/' . $this->modul->id,
+                        ['object2_type' => 'ModulDeskriptor', 'object2_id' => $this->deskriptor->id]),
+                Icon::create('log', 'clickable'))->asDialog();
 
             // list all variants
             $variants = $this->modul->getVariants();
@@ -700,10 +701,9 @@ class Module_ModuleController extends MVVController
 
         $action_widget = Sidebar::get()->getWidget('actions');
         $action_widget->addLink(_('Log-Einträge dieses Modulteils'),
-                $this->url_for('shared/log_event/show/', $this->modulteil->id,
-                $this->deskriptor->id),
-                Icon::create('log', 'clickable'),
-                array('data-dialog' => 'size=auto'));
+                $this->url_for('shared/log_event/show/Modulteil/' . $this->modulteil->id,
+                ['object2_type' => 'ModulteilDeskriptor', 'object2_id' => $this->deskriptor->id]),
+                Icon::create('log', 'clickable'))->asDialog();
 
         $this->render_template('module/module/modulteil', $this->layout);
     }
@@ -1072,16 +1072,14 @@ class Module_ModuleController extends MVVController
         if (Request::get('reset-search')) {
             $this->reset_search('module');
             $this->reset_page();
-            $this->reset_filter_action();
         } else {
             $this->reset_search('module');
             $this->reset_page();
             $this->do_search('Modul',
                     trim(Request::get('modul_suche_parameter')),
-                    Request::get('modul_suche'));
-
-            $this->redirect($this->url_for('/index'));
+                    Request::get('modul_suche'), $this->filter);
         }
+        $this->redirect($this->url_for('/index'));
     }
 
     /**
@@ -1091,7 +1089,6 @@ class Module_ModuleController extends MVVController
     {
         $this->reset_search('module');
         $this->reset_page();
-        $this->reset_filter_action();
     }
 
     public function sort_action()
@@ -1168,15 +1165,14 @@ class Module_ModuleController extends MVVController
     public function set_filter_action()
     {
         // Semester
-        $semester_id = mb_strlen(Request::get('semester_filter'))
-                ? Request::option('semester_filter') : null;
-        if ($semester_id) {
+        $semester_id = Request::option('semester_filter', 'all');
+        if ($semester_id != 'all') {
             $semester = Semester::find($semester_id);
             $this->filter['start_sem.beginn'] = $semester->beginn;
             $this->filter['end_sem.ende'] = $semester->beginn;
         } else {
-            $this->filter['start_sem.beginn'] = 2147483647;
-            $this->filter['end_sem.ende'] = 1;
+            $this->filter['start_sem.beginn'] = -1;
+            $this->filter['end_sem.ende'] = -1;
         }
 
         // Status
@@ -1199,9 +1195,9 @@ class Module_ModuleController extends MVVController
     {
         $this->filter = array();
         $this->reset_page();
-        // all semester
-        $this->filter['start_sem.beginn'] = 2147483647;
-        $this->filter['end_sem.ende'] = 1;
+        // current semester is set in index_action()
+        unset($this->filter['start_sem.beginn']);
+        unset($this->filter['end_sem.ende']);
         $this->sessSet('filter', $this->filter);
         $this->redirect($this->url_for('/index'));
     }
@@ -1255,23 +1251,9 @@ class Module_ModuleController extends MVVController
         // eine Rolle hat
         $own_institutes = MvvPerm::getOwnInstitutes();
         $modul_ids = null;
-        if (count($own_institutes)) {
-            if ($this->filter['mvv_modul_inst.institut_id']) {
-                $modul_ids = Modul::findByFilter(
-                    ['mvv_modul_inst.institut_id' => array_intersect($own_institutes,
-                    (array) $this->filter['mvv_modul_inst.institut_id'])]);
-            } else {
-                $modul_ids = Modul::findByFilter(
-                    ['mvv_modul_inst.institut_id' => $own_institutes]);
-            }
-        } else {
-            if ($this->filter['mvv_modul_inst.institut_id']) {
-                $modul_ids = Modul::findByFilter(
-                    ['mvv_modul_inst.institut_id'
-                        => $this->filter['mvv_modul_inst.institut_id']]);
-            }
-        }
-
+        
+        $modul_ids = Modul::findByFilter($this->filter);
+        
         $institute_filter = ['mvv_modul.stat' => $this->filter['mvv_modul.stat'],
             'mvv_modul_inst.institut_id' => $own_institutes,
             'mvv_modul_inst.gruppe' => 'hauptverantwortlich'];
@@ -1297,9 +1279,11 @@ class Module_ModuleController extends MVVController
         $semesters = $semesters->orderBy('beginn desc');
         $selected_semester = $semesters->findOneBy('beginn',
                 $this->filter['start_sem.beginn']);
+        
 
         $template->set_attribute('semester', $semesters);
         $template->set_attribute('selected_semester', $selected_semester->id);
+        $template->set_attribute('default_semester', Semester::findCurrent()->id);
 
         $template->set_attribute('action',
                 $this->url_for('/set_filter'));

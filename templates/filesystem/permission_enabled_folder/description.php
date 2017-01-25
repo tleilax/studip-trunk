@@ -1,5 +1,4 @@
 <div><?=$type?></div>
-
 <label>
     <input disabled type="checkbox" value="1" <?= $folder->isReadable() ? "checked" : "" ?>>
     <b>r</b> - <?= _("Lesen (Dateien können heruntergeladen werden)") ?>

@@ -155,9 +155,8 @@ td.tree-elbow-line, td.tree-elbow-end {
 
 /* --- Table details -------------------------------------------------------- */
 .loaded-details {
-    > td { padding: 0 20px 5px 20px !important; }
+    > td { padding: 0 0 5px 20px !important; }
     table {
-        border: 1px solid #888;
         border-top: 0;
     }
 }
@@ -665,4 +664,9 @@ table#schedule_data {
             padding: 0px;
         }
     }
+}
+
+// Responsive helper
+.table-scrollbox-horizontal {
+  .scrollbox-horizontal();
 }

@@ -19,15 +19,25 @@
     <label class="col-2">
         <?= _('Startzeit') ?>
         <input class="size-s studip-timepicker" type="text" name="start_time"
-               value="<?= htmlReady(Request::get('start_time', $cycle->start_time)) ?>"
+               value="<?= htmlReady(Request::get('start_time', substr($cycle->start_time, 0, 5))) ?>"
                required placeholder="HH:mm">
     </label>
 
     <label class="col-2">
         <?= _('Endzeit') ?>
         <input class="size-s studip-timepicker" type="text" name="end_time"
-               value="<?= htmlReady(Request::get('end_time', $cycle->end_time)) ?>"
+               value="<?= htmlReady(Request::get('end_time', substr($cycle->end_time, 0, 5))) ?>"
                required placeholder="HH:mm">
+    </label>
+
+    <label>
+        <?= _('Art') ?>
+        <select name="course_type" id="course_type" class="size-s">
+            <option><?=_('Bitte wählen')?></option>
+            <? foreach ($GLOBALS['TERMIN_TYP'] as $id => $value) : ?>
+                <option value="<?= $id ?>" <? if(Request::get('course_type') && Request::get('course_type') == $id) :?>selected="selected"<? endif?>><?= htmlReady($value['name']) ?></option>
+            <? endforeach; ?>
+        </select>
     </label>
 
     <label>

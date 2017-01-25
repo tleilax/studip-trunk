@@ -97,8 +97,14 @@ abstract class ModuleManagementModel extends SimpleORMap
             }
         }
 
-        // check the permissions for every single field
-        foreach (array_keys($this->db_fields) as $field) {
+        // check the permissions for every single db field except primary keys
+        if ($this->isNew()) {
+            $fields = array_diff(array_keys($this->db_fields),
+                    array_values($this->pk));
+        } else {
+            $fields = array_keys($this->db_fields);
+        }
+        foreach ($fields as $field) {
             if ($this->isFieldDirty($field)
                     && !$perm->haveFieldPerm($field, MvvPerm::PERM_WRITE, $user_id)) {
                 throw new Exception(sprintf(
@@ -409,7 +415,7 @@ abstract class ModuleManagementModel extends SimpleORMap
     }
 
     /**
-     * Enriches the model with data from other tables.
+     * Enriches the model with data from other joined tables.
      *
      * @param string $query complete sql with all fields in select statement
      * from main table
@@ -532,14 +538,19 @@ abstract class ModuleManagementModel extends SimpleORMap
                         $sql_parts[] = trim($matches[1]) . ' ' . $matches[2] . ' '
                                 . DBManager::get()->quote($val) . ' ';
                     } else if ($col == 'start_sem.beginn') {
-                        // start semester filter for Module, Studiengaenge, ...
-                        $sql_parts[] = '(start_sem.beginn <= '
-                                . DBManager::get()->quote($val)
-                                . ' OR ISNULL(start_sem.beginn))';
+                        if ((int) $val >= 0) {
+                            // start semester filter for Module, Studiengaenge, ...
+                            $sql_parts[] = '(start_sem.beginn <= '
+                                    . DBManager::get()->quote($val)
+                                    . ' OR ISNULL(start_sem.beginn))';
+                        }
                     } else if ($col == 'end_sem.ende') {
-                        $sql_parts[] = '(end_sem.ende > '
-                                . DBManager::get()->quote($val)
-                                . ' OR ISNULL(end_sem.ende))';
+                        if ((int) $val >= 0) {
+                            // end semester filter for Module, Studiengaenge, ...
+                            $sql_parts[] = '(end_sem.ende >= '
+                                    . DBManager::get()->quote($val)
+                                    . ' OR ISNULL(end_sem.ende))';
+                        }
                     } else {
                         $sql_parts[] = $col . ' = '
                                 . DBManager::get()->quote($val) . ' ';
@@ -669,7 +680,7 @@ abstract class ModuleManagementModel extends SimpleORMap
      */
     public static final function setLanguage($language)
     {
-        $language = mb_strtoupper(mb_strstr($language, '_', true));
+        $language = mb_strtoupper(mb_strstr($language . '_', '_', true));
         if (isset($GLOBALS['MVV_LANGUAGES']['values'][$language])) {
             setLocaleEnv($GLOBALS['MVV_LANGUAGES']['values'][$language]['locale']);
             self::$language = $language;

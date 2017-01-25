@@ -48,9 +48,17 @@
                 }
             }
             this.oldWidth = newWidth;
+
+            var oldListHeight = this.list.outerHeight()
+
             while (needsCompression(this.list) && (item = findCompressable(this.items))) {
                 truncate(item);
             }
+
+            if (this.list.outerHeight() === oldListHeight) {
+                this.uncompress()
+            }
+
             return this;
         };
 
@@ -60,7 +68,7 @@
         */
 
         Tabs.prototype.uncompress = function () {
-            this.items.text(function () {
+            this.items && this.items.text(function () {
                 return $(this).data('orig-text');
             });
             return this;

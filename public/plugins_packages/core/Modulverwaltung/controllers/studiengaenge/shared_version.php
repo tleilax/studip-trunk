@@ -72,6 +72,9 @@ class SharedVersionController extends MVVController
             Dokument::updateDocuments($this->version,
                     Request::optionArray('dokumente_items'),
                     Request::getArray('dokumente_properties'));
+            
+            $this->version->verifyPermission();
+            
             try {
                 $stored = $this->version->store();
             } catch (InvalidValuesException $e) {
@@ -111,8 +114,8 @@ class SharedVersionController extends MVVController
                         Icon::create('accept', 'clickable'), array('data-dialog' => 'size=auto;buttons=false'));
             }
             $action_widget->addLink( _('Log-Einträge dieser Studiengangteilversion'),
-                    $this->url_for('shared/log_event/show', $this->version->getId()),
-                    Icon::create('log', 'clickable'), array('data-dialog' => 'size=auto'));
+                    $this->url_for('shared/log_event/show/StgteilVersion', $this->version->getId()),
+                    Icon::create('log', 'clickable'))->asDialog();
         }
 
         $this->render_template('studiengaenge/versionen/version', $this->layout);
@@ -157,7 +160,6 @@ class SharedVersionController extends MVVController
     {
         $new_version = StgteilVersion::find(Request::option('new_id', $new_id));
         $old_version = StgteilVersion::find(Request::option('old_id', $old_id));
-       // var_dump($new_version, $old_version); exit;
         if (!$new_version || !$old_version) {
             if ($new_version) {
                 PageLayout::postError( _('Unbekannte Version!'));

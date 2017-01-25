@@ -16,7 +16,7 @@
             <col width="100px">
             <col width="100px">
         </colgroup>
-        <thead>
+        <thead class="hidden-tiny-down">
             <tr>
                 <th><?= _('Fach') ?></th>
                 <th><?= _('Abschluss') ?></th>
@@ -41,17 +41,17 @@
                     <br>
                     <?= _('Tragen Sie bitte hier die Angaben aus Ihrem Studierendenausweis ein!') ?>
                 </td>
-            <tr>
-                <? endif; ?>
+            </tr>
+            <? endif; ?>
 
 
-                <? foreach ($user->studycourses as $usc): ?>
+            <? foreach ($user->studycourses as $usc): ?>
             <tr>
-                <td><?= htmlReady($usc->studycourse->name) ?></td>
-                <td><?= htmlReady($usc->degree->name) ?></td>
-                <? if ($allow_change['sg']): ?>
-                    <? if ($modulemanagement_enabled) : ?>
-                        <td>
+                <td data-label="<?= _('Fach') ?>"><?= htmlReady($usc->studycourse->name) ?></td>
+                <td data-label="<?= _('Abschluss') ?>"><?= htmlReady($usc->degree->name) ?></td>
+                <? if ($modulemanagement_enabled) : ?>
+                    <? if ($allow_change['sg']): ?>
+                        <td data-label="<?= _('Version') ?>">
                             <? $versionen = StgteilVersion::findByFachAbschluss($usc->fach_id, $ucs->abschluss_id); ?>
                             <? $versionen = array_filter($versionen, function ($ver) {
                                 return $ver->hasPublicStatus('genehmigt');
@@ -71,8 +71,17 @@
                                 <?= tooltipIcon(_('Keine Version in der gewählten Fach-Abschluss-Kombination verfügbar.'), true) ?>
                             <? endif; ?>
                         </td>
+                    <? else : ?>
+                        <? $version = StgteilVersion::find($ucs->version_id); ?>
+                        <td>
+                            <? if ($version && $version->hasPublicStatus('genehmigt')) : ?>
+                                <?= htmlReady($version->getDisplayName()); ?>
+                            <? endif; ?>
+                        </td>
                     <? endif; ?>
-                    <td>
+                <? endif; ?>
+                <? if ($allow_change['sg']): ?>
+                    <td data-label="<?= _('Fachsemester') ?>">
                         <select name="change_fachsem[<?= $usc->fach_id?>][<?= $ucs->abschluss_id ?>]"
                                 aria-labelledby="fachsemester_label">
                             <? for ($i = 1; $i <= 50; $i += 1): ?>
@@ -80,14 +89,14 @@
                             <? endfor; ?>
                         </select>
                     </td>
-                    <td style="text-align:center">
+                    <td data-label="<?= _('austragen:') ?>">
                         <input type="checkbox" aria-labelledby="austragen_label"
                                name="fach_abschluss_delete[<?= $usc->fach_id ?>]"
                                value="<?= $ucs->abschluss_id ?>">
                     </td>
                 <? else: ?>
-                    <td><?= htmlReady($ucs->semester) ?></td>
-                    <td>
+                    <td data-label="<?= _('Fachsemester:') ?>"><?= htmlReady($ucs->semester) ?></td>
+                    <td data-label="<?= _('austragen:') ?>" style="text-align: right;">
                         <?= Icon::create('accept', 'inactive')->asImg(['class' => 'text-top']) ?>
                     </td>
                 <? endif; ?>

@@ -2164,7 +2164,7 @@ class Seminar
                 $tmp_instname= get_object_name($inst, 'inst');
                 StudipLog::log('CHANGE_INSTITUTE_DATA', $this->id, $inst, 'Die beteiligte Einrichtung "'. $tmp_instname['name'] .'" wurde gelöscht.');
                 $statement->execute(array($this->id, $inst));
-                NotificationCenter::postNotification('SeminarInstitutionDidDelete', $inst, $this->id); 
+                NotificationCenter::postNotification('SeminarInstitutionDidDelete', $inst, $this->id);
 
             }
 
@@ -2177,7 +2177,7 @@ class Seminar
                 $tmp_instname= get_object_name($inst, 'inst');
                 StudipLog::log('CHANGE_INSTITUTE_DATA', $this->id, $inst, 'Die beteiligte Einrichtung "'. $tmp_instname['name'] .'" wurde hinzugefügt.');
                 $statement->execute(array($this->id, $inst));
-                NotificationCenter::postNotification('SeminarInstitutionDidCreate', $inst, $this->id); 
+                NotificationCenter::postNotification('SeminarInstitutionDidCreate', $inst, $this->id);
             }
             if ($todelete || $toinsert) {
                 NotificationCenter::postNotification("CourseDidChangeInstitutes", $this);
@@ -2264,7 +2264,7 @@ class Seminar
             if ($cs) {
                 $prio_delete = AdmissionPriority::unsetPriority($cs->getId(), $user_id, $this->getId());
             }
-            
+
             CalendarScheduleModel::deleteSeminarEntries($user_id, $this->getId());
             NotificationCenter::postNotification("CourseDidGetMember", $this, $user_id);
             NotificationCenter::postNotification('UserDidEnterCourse', $this->id, $user_id);
@@ -2351,7 +2351,7 @@ class Seminar
                 "<i>".htmlReady(get_fullname($user_id))."</i>"));
             NotificationCenter::postNotification("CourseDidChangeMember", $this, $user_id);
             NotificationCenter::postNotification('UserDidLeaveCourse', $this->id, $user_id);
-            StudipLog::log('SEM_USER_DEL', $this->id, $user_id, 'Wurde aus der Veranstaltung rausgeworfen');
+            StudipLog::log('SEM_USER_DEL', $this->id, $user_id, 'Wurde aus der Veranstaltung entfernt');
             $this->course->resetRelation('members');
             return $this;
         } else {
@@ -2644,7 +2644,7 @@ class Seminar
      *
      * @param string $user_id
      * @param string $which_end 'last' or 'first'
-     * @return integer 1 if successfull
+     * @return integer|bool number on waitlist or false if not successful
      */
     public function addToWaitlist($user_id, $which_end = 'last')
     {
@@ -2678,7 +2678,7 @@ class Seminar
         if ($new_admission_member->store()) {
             StudipLog::log('SEM_USER_ADD', $this->id, $user_id, 'awaiting', 'Auf Warteliste gesetzt, Position: ' . $waitpos);
             $this->course->resetRelation('admission_applicants');
-            return 1;
+            return $waitpos;
         }
         return false;
     }
