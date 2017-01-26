@@ -26,7 +26,7 @@ class PermissionEnabledFolder extends StandardFolder
     public function __construct($folderdata = null)
     {
         parent::__construct($folderdata);
-        $this->permission = isset($folderdata['data_content']['permission']) ? $folderdata['data_content']['permission'] : 7;
+        $this->permission = isset($this->folderdata['data_content']['permission']) ? $this->folderdata['data_content']['permission'] : 7;
         $this->must_have_perm = $this->range_type == 'course' ? 'tutor' : 'autor';
     }
 
