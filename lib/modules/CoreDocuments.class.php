@@ -37,7 +37,7 @@ class CoreDocuments implements StudipModule
         $newFilesNavigation->setActiveImage(Icon::create('files', 'info'));
         $treeNavigation = new Navigation(_('Standardansicht'), 'dispatch.php/' . $range_type . '/files/index');
         $newFilesNavigation->addSubNavigation('tree', $treeNavigation);
-        $flatNavigation = new Navigation(_('Flache Ansicht'), 'dispatch.php/' . $range_type . '/files/flat');
+        $flatNavigation = new Navigation(_('Alle Dateien'), 'dispatch.php/' . $range_type . '/files/flat');
         $newFilesNavigation->addSubNavigation('flat', $flatNavigation);
         return array('files' => $navigation, 'files_new' => $newFilesNavigation);
     }

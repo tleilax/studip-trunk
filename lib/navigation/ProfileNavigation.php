@@ -148,7 +148,7 @@ class ProfileNavigation extends Navigation
             $filesSubNav = new Navigation(_('Baumansicht'), 'dispatch.php/files');
             $navigation->addSubNavigation('tree', $filesSubNav);
             
-            $filesSubNav = new Navigation(_('Flache Ansicht'), 'dispatch.php/files/flat');
+            $filesSubNav = new Navigation(_('Alle Dateien'), 'dispatch.php/files/flat');
             $navigation->addSubNavigation('flat', $filesSubNav);
 
             foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) {
