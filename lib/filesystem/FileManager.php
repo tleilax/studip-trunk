@@ -848,22 +848,21 @@ class FileManager
                 //the user has the permissions to copy the folder
 
                 $unique_name = Folder::find($destination_folder->getId())->getUniqueName($source_folder->name);
+                $unique_id = Folder::find($destination_folder->getId())->getNewId();
                 $folder_class_name = get_class($source_folder);
-
-                $new_folder = new $folder_class_name(new Folder());                
-                $data = $source_folder->getEditTemplate();
-                $data['id'] = null;
-                $data['user_id'] = $user->id;
-                $data['parent_id'] = $destination_folder->id;
-                $data['range_id'] = $destination_folder->range_id;
-                $data['range_type'] = $destination_folder->range_type;
-                $data['folder_type'] = $source_folder->folder_type;
-                $data['name'] = $unique_name;
-                $data['data_content'] = $source_folder->data_content;
-                $data['description'] = $source_folder->description;
-
-                //folder is copied, we can store it:
-                $new_folder->setDataFromEditTemplate($data);
+                
+                $clone_folder = clone Folder::find($source_folder->getId());
+                $clone_folder->id = $unique_id;
+                $clone_folder->user_id = $user->id;
+                $clone_folder->parent_id = $destination_folder->id;
+                $clone_folder->range_id = $destination_folder->range_id;
+                $clone_folder->range_type = $destination_folder->range_type;
+                $clone_folder->name = $unique_name;
+                $clone_folder->setNew(true);
+                if ($clone_folder->store()) {
+                    $new_folder = new $folder_class_name($clone_folder);
+                    $new_folder->store();
+                }
 
                 //now we go through all subfolders and copy them:
                 foreach($source_folder->getSubfolders() as $sub_folder) {
@@ -917,9 +916,8 @@ class FileManager
     public static function moveFolder(FolderType $source_folder, FolderType $destination_folder, User $user)
     {
         if($destination_folder->isWritable($user->id)) {
-            $source_data = $source_folder->getEditTemplate();
-            $source_data['parent_id'] = $destination_folder->getId();
-            $source_folder->setDataFromEditTemplate($source_data);
+            $source_folder->parent_id = $destination_folder->getId();
+            $source_folder->store();
             return $source_folder;
         } else {
             return [
