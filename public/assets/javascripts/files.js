@@ -13,18 +13,39 @@ STUDIP.Files = {
             });
         }
     },
+    validateUpload: function (file) {
+        if (!STUDIP.Files.uploadConstraints) {
+            return true;
+        }
+        if (file.size > STUDIP.Files.uploadConstraints.filesize) {
+            return false;
+        }
+        var ending = file.name.lastIndexOf(".") !== -1 ? file.name.substr(file.name.lastIndexOf(".") + 1) : "";
+        console.log(ending);
+        if (STUDIP.Files.uploadConstraints.type == "allow") {
+            return jQuery.inArray(ending, STUDIP.Files.uploadConstraints.file_types) === -1;
+        } else {
+            return jQuery.inArray(ending, STUDIP.Files.uploadConstraints.file_types) !== -1;
+        }
+    },
     upload: function (filelist) {
         var files = 0;
         var folder_id = jQuery(".files_source_selector").data("folder_id");
         var data = new FormData();
 
         //Open upload-dialog
-        jQuery(".file_uploader .filenames").html("");
+        jQuery(".file_upload_window .filenames").html("");
+        jQuery(".file_upload_window .errorbox").hide();
         jQuery.each(filelist, function (index, file) {
             if (file.size > 0) {
-                data.append("file[]", file);
-                jQuery(".file_uploader .filenames").append(jQuery("<li/>").text(file.name));
-                files += 1;
+                if (STUDIP.Files.validateUpload(file)) {
+                    data.append("file[]", file);
+                    jQuery(".file_upload_window .filenames").append(jQuery("<li/>").text(file.name));
+                    files += 1;
+                } else {
+                    jQuery(".file_upload_window .errorbox").show();
+                    jQuery(".file_upload_window .errorbox .errormessage").text("Datei ist zu groß oder hat eine nicht erlaubte Endung.".toLocaleString());
+                }
             }
         });
         if (jQuery(".file_uploader").length > 0) {
@@ -40,7 +61,7 @@ STUDIP.Files = {
         //start upload
         jQuery(".documents[data-folder_id] tbody > tr.dragover").removeClass('dragover');
         if (files > 0) {
-            jQuery(".uploadbar").css("background-size", "0% 100%");
+            jQuery(".file_upload_window .uploadbar").show().css("background-size", "0% 100%");
             jQuery.ajax({
                 'url': STUDIP.URLHelper.getURL("dispatch.php/file/upload/" + folder_id),
                 'data': data,
@@ -59,19 +80,19 @@ STUDIP.Files = {
                                 percent = Math.ceil(position / total * 100);
                             }
                             //Set progress
-                            jQuery(".uploadbar").css("background-size", percent + "% 100%");
+                            jQuery(".file_upload_window .uploadbar").css("background-size", percent + "% 100%");
                         }, false);
                     }
                     return xhr;
                 },
                 'success': function (json) {
-                    jQuery(".uploadbar").css("background-size", "100% 100%");
+                    jQuery(".file_upload_window .uploadbar").css("background-size", "100% 100%");
                     if (json.redirect) {
                         STUDIP.Dialog.fromURL(json.redirect, {
                             title: json.window_title || 'Lizenz auswählen'.toLocaleString()
                         });
                     } else if (json.message) {
-                        jQuery(".uploadbar").hide().parent().append(json.message);
+                        jQuery(".file_uploader .uploadbar").hide().parent().append(json.message);
                     } else {
                         jQuery.each(json.new_html, function (index, tr) {
                             STUDIP.Files.addFile(tr, index * 200);
@@ -85,6 +106,8 @@ STUDIP.Files = {
                      jQuery(textarea).next(".uploader").removeClass("uploading");*/
                 }
             });
+        } else {
+            jQuery(".file_upload_window .uploadbar").hide();
         }
     },
     addFile: function (html, delay) {

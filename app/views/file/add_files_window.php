@@ -44,6 +44,13 @@ if ($folder_id) {
     </div>
 
     <form style="display: none;" class="file_selector">
+        <script>
+            STUDIP.Files.uploadConstraints = {
+                'filesize': <?= (int) $GLOBALS['UPLOAD_TYPES']['default']['file_sizes'][$GLOBALS['perm']->get_perm()] ?>,
+                'type': '<?= $GLOBALS['UPLOAD_TYPES']['default']['type'] ?>',
+                'file_types': <?= json_encode(studip_utf8encode($GLOBALS['UPLOAD_TYPES']['default']['file_types'])) ?>
+            };
+        </script>
         <input type="file" name="files[]" multiple onChange="STUDIP.Files.upload(this.files);">
     </form>
 </div>
