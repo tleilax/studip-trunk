@@ -38,21 +38,7 @@ class Markup
      */
     public static function apply($markup, $text, $trim)
     {
-        if (self::isHtml($text)) {
-            $is_fallback = self::isHtmlFallback($text);
-            $text = self::purify($text);
-
-            if (!$is_fallback) {
-                foreach (\StudipCoreFormat::getCoreStudipMarkup() as $name => $rule) {
-                    // filter out all basic Stud.IP markup rules
-                    $markup->removeMarkup($name);
-                }
-            }
-
-            return $markup->format($text);
-        }
-
-        return self::markupHtmlReady($markup, $text, $trim);
+        return $markup->format(self::markupToHtml($text, $trim));
     }
 
     // signature for HTML entries

@@ -130,7 +130,7 @@ function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_commen
  *                        HTML-links.
  */
 function formatLinks($text, $nl2br=TRUE){
-    $link_markup_rule = StudipFormat::getStudipMarkup('links');
+    $link_markup_rule = StudipCoreFormat::getStudipMarkup('links');
     $markup = new TextFormat();
     $markup->addMarkup(
         'links',
