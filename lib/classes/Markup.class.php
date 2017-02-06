@@ -38,7 +38,7 @@ class Markup
      */
     public static function apply($markup, $text, $trim)
     {
-        return $markup->format(self::markupToHtml($text, $trim));
+        return $markup->format(self::markupToHtml($text, $trim, false));
     }
 
     // signature for HTML entries
@@ -386,9 +386,10 @@ class Markup
      *
      * @param  string  $text  The text.
      * @param  boolean $trim  Trim text before applying markup rules, if TRUE.
+     * @param  boolean $mark  Mark result text as HTML, if TRUE.
      * @return string         The converted string.
      */
-    public static function markupToHtml($text, $trim = true)
+    public static function markupToHtml($text, $trim = true, $mark = true)
     {
         if (self::isHtml($text)) {
             $is_fallback = self::isHtmlFallback($text);
@@ -401,7 +402,7 @@ class Markup
             $text = self::markupHtmlReady(new \StudipCoreFormat(), $text, $trim);
         }
 
-        return self::markAsHtml($text);
+        return $mark ? self::markAsHtml($text) : $text;
     }
 
     public static function removeHTML($html) {

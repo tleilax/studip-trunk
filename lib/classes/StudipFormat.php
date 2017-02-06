@@ -17,25 +17,7 @@ class StudipFormat extends TextFormat
     /**
      * list of global Stud.IP markup rules
      */
-    private static $studip_rules = array(
-
-        // content edit marker
-        'admin_msg' => array(
-            'start'    => '\[admin_msg\]',
-            'end'      => '\[\/admin_msg\]',
-            'callback' => 'StudipFormat::markupText'
-        ),
-
-        // LaTeX markup
-        'tex' => array(
-            'start'    => '\[tex\](.*?)\[\/tex\]',
-            'callback' => 'StudipFormat::markupTex'
-        ),
-        'TEX' => array(
-            'start'    => '\[TEX\](.*?)\[\/TEX\]',
-            'callback' => 'StudipFormat::markupTex'
-        ),
-    );
+    private static $studip_rules = array();
 
     /**
      * Returns the list of global Stud.IP markup rules as an array.
@@ -116,21 +98,5 @@ class StudipFormat extends TextFormat
     public function __construct()
     {
         parent::__construct(self::getStudipMarkups());
-    }
-
-    /**
-     * Basic text formatting: content edit marker
-     */
-    protected static function markupText($markup, $matches, $contents)
-    {
-        return sprintf('<i>%s</i>', $contents);
-    }
-
-    /**
-     * LaTeX markup
-     */
-    protected static function markupTex($markup, $matches)
-    {
-         return preg_replace('/<br\s*\/?>/', '', $matches[0]);
     }
 }
