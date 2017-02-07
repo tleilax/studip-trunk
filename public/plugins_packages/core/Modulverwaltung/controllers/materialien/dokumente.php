@@ -25,7 +25,6 @@ class Materialien_DokumenteController extends MVVController
     {
         parent::before_filter($action, $args);
 
-      //  $this->flashRestore();
         $this->filter = $this->sessGet('filter', array());
 
         // set navigation
@@ -45,23 +44,18 @@ class Materialien_DokumenteController extends MVVController
         PageLayout::setTitle(_('Verwaltung der Dokumente'));
 
         $this->initPageParams();
-
+        $this->initSearchParams();
+        
         $search_result = $this->getSearchResult('Dokument');
 
-        $filter = array_merge(
+        $this->filter = array_merge(
                 array('mvv_dokument.dokument_id' => $search_result),
                 (array) $this->filter);
+        
         $this->dokumente = Dokument::getAllEnriched($this->sortby, $this->order,
                 self::$items_per_page,
-                self::$items_per_page * ($this->page - 1),
-                $filter);
-        if (!empty($this->filter)) {
-            $search_result = array_keys($this->dokumente);
-        }
+                self::$items_per_page * ($this->page - 1), $this->filter);
 
-        if (!isset($this->dokument_id)) {
-            $this->dokument_id = null;
-        }
         if (!count($this->dokumente)) {
             PageLayout::postInfo(sprintf(
                     _('Es wurden noch keine Dokumente angelegt. Klicken Sie %shier%s, um ein neues Dokument anzulegen.'),
@@ -69,7 +63,10 @@ class Materialien_DokumenteController extends MVVController
                     . $this->url_for('/dokument') . '">',
                     '</a>'));
         }
-        $this->count = Dokument::getCountFilter($filter);
+        if (!isset($this->dokument_id)) {
+            $this->dokument_id = null;
+        }
+        $this->count = Dokument::getCount($this->filter);
         $this->show_sidebar_search = true;
         $this->setSidebar();
     }
@@ -150,11 +147,13 @@ class Materialien_DokumenteController extends MVVController
         }
 
         $this->setSidebar();
-        $sidebar = Sidebar::get();
-        $action_widget = $sidebar->getWidget('actions');
-        $action_widget->addLink(_('Log-Einträge dieses Dokumentes'),
-                $this->url_for('shared/log_event/show/Dokument', $this->dokument->id),
-                Icon::create('log', 'clickable'))->asDialog();
+        if (!$this->dokument->isNew()) {
+            $sidebar = Sidebar::get();
+            $action_widget = $sidebar->getWidget('actions');
+            $action_widget->addLink(_('Log-Einträge dieses Dokumentes'),
+                    $this->url_for('shared/log_event/show/Dokument', $this->dokument->id),
+                    Icon::create('log', 'clickable'))->asDialog();
+        }
     }
 
     /**
@@ -180,10 +179,17 @@ class Materialien_DokumenteController extends MVVController
      */
     public function search_action()
     {
-        $this->do_search('Dokument',
-                trim(Request::get('dokument_suche_parameter')),
-                Request::option('dokument_suche'));
-        $this->perform_relayed('index');
+        if (Request::get('reset-search')) {
+            $this->reset_search('dokumente');
+            $this->reset_page();
+        } else {
+            $this->reset_search('dokumente');
+            $this->reset_page();
+            $this->do_search('Dokument',
+                    trim(Request::get('dokument_suche_parameter')),
+                    Request::get('dokument_suche'), $this->filter);
+        }
+        $this->redirect($this->url_for('/index'));
     }
 
     /**
@@ -192,8 +198,6 @@ class Materialien_DokumenteController extends MVVController
     public function reset_search_action()
     {
         $this->reset_search('Dokument');
-        $this->filter = array();
-        $this->sessRemove('filter');
         $this->perform_relayed('index');
     }
 
@@ -202,20 +206,21 @@ class Materialien_DokumenteController extends MVVController
      */
     public function set_filter_action()
     {
+        $this->filter = [];
+        
         // filtered by object type (Zuordnungen)
         $this->filter['mvv_dokument_zuord.object_type']
                 = mb_strlen(Request::get('zuordnung_filter'))
                 ? Request::option('zuordnung_filter') : null;
-        // store filter
-        $this->reset_search();
         $this->sessSet('filter', $this->filter);
-        $this->perform_relayed('index');
+        $this->reset_page();
+        $this->redirect($this->url_for('/index'));
     }
 
     public function reset_filter_action()
     {
         $this->filter = array();
-        $this->reset_search();
+     //   $this->reset_search();
         $this->sessRemove('filter');
         $this->perform_relayed('index');
     }
@@ -243,14 +248,14 @@ class Materialien_DokumenteController extends MVVController
 
         $sidebar = Sidebar::get();
         $sidebar->setImage(Assets::image_path('sidebar/learnmodule-sidebar.png'));
-
+        
+        $widget  = new ActionsWidget();
         if (MvvPerm::get('Dokument')->havePermCreate()) {
-            $widget  = new ActionsWidget();
             $widget->addLink( _('Neues Dokument anlegen'),
                             $this->url_for('/dokument'),
                             Icon::create('file+add', 'clickable'));
-            $sidebar->addWidget($widget);
         }
+        $sidebar->addWidget($widget);
 
         if ($this->show_sidebar_search) {
             $this->sidebar_search();
@@ -272,8 +277,10 @@ class Materialien_DokumenteController extends MVVController
         $template_factory = $this->get_template_factory();
         $query = 'SELECT dokument_id, name '
                 . 'FROM mvv_dokument '
-                . 'WHERE name LIKE :input '
-                . 'OR url LIKE :input';
+                . 'LEFT JOIN mvv_dokument_zuord USING(dokument_id) '
+                . 'WHERE (name LIKE :input '
+                . 'OR url LIKE :input) '
+                . ModuleManagementModel::getFilterSql($this->filter);
         $search_term =
                 $this->search_term ? $this->search_term : _('Dokument suchen');
 
