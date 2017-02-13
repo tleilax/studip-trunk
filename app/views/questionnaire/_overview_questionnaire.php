@@ -52,7 +52,7 @@
         <?= htmlReady($countedAnswers) ?>
     </td>
     <td class="actions">
-        <? if ($questionnaire->isStarted() && $countedAnswers) : ?>
+        <? if ($questionnaire->isRunning() && $countedAnswers) : ?>
             <?= Icon::create("edit", "inactive")->asimg("20px", array('title' => _("Der Fragebogen wurde gestartet und kann nicht mehr bearbeitet werden."))) ?>
         <? else : ?>
             <a href="<?= URLHelper::getLink("dispatch.php/questionnaire/edit/".$questionnaire->getId()) ?>" data-dialog title="<?= _("Fragebogen bearbeiten") ?>">
@@ -65,15 +65,15 @@
 
         <?
         $menu = ActionMenu::get();
-        if ($questionnaire->isStarted()) {
+        if ($questionnaire->isRunning()) {
             $menu->addLink(
-                URLHelper::getLink("dispatch.php/questionnaire/stop/".$questionnaire->getId(), $range_type ? ['redirect' => "questionnaire/courseoverview"] : []),
+                URLHelper::getLink("dispatch.php/questionnaire/stop/".$questionnaire->getId(), in_array($range_type, ['course', 'institute']) ? ['redirect' => "questionnaire/courseoverview"] : []),
                 _("Fragebogen beenden"),
                 Icon::create("pause", "clickable")
             );
         } else {
             $menu->addLink(
-                URLHelper::getLink("dispatch.php/questionnaire/start/".$questionnaire->getId(), $range_type ? ['redirect' => "questionnaire/courseoverview"] : []),
+                URLHelper::getLink("dispatch.php/questionnaire/start/".$questionnaire->getId(), in_array($range_type, ['course', 'institute']) ? ['redirect' => "questionnaire/courseoverview"] : []),
                 _("Fragebogen starten"),
                 Icon::create("play", "clickable")
             );
