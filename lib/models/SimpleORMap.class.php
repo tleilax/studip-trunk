@@ -1855,7 +1855,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     function delete()
     {
         $ret = false;
-        if (!$this->isNew()) {
+        if (!$this->isDeleted() && !$this->isNew()) {
             if ($this->applyCallbacks('before_delete') === false) {
                 return false;
             }
