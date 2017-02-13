@@ -188,7 +188,7 @@ class messaging
         if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
             $attachment_folder = MessageFolder::findMessageTopFolder($msg->id, $msg->autor_id);
             $attachments = FileManager::getFolderFilesRecursive($attachment_folder, $msg->autor_id)['files'];
-            
+
             $size_of_attachments = 0;
             foreach($attachments as $attachment) {
                 $size_of_attachments += $attachment->file->size;
@@ -298,7 +298,7 @@ class messaging
         // Setzen der Message-ID als Range_ID für angehängte Dateien
         if (isset($this->provisonal_attachment_id) && $GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
             $attachment_folder = MessageFolder::findMessageTopFolder($this->provisonal_attachment_id, $user_id);
-            
+
             if($attachment_folder) {
                 $folder_data = $attachment_folder->getEditTemplate();
                 $folder_data['range_id'] = $tmp_message_id;
