@@ -160,12 +160,15 @@ switch ($top_folder->range_type) {
             array()); ?>
 
 <? endif ?>
-<?
-$options = array();
-if (Request::get("to_plugin")) {
-    $options['to_plugin'] = Request::get("to_plugin");
-}
-?>
+
 <div data-dialog-button>	
-    <?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/choose_destination/', $options), array('data-dialog' => 1)) ?>
+    <? if (Request::get("direct_parent")): ?>
+    	<?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/choose_destination/' . $options['fileref_id'], $options), array('data-dialog' => 'size=auto')); ?>
+    <? else: ?>
+    	<? if ($top_folder->range_type == 'course') : ?>
+    		<?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/choose_folder_from_course/', $options), array('data-dialog' => '1')); ?>
+    	<? elseif($top_folder->range_type == 'institute'): ?>
+    		<?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/choose_folder_from_institute/', $options), array('data-dialog' => '1')); ?>
+    	<? endif; ?>
+	<? endif; ?>
 </div>

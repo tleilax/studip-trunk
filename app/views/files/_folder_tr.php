@@ -60,11 +60,11 @@
            <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $folder->getId(), array('copymode' => 'move', 'isfolder' => 1)),
                     _('Ordner verschieben'),
                     Icon::create('folder-empty+move_right', 'clickable', array('size' => 20)),
-                    ['data-dialog' => '1']) ?>
+                    ['data-dialog' => 'size=auto']) ?>
             <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $folder->getId(), array('copymode' => 'copy', 'isfolder' => 1)),
                     _('Ordner kopieren'),
                     Icon::create('folder-empty+add', 'clickable', array('size' => 20)),
-                    ['data-dialog' => '1']) ?>
+                    ['data-dialog' => 'size=auto']) ?>
             <? $actionMenu->addLink(
                     $controller->url_for('file/delete_folder/' . $folder->getId()),
                     _('Ordner löschen'),

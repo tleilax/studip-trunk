@@ -15,6 +15,7 @@ if (Request::get("isfolder")) {
 if ($fileref_id) {
     $options['fileref_id'] = $fileref_id;
 }
+$options['direct_parent'] = true;
 ?>
 <div class="files_source_selector" <?= $hidden ? ' style="display: none;"' : "" ?>>
     <?= _("Ziel auswählen") ?>

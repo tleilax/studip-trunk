@@ -42,7 +42,6 @@ jQuery(function () {
             <tr>
                 <th><?= _("Bild") ?></th>
                 <th><?= _("Name") ?></th>
-                <th><?= _("Zum Dateibereich") ?></th>
             </tr>
         </thead>
         <tbody>
@@ -58,11 +57,6 @@ jQuery(function () {
                             <?= htmlReady($institut['Name']) ?>
                         </a>
                     </td>
-                    <td>
-                        <a href="<?= $controller->link_for("/choose_folder_from_institute/", array_merge($options, array('Institut_id' => $institut['Institut_id']))) ?>" data-dialog>
-                            <?= Icon::create("folder-full", "clickable")->asImg(30) ?>
-                        </a>
-                    </td>
                 </tr>
             <? endforeach ?>
         </tbody>
@@ -70,5 +64,5 @@ jQuery(function () {
 <? endif ?>
 
 <div data-dialog-button>
-    <?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/choose_destination/', $options), array('data-dialog' => 1)) ?>
+    <?= Studip\LinkButton::create(_("Zurück"), $controller->url_for('/choose_destination/' . $options['fileref_id'], $options), array('data-dialog' => 'size=auto')) ?>
 </div>
