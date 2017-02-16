@@ -128,7 +128,9 @@ class MyRealmModel
             foreach($nonstandard_folders as $folder) {
                 $folder = $folder->getTypedFolder();
                 
-                if($folder->isReadable($user_id)) {
+                //A folder must be readable and visible for a user
+                //so that the new files it contains are shown to the user.
+                if($folder->isReadable($user_id) && $folder->isVisible($user_id)) {
                     //first get the amount of all files:
                     $files = $folder->getFiles();
                     $files_count += count($files);
