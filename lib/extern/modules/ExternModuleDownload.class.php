@@ -149,15 +149,17 @@ class ExternModuleDownload extends ExternModule {
         $subfolders = FileManager::getFolderFilesRecursive($top_folder, 'nobody')['folders'];
         
         foreach($top_folder->getFiles() as $file_ref) {
-            if($top_folder->isFileDownloadable($file_ref->id, 'nobody')) {
+            if($file_ref->terms_of_use->download_condition == '0') {
                 $downloadable_file_refs[] = $file_ref;
             }
         }
         
         foreach($subfolders as $subfolder) {
-            foreach($subfolder->getFiles() as $file_ref) {
-                if($subfolder->isFileDownloadable($file_ref->id, 'nobody')) {
-                    $downloadable_file_refs[] = $file_ref;
+            if($subfolder instanceof StandardFolder) {
+                foreach($subfolder->getFiles() as $file_ref) {
+                    if($file_ref->terms_of_use->download_condition == '0') {
+                        $downloadable_file_refs[] = $file_ref;
+                    }
                 }
             }
         }
@@ -260,7 +262,7 @@ class ExternModuleDownload extends ExternModule {
                     "description" => htmlReady(mila_extern($downloadable_file_ref->description,
                                                      $this->config->getValue("Main", "lengthdesc"))),
                     
-                    "mkdate"      => strftime($this->config->getValue("Main", "dateformat"), $row['mkdate']),
+                    "mkdate"      => strftime($this->config->getValue("Main", "dateformat"), $downloadable_file_ref->mkdate),
                     
                     "filesize"    => $downloadable_file_ref->file->size > 1048576 ? round($downloadable_file_ref->file->size / 1048576, 1) . " MB"
                         : round($downloadable_file_ref->file->size / 1024, 1) . " kB",
