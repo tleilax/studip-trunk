@@ -197,58 +197,8 @@ class ExternModuleDownload extends ExternModule {
             
             foreach($downloadable_file_refs as $downloadable_file_ref) {
                 $icon = Icon::create(FileManager::getIconNameForMimeType($downloadable_file_ref->file->mime_type), 'clickable');
-                /*
-                preg_match("/^.+\.([a-z1-9_-]+)$/i", $row['filename'], $file_suffix);
-
-                $icon = "";
-                switch ($file_suffix[1]) {
-                    case "txt" :
-                        if (!$picture_file = $this->config->getValue("Main", "icontxt"))
-                            $icon = Icon::create("file-text", "clickable");
-                        break;
-                    case "xls" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconxls"))
-                            $icon = Icon::create("file-archive", "clickable");
-                        break;
-                    case "ppt" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconppt"))
-                            $icon = Icon::create("file-presentation", "clickable");
-                        break;
-                    case "rtf" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconrtf"))
-                            $icon = Icon::create("file-text", "clickable");
-                        break;
-                    case "zip" :
-                    case "tgz" :
-                    case "gz" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconzip"))
-                            $icon = Icon::create("file-archive", "clickable");
-                        break;
-                    case "jpg" :
-                    case "png" :
-                    case "gif" :
-                    case "jpeg" :
-                    case "tif" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconpic"))
-                            $icon = Icon::create("file-pic", "clickable");
-                        break;
-                    case "pdf" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconpdf"))
-                            $icon = Icon::create("file-pdf", "clickable");
-                        break;
-                    default :
-                        if (!$picture_file = $this->config->getValue("Main", "icondefault"))
-                            $icon = Icon::create("file-generic", "clickable");
-                }
-                
-                if ($icon) {
-                    $picture_file = $icon;
-                }
-                */
                 
                 $download_link = $downloadable_file_ref->getDownloadURL();
-                
-                //$download_link = GetDownloadLink($row['dokument_id'], $row['filename']);
                 
                 // Aufbereiten der Daten
                 $table_row_data["content"] = array(
@@ -278,7 +228,6 @@ class ExternModuleDownload extends ExternModule {
                     $table_row_data['content']['fullname'] = htmlReady($downloadable_file_ref->owner->username);
                 }
                 $out .= $this->elements["TableRow"]->toString($table_row_data);
-            //}while($row = $statement->fetch(PDO::FETCH_ASSOC));
             }
         }
 
