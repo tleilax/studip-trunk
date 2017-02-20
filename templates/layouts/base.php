@@ -38,6 +38,9 @@ if ($navigation) {
     <title data-original="<?= htmlReady(PageLayout::getTitle()) ?>">
       <?= htmlReady(PageLayout::getTitle() . ' - ' . $GLOBALS['UNI_NAME_CLEAN']) ?>
     </title>
+    <script>
+        CKEDITOR_BASEPATH = "<?= Assets::url('javascripts/ckeditor/') ?>";
+    </script>
     <?= PageLayout::getHeadElements() ?>
 
     <script src="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>
