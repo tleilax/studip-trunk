@@ -44,6 +44,9 @@ class Markup
     // signature for HTML entries
     const HTML_MARKER = '<!--HTML-->';
 
+    // signature for HTML fallback entries
+    const HTML_MARKER_FALLBACK = '<!-- HTML: Insert text after this line only. -->';
+
     // regular expression for detecting HTML signature
     const HTML_MARKER_REGEXP = '/^\s*<!--\s*HTML.*?-->/i';
 
@@ -95,28 +98,31 @@ class Markup
      */
     public static function isHtmlFallback($text)
     {
-        // return false if Stud.IP-HTML is not allowed
-        if (!\Config::get()->WYSIWYG_HTML_HEURISTIC_FALLBACK) {
+        $text = trim($text);
+
+        // it's not fallback if the new HTML marker is detected
+        if (MarkupPrivate\Text\startsWith($text, self::HTML_MARKER)) {
             return false;
         }
 
         // it's Stud.IP-HTML if Stud.IP 3.2's HTML marker is detected
-        $trimmed = trim($text);
-        $studip_3_2_Marker = '<!-- HTML: Insert text after this line only. -->';
-        if (MarkupPrivate\String\startsWith($trimmed, $studip_3_2_Marker)) {
+        if (MarkupPrivate\Text\startsWith($text, self::HTML_MARKER_FALLBACK)) {
             return true;
         }
 
-        // it's not Stud.IP-HTML if it's plain HTML: plain HTML
-        // might look like Stud.IP-HTML to '< ... >' heuristic
-        if (self::hasHtmlMarker($text)) {
-            return false;
-        }
-
         // it's Stud.IP-HTML if it fit's the '< ... >' heuristic
-        return $trimmed[0] === '<' && mb_substr($trimmed, -1) === '>';
+        return $text[0] === '<' && mb_substr($text, -1) === '>';
     }
 
+    /**
+     * Return `true` for HTML code and `false` for plain text.
+     *
+     * HTML code must start with a match for `HTML_MARKER_REGEXP`.
+     *
+     * @param string $text  HTML code or plain text.
+     *
+     * @return boolean  `true` for HTML code, `false` for plain text.
+     */
     public static function hasHtmlMarker($text)
     {
         return preg_match(self::HTML_MARKER_REGEXP, $text);
@@ -678,7 +684,7 @@ function startsWith($string, $prefix) {
  * @return boolean  TRUE if string ends with suffix.
  */
 function endsWith($string, $suffix) {
-    return \mb_substr($string, \mb_strlen($string) - \mb_strlen($suffix)) === $suffix;
+    return \mb_substr($string, - \mb_strlen($suffix)) === $suffix;
 }
 
 /**

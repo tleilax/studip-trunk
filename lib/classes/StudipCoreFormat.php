@@ -160,7 +160,7 @@ class StudipCoreFormat extends TextFormat
             # match <a ...="..."> ... </a>
             'start' => '(?xi: <\s* a (?:\s(?:\s* \w+ \s*=\s* "[^"]*" )*)? \s*>)',
             'end' => '(?xi: <\s* \/\s* a \s*>)',
-            'callback' => 'StudipFormat::htmlAnchor'
+            'callback' => 'StudipCoreFormat::htmlAnchor'
         ),
         'htmlImg' => array(
             # avoid replacing img links by studip's links-markup
@@ -180,7 +180,7 @@ class StudipCoreFormat extends TextFormat
                 # match tag end: \/>
                 \s*\/?\s*>
             )',
-            'callback' => 'StudipFormat::htmlImg'
+            'callback' => 'StudipCoreFormat::htmlImg'
         ),
         'links' => array(
             // markup: [text]url

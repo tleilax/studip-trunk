@@ -27,11 +27,7 @@ jQuery(function ($) {
         isHtml: function isHtml(text) {
             // NOTE keep this function in sync with
             // Markup::isHtml in Markup.class.php
-            if (this.hasHtmlMarker(text)) {
-                return true;
-            }
-            text = text.trim();
-            return text[0] === '<' && text[text.length - 1] === '>';
+            return this.hasHtmlMarker(text);
         },
         hasHtmlMarker: function hasHtmlMarker(text) {
             // NOTE keep this function in sync with
@@ -41,7 +37,7 @@ jQuery(function ($) {
         markAsHtml: function markAsHtml(text) {
             // NOTE keep this function in sync with
             // Markup::markAsHtml in Markup.class.php
-            if (this.hasHtmlMarker(text)) {
+            if (this.hasHtmlMarker(text) || text.trim() == '') {
                 return text; // marker already set, don't set twice
             }
             return this.htmlMarker + '\n' + text;
