@@ -59,13 +59,13 @@ class CleanupLogJob extends CronJob
         return array(
             'cronjobs' => array(
                 'type'        => 'boolean',
-                'default'     => false,
+                'default'     => true,
                 'status'      => 'optional',
                 'description' => _('Sollen die Logeinträge für Cronjobs auch gelöscht werden'),
             ),
             'cronjobs-success' => array(
                 'type'        => 'integer',
-                'default'     => 1,
+                'default'     => 7,
                 'status'      => 'optional',
                 'description' => _('Nach wievielen Tagen sollen Logeinträge für '
                                   .'erfolgreiche Cronjobs gelöscht werden (0 für nie)'),
@@ -104,12 +104,18 @@ class CleanupLogJob extends CronJob
         if (!empty($parameters['cronjobs'])) {
             $delete = function($l) {$l->delete();};
             if ($parameters['cronjobs-error'] > 0) {
-                CronjobLog::findEachBySql($delete, "exception != 'N;' AND executed + ? < UNIX_TIMESTAMP()",
-                                              array($parameters['cronjobs-error'] * 24 * 60 * 60));
+                CronjobLog::findEachBySql(
+                    $delete,
+                    "exception IS NOT NULL AND executed + ? < UNIX_TIMESTAMP()",
+                    [$parameters['cronjobs-error'] * 24 * 60 * 60]
+                );
             }
             if ($parameters['cronjobs-success'] > 0) {
-                CronjobLog::findEachBySql($delete, "exception = 'N;' AND executed + ? < UNIX_TIMESTAMP()",
-                                              array($parameters['cronjobs-success'] * 24 * 60 * 60));
+                CronjobLog::findEachBySql(
+                    $delete,
+                    "exception IS NULL AND executed + ? < UNIX_TIMESTAMP()",
+                    [$parameters['cronjobs-success'] * 24 * 60 * 60]
+                );
             }
         }
     }
