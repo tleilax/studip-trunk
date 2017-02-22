@@ -118,6 +118,39 @@ class CoreAdmin implements StudipModule {
                 }
             }
 
+            if ($GLOBALS['SessSemName']['class'] == 'sem') {
+
+                /*
+                 * Is the current SemClass available for grouping other courses?
+                 * -> show child management
+                 */
+                $c = Course::find($course_id);
+                $t = $c->getSemType();
+                $c = $t->getClass();
+                if ($c->isGroup()) {
+
+                    $item = new Navigation(_('Unterveranstaltungen'), 'dispatch.php/course/grouping/children');
+                    $item->setImage(Icon::create('group', 'info_alt'));
+                    $item->setActiveImage(Icon::create('group', 'info'));
+                    $item->setDescription(_('Ordnen Sie dieser Veranstaltung eine oder mehrere Unterveranstaltungen zu.'));
+                    $navigation->addSubNavigation('children', $item);
+
+                /*
+                 * Check if any SemClasses with grouping functionality exist at all
+                 * -> show parent assignment.
+                 */
+                } else if (count(SemClass::getGroupClasses()) > 0) {
+
+                    $item = new Navigation(_('Zuordnung zu Veranstaltungsgruppe'), 'dispatch.php/course/grouping/parent');
+                    $item->setImage(Icon::create('group', 'info_alt'));
+                    $item->setActiveImage(Icon::create('group', 'info'));
+                    $item->setDescription(_('Ordnen Sie diese Veranstaltung einer bestehenden '.
+                        'Veranstaltungsgruppe zu oder lösen Sie eine bestehende Zuordnung.'));
+                    $navigation->addSubNavigation('parent', $item);
+
+                }
+            }
+
             return array('admin' => $navigation);
         } else {
             return array();

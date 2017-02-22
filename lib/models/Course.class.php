@@ -48,6 +48,9 @@
  * @property string lock_rule database column
  * @property string admission_waitlist_max database column
  * @property string admission_disable_waitlist_move database column
+ * @property string is_complete database column
+ * @property string public_topics database column
+ * @property string parent_course database column
  * @property string end_time computed column read/write
  * @property SimpleORMapCollection topics has_many CourseTopic
  * @property SimpleORMapCollection dates has_many CourseDate
@@ -63,6 +66,7 @@
  * @property AuxLockRule aux belongs_to AuxLockRule
  * @property SimpleORMapCollection study_areas has_and_belongs_to_many StudipStudyArea
  * @property SimpleORMapCollection institutes has_and_belongs_to_many Institute
+ * @property Course parent belongs_to Course
  */
 
 class Course extends SimpleORMap
@@ -189,6 +193,15 @@ class Course extends SimpleORMap
             'class_name'        => 'RoomRequest',
             'assoc_foreign_key' => 'seminar_id',
             'on_delete'         => 'delete',
+        );
+        $config['belongs_to']['parent'] = array(
+            'class_name' => 'Course',
+            'foreign_key' => 'parent_course'
+        );
+        $config['has_many']['children'] = array(
+            'class_name' => 'Course',
+            'assoc_foreign_key' => 'parent_course',
+            'order_by' => 'GROUP BY seminar_id ORDER BY VeranstaltungsNummer, Name'
         );
 
         $config['default_values']['lesezugriff'] = 1;

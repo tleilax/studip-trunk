@@ -92,7 +92,8 @@ class SemClass implements ArrayAccess
             'calendar' => "CoreCalendar",
             'elearning_interface' => "CoreElearningInterface",
             'modules' => '{"CoreOverview":{"activated":1,"sticky":1},"CoreAdmin":{"activated":1,"sticky":1}, "CoreResources":{"activated":1,"sticky":0}}',
-            'visible' => 1
+            'visible' => 1,
+            'is_group' => false
         );
         return new SemClass($data);
     }
@@ -342,6 +343,23 @@ class SemClass implements ArrayAccess
     }
 
     /**
+     * Checks if the current sem class is usable for course grouping.
+     */
+    public function isGroup()
+    {
+        return $this->data['is_group'];
+    }
+
+    /**
+     * Checks if any SemClasses exist that provide grouping functionality.
+     * @return bool
+     */
+    public static function getGroupClasses()
+    {
+        return DBManager::get()->fetchAll("SELECT * FROM `sem_classes` WHERE `is_group` = 1 ORDER BY `id`");
+    }
+
+    /**
      * stores all data in the database
      * @return boolean success
      */
@@ -389,6 +407,7 @@ class SemClass implements ArrayAccess
                 "admission_prelim_default = :admission_prelim_default, " .
                 "admission_type_default = :admission_type_default, " .
                 "show_raumzeit = :show_raumzeit, " .
+                "is_group = :is_group, " .
                 "chdate = UNIX_TIMESTAMP() " .
             "WHERE id = :id ".
         "");
@@ -444,7 +463,8 @@ class SemClass implements ArrayAccess
                 : null,
             'admission_prelim_default' => (int)$this->data['admission_prelim_default'],
             'admission_type_default' => (int)$this->data['admission_type_default'],
-            'show_raumzeit' => (int) $this->data['show_raumzeit']
+            'show_raumzeit' => (int) $this->data['show_raumzeit'],
+            'is_group' => (int) $this->data['is_group']
         ));
     }
 
@@ -546,6 +566,8 @@ class SemClass implements ArrayAccess
                return (int) $this->data['admission_prelim_default'];
             case "admission_type_default":
                return (int) $this->data['admission_type_default'];
+            case "is_group":
+               return (bool) $this->data['is_group'];
         }
         //ansonsten
         return $this->data[$offset];
@@ -653,6 +675,7 @@ class SemClass implements ArrayAccess
         _("Community");
         _("Arbeitsgruppen");
         _("importierte Kurse");
+        _("Veranstaltungsgruppen");
 
         _("Hier finden Sie alle in Stud.IP registrierten Lehrveranstaltungen");
         _("Verwenden Sie diese Kategorie, um normale Lehrveranstaltungen anzulegen");
@@ -664,6 +687,7 @@ class SemClass implements ArrayAccess
         _("Wenn Sie Veranstaltungen als Diskussiongruppen zu unterschiedlichen Themen anlegen möchten, verwenden Sie diese Kategorie.");
         _("Hier finden Sie verschiedene Arbeitsgruppen an der %s");
         _("Verwenden Sie diese Kategorie, um unterschiedliche Arbeitsgruppen anzulegen.");
+        _("Veranstaltungen dieser Kategorie dienen als Gruppierungselement, um die Zusammengehörigkeit von Veranstaltungen anderer Kategorien abzubilden.");
     }
 
 }

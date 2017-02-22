@@ -204,6 +204,30 @@ class SemType implements ArrayAccess
     }
 
     /**
+     * Gets all SemTypes that are allowed as group parents.
+     * @return array
+     */
+    public static function getGroupingSemTypes()
+    {
+        return DBManager::get()->fetchFirst("SELECT t.`id` FROM `sem_types` t
+            JOIN `sem_classes` c ON (t.`class` = c.`id`)
+            WHERE c.`is_group` = 1
+            ORDER BY t.`id`");
+    }
+
+    /**
+     * Gets all SemTypes that are allowed as group parents.
+     * @return array
+     */
+    public static function getNonGroupingSemTypes()
+    {
+        return DBManager::get()->fetchFirst("SELECT t.`id` FROM `sem_types` t
+            JOIN `sem_classes` c ON (t.`class` = c.`id`)
+            WHERE c.`is_group` = 0
+            ORDER BY t.`id`");
+    }
+
+    /**
      * Static method only to keep the translationstrings of the values. It is
      * never used within the system.
      */
