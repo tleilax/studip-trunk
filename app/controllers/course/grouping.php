@@ -17,8 +17,8 @@
  * @addtogroup notifications
  *
  * Adding or removing a course to a group triggers a CourseDidAddToGroup or
- * CourseDidRemoveFromGroup notification. The course's ID is transmitted as
- * subject of the notification.
+ * CourseDidRemoveFromGroup notification. The parent and the child course IDs
+ * are transmitted as subjects of the notification.
  */
 class Course_GroupingController extends AuthenticatedController
 {
@@ -127,8 +127,10 @@ class Course_GroupingController extends AuthenticatedController
     {
         if ($parent = Request::option('parent')) {
             $this->course->parent_course = $parent;
+            NotificationCenter::postNotification('CourseWillAddToGroup', $this->course->id, $parent);
             if ($this->course->store()) {
                 $this->sync_users($parent, $this->course->id);
+                NotificationCenter::postNotification('CourseDidAddToGroup', $this->course->id, $parent);
                 PageLayout::postSuccess(_('Die Veranstaltungsgruppe wurde zugeordnet.'));
             } else {
                 PageLayout::postError(_('Die Veranstaltungsgruppe konnte nicht zugeordnet werden.'));
@@ -144,8 +146,11 @@ class Course_GroupingController extends AuthenticatedController
      */
     public function unassign_parent_action()
     {
+        $parent = $this->course->parent_course;
         $this->course->parent_course = null;
+        NotificationCenter::postNotification('CourseWillRemoveFromGroup', $this->course->id, $parent);
         if ($this->course->store()) {
+            NotificationCenter::postNotification('CourseDidRemoveFromGroup', $this->course->id, $parent);
             PageLayout::postSuccess(_('Die Zuordnung zur Veranstaltungsgruppe wurde entfernt.'));
         } else {
             PageLayout::postError(_('Die Zuordnung zur Veranstaltungsgruppe konnte nicht entfernt werden.'));
@@ -162,8 +167,10 @@ class Course_GroupingController extends AuthenticatedController
 
             $child_course = Course::find($child);
             $child_course->parent_course = $this->course->id;
+            NotificationCenter::postNotification('CourseWillAddToGroup', $child, $this->course->id);
             if ($child_course->store()) {
                 $this->sync_users($this->course->id, $child);
+                NotificationCenter::postNotification('CourseDidAddToGroup', $child, $this->course->id);
                 PageLayout::postSuccess(_('Die Unterveranstaltung wurde hinzugefügt.'));
             } else {
                 PageLayout::postError(_('Die Unterveranstaltung konnte nicht hinzugefügt werden.'));
@@ -182,7 +189,9 @@ class Course_GroupingController extends AuthenticatedController
     {
         $child = Course::find($id);
         $child->parent_course = null;
+        NotificationCenter::postNotification('CourseWillRemoveFromGroup', $child, $this->course->id);
         if ($child->store()) {
+            NotificationCenter::postNotification('CourseDidRemoveFromGroup', $child, $this->course->id);
             PageLayout::postSuccess(_('Die Unterveranstaltung wurde entfernt.'));
         } else {
             PageLayout::postError(_('Die Unterveranstaltung konnte nicht entfernt werden.'));
@@ -217,7 +226,6 @@ class Course_GroupingController extends AuthenticatedController
          * Synchronize all members (including lecturers, tutors
          * and deputies with parent course.
          */
-        $text = '';
         foreach (words('user autor tutor dozent') as $permission) {
             $diff->execute(array(
                 'course' => $child_id,
@@ -226,13 +234,13 @@ class Course_GroupingController extends AuthenticatedController
             ));
             foreach ($diff->fetchFirst() as $user) {
                 $sem->addMember($user, $permission);
-                $text .= $user . ' => ' . $permission . '<br>';
 
                 // Add default deputies of current user if applicable.
-                if ($permission == 'dozent' && Config::get()->DEPUTIES_ENABLE && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
+                if ($permission == 'dozent' && Config::get()->DEPUTIES_ENABLE &&
+                        Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
                     foreach (Deputy::findByRange_id($user) as $deputy) {
-                        $text .= $deputy . ' => default deputy of ' . $user . '<br>';
-                        if (!Deputy::exists(array($parent_id, $deputy->user_id)) && !CourseMember::exists(array($parent_id, $deputy->user_id))) {
+                        if (!Deputy::exists(array($parent_id, $deputy->user_id)) &&
+                                !CourseMember::exists(array($parent_id, $deputy->user_id))) {
                             $d = new Deputy();
                             $d->range_id = $parent_id;
                             $d->user_id = $user;
@@ -246,8 +254,8 @@ class Course_GroupingController extends AuthenticatedController
         // Deputies.
         if (Config::get()->DEPUTIES_ENABLE) {
             foreach (Deputy::findByRange_id($child_id) as $deputy) {
-                if (!Deputy::exists(array($parent_id, $deputy->user_id)) && !CourseMember::exists(array($parent_id, $deputy->user_id))) {
-                    $text .= $user . ' => deputy<br>';
+                if (!Deputy::exists(array($parent_id, $deputy->user_id)) &&
+                        !CourseMember::exists(array($parent_id, $deputy->user_id))) {
                     $d = new Deputy();
                     $d->range_id = $parent_id;
                     $d->user_id = $deputy->user_id;
@@ -255,7 +263,6 @@ class Course_GroupingController extends AuthenticatedController
                 }
             }
         }
-        PageLayout::postInfo('Adding users:<br>' . $text);
 
     }
 
