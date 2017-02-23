@@ -517,6 +517,11 @@ class Course_BasicdataController extends AuthenticatedController
         if ($GLOBALS['perm']->have_studip_perm("tutor", $course_id)) {
             $sem = Seminar::GetInstance($course_id);
             if ($sem->addMember($tutor, "tutor")) {
+                // Check if we need to add user to course parent as well.
+                if ($sem->parent_course) {
+                    $this->addTutor($tutor, $sem->parent_course);
+                }
+
                 return MessageBox::success(sprintf(_("%s wurde hinzugefügt."),get_title_for_status('tutor', 1, $sem->status)));
             }
         }
@@ -528,6 +533,11 @@ class Course_BasicdataController extends AuthenticatedController
         if ($GLOBALS['perm']->have_studip_perm("dozent", $course_id)) {
             $sem = Seminar::GetInstance($course_id);
             if (addDeputy($deputy, $sem->getId())) {
+                // Check if we need to add user to course parent as well.
+                if ($sem->parent_course) {
+                    $this->addDeputy($deputy, $sem->parent_course);
+                }
+
                 return MessageBox::success(sprintf(_("%s wurde hinzugefügt."), get_title_for_status('deputy', 1, $sem->status)));
             }
         }
@@ -539,6 +549,11 @@ class Course_BasicdataController extends AuthenticatedController
         $sem = Seminar::GetInstance($course_id);
         if($GLOBALS['perm']->have_studip_perm('dozent', $course_id)) {
             if ($sem->addMember($dozent, "dozent")) {
+                // Check if we need to add user to course parent as well.
+                if ($sem->parent_course) {
+                    $this->addTeacher($dozent, $sem->parent_course);
+                }
+
                 // Only applicable when globally enabled and user deputies enabled too
                 if ($deputies_enabled) {
                     // Check whether chosen person is set as deputy
@@ -582,6 +597,14 @@ class Course_BasicdataController extends AuthenticatedController
         if ($perm->have_studip_perm("dozent", $sem->getId())) {
             if ($dozent !== $user->id) {
                 $sem->deleteMember($dozent);
+
+                // Remove user from subcourses as well.
+                if (count($sem->children) > 0) {
+                    foreach ($sem->children as $child) {
+                        $child->deleteMember($dozent);
+                    }
+                }
+
                 foreach($sem->getStackedMessages() as $key => $messages) {
                     foreach($messages['details'] as $message) {
                         $this->msg[] = array(($key !== "success" ? $key : "msg"), $message);
@@ -613,6 +636,13 @@ class Course_BasicdataController extends AuthenticatedController
         if ($perm->have_studip_perm("dozent", $sem->getId())) {
             if ($deputy !== $user->id) {
                 if (deleteDeputy($deputy, $sem->getId())) {
+                    // Remove user from subcourses as well.
+                    if (count($sem->children) > 0) {
+                        foreach ($sem->children as $child) {
+                            deleteDeputy($deputy, $child->id);
+                        }
+                    }
+
                     $this->msg[] = array("msg", sprintf(_("%s wurde entfernt."),
                         get_title_for_status('deputy', 1, $sem->status)));
                 } else {
@@ -644,6 +674,13 @@ class Course_BasicdataController extends AuthenticatedController
         $this->msg = array();
         if ($perm->have_studip_perm("dozent", $sem->getId())) {
             $sem->deleteMember($tutor);
+            // Remove user from subcourses as well.
+            if (count($sem->children) > 0) {
+                foreach ($sem->children as $child) {
+                    $child->deleteMember($tutor);
+                }
+            }
+
             foreach($sem->getStackedMessages() as $key => $messages) {
                 foreach($messages['details'] as $message) {
                     $this->msg[] = array(($key !== "success" ? $key : "msg"), $message);

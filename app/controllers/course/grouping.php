@@ -126,8 +126,9 @@ class Course_GroupingController extends AuthenticatedController
     public function assign_parent_action()
     {
         if ($parent = Request::option('parent')) {
-            $this->course->parent_course = Course::find($parent)->id;
+            $this->course->parent_course = $parent;
             if ($this->course->store()) {
+                $this->sync_users($parent, $this->course->id);
                 PageLayout::postSuccess(_('Die Veranstaltungsgruppe wurde zugeordnet.'));
             } else {
                 PageLayout::postError(_('Die Veranstaltungsgruppe konnte nicht zugeordnet werden.'));
@@ -159,12 +160,10 @@ class Course_GroupingController extends AuthenticatedController
     {
         if ($child = Request::option('child')) {
 
-            if (count($this->course->children) > 0) {
-                $this->course->children->append = Course::find($child);
-            } else {
-                $this->course->children = SimpleORMapCollection::createFromArray(array(Course::find($child)));
-            }
-            if ($this->course->store()) {
+            $child_course = Course::find($child);
+            $child_course->parent_course = $this->course->id;
+            if ($child_course->store()) {
+                $this->sync_users($this->course->id, $child);
                 PageLayout::postSuccess(_('Die Unterveranstaltung wurde hinzugefügt.'));
             } else {
                 PageLayout::postError(_('Die Unterveranstaltung konnte nicht hinzugefügt werden.'));
@@ -189,6 +188,75 @@ class Course_GroupingController extends AuthenticatedController
             PageLayout::postError(_('Die Unterveranstaltung konnte nicht entfernt werden.'));
         }
         $this->relocate('course/grouping/children');
+    }
+
+    private function sync_users($parent_id, $child_id)
+    {
+        $sem = Seminar::getInstance($parent_id);
+        $csem = Seminar::getInstance($child_id);
+        /*
+         * Find users that are in current course but not in parent.
+         */
+        $diff = DBManager::get()->prepare(
+            "SELECT u.`user_id` FROM `seminar_user` u
+            WHERE u.`Seminar_id` = :course
+                AND u.`status` = :status
+                AND NOT EXISTS (
+                    SELECT `user_id` FROM `seminar_user`
+                    WHERE `Seminar_id` = :parent
+                        AND `status` = :status
+                        AND `user_id` = u.`user_id`)");
+
+        /*
+         * Before synchronizing the lecturers, we add all institutes
+         * from child course.
+         */
+        $sem->setInstitutes(array_merge($sem->getInstitutes(), $csem->getInstitutes()));
+
+        /*
+         * Synchronize all members (including lecturers, tutors
+         * and deputies with parent course.
+         */
+        $text = '';
+        foreach (words('user autor tutor dozent') as $permission) {
+            $diff->execute(array(
+                'course' => $child_id,
+                'status' => $permission,
+                'parent' => $parent_id
+            ));
+            foreach ($diff->fetchFirst() as $user) {
+                $sem->addMember($user, $permission);
+                $text .= $user . ' => ' . $permission . '<br>';
+
+                // Add default deputies of current user if applicable.
+                if ($permission == 'dozent' && Config::get()->DEPUTIES_ENABLE && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
+                    foreach (Deputy::findByRange_id($user) as $deputy) {
+                        $text .= $deputy . ' => default deputy of ' . $user . '<br>';
+                        if (!Deputy::exists(array($parent_id, $deputy->user_id)) && !CourseMember::exists(array($parent_id, $deputy->user_id))) {
+                            $d = new Deputy();
+                            $d->range_id = $parent_id;
+                            $d->user_id = $user;
+                            $d->store();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Deputies.
+        if (Config::get()->DEPUTIES_ENABLE) {
+            foreach (Deputy::findByRange_id($child_id) as $deputy) {
+                if (!Deputy::exists(array($parent_id, $deputy->user_id)) && !CourseMember::exists(array($parent_id, $deputy->user_id))) {
+                    $text .= $user . ' => deputy<br>';
+                    $d = new Deputy();
+                    $d->range_id = $parent_id;
+                    $d->user_id = $deputy->user_id;
+                    $d->store();
+                }
+            }
+        }
+        PageLayout::postInfo('Adding users:<br>' . $text);
+
     }
 
 }
