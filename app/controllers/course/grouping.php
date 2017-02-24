@@ -195,7 +195,7 @@ class Course_GroupingController extends AuthenticatedController
         NotificationCenter::postNotification('CourseWillRemoveFromGroup', $child, $this->course->id);
         if ($child->store()) {
             NotificationCenter::postNotification('CourseDidRemoveFromGroup', $child, $this->course->id);
-            StudipLog::log('SEM_ADD_TO_GROUP', $id, $this->course->id, null, null, $GLOBALS['user']->id);
+            StudipLog::log('SEM_DEL_FROM_GROUP', $id, $this->course->id, null, null, $GLOBALS['user']->id);
             PageLayout::postSuccess(_('Die Unterveranstaltung wurde entfernt.'));
         } else {
             PageLayout::postError(_('Die Unterveranstaltung konnte nicht entfernt werden.'));
