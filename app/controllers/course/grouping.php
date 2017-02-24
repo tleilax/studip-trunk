@@ -131,6 +131,7 @@ class Course_GroupingController extends AuthenticatedController
             if ($this->course->store()) {
                 $this->sync_users($parent, $this->course->id);
                 NotificationCenter::postNotification('CourseDidAddToGroup', $this->course->id, $parent);
+                StudipLog::log('SEM_ADD_TO_GROUP', $this->course->id, $parent, null, null, $GLOBALS['user']->id);
                 PageLayout::postSuccess(_('Die Veranstaltungsgruppe wurde zugeordnet.'));
             } else {
                 PageLayout::postError(_('Die Veranstaltungsgruppe konnte nicht zugeordnet werden.'));
@@ -151,6 +152,7 @@ class Course_GroupingController extends AuthenticatedController
         NotificationCenter::postNotification('CourseWillRemoveFromGroup', $this->course->id, $parent);
         if ($this->course->store()) {
             NotificationCenter::postNotification('CourseDidRemoveFromGroup', $this->course->id, $parent);
+            StudipLog::log('SEM_DEL_FROM_GROUP', $this->course->id, $parent, null, null, $GLOBALS['user']->id);
             PageLayout::postSuccess(_('Die Zuordnung zur Veranstaltungsgruppe wurde entfernt.'));
         } else {
             PageLayout::postError(_('Die Zuordnung zur Veranstaltungsgruppe konnte nicht entfernt werden.'));
@@ -171,6 +173,7 @@ class Course_GroupingController extends AuthenticatedController
             if ($child_course->store()) {
                 $this->sync_users($this->course->id, $child);
                 NotificationCenter::postNotification('CourseDidAddToGroup', $child, $this->course->id);
+                StudipLog::log('SEM_ADD_TO_GROUP', $child, $this->course->id, null, null, $GLOBALS['user']->id);
                 PageLayout::postSuccess(_('Die Unterveranstaltung wurde hinzugefügt.'));
             } else {
                 PageLayout::postError(_('Die Unterveranstaltung konnte nicht hinzugefügt werden.'));
@@ -192,6 +195,7 @@ class Course_GroupingController extends AuthenticatedController
         NotificationCenter::postNotification('CourseWillRemoveFromGroup', $child, $this->course->id);
         if ($child->store()) {
             NotificationCenter::postNotification('CourseDidRemoveFromGroup', $child, $this->course->id);
+            StudipLog::log('SEM_ADD_TO_GROUP', $child, $this->course->id, null, null, $GLOBALS['user']->id);
             PageLayout::postSuccess(_('Die Unterveranstaltung wurde entfernt.'));
         } else {
             PageLayout::postError(_('Die Unterveranstaltung konnte nicht entfernt werden.'));
