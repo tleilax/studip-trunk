@@ -11,6 +11,42 @@ class Moadb extends Migration
     {
         return 'migrates documents to moadb';
     }
+    
+    
+    private function insert52aTermsOfUse($db)
+    {
+        // Copied and modified from cli script add_52a_tables from Stud.IP 3.5:
+        $db->exec("INSERT IGNORE INTO `content_terms_of_use_entries`
+        (`id`, `name`, `download_condition`, `description`, `position`, `icon`)
+        VALUES
+        ('3RD_PARTY_TRUE', 'Ja, dieses Dokument ist frei von Rechten Dritter', 0, '', '0', 'decline-circle'),
+        ('3RD_PARTY_FALSE', 'Nein, dieses Dokument ist **nicht** frei von Rechten Dritter', 1, '', '1', 'check-circle'),
+        ('UNDEF_LICENSE', 'Ungeklärte Lizenz', 2, 'Bitte geben Sie an, welcher Lizenz das hochgeladene Material unterliegt bzw. auf welcher Grundlage Sie es zugänglich machen. Unterbleibt diese Angabe, wird beim Herunterladen auf den ungeklärten Lizenzstatus hingewiesen.', 'Diese Datei enthält Material mit einer ungeklärten Lizenz. Zu Fragen der Nutzung und Weitergabe wenden Sie sich an die Person, die diese Datei hochgeladen hat.', '2', 'question-circle'),
+        ('SELFMADE_NONPUB', 'Selbst verfasstes, nicht publiziertes  Werk', 0, 'Selbst verfasste Werke dürfen Sie ohne Einschränkungen zugänglich machen, wenn Sie die Verwertungsrechte nicht an einen Verlag abgetreten haben.\n\nTypische Beispiele sind selbst verfasste:\n- Präsentationsfolien, auch mit Text- und Bildzitaten aus fremden Quellen\n- Übungsaufgaben, Musterlösungen\n- Computer-Programme\n- Literaturlisten, Seminarpläne\n- Vorlesungsskripte\n\n\nWichtig ist die Beachtung des Zitatrechtes: Wenn Sie Teile fremder Quellen übernehmen, ist das zulässig, solange diese Teile mit Quelle gekennzeicht werden und Gegenstand einer wissenschaftlichen Auseinandersetzung sind.', 'Das Dokument wird von den Autor/-innen zur Nutzung im Rahmen dieser Veranstaltung bereitgestellt. Sie dürfen es für private Zwecke herunterladen und archivieren, nicht jedoch ohne Erlaubnis weitergeben.\n\nFür darüber hinaus gehende Erlaubnisse (Weitergabe, Veränderung) wenden Sie sich an die Autor/-innen oder beachten Sie die Hinweise im Dokument.', '3', 'own-license'),
+        ('FREE_LICENSE', 'Werk mit freier Lizenz', 0, 'Werke, die unter einer freien Lizenz veröffentlich wurden, d.h. deren Weitergabe und zumeist auch Veränderung ohne Lizenzkosten gestattet ist, dürfen Sie ohne Einschränkungen für den Unterricht zugänglich machen.\n\nTypische Beispiele sind:\n- Open-Access-Publikationen\n- Open Educational Ressources (OER)\n- Werke unter Creative-Commons-Lizenzen (z.B. Wikipedia-Inhalte)\n\n\nAchtung: Vergewissern Sie sich im Einzelfall, welche Einschränkungen für die Verbreitung und Veränderung die jeweilige Lizenz ggf. enthält.', 'Das Dokument unterliegt einer freien Lizenz. Sie dürfen es weitergeben und unter Beachtung der Details der Lizenz (s. Angaben im Dokument) verändern und in eigene Werke übernehmen.', '4', 'cc'),
+        ('WITH_LICENSE', 'Nutzungserlaubnis oder Lizenz liegt vor', 1, 'Wenn Sie urheberrechtlich geschützte Werke zugänglich machen wollen und keine der anderen Kategorien passt, benötigen Sie eine Erlaubnis oder kostenpflichtige Lizenz des Inhabers der Verwertungsrechte. Das ist bei publizierten Werken der Verlag, bei nicht publizierten Werken der Autor.\n\nTypische Beispiele sind:\n- Zustimmung von Kollegen oder Studierenden zur Weitergabe von Skripten, Seminararbeiten, Referatsfolien\n- Zustimmung eines Verlages zur Nutzung von Werkteilen für die Lehre\n- Verlags-Erlaubnis zur Nutzung eigener publizierter Werke für die Lehre\n- Erworbene Lizenz für die Weitergabe in Lehrveranstaltung (eine einzelne erworbene Kopie reicht nicht aus!)\n\n\nAchtung: Campus- oder Nationallizenzen erlauben es nicht, dass Sie ein Werk erneut hochladen und somit selbst verbreiten. Verlinken Sie in diesem Fall direkt auf das Angebot Ihrer Bibliothek o.ä.', 'Das Dokument wird zur Nutzung im Rahmen dieser Veranstaltung bereitgestellt. Sie dürfen es für private Zwecke herunterladen und archivieren, nicht jedoch ohne Erlaubnis weitergeben.', '5', 'license'),
+        ('NON_TEXTUAL', 'Abbildungen, Fotos, Filme, Musikstücke, Partituren', 1, 'Urheberrechtlich geschützte Werke, die keine Texte sind, dürfen Sie auch ohne gesonderte Lizenz oder Erlaubnis für die Lehre nutzen, wenn folgende Kriterien erfüllt sind:\n\n- Es handelt sich um kleine Teile des Gesamtwerkes (z.B. max. 10% eines Bildbandes, 5 Minuten bei Filmen, Kinofilme erst nach 2 Jahren)\n- Der Teilnehmerkreis ist abgeschlossen (die Datei kann erst heruntergeladen werden, wenn der Zugang zur Veranstaltung geschlossen ist)\n- Das Werk dient der Veranschaulichung im Rahmen der Lehrveranstaltung\n\n\nZum Hintergrund: Die Bereitstellung erfolgt unter den Erlaubnissen des § 52a UrhG, die notwendige Vergütung erfolgt pauschal über die Länder.', 'Das Dokument wird zur Nutzung im Rahmen dieser Veranstaltung bereitgestellt. Sie dürfen es für private Zwecke herunterladen und archivieren, nicht jedoch ohne Erlaubnis weitergeben.', '6', '52a'),
+        ('TEXT_NO_LICENSE', 'Publizierte Texte ohne erworbene Lizenz oder gesonderte Erlaubnis', 2, 'Veröffentlichte Texte, für die keine Lizenz erworben wurde und für die keine gesonderte Erlaubnis vorliegt, dürfen ab dem 1.1.2017 nicht mehr für Unterrichtsteilnehmer/-innen zugänglich gemacht werden.\n\nTypische Beispiele für Texte, die Sie nicht mehr ohne Lizenz oder Erlaubnis zum Download anbieten dürfen, sind:\n- deutsche und ausländische Verlagsprodukte (Buchauszüge, Zeitungs- oder Zeitschriftenartikel)\n- Auszüge aus vergriffenen Büchern\n- auf Internetseiten frei zugängliche Texte\n\n\nZum Hintergrund: Bislang erlaubte § 52a UrhG die Bereitstellung solcher Texte für Unterrichtszwecke, allerdings haben die Kultusministerkonferenz und die VG Wort einen neuen Rahmenvertrag ausgehandelt, der ab 1.1.2017 keine Pauschalvergütung mehr vorsieht. Ihre Hochschule ist diesem Rahmenvertrag nicht beigetreten, da Sie die damit verbundenen Aufwände und Einschränkungen für nicht akzeptabel hält. [Weitere Informationen]http://www.studip.de', 'Das Dokument kann nicht heruntergeladen werden, da es urheberrechtlich geschützt ist und keine Erlaubnis für die Weitergabe vorliegt.', '7', '52a-stopp2')
+        ");
+
+    }
+    
+    
+    private function updateLicenseIds($db)
+    {
+        //We must convert the old IDs from the document_licenses table
+        //to the new IDs from the content_terms_of_use_entries table:
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = '3RD_PARTY_TRUE' WHERE content_terms_of_use_id = '0';");
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = '3RD_PARTY_FALSE' WHERE content_terms_of_use_id = '1';");
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'UNDEF_LICENSE' WHERE content_terms_of_use_id = '2';");
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'SELFMADE_NONPUB' WHERE content_terms_of_use_id = '3';");
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'FREE_LICENSE' WHERE content_terms_of_use_id = '4';");
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'WITH_LICENSE' WHERE content_terms_of_use_id = '5';");
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'NON_TEXTUAL' WHERE content_terms_of_use_id = '6';");
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'TEXT_NO_LICENSE' WHERE content_terms_of_use_id = '7';");
+    }
+    
+    
 
     public function up()
     {
@@ -92,17 +128,10 @@ class Moadb extends Migration
 
 
         //default terms of use entries:
-        $db->exec("
-            INSERT INTO content_terms_of_use_entries (`id`, `name`, `position`, `description`, `download_condition`, `icon`)
-            VALUES ('3RD_PARTY_FALSE', 'Dokument ist frei von Rechten Dritter', '0', '', '0', 'check-circle'),
-            ('3RD_PARTY_TRUE', 'Dokument ist nicht frei von Rechten Dritter', '1', '', '1', 'decline-circle'),
-            ('SELFMADE_NONPUB', 'Selbst verfasstes, nicht publiziertes Werk', '2', '', '0', 'own-license'),
-            ('FREE_LICENSE', 'Werk mit freier Lizenz', '3', '', '0', 'cc'),
-            ('WITH_LICENSE', 'Nutzungserlaubnis oder Lizenz liegt vor', '4', '', '1', 'license'),
-            ('NON_TEXTUAL', 'Abbildungen, Fotos, Filme, Musikstücke, Partituren', '5', '', '1', '52a'),
-            ('TEXT_NO_LICENSE', 'Publizierte Texte ohne erworbene Lizenz oder gesonderte Erlaubnis', '6', '', '2', '52a-stopp2'),
-            ('UNDEF_LICENSE', 'Ungeklärte Lizenz', '7', '', '2', 'question-circle')
-        ");
+        $this->insert52aTermsOfUse($db);
+        
+        //map old 52 license IDs to new terms of use entries:
+        $this->updateLicenseIds($db);
 
 
 
