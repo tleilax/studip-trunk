@@ -23,11 +23,20 @@ class CoreParticipants implements StudipModule {
         $navigation->setImage(Icon::create('persons', 'info_alt'));
         $navigation->setActiveImage(Icon::create('persons', 'info'));
         $navigation->addSubNavigation('view', new Navigation(_('Teilnehmende'), 'dispatch.php/course/members'));
-        if (Course::find($course_id)->aux_lock_rule) {
+
+        $course  = Course::find($course_id);
+
+        if ($course->aux_lock_rule) {
             $navigation->addSubNavigation('additional', new Navigation(_('Zusatzangaben'), 'dispatch.php/course/members/additional'));
         }
 
-        $navigation->addSubNavigation('statusgroups', new Navigation(_('Gruppen'), 'dispatch.php/course/statusgroups'));
+        // Only courses without children can have statusgroups.
+        if (!$course->getSemClass()->isGroup()) {
+            $navigation->addSubNavigation('statusgroups', new Navigation(_('Gruppen'), 'dispatch.php/course/statusgroups'));
+        // Course groups have a page showing members of sub courses.
+        } else {
+            $navigation->addSubNavigation('children', new Navigation(_('Teilnehmende in Unterveranstaltungen'), 'dispatch.php/course/grouping/members'));
+        }
 
         return array('members' => $navigation);
     }

@@ -141,11 +141,11 @@ class CoreAdmin implements StudipModule {
                  */
                 } else if (count(SemClass::getGroupClasses()) > 0) {
 
-                    $item = new Navigation(_('Zuordnung zu Veranstaltungsgruppe'), 'dispatch.php/course/grouping/parent');
+                    $item = new Navigation(_('Zuordnung zu Hauptveranstaltung'), 'dispatch.php/course/grouping/parent');
                     $item->setImage(Icon::create('group', 'info_alt'));
                     $item->setActiveImage(Icon::create('group', 'info'));
                     $item->setDescription(_('Ordnen Sie diese Veranstaltung einer bestehenden '.
-                        'Veranstaltungsgruppe zu oder lösen Sie eine bestehende Zuordnung.'));
+                        'Hauptveranstaltung zu oder lösen Sie eine bestehende Zuordnung.'));
                     $navigation->addSubNavigation('parent', $item);
 
                 }

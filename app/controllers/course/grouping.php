@@ -45,7 +45,7 @@ class Course_GroupingController extends AuthenticatedController
      */
     public function parent_action()
     {
-        PageLayout::setTitle($this->course->getFullname() . ' - ' . _('Zuordnung zu Veranstaltungsgruppe'));
+        PageLayout::setTitle($this->course->getFullname() . ' - ' . _('Zuordnung zu Hauptveranstaltung'));
         Navigation::activateItem('/course/admin/parent');
 
         $this->parent = $this->course->parent;
@@ -121,6 +121,29 @@ class Course_GroupingController extends AuthenticatedController
     }
 
     /**
+     * Show a list of all members, grouped by child course.
+     */
+    public function members_action()
+    {
+        PageLayout::setTitle(sprintf('%s - %s',
+            Course::findCurrent()->getFullname(),
+            _('Teilnehmende in Unterveranstaltungen')));
+        PageLayout::addScript('members.js');
+        Navigation::activateItem('course/members/children');
+        $this->courses = SimpleORMapCollection::createFromArray(Course::findByParent_Course($this->course->id))
+            ->orderBy(Config::get()->IMPORTANT_SEMNUMBER ? 'veranstaltungsnummer, name' : 'name');
+    }
+
+    /**
+     * Shows members of given child course.
+     * @param $course_id
+     */
+    public function child_course_members_action($course_id)
+    {
+        $this->course = Course::find($course_id);
+    }
+
+    /**
      * Assign a (new) parent to the current course.
      */
     public function assign_parent_action()
@@ -132,9 +155,9 @@ class Course_GroupingController extends AuthenticatedController
                 $this->sync_users($parent, $this->course->id);
                 NotificationCenter::postNotification('CourseDidAddToGroup', $this->course->id, $parent);
                 StudipLog::log('SEM_ADD_TO_GROUP', $this->course->id, $parent, null, null, $GLOBALS['user']->id);
-                PageLayout::postSuccess(_('Die Veranstaltungsgruppe wurde zugeordnet.'));
+                PageLayout::postSuccess(_('Die Hauptveranstaltung wurde zugeordnet.'));
             } else {
-                PageLayout::postError(_('Die Veranstaltungsgruppe konnte nicht zugeordnet werden.'));
+                PageLayout::postError(_('Die Hauptveranstaltung konnte nicht zugeordnet werden.'));
             }
         } else {
             PageLayout::postError(_('Bitte geben Sie eine Veranstaltung an, zu der zugeordnet werden soll.'));
@@ -153,9 +176,9 @@ class Course_GroupingController extends AuthenticatedController
         if ($this->course->store()) {
             NotificationCenter::postNotification('CourseDidRemoveFromGroup', $this->course->id, $parent);
             StudipLog::log('SEM_DEL_FROM_GROUP', $this->course->id, $parent, null, null, $GLOBALS['user']->id);
-            PageLayout::postSuccess(_('Die Zuordnung zur Veranstaltungsgruppe wurde entfernt.'));
+            PageLayout::postSuccess(_('Die Zuordnung zur Hauptveranstaltung wurde entfernt.'));
         } else {
-            PageLayout::postError(_('Die Zuordnung zur Veranstaltungsgruppe konnte nicht entfernt werden.'));
+            PageLayout::postError(_('Die Zuordnung zur Hauptveranstaltung konnte nicht entfernt werden.'));
         }
         $this->relocate('course/grouping/parent');
     }

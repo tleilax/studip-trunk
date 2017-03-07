@@ -675,7 +675,7 @@ class SemClass implements ArrayAccess
         _("Community");
         _("Arbeitsgruppen");
         _("importierte Kurse");
-        _("Veranstaltungsgruppen");
+        _("Hauptveranstaltungen");
 
         _("Hier finden Sie alle in Stud.IP registrierten Lehrveranstaltungen");
         _("Verwenden Sie diese Kategorie, um normale Lehrveranstaltungen anzulegen");

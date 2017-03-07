@@ -18,3 +18,21 @@ jQuery(document).on('click', 'a[rel~="comment_dialog"]', function (event) {
 
     event.preventDefault();
 });
+
+jQuery(function() {
+    jQuery('a.get-course-members').on('click', function() {
+        var dataEl = jQuery('article#course-members-' + jQuery(this).data('course-id'));
+        if (jQuery.trim(dataEl.html()) == '') {
+            $.ajax({
+                url: jQuery(this).data('get-members-url'),
+                dataType: 'html',
+                beforeSend: function (xhr, settings) {
+                    dataEl.html($('<img>').attr('width', 32).attr('height', 32).attr('src', STUDIP.ASSETS_URL + 'images/ajax-indicator-black.svg'));
+                },
+                success: function (html) {
+                    dataEl.html(html);
+                }
+            });
+        }
+    });
+});
