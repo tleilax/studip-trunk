@@ -107,6 +107,50 @@
                     <?= sprintf(_("%s in der Kategorie %s"), $course->getSemType()->offsetGet('name'), $course->getSemClass()->offsetGet('name')) ?>
                 </td>
             </tr>
+            <?php if ($course->parent_course) : ?>
+                <tr>
+                    <td><strong><?= _("Hauptveranstaltung") ?></strong></td>
+                    <td>
+                        <?= sprintf(_('Diese Veranstaltung gehört zur Hauptveranstaltung %s.'),
+                            '<a href="'.URLHelper::getURL('dispatch.php/course/details/',
+                                ['cid' => $course->parent->id]) . '" title="' .
+                            htmlReady($course->parent->getFullname()).'">' .
+                            htmlReady($course->parent->getFullname()) . '</a>') ?>
+                        <?php if ($siblings) : ?>
+                            <section>
+                                <?= _('Ebenfalls zu dieser Hauptveranstaltung gehören:') ?>
+                                <ul>
+                                    <?php foreach ($siblings as $sibling) : ?>
+                                        <li>
+                                            <a href="<?= URLHelper::getURL('dispatch.php/course/details/',
+                                                ['cid' => $sibling->id]) ?>" title="<?= htmlReady($sibling->getFullname()) ?>">
+                                                <?= htmlReady($sibling->getFullname()) ?>
+                                            </a>
+                                        </li>
+                                    <?php endforeach ?>
+                                </ul>
+                            </section>
+                        <?php endif ?>
+                    </td>
+                </tr>
+            <?php elseif ($children) : ?>
+                <tr>
+                    <td><strong><?= _("Unterveranstaltungen") ?></strong></td>
+                    <td>
+                        <?= _('Dies ist eine Hauptveranstaltung mit folgenden Unterveranstaltungen:') ?>
+                        <ul>
+                            <?php foreach ($children as $child) : ?>
+                                <li>
+                                    <a href="<?= URLHelper::getURL('dispatch.php/course/details/',
+                                        ['cid' => $child->id]) ?>" title="<?= htmlReady($child->getFullname()) ?>">
+                                        <?= htmlReady($child->getFullname()) ?>
+                                    </a>
+                                </li>
+                            <?php endforeach ?>
+                        </ul>
+                    </td>
+                </tr>
+            <?php endif ?>
 
             <? if ($prelim_discussion) : ?>
                 <tr>
