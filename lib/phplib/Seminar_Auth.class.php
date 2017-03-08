@@ -122,6 +122,7 @@ class Seminar_Auth
                     $this->auth["uid"] = $uid;
                     $sess->regenerate_session_id(array('auth', '_language', 'phpCAS'));
                     $sess->freeze();
+                    $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
                     return true;
                 }
 
@@ -171,6 +172,7 @@ class Seminar_Auth
                             $this->auth["uid"] = $uid;
                             $sess->regenerate_session_id(array('auth', 'forced_language', '_language'));
                             $sess->freeze();
+                            $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
                             return true;
                         } else {
                             $this->auth_loginform();
@@ -182,6 +184,7 @@ class Seminar_Auth
                     case "reg":
                         if ($uid = $this->auth_doregister()) {
                             $this->auth["uid"] = $uid;
+                            $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
                             return true;
                         } else {
                             $this->auth_registerform();
@@ -245,9 +248,6 @@ class Seminar_Auth
             $this->nobody = false; # We are forcing login, so default auth is
             # disabled
             $this->start(); # Call authentication code
-            if (is_object($GLOBALS['user'])) {
-                $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
-            }
         }
         return true;
     }
@@ -282,6 +282,8 @@ class Seminar_Auth
     {
         // is Single Sign On activated?
         if (($provider = Request::option('sso'))) {
+
+            $this->check_environment();
 
             Metrics::increment('core.sso_login.attempted');
 
@@ -320,26 +322,8 @@ class Seminar_Auth
             }
             throw new AccessDeniedException();
         }
-        // first of all init I18N because seminar_open is not called here...
-        global $_language_path;
 
-        // set up dummy user environment
-        if ($GLOBALS['user']->id !== 'nobody') {
-            $GLOBALS['user'] = new Seminar_User('nobody');
-            $GLOBALS['perm'] = new Seminar_Perm();
-            $GLOBALS['auth'] = $this;
-        }
-
-        if (!($_SESSION['_language'])) {
-            $_SESSION['_language'] = get_accepted_languages();
-        }
-        if (!$_SESSION['_language']) {
-            $_SESSION['_language'] = $GLOBALS['DEFAULT_LANGUAGE'];
-        }
-        // init of output via I18N
-        $_language_path = init_i18n($_SESSION['_language']);
-        include 'config.inc.php';
-
+        $this->check_environment();
         // load the default set of plugins
         PluginEngine::loadPlugins();
 
@@ -375,20 +359,12 @@ class Seminar_Auth
      */
     function auth_validatelogin()
     {
-        global $_language_path;
-
         //prevent replay attack
         if (!Seminar_Session::check_ticket(Request::option('login_ticket'))) {
             return false;
         }
 
-        // check for direct link
-        if (!($_SESSION['_language']) || $_SESSION['_language'] == "") {
-            $_SESSION['_language'] = get_accepted_languages();
-        }
-
-        $_language_path = init_i18n($_SESSION['_language']);
-        include 'config.inc.php';
+        $this->check_environment();
 
         $this->auth["uname"] = Request::get('loginname'); // This provides access for "loginform.ihtml"
         $this->auth["jscript"] = Request::get('resolution') != "";
@@ -437,5 +413,27 @@ class Seminar_Auth
             // we found a stored setting for preferred language
             $_SESSION['_language'] = $user->preferred_language;
         }
+    }
+
+    /**
+     * setup dummy user environment
+     */
+    function check_environment()
+    {
+        global $_language_path;
+
+        if ($GLOBALS['user']->id !== 'nobody') {
+            $GLOBALS['user'] = new Seminar_User('nobody');
+            $GLOBALS['perm'] = new Seminar_Perm();
+            $GLOBALS['auth'] = $this;
+        }
+
+        $_SESSION['_language'] = $_SESSION['_language'] ?: get_accepted_languages();
+
+        // init of output via I18N
+        $_language_path = init_i18n($_SESSION['_language']);
+        include 'config.inc.php';
+
+
     }
 }

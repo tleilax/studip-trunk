@@ -26,7 +26,7 @@
                 <header class="<?= $course->getCycleColorClass($metadate_id) ?>">
                     <h1>
                     <? if ($info = $course->getBookedRoomsTooltip($metadate_id)) : ?>
-                        <?= tooltipIcon($info); ?>
+                        <?= tooltipHtmlIcon($info) ?>
                     <? elseif ($course->getCycleColorClass($metadate_id) === 'red'): ?>
                         <?= tooltipIcon(_('Keine Raumbuchungen vorhanden')) ?>
                     <? else: ?>
@@ -113,9 +113,9 @@
                                             <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                                         </select>
                                         <?= Studip\Button::create(_('Ausführen'), 'run', array(
-                                            'class' => sprintf('actionForAllRegular_%s', $metadate_id),
-                                            'data-dialog' => 'size=big',
-                                            )) ?>
+                                                'class' => 'actionForAllRegular_' . $metadate_id,
+                                                'data-dialog' => 'size=big'
+                                        )) ?>
                                     </td>
                                 </tr>
                             </tfoot>
