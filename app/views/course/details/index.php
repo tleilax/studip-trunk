@@ -113,7 +113,7 @@
                     <td>
                         <?= sprintf(_('Diese Veranstaltung gehört zur Hauptveranstaltung %s.'),
                             '<a href="'.URLHelper::getURL('dispatch.php/course/details/',
-                                ['cid' => $course->parent->id]) . '" title="' .
+                                ['sem_id' => $course->parent->id]) . '" title="' .
                             htmlReady($course->parent->getFullname()).'">' .
                             htmlReady($course->parent->getFullname()) . '</a>') ?>
                         <?php if ($siblings) : ?>
@@ -123,7 +123,7 @@
                                     <?php foreach ($siblings as $sibling) : ?>
                                         <li>
                                             <a href="<?= URLHelper::getURL('dispatch.php/course/details/',
-                                                ['cid' => $sibling->id]) ?>" title="<?= htmlReady($sibling->getFullname()) ?>">
+                                                ['sem_id' => $sibling->id]) ?>" title="<?= htmlReady($sibling->getFullname()) ?>">
                                                 <?= htmlReady($sibling->getFullname()) ?>
                                             </a>
                                         </li>
@@ -142,7 +142,7 @@
                             <?php foreach ($children as $child) : ?>
                                 <li>
                                     <a href="<?= URLHelper::getURL('dispatch.php/course/details/',
-                                        ['cid' => $child->id]) ?>" title="<?= htmlReady($child->getFullname()) ?>">
+                                        ['sem_id' => $child->id]) ?>" title="<?= htmlReady($child->getFullname()) ?>">
                                         <?= htmlReady($child->getFullname()) ?>
                                     </a>
                                 </li>
