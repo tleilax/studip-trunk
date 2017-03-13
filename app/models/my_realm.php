@@ -556,7 +556,7 @@ class MyRealmModel
             return $a->start_time <= $max_sem['beginn'] &&
                    ($min_sem['beginn'] <= $a->start_time + $a->duration_time || $a->duration_time == -1);
         });
-        $courses->orderBy($ordering);
+        $courses = self::sortCourses($courses, $ordering);
 
         return $courses;
     }
@@ -652,6 +652,8 @@ class MyRealmModel
             // filtering courses
             $modules = new Modules();
             $member_ships = User::findCurrent()->course_memberships->toGroupedArray('seminar_id', 'status gruppe');
+            $children = array();
+            $semester_assign = array();
             foreach ($courses as $index => $course) {
                 // export object to array for simple handling
                 $_course                   = $course->toArray($param_array);
@@ -694,22 +696,39 @@ class MyRealmModel
                 if ($show_semester_name && $course->duration_time != 0 && !$course->getSemClass()->offsetGet('studygroup_mode')) {
                     $_course['name'] .= ' (' . $course->getFullname('sem-duration-name') . ')';
                 }
+                if ($course->parent_course) {
+                    $_course['parent_course'] = $course->parent_course;
+                }
                 // add the the course to the correct semester
                 self::getObjectValues($_course);
-                if ($course->duration_time == -1) {
-                    if ($current_semester_nr >= $min_sem_key && $current_semester_nr <= $max_sem_key) {
-                        $sem_courses[$current_semester_nr][$course->id] = $_course;
+
+                if (!$_course['parent_course']) {
+                    if ($course->duration_time == -1) {
+                        if ($current_semester_nr >= $min_sem_key && $current_semester_nr <= $max_sem_key) {
+                            $sem_courses[$current_semester_nr][$course->id] = $_course;
+                            $semester_assign[$course->id] = $current_semester_nr;
+                        } else {
+                            $sem_courses[$max_sem_key][$course->id] = $_course;
+                            $semester_assign[$course->id] = $max_sem_key;
+                        }
                     } else {
-                        $sem_courses[$max_sem_key][$course->id] = $_course;
-                    }
-                } else {
-                    for ($i = $min_sem_key; $i <= $max_sem_key; $i++) {
-                        if ($i >= $_course['sem_number'] && $i <= $_course['sem_number_end']) {
-                            $sem_courses[$i][$course->id] = $_course;
+                        for ($i = $min_sem_key; $i <= $max_sem_key; $i++) {
+                            if ($i >= $_course['sem_number'] && $i <= $_course['sem_number_end']) {
+                                $sem_courses[$i][$course->id] = $_course;
+                                $semester_assign[$course->id] = $i;
+                            }
                         }
                     }
+                } else {
+                    $children[$_course['parent_course']][] = $_course;
                 }
             }
+
+            // Now sort children directly under their parent.
+            foreach ($children as $parent => $kids) {
+                $sem_courses[$semester_assign[$parent]][$parent]['children'] = $kids;
+            }
+
         } else {
             return null;
         }
@@ -1303,5 +1322,41 @@ class MyRealmModel
             }
         }
         return array_reverse($temp);
+    }
+
+    private static function sortCourses($courses, $order)
+    {
+
+        $sorted = $courses->orderBy($order);
+
+        // First get all courses that can act as parent and have child courses.
+        $parents = $courses->filter(function($c) {
+            if ($c->getSemClass()->isGroup()) {
+                return count($c->children) > 0;
+            } else {
+                return false;
+            }
+        });
+
+        // Sort children directly after parents. Only necessary if parents exist.
+        if (count($parents) > 0) {
+
+            $withChildren = new SimpleCollection();
+
+            foreach ($sorted as $c) {
+                if ($c->parent_course == null) {
+                    $withChildren->append($c);
+                    if (count($c->children) > 0) {
+                        foreach ($sorted->findBy('parent_course', $c->id) as $child) {
+                            $withChildren->append($child);
+                        }
+                    }
+                }
+            }
+
+            $sorted = $withChildren;
+        }
+
+        return $sorted;
     }
 }

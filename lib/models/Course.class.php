@@ -67,6 +67,7 @@
  * @property SimpleORMapCollection study_areas has_and_belongs_to_many StudipStudyArea
  * @property SimpleORMapCollection institutes has_and_belongs_to_many Institute
  * @property Course parent belongs_to Course
+ * @property SimpleORMapCollection children has_many Course
  */
 
 class Course extends SimpleORMap

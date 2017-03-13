@@ -1,7 +1,7 @@
 <? foreach ($course_collection as $course)  : ?>
     <? $sem_class = $course['sem_class']; ?>
-    <tr>
-        <td class="gruppe<?= $course['gruppe'] ?>"></td>
+    <tr<?= $children ? ' class="subcourses"' : ''?>>
+        <td class="gruppe<?= $children ? $gruppe : $course['gruppe'] ?>"></td>
         <td>
             <? if ($sem_class['studygroup_mode']) : ?>
                 <?=
@@ -140,4 +140,7 @@
             <? endif ?>
         </td>
     </tr>
+    <?php if ($course['children']) : ?>
+        <?= $this->render_partial('my_courses/_course', array('course_collection' => $course['children'], 'children' => true, 'gruppe' => $course['gruppe'])) ?>
+    <?php endif ?>
 <? endforeach ?>
