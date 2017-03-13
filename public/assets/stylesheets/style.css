@@ -4400,6 +4400,12 @@ input.quicksearchbox {
 .ui-autocomplete {
   z-index: 99999;
 }
+#institute_result {
+  background: #e7ebf1;
+  border-top: 1px solid #28497c;
+  padding: 10px;
+  width: 100%;
+}
 /* skiplink-area highlighting -------------------------------------------- */
 #skip_link_navigation {
   background-color: #fff;
@@ -5080,7 +5086,6 @@ table.calendar-week,
 table.calendar-day {
   border-spacing: 0;
   table-layout: fixed;
-  width: 100%;
 }
 table.calendar-week td,
 table.calendar-day td {
@@ -5122,9 +5127,6 @@ table.calendar-month td.calendar-month-week {
 }
 td.weekdayevents {
   width: 90px;
-}
-table.calendar-week {
-  width: 100%;
 }
 nav.calendar-nav {
   display: -ms-flexbox;
