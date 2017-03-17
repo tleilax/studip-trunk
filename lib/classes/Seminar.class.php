@@ -2267,6 +2267,13 @@ class Seminar
             StudipLog::log('SEM_USER_ADD', $this->id, $user_id, $status, 'Wurde in die Veranstaltung eingetragen');
             $this->course->resetRelation('members');
             $this->course->resetRelation('admission_applicants');
+
+            // Check if we need to add user to parent course as well.
+            if ($this->parent_course) {
+                $parent = new Seminar($this->parent);
+                $parent->addMember($user_id, $status, $force);
+            }
+
             return $this;
         } elseif (($force || $rangordnung[$old_status] < $rangordnung[$status])
             && ($old_status !== "dozent" || $numberOfTeachers > 1)) {
@@ -2323,6 +2330,31 @@ class Seminar
             $query = "DELETE FROM seminar_user WHERE Seminar_id = ? AND user_id = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($this->id, $user_id));
+
+            // If this course is a child of another course...
+            if ($this->parent_course) {
+
+                // ... check if user is member in another sibling ...
+                $other = CourseMember::findBySQL("`user_id` = :user AND `Seminar_id` IN (:courses)",
+                    array('user' => $user_id, 'courses' => $this->parent->children->pluck('seminar_id')));
+                /*
+                 * ... and delete from parent course if this was the only
+                 * course membership in this family.
+                 */
+                if (count($other) == 0) {
+                    $m = CourseMember::find(array($this->parent_course, $user_id));
+                    if ($m) {
+                        $m->delete();
+                    }
+                }
+            }
+
+            if ($this->children != null) {
+                foreach ($this->children as $child) {
+                    $s = new Seminar($child);
+                    $s->deleteMember($user_id);
+                }
+            }
 
             if ($dozenten[$user_id]) {
                 $query = "SELECT termin_id FROM termine WHERE range_id = ?";
