@@ -6010,6 +6010,15 @@ div.file_select_possibilities > * > img,
   margin-left: auto;
   margin-right: auto;
 }
+div.file_select_possibilities > label.content_terms_of_use_entry,
+.folder_type_select_possibilities > label.content_terms_of_use_entry {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+}
 div.file_select_possibilities > button,
 .folder_type_select_possibilities > button {
   cursor: pointer;

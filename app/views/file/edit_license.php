@@ -5,19 +5,8 @@
 
     <?= _("Lizenz wählen") ?>
 
-    <div class="file_select_possibilities">
-        <? foreach ($licenses as $license) : ?>
-            <button type="submit" name="license_id" value="<?= htmlReady($license['id']) ?>">
-                <? if ($license['icon']) : ?>
-                    <? if (filter_var($license['icon'], FILTER_VALIDATE_URL)) : ?>
-                        <img src="<?= htmlReady($license['icon']) ?>" width="50px" height="50px">
-                    <? else : ?>
-                        <?= Icon::create($license['icon'], "clickable")->asImg(50) ?>
-                    <? endif ?>
-                <? endif ?>
-                <?= htmlReady($license['name']) ?>
-            </button>
-        <? endforeach ?>
-    </div>
-
+    <?= $this->render_partial(
+        'file/_terms_of_use_select.php',
+        ['content_terms_of_use_entries' => $licenses]
+        ) ?>
 </form>
