@@ -143,8 +143,8 @@ function checkObjectModule($module)
         $modules = new Modules();
         $local_modules = $modules->getLocalModules($context['id'], Context::getClass());
         $checkslot = $module;
-        if (Context::isCourse() && $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$context->getArtNum()]['class']]) {
-            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$context->getArtNum()]['class']];
+        if (Context::isCourse() && $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][Context::getArtNum()]['class']]) {
+            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][Context::getArtNum()]['class']];
             $new_module_name = "Core".ucfirst($module);
             $mandatory = false;
             foreach (SemClass::getSlots() as $slot) {
