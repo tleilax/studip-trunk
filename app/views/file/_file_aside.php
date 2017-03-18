@@ -4,7 +4,7 @@
             'info'
         ) ?></div>
     <h1><?= htmlReady($file_ref->name) ?></h1>
-    <table class="default">
+    <table class="default nohover">
 
         <tr>
             <td><?= _('Größe') ?></td>
