@@ -70,6 +70,7 @@ class Moadb extends Migration
                  `name` varchar(255)  NOT NULL,
                  `size` int(10) unsigned NOT NULL,
                  `storage` enum('disk','url')  NOT NULL DEFAULT 'disk',
+                 `url_access_type` enum('redirect', 'proxy') NOT NULL DEFAULT 'redirect',
                  `author_name` varchar(100) NOT NULL DEFAULT '',
                  `mkdate` int(10) unsigned NOT NULL,
                  `chdate` int(10) unsigned NOT NULL,
