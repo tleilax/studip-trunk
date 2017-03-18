@@ -273,7 +273,7 @@ class ForumHelpers {
      */
     static function getSeminarId()
     {
-        Context::getId();
+        return Context::getId();
     }
 
     /**
