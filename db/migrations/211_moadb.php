@@ -11,8 +11,8 @@ class Moadb extends Migration
     {
         return 'migrates documents to moadb';
     }
-    
-    
+
+
     private function insert52aTermsOfUse($db)
     {
         // Copied and modified from cli script add_52a_tables from Stud.IP 3.5:
@@ -30,8 +30,8 @@ class Moadb extends Migration
         ");
 
     }
-    
-    
+
+
     private function updateLicenseIds($db)
     {
         //We must convert the old IDs from the document_licenses table
@@ -45,8 +45,8 @@ class Moadb extends Migration
         $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'NON_TEXTUAL' WHERE content_terms_of_use_id = '6';");
         $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'TEXT_NO_LICENSE' WHERE content_terms_of_use_id = '7';");
     }
-    
-    
+
+
 
     public function up()
     {
@@ -70,7 +70,6 @@ class Moadb extends Migration
                  `name` varchar(255)  NOT NULL,
                  `size` int(10) unsigned NOT NULL,
                  `storage` enum('disk','url')  NOT NULL DEFAULT 'disk',
-                 `url_access_type` enum('redirect', 'proxy') NOT NULL DEFAULT 'redirect',
                  `author_name` varchar(100) NOT NULL DEFAULT '',
                  `mkdate` int(10) unsigned NOT NULL,
                  `chdate` int(10) unsigned NOT NULL,
@@ -130,7 +129,7 @@ class Moadb extends Migration
 
         //default terms of use entries:
         $this->insert52aTermsOfUse($db);
-        
+
         //map old 52 license IDs to new terms of use entries:
         $this->updateLicenseIds($db);
 
