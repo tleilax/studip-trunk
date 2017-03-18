@@ -288,7 +288,7 @@ class Institute_BasicdataController extends AuthenticatedController
             $message = sprintf(_('Die Einrichtung "%s" wurde erfolgreich angelegt.'), $institute->name);
             PageLayout::postMessage(MessageBox::success($message));
 
-            openInst($institute->id);
+            object_set_visit($institute_id, "inst");
         } else {
             // Report success
             $message = sprintf(_('Die Änderung der Einrichtung "%s" wurde erfolgreich gespeichert.'), htmlReady($institute->name));

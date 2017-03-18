@@ -172,6 +172,7 @@ class Context {
         if (self::isCourse() || self::isInstitute()) {
             $GLOBALS['SessionSeminar']  =  $id;
             $_SESSION['SessionSeminar'] =& $GLOBALS['SessionSeminar'];
+            $GLOBALS['rechte']          = $GLOBALS['perm']->have_studip_perm("tutor", self::getId());
         }
 
         URLHelper::addLinkParam('cid', $GLOBALS['SessionSeminar']);
@@ -227,4 +228,3 @@ class Context {
 
 // TODO: remove the following global variables from Stud.IP
 // $SessionSeminar, $rechte
-// selectSem, selectInst, openSem, openInst rauswerfen und ersetzen

@@ -77,7 +77,7 @@ class InstituteContext extends Context
      */
     public function getContextType()
     {
-        return \Context::INST;
+        return \Context::INSTITUTE;
     }
 
         /**
