@@ -920,7 +920,7 @@ class FileController extends AuthenticatedController
                             $redirects = $url;
                         }
                     }
-                    if (cout($redirects)) {
+                    if (count($redirects)) {
                         $payload['html'] = $redirects[0];
                     }
 
