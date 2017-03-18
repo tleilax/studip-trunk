@@ -77,6 +77,10 @@ class Context {
      */
     public static function getId()
     {
+        if (!self::$context) {
+            return null;
+        }
+
         return self::$context->getId();
     }
 
@@ -125,6 +129,18 @@ class Context {
         }
     }
 
+    /**
+     * @deprecated
+     */
+    public static function getArtNum()
+    {
+        if (self::isCourse()) {
+            return self::get()->status;
+        } else if (Context::isInstitute()) {
+            return self::get()->type;
+        }
+    }
+
     // TODO: Ersatz für get_object_name?
     public static function getTypeName()
     {
@@ -153,7 +169,12 @@ class Context {
             throw new CheckObjectException(_('Sie haben kein Objekt gewählt.'));
         }
 
-        URLHelper::addLinkParam('cid', $SessionSeminar);
+        if (self::isCourse() || self::isInstitute()) {
+            $GLOBALS['SessionSeminar']  =  $id;
+            $_SESSION['SessionSeminar'] =& $GLOBALS['SessionSeminar'];
+        }
+
+        URLHelper::addLinkParam('cid', $GLOBALS['SessionSeminar']);
 
         if (self::isCourse()) {
             $course = self::get();
@@ -198,44 +219,14 @@ class Context {
 
     function close()
     {
-        self::$context_loaded = false;
         self::$context        = null;
         self::$type           = null;
 
         URLHelper::removeLinkParam('cid');
-
-        /*
-        $SessionSeminar = null;
-        $SessSemName = array();
-        $SemSecLevelRead = null;
-        $SemSecLevelWrite = null;
-        $SemUserStatus = null;
-        $rechte = false;
-
-        unset($_SESSION['SessionSeminar']);
-        unset($_SESSION['SessSemName']);
-        unset($_SESSION['raumzeitFilter']);
-        */
     }
 }
 
 
 // TODO: remove the following global variables from Stud.IP
-// $SessionSeminar, $SessSemName, $SemSecLevelRead, $SemSecLevelWrite, $SemUserStatus, $rechte
-/* The following variables will bet set:
-*   $SessionSeminar                 Veranstaltung id<br>
-*   $SessSemName[0]                 Veranstaltung name<br>
-*   $SessSemName[1]                 Veranstaltung id<br>
-*   $SessSemName[2]                 Veranstaltung ort (room)<br>
-*   $SessSemName[3]                 Veranstaltung Untertitel (subtitle)<br>
-*   $SessSemName[4]                 Veranstaltung start_time (the Semester start_time)<br>
-*   $SessSemName[5]                 Veranstaltung institut_id (the home-intitute)<br>
-*   $SessSemName["art"]             Veranstaltung type in alphanumeric form<br>
-*   $SessSemName["art_num"]         Veranstaltung type in numeric form<br>
-*   $SessSemName["art_generic"]     Veranstaltung generic type in alhanumeric form (self description)<br>
-*   $SessSemName["class"]               Veranstaltung class (sem or inst, in this function always sem)<br>
-*   $SessSemName["header_line"]     the header-line to use on every page of the Veranstaltung<br>
-*/
-
-
+// $SessionSeminar, $SemSecLevelRead, $SemSecLevelWrite, $SemUserStatus, $rechte
 // getHeaderLine, selectSem, selectInst, openSem, openInst rauswerfen und ersetzen

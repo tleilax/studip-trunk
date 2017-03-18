@@ -37,7 +37,7 @@ class Institute_BasicdataController extends AuthenticatedController
         Navigation::activateItem('/admin/institute/details');
 
         //get ID from an open Institut
-        $i_view = $i_id ?: Request::option('i_view', $GLOBALS['SessSemName'][1]);
+        $i_view = $i_id ?: Request::option('i_view', Context::getId());
 
         if (!$i_view) {
             require_once 'lib/admin_search.inc.php';

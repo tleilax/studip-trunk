@@ -28,9 +28,9 @@ class Course_ManagementController extends AuthenticatedController
             throw new Trails_Exception(400);
         }
         if (Context::isCourse()) {
-            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][Context::get()->art_num]['class']] ?: SemClass::getDefaultSemClass();
+            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][Context::get()->status]['class']] ?: SemClass::getDefaultSemClass();
         } else {
-            $sem_class = SemClass::getDefaultInstituteClass(Context::get()->art_num);
+            $sem_class = SemClass::getDefaultInstituteClass(Context::get()->type);
         }
         if (!$sem_class->isModuleAllowed("CoreAdmin")) {
             throw new Exception(_('Dies ist eine Studiengruppe und kein Seminar!'));

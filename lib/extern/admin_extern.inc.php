@@ -48,7 +48,7 @@ if (Request::option('view') == 'extern_global') {
     $range_id = 'studip';
     URLHelper::addLinkParam('view', 'extern_global');
 } else {
-    $range_id = $SessSemName[1] ? $SessSemName[1] : '';
+    $range_id = Context::getId() ? Context::getId() : '';
     URLHelper::addLinkParam('view', 'extern_inst');
 }
 URLHelper::addLinkParam('cid', $range_id);
