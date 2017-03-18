@@ -166,7 +166,8 @@ if (!$rechte && $open_cmd) {
     $owner = FALSE;
 }
 
-if(!$rechte && in_array($open_cmd, array('n','d','c','sc','m','co')) && $SemUserStatus == "autor"){
+if(!$rechte && in_array($open_cmd, array('n','d','c','sc','m','co'))
+        && $perm->get_studip_perm(Context::getId()) == "autor"){
     $create_folder_perm = $folder_tree->checkCreateFolder($open_id, $user->id);
 } else {
     $create_folder_perm = false;
@@ -461,7 +462,7 @@ if ($rechte || $owner || $create_folder_perm) {
 }
 
 //Upload, Check auf Konsistenz mit Seminar-Schreibberechtigung
-if (($SemUserStatus == "autor") || ($rechte)) {
+if (($perm->get_studip_perm(Context::getId()) == "autor") || ($rechte)) {
     //wurde Code fuer Hochladen uebermittelt (=id+"_u_"), wird entsprechende Variable gesetzt
     if ($open_cmd == 'u' && (!Request::submitted("cancel"))) {
         $folder_system_data["upload"]=$open_id;

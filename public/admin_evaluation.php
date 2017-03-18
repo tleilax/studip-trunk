@@ -54,8 +54,8 @@ include_once 'lib/seminar_open.php';
 
 PageLayout::setHelpKeyword("Basis.Evaluationen");
 $title = _('Verwaltung von Evaluationen');
-if (Context::getId()) {
-    $title = getHeaderLine(Context::getId()) . ' - ' . $title;
+if (Context::get()) {
+    $title = Context::getHeaderLine() . ' - ' . $title;
 }
 PageLayout::setTitle($title);
 

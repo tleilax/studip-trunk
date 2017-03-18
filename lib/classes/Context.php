@@ -180,9 +180,7 @@ class Context {
             $course = self::get();
 
             // check if current user can access the object
-            if (!($SemUserStatus = $perm->get_studip_perm($course["Seminar_id"]))) {
-                $SemUserStatus = "nobody";
-
+            if (!$perm->get_studip_perm($course["Seminar_id"])) {
                 if ($course['lesezugriff'] > 0 || !get_config('ENABLE_FREE_ACCESS')) {
                     // redirect to login page if user is not logged in
                     $auth->login_if($auth->auth["uid"] == "nobody");
@@ -228,5 +226,5 @@ class Context {
 
 
 // TODO: remove the following global variables from Stud.IP
-// $SessionSeminar, $SemSecLevelRead, $SemSecLevelWrite, $SemUserStatus, $rechte
-// getHeaderLine, selectSem, selectInst, openSem, openInst rauswerfen und ersetzen
+// $SessionSeminar, $rechte
+// selectSem, selectInst, openSem, openInst rauswerfen und ersetzen

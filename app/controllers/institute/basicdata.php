@@ -55,7 +55,7 @@ class Institute_BasicdataController extends AuthenticatedController
         }
 
         //Change header_line if open object
-        $header_line = getHeaderLine($i_view);
+        $header_line = Context::getHeaderLine();
         if ($header_line) {
             PageLayout::setTitle($header_line . ' - ' . PageLayout::getTitle());
         }

@@ -29,7 +29,7 @@ class CoreAdmin implements StudipModule {
             $main = new Navigation(_('Verwaltung'), 'dispatch.php/course/management');
             $navigation->addSubNavigation('main', $main);
 
-            if (Context::isInstitute()) {
+            if (!Context::isInstitute()) {
                 $item = new Navigation(_('Grunddaten'), 'dispatch.php/course/basicdata/view/' . $course_id);
                 $item->setImage(Icon::create('edit', 'clickable'));
                 $item->setDescription(_('Bearbeiten der Grundeinstellungen dieser Veranstaltung.'));
