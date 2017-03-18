@@ -380,11 +380,11 @@ function groups($parent_id)
                 if ($ausgabeformat==1 && !$freetype) {
                     if ($group_type === 'normal') {
                         echo '<a href="' . URLHelper::getLink('?eval_id=' . $eval_id . '&evalgroup_id=' . $group['evalgroup_id'] . '&group_type=table&cmd=change_group_type#anker') . '">';
-                        echo Icon::create('vote-stopped', 'clickable', ['title' => sprintf(_('Zum Darstellungstyp %s wechseln'), _('Tabelle'))])->asImg();
+                        echo Icon::create('vote-stopped', 'clickable', ['title' => _('Zum Darstellungstyp Tabelle wechseln')])->asImg();
                         echo '</a>';
                     } else {
                         echo '<a href="' . URLHelper::getLink('?eval_id=' . $eval_id . '&evalgroup_id=' . $group['evalgroup_id'] . '&group_type=normal&cmd=change_group_type#anker') . '">';
-                        echo Icon::create('vote', 'clickable', ['title' => sprintf(_('Zum Darstellungstyp %s wechseln'), _('Normal'))])->asImg();
+                        echo Icon::create('vote', 'clickable', ['title' => _('Zum Darstellungstyp Normal wechseln')])->asImg();
                     }
                 } else {
                     echo '&nbsp;';
@@ -577,7 +577,7 @@ if ($evaluation = $statement->fetch(PDO::FETCH_ASSOC)) {
     echo "  <tr>\n";
     echo "    <td colspan=\"2\" class=\"blank\"><font size=\"-1\">\n";
     echo "      &nbsp;&nbsp;".$number_of_votes." "._("Teilnehmer insgesamt").".&nbsp;";
-    echo "      "._("Die Teilnahme war")." ". ($evaluation['anonymous']==0 ? _("nicht") : "") . " "._("anonym").".";
+    echo "      ". ($evaluation['anonymous'] == 0 ? _('Die Teilnahme war nicht anonym.') : _('Die Teilnahme war anonym.')) . ' ';
     echo "      "._("Eigentümer").": ".$db_owner.". ".("Erzeugt am").": ".date('d.m.Y H:i:s');
     echo "    </font></td>\n";
     echo "  </tr>\n";
