@@ -6075,6 +6075,9 @@ div.file_select_possibilities input[name=folder_type]:checked + label img,
 .folder_type_select_possibilities input[name=folder_type]:checked + label img {
   filter: invert(100%) brightness(200%);
 }
+div.file_select_possibilities.content_terms_of_use_icons {
+  justify-content: left;
+}
 input.document-checkbox[type="checkbox"] {
   display: none;
 }

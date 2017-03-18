@@ -2,7 +2,7 @@
 <fieldset>
     <legend><?= _('Nutzungsbedingungen auswählen') ?></legend>
 
-    <div class="file_select_possibilities" id="file_license_chooser_1">
+    <div class="file_select_possibilities content_terms_of_use_icons" id="file_license_chooser_1">
         <? foreach ($content_terms_of_use_entries as $content_terms_of_use_entry) : ?>
             <input type="radio" name="content_terms_of_use_id"
                 value="<?= htmlReady($content_terms_of_use_entry->id) ?>"
