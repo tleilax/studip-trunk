@@ -6010,14 +6010,20 @@ div.file_select_possibilities > * > img,
   margin-left: auto;
   margin-right: auto;
 }
-div.file_select_possibilities > label.content_terms_of_use_entry,
-.folder_type_select_possibilities > label.content_terms_of_use_entry {
+div.file_select_possibilities > label.content_terms_of_use_entry:not(.undecorated),
+.folder_type_select_possibilities > label.content_terms_of_use_entry:not(.undecorated) {
   width: 40px;
   min-width: 40px;
   max-width: 40px;
   height: 40px;
   min-height: 40px;
   max-height: 40px;
+}
+div.file_select_possibilities > label.content_terms_of_use_entry:not(.undecorated) img,
+.folder_type_select_possibilities > label.content_terms_of_use_entry:not(.undecorated) img {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 div.file_select_possibilities > button,
 .folder_type_select_possibilities > button {

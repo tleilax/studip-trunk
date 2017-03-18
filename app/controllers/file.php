@@ -815,7 +815,7 @@ class FileController extends AuthenticatedController
         $this->file_refs = FileRef::findMany(Request::getArray("file_refs"));
         if (Request::isPost()) {
             foreach ($this->file_refs as $file_ref) {
-                $file_ref['content_terms_of_use_id'] = Request::option("license_id");
+                $file_ref['content_terms_of_use_id'] = Request::option("content_terms_of_use_id");
                 $file_ref->store();
             }
             if (Request::isAjax()) {

@@ -21,14 +21,14 @@
                     <?= _('Beschreibung') ?>
                     <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($file_ref->description); ?></textarea>
                 </label>
-
-                <?= $this->render_partial(
-                    'file/_terms_of_use_select.php',
-                    ['content_terms_of_use_entries' => $content_terms_of_use_entries]
-                    ) ?>
-
             </fieldset>
-
+            
+            <?= $this->render_partial(
+                    'file/_terms_of_use_select.php',
+                    ['content_terms_of_use_entries' => $content_terms_of_use_entries,
+                    'selected_terms_of_use_id' => $file_ref->content_terms_of_use_id]
+                    ) ?>
+            
             <div data-dialog-button>
                 <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
             </div>

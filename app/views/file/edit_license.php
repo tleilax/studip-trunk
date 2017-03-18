@@ -3,10 +3,14 @@
         <input type="hidden" name="file_refs[]" value="<?= htmlReady($file_ref->getId()) ?>">
     <? endforeach ?>
 
-    <?= _("Lizenz wählen") ?>
-
     <?= $this->render_partial(
         'file/_terms_of_use_select.php',
-        ['content_terms_of_use_entries' => $licenses]
+        [
+            'content_terms_of_use_entries' => $licenses,
+            'selected_terms_of_use_id' => $file_ref->content_terms_of_use_id
+        ]
         ) ?>
+    <div data-dialog-button>
+        <?= Studip\Button::create(_('Speichern')) ?>
+    </div>
 </form>

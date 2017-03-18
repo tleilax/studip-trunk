@@ -249,6 +249,17 @@ STUDIP.Files = {
             jQuery('table.documents thead th input[data-proxyfor]').prop('indeterminate', null);
             jQuery('table.documents thead th input[data-proxyfor]').prop('checked', false);
         }
+    },
+    
+    
+    updateTermsOfUseDescription: function(e) {
+        
+        //make all descriptions invisible:
+        jQuery('div.terms_of_use_description_container > section').addClass('invisible');
+        
+        var selected_id = jQuery(this).val();
+        
+        jQuery('#terms_of_use_description-' + selected_id).removeClass('invisible');
     }
 };
 
@@ -281,4 +292,6 @@ jQuery(function () {
             jQuery.tablesorter.filter.bindSearch(jQuery('table.documents'), jQuery('.tablesorterfilter'));
         }
     });
+    
+    jQuery(document).on('click', '#file_license_chooser_1 > input[type=radio]', STUDIP.Files.updateTermsOfUseDescription);
 });
