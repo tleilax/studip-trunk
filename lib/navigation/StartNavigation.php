@@ -41,14 +41,20 @@ class StartNavigation extends Navigation
                     SELECT COUNT(*)
                     FROM questionnaire_assignments
                         INNER JOIN questionnaires ON (questionnaires.questionnaire_id = questionnaire_assignments.questionnaire_id)
+                    LEFT JOIN object_user_visits b ON (b.object_id = questionnaires.questionnaire_id AND b.user_id = :user_id AND b.type = 'vote')
+
                     WHERE questionnaire_assignments.range_id = 'start'
-                        AND questionnaires.visible = 1
-                        AND questionnaires.startdate IS NOT NULL
-                        AND questionnaires.startdate > UNIX_TIMESTAMP()
-                        AND questionnaires.startdate > :threshold
-                        AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate <= UNIX_TIMESTAMP())
+                        AND questionnaires.chdate > IFNULL(b.visitdate, :threshold)
+                        AND questionnaires.user_id <> :user_id
+                        AND questionnaires.startdate IS NOT NULL AND questionnaires.startdate < UNIX_TIMESTAMP()
+                AND (
+                    ((questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP()) AND questionnaires.resultvisibility = 'always')
+                OR 
+               (questionnaires.stopdate IS NOT NULL AND questionnaires.stopdate < UNIX_TIMESTAMP() AND questionnaires.resultvisibility <> 'never')
+               )
                 ");
-                $statement->execute(array('threshold' => $threshold));
+                $statement->execute(array('threshold' => $threshold,
+                    ':user_id' => $GLOBALS['user']->id));
                 $vote = (int) $statement->fetchColumn();
 
                 $query = "SELECT COUNT(IF(chdate > IFNULL(b.visitdate, :threshold) AND d.author_id != :user_id, a.eval_id, NULL))
@@ -132,20 +138,20 @@ class StartNavigation extends Navigation
 
         $this->addSubNavigation('my_courses', $navigation);
 
-        // course administration 
-       if ($perm->have_perm('admin')) { 
-           $navigation = new Navigation(_('Verwaltung von Veranstaltungen'), 'dispatch.php/my_courses'); 
+        // course administration
+       if ($perm->have_perm('admin')) {
+           $navigation = new Navigation(_('Verwaltung von Veranstaltungen'), 'dispatch.php/my_courses');
 
-           if ($perm->have_perm($sem_create_perm)) { 
+           if ($perm->have_perm($sem_create_perm)) {
                $navigation->addSubNavigation('new_course', new Navigation(_('Neue Veranstaltung anlegen'), 'dispatch.php/course/wizard'));
-           } 
+           }
 
-           if (get_config('STUDYGROUPS_ENABLE')) { 
+           if (get_config('STUDYGROUPS_ENABLE')) {
                $navigation->addSubNavigation('new_studygroup', new Navigation(_('Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1'));
-           } 
+           }
 
-           $this->addSubNavigation('admin_course', $navigation); 
-       } 
+           $this->addSubNavigation('admin_course', $navigation);
+       }
 
         // insitute administration
         if ($perm->have_perm('admin')) {

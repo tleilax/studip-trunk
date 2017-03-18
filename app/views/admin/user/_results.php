@@ -60,6 +60,9 @@ use Studip\Button, Studip\LinkButton;
                            title="<?= _('Profil des Benutzers anzeigen') ?>">
                             <?= $user->username ?>
                         </a>
+                        <?  if ($user->locked) :?>
+                            <?= Icon::create('lock-locked','info', tooltip2(sprintf(_('%s ist gesperrt'), htmlReady($user->getFullname()))))?>
+                        <?endif?>
                     </td>
                     <td>
                         <?
@@ -123,6 +126,20 @@ use Studip\Button, Studip\LinkButton;
                                 _('Datei- und Aktivitätsübersicht'),
                                 Icon::create('vcard', 'clickable', ['title' => _('Datei- und Aktivitätsübersicht')]),
                                 ['data-dialog' => 'size=50%']
+                            );
+                        }
+                        if ($user->locked) {
+                            $actionMenu->addLink(
+                                $controller->url_for('admin/user/unlock/' . $user->user_id, ['from_index' => 1]),
+                                _('Personenaccount entsperren'),
+                                Icon::create('lock-unlocked', 'clickable', ['title' => _('Personenaccount entsperren')])
+                            );
+                        } else {
+                            $actionMenu->addLink(
+                                $controller->url_for('admin/user/lock_comment/' . $user->user_id, ['from_index' => 1]),
+                                _('Personenaccount sperren'),
+                                Icon::create('lock-locked', 'clickable', ['title' => _('Personenaccount sperren')]),
+                                ['data-dialog' => 'size=auto']
                             );
                         }
                         $actionMenu->addButton(
