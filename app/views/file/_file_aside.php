@@ -22,7 +22,12 @@
             <td><?= _('Besitzer/-in') ?></td>
             <td>
                 <? if($file_ref->owner): ?>
-                    <?= htmlReady($file_ref->owner->getFullName()) ?>
+                    <a href="<?= URLHelper::getLink(
+                        'dispatch.php/profile',
+                        ['username' => $file_ref->owner->username]
+                        ) ?>">
+                        <?= htmlReady($file_ref->owner->getFullName()) ?>
+                    </a>
                 <? else: ?>
                     <?= 'user_id ' . htmlReady($file_ref->user_id) ?>
                 <? endif ?>

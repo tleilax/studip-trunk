@@ -18,7 +18,7 @@
         <? if($file_ref->description): ?>
             <?= htmlReady($file_ref->description); ?>
         <? else: ?>
-            <?= _('Keine Beschreibung vorhanden!') ?>
+            <?= _('Keine Beschreibung vorhanden.') ?>
         <? endif ?>
         </article>
     </div>
