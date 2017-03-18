@@ -920,7 +920,9 @@ class FileController extends AuthenticatedController
                             $redirects = $url;
                         }
                     }
-                    $payload['html'] = $redirects[0];
+                    if (cout($redirects)) {
+                        $payload['html'] = $redirects[0];
+                    }
 
                     $payload = array("func" => "STUDIP.Files.addFile", 'payload' => $payload);
                     $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($payload)));
