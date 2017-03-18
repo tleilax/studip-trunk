@@ -49,12 +49,11 @@ class Context {
                 self::$type = 'user';
             }
         } else {
-            if ($id) {
-                $possible_sorms = "User Course Institute";
-                foreach(words($possible_sorms) as $sorm) {
-                    if (self::$context = $sorm::find($id)) {
-                        self::$type = strtolower($sorm);
-                    }
+            $possible_sorms = "Course Institute User";
+            foreach(words($possible_sorms) as $sorm) {
+                if ($context = $sorm::find($id)) {
+                    self::$context = $context;
+                    self::$type = strtolower($sorm);
                 }
             }
         }
@@ -162,6 +161,8 @@ class Context {
 
     public static function set($id)
     {
+        global $perm, $auth, $rechte;
+
         self::close();
         self::loadContext($id);
 
@@ -172,7 +173,7 @@ class Context {
         if (self::isCourse() || self::isInstitute()) {
             $GLOBALS['SessionSeminar']  =  $id;
             $_SESSION['SessionSeminar'] =& $GLOBALS['SessionSeminar'];
-            $GLOBALS['rechte']          = $GLOBALS['perm']->have_studip_perm("tutor", self::getId());
+            $rechte                     = $perm->have_studip_perm("tutor", self::getId());
         }
 
         URLHelper::addLinkParam('cid', $GLOBALS['SessionSeminar']);
@@ -185,7 +186,10 @@ class Context {
                 if ($course['lesezugriff'] > 0 || !get_config('ENABLE_FREE_ACCESS')) {
                     // redirect to login page if user is not logged in
                     $auth->login_if($auth->auth["uid"] == "nobody");
-                    throw new AccessDeniedException();
+
+                    if (!$perm->get_studip_perm($course["Seminar_id"])) {
+                        throw new AccessDeniedException();
+                    }
                 }
             }
 
@@ -207,7 +211,10 @@ class Context {
             if (!get_config('ENABLE_FREE_ACCESS') && !$perm->have_perm('user')) {
                 // redirect to login page if user is not logged in
                 $auth->login_if($auth->auth["uid"] == "nobody");
-                throw new AccessDeniedException();
+
+                if (!$perm->have_perm('user')) {
+                    throw new AccessDeniedException();
+                }
             }
         } else if (self::getType() == self::USER) {
 
