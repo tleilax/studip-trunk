@@ -373,7 +373,7 @@ class StudipNews extends SimpleORMap {
                 if ($operation == 'view'
                     && ($type != 'sem'
                         || $GLOBALS['perm']->have_studip_perm('user', $range_id)
-                        || (get_config('ENABLE_FREE_ACCESS') && Seminar::getInstance($range_id)->read_level == 0)
+                        || (Config::get()->ENABLE_FREE_ACCESS && Seminar::getInstance($range_id)->read_level == 0)
                         )) {
                         return $news_range_perm_cache[$user_id.$range_id.$operation] = true;
                     }
@@ -414,20 +414,6 @@ class StudipNews extends SimpleORMap {
         $config['belongs_to']['owner'] = array(
             'class_name' => 'User',
             'foreign_key' => 'user_id',
-        );
-
-        $config['notification_map'] = array(
-            'after_create'  => 'NewsDidCreate',
-            'before_create' => 'NewsWillCreate',
-
-            'after_delete'  => 'NewsDidDelete',
-            'before_delete' => 'NewsWillDelete',
-
-            'after_store'   => 'NewsDidStore',
-            'before_store'  => 'NewsWillStore',
-
-            'after_update'  => 'NewsDidUpdate',
-            'before_update' => 'NewsWillUpdate'
         );
 
         parent::configure($config);
