@@ -118,15 +118,13 @@ class CoreAdmin implements StudipModule {
                 }
             }
 
-            if ($GLOBALS['SessSemName']['class'] == 'sem') {
-
-                /*
-                 * Is the current SemClass available for grouping other courses?
-                 * -> show child management
-                 */
-                $c = Course::find($course_id);
-                $t = $c->getSemType();
-                $c = $t->getClass();
+            /*
+             * Is the current SemClass available for grouping other courses?
+             * -> show child management
+             */
+            $course = Course::find($course_id);
+            if ($course) {
+                $c = $course->getSemClass();
                 if ($c->isGroup()) {
 
                     $item = new Navigation(_('Unterveranstaltungen'), 'dispatch.php/course/grouping/children');
@@ -144,7 +142,7 @@ class CoreAdmin implements StudipModule {
                     $item = new Navigation(_('Zuordnung zu Hauptveranstaltung'), 'dispatch.php/course/grouping/parent');
                     $item->setImage(Icon::create('group', 'info_alt'));
                     $item->setActiveImage(Icon::create('group', 'info'));
-                    $item->setDescription(_('Ordnen Sie diese Veranstaltung einer bestehenden '.
+                    $item->setDescription(_('Ordnen Sie diese Veranstaltung einer bestehenden ' .
                         'Hauptveranstaltung zu oder lösen Sie eine bestehende Zuordnung.'));
                     $navigation->addSubNavigation('parent', $item);
 
