@@ -53,7 +53,7 @@
                     Icon::create('edit', 'clickable', array('size' => 20)),
                     ['data-dialog' => '1']) ?>
         <? endif; ?>
-        <? $actionMenu->addLink($downloadlink,
+        <? $actionMenu->addLink($controller->url_for('file/download_folder/' . $folder->getId()),
                 _('Ordner herunterladen'),
                 Icon::create('download', 'clickable', array('size' => 20))) ?>
         <? if ($folder->isEditable($GLOBALS['user']->id)): ?>

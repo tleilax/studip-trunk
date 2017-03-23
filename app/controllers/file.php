@@ -494,6 +494,45 @@ class FileController extends AuthenticatedController
     }
 
 
+    public function download_folder_action($folder_id)
+    {
+        
+        $user = User::findCurrent();
+        
+        $folder = Folder::find($folder_id);
+        
+        if($folder) {
+            $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
+            
+            $folder = $folder->getTypedFolder();
+            
+            $result = FileArchiveManager::createArchive(
+                [$folder],
+                $user->id,
+                $tmp_file
+            );
+            
+            if($result) {
+                //ZIP file was created successfully
+                $this->redirect(
+                    FileManager::getDownloadURLForTemporaryFile(
+                        basename($tmp_file),
+                        basename($tmp_file) . '.zip'
+                    )
+                );
+            } else {
+                throw new Exception('Error while creating ZIP archive!');
+            }
+        } else {
+            throw new Exception('Folder not found in database!');
+        }
+    }
+    
+    
+    
+    
+    
+    
     public function choose_folder_from_course_action()
     {
         if (Request::get("course_id")) {
