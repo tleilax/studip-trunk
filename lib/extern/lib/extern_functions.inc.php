@@ -241,8 +241,8 @@ function enable_sri ($i_id, $enable) {
 }
 
 function sri_is_enabled ($i_id) {
-    if ($GLOBALS['EXTERN_SRI_ENABLE']) {
-        if (!$GLOBALS['EXTERN_SRI_ENABLE_BY_ROOT']) {
+    if (Config::get()->EXTERN_SRI_ENABLE) {
+        if (!Config::get()->EXTERN_SRI_ENABLE_BY_ROOT) {
             return 1;
         }
         $query = "SELECT srienabled FROM Institute WHERE Institut_id = ? AND srienabled = 1";
@@ -275,7 +275,6 @@ function download_config($range_id, $config_id, $module) {
 
     // show download-content
     if ($result['c'] == 1) {
-        $file_name = $GLOBALS["EXTERN_CONFIG_FILE_PATH"] . $config_id . ".cfg";
         header("Content-Type: text/plain");
         header("Content-Disposition: attachment; filename=$config_id.cfg");
         $extern->parse();

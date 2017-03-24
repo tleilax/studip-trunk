@@ -138,7 +138,7 @@ if (Request::option('cancel_edit_assign')) {
 
 //send the user to index, if he want to use studip-object based modul but has no object set!
 if (($view=="openobject_main") || ($view=="openobject_details") || ($view=="openobject_assign") || ($view=="openobject_schedule")){
-    if (!$SessSemName[1]) {
+    if (!Context::getId()) {
         $_SESSION['resources_data'] = null;
         $_SESSION['resources_data']["view"] = $view = "search";
         $_SESSION['resources_data']["view_mode"] = $view_mode = FALSE;
@@ -1614,7 +1614,7 @@ if (is_array($selected_resource_id)) {
 
 // save the assigments in db
 if (Request::submitted('save_state')) {
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
+    require_once "lib/resources/lib/VeranstaltungResourcesAssign.class.php";
     require_once ("lib/classes/Seminar.class.php");
 
     $reqObj = new RoomRequest($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["request_id"]);
@@ -1974,9 +1974,9 @@ if (Request::get('reply_recipients') !== null) {
 if (Request::submitted('inc_request') || Request::submitted('dec_request')
     || $new_session_started || $marked_clip_ids || Request::submitted('save_state') || $auto_inc
     || $auto_dec || $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["reload"]) {
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/CheckMultipleOverlaps.class.php");
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
-    require_once ($RELATIVE_PATH_RESOURCES."/lib/ResourcesUserRoomsList.class.php");
+    require_once "lib/resources/lib/CheckMultipleOverlaps.class.php";
+    require_once "lib/resources/lib/VeranstaltungResourcesAssign.class.php";
+    require_once "lib/resources/lib/ResourcesUserRoomsList.class.php";
     require_once ("lib/classes/Seminar.class.php");
 
     if ((!is_array($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["detected_overlaps"]))

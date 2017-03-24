@@ -299,7 +299,7 @@ function isLinkIntern($url) {
 * @return   string  link in punycode
 */
 function idna_link($link, $mail = false){
-    if (!$GLOBALS['CONVERT_IDNA_URL']) return $link;
+    if (!Config::get()->CONVERT_IDNA_URL) return $link;
     $pu = @parse_url($link);
     if (preg_match('/&\w+;/i',$pu['host'])) { //umlaute?  (html-coded)
         $IDN = new idna_convert();
@@ -546,54 +546,6 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
     else
         return $print;
 }
-
-/**
- * print_infobox, baut einen Info-Kasten aus folgenden Elementen zusammen:
- * Bild (separat uebergeben), Ueberschriften, Icons, Inhalt (in Array).
- * Der Aufruf des Bildes ist optional.
- *
- * @example
-    $infobox = array    (
-    array  ("kategorie"  => "Information:",
-            "eintrag" => array  (
-                            array    (  "icon" => Icon::create('search', 'info'),
-                                    "text"  => "Um weitere Veranstaltungen bitte Blabla"
-                                    ),
-                            array    (  "icon" => Icon::create('search', 'info'),
-                                    "text"  => "um Verwaltung  Veranstaltungen bitte Blabla"
-                                    )
-            )
-        ),
-    array  ("kategorie" => "Aktionen:",
-               "eintrag" => array   (
-                            array ( "icon" => Icon::create('search', 'info'),
-                                    "text"  => "es sind noch 19 Veranstaltungen vorhanden."
-                                    )
-            )
-        )
-    );
- *
- * @param   array() $content
- * @param   string $picture
- * @param   bool $dont_display_immediatly
- */
-function print_infobox($content, $picture = '', $dont_display_immediatly = false)
-{
-    // get template
-    $template = $GLOBALS['template_factory']->open('infobox/infobox_generic_content');
-
-    // fill attributes
-    $template->set_attribute('picture', $picture);
-    $template->set_attribute('content', $content);
-
-    // render template
-    if ($dont_display_immediatly) {
-        return $template->render();
-    } else {
-        echo $template->render();
-    }
-}
-
 
 /**
  * Returns a given text as html tooltip
