@@ -450,7 +450,7 @@ STUDIP.Forum = {
 
         if (STUDIP.wysiwyg.isHtml(text)) {
             // remove HTML before quoting
-            text = jQuery(text).text()
+            text = jQuery(text).text();
         }
 
         // quote with Stud.IP markup
