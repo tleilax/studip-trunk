@@ -108,7 +108,8 @@ class MyCoursesSearch extends StandardSearch
                     WHERE (s.`VeranstaltungsNummer` LIKE :input
                             OR s.`Name` LIKE :input)
                         AND s.`status` NOT IN (:semtypes)
-                        AND s.`Seminar_id` NOT IN (:exclude)";
+                        AND s.`Seminar_id` NOT IN (:exclude)
+                        AND sem.`semester_id` IN (:semesters)";
                 if ($semnumber) {
                     $query .= " ORDER BY sem.`beginn` DESC, s.`VeranstaltungsNummer`, s.`Name`";
                 } else {
@@ -127,7 +128,8 @@ class MyCoursesSearch extends StandardSearch
                             OR s.`Name` LIKE :input)
                         AND s.`status` NOT IN (:semtypes)
                         AND si.`institut_id` IN (:institutes)
-                        AND s.`Seminar_id` NOT IN (:exclude)";
+                        AND s.`Seminar_id` NOT IN (:exclude)
+                        AND sem.`semester_id` IN (:semesters)";
                 if ($semnumber) {
                     $query .= " ORDER BY sem.`beginn` DESC, s.`VeranstaltungsNummer`, s.`Name`";
                 } else {
@@ -147,7 +149,8 @@ class MyCoursesSearch extends StandardSearch
                         AND su.`user_id` = :userid
                         AND su.`status` = 'dozent'
                         AND s.`status` NOT IN (:semtypes)
-                        AND s.`Seminar_id` NOT IN (:exclude)";
+                        AND s.`Seminar_id` NOT IN (:exclude)
+                        AND sem.`semester_id` IN (:semesters)";
                 if (Config::get()->DEPUTIES_ENABLE) {
                     $query .= " UNION
                         SELECT DISTINCT s.`Seminar_id`, ".$name.", sem.`beginn`, s.`VeranstaltungsNummer`, s.`Name`
@@ -159,7 +162,8 @@ class MyCoursesSearch extends StandardSearch
                         WHERE (s.`VeranstaltungsNummer` LIKE :input
                                 OR s.`Name` LIKE :input)
                             AND d.`user_id` = :userid
-                            AND s.`Seminar_id` NOT IN (:exclude)";
+                            AND s.`Seminar_id` NOT IN (:exclude)
+                            AND sem.`semester_id` IN (:semesters)";
                 }
                 if ($semnumber) {
                     $query .= " ORDER BY `beginn` DESC, `VeranstaltungsNummer`, `Name`";

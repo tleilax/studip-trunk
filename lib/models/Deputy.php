@@ -43,6 +43,38 @@ class Deputy extends SimpleORMap
             'assoc_foreign_key' => 'user_id'
         );
 
+        $config['additional_fields']['vorname'] = array('deputy', 'vorname');
+        $config['additional_fields']['nachname'] = array('deputy', 'nachname');
+        $config['additional_fields']['username'] = array('deputy', 'username');
+        $config['additional_fields']['boss_vorname'] = array('boss', 'vorname');
+        $config['additional_fields']['boss_nachname'] = array('boss', 'nachname');
+        $config['additional_fields']['course_name'] = array('course', 'name');
+        $config['additional_fields']['course_number'] = array('course', 'veranstaltungsnummer');
+
         parent::configure($config);
     }
+
+    function getDeputyFullname($format = 'full')
+    {
+        return $this->deputy->getFullname($format);
+    }
+
+    function getBossFullname($format = 'full')
+    {
+        if ($this->boss) {
+            return $this->boss->getFullname($format);
+        } else {
+            return null;
+        }
+    }
+
+    function getCourseFullname($format = 'default')
+    {
+        if ($this->course) {
+            return $this->course->getFullname($format);
+        } else {
+            return null;
+        }
+    }
+
 }
