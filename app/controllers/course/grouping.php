@@ -54,7 +54,8 @@ class Course_GroupingController extends AuthenticatedController
         if ($GLOBALS['perm']->have_perm('root')) {
             $parameters = array(
                 'semtypes' => SemType::getNonGroupingSemTypes(),
-                'exclude' => array($GLOBALS['SessSemName'][1])
+                'exclude' => array($this->parent_course ?: ''),
+                'semesters' => array($this->parent->start_semester->id)
             );
         } else if ($GLOBALS['perm']->have_perm('admin')) {
             $parameters = array(
@@ -62,14 +63,16 @@ class Course_GroupingController extends AuthenticatedController
                 'institutes' => array_map(function ($i) {
                     return $i['Institut_id'];
                 }, Institute::getMyInstitutes()),
-                'exclude' => array($GLOBALS['SessSemName'][1])
+                'exclude' => array($this->parent_course ?: ''),
+                'semesters' => array($this->parent->start_semester->id)
             );
 
         } else {
             $parameters = array(
                 'userid' => $GLOBALS['user']->id,
                 'semtypes' => SemType::getNonGroupingSemTypes(),
-                'exclude' => array($GLOBALS['SessSemName'][1])
+                'exclude' => array($this->parent_course ?: ''),
+                'semesters' => array($this->parent->start_semester->id)
             );
         }
 
@@ -94,7 +97,8 @@ class Course_GroupingController extends AuthenticatedController
         if ($GLOBALS['perm']->have_perm('root')) {
             $parameters = array(
                 'semtypes' => array_merge(studygroup_sem_types(), SemType::getGroupingSemTypes()),
-                'exclude' => array($GLOBALS['SessSemName'][1])
+                'exclude' => count($this->children) > 0 ? $this->children->pluck('seminar_id') : array(),
+                'semesters' => array($this->course->start_semester->id)
             );
         } else if ($GLOBALS['perm']->have_perm('admin')) {
             $parameters = array(
@@ -102,14 +106,16 @@ class Course_GroupingController extends AuthenticatedController
                 'institutes' => array_map(function ($i) {
                     return $i['Institut_id'];
                 }, Institute::getMyInstitutes()),
-                'exclude' => array($GLOBALS['SessSemName'][1])
+                'exclude' => count($this->children) > 0 ? $this->children->pluck('seminar_id') : array(),
+                'semesters' => array($this->course->start_semester->id)
             );
 
         } else {
             $parameters = array(
                 'userid' => $GLOBALS['user']->id,
                 'semtypes' => array_merge(studygroup_sem_types(), SemType::getGroupingSemTypes()),
-                'exclude' => array($GLOBALS['SessSemName'][1])
+                'exclude' => count($this->children) > 0 ? $this->children->pluck('seminar_id') : array(),
+                'semesters' => array($this->course->start_semester->id)
             );
         }
 
@@ -132,6 +138,17 @@ class Course_GroupingController extends AuthenticatedController
         Navigation::activateItem('course/members/children');
         $this->courses = SimpleORMapCollection::createFromArray(Course::findByParent_Course($this->course->id))
             ->orderBy(Config::get()->IMPORTANT_SEMNUMBER ? 'veranstaltungsnummer, name' : 'name');
+
+        if (count($this->course->children) > 0) {
+            $this->parentOnly = DBManager::get()->fetchFirst(
+                "SELECT DISTINCT s.`user_id`
+                FROM `seminar_user` s WHERE s.`Seminar_id` = :parent AND NOT EXISTS (
+                    SELECT `user_id` FROM `seminar_user` WHERE `user_id` = s.`user_id` AND `Seminar_id` IN (:children)
+                    )",
+                ['parent' => $this->course->id, 'children' => $this->course->children->pluck('seminar_id')]);
+        } else {
+            $this->parentOnly = $this->course->members;
+        }
     }
 
     /**
@@ -140,7 +157,22 @@ class Course_GroupingController extends AuthenticatedController
      */
     public function child_course_members_action($course_id)
     {
-        $this->course = Course::find($course_id);
+        $this->child = Course::find($course_id);
+    }
+
+    public function parent_only_members_action()
+    {
+        if (count($this->course->children) > 0) {
+            $this->parentOnly = SimpleORMapCollection::createFromArray(DBManager::get()->fetchAll(
+                "SELECT DISTINCT s.*
+                FROM `seminar_user` s WHERE s.`Seminar_id` = :parent AND NOT EXISTS (
+                    SELECT `user_id` FROM `seminar_user` WHERE `user_id` = s.`user_id` AND `Seminar_id` IN (:children)
+                    )",
+                ['parent' => $this->course->id, 'children' => $this->course->children->pluck('seminar_id')],
+                'CourseMember::buildExisting'))->orderBy('nachname, vorname');
+        } else {
+            $this->parentOnly = $this->course->members;
+        }
     }
 
     /**
