@@ -175,6 +175,100 @@ class Course_GroupingController extends AuthenticatedController
         }
     }
 
+    public function action_action()
+    {
+        $users = SimpleORMapCollection::createFromArray(
+            User::findMany(Request::optionArray('members')));
+
+        switch (Request::option('action')) {
+            case 'message':
+                $this->redirect($this->url_for('messages/write',
+                    ['rec_uname' => $users->pluck('username'),
+                    'default_subject' => '[' . Course::find(Request::option('course'))->getFullname() . ']']));
+                break;
+            case 'move':
+                $this->redirect($this->url_for('course/grouping/move_members_target', Request::option('course'),
+                    ['users' => Request::optionArray('members')]));
+                break;
+            case 'remove':
+                $this->relocate('course/grouping/remove_members', Request::option('course'));
+                $this->flash['users'] = Request::optionArray('members');
+                break;
+        }
+    }
+
+    /**
+     * Select a course to move selected persons to.
+     * @param string $source_id id of source course
+     * @param string $user_id optional id of single user to move
+     */
+    public function move_members_target_action($source_id, $user_id = '')
+    {
+        PageLayout::setTitle(_('Personen verschieben'));
+        $this->source_id = $source_id;
+        $this->users = $user_id ?
+            [$user_id] :
+            Request::getArray('users');
+        $this->targets = count($this->course->children) > 0 ?
+            $this->course->children->filter(function ($c) use ($source_id) { return $c->id != $source_id; }) :
+            new SimpleORMapCollection();
+    }
+
+    public function move_members_action($source_id)
+    {
+        $source = Seminar::getInstance($source_id);
+        $target = Seminar::getInstance(Request::option('target'));
+
+        $success = 0;
+        $fail = 0;
+        foreach (Request::getArray('members') as $user) {
+            $m = CourseMember::find([$source_id, $user]);
+            $status = $m->status;
+
+            if ($source->deleteMember($user)) {
+                $target->addMember($user, $status);
+                $success++;
+            } else {
+                $fail++;
+            }
+        }
+
+        if ($success > 0) {
+            PageLayout::postSuccess(sprintf(_('%u Personen wurden verschoben.'), $success));
+        }
+
+        if ($fail > 0) {
+            PageLayout::postError(sprintf(_('%u Personen konnten nicht verschoben werden.'), $fail));
+        }
+
+        $this->relocate('course/grouping/members');
+    }
+
+    public function remove_members_action($course_id)
+    {
+        $s = Seminar::getInstance($course_id);
+
+        $success = 0;
+        $fail = 0;
+        foreach ($this->flash['users'] as $user) {
+            if ($s->deleteMember($user)) {
+                $success++;
+            } else {
+                $fail++;
+            }
+        }
+
+        if ($success > 0) {
+            PageLayout::postSuccess(sprintf(_('%u Personen wurden entfernt.'), $success));
+        }
+
+        if ($fail > 0) {
+            PageLayout::postError(sprintf(_('%u Personen konnten nicht entfernt werden.'), $fail));
+        }
+
+        $this->relocate('course/grouping/members');
+    }
+
     /**
      * Assign a (new) parent to the current course.
      */
