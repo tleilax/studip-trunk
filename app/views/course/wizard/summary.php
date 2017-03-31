@@ -19,9 +19,12 @@
         </section>
     <? endif ?>
     <section>
-        <input type="hidden" name="step" value="<?= $stepnumber ?>"/>
+        <input type="hidden" name="step" value="<?= $stepnumber ?>">
+        <?php foreach (Request::getArray('batch') as $key => $value) : ?>
+            <input type="hidden" name="batch[<?= $key ?>]" value="<?= $value ?>">
+        <?php endforeach ?>
         <?php if ($dialog) : ?>
-            <input type="hidden" name="dialog" value="1"/>
+            <input type="hidden" name="dialog" value="1">
         <?php endif ?>
     </section>
     <footer data-dialog-button>

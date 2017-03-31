@@ -117,33 +117,70 @@ class Course_WizardController extends AuthenticatedController
         } else if (Request::submitted('create')) {
             $_SESSION['coursewizard'][$this->temp_id]['copy_basic_data'] = Request::submitted('copy_basic_data');
             if ($this->getValues()) {
-                if ($this->course = $this->createCourse()) {
-                    // A studygroup has been created.
-                    if (in_array($this->course->status, studygroup_sem_types() ?: array())) {
-                        $message = MessageBox::success(
-                            sprintf(_('Die Studien-/Arbeitsgruppe "%s" wurde angelegt. ' .
-                                'Sie können Sie direkt hier weiter verwalten.'),
-                                htmlReady($this->course->name)));
-                        $target = $this->url_for('course/studygroup/edit/' . $this->course->id . '?cid=' . $this->course->id);
-                        // "Normal" course.
-                    } else {
-                        if (Request::int('dialog')) {
-                            $message = MessageBox::success(
-                                sprintf(_('Die Veranstaltung "%s" wurde angelegt.'), htmlReady($this->course->getFullname())));
-                            $target = $this->url_for('admin/courses');
+                // Batch creation of several courses at once.
+                if (count($batch = Request::getArray('batch')) > 0) {
+                    // Create given number of courses.
+                    $numbering = $batch['numbering'] == 'number' ? 1 : 'A';
+                    $success = 0;
+                    $failed = 0;
+                    for ($i = 1 ; $i <= $batch['number'] ; $i++) {
+                        if ($newcourse = $this->createCourse()) {
+                            // Add corresponding number/letter to name or number of newly created course.
+                            if ($batch['add_number_to'] == 'name') {
+                                $newcourse->name += ' ' . $numbering;
+                            } else if ($batch['add_number_to'] == 'number') {
+                                $newcourse->veranstaltungsnummer += ' ' . $numbering;
+                            }
+                            $newcourse->parent_course = $batch['parent'];
+                            if ($newcourse->store()) {
+                                $numbering++;
+                                $success++;
+                            } else {
+                                $failed++;
+                            }
                         } else {
-                            $message = MessageBox::success(
-                                sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
-                                    htmlReady($this->course->getFullname())));
-                            $target = $this->url_for('course/management?cid=' . $this->course->id);
+                            $failed++;
                         }
                     }
-                    PageLayout::postMessage($message);
-                    $this->redirect($target);
+
+                    // Show message for successfully created courses.
+                    if ($success > 0) {
+                        PageLayout::postSuccess(sprintf(_('%u Veranstaltungen wurden angelegt.'), $success));
+                    }
+
+                    // Show message for courses that couldn't be created.
+                    if ($success > 0) {
+                        PageLayout::postSuccess(sprintf(_('%u Veranstaltungen konnten nicht angelegt werden.'), $success));
+                    }
                 } else {
-                    PageLayout::postMessage(MessageBox::error(
-                        _('Die Veranstaltung konnte nicht angelegt werden.')));
-                    $this->redirect('course/wizard');
+                    if ($this->course = $this->createCourse()) {
+                        // A studygroup has been created.
+                        if (in_array($this->course->status, studygroup_sem_types() ?: array())) {
+                            $message = MessageBox::success(
+                                sprintf(_('Die Studien-/Arbeitsgruppe "%s" wurde angelegt. ' .
+                                    'Sie können Sie direkt hier weiter verwalten.'),
+                                    htmlReady($this->course->name)));
+                            $target = $this->url_for('course/studygroup/edit/' . $this->course->id . '?cid=' . $this->course->id);
+                            // "Normal" course.
+                        } else {
+                            if (Request::int('dialog')) {
+                                $message = MessageBox::success(
+                                    sprintf(_('Die Veranstaltung "%s" wurde angelegt.'), htmlReady($this->course->getFullname())));
+                                $target = $this->url_for('admin/courses');
+                            } else {
+                                $message = MessageBox::success(
+                                    sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
+                                        htmlReady($this->course->getFullname())));
+                                $target = $this->url_for('course/management?cid=' . $this->course->id);
+                            }
+                        }
+                        PageLayout::postMessage($message);
+                        $this->redirect($target);
+                    } else {
+                        PageLayout::postMessage(MessageBox::error(
+                            _('Die Veranstaltung konnte nicht angelegt werden.')));
+                        $this->redirect('course/wizard');
+                    }
                 }
             } else {
                 PageLayout::postMessage(MessageBox::error(_('Die angegebene Veranstaltung wurde bereits angelegt.')));

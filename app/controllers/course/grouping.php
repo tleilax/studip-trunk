@@ -124,6 +124,15 @@ class Course_GroupingController extends AuthenticatedController
 
         $this->search = QuickSearch::get('child', $find)
             ->setInputClass('target-seminar');
+
+        if ($GLOBALS['perm']->have_perm(Config::get()->SEM_CREATE_PERM)) {
+            $sidebar = Sidebar::get();
+            $actions = new ActionsWidget();
+            $actions->addLink(_('Unterveranstaltungen anlegen'),
+                $this->url_for('course/grouping/create_children'),
+                Icon::create('seminar+add', 'clickable'))->asDialog('size=auto');
+            $sidebar->addWidget($actions);
+        }
     }
 
     /**
@@ -160,6 +169,9 @@ class Course_GroupingController extends AuthenticatedController
         $this->child = Course::find($course_id);
     }
 
+    /**
+     * Collect users which are only in parent course and not in any child.
+     */
     public function parent_only_members_action()
     {
         if (count($this->course->children) > 0) {
@@ -175,6 +187,9 @@ class Course_GroupingController extends AuthenticatedController
         }
     }
 
+    /**
+     * Batch actions, like message sending, moving or removing for several members at once.
+     */
     public function action_action()
     {
         $users = SimpleORMapCollection::createFromArray(
@@ -216,6 +231,10 @@ class Course_GroupingController extends AuthenticatedController
             new SimpleORMapCollection();
     }
 
+    /**
+     * Move members to another cours
+     * @param string $source_id The course to move members from.
+     */
     public function move_members_action($source_id)
     {
         $source = Seminar::getInstance($source_id);
@@ -246,6 +265,10 @@ class Course_GroupingController extends AuthenticatedController
         $this->relocate('course/grouping/members');
     }
 
+    /**
+     * Removes selected members from given course.
+     * @param string $course_id the course to remove members from
+     */
     public function remove_members_action($course_id)
     {
         $s = Seminar::getInstance($course_id);
@@ -354,6 +377,19 @@ class Course_GroupingController extends AuthenticatedController
         $this->relocate('course/grouping/children');
     }
 
+    /**
+     * Batch creation of several subcourses at once.
+     */
+    public function create_children_action()
+    {
+
+    }
+
+    /**
+     * Sychronizes members between parent and child course.
+     * @param string $parent_id parent course ID
+     * @param string $child_id child course ID
+     */
     private function sync_users($parent_id, $child_id)
     {
         $sem = Seminar::getInstance($parent_id);

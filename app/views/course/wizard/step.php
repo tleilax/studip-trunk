@@ -2,7 +2,10 @@
     <form class="default course-wizard-step-<?= $stepnumber ?>" data-secure action="<?= $controller->url_for('course/wizard/process', $stepnumber, $temp_id) ?>" method="post">
         <?= $content ?>
         <footer data-dialog-button>
-            <input type="hidden" name="step" value="<?= $stepnumber ?>"/>
+            <input type="hidden" name="step" value="<?= $stepnumber ?>">
+            <?php foreach (Request::getArray('batch') as $key => $value) : ?>
+                <input type="hidden" name="batch[<?= $key ?>]" value="<?= $value ?>">
+            <?php endforeach ?>
             <?php if (!$first_step) { ?>
                 <?= Studip\Button::create(_('Zurück'), 'back',
                     $dialog ? array('data-dialog' => 'size=50%') : array()) ?>
