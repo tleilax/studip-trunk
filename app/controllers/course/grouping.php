@@ -194,6 +194,8 @@ class Course_GroupingController extends AuthenticatedController
                 $this->relocate('course/grouping/remove_members', Request::option('course'));
                 $this->flash['users'] = Request::optionArray('members');
                 break;
+            default:
+                $this->relocate('course/grouping/members');
         }
     }
 
@@ -221,7 +223,7 @@ class Course_GroupingController extends AuthenticatedController
 
         $success = 0;
         $fail = 0;
-        foreach (Request::getArray('members') as $user) {
+        foreach (Request::getArray('users') as $user) {
             $m = CourseMember::find([$source_id, $user]);
             $status = $m->status;
 

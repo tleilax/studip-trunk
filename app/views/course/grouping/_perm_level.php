@@ -42,7 +42,7 @@
                 <tr>
                     <?php if (count($members) > 1) : ?>
                         <td>
-                            <input type="checkbox" name="members[]" value="<?= $m->user_id ?>" class="members-<?= $current->id ?>_<?= $level ?>">
+                            <input type="checkbox" name="members[]" value="<?= $m->user_id ?>" class="members-<?= $current->id ?>_<?= $level ?>" data-activates="#actions-<?= $current->id ?>_<?= $level ?>">
                         </td>
                     <?php endif ?>
                     <td>
@@ -83,12 +83,12 @@
                     <tr>
                         <td colspan="2">
                             <label>
-                                <input type="checkbox" data-proxyfor=":checkbox.members-<?= $current->id ?>_<?= $level ?>">
+                                <input type="checkbox" data-proxyfor=":checkbox.members-<?= $current->id ?>_<?= $level ?>" data-activates="#actions-<?= $current->id ?>_<?= $level ?>">
                                 <?= _('Alle') ?>
                             </label>
                         </td>
                         <td colspan="2" class="actions">
-                            <select name="action">
+                            <select id="actions-<?= $current->id ?>_<?= $level ?>" name="action" disabled>
                                 <option value="message">
                                     <?= _('Nachricht schicken') ?>
                                 </option>
