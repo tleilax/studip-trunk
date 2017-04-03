@@ -1290,7 +1290,7 @@ if ($view == "view_schedule" || $view == "openobject_schedule") {
         $_SESSION['resources_data']["schedule_week_offset"] = 0;
         $startTime = explode('.', Request::get('startTime'));
         $_SESSION['resources_data']["schedule_start_time"] = mktime (0,0,0,$startTime[1], $startTime[0], $startTime[2]);
-        if (Request::submitted('start_list') || (Request::submitted('jump') && ($_SESSION['resources_data']["schedule_mode"] == "list"))) {
+        if (Request::submitted('start_list') || Request::submitted('export_list') || (Request::submitted('jump') && ($_SESSION['resources_data']["schedule_mode"] == "list"))) {
             $_SESSION['resources_data']["schedule_mode"] = "list";
             if ($_SESSION['resources_data']["schedule_start_time"] < 1)
                 $_SESSION['resources_data']["schedule_start_time"] = mktime (0, 0, 0, date("n", time()), date("j", time()), date("Y", time()));
@@ -1433,6 +1433,7 @@ if(Request::submitted('tools_requests_sem_choose_button') || Request::get('tools
     $_SESSION['resources_data']["resolve_requests_sem_type"] = Request::int('tools_requests_sem_type_choose',1);
     $_SESSION['resources_data']["resolve_requests_faculty"] = Request::option('tools_requests_faculty_choose');
     $_SESSION['resources_data']["resolve_requests_tagged"] = (bool)Request::int('resolve_requests_tagged',0);
+    $_SESSION['resources_data']["resolve_requests_regular"] = (bool)Request::int('resolve_requests_regular',0);
 
     unset($_SESSION['resources_data']["requests_working_on"]);
     unset($_SESSION['resources_data']["requests_open"]);
@@ -1500,7 +1501,7 @@ if (Request::int('cancel_edit_request_x') || Request::submitted('cancel_edit_req
 if (Request::submitted('start_multiple_mode') || (Request::option('single_request'))) {
     unset($_SESSION['resources_data']["requests_working_on"]);
     unset($_SESSION['resources_data']["requests_open"]);
-    $requests = (array)getMyRoomRequests($GLOBALS['user']->id, $_SESSION['resources_data']["sem_schedule_semester_id"], true, Request::option('single_request'), $_SESSION['resources_data']["resolve_requests_sem_type"], $_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"]);
+    $requests = (array)getMyRoomRequests($GLOBALS['user']->id, $_SESSION['resources_data']["sem_schedule_semester_id"], true, Request::option('single_request'), $_SESSION['resources_data']["resolve_requests_sem_type"], $_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"], $_SESSION['resources_data']["resolve_requests_regular"]);
 
     $_SESSION['resources_data']["requests_working_pos"] = 0;
     $_SESSION['resources_data']["skip_closed_requests"] = TRUE;
@@ -1776,7 +1777,8 @@ if (Request::submitted('save_state')) {
                 //create msg's
                 if ($good_msg) {
                     $GLOBALS['messageForUsers'] = $good_msg;
-                    $msg->addMsg(33, array($good_msg));
+                    $course_link = '<a href="'.URLHelper::getLink('dispatch.php/course/timesrooms', array('cid' => $semObj->getId())).'">'.$semObj->getName().'</a>';
+                    $msg->addMsg(33, array($course_link, $good_msg));
                 }
                 if ($bad_msg)
                     $msg->addMsg(34, array($bad_msg));

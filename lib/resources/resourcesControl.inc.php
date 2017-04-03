@@ -145,6 +145,20 @@ if ($perm->have_perm('admin')) {
         }
 
         $resources_nav->addSubNavigation('room_requests', $navigation);
+
+        //CSV EXPORT
+        if ($view == "list_requests"){
+            // Set default sidebar image
+            $sidebar = Sidebar::get();
+            $sidebar->setImage('sidebar/person-sidebar.png');
+
+            if (Config::get()->EXPORT_ENABLE) {
+                $widget = new ExportWidget();
+                $link = URLHelper::getLink('dispatch.php/resources/export_requestlist');
+                $widget->addLink(_('Anfragenliste als CSV-Dokument exportieren'), $link, Icon::create('file-office'));
+                $sidebar->addWidget($widget);
+            }
+        }
     }
 }
 
@@ -160,6 +174,25 @@ if ((getGlobalPerms($user->id) == 'admin') || ($perm->have_perm('root'))) {
     }
 
     $resources_nav->addSubNavigation('settings', $navigation);
+}
+
+/*****************************************************************************
+Belegungen exportieren, views: export_list
+/*****************************************************************************/
+if (Request::submitted('export_list')) {
+    require_once ($RELATIVE_PATH_RESOURCES."/views/ShowSchedules.class.php");
+    if ($_SESSION['resources_data']["actual_object"]) {
+        $ViewSchedules=new ShowSchedules($_SESSION['resources_data']["actual_object"]);
+        $ViewSchedules->setStartTime($_SESSION['resources_data']["schedule_start_time"]);
+        $ViewSchedules->setEndTime($_SESSION['resources_data']["schedule_end_time"]);
+        $ViewSchedules->setLengthFactor($_SESSION['resources_data']["schedule_length_factor"]);
+        $ViewSchedules->setLengthUnit($_SESSION['resources_data']["schedule_length_unit"]);
+        $ViewSchedules->setWeekOffset($_SESSION['resources_data']["schedule_week_offset"]);
+        $ViewSchedules->exportScheduleList();
+        $_SESSION['resources_data'] = serialize($_SESSION['resources_data']);
+        page_close();
+        die();
+    }
 }
 
 //load content, text, pictures and stuff
@@ -593,7 +626,7 @@ Roomplanning
 /*****************************************************************************/
 if ($view == "requests_start") {
     require_once "lib/resources/views/ShowToolsRequests.class.php";
-    $toolReq=new ShowToolsRequests($_SESSION['resources_data']["sem_schedule_semester_id"],$_SESSION['resources_data']["resolve_requests_no_time"],$_SESSION['resources_data']["resolve_requests_sem_type"],$_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"]);
+    $toolReq=new ShowToolsRequests($_SESSION['resources_data']["sem_schedule_semester_id"],$_SESSION['resources_data']["resolve_requests_no_time"],$_SESSION['resources_data']["resolve_requests_sem_type"],$_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"], $_SESSION['resources_data']["resolve_requests_regular"]);
     $toolReq->showToolStart();
 }
 
@@ -606,7 +639,7 @@ if ($view == "edit_request") {
 
 if ($view == "list_requests") {
         require_once "lib/resources/views/ShowToolsRequests.class.php";
-        $toolReq=new ShowToolsRequests($_SESSION['resources_data']["sem_schedule_semester_id"],$_SESSION['resources_data']["resolve_requests_no_time"],$_SESSION['resources_data']["resolve_requests_sem_type"],$_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"]);
+        $toolReq=new ShowToolsRequests($_SESSION['resources_data']["sem_schedule_semester_id"],$_SESSION['resources_data']["resolve_requests_no_time"],$_SESSION['resources_data']["resolve_requests_sem_type"],$_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"], $_SESSION['resources_data']["resolve_requests_regular"]);
         $toolReq->showRequestList();
 }
 if ($view == "view_requests_schedule") {
