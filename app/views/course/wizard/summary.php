@@ -20,14 +20,16 @@
     <? endif ?>
     <section>
         <input type="hidden" name="step" value="<?= $stepnumber ?>">
-        <?php foreach (Request::getArray('batch') as $key => $value) : ?>
-            <input type="hidden" name="batch[<?= $key ?>]" value="<?= $value ?>">
-        <?php endforeach ?>
         <?php if ($dialog) : ?>
             <input type="hidden" name="dialog" value="1">
         <?php endif ?>
     </section>
     <footer data-dialog-button>
+        <?php if ($_SESSION['coursewizard'][$this->temp_id]['batchcreate']) : ?>
+            <?php foreach ($_SESSION['coursewizard'][$this->temp_id]['batchcreate'] as $key => $value) : ?>
+                <input type="hidden" name="batchcreate[<?= $key?>]" value="<?= $value ?>">
+            <?php endforeach ?>
+        <?php endif ?>
         <?= Studip\Button::create(_('Zurück'), 'back',
             $dialog ? array('data-dialog' => 'size=50%') : array()) ?>
         <?= Studip\Button::createAccept(_('Veranstaltung anlegen'), 'create') ?>
