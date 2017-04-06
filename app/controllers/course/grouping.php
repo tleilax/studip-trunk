@@ -192,25 +192,39 @@ class Course_GroupingController extends AuthenticatedController
      */
     public function action_action()
     {
-        $users = SimpleORMapCollection::createFromArray(
-            User::findMany(Request::optionArray('members')));
+        if (Request::submitted('single_action')) {
 
-        switch (Request::option('action')) {
-            case 'message':
-                $this->redirect($this->url_for('messages/write',
-                    ['rec_uname' => $users->pluck('username'),
-                    'default_subject' => '[' . Course::find(Request::option('course'))->getFullname() . ']']));
-                break;
-            case 'move':
-                $this->redirect($this->url_for('course/grouping/move_members_target', Request::option('course'),
-                    ['users' => Request::optionArray('members')]));
-                break;
-            case 'remove':
-                $this->relocate('course/grouping/remove_members', Request::option('course'));
-                $this->flash['users'] = Request::optionArray('members');
-                break;
-            default:
-                $this->relocate('course/grouping/members');
+            list($course_id, $permission) = explode('-', Request::get('single_action'));
+
+            $selected = Request::getArray('members');
+
+            $users = SimpleORMapCollection::createFromArray(
+                User::findMany($selected[$course_id][$permission]));
+
+            switch (Request::option('selected_single_action_' . $course_id . '_' . $permission)) {
+                case 'message':
+                    $this->redirect($this->url_for('messages/write',
+                        ['rec_uname' => $users->pluck('username'),
+                            'default_subject' => '[' . Course::find($course_id)->getFullname() . ']']));
+                    break;
+                case 'move':
+                    $this->redirect($this->url_for('course/grouping/move_members_target', $course_id,
+                        ['users' => $selected[$course_id][$permission]]));
+                    break;
+                case 'remove':
+                    $this->relocate('course/grouping/remove_members', $course_id);
+                    $this->flash['users'] = $selected[$course_id][$permission];
+                    break;
+                default:
+                    $this->relocate('course/grouping/members');
+            }
+        } else if (Request::submitted('courses_action')) {
+            $this->flash['action'] = Request::option('action');
+            $this->flash['courses'] = Request::getArray('courses');
+
+            $this->redirect($this->url_for('course/grouping/find_members_to_add'));
+        } else {
+            $this->relocate('course/grouping/members');
         }
     }
 
@@ -292,6 +306,46 @@ class Course_GroupingController extends AuthenticatedController
         }
 
         $this->relocate('course/grouping/members');
+    }
+
+    /**
+     * Select people to add to the given courses.
+     */
+    public function find_members_to_add_action()
+    {
+        switch ($this->flash['action']) {
+            case 'add_dozent':
+                $this->permission = 'dozent';
+                $title = get_title_for_status('dozent', 2, $this->course->status);
+                break;
+            case 'add_deputy':
+                $this->permission = 'deputy';
+                $title = _('Vertretung/en');
+                break;
+            case 'add_tutor':
+                $this->permission = 'tutor';
+                $title = get_title_for_status('tutor', 2, $this->course->status);
+                break;
+            case 'add_autor':
+            default:
+                $this->permission = 'autor';
+                $title = get_title_for_status('autor', 2, $this->course->status);
+                break;
+        }
+
+        PageLayout::setTitle(sprintf(_('%s hinzufügen'), $title));
+
+        $this->courses = $this->flash['courses'];
+        $searchtype = new PermissionSearch('user',
+            sprintf(_("%s suchen"), $title), 'user_id',
+            ['permission' => 'dozent', 'exclude_user' => []]
+        );
+
+        $this->search =  QuickSearch::get('user_id', $searchtype)
+            ->withoutButton()
+            ->setInputStyle('width: 75%')
+            ->fireJSFunctionOnSelect('STUDIP.Members.addPersonToSelection');
+
     }
 
     /**
@@ -380,9 +434,61 @@ class Course_GroupingController extends AuthenticatedController
     /**
      * Batch creation of several subcourses at once.
      */
-    public function create_children_action()
-    {
+    public function create_children_action() {}
 
+    /**
+     * Add selected members to given courses
+     * with the given permission level.
+     */
+    public function add_members_action()
+    {
+        CSRFProtection::verifySecurityToken();
+
+        $fail = [];
+        // Iterate over selected courses...
+        foreach (Request::optionArray('courses') as $course) {
+            $sem = Seminar::getInstance($course);
+
+            // ... and selected users.
+            foreach (Request::getArray('users') as $user) {
+                // Try to add deputies.
+                if (Request::option('permission') == 'deputy') {
+                    // If not already deputy, create new entry.
+                    if (!Deputy::exists([$course, $user])) {
+                        $d = new Deputy();
+                        $d->range_id = $course;
+                        $d->user_id = $user;
+                        // Error on storing.
+                        if (!$d->store()) {
+                            $fail[$sem->getFullname()][] = $user;
+                        // Check if new deputy was regular member before, remove entry.
+                        } else {
+                            $m = CourseMember::find([$course, $user]);
+                            // Could not delete old course membership, remove deputy entry.
+                            if ($m && !$m->delete()) {
+                                $d->delete();
+                                $fail[$sem->getFullname()][] = $user;
+                            }
+                        }
+                    }
+                // Add member with given permission.
+                } else {
+                    if (!$sem->addMember($user, Request::option('permission'))) {
+                        $fail[$sem->getFullname()][] = $user;
+                    }
+                }
+            }
+        }
+
+        if (count($fail) > 0) {
+            PageLayout::postError(
+                _('In folgenden Veranstaltungen sind Probleme beim Eintragen der gewünschten Personen aufgetreten:'),
+                    array_keys($fail));
+        } else {
+            PageLayout::postSuccess(_('Die gewählte(n) Personen wurden eingetragen.'));
+        }
+
+        $this->relocate('course/grouping/members');
     }
 
     /**

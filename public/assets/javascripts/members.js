@@ -1,6 +1,27 @@
 /*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
 /*global window, $, jQuery, _ */
 
+STUDIP.Members = {
+
+    addPersonToSelection: function(userId, name) {
+        var target = $('#persons-to-add');
+        var newEl = $('<li>').
+            html($('<span>').html(name).text());
+        var input = $('<input>').
+            attr('type', 'hidden').
+            attr('name', 'users[]').
+            attr('value', userId);
+        newEl.append(input);
+        var remove = $('<img>').
+            attr('src', STUDIP.ASSETS_URL + 'images/icons/blue/trash.svg').
+            on('click', function() { $(this).parent().remove(); });
+        newEl.append(remove);
+        target.append(newEl);
+        return false;
+    }
+
+}
+
 jQuery(document).on('click', 'a[rel~="comment_dialog"]', function (event) {
     var href      = jQuery(this).attr('href'),
         container = jQuery('<div/>');
