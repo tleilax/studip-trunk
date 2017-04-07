@@ -49,7 +49,8 @@ interface FolderType
     /**
      * Returns the name of the icon shape that shall be used with the FolderType implementation.
      *
-     * @return string Name of the icon shape for the FolderType implementation.
+     * @param string $role role of icon
+     * @return Icon icon for the FolderType implementation.
      */
     public function getIcon($role);
 
@@ -84,43 +85,49 @@ interface FolderType
 
     /**
      * Determines if a user may read the content of the folder.
-     * @param $user_id The user who wishes to read the folder's content.
+     * @param string $user_id The user who wishes to read the folder's content.
      * @return boolean True, if the user is permitted to read the folder, false otherwise.
      */
     public function isReadable($user_id);
 
     /**
      * Determines if a user may have write permissions for the folder.
-     * @param $user_id The user who wishes to write into the folder.
+     * @param string $user_id The user who wishes to write into the folder.
      * @return boolean True, if the user is permitted to write into the folder, false otherwise.
      */
     public function isWritable($user_id);
 
+    /**
+     * Determines if a user may have edit permissions for the folder.
+     * @param string $user_id The user who wishes to edit the folder.
+     * @return boolean True, if the user is permitted to edit the folder, false otherwise.
+     */
     public function isEditable($user_id);
 
     /**
      * Determines if a user may create a subfolder in this folder.
-     * @param $user_id The user who wishes to create a subfolder.
+     * @param string $user_id The user who wishes to create a subfolder.
      * @return boolean True, if the user is permitted to create a subfolder, false otherwise.
      */
     public function isSubfolderAllowed($user_id);
 
     /**
+     * returns description of the folder
      *
-     * @return string
+     * @return Flexi_Template | string
      */
     public function getDescriptionTemplate();
 
     /**
      * Returns a list of subfolders of this folder.
-     * @return Array List of folder objects
+     * @return FolderType[] List of folder objects
      */
     public function getSubfolders();
 
 
     /**
      * Returns a list of files of this folder.
-     * @return Array List of FileRef objects
+     * @return FileRef[] List of FileRef objects
      */
     public function getFiles();
 
@@ -130,11 +137,18 @@ interface FolderType
      */
     public function getParent();
 
+    /**
+     * returns template form, must not contain opening and closing <form> tags
+     *
+     * @return Flexi_Template | string
+     */
     public function getEditTemplate();
 
     /**
-     * @param ArrayAccess|Array $folderdata
-     * @return FolderType|MessageBox : FolderType of the edited folder or MessageBox if an error occured
+     * gets data from edit form
+     *
+     * @param ArrayAccess|array $folderdata
+     * @return array array of strings containing errors
      */
     public function setDataFromEditTemplate($folderdata);
 
@@ -142,7 +156,7 @@ interface FolderType
      * Validates a file upload.
      *
      * @param mixed file The file to be validated.
-     * @param string user_id The ID of the user who uploaded the file.
+     * @param string $user_id The ID of the user who uploaded the file.
      */
     public function validateUpload($file, $user_id);
 
