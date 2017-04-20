@@ -113,7 +113,7 @@ jQuery(function ($) {
                     // and internal links should not have any attributes except
                     // for href, but this cannot be enforced here
                     attributes: ['!href', 'target', 'rel'],
-                    classes: ['link-extern', 'link-intern']
+                    classes: 'link-extern'
                 },
                 big: {},
                 blockquote: {},

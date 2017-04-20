@@ -83,7 +83,7 @@ CKEDITOR.dialog.add('wikiDialog', function (editor) {
                     this.setValue(widget.data.link);
                 },
                 commit: function(widget) {
-                    widget.setData('link', this.getValue().trim());
+                    widget.setData('link', this.getValue());
                 }
             }, {
                 type: 'text',
@@ -97,7 +97,7 @@ CKEDITOR.dialog.add('wikiDialog', function (editor) {
                     this.setValue(widget.data.text);
                 },
                 commit: function(widget) {
-                    widget.setData('text', this.getValue().trim());
+                    widget.setData('text', this.getValue());
                 }
             }]
         }]
