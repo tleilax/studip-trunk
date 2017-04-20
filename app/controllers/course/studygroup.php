@@ -78,7 +78,7 @@ class Course_StudygroupController extends AuthenticatedController
         if (Request::isXhr()) {
             PageLayout::setTitle(_('Studiengruppendetails'));
         } else {
-            PageLayout::setTitle(getHeaderLine($id) . ' - ' . _('Studiengruppendetails'));
+            PageLayout::setTitle(Context::getHeaderLine() . ' - ' . _('Studiengruppendetails'));
             PageLayout::setHelpKeyword('Basis.StudiengruppenAbonnieren');
             PageLayout::addSqueezePackage('enrolment');
 
@@ -231,9 +231,16 @@ class Course_StudygroupController extends AuthenticatedController
             }
 
             if (is_array($results_founders)) {
-                $this->flash['success'] = sizeof($results_founders) == 1 ? sprintf(_("Es wurde %s Person gefunden:"), sizeof($results_founders)) : sprintf(_("Es wurden %s Personen gefunden:"), sizeof($results_founders));
+                $this->flash['success'] = sprintf(
+                    ngettext(
+                        'Es wurde %s Person gefunden:',
+                        'Es wurden %s Personen gefunden:',
+                        sizeof($results_founders)
+                    ),
+                    sizeof($results_founders)
+                );
             } else {
-                $this->flash['info'] = _("Es wurden kein Personen gefunden.");
+                $this->flash['info'] = _("Es wurden keine Personen gefunden.");
             }
 
             $this->flash['create']                  = true;
@@ -424,7 +431,7 @@ class Course_StudygroupController extends AuthenticatedController
         // if we are permitted to edit the studygroup get some data...
         if ($perm->have_studip_perm('dozent', $id)) {
 
-            PageLayout::setTitle(getHeaderLine($id) . ' - ' . _('Studiengruppe bearbeiten'));
+            PageLayout::setTitle(Context::getHeaderLine() . ' - ' . _('Studiengruppe bearbeiten'));
             Navigation::activateItem('/course/admin/main');
 
             $sem                     = new Seminar($id);
@@ -704,7 +711,7 @@ class Course_StudygroupController extends AuthenticatedController
     public function members_action()
     {
         $id = $_SESSION['SessionSeminar'];
-        PageLayout::setTitle(getHeaderLine($_SESSION['SessionSeminar']) . ' - ' . _("Teilnehmende"));
+        PageLayout::setTitle(Context::getHeaderLine() . ' - ' . _("Teilnehmende"));
         Navigation::activateItem('/course/members');
         PageLayout::setHelpKeyword('Basis.StudiengruppenBenutzer');
 

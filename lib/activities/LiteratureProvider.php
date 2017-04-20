@@ -70,7 +70,7 @@ class LiteratureProvider implements ActivityProvider
             } else {
                 $summary = _('Die Literaturliste %s wurde von %s in der Einrichtung "%s" geändert.');
             }
-        } elseif ($event == 'LitListDidInsert') {
+        } elseif ($event == 'LitListDidCreate') {
             $verb = 'created';
             if ($type == 'sem') {
                 $summary = _('Die Literaturliste %s wurde von %s in der Veranstaltung "%s" erstellt.');
@@ -109,20 +109,22 @@ class LiteratureProvider implements ActivityProvider
 
         $summary = sprintf($summary, $name, get_fullname($user_id), $course->name);
 
-        $activity = Activity::create(
-            array(
-                'provider'     => __CLASS__,
-                'context'      => ($type == 'sem') ? 'course' : 'institute',
-                'context_id'   => $range_id,
-                'content'      => $summary,
-                'actor_type'   => 'user',           // who initiated the activity?
-                'actor_id'     => $user_id,         // id of initiator
-                'verb'         => $verb,            // the activity type
-                'object_id'    => $name,            // the id of the referenced object
-                'object_type'  => 'literaturelist', // type of activity object
-                'mkdate'       =>  $mkdate
-            )
-        );
+        if (isset($verb)) {
+            $activity = Activity::create(
+                array(
+                    'provider'     => __CLASS__,
+                    'context'      => ($type == 'sem') ? 'course' : 'institute',
+                    'context_id'   => $range_id,
+                    'content'      => $summary,
+                    'actor_type'   => 'user',           // who initiated the activity?
+                    'actor_id'     => $user_id,         // id of initiator
+                    'verb'         => $verb,            // the activity type
+                    'object_id'    => $name,            // the id of the referenced object
+                    'object_type'  => 'literaturelist', // type of activity object
+                    'mkdate'       =>  $mkdate
+                )
+            );
+        }
 
     }
 

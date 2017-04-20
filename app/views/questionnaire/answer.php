@@ -32,7 +32,7 @@
             <?= _("Sie können Ihre Antworten nachträglich ändern.") ?>
         <? endif ?>
         <? if ($questionnaire['stopdate']) : ?>
-            <?= sprintf(_("Sie können den Fragebogen beantworten bis zum %s um %s Uhr."), date("d.m.Y", $questionnaire['stopdate']), date("G:i", $questionnaire['stopdate'])) ?>
+            <?= sprintf(_("Sie können den Fragebogen beantworten bis zum %s um %s Uhr."), date("d.m.Y", $questionnaire['stopdate']), date("H:i", $questionnaire['stopdate'])) ?>
         <? endif ?>
     </div>
 
@@ -43,17 +43,17 @@
         <? if ($questionnaire->resultsVisible()) : ?>
             <?= \Studip\LinkButton::create(_("Ergebnisse anzeigen"), URLHelper::getURL("dispatch.php/questionnaire/evaluate/".$questionnaire->getId()), array('data-dialog' => "1")) ?>
         <? endif ?>
-        <? if ($questionnaire->isEditable() && (!$questionnaire->isStarted() || !$questionnaire->countAnswers())) : ?>
+        <? if ($questionnaire->isEditable() && (!$questionnaire->isRunning() || !$questionnaire->countAnswers())) : ?>
             <?= \Studip\LinkButton::create(_("Bearbeiten"), URLHelper::getURL("dispatch.php/questionnaire/edit/".$questionnaire->getId()), array('data-dialog' => "1")) ?>
         <? endif ?>
-        <? if ($GLOBALS['perm']->have_perm('autor')) : ?>
+        <? if ($questionnaire->isCopyable()) : ?>
             <?= \Studip\LinkButton::create(_("Kopieren"), URLHelper::getURL("dispatch.php/questionnaire/copy/".$questionnaire->getId()), array('data-dialog' => "1")) ?>
         <? endif ?>
-        <? if ($questionnaire->isEditable() && (!$questionnaire->isStarted())) : ?>
-            <?= \Studip\LinkButton::create(_("Starten"), URLHelper::getURL("dispatch.php/questionnaire/start/".$questionnaire->getId(), $range_type ? ['redirect' => "course/overview"] : [])) ?>
+        <? if ($questionnaire->isEditable() && (!$questionnaire->isRunning())) : ?>
+            <?= \Studip\LinkButton::create(_("Starten"), URLHelper::getURL("dispatch.php/questionnaire/start/".$questionnaire->getId(), in_array($range_type, ['course', 'insitute']) ? ['redirect' => $range_type . "/overview"] : [])) ?>
         <? endif ?>
-        <? if ($questionnaire->isEditable() && $questionnaire->isStarted()) : ?>
-            <?= \Studip\LinkButton::create(_("Beenden"), URLHelper::getURL("dispatch.php/questionnaire/stop/".$questionnaire->getId(), $range_type ? ['redirect' => "course/overview"] : [])) ?>
+        <? if ($questionnaire->isEditable() && $questionnaire->isRunning()) : ?>
+            <?= \Studip\LinkButton::create(_("Beenden"), URLHelper::getURL("dispatch.php/questionnaire/stop/".$questionnaire->getId(), in_array($range_type, ['course', 'insitute']) ? ['redirect' => $range_type . "/overview"] : [])) ?>
         <? endif ?>
     </div>
 </form>

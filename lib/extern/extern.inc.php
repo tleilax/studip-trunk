@@ -48,13 +48,13 @@ $perm = new Seminar_Perm();
 // there is a page_url, switch to the sri-interface
 $page_url = Request::quoted('page_url');
 if ($page_url) {
-    require($GLOBALS['RELATIVE_PATH_EXTERN'] . "/sri.inc.php");
+    require "lib/extern/sri.inc.php";
     exit;
 }
 
 // set base url for URLHelper class
 URLHelper::setBaseUrl($GLOBALS['ABSOLUTE_URI_STUDIP']);
-$range_id = Request::option('range_id',$SessSemName[1]);
+$range_id = Request::option('range_id',Context::getId());
 $module = Request::quoted('module');
 $config_id = Request::option('config_id');
 $global_id = Request::option('global_id');
@@ -86,7 +86,7 @@ if ($range_id && $module) {
         if ($id = ExternConfig::GetStandardConfiguration($range_id, $type)) {
             $config_id = $id;
         } else {
-            if ($GLOBALS['EXTERN_ALLOW_ACCESS_WITHOUT_CONFIG']) {
+            if (Config::get()->EXTERN_ALLOW_ACCESS_WITHOUT_CONFIG) {
                 // use default configuraion
                 $default = 'DEFAULT';
                 $config_id = '';

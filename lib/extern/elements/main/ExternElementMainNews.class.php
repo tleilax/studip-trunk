@@ -77,7 +77,7 @@ class ExternElementMainNews extends ExternElementMain {
             "urlcss" => "",
             "title" => _("News"),
             "nodatatext" => _("Keine aktuellen News"),
-            "copyright" => htmlReady($GLOBALS['UNI_NAME_CLEAN']
+            "copyright" => htmlReady(Config::get()->UNI_NAME_CLEAN
                     . " ({$GLOBALS['UNI_CONTACT']})"),
             "author" => "",
             "showdateauthor" => "0",
@@ -113,7 +113,6 @@ class ExternElementMainNews extends ExternElementMain {
         
         $edit_function = $this->edit_function;
         $table = $edit_form->$edit_function($this->field_names, array());
-        $edit_form->css->switchClass();
         
         $title = _("Datum/Autor anzeigen:");
         $info = _("Anzeige von Datum und Autor, nur Datum oder nur Autor in der Spalte Datum/Autor.");

@@ -208,6 +208,19 @@ class StudipStudyArea extends SimpleORMap
     }
 
     /**
+     * is this study area hidden, see $SEM_TREE_TYPES in config.inc.php
+     *
+     * @return bool
+     */
+    function isHidden(){
+        if (isset($GLOBALS['SEM_TREE_TYPES'][$this->getType()]['hidden'])) {
+            return (bool) $GLOBALS['SEM_TREE_TYPES'][$this->getType()]['hidden'];
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Get the path along the sem_tree to this study area.
      *
      * @param  string     optional; TODO
@@ -302,9 +315,9 @@ class StudipStudyArea extends SimpleORMap
         $cfg = Config::GetInstance();
         $leaves_too = $cfg->getValue('SEM_TREE_ALLOW_BRANCH_ASSIGN');
         if ($leaves_too) {
-            return !$this->isRoot();
+            return !$this->isRoot() && !$this->isHidden();
         } else {
-            return !$this->isRoot() && !$this->hasChildren();
+            return !$this->isRoot() && !$this->isHidden() && !$this->hasChildren();
         }
     }
 
@@ -376,7 +389,7 @@ class StudipStudyArea extends SimpleORMap
     static function getRootArea() {
         $root = new StudipStudyArea();
         $root->setID(self::ROOT);
-        $root->setName($GLOBALS['UNI_NAME_CLEAN']);
+        $root->setName(Config::get()->UNI_NAME_CLEAN);
         return $root;
     }
 
@@ -412,6 +425,10 @@ class StudipStudyArea extends SimpleORMap
         // create the dummy root
         $root = static::getRootArea();
 
+        $hashmap = array();
+
+        $i = 0;
+
         // let the backwardssearch begin
         while ($nodes && $i < 99) {
 
@@ -420,21 +437,22 @@ class StudipStudyArea extends SimpleORMap
 
             //process nodes on this level
             foreach ($nodes as $node) {
+
                 // if we know the node already place there
                 if ($hashmap[$node->parent_id]) {
+
                     $cached = $hashmap[$node->parent_id];
-                    $cached->required_children[] = $node;
+                    $cached->required_children[$node->id] = $node;
                 } else {
 
                     // if we have a node that is directly under root
                     if ($node->parent_id == $root->id) {
-                        $root->required_children[] = $node;
+                        $root->required_children[$node->id] = $node;
                     } else {
-
                         // else store in hashmap and continue
                         $hashmap[$node->parent_id] = $node->_parent;
-                        $node->_parent->required_children[] = $node;
-                        $newNodes[] = $node->_parent;
+                        $node->_parent->required_children[$node->id] = $node;
+                        $newNodes[$node->id] = $node->_parent;
                     }
                 }
             }

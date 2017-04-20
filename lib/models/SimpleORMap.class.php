@@ -250,11 +250,32 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         } elseif (count($config['pk']) === 1) {
             $config['registered_callbacks']['before_store'][] = 'cbAutoKeyCreation';
         }
+
+        $auto_notification_map['after_create'] = $class . 'DidCreate';
+        $auto_notification_map['after_store'] = $class . 'DidStore';
+        $auto_notification_map['after_delete'] = $class . 'DidDelete';
+        $auto_notification_map['after_update'] = $class . 'DidUpdate';
+        $auto_notification_map['before_create'] = $class . 'WillCreate';
+        $auto_notification_map['before_store'] = $class . 'WillStore';
+        $auto_notification_map['before_delete'] = $class . 'WillDelete';
+        $auto_notification_map['before_update'] = $class . 'WillUpdate';
+
+        foreach ($auto_notification_map as $cb => $notification) {
+            if (isset($config['notification_map'][$cb])) {
+                if (mb_strpos($config['notification_map'][$cb], $notification) !== false) {
+                    $config['notification_map'][$cb] .= ' ' . $notification;
+                }
+            } else {
+                $config['notification_map'][$cb] = $notification;
+            }
+        }
+
         if (is_array($config['notification_map'])) {
             foreach (array_keys($config['notification_map']) as $cb) {
                 $config['registered_callbacks'][$cb][] = 'cbNotificationMapper';
             }
         }
+
         if (I18N::isEnabled()) {
             if (count($config['i18n_fields'])) {
                 $config['registered_callbacks']['before_store'][] = 'cbI18N';
@@ -319,6 +340,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     {
         StudipCacheFactory::getCache()->expire('DB_TABLE_SCHEMES');
         self::$schemes = null;
+        self::$config = array();
     }
 
     /**
@@ -1852,7 +1874,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     function delete()
     {
         $ret = false;
-        if (!$this->isNew()) {
+        if (!$this->isDeleted() && !$this->isNew()) {
             if ($this->applyCallbacks('before_delete') === false) {
                 return false;
             }

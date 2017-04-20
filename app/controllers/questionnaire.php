@@ -31,7 +31,7 @@ class QuestionnaireController extends AuthenticatedController
             if (!$questionnaire['visible'] && $questionnaire['startdate'] && $questionnaire['startdate'] <= time() && $questionnaire['stopdate'] > time()) {
                 $questionnaire->start();
             }
-            if ($questionnaire['visible'] && $questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
+            if ($questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
                 $questionnaire->stop();
             }
         }
@@ -55,7 +55,7 @@ class QuestionnaireController extends AuthenticatedController
             if (!$questionnaire['visible'] && $questionnaire['startdate'] && $questionnaire['startdate'] <= time() && $questionnaire['stopdate'] > time()) {
                 $questionnaire->start();
             }
-            if ($questionnaire['visible'] && $questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
+            if ($questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
                 $questionnaire->stop();
             }
         }
@@ -81,8 +81,9 @@ class QuestionnaireController extends AuthenticatedController
         if (!$this->questionnaire->isEditable()) {
             throw new AccessDeniedException("Fragebogen ist nicht bearbeitbar.");
         }
-        if ($this->questionnaire->isStarted() && $this->questionnaire->countAnswers() > 0) {
-            throw new Exception("Fragebogen ist gestartet worden und kann jetzt nicht mehr bearbeitet werden. Stoppen oder löschen Sie den Fragebogen stattdessen.");
+        if ($this->questionnaire->isRunning() && $this->questionnaire->countAnswers() > 0) {
+            $this->render_text(MessageBox::error(_("Fragebogen ist gestartet worden und kann jetzt nicht mehr bearbeitet werden. Stoppen oder löschen Sie den Fragebogen stattdessen.")));
+            return;
         }
         if (Request::isPost()) {
             $questionnaire_data = Request::getArray("questionnaire");
@@ -90,8 +91,9 @@ class QuestionnaireController extends AuthenticatedController
                 ? (strtotime($questionnaire_data['startdate']) ?: time())
                 : null;
             $questionnaire_data['stopdate'] = strtotime($questionnaire_data['stopdate']) ?: null;
+            $questionnaire_data['copyable'] = (int) $questionnaire_data['copyable'];
             $questionnaire_data['anonymous'] = (int) $questionnaire_data['anonymous'];
-            $questionnaire_data['editanswers'] = (int) $questionnaire_data['editanswers'];
+            $questionnaire_data['editanswers'] = $questionnaire_data['anonymous'] ? 0 : (int) $questionnaire_data['editanswers'];
             if ($this->questionnaire->isNew()) {
                 $questionnaire_data['visible'] = ($questionnaire_data['startdate'] <= time() && (!$questionnaire_data['stopdate'] || $questionnaire_data['stopdate'] >= time())) ? 1 : 0;
             }
@@ -119,8 +121,10 @@ class QuestionnaireController extends AuthenticatedController
             }
             if (Request::submitted("questionnaire_store")) {
                 //save everything
-                $this->questionnaire['user_id'] = $GLOBALS['user']->id;
                 $is_new = $this->questionnaire->isNew();
+                if ($is_new) {
+                    $this->questionnaire['user_id'] = $GLOBALS['user']->id;
+                }
                 $this->questionnaire->store();
 
                 if ($is_new && Request::get("range_id") && Request::get("range_type")) {
@@ -146,20 +150,16 @@ class QuestionnaireController extends AuthenticatedController
                     $this->questionnaire->restore();
                     $this->questionnaire->resetRelation("assignments");
                     $output = array(
-                        'func' => "STUDIP.Questionnaire.updateOverviewQuestionnaire",
-                        'payload' => array(
                             'questionnaire_id' => $this->questionnaire->getId(),
                             'overview_html' => $this->render_template_as_string("questionnaire/_overview_questionnaire.php"),
                             'widget_html' => $this->questionnaire->isStarted()
                                 ? $this->render_template_as_string("questionnaire/_widget_questionnaire.php")
                                 : "",
-                            'message' => $this->questionnaire->isStarted()
-                                ? ""
-                                : $message->__toString()
-                        )
+                            'message' => $message->__toString()
                     );
                     $this->response->add_header("X-Dialog-Close", 1);
-                    $this->response->add_header("X-Dialog-Execute", json_encode($output));
+                    $this->response->add_header("X-Dialog-Execute", "STUDIP.Questionnaire.updateOverviewQuestionnaire");
+                    $this->render_json($output);
                 } else {
                     PageLayout::postMessage($message);
                     if (Request::get("range_type") === "user") {
@@ -173,6 +173,7 @@ class QuestionnaireController extends AuthenticatedController
                     }
                 }
             }
+            return;
         }
         if ($this->questionnaire->isNew() && count($this->questionnaire->questions) === 0) {
             $question = new Vote();
@@ -183,10 +184,10 @@ class QuestionnaireController extends AuthenticatedController
 
     public function copy_action($from)
     {
-        if (!$GLOBALS['perm']->have_perm("autor")) {
-            throw new AccessDeniedException("Only for logged in users.");
+        $this->old_questionnaire = Questionnaire::find($from);
+        if (!$this->old_questionnaire->isCopyable()) {
+            throw new AccessDeniedException("Reproduction and copy forbidden");
         }
-        $this->old_questionnaire = new Questionnaire($from);
         $this->questionnaire = new Questionnaire();
         $this->questionnaire->setData($this->old_questionnaire->toArray());
         $this->questionnaire->setId($this->questionnaire->getNewId());
@@ -260,9 +261,11 @@ class QuestionnaireController extends AuthenticatedController
                         $answer['answerdata'] = array();
                     }
                     if ($this->questionnaire['anonymous']) {
-                        $answer['user_id'] = null;
+                        $answer['user_id'] = 'anonymous';
                         $answer['chdate'] = 1;
                         $answer['mkdate'] = 1;
+                        $this->anonAnswers[] = $answer->toArray();
+                        $answer['user_id'] = null;
                     }
                     $answer->store();
                 }
@@ -542,7 +545,7 @@ class QuestionnaireController extends AuthenticatedController
                 INNER JOIN questionnaire_assignments ON (questionnaires.questionnaire_id = questionnaire_assignments.questionnaire_id)
             WHERE questionnaire_assignments.range_id = :range_id
                 AND questionnaire_assignments.range_type = :range_type
-                ".(Request::get("questionnaire_showall") ? "AND startdate <= UNIX_TIMESTAMP()" : "AND visible = 1")."
+                ".(!Request::get("questionnaire_showall") ? "AND (stopdate > UNIX_TIMESTAMP() OR stopdate IS NULL)" : " AND startdate <= UNIX_TIMESTAMP() ")."
             ORDER BY questionnaires.mkdate DESC
         ");
         $statement->execute(array(
@@ -555,8 +558,12 @@ class QuestionnaireController extends AuthenticatedController
                 Questionnaire::buildExisting($questionnaire)->start();
             }
             if ($questionnaire['visible'] && $questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
-                Questionnaire::buildExisting($questionnaire)->stop();
-                unset($this->questionnaire_data[$i]);
+                $one = Questionnaire::buildExisting($questionnaire);
+                $one->stop();
+                if (!$one->resultsVisible()) {
+                    unset($this->questionnaire_data[$i]);
+                    continue;
+                }
             }
             object_set_visit($questionnaire['questionnaire_id'], 'vote');
         }

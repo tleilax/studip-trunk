@@ -43,11 +43,16 @@
         </label>
 
         <label>
-            <input type="checkbox" name="questionnaire[anonymous]" value="1"<?= $questionnaire['anonymous'] ? " checked" : "" ?>>
-            <?= _("Anonym teilnehmen") ?>
+            <input type="checkbox" name="questionnaire[copyable]" value="1"<?= $questionnaire['copyable'] ? " checked" : "" ?>>
+            <?= _("Frageboben zum Kopieren freigeben") ?>
         </label>
 
         <label>
+            <input type="checkbox" name="questionnaire[anonymous]" onChange="jQuery('#questionnaire_editanswers').toggle(!this.checked);" value="1"<?= $questionnaire['anonymous'] ? " checked" : "" ?>>
+            <?= _("Anonym teilnehmen") ?>
+        </label>
+
+        <label id="questionnaire_editanswers" <?= $questionnaire['anonymous'] ? 'style="display: none"' : '' ?>>
             <input type="checkbox" name="questionnaire[editanswers]" value="1"<?= $questionnaire['editanswers'] || $questionnaire->isNew() ? " checked" : "" ?>>
             <?= _("Teilnehmer dürfen ihre Antworten revidieren") ?>
         </label>

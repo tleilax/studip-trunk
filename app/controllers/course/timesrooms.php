@@ -167,7 +167,7 @@ class Course_TimesroomsController extends AuthenticatedController
                     continue;
                 }
 
-                if ($sem->beginn > $val->date || $sem->ende < $val->date || isset($val->metadate_id)) {
+                if ($sem->beginn > $val->date || $sem->ende < $val->date || $val->metadate_id != '') {
                     continue;
                 }
 
@@ -195,10 +195,10 @@ class Course_TimesroomsController extends AuthenticatedController
             CSRFProtection::verifyUnsafeRequest();
             $current_semester = Semester::findCurrent();
             $start_semester = Semester::find(Request::get('startSemester'));
-            if (Request::int('endSemester') != -1) {
+            if (Request::get('endSemester') != '-1' && Request::get('endSemester') != '0') {
                 $end_semester = Semester::find(Request::get('endSemester'));
             } else {
-                $end_semester = -1;
+                $end_semester = Request::int('endSemester');
             }
 
             $course = $this->course;
@@ -212,7 +212,7 @@ class Course_TimesroomsController extends AuthenticatedController
             } else {
 
                 $course->setStartSemester($start_semester->beginn);
-                if ($end_semester != -1) {
+                if (is_object($end_semester)) {
                     $course->setEndSemester($end_semester->beginn);
                 } else {
                     $course->setEndSemester($end_semester);
@@ -299,7 +299,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $time_changed = ($date != $termin->date || $end_time != $termin->end_time);
         //time changed for regular date. create normal singledate and cancel the regular date
-        if ($termin->metadate_id && $time_changed) {
+        if ($termin->metadate_id != '' && $time_changed) {
             $termin_values = $termin->toArray();
             $termin_info   = $termin->getFullname();
 
@@ -809,11 +809,11 @@ class Course_TimesroomsController extends AuthenticatedController
         $duration = $this->course->duration_time;
         if ($duration == -1) { // course with endless lifespan
             $end_semester = Semester::findBySQL('beginn >= :beginn ORDER BY beginn',
-                                                array(':beginn' => $this->course->start_semester->beginn));
+                                                array(':beginn' => $this->course->getStartSemester()));
         } else if ($duration > 0) { // course over more than one semester
-            $end_semester = Semester::findBySQL('beginn >= :beginn AND ende <= :ende ORDER BY beginn',
-                                                array(':beginn' => $this->course->start_semester->beginn,
-                                                      ':ende'   => $this->course->getEndSemester() + $duration));
+            $end_semester = Semester::findBySQL('beginn >= :beginn AND beginn <= :ende ORDER BY beginn',
+                                                array(':beginn' => $this->course->getStartSemester(),
+                                                      ':ende'   => $this->course->getEndSemester()));
         } else { // one semester course
             $end_semester[] = $this->course->start_semester;
         }
@@ -833,7 +833,7 @@ class Course_TimesroomsController extends AuthenticatedController
                         $this->end_semester_weeks['start'][] = array('value' => $key, 'label' => sprintf(_('Anfang %s'), $sem->name));
                     }
                     if (mb_strpos($week, mb_substr($weeks[count($weeks) - 1], -15)) !== false) {
-                        $this->end_semester_weeks['ende'][] = array('value' => $key + 1, 'label' => sprintf(_('Ende %s'), $sem->name));
+                        $this->end_semester_weeks['ende'][] = array('value' => $key, 'label' => sprintf(_('Ende %s'), $sem->name));
                     }
                     foreach ($weeks as $val) {
                         if (mb_strpos($week, mb_substr($val, -15)) !== false) {
@@ -877,7 +877,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $cycle->sws         = round(Request::float('teacher_sws'), 1);
         $cycle->cycle       = Request::int('cycle');
         $cycle->week_offset = Request::int('startWeek');
-        $cycle->end_offset  = Request::int('endWeek', null);
+        $cycle->end_offset  = Request::int('endWeek');
         $cycle->start_time  = date('H:i:00', $start);
         $cycle->end_time    = date('H:i:00', $end);
 
@@ -928,8 +928,8 @@ class Course_TimesroomsController extends AuthenticatedController
         $cycle->description = Request::get('description');
         $cycle->sws         = Request::get('teacher_sws');
         $cycle->cycle       = Request::get('cycle');
-        $cycle->week_offset = Request::get('startWeek');
-        $cycle->end_offset  = Request::int('endWeek', null);
+        $cycle->week_offset = Request::int('startWeek');
+        $cycle->end_offset  = Request::int('endWeek');
 
         if($cycle->end_offset == -1) {
             $cycle->end_offset = NULL;

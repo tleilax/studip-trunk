@@ -176,7 +176,7 @@ class messaging
 
         setTempLanguage($rec_user_id);
 
-        $title = "[Stud.IP - " . $GLOBALS['UNI_NAME_CLEAN'] . "] " . kill_format(str_replace(array("\r", "\n"), '', $subject));
+        $title = "[Stud.IP - " . Config::get()->UNI_NAME_CLEAN . "] " . kill_format(str_replace(array("\r", "\n"), '', $subject));
 
         if ($snd_user_id != "____%system%____") {
             $sender = User::find($snd_user_id);
@@ -186,6 +186,7 @@ class messaging
         }
         $attachments = array();
         if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
+            $attachments = $msg->attachments->toArray();
             $size_of_attachments = array_sum($msg->attachments->pluck('filesize')) ?: 0;
             //assume base64 takes 33% more space
             $attachments_as_links = $size_of_attachments * 1.33 > $GLOBALS['MAIL_ATTACHMENTS_MAX_SIZE'] * 1024 * 1024;

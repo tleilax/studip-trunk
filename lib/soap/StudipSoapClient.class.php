@@ -10,7 +10,6 @@ class StudipSoapClient
 
     function __construct($path)
     {
-        global $RELATIVE_PATH_SOAP, $SOAP_ENABLE;
         require_once("vendor/nusoap/nusoap.php");
 
         $this->soap_client = new soap_client($path, true);
@@ -21,7 +20,7 @@ class StudipSoapClient
             $this->error = "<b>Soap Constructor Error</b><br>" . $err . "<br><br>";
     }
 
-    function call($method, $params)
+    function _call($method, $params)
     {
         $this->faultstring = "";
         $result = $this->soap_client->call($method, $params);

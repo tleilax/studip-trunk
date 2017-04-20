@@ -47,8 +47,8 @@ class Module_ModuleController extends MVVController
         $search_result = $this->getSearchResult('Modul');
 
         // set default semester filter
-        if (!$this->filter['start_sem.beginn']
-                || !$this->filter['end_sem.ende']) {
+        if (!isset($this->filter['start_sem.beginn'])
+                || !isset($this->filter['end_sem.ende'])) {
             $sem_time_switch = Config::get()->getValue('SEMESTER_TIME_SWITCH');
             // switch semester according to time switch
             // (n weeks before next semester)
@@ -62,7 +62,7 @@ class Module_ModuleController extends MVVController
 
         // Nur Module von verantwortlichen Einrichtungen an denen der User
         // eine Rolle hat
-        $filter = array_merge(
+        $this->filter = array_merge(
                 array(
                     'mvv_modul.modul_id' => $search_result,
                     'mvv_modul_inst.institut_id' => MvvPerm::getOwnInstitutes()),
@@ -74,7 +74,7 @@ class Module_ModuleController extends MVVController
                 $this->order ?: 'DESC',
                 self::$items_per_page,
                 self::$items_per_page * (($this->page ?: 1) - 1),
-                $filter);
+                $this->filter);
 
         if (!empty($this->filter)) {
             $this->search_result['Modul'] = $this->module->pluck('id');
@@ -87,7 +87,7 @@ class Module_ModuleController extends MVVController
                 PageLayout::postInfo(_('Es wurden noch keine Module angelegt.'));
             }
         }
-        $this->count = Modul::getCount($filter);
+        $this->count = Modul::getCount($this->filter);
         $this->show_sidebar_search = true;
         $this->show_sidebar_filter = true;
         $this->setSidebar();
@@ -206,12 +206,14 @@ class Module_ModuleController extends MVVController
             CSRFProtection::verifyUnsafeRequest();
             $stored = false;
             if ($this->def_lang) {
-                $this->modul->quelle = Request::option('quelle');
+                // Quelle aus Formular entfernt, darf aber nicht überschrieben werden
+                // da wichtig, um neueste Version zu ermitteln,
+                //$this->modul->quelle = Request::option('quelle');
                 $this->modul->variante = Request::option('modul_item');
                 $this->modul->flexnow_modul = trim(Request::get('flexnow_modul'));
                 $this->modul->code = trim(Request::get('code'));
                 $this->modul->start = Request::option('start');
-                $this->modul->end = Request::option('end');
+                $this->modul->end = Request::option('end') ?: null;
                 $this->modul->beschlussdatum = strtotime(trim(Request::get('beschlussdatum')));
                 $this->modul->assignLanguagesOfInstruction(
                         Request::optionArray('language_items'));
@@ -397,6 +399,12 @@ class Module_ModuleController extends MVVController
         }
         $this->redirect($this->url_for('/index'));
     }
+    
+    public function assignments_action($modul_id)
+    {
+        $this->modul = Modul::find($modul_id);
+        PageLayout::setTitle(_('Zuordnungen'));
+    }
 
     public function description_action($modul_id)
     {
@@ -433,43 +441,86 @@ class Module_ModuleController extends MVVController
         }
         $this->render_template('module/module/approve', $this->layout);
     }
-
+    
+    public function copy_form_action($modul_id)
+    {
+        // find the latest version of the given module
+        $modul = Modul::find($modul_id);
+        $this->modul = reset(Modul::findBySql('LEFT JOIN semester_data '
+                . 'ON start = semester_id '
+                . "WHERE modul_id = ? OR quelle = ? AND stat = 'genehmigt' "
+                . 'ORDER BY beginn DESC LIMIT 1',
+                [$modul->id, $modul->quelle]));
+        if (!$this->modul) {
+            PageLayout::postError( _('Unbekanntes Modul.'));
+        } else {
+            $this->perm = MvvPerm::get($this->modul);
+            $this->submit_url = $this->url_for('/copy', $this->modul->id);
+            $this->cancel_url = $this->url_for('/index');
+        }
+        PageLayout::setTitle(_('Modul kopieren'));
+    }
+    
+    
     public function copy_action($modul_id)
     {
         $modul = Modul::find($modul_id);
         if (!$modul) {
-             PageLayout::postError( _('Unbekanntes Modul.'));
+            PageLayout::postError( _('Unbekanntes Modul.'));
         } else {
-            if (Request::submitted('yes')) {
+            $perm = MvvPerm::get($modul);
+            if (Request::submitted('copy')) {
                 CSRFProtection::verifyUnsafeRequest();
-                $copy = $modul->copy();
+                // Assign the copied module to the same versions of studycourses
+                // as the original?
+                $copy_assignments_to_versions = Request::get('copy_assignments');
+                $copy = $modul->copy(true, $copy_assignments_to_versions);
                 // Kopie kennzeichnen (eindeutiger Code und Titel des Moduls in
                 // allen Deskriptoren
-                $copy->code = $modul->code . ' --KOPIE--';
+                $copy->code = $modul->code;
                 $copy->beschlussdatum = null;
-
+                $current = Semester::find($copy->end);
+                $next = Semester::findNext($current->beginn);
+                if (is_array($next) && !empty($next)) {
+                    $next = array_pop($next);
+                }
+                $copy->start = $next->id;
+                // get end semester from selection
+                $end_sem = Semester::find(Request::option('end_sem'));
+                $copy->end = $next->beginn > $end_sem->beginn ? '' : $end_sem->id;
+                
                 // quelle: Klammerung von (Gültigkeit-) Versionen desselben Moduls
                 // Gießen: Modul-ID des ursprünglichen Moduls
                 $copy->quelle = $modul->quelle ?: $modul->id;
-
+                //UOL Version um 1 hochzählen
+                $copy->version = $copy->version + 1;
                 // don't show the new Modul
                 $copy->stat = 'planung';
-
-                // Deskriptoren als KOPIE kennzeichnen
-                foreach ($copy->deskriptoren as $deskriptor) {
-                    $deskriptor->bezeichnung = $deskriptor->bezeichnung . ' --KOPIE--';
-                }
-
+                
+                // Deskriptoren als KOPIE kennzeichnen/
+                /* nicht UOL
+                 foreach ($copy->deskriptoren as $deskriptor) {
+                 $deskriptor->bezeichnung = $deskriptor->bezeichnung;
+                 }
+                 *
+                 */
+                
                 // Deskriptoren der Modulteile als KOPIE kennzeichnen
-                foreach ($copy->modulteile as $modulteil) {
-                    foreach ($modulteil->deskriptoren as $deskriptor) {
-                        $deskriptor->bezeichnung = $deskriptor->bezeichnung . ' --KOPIE--';
-                    }
-                }
+                /* nicht UOL
+                 foreach ($copy->modulteile as $modulteil) {
+                 foreach ($modulteil->deskriptoren as $deskriptor) {
+                 $deskriptor->bezeichnung = $deskriptor->bezeichnung;
+                 }
+                 }
+                 *
+                 */
+                $store = false;
                 try {
-                    $copy->store();
+                    $copy->verifyPermission();
+                    // UOL: Don't validate
+                    $store = $copy->store(false);
                     PageLayout::postSuccess(sprintf(_('Das Modul "%s" und alle zugehörigen Modulteile wurden kopiert!'),
-                        htmlReady($modul->getDisplayName())));
+                            htmlReady($modul->getDisplayName())));
                 } catch (InvalidValuesException $e) {
                     PageLayout::postError(
                             _('Das Modul konnte nicht kopiert werden!')
@@ -478,16 +529,10 @@ class Module_ModuleController extends MVVController
                     PageLayout::postError(_('Beim Kopieren trat ein Fehler auf!'));
                 }
             }
-            if (!Request::isPost()) {
-                $this->flash_dialog(
-                        sprintf(_('Wollen Sie wirklich das Modul "%s" und alle zugehörigen Modulteile kopieren?'),
-                                $modul->getDisplayName()),
-                        '/copy/'. $modul->getId(), '/index');
-            }
         }
         $this->redirect($this->url_for('/index'));
     }
-
+    
     /**
      * Retrieves all fields from descriptor in the original language and
      * returns them as a json object.
@@ -1064,16 +1109,14 @@ class Module_ModuleController extends MVVController
         if (Request::get('reset-search')) {
             $this->reset_search('module');
             $this->reset_page();
-            $this->reset_filter_action();
         } else {
             $this->reset_search('module');
             $this->reset_page();
             $this->do_search('Modul',
                     trim(Request::get('modul_suche_parameter')),
-                    Request::get('modul_suche'));
-
-            $this->redirect($this->url_for('/index'));
+                    Request::get('modul_suche'), $this->filter);
         }
+        $this->redirect($this->url_for('/index'));
     }
 
     /**
@@ -1083,7 +1126,6 @@ class Module_ModuleController extends MVVController
     {
         $this->reset_search('module');
         $this->reset_page();
-        $this->reset_filter_action();
     }
 
     public function sort_action()
@@ -1160,15 +1202,14 @@ class Module_ModuleController extends MVVController
     public function set_filter_action()
     {
         // Semester
-        $semester_id = mb_strlen(Request::get('semester_filter'))
-                ? Request::option('semester_filter') : null;
-        if ($semester_id) {
+        $semester_id = Request::option('semester_filter', 'all');
+        if ($semester_id != 'all') {
             $semester = Semester::find($semester_id);
             $this->filter['start_sem.beginn'] = $semester->beginn;
             $this->filter['end_sem.ende'] = $semester->beginn;
         } else {
-            $this->filter['start_sem.beginn'] = 2147483647;
-            $this->filter['end_sem.ende'] = 1;
+            $this->filter['start_sem.beginn'] = -1;
+            $this->filter['end_sem.ende'] = -1;
         }
 
         // Status
@@ -1191,9 +1232,9 @@ class Module_ModuleController extends MVVController
     {
         $this->filter = array();
         $this->reset_page();
-        // all semester
-        $this->filter['start_sem.beginn'] = 2147483647;
-        $this->filter['end_sem.ende'] = 1;
+        // current semester is set in index_action()
+        unset($this->filter['start_sem.beginn']);
+        unset($this->filter['end_sem.ende']);
         $this->sessSet('filter', $this->filter);
         $this->redirect($this->url_for('/index'));
     }
@@ -1247,26 +1288,15 @@ class Module_ModuleController extends MVVController
         // eine Rolle hat
         $own_institutes = MvvPerm::getOwnInstitutes();
         $modul_ids = null;
-        if (count($own_institutes)) {
-            if ($this->filter['mvv_modul_inst.institut_id']) {
-                $modul_ids = Modul::findByFilter(
-                    ['mvv_modul_inst.institut_id' => array_intersect($own_institutes,
-                    (array) $this->filter['mvv_modul_inst.institut_id'])]);
-            } else {
-                $modul_ids = Modul::findByFilter(
-                    ['mvv_modul_inst.institut_id' => $own_institutes]);
-            }
-        } else {
-            if ($this->filter['mvv_modul_inst.institut_id']) {
-                $modul_ids = Modul::findByFilter(
-                    ['mvv_modul_inst.institut_id'
-                        => $this->filter['mvv_modul_inst.institut_id']]);
-            }
-        }
-
-        $institute_filter = ['mvv_modul.stat' => $this->filter['mvv_modul.stat'],
+        
+        $modul_ids = Modul::findByFilter($this->filter);
+        
+        $institute_filter = [
+            'mvv_modul.stat'             => $this->filter['mvv_modul.stat'],
             'mvv_modul_inst.institut_id' => $own_institutes,
-            'mvv_modul_inst.gruppe' => 'hauptverantwortlich'];
+            'mvv_modul_inst.gruppe'      => 'hauptverantwortlich',
+            'start_sem.beginn'           => $this->filter['start_sem.beginn'],
+            'end_sem.ende'               => $this->filter['end_sem.ende']]; 
 
         $template = $template_factory->open('shared/filter');
 
@@ -1289,9 +1319,11 @@ class Module_ModuleController extends MVVController
         $semesters = $semesters->orderBy('beginn desc');
         $selected_semester = $semesters->findOneBy('beginn',
                 $this->filter['start_sem.beginn']);
+        
 
         $template->set_attribute('semester', $semesters);
         $template->set_attribute('selected_semester', $selected_semester->id);
+        $template->set_attribute('default_semester', Semester::findCurrent()->id);
 
         $template->set_attribute('action',
                 $this->url_for('/set_filter'));

@@ -30,9 +30,12 @@ class Course_DetailsController extends AuthenticatedController
             $course_id = $GLOBALS['SessionSeminar'];
         }
 
-        $this->course                = Course::find($course_id);
+        $this->course = Course::find($course_id);
         if (!$this->course) {
-            throw new Trails_Exception(400);
+            throw new Trails_Exception(
+                404,
+                _('Es konnte keine Veranstaltung gefunden werden')
+            );
         }
         $this->send_from_search_page = Request::get('send_from_search_page');
 
@@ -168,7 +171,7 @@ class Course_DetailsController extends AuthenticatedController
                 }
                 $links->addLink($abo_msg,
                     URLHelper::getScriptLink("dispatch.php/course/enrolment/apply/" . $this->course->id), Icon::create('door-enter', 'clickable'),
-                    array('data-dialog' => ''));
+                    array('data-dialog' => 'size=big'));
 
             }
 

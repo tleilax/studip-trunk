@@ -76,7 +76,7 @@ $UNI_URL = "http://www.studip.de";
 $UNI_LOGIN_ADD='';
 $UNI_LOGOUT_ADD=sprintf(_("Und hier geht's zur %sStud.IP Portalseite%s&nbsp;"), "<a href=\"http://www.studip.de\"><b>", "</b></a>");
 $UNI_CONTACT = "<please insert your general contact mail-adress here>";
-$UNI_INFO = "Stud.IP 3.3 - Studienbegleitender Internetsupport von Präsenzlehre";
+$UNI_INFO = "Stud.IP 4.0 - Studienbegleitender Internetsupport von Präsenzlehre";
 
 
 /* $SEM_CLASS and $SEM_TYPE configuration moved to database
@@ -276,9 +276,6 @@ $TIME_PRESETS = array ( //starthour, startminute, endhour, endminute
         );
 //$TIME_PRESETS = false;
 
-
-//number of personal events each user can store in his calendar
-$CALENDAR_MAX_EVENTS = 1000;
 
 //preset for academic titles -  add further titles to the array, if necessary
 $TITLE_FRONT_TEMPLATE = array("","Prof.","Prof. Dr.","Dr.","PD Dr.","Dr. des.","Dr. med.","Dr. rer. nat.","Dr. forest.",

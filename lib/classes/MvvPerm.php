@@ -28,9 +28,16 @@ class MvvPerm {
 
     /**
      * Permission to read, write/create and delete the value
-     * of the dsignated field.
+     * of the designated field.
      */
     const PERM_CREATE = 7;
+    
+    /**
+    * Permission to read, write/create and delete the value
+    * of the designated field. Possibly the admin have permission to
+    * particular functions.
+    */
+    const PERM_ADMIN = 15; 
 
     private static $privileges;
 
@@ -165,11 +172,11 @@ class MvvPerm {
             $mvv_object = new $object;
         }
         if (!$mvv_object instanceof ModuleManagementModel) {
-            throw new InvalidArgumentException('Wrong object type. Only MVV objects of type ApplicationSimpleORMap are allowed.');
+            throw new InvalidArgumentException('Wrong object type. Only MVV objects of type ModuleManagementModel are allowed.');
         }
         $user_id = is_null($user_id) ? $GLOBALS['user']->id : $user_id;
         if ($GLOBALS['perm']->get_perm($user_id) == 'root' ) {
-            return self::PERM_CREATE;
+            return self::PERM_ADMIN;
         }
         if (is_null($institut_id)) {
             $inst_ids = array();
@@ -198,7 +205,7 @@ class MvvPerm {
         $perm = 0;
         foreach ($roles as $role) {
             if ($role->rolename === 'MVVAdmin') {
-                return self::PERM_CREATE;
+                return self::PERM_ADMIN;
             }
             if (count($institut_ids)) {
                 $institutes_assigned_role = RolePersistence::getAssignedRoleInstitutes($user_id, $role->roleid);

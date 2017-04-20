@@ -31,6 +31,9 @@ class LVGroupsWizardStep implements CourseWizardStep
         $mvv_plugin = PluginEngine::getPlugin("MVVPlugin");
         $mvv_basepath = $mvv_plugin->getPluginPath();
 
+        $first_step = reset($values);
+        $_SESSION['wizarstep_course_starttime'] = $first_step['start_time'];
+
         // We only need our own stored values here.
         $values = $values[__CLASS__];
 
@@ -53,7 +56,7 @@ class LVGroupsWizardStep implements CourseWizardStep
 
         $selection_details = $values['lvgruppe_selection']['area_details'];
 
-        $open_nodes = !empty($values['open_lvg_nodes'])?$values['open_lvg_nodes']:array();
+        $open_nodes = !empty($values['open_lvg_nodes']) ? $values['open_lvg_nodes'] : array();
 
         $tpl->set_attribute('open_lvg_nodes', $open_nodes);
         $tpl->set_attribute('selection', $selection);
@@ -61,7 +64,7 @@ class LVGroupsWizardStep implements CourseWizardStep
         $tpl->set_attribute('tree', $lvgtree->getRootItem()->getChildren());
 
         $tpl->set_attribute('ajax_url', $values['ajax_url'] ?: URLHelper::getLink('dispatch.php/course/wizard/ajax'));
-        $tpl->set_attribute('no_js_url', $values['no_js_url'] ? : 'dispatch.php/course/wizard/forward/'.$stepnumber.'/'.$temp_id);
+        $tpl->set_attribute('no_js_url', $values['no_js_url'] ?: 'dispatch.php/course/wizard/forward/'.$stepnumber.'/'.$temp_id);
         $tpl->set_attribute('stepnumber', $stepnumber);
         $tpl->set_attribute('temp_id', $temp_id);
         return $tpl->render();
@@ -80,17 +83,14 @@ class LVGroupsWizardStep implements CourseWizardStep
     {
         if (self::isCourseId($course_id)) {
             $selection = new StudipLvgruppeSelection($course_id);
-        }
-        else {
-
+        } else {
             $lvgruppen = array();
-            if (isset($GLOBALS['sem_create_data']) &&
-                isset($GLOBALS['sem_create_data']['sem_lvgruppen'])) {
+            if (isset($GLOBALS['sem_create_data'])
+                && isset($GLOBALS['sem_create_data']['sem_lvgruppen'])) {
                     $lvgruppen = $GLOBALS['sem_create_data']['sem_lvgruppen'];
-                }
-
-                $selection = new StudipStudyAreaSelection();
-                $selection->setLvgruppen($lvgruppen);
+            }
+            $selection = new StudipLvgruppeSelection();
+            $selection->setLvgruppen($lvgruppen);
         }
         return $selection;
     }
@@ -113,6 +113,10 @@ class LVGroupsWizardStep implements CourseWizardStep
         $children = array();
         $searchtree = array();
 
+        $course = Course::findCurrent();
+        $course_start = $course ? $course->start_time : $_SESSION['wizarstep_course_starttime'];
+        $course_end = ($course->end_time < 0 || is_null($course->end_time)) ? PHP_INT_MAX : $course->end_time;
+
         $lvgtree = new StudipLvgruppeSelection();
 
         $mvvid = explode('-', $parentId);
@@ -125,15 +129,11 @@ class LVGroupsWizardStep implements CourseWizardStep
                 if ($c->stat != 'genehmigt') {
                     continue;
                 } elseif (isset($c->start)) {
-                    $course = Course::findCurrent();
-                    $mvv_start = Semester::find($c->start);
+                    $mvv_start = Semester::find($c->start)->beginn;
                     $mvv_end = Semester::find($c->end);
+                    $mvv_end = $mvv_end ? $mvv_end->ende : PHP_INT_MAX;
 
-                    if (!($mvv_start->beginn <= $course->end_time && $mvv_end->beginn >= $course->start_time)
-                        || ($course->end_time == null && $mvv_end->beginn >= $course->start_time)
-                        || ($mvv_end == null && $mvv_start->beginn <= $mvv_end->beginn)
-                        || ($course->end_time == null && $mvv_end == null))
-                    {
+                    if ($course_end < $mvv_start || $course_start > $mvv_end) {
                         continue;
                     }
                 }
@@ -167,7 +167,9 @@ class LVGroupsWizardStep implements CourseWizardStep
 
         $selection = self::get_selection(Request::get("cid"));
         $selectedlvg = array();
-        if (!empty($selection))$selectedlvg = $selection->getLvGruppenIDs();
+        if (!empty($selection)) {
+            $selectedlvg = $selection->getLvGruppenIDs();
+        }
 
         foreach (Lvgruppe::findBySearchTerm($searchterm) as $area) {
             $inlist = in_array($area->id, $selectedlvg);
@@ -191,11 +193,11 @@ class LVGroupsWizardStep implements CourseWizardStep
 
         $factory = new Flexi_TemplateFactory($mvv_basepath.'/views');
         $tpl = new Flexi_PhpTemplate('lvgselector/entry_trails', $factory);
-        $renderd = $tpl->render_partial('lvgselector/entry_trails', compact('area'));
+        $rendered = $tpl->render_partial('lvgselector/entry_trails', compact('area'));
 
         $data = array(
             'id' => $area->id,
-            'html_string' => $renderd
+            'html_string' => $rendered
         );
         if (Request::isXhr()) {
             return json_encode($data);
@@ -208,7 +210,7 @@ class LVGroupsWizardStep implements CourseWizardStep
     {
         $mvvid = explode('-', $id);
         $area = Lvgruppe::find($mvvid[0]);
-        $mvv_plugin = PluginEngine::getPlugin("MVVPlugin");
+        $mvv_plugin = PluginEngine::getPlugin('MVVPlugin');
         $mvv_basepath = $mvv_plugin->getPluginPath();
 
         $factory = new Flexi_TemplateFactory($mvv_basepath.'/views');
@@ -234,15 +236,15 @@ class LVGroupsWizardStep implements CourseWizardStep
         // We only need our own stored values here.
         $values = $values[__CLASS__];
 
-        if (Request::submitted("open_nodes")) {
-            $already_open_nodes = unserialize(Request::get("open_nodes"));
+        if (Request::submitted('open_nodes')) {
+            $already_open_nodes = unserialize(Request::get('open_nodes'));
             foreach ($already_open_nodes as $open_lvgnode) {
                 $values['open_lvg_nodes'][] = $open_lvgnode;
             }
         }
 
-        if (Request::option("open_node")) {
-            $node_to_open = Request::get("open_node");
+        if (Request::option('open_node')) {
+            $node_to_open = Request::get('open_node');
             if (!in_array($node_to_open, $values['open_lvg_nodes'])) {
                 $values['open_lvg_nodes'][] = $node_to_open;
             } else {
@@ -251,9 +253,9 @@ class LVGroupsWizardStep implements CourseWizardStep
             }
         }
 
-        if (Request::submitted("lvgruppe_selection")) {
+        if (Request::submitted('lvgruppe_selection')) {
 
-            $lvgruppe_selection = Request::getArray("lvgruppe_selection");
+            $lvgruppe_selection = Request::getArray('lvgruppe_selection');
 
             if (isset($lvgruppe_selection['details'])) {
                 foreach (array_keys($lvgruppe_selection['details']) as $lvgid) {
@@ -346,9 +348,10 @@ class LVGroupsWizardStep implements CourseWizardStep
         $locked = $this->is_locked($values);
 
         // DOES the course's class permit "lvgruppen"?
-        $coursetype = $values['BasicDataWizardStep']['coursetype'];
-        $class = $GLOBALS['SEM_TYPE'][$coursetype]["class"];
-        $lvgruppen_not_allowed = !$GLOBALS['SEM_CLASS'][$class]["module"];
+        // get the courstype from the first step (normally "BasicDataWizardStep")
+        $coursetype = reset($values)['coursetype'];
+        $class = $GLOBALS['SEM_TYPE'][$coursetype]['class'];
+        $lvgruppen_not_allowed = !$GLOBALS['SEM_CLASS'][$class]['module'];
 
         if (!$locked && !$lvgruppen_not_allowed) {
             return true;
@@ -364,33 +367,22 @@ class LVGroupsWizardStep implements CourseWizardStep
 
         // Has user access to this function? Access state is configured in global config.
         $access_right = get_config('MVV_ACCESS_ASSIGN_LVGRUPPEN');
-        if ($perm->have_perm('root')) {
-            return false;
-        } else {
-            if ($access_right == 'fakadmin') {
-                if ($perm->have_perm('admin')) {
-                    /*$db = DBManager::get();
-                    $st = $db->prepare("SELECT Seminar_id FROM user_inst a
-                                LEFT JOIN Institute b ON(a.Institut_id=b.Institut_id AND b.Institut_id=b.fakultaets_id)
-                                LEFT JOIN Institute c ON (b.Institut_id=c.fakultaets_id)
-                                LEFT JOIN seminare d ON (d.Institut_id=c.Institut_id)
-                                WHERE a.user_id = ? AND a.inst_perms='admin' AND d.Seminar_id = ? LIMIT 1");
-                    $st->execute(array($GLOBALS['user']->id, $course_id));
-                    if ($st->fetchColumn()) {
-                        return false;
-                    }*/
 
-                    if (isset($values['BasicDataWizardStep'])){
-                        $inst_id = $values['BasicDataWizardStep']['institute'];
-                        if($GLOBALS['perm']->have_studip_perm('admin', $inst_id)) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }
+        // the id of the home institute
+        // get the institute from the first step (normally "BasicDataWizardStep")
+        $inst_id = reset($values)['institute'];
+        if ($access_right == 'fakadmin') {
+            // is fakadmin at faculty of given home institute
+            $db = DBManager::get();
+            $st = $db->prepare("SELECT a.Institut_id FROM user_inst a
+                LEFT JOIN Institute b ON (a.Institut_id = b.Institut_id AND b.Institut_id = b.fakultaets_id)
+                LEFT JOIN Institute c ON (c.Institut_id = b.Institut_id)
+                WHERE a.user_id = ? AND a.inst_perms='admin' AND NOT ISNULL(b.Institut_id)
+                AND c.Institut_id = ? LIMIT 1");
+            $st->execute(array($GLOBALS['user']->id, $inst_id));
+            return !((bool) $st->fetchColumn());
         }
-        return !$perm->have_studip_perm($access_right, $course_id);
+        return !$perm->have_studip_perm($access_right, $inst_id);
 
     }
 

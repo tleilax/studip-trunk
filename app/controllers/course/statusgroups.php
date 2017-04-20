@@ -17,6 +17,7 @@
 require_once 'app/models/statusgroups.php';
 require_once 'lib/messaging.inc.php'; //Funktionen des Nachrichtensystems
 require_once 'lib/export/export_studipdata_func.inc.php'; // Funktionen für den Export
+require_once 'lib/export/export_linking_func.inc.php';
 
 class Course_StatusgroupsController extends AuthenticatedController
 {
@@ -40,7 +41,8 @@ class Course_StatusgroupsController extends AuthenticatedController
         $this->is_autor  = $perm->have_studip_perm('autor', $this->course_id);
 
         // Check lock rules
-        $this->is_locked = LockRules::Check($this->course_id, 'participants');
+        $this->is_locked = LockRules::Check($this->course_id, 'groups');
+        $this->is_participants_locked = LockRules::Check($this->course_id, 'participants');
 
         PageLayout::setTitle(sprintf('%s - %s', Course::findCurrent()->getFullname(), _('Gruppen')));
 
@@ -54,13 +56,20 @@ class Course_StatusgroupsController extends AuthenticatedController
         PageLayout::addSqueezePackage('statusgroups');
         Navigation::activateItem('/course/members/statusgroups');
 
+        if ($this->is_locked && $this->is_tutor) {
+            $lockdata = LockRules::getObjectRule($this->course_id);
+            if ($lockdata['description']) {
+                PageLayout::postMessage(MessageBox::info(formatLinks($lockdata['description'])));
+            }
+        }
+
         // Sorting as given by Request parameters
         $this->sort_by = Request::option('sortby', 'nachname');
         $this->order = Request::option('order', 'desc');
         $this->sort_group = Request::get('sort_group', '');
 
         // Get all course members (needed for mkdate).
-        $allmembers = SimpleCollection::createFromArray(
+        $this->allmembers = SimpleCollection::createFromArray(
             CourseMember::findByCourse($this->course_id));
 
         // Find all statusgroups for this course.
@@ -83,11 +92,11 @@ class Course_StatusgroupsController extends AuthenticatedController
             $groupmembers = $g->members->pluck('user_id');
             if ($this->sort_group == $g->id) {
                 $sorted = StatusgroupsModel::sortGroupMembers(
-                    $allmembers->findBy('user_id', $groupmembers),
+                    $this->allmembers->findBy('user_id', $groupmembers),
                     $this->sort_by, $this->order);
             } else {
                 $sorted = StatusgroupsModel::sortGroupMembers(
-                    $allmembers->findBy('user_id', $groupmembers));
+                    $this->allmembers->findBy('user_id', $groupmembers));
             }
 
             $this->groups[] = array(
@@ -103,7 +112,7 @@ class Course_StatusgroupsController extends AuthenticatedController
         }
 
         // Find course members who are in no group at all.
-        $ungrouped = $allmembers->findBy('user_id', $grouped_users, '!=');
+        $ungrouped = $this->allmembers->findBy('user_id', $grouped_users, '!=');
         if ($ungrouped) {
 
             if ($this->sort_group == 'nogroup') {
@@ -128,11 +137,12 @@ class Course_StatusgroupsController extends AuthenticatedController
 
         // Prepare search object for MultiPersonSearch.
         $this->memberSearch = new PermissionSearch(
-            'user_in_sem',
-            _('Teilnehmende der Veranstaltung suchen'),
+            'user',
+            _('Personen suchen'),
             'user_id',
-            array('seminar_id' => $this->course_id,
-                'sem_perm' => array('user', 'autor', 'tutor', 'dozent')
+            array(
+                'permission' => array('user', 'autor', 'tutor', 'dozent'),
+                'exclude_user' => array()
             )
         );
 
@@ -159,7 +169,6 @@ class Course_StatusgroupsController extends AuthenticatedController
                 $sidebar->addWidget($actions);
             }
             if (Config::get()->EXPORT_ENABLE) {
-                include_once $GLOBALS['PATH_EXPORT'] . '/export_linking_func.inc.php';
 
                 $export = new ExportWidget();
 
@@ -239,6 +248,15 @@ class Course_StatusgroupsController extends AuthenticatedController
         $fail = 0;
 
         foreach ($mp->getAddedUsers() as $a) {
+
+            if (!CourseMember::exists(array($this->course_id, $a))) {
+                $m = new CourseMember();
+                $m->seminar_id = $this->course_id;
+                $m->user_id = $a;
+                $m->status = User::find($a)->perms == 'user' ? 'user' : 'autor';
+                $m->store();
+            }
+
             $s = new StatusgruppeUser();
             $s->statusgruppe_id = $group_id;
             $s->user_id = $a;
@@ -591,7 +609,24 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                         $counter = 0;
                         foreach ($cycles as $c) {
-                            $group = StatusgroupsModel::updateGroup('', $c->toString(),
+                            $cd = new CycleData($c);
+
+                            $name = $c->toString();
+
+                            // Append description to group title if applicable.
+                            if ($c->description) {
+                                $name .= ' ' . mila($c->description, 30);
+                            }
+
+                            // Get name of most used room and append to group title.
+                            if ($rooms = $cd->getPredominantRoom()) {
+                                $room_name = DBManager::get()->fetchOne(
+                                    "SELECT `name` FROM `resources_objects` WHERE `resource_id` = ?",
+                                    array(array_pop(array_keys($rooms))));
+                                $name .= ' ' . $room_name['name'];
+                            }
+
+                            $group = StatusgroupsModel::updateGroup('', $name,
                                 $counter + 1, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0) + Request::int('exclusive', 0),
                                 strtotime(Request::get('selfassign_start', 'now')),
@@ -611,7 +646,19 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $dates = CourseDate::findBySeminar_id($this->course_id);
                         $singledates = array_filter($dates, function ($d) { return !((bool) $d->metadate_id); });
                         foreach ($singledates as $d) {
-                            $group = StatusgroupsModel::updateGroup('', $d->toString(),
+                            $name = $d->toString();
+
+                            // Append description to group title if applicable.
+                            if ($d->description) {
+                                $name .= ' ' . mila($d->description, 30);
+                            }
+
+                            // Get room name and append to group title.
+                            if ($room = $d->getRoomName()) {
+                                $name .= ' (' . $room . ')';
+                            }
+
+                            $group = StatusgroupsModel::updateGroup('', $name,
                                 $counter + 1, $this->course_id, Request::int('size', 0),
                                 Request::int('selfassign', 0) + Request::int('exclusive', 0),
                                 strtotime(Request::get('selfassign_start', 'now')),

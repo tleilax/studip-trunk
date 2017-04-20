@@ -77,7 +77,7 @@ class Modul extends ModuleManagementModelTreeItem
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
-        $config['belongs_to']['abschnitte_modul'] = array(
+        $config['has_many']['abschnitte_modul'] = array(
             'class_name' => 'StgteilabschnittModul',
             'assoc_foreign_key' => 'modul_id',
             'order_by' => 'ORDER BY position,mkdate',
@@ -508,7 +508,7 @@ class Modul extends ModuleManagementModelTreeItem
      * @param boolean $deep Copy all assigned modulteile if true
      * @return Modul A copy of this module.
      */
-    public function copy($deep = true)
+    public function copy($deep = true, $with_assignments = false)
     {
         $copy = clone $this;
         $copy->setNew(true);
@@ -561,11 +561,21 @@ class Modul extends ModuleManagementModelTreeItem
             $modulteile = [];
             $position = 1;
             foreach ($this->modulteile as $modulteil) {
-                $modulteil_copy = $modulteil->copy($deep);
+                $modulteil_copy = $modulteil->copy(true, $with_assignments);
                 $modulteil_copy->position = $position++;
                 $modulteile[] = $modulteil_copy;
             }
             $copy->modulteile = SimpleORMapCollection::createFromArray($modulteile);
+            
+            if ($with_assignments) {
+                $abschnitte_modul = [];
+                foreach ($this->abschnitte_modul as $abschnitt_modul) {
+                    $cloned_abschnitt_modul = clone $abschnitt_modul;
+                    $cloned_abschnitt_modul->setNew(true);
+                    $abschnitte_modul[] = $cloned_abschnitt_modul;
+                }
+                $copy->abschnitte_modul = SimpleORMapCollection::createFromArray($abschnitte_modul);
+            } 
         }
         return $copy;
     }
@@ -573,14 +583,21 @@ class Modul extends ModuleManagementModelTreeItem
     public static function findBySearchTerm($term, $filter = null)
     {
         $term = '%' . $term . '%';
-        return parent::getEnrichedByQuery('SELECT mm.*, '
-                . "CONCAT(mmd.bezeichnung, ' (', code, ')') AS name "
-                . 'FROM mvv_modul mm '
-                . 'LEFT JOIN mvv_modul_deskriptor mmd USING(modul_id) '
-                . 'WHERE mmd.sprache = '
+        return parent::getEnrichedByQuery('SELECT mvv_modul.*, '
+                . "CONCAT(mvv_modul_deskriptor.bezeichnung, ' (', code, ')') AS name "
+                . 'FROM mvv_modul '
+                . 'LEFT JOIN mvv_modul_deskriptor USING(modul_id) '
+                . 'LEFT JOIN mvv_modul_inst '
+                . 'ON (mvv_modul.modul_id = mvv_modul_inst.modul_id) '
+                . 'LEFT JOIN semester_data as start_sem '
+                . 'ON (mvv_modul.start = start_sem.semester_id)  '
+                . 'LEFT JOIN semester_data as end_sem '
+                . 'ON (mvv_modul.end = end_sem.semester_id) '
+                . 'WHERE mvv_modul_deskriptor.sprache = '
                 . DBManager::get()->quote(
                         $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['default'])
-                . ' AND (code LIKE ? OR mmd.bezeichnung LIKE ?) '
+                . ' AND (code LIKE ? OR mvv_modul_deskriptor.bezeichnung LIKE ?) '
+                . self::getFilterSql($filter)
                 . 'ORDER BY name',
                 array($term, $term));
     }
@@ -751,6 +768,7 @@ class Modul extends ModuleManagementModelTreeItem
      * Returns an array with ids of all modules found by the given filter.
      * The fields from tables mvv_modul and mvv_modul_inst are possible filter
      * options.
+     * If no filter is set an empty array will be returned.
      *
      * @see ModuleManagementModel::getFilterSql()
      * @param array $filter Key-value pairs of filed names and values
@@ -759,15 +777,24 @@ class Modul extends ModuleManagementModelTreeItem
      */
     public static function findByFilter($filter)
     {
-        if (count($filter) == 0) {
-            return array();
+        $filter_sql = self::getFilterSql($filter, true);
+        if ($filter_sql == '') {
+            return [];
         }
-        $stmt = DBManager::get()->prepare('SELECT DISTINCT modul_id '
-                . 'FROM mvv_modul LEFT JOIN mvv_modul_inst '
-                . 'USING(modul_id) '
-                . self::getFilterSql($filter, true));
+        $stmt = DBManager::get()->prepare('SELECT DISTINCT mvv_modul.modul_id '
+                . 'FROM mvv_modul '
+                . 'LEFT JOIN mvv_modulteil '
+                . 'ON mvv_modul.modul_id = mvv_modulteil.modul_id '
+                . 'LEFT JOIN mvv_modul_inst '
+                . 'ON (mvv_modul.modul_id = mvv_modul_inst.modul_id) '
+                . 'LEFT JOIN semester_data start_sem '
+                . 'ON (mvv_modul.start = start_sem.semester_id) '
+                . 'LEFT JOIN semester_data end_sem '
+                . 'ON (mvv_modul.end = end_sem.semester_id) '
+                . $filter_sql);
+
         $stmt->execute();
-        return $stmt->fetchAll();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
     }
 
     /**
@@ -831,6 +858,7 @@ class Modul extends ModuleManagementModelTreeItem
         if ($this->isDirty()) {
             $messages = array();
             $rejected = false;
+            /*
             if ($this->quelle) {
                 $quelle = Modul::find($this->quelle);
                 if (is_null($quelle)) {
@@ -839,6 +867,7 @@ class Modul extends ModuleManagementModelTreeItem
                     $rejected = true;
                 }
             }
+            */
             if ($this->variante) {
                 $variante = Modul::find($this->variante);
                 if (is_null($variante)) {

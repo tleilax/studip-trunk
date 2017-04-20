@@ -36,7 +36,7 @@ if ($navigation) {
 <head>
     <meta charset="utf-8">
     <title data-original="<?= htmlReady(PageLayout::getTitle()) ?>">
-      <?= htmlReady(PageLayout::getTitle() . ' - ' . $GLOBALS['UNI_NAME_CLEAN']) ?>
+      <?= htmlReady(PageLayout::getTitle() . ' - ' . Config::get()->UNI_NAME_CLEAN) ?>
     </title>
     <?php
         // needs to be included in lib/include/html_head.inc.php as well
@@ -86,13 +86,6 @@ if ($navigation) {
                 <?= implode(PageLayout::getMessages()) ?>
                 <?= $content_for_layout ?>
             </div>
-            <? if ($infobox) : ?>
-            <div id="layout_sidebar">
-                <div id="layout_infobox">
-                    <?= is_array($infobox) ? $this->render_partial('infobox/infobox_generic_content', $infobox) : $infobox ?>
-                </div>
-            </div>
-            <? endif ?>
         </div>
     </div> <? // Closes #layout_page opened in included templates/header.php ?>
 

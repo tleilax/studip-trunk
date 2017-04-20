@@ -104,6 +104,7 @@ class Course_RoomRequestsController extends AuthenticatedController
             $request = new RoomRequest();
             $request->seminar_id = $this->course_id;
             $request->user_id = $GLOBALS['user']->id;
+
             list($new_type, $id) = explode('_', Request::option('new_room_request_type'));
             if ($new_type == 'course') {
                 if ($existing_request = RoomRequest::existsByCourse($this->course_id)) {
@@ -123,6 +124,10 @@ class Course_RoomRequestsController extends AuthenticatedController
             }
         } else {
             $request = RoomRequest::find(Request::option('request_id'));
+
+            if($request->user_id != $GLOBALS['user']->id) {
+                $request->last_modified_by = $GLOBALS['user']->id;
+            }
         }
 
         $admission_turnout = Seminar::getInstance($this->course_id)->admission_turnout;
@@ -300,9 +305,7 @@ class Course_RoomRequestsController extends AuthenticatedController
                 $request_property_val = Request::getArray('request_property_val');
                 foreach ($request->getAvailableProperties() as $prop) {
                     if ($prop["system"] == 2) { //it's the property for the seat/room-size!
-                        if (Request::get('seats_are_admission_turnout') && $admission_turnout) {
-                            $request->setPropertyState($prop['property_id'], $admission_turnout);
-                        } else if (!Request::submitted('send_room_type')) {
+                        if (!Request::submitted('send_room_type')) {
                             $request->setPropertyState($prop['property_id'], abs($request_property_val[$prop['property_id']]));
                         }
                     } else {

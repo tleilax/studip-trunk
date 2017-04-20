@@ -41,7 +41,7 @@ use Studip\Button, Studip\LinkButton;
 
 $perm->check("tutor");
 
-require_once ($PATH_EXPORT.'/export_xslt_vars.inc.php');   // Liste der XSLT-Skripts
+require_once 'lib/export/export_xslt_vars.inc.php';   // Liste der XSLT-Skripts
 require_once ('lib/dates.inc.php');   // Datumsfunktionen
 
 /**
@@ -89,14 +89,8 @@ $xslt_filename =  mb_strlen(Request::get('xslt_filename')) ? basename(stripslash
 if (!CheckParamXSLT())
 {
     $export_pagename .= _("Es ist ein Fehler aufgetreten ");
-    $infobox = array(
-    array ("kategorie"  => _("Information:"),
-        "eintrag" => array  (
-                        array ( "icon" => Icon::create('info', 'clickable'),
-                                "text"  => _("Die Parameter, mit denen diese Seite aufgerufen wurde, sind fehlerhaft oder unvollständig.")
-                             )
-                        )
-        )
+    $export_pagecontent .= MessageBox::error(
+        _('Die Parameter, mit denen diese Seite aufgerufen wurde, sind fehlerhaft oder unvollständig.')
     );
 }
 
@@ -249,7 +243,7 @@ elseif ($page == 2)  // Seite 3 : Download der Dateien
     $export_pagecontent .= "<input type=\"hidden\" name=\"xslt_filename\" value=\"" . htmlReady($xslt_filename) . "\">";
 
     $export_weiter_button = "<center>" . Button::create('<< ' . _('Zurück'), 'back') . "&nbsp;";
-    if ($XSLT_ENABLE)
+    if (Config::get()->XSLT_ENABLE)
     {
         $export_pagecontent .= _("Um die Daten mit dem installierten XSLT-Prozessor in das gewünschte Format zu bringen, klicken Sie bitte auf 'weiter'") . "<br><br>";
         $export_weiter_button .= LinkButton::create(_('Weiter') . ' >>', '#', array('name' => 'next'));
@@ -259,26 +253,8 @@ elseif ($page == 2)  // Seite 3 : Download der Dateien
 
     $export_weiter_button .= "</center></form>";
 
-    $infobox = array    (
-    array ("kategorie"  => _("Information:"),
-        "eintrag" => array  (
-                        array ( "icon" => Icon::create('info', 'clickable'),
-                                "text"  => sprintf(_("Diese Seite bereitet die Datenausgabe vor. %s Schritt 3/3 %s"), "<br><i>", "</i>")
-                             )
-                        )
-        )
-    );
-    $link = "<a href=\"./test.xml"."\">";
-    $infobox[1]["kategorie"] = _("Aktionen:");
-
-    $infobox[1]["eintrag"][] = array (
-        "icon" => Icon::create('download', 'clickable'),
-        "text"  => _("Sie können sich die XML-Daten und das XSLT-Skript herunterladen.")
-    );
-
-    if ($XSLT_ENABLE) {
-        $infobox[1]["eintrag"][] = array (  "icon" => Icon::create('info', 'clickable'),
-                                    "text"  => _("Wenn Sie auf 'weiter' klicken, wird mit dem installierten XSLT-Prozessor die Ausgabedatei erzeugt.")
-                                );
-    }
+    $export_pagecontent .= MessageBox::info(sprintf(
+        _('Diese Seite bereitet die Datenausgabe vor. %s Schritt 3/3 %s'),
+        '<br><i>', '</i>'
+    ));
 }

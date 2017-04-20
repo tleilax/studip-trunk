@@ -8,7 +8,7 @@ $is_exTermin = $termin instanceof CourseExDate;
             <label for="<?= htmlReady($termin->termin_id) ?>">
                 <input class="<?= $class_ids ?>" type="checkbox" id="<?= htmlReady($termin->termin_id) ?>"
                        value="<?= htmlReady($termin->termin_id) ?>"
-                       <?= !$is_exTermin && $termin->date > time() ? 'checked' : '' ?>
+                       <?= !$is_exTermin && $termin->date > time() && ($termin->date <= $current_semester->ende || $semester_filter != 'all') ? 'checked' : '' ?>
                        name="single_dates[]">
             </label>
         </td>
@@ -97,6 +97,7 @@ $is_exTermin = $termin instanceof CourseExDate;
                       'data-confirm' => _('Diesen Termin wiederherstellen?')
                                       . implode("\n", $warning),
                       'formaction'   => $controller->url_for('course/timesrooms/undeleteSingle/' . $termin->termin_id),
+                      'style'        => 'margin: 0px',
         ]; ?>
         <? if (Request::isXhr()) : ?>
             <? $params['data-dialog'] = 'size=auto' ?>
@@ -117,11 +118,12 @@ $is_exTermin = $termin instanceof CourseExDate;
                       'data-confirm' => _('Wollen Sie diesen Termin wirklich löschen / ausfallen lassen?') . (!empty($warning) ? implode("\n", $warning) : ''),
                       'formaction'   => $controller->url_for('course/timesrooms/deleteSingle/' . $termin->termin_id,
                               ['cycle_id' => $termin->metadate_id] + $linkAttributes),
+                      'style'        => 'margin: 0px'
         ]; ?>
         <? if (Request::isXhr()) : ?>
             <? $params['data-dialog'] = 'size=big' ?>
         <? endif ?>
-        
+
         <? $actionMenu->addButton('delete_part', _('Termin löschen'), Icon::create('trash', 'clickable', $params)) ?>
     <? endif; ?>
         <?= $actionMenu->render() ?>

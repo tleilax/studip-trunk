@@ -174,27 +174,10 @@ class StudipAuthLdap extends StudipAuthAbstract {
 
     function doLdapMap($map_params)
     {
-        $ret = "";
-        if ($this->user_data[$map_params][0]){
+        if (isset($this->user_data[$map_params][0])) {
             $ret = $this->user_data[$map_params][0];
             if ($ret[0] == ':') {
                 $ret = base64_decode($ret);
-            }
-        }
-        return $ret;
-    }
-
-    function doLdapMapVorname($map_params)
-    {
-        $ret = "";
-        $ldap_field = $this->user_data[$map_params[0]][$map_params[1]];
-
-        if ($ldap_field){
-            $sn = $this->user_data['sn'][0];
-            $pos = mb_strpos($ldap_field, $sn);
-
-            if ($pos !== false){
-                $ret = trim(mb_substr($ldap_field,0,$pos));
             }
         }
         return $ret;
@@ -205,7 +188,7 @@ class StudipAuthLdap extends StudipAuthAbstract {
         $datafield_id = $params[1];
         $user = $params[2];
         $ldap_field = $this->doLdapMap($params[3]);
-        if ($ldap_field) {
+        if (isset($ldap_field)) {
             $df = $user->datafields->findOneBy('datafield_id', $datafield_id);
             if ($df) {
                 $df->content = $ldap_field;

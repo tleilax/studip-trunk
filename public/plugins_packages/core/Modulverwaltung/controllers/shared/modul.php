@@ -92,10 +92,8 @@ class Shared_ModulController extends MVVController
 
                 $lvGruppen = Lvgruppe::findByModulteil($modulTeil->getId());
                 foreach ($lvGruppen as $lvGruppe) {
-                    $courses = array();
-                    foreach ($lvGruppe->getAssignedCoursesBySemester($currentSemester['semester_id']) as $seminar) {
-                        $courses[$seminar['seminar_id']] = $seminar;
-                    }
+                    $ids = array_column($lvGruppe->getAssignedCoursesBySemester($currentSemester['semester_id']), 'seminar_id');
+                    $courses = Course::findMany($ids,'order by Veranstaltungsnummer, Name');
                     $modulTeileData[$modulTeil->getId()]['lvGruppen'][$lvGruppe->getId()] = array(
                         'courses' => $courses,
                         'alt_texte' => $lvGruppe->alttext
@@ -113,7 +111,8 @@ class Shared_ModulController extends MVVController
             $this->type = $type;
             $this->self_url = $this->url_for('modul/show/' . $id);
             $this->detail_url = $this->url_for('modul/detail/' . $id);
-            $this->teilnahmeVoraussetzung = $modul->getDeskriptor()->voraussetzung;
+	    $this->teilnahmeVoraussetzung = $modul->getDeskriptor()->voraussetzung;
+	    PageLayout::setTitle($modul->getDisplayName());
         }
     }
     
@@ -231,7 +230,8 @@ class Shared_ModulController extends MVVController
         $this->modulTeile = $modul->modulteile;
         $this->modulUser = $modul->assigned_users;
         $this->semester = $currentSemester;
-        $this->display_language = $display_language;
+	$this->display_language = $display_language;
+	PageLayout::setTitle($modul->getDisplayName());
     }
     
 }
