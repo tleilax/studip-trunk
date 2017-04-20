@@ -310,6 +310,7 @@ class Markup
             'author',
             'content',
             'link-extern',
+            'link-intern',
             'math-tex',
             'usercode',
             'wiki-link'

@@ -113,7 +113,7 @@ jQuery(function ($) {
                     // and internal links should not have any attributes except
                     // for href, but this cannot be enforced here
                     attributes: ['!href', 'target', 'rel'],
-                    classes: 'link-extern'
+                    classes: ['link-extern', 'link-intern']
                 },
                 big: {},
                 blockquote: {},
@@ -234,6 +234,7 @@ jQuery(function ($) {
             toolbarStartupExpanded: textarea.width() > 420,
 
             // configure dialogs
+            dialog_buttonsOrder: 'ltr',
             removeDialogTabs: 'image:Link;image:advanced;'
                 + 'link:target;link:advanced;'
                 + 'table:advanced',

@@ -17,7 +17,7 @@ class Search_CoursesController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
         PageLayout::setHelpKeyword("Basis.VeranstaltungenAbonnieren");
-        PageLayout::setTitle(_("Veranstaltungssuche"));
+        PageLayout::setTitle(_("Suche nach Veranstaltungen"));
         if (Request::option('view')) {
             $_SESSION['sem_portal']['bereich'] = Request::option('view');
         }
@@ -27,7 +27,7 @@ class Search_CoursesController extends AuthenticatedController
         }
 
         Request::set('view', $_SESSION['sem_portal']['bereich']);
-        Navigation::activateItem('/search/courses/'.$_SESSION['sem_portal']['bereich']);
+        Navigation::activateItem('/search/courses');
 
         if (Request::option('choose_toplist')) {
             $_SESSION['sem_portal']['toplist'] = Request::option('choose_toplist');
@@ -36,6 +36,20 @@ class Search_CoursesController extends AuthenticatedController
         if (!$_SESSION['sem_portal']['toplist']) {
             $_SESSION['sem_portal']['toplist'] = 4;
         }
+
+        $views = new ViewsWidget();
+        $views->addLink(_('Alle'), $this->url_for(
+            'search/courses?reset_all=TRUE&cmd=qs',
+            ['view' => 'all']
+        ))->setActive(Request::get('view', 'all') === 'all');
+
+        foreach ($GLOBALS['SEM_CLASS'] as $key => $val) {
+            $views->addLink($val['name'], $this->url_for(
+                'search/courses?reset_all=TRUE&cmd=qs',
+                ['view' => $key]
+            ))->setActive(Request::int('view') === $key);
+        }
+        Sidebar::Get()->addWidget($views);
     }
 
     public function index_action()
