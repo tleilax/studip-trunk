@@ -65,6 +65,10 @@
                 _('Datei bearbeiten'),
                 Icon::create('edit', 'clickable', array('size' => 20)),
                 ['data-dialog' => '1', '' => '']) ?>
+            <? $actionMenu->addLink($controller->url_for('file/update/' . $file_ref->id),
+                _('Datei aktualisieren'),
+                Icon::create('refresh', 'clickable', array('size' => 20)),
+                ['data-dialog' => '1', '' => '']) ?>
         <? endif; ?>
         <? if ($current_folder->isFileWritable($file_ref->id, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $file_ref->id, array('copymode' => 'move')),

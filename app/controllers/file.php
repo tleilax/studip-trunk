@@ -272,6 +272,85 @@ class FileController extends AuthenticatedController
 
 
     /**
+     * This action is responsible for updating a file reference.
+     */
+    public function update_action($file_ref_id)
+    {
+        $file_ref = FileRef::find($file_ref_id);
+        $folder = FileManager::getTypedFolder($file_ref->folder_id);
+        if (!$folder || !$folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
+        }
+        
+        $this->file_ref = $file_ref;
+        $this->errors = [];
+        
+        if (Request::submitted('confirm')) {
+            $update_filename = (bool) Request::get('update_filename', false);
+            CSRFProtection::verifyUnsafeRequest();
+            
+            //Form was sent
+            if (Request::isPost() && is_array($_FILES['file'])) {
+                
+                $upload_error = $folder->validateUpload($_FILES['file'], User::findCurrent()->id);
+                
+                if($upload_error) {
+                    $this->errors[] = $upload_error;
+                } else {
+                    $data_file_name = Request::isXhr() 
+                        ? studip_utf8decode($_FILES['file']['name'])
+                        : $_FILES['file']['name'];
+                    $data_file = $this->file_ref->file;
+                    $data_file_path = $data_file->getPath();
+                    
+                    if (is_uploaded_file($_FILES['file']['tmp_name'])) {
+                        if(!move_uploaded_file($_FILES['file']['tmp_name'], $data_file_path)) {
+                            $this->errors[] = _('Aktualisierte Datei konnte nicht ins Stud.IP Dateisystem verschoben werden!');
+                        } else {
+                            //moving the file was successful:
+                            //update File object:
+                            $data_file->size = filesize($data_file_path);
+                            $data_file->mime_type = get_mime_type($data_file_name);
+                            if ($update_filename) {
+                                $data_file->name = $data_file_name;
+                            }
+                            $data_file->store();
+                            
+                            if($update_filename) {
+                                $this->file_ref->name = $data_file_name;
+                                $this->file_ref->store();
+                            }
+                        }
+                    } elseif (!copy($_FILES['file']['tmp_name'], $data_file_path)) {
+                        $this->errors[] = _('Aktualisierte Datei konnte nicht ins Stud.IP Dateisystem kopiert werden!');
+                    }
+                }
+            } else {
+                $this->errors[] = _('Es wurde keine neue Dateiversion gewählt!');
+            }
+            
+            if ($this->errors) {
+                PageLayout::postError(
+                    sprintf(
+                        _('Fehler beim Aktualisieren der Datei %s!'),
+                        $this->file_ref->name
+                    ),
+                    $this->errors
+                );
+            } else {
+                PageLayout::postSuccess(
+                    sprintf(
+                        _('Datei %s wurde aktualisiert!'),
+                        $this->file_ref->name
+                    )
+                );
+            }
+            $this->redirectToFolder($folder);
+        }
+    }
+    
+    
+    /**
      * This action handles copying file references to another folder.
      */
     public function copy_action($file_ref_id)
