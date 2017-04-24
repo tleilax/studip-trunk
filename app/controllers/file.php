@@ -287,44 +287,24 @@ class FileController extends AuthenticatedController
         
         if (Request::submitted('confirm')) {
             $update_filename = (bool) Request::get('update_filename', false);
+            $update_all_instances = (bool) Request::get('update_all_instances', false);
             CSRFProtection::verifyUnsafeRequest();
             
             //Form was sent
             if (Request::isPost() && is_array($_FILES['file'])) {
                 
-                $upload_error = $folder->validateUpload($_FILES['file'], User::findCurrent()->id);
+                $result = FileManager::updateFileRef(
+                    $this->file_ref,
+                    User::findCurrent(),
+                    $_FILES['file'],
+                    $update_filename,
+                    $update_all_instances
+                );
                 
-                if($upload_error) {
-                    $this->errors[] = $upload_error;
-                } else {
-                    $data_file_name = Request::isXhr() 
-                        ? studip_utf8decode($_FILES['file']['name'])
-                        : $_FILES['file']['name'];
-                    $data_file = $this->file_ref->file;
-                    $data_file_path = $data_file->getPath();
-                    
-                    if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-                        if(!move_uploaded_file($_FILES['file']['tmp_name'], $data_file_path)) {
-                            $this->errors[] = _('Aktualisierte Datei konnte nicht ins Stud.IP Dateisystem verschoben werden!');
-                        } else {
-                            //moving the file was successful:
-                            //update File object:
-                            $data_file->size = filesize($data_file_path);
-                            $data_file->mime_type = get_mime_type($data_file_name);
-                            if ($update_filename) {
-                                $data_file->name = $data_file_name;
-                            }
-                            $data_file->store();
-                            
-                            if($update_filename) {
-                                $this->file_ref->name = $data_file_name;
-                                $this->file_ref->store();
-                            }
-                        }
-                    } elseif (!copy($_FILES['file']['tmp_name'], $data_file_path)) {
-                        $this->errors[] = _('Aktualisierte Datei konnte nicht ins Stud.IP Dateisystem kopiert werden!');
-                    }
+                if (!$result instanceof FileRef) {
+                    $this->errors = array_merge($this->errors, $result);
                 }
+                
             } else {
                 $this->errors[] = _('Es wurde keine neue Dateiversion gewählt!');
             }

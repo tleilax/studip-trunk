@@ -217,8 +217,30 @@ class FileManager
     }
     
     
+    
+    
     //FILE METHODS
 
+    /**
+     * This is a helper method that checks an uploaded file for errors
+     * which appeared during upload.
+     */
+    public static function checkUploadedFileStatus($uploaded_file = [])
+    {
+        $errors = [];
+        if ($uploaded_file['error'] === UPLOAD_ERR_INI_SIZE) {
+            $errors[] = _('Die maximale Dateigröße wurde überschritten.');
+        }
+        if ($uploaded_file['error'] > 0) {
+            $errors[] = sprintf(
+                _('Ein Systemfehler ist beim Upload aufgetreten. Fehlercode: %s.'),
+                $uploaded_file['error']
+            );
+        }
+        return $errors;
+    }
+    
+    
     /**
      * Handles uploading one or more files
      *
@@ -254,17 +276,23 @@ class FileManager
         if (is_array($uploaded_files['name'])) {
             $error = [];
             foreach ($uploaded_files['name'] as $key => $filename) {
-                if ($uploaded_files['error'][$key] === UPLOAD_ERR_INI_SIZE) {
-                    $error[] = _("Die maximale Dateigröße wurde überschritten.");
-                    continue;
-                }
-                if ($uploaded_files['error'][$key] > 0) {
-                    $error[] = _("Ein Systemfehler ist beim Upload aufgetreten. Fehlercode: " . $uploaded_files['error'][$key]);
-                    continue;
-                }
+                
                 $filetype = $uploaded_files['type'][$key] ?: get_mime_type($filename);
                 $tmpname = $uploaded_files['tmp_name'][$key];
                 $size = $uploaded_files['size'][$key];
+                
+                $uploaded_file = [
+                    'name' => $filename,
+                    'type' => $filetype,
+                    'tmp_name' => $tmpname,
+                    'size' => $size,
+                    'error' => $uploaded_files['error'][$key]
+                ];
+                $upload_errors = self::checkUploadedFileStatus($uploaded_file);
+                if($upload_errors) {
+                    $error = array_merge($error, $upload_errors);
+                    continue;
+                }
                 
                 //validate the upload by looking at the folder where the
                 //uploaded file shall be stored:
@@ -289,8 +317,130 @@ class FileManager
         }
         return array_merge($result, ['error' => $error]);
     }
-
-
+    
+    
+    
+    
+    //FILEREF METHODS
+    
+    /**
+     * This method handles updating the File a FileRef is pointing to.
+     * 
+     * The parameters $source, $user and $uploaded_file_data are required
+     * for this method to work.
+     * 
+     * @param FileRef $source The file reference pointing to a file that
+     *     shall be updated.
+     * @param User $user The user who wishes to update the file.
+     * @param Array $uploaded_file_data The data of the uploaded new version
+     *     of the file that is going to be updated.
+     * @param bool $update_filename True, if the file name of the File and the
+     *     FileRef shall be set to the name of the uploaded new version
+     *     of the file. False otherwise.
+     * @param bool $update_other_references If other FileRefs pointing to the
+     *     File that is going to be updated shall be updated too, set this
+     *     to True. In case only the FileRef $source and its file shall be
+     *     updated, set this to False. In the latter case the File will be
+     *     copied and the copy gets updated.
+     * 
+     * @return FileRef|string[] On success the updated $source FileRef is returned.
+     *     On failure an array with error messages is returned.
+     */
+    public static function updateFileRef(FileRef $source, User $user, $uploaded_file_data = [], $update_filename = false, $update_other_references = false)
+    {
+        $errors = [];
+        
+        //Do some checks:
+        
+        $folder = self::getTypedFolder($source->folder_id);
+        if (!$folder || !$folder->isFileEditable($source->id, $user->id)) {
+            $errors[] = sprintf(
+                _('Sie sind nicht dazu berechtigt, die Datei %s zu aktualisieren!'),
+                $source->name
+            );
+            return $errors;
+        }
+        
+        //Check if $uploaded_file_data has valid data in it:
+        $upload_error = $folder->validateUpload($uploaded_file_data, $user->id);
+        
+        if ($upload_error) {
+            $errors[] = $upload_error;
+            return $errors;
+        }
+        
+        //Ok, checks are completed: We can start updating the file.
+        
+        //If we don't update other file references that point to the File instance
+        //we must first copy the file and then link the $source FileRef to the
+        //new file:
+        
+        $data_file = null;
+        
+        if ($update_other_references) {
+            //We want to update all file references. In that case we can just
+            //use the $source FileRef's file directly.
+            $data_file = $source->file;
+        } else {
+            //If we want to keep the old version of the file in all other
+            //File references we must create a new File object and link it
+            //the $source FileRef to it:
+            
+            $upload_errors = self::checkUploadedFileStatus($uploaded_file_data);
+            
+            if ($upload_errors) {
+                $errors = array_merge($errors, $upload_errors);
+            }
+            
+            $data_file = new File();
+            $data_file->user_id = $user->id;
+            $data_file->storage = 'disk';
+            $data_file->id = $data_file->getNewId();
+            $source->file = $data_file;
+        }
+        
+        $connect_success = $data_file->connectWithDataFile($uploaded_file_data['tmp_name']);
+        if (!$connect_success) {
+            $errors[] = _('Aktualisierte Datei konnte nicht ins Stud.IP Dateisystem übernommen werden!');
+            return $errors;
+        }
+        
+        
+        //moving the file was successful:
+        //update File and FileRef object:
+        $data_file->size = filesize($data_file->getPath());
+        $data_file->mime_type = get_mime_type($uploaded_file_data['name']);
+        if ($update_filename) {
+            $data_file->name = $uploaded_file_data['name'];
+        }
+        $data_file->store();
+        
+        if ($update_filename) {
+            $source->name = $uploaded_file_data['name'];
+            $source->store();
+            
+            //We must find all FileRefs that point to $data_file
+            //and change their name, too:
+            
+            $other_file_refs = FileRef::findBySql(
+                '(file_id = :file_id) AND (id <> :source_id)',
+                [
+                    'file_id' => $source->file_id,
+                    'source_id' => $source->id
+                ]
+            );
+            
+            foreach ($other_file_refs as $other_file_ref) {
+                $other_file_ref->name = $uploaded_file_data['name'];
+                $other_file_ref->store();
+            }
+        }
+        
+        //Everything went fine: Return the updated $source FileRef:
+        return $source;
+    }
+    
+    
     /**
      * This method handles editing file reference attributes.
      *
@@ -390,8 +540,8 @@ class FileManager
             ];
         }
     }
-
-
+    
+    
     /**
      * This method handles copying a file to a new folder.
      *
