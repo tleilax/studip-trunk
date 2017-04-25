@@ -1,7 +1,7 @@
 <div style="text-align: center; margin-bottom: 20px;">
     <?= _("Kopieren nach") ?>
-        <?= Icon::create("folder-full", "info")->asImg("20px", array('class' => "text-bottom")) ?>
-        <?= htmlReady($to_folder->parent_id ? $to_folder->name : _("Hauptordner")) ?>
+    <?= Icon::create("folder-full", "info")->asImg("20px", array('class' => "text-bottom")) ?>
+    <?= htmlReady($to_folder_type->range_id ? $to_folder_type->name : _("Hauptordner")) ?>
 </div>
 <?
 $options = array();
