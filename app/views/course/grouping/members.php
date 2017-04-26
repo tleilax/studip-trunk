@@ -50,7 +50,7 @@
         <?php endif ?>
         <footer>
             <label>
-                <input type="checkbox" data-proxyfor=":checkbox.courses">
+                <input type="checkbox" data-proxyfor=":checkbox.courses" data-activates="#actions-courses">
                 <?= _('Alle Veranstaltungen auswählen') ?>
             </label>
             <span class="actions">

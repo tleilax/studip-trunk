@@ -22,20 +22,19 @@ class CoreParticipants implements StudipModule {
         $navigation = new Navigation(_('Teilnehmende'));
         $navigation->setImage(Icon::create('persons', 'info_alt'));
         $navigation->setActiveImage(Icon::create('persons', 'info'));
-        $navigation->addSubNavigation('view', new Navigation(_('Teilnehmende'), 'dispatch.php/course/members'));
 
         $course  = Course::find($course_id);
 
-        if ($course->aux_lock_rule) {
-            $navigation->addSubNavigation('additional', new Navigation(_('Zusatzangaben'), 'dispatch.php/course/members/additional'));
+        // Only courses without children have a regular member list and statusgroups.
+        if (!$course->getSemClass()->isGroup()) {
+            $navigation->addSubNavigation('view', new Navigation(_('Teilnehmende'), 'dispatch.php/course/members'));
+            $navigation->addSubNavigation('statusgroups', new Navigation(_('Gruppen'), 'dispatch.php/course/statusgroups'));
+        } else {
+            $navigation->addSubNavigation('children', new Navigation(_('Teilnehmende in Unterveranstaltungen'), 'dispatch.php/course/grouping/members'));
         }
 
-        // Only courses without children can have statusgroups.
-        if (!$course->getSemClass()->isGroup()) {
-            $navigation->addSubNavigation('statusgroups', new Navigation(_('Gruppen'), 'dispatch.php/course/statusgroups'));
-        // Course groups have a page showing members of sub courses.
-        } else if ($GLOBALS['perm']->have_studip_perm('tutor', $course->id)) {
-            $navigation->addSubNavigation('children', new Navigation(_('Teilnehmende in Unterveranstaltungen'), 'dispatch.php/course/grouping/members'));
+        if ($course->aux_lock_rule) {
+            $navigation->addSubNavigation('additional', new Navigation(_('Zusatzangaben'), 'dispatch.php/course/members/additional'));
         }
 
         return array('members' => $navigation);
