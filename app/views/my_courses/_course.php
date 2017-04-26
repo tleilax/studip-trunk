@@ -1,7 +1,7 @@
 <? foreach ($course_collection as $course)  : ?>
     <? $sem_class = $course['sem_class']; ?>
-    <tr<?= $children ? ' class="subcourses"' : ''?>>
-        <td class="gruppe<?= $children ? $gruppe : $course['gruppe'] ?>"></td>
+    <tr<?= $course['children'] ? ' class="has-subcourses"' : ($children ? ' class="subcourses"' : '') ?>>
+        <td<?= $children ? '' : ' class="gruppe' . $course['gruppe'] . '"' ?>></td>
         <td>
             <? if ($sem_class['studygroup_mode']) : ?>
                 <?=
