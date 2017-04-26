@@ -163,7 +163,7 @@ jQuery(function ($) {
                     attributes: ['colspan', 'rowspan', 'scope'],
                     styles: ['text-align', 'width', 'height']
                 },
-                tr: {},
+                tr: {}
             },
             width: textareaWidth,
             skin: 'studip,' + STUDIP.ASSETS_URL + 'stylesheets/ckeditor-skin/',
@@ -204,10 +204,10 @@ jQuery(function ($) {
             toolbarStartupExpanded: textarea.width() > 420,
 
             // configure dialogs
+            dialog_buttonsOrder: 'ltr',
             removeDialogTabs: 'image:Link;image:advanced;'
                 + 'link:target;link:advanced;'
                 + 'table:advanced',
-            dialog_buttonsOrder: 'ltr',
 
             // convert special chars except latin ones to html entities
             entities: false,

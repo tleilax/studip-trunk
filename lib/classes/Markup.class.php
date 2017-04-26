@@ -283,9 +283,8 @@ class Markup
             'content',
             'link-extern',
             'link-intern',
-            'math-tex',
-            'usercode',
-            'wiki-link'
+            'wiki-link',
+            'math-tex'
         ));
         $config->set('AutoFormat.Custom', array(
             'ClassifyLinks',
