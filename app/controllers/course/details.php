@@ -140,12 +140,14 @@ class Course_DetailsController extends AuthenticatedController
         if ($this->course->getSemClass()->isGroup()) {
             $this->children = SimpleORMapCollection::createFromArray(
                 Course::findByParent_Course($this->course->id))
+                ->filter(function ($c) { return $c->isVisibleForUser(); })
                 ->orderBy($order);
         // Find other courses belonging to the same parent.
         } else if ($this->course->parent_course) {
             $this->siblings = SimpleORMapCollection::createFromArray(
                 Course::findbyParent_Course($this->course->parent_course))
                 ->findBy('id', $this->course->id, '!=')
+                ->filter(function ($c) { return $c->isVisibleForUser(); })
                 ->orderBy($order);
         }
 

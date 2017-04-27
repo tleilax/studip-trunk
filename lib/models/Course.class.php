@@ -56,6 +56,7 @@
  * @property SimpleORMapCollection dates has_many CourseDate
  * @property SimpleORMapCollection ex_dates has_many CourseExDate
  * @property SimpleORMapCollection members has_many CourseMember
+ * @property SimpleORMapCollection deputies has_many Deputy
  * @property SimpleORMapCollection statusgruppen has_many Statusgruppen
  * @property SimpleORMapCollection admission_applicants has_many AdmissionApplication
  * @property SimpleORMapCollection datafields has_many DatafieldEntryModel
@@ -121,6 +122,12 @@ class Course extends SimpleORMap
         $config['has_many']['members'] = array(
             'class_name' => 'CourseMember',
             'assoc_func' => 'findByCourse',
+            'on_delete' => 'delete',
+            'on_store' => 'store',
+        );
+        $config['has_many']['deputies'] = array(
+            'class_name' => 'Deputy',
+            'assoc_func' => 'findByRange_id',
             'on_delete' => 'delete',
             'on_store' => 'store',
         );
@@ -423,6 +430,32 @@ class Course extends SimpleORMap
         }
 
         return $success;
+    }
+
+    /**
+     * Is the current course visible for the current user?
+     * @return Visible?
+     */
+    public function isVisibleForUser()
+    {
+        if ($this->visible || $GLOBALS['perm']->have_perm('root')) {
+            return true;
+        } else if ($GLOBALS['perm']->have_perm('admin')) {
+            $common = array_intersect(
+                $this->institutes->toArray(),
+                SimpleORMapCollection::createFromArray(Institute::getMyInstitutes())->pluck('institut_id')
+            );
+            return (count($common) > 0);
+        } else {
+            $member = false;
+            if (count($this->members) > 0) {
+                $member = (count($this->members->findBy('user_id', $GLOBALS['user']->id)) > 0);
+            }
+            if (!$member && Config::get()->DEPUTIES_ENABLE && count($this->deputies) > 0) {
+                $member = (count($this->deputies->findBy('user_id', $GLOBALS['user']->id)) > 0);
+            }
+        }
+        return $member;
     }
 
 }

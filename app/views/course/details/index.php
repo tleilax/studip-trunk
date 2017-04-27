@@ -111,12 +111,15 @@
                 <tr>
                     <td><strong><?= _("Hauptveranstaltung") ?></strong></td>
                     <td>
-                        <?= sprintf(_('Diese Veranstaltung gehört zur Hauptveranstaltung %s.'),
-                            '<a href="'.URLHelper::getURL('dispatch.php/course/details/',
-                                ['sem_id' => $course->parent->id]) . '" title="' .
-                            htmlReady($course->parent->getFullname()).'">' .
-                            htmlReady($course->parent->getFullname()) . '</a>') ?>
+                        <?= _('Diese Veranstaltung gehört zu einer Hauptveranstaltung') ?>:
+                        <br><br>
+                        <a href="<?= URLHelper::getURL('dispatch.php/course/details/',
+                                ['sem_id' => $course->parent->id]) ?>" title="<?= htmlReady(
+                                        $course->parent->getFullname()) ?>">
+                            <?= htmlReady($course->parent->getFullname()) ?>
+                        </a>
                         <?php if ($siblings) : ?>
+                            <br><br>
                             <section>
                                 <?= _('Ebenfalls zu dieser Hauptveranstaltung gehören:') ?>
                                 <ul>
@@ -135,7 +138,7 @@
                 </tr>
             <?php elseif ($children) : ?>
                 <tr>
-                    <td><strong><?= _("Unterveranstaltungen") ?></strong></td>
+                    <td><strong><?= _('Unterveranstaltungen') ?></strong></td>
                     <td>
                         <?= _('Dies ist eine Hauptveranstaltung mit folgenden Unterveranstaltungen:') ?>
                         <ul>
