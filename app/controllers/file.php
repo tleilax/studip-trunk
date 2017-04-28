@@ -862,7 +862,7 @@ class FileController extends AuthenticatedController
                         $this->file_ref = $file_ref;
                         $this->current_folder = $this->to_folder_type;
                         $this->marked_element_ids = array();
-                        $plugins = PlugineManager::get()->getPlugins("FileUploadHook");
+                        $plugins = PluginManager::getInstance()->getPlugins("FileUploadHook");
                         $redirects = array();
                         foreach ($plugins as $plugin) {
                             $url = $plugin->getAdditionalUploadWizardPage($file_ref);
@@ -884,7 +884,7 @@ class FileController extends AuthenticatedController
                     }
                 }
             } else {
-                PageLayout::postMessage(MessageBox::error(_("Konnte die Datei nicht hinzufügen.", array($error))));
+                PageLayout::postMessage(MessageBox::error(_("Konnte die Datei nicht hinzufügen."), array($error)));
             }
         }
         if (Request::get("plugin")) {

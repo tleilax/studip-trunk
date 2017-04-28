@@ -144,20 +144,22 @@ switch ($top_folder->range_type) {
 <? endif; ?>
 
 <? if ($check && $top_folder->isWritable($GLOBALS['user']->id) && $top_folder->id != $options['fileref_id']) : ?>
-    
-    <?
-    $action = ($options['copymode'] == 'copy') ? 'copy' : 'move'; 
-    $action_text = ($action == 'copy')? _('hierher kopieren') : _('hierher verschieben'); 
-    ?>  
-    
-    <?= Studip\LinkButton::createAccept(
-            $action_text, 
-            $controller->url_for('files/copyhandler/' . $top_folder->getId(),
-                    array('plugin' => $options['plugin'], 
-                    'to_plugin' => $options['to_plugin'],
-                    'fileref_id'=> $options['fileref_id'],
-                    'copymode' =>  $options['copymode'])),
-            array()); ?>
+
+    <div data-dialog-button>
+        <?
+        $action = ($options['copymode'] == 'copy') ? 'copy' : 'move';
+        $action_text = ($action == 'copy')? _('hierher kopieren') : _('hierher verschieben');
+        ?>
+
+        <?= Studip\LinkButton::createAccept(
+                $action_text,
+                $controller->url_for('files/copyhandler/' . $top_folder->getId(),
+                        array('plugin' => $options['plugin'],
+                        'to_plugin' => $options['to_plugin'],
+                        'fileref_id'=> $options['fileref_id'],
+                        'copymode' =>  $options['copymode'])),
+                array()); ?>
+    </div>
 
 <? endif ?>
 

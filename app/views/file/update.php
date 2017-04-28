@@ -14,10 +14,13 @@
             <input type="checkbox" name="update_filename" value="1">
             <?= _('Dateinamen aus neuer Dateiversion übernehmen.') ?>
         </label>
-        <label>
-            <input type="checkbox" name="update_all_instances" value="1">
-            <?= _('Diese Datei in allen Bereichen aktualisieren.') ?>
-        </label>
+        <? $count = count($file_ref->file->refs) ?>
+        <? if ($count > 1) : ?>
+            <label>
+                <input type="checkbox" name="update_all_instances" value="1">
+                <?= sprintf(_('Alle weiteren %s Vorkommen aktualisieren.'), $count - 1) ?>
+            </label>
+        <? endif ?>
     </fieldset>
     <div data-dialog-button>
         <?= \Studip\Button::create(_('Aktualisieren'), 'confirm') ?>
