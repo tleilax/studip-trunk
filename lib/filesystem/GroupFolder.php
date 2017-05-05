@@ -76,6 +76,10 @@ class GroupFolder extends StandardFolder
 
     public function setDataFromEditTemplate($request)
     {
+        if($request['group'] == null){
+            return MessageBox::error(_('Es wurde keine gültige Gruppe ausgewählt.'));
+        }
+
         $group_id = $request['group'];
 
         $this->folderdata['data_content']['group'] = $group_id;
