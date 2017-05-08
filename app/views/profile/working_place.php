@@ -7,37 +7,38 @@ $fields = [
 ];
 ?>
 
-<br>
-<strong><?= _('Wo ich arbeite:') ?></strong><br>
+<dt><?= _('Wo ich arbeite:') ?></dt>
+<dd>
+    <ul>
+        <? foreach ($institutes as $institute): ?>
+            <li>
+                <a href="<?= $controller->link_for('institute/overview', ['auswahl' => $institute['institut_id']]) ?>">
+                    <?= htmlReady($institute['institute_name']) ?>
+                </a>
+                <? foreach ($fields as $key => $label): ?>
+                    <? if ($institute[$key]): ?>
+                        <br>
+                        <b><?= htmlReady($label) ?>:</b>
+                        <?= htmlReady($institute[$key]) ?>
+                    <? endif; ?>
+                <? endforeach; ?>
 
-<ul>
-<? foreach ($institutes as $institute): ?>
-    <li>
-        <a href="<?= $controller->link_for('institute/overview', ['auswahl' => $institute['institut_id']]) ?>">
-            <?= htmlReady($institute['institute_name']) ?>
-        </a>
-  <? foreach ($fields as $key => $label): ?>
-    <? if ($institute[$key]): ?>
-        <br>
-        <b><?= htmlReady($label) ?>:</b>
-        <?= htmlReady($institute[$key]) ?>
-    <? endif; ?>
-  <? endforeach; ?>
+                <? if (!empty($institute['datafield'])): ?>
+                    <? foreach ($institute['datafield'] as $datafield): ?>
+                        <br>
+                        <b><?= htmlReady($datafield['name']) ?>:</b>
+                        <?= $datafield['value'] ?>
+                        <? if ($datafield['show_star']): ?>*<? endif; ?>
+                    <? endforeach; ?>
+                <? endif; ?>
 
-    <? if (!empty($institute['datafield'])): ?>
-        <? foreach ($institute['datafield'] as $datafield): ?>
-            <br>
-            <b><?= htmlReady($datafield['name']) ?>:</b>
-            <?= $datafield['value'] ?>
-            <? if ($datafield['show_star']): ?>*<? endif; ?>
+                <? if (!empty($institute['role'])): ?>
+                    <table cellpadding="0" cellspacing="0" border="0">
+                        <?= $institute['role'] ?>
+                    </table>
+                <? endif; ?>
+            </li>
         <? endforeach; ?>
-    <? endif; ?>
+    </ul>
 
-    <? if (!empty($institute['role'])): ?>
-        <table cellpadding="0" cellspacing="0" border="0">
-            <?= $institute['role'] ?>
-        </table>
-    <? endif; ?>
-    </li>
-<? endforeach; ?>
-</ul>
+</dd>
