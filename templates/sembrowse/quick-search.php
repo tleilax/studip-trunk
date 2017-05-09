@@ -5,9 +5,6 @@ SkipLinks::addIndex(_('Suchformular'), 'search_sem_qs', 100);
 <?= $search_obj->getFormStart(URLHelper::getLink(), [ 'class' => 'default' ]) ?>
 
 <fieldset>
-    <legend class="hidden-small-down">
-        <?= _("Filter") ?>
-    </legend>
 
     <label>
         <?= _('Suchbegriff') ?>
@@ -15,7 +12,7 @@ SkipLinks::addIndex(_('Suchformular'), 'search_sem_qs', 100);
     </label>
 
     <label>
-        <?= _('Schnellsuche') ?>
+        <?= _('Suchen in') ?>
         <?= $search_obj->getSearchField('qs_choose', [ 'id' => 'search_sem_qs_choose' ]) ?>
     </label>
 

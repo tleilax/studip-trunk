@@ -44,7 +44,7 @@ class ProfileController extends AuthenticatedController
             PageLayout::setTitle(_('Mein Profil'));
             UserConfig::get($this->user->id)->store('PROFILE_LAST_VISIT', time());
         } else if ($this->current_user['user_id'] && ($this->perm->have_perm('root') || (!$this->current_user['locked'] && get_visibility_by_id($this->current_user['user_id'])))) {
-            PageLayout::setTitle(_('Profil') . ' - ' . $this->current_user->getFullname());
+            PageLayout::setTitle(_('Profil von') . ' ' . $this->current_user->getFullname());
             object_add_view($this->current_user->user_id);
         } else {
             PageLayout::setTitle(_('Profil'));
@@ -123,7 +123,7 @@ class ProfileController extends AuthenticatedController
         // get kings informations
         if (Config::Get()->SCORE_ENABLE) {
             if ($this->current_user->user_id === $GLOBALS['user']->id || $this->current_user->score) {
-                $kings = $this->profile->getKingsInformations();
+                $kings = $this->current_user->getStudipKingIcon();
 
                 if ($kings != null) {
                     $this->kings = $kings;
@@ -183,6 +183,7 @@ class ProfileController extends AuthenticatedController
         $homepageplugins = PluginEngine::getPlugins('HomepagePlugin');
 
         $render = '';
+        $layout = $GLOBALS['template_factory']->open('shared/content_box');
         foreach ($homepageplugins as $homepageplugin) {
             if ($homepageplugin->isActivated($this->current_user->user_id, 'user')) {
                 // get homepageplugin tempaltes
@@ -236,12 +237,43 @@ class ProfileController extends AuthenticatedController
             });
         }
 
+        
+        $sidebar = Sidebar::Get();
+        
+        //The profile avatar, profile visits and profile score
+        //shall be visible in the sidebar. Therefore we must construct
+        //generic WidgetElement objects and their HTML in here.
+        
+        // First the avatar:
+        $avatar_widget = new TemplateWidget(
+                $this->current_user->getFullName(),
+                $this->get_template_factory()->open('profile/widget-avatar.php'),
+                ['avatar' => Avatar::getAvatar($this->current_user->user_id)]
+                );
+        $avatar_widget->setTitle($this->current_user->getFullName());
+        $sidebar->addWidget($avatar_widget);
+        
+        //Then visits and score (below the avatar image):
+        $details_widget = new TemplateWidget(
+                _('Status'),
+                $this->get_template_factory()->open('profile/widget-details.php'), [
+                        'kings'       => $this->kings,
+                        'views'       => object_return_views($this->current_user->user_id),
+                        'score'       => $this->score,
+                        'score_title' => $this->score_title,
+                ]
+                );
+        $details_widget->setTitle(_('Status'));
+        $sidebar->addWidget($details_widget);
+        
         $actions = new ActionsWidget();
+        //If a user visits the profile of another user
+        //we add a few more actions to the sidebar:
         if ($this->current_user->username != $this->user->username) {
             if ($GLOBALS['perm']->have_perm('root')) {
                 $actions->addLink(
                     _('Dieses Konto bearbeiten'),
-                    $this->url_for('dispatch.php/admin/user/edit/' . $this->current_user->user_id),
+                    $this->url_for('admin/user/edit/' . $this->current_user->user_id),
                     Icon::create('edit', 'clickable', tooltip2(_('Dieses Konto bearbeiten')))
                 );
             }
@@ -275,18 +307,43 @@ class ProfileController extends AuthenticatedController
             Icon::create('vcard', 'clickable', tooltip2(_('vCard herunterladen')))
         );
 
-        if ($this->score && $this->score_title) {
-            $actions->addLink(
-                sprintf('%s : %u - %s', _('Stud.IP-Punkte'), $this->score, $this->score_title),
-                $this->url_for('score'),
-                Icon::create('crown', 'clickable', tooltip2(_("Zur Rangliste")))
+        $sidebar->addWidget($actions);
+
+        $info_widget = new SidebarWidget();
+        $info_widget->setTitle(_('Informationen'));
+
+        if (!get_visibility_by_id($this->current_user->user_id)) {
+            if ($this->current_user->user_id !== $this->user->user_id) {
+                $string = _('(Dieser Nutzer ist unsichtbar.)');
+            } else {
+                $string = _('(Sie sind unsichtbar. Deshalb können nur Sie diese Seite sehen.)');
+            }
+            $info_widget->addElement(
+                new WidgetElement('<span style="color:red;">' . $string . '</span>')
             );
         }
 
-        $sidebar = Sidebar::Get();
-        $sidebar->setContextAvatar(Avatar::getAvatar($this->current_user->user_id));
-        $sidebar->setTitle(PageLayout::getTitle());
-        $sidebar->addWidget($actions);
+        if ($GLOBALS['perm']->have_perm('root') && $this->current_user['locked']) {
+            $info_widget->addElement(
+                new WidgetElement('<span style="color:red;">' . _('BENUTZER IST GESPERRT!') . '</span>')
+            );
+        }
+        if ($this->current_user->auth_plugin === null) {
+            $info_widget->addElement(
+                new WidgetElement('<span style="color:red;">' . _('vorläufiger Benutzer') . '</span>')
+            );
+        }
+
+        if (count($info_widget->getElements())) {
+            $sidebar->addWidget($info_widget);
+        }
+
+        if ($this->motto) {
+            $motto_widget = new SidebarWidget();
+            $motto_widget->setTitle(_('Motto'));
+            $motto_widget->addElement(new WidgetElement(htmlReady($this->motto)));
+            $sidebar->addWidget($motto_widget);
+        }
     }
 
     /**
