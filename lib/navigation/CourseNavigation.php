@@ -46,18 +46,17 @@ class CourseNavigation extends Navigation
      */
     public function initSubNavigation()
     {
-        global $SEM_CLASS, $SEM_TYPE;
-        global $SessSemName, $user;
+        global $SEM_CLASS, $SEM_TYPE, $user;
 
         parent::initSubNavigation();
 
         // list of used modules
         $Modules = new Modules();
-        $modules = $Modules->getLocalModules($SessSemName[1], $SessSemName['class'], false, $SessSemName['art_num']);
-        if ($SessSemName['class'] === 'sem') {
-            $sem_class = $SEM_CLASS[$SEM_TYPE[$SessSemName['art_num']]['class']] ?: SemClass::getDefaultSemClass();
+        $modules = $Modules->getLocalModules(Context::getId(), Context::getClass(), false, Context::getArtNum());
+        if (Context::isCourse()) {
+            $sem_class = $SEM_CLASS[$SEM_TYPE[Context::getArtNum()]['class']] ?: SemClass::getDefaultSemClass();
         } else {
-            $sem_class = SemClass::getDefaultInstituteClass($SessSemName['art_num']);
+            $sem_class = SemClass::getDefaultInstituteClass(Context::getArtNum());
         }
 
         // general information

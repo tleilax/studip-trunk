@@ -39,7 +39,7 @@
 use Studip\Button,
     Studip\LinkButton;
 
-require_once $RELATIVE_PATH_RESOURCES . '/views/ShowList.class.php';
+require_once 'lib/resources/views/ShowList.class.php';
 
 
 /*****************************************************************************
@@ -89,9 +89,6 @@ class ResourcesBrowse {
     function searchForm() {
         ?>
         <fieldset>
-            <legend>
-                <?= _('Suche nach Ressourcen'); ?>
-            </legend>
             <label>
                 <?= _('Bezeichnung') . ":"; ?>
                 <input name="search_exp" type="text" placeholder="<?= _('Ressource suchen') ?>" autofocus
@@ -100,7 +97,7 @@ class ResourcesBrowse {
             <label>
                 <?= _('Freie Suche') . ":"; ?>
                 <select>
-                    <option value="0" selected><?=htmlReady($GLOBALS['UNI_NAME_CLEAN'])?></option>
+                    <option value="0" selected><?=htmlReady(Config::get()->UNI_NAME_CLEAN)?></option>
                     <?if ($this->open_object){
                         $res = ResourceObject::Factory($this->open_object);
                         ?>
@@ -112,8 +109,7 @@ class ResourcesBrowse {
 
         <footer>
             <?= Button::create(_('Suchen'), 'start_search') ?>
-            <?= LinkButton::create(_('Zurücksetzen'), URLHelper::getURL('?view=search&quick_view_mode=' .
-                Request::option('view_mode') . '&reset=TRUE')) ?>
+            <?= LinkButton::create(_('Zurücksetzen'), URLHelper::getURL('?view=search&quick_view_mode=' . $GLOBALS['view_mode'] . '&reset=TRUE')) ?>
         </footer>
         <?
     }
@@ -121,8 +117,6 @@ class ResourcesBrowse {
     //private
     function getHistory($id)
     {
-        global $UNI_URL, $UNI_NAME_CLEAN;
-
         $query = "SELECT name, parent_id, resource_id, owner_id
                   FROM resources_objects
                   WHERE resource_id = ? ORDER BY name";
@@ -145,7 +139,7 @@ class ResourcesBrowse {
         if (count($result_arr) > 0)
             switch (ResourceObject::getOwnerType($result_arr[count($result_arr)-1]["owner_id"])) {
                 case "global":
-                    $top_level_name = $UNI_NAME_CLEAN;
+                    $top_level_name = Config::get()->UNI_NAME_CLEAN;
                 break;
                 case "sem":
                     $top_level_name = _("Veranstaltungsressourcen");
@@ -161,15 +155,15 @@ class ResourcesBrowse {
                 break;
             }
 
-            if (Request::option('view') == 'search') {
-                $result  = '<a href="'. URLHelper::getLink('?view=search&quick_view_mode='. Request::option('view_mode') .'&reset=TRUE') .'">';
+            if ($GLOBALS['view'] == 'search') {
+                $result  = '<a href="'. URLHelper::getLink('?view=search&quick_view_mode='. $GLOBALS['view_mode'] .'&reset=TRUE') .'">';
                 $result .=  $top_level_name;
                 $result .= '</a>';
             }
 
             for ($i = sizeof($result_arr)-1; $i>=0; $i--) {
-                if (Request::option('view')) {
-                    $result .= ' &gt; <a href="'.URLHelper::getLink(sprintf('?quick_view='.Request::option('view').'&quick_view_mode='.Request::option('view_mode').'&%s='.$result_arr[$i]["id"],(Request::option('view')=='search') ? "open_level" : "actual_object" ) );
+                if ($GLOBALS['view']) {
+                    $result .= ' &gt; <a href="'.URLHelper::getLink(sprintf('?quick_view='.$GLOBALS['view'].'&quick_view_mode='.$GLOBALS['view_mode'].'&%s='.$result_arr[$i]["id"],($GLOBALS['view']=='search') ? "open_level" : "actual_object" ) );
 
                     $result .= '">'. htmlReady($result_arr[$i]["name"]) .'</a>';
                 } else {
@@ -431,7 +425,7 @@ class ResourcesBrowse {
             <td><?= $this->getHistory($this->open_object) ?></td>
             <td width="15%" align="right" nowrap valign="top">
             <? if ($way_back >= 0): ?>
-                <a href="<?= URLHelper::getLink('?view=search&quick_view_mode='. Request::option('view_mode')
+                <a href="<?= URLHelper::getLink('?view=search&quick_view_mode='. $GLOBALS['view_mode']
                             . '&' . (!$way_back ? "reset=TRUE" : "open_level=$way_back")) ?>">
                     <?= Icon::create('arr_2left', 'clickable', ['title' => _('eine Ebene zurück')])->asImg(16, ["class" => 'text-top']) ?>
                 </a>
@@ -455,7 +449,7 @@ class ResourcesBrowse {
                             print "</td><td width=\"40%\" valign=\"top\">";
                             $switched = TRUE;
                         } ?>
-                        <a href="<?= URLHelper::getLink('?view=search&quick_view_mode='. Request::option('view_mode') .'&open_level=' . $element['resource_id']) ?>">
+                        <a href="<?= URLHelper::getLink('?view=search&quick_view_mode='. $GLOBALS['view_mode'] .'&open_level=' . $element['resource_id']) ?>">
                             <b><?= htmlReady($element['name']) ?></b>
                         </a><br>
                         <? $i++;
@@ -504,7 +498,7 @@ class ResourcesBrowse {
     //private
     function showSearch() {
         ?>
-        <form class="default" method="post" action="<?= URLHelper::getLink('?search_send=yes&quick_view=search&quick_view_mode='. Request::option('view_mode')) ?>">
+        <form class="default" method="post" action="<?= URLHelper::getLink('?search_send=yes&quick_view=search&quick_view_mode='. $GLOBALS['view_mode']) ?>">
             <?= CSRFProtection::tokenTag() ?>
             <table border=0 celpadding=2 cellspacing=0 width="99%" align="center">
                 <?

@@ -5,12 +5,13 @@ form#quicksearch {
 }
 
 input.quicksearchbox {
-    background-color: #fff;
+    background-color: @content-color-20;
     border: 1px solid #485979;
-    color: @contrast-content-gray;
-    font-size: 11px;
-    width: 130px;
-    height: 16px;
+    color: @base-color;
+    font-size: 14px;
+    width: 250px;
+    height: 19px;
+    padding-left: 6px;
 }
 
 .quicksearch_frame {
@@ -72,4 +73,16 @@ input.quicksearchbox {
 }
 .ui-autocomplete {
     z-index: 99999;
+}
+
+.QuickSearchSelect {
+    width: calc(100% - 32px);
+    
+    + input[type=submit] {
+        float: none;
+        margin-left: 0px;
+        height: 30px;
+        background-color: #7E92B0;
+        background-position: center center;
+    }
 }

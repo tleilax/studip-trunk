@@ -545,7 +545,7 @@ if ($evaluation = $statement->fetch(PDO::FETCH_ASSOC)) {
     fputs($fo_file,"    "._("Erstellt mit Stud.IP")." " . xml_escape($SOFTWARE_VERSION) . " - ". _("Seite")." <fo:page-number/>\n");
     fputs($fo_file,"    </fo:block>\n");
     fputs($fo_file,"    <fo:block text-align=\"center\" font-size=\"8pt\" font-family=\"serif\" line-height=\"14pt\" >\n");
-    fputs($fo_file,"      <fo:basic-link color=\"blue\" external-destination=\"$ABSOLUTE_URI_STUDIP\">". xml_escape($UNI_NAME_CLEAN) . "</fo:basic-link>\n");
+    fputs($fo_file,"      <fo:basic-link color=\"blue\" external-destination=\"$ABSOLUTE_URI_STUDIP\">". xml_escape(Config::get()->UNI_NAME_CLEAN) . "</fo:basic-link>\n");
     fputs($fo_file,"    </fo:block>\n");
     fputs($fo_file,"  </fo:static-content>\n");
     fputs($fo_file,"  <fo:flow flow-name=\"xsl-region-body\">\n");
@@ -572,7 +572,7 @@ if ($evaluation = $statement->fetch(PDO::FETCH_ASSOC)) {
     if (do_template("show_total_stats")) {
         fputs($fo_file,"    <fo:block text-align=\"start\" space-before.optimum=\"10pt\" line-height=\"10pt\" font-size=\"8pt\">\n");
         fputs($fo_file,"      ". xml_escape($number_of_votes." "._("Teilnehmer insgesamt")).".\n");
-        fputs($fo_file,"      ". xml_escape(_("Die Teilnahme war")." ". ($evaluation['anonymous']==0 ? _("nicht") : "") . " "._("anonym")).".\n");
+        fputs($fo_file,"      ". xml_escape(($evaluation['anonymous']==0  ? _('Die Teilnahme war nicht anonym.') : _('Die Teilnahme war anonym.'))."\n"));
         fputs($fo_file,"      " . xml_escape(_("Eigentümer").": ".$db_owner.". "._("Erzeugt am").": ".date("d.m.Y H:i:s"))."\n");
         fputs($fo_file,"    </fo:block>\n");
     }

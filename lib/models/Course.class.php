@@ -68,27 +68,16 @@
 class Course extends SimpleORMap
 {
 
-    private static $current_course;
-
     /**
      * Returns the currently active course or false if none is active.
      *
-     * @return mixed Course object of currently active course, false otherwise
+     * @return Course object of currently active course, null otherwise
      * @since 3.0
      */
     public static function findCurrent()
     {
-        if (empty($GLOBALS['SessionSeminar'])) {
-            return null;
-        }
-        if (isset(self::$current_course) && $GLOBALS['SessionSeminar'] === self::$current_course->id) {
-            return self::$current_course;
-        }
-        $found = Course::find($GLOBALS['SessionSeminar']);
-        if ($found) {
-            self::$current_course = $found;
-            Seminar::setInstance(new Seminar(self::$current_course));
-            return self::$current_course;
+        if (Context::isCourse()) {
+            return Context::get();
         }
     }
 
@@ -197,12 +186,8 @@ class Course extends SimpleORMap
 
         $config['additional_fields']['end_time'] = true;
 
-        $config['notification_map']['after_create'] = 'CourseDidCreateOrUpdate CourseDidCreate';
-        $config['notification_map']['after_store'] = 'CourseDidCreateOrUpdate CourseDidUpdate';
-        $config['notification_map']['before_create'] = 'CourseWillCreate';
-        $config['notification_map']['before_store'] = 'CourseWillUpdate';
-        $config['notification_map']['after_delete'] = 'CourseDidDelete';
-        $config['notification_map']['before_delete'] = 'CourseWillDelete';
+        $config['notification_map']['after_create'] = 'CourseDidCreateOrUpdate';
+        $config['notification_map']['after_store'] = 'CourseDidCreateOrUpdate';
 
         $config['i18n_fields']['name'] = true;
         $config['i18n_fields']['untertitel'] = true;

@@ -331,6 +331,7 @@ class User extends AuthUserMd5
         );
         $config['has_many']['institute_memberships'] = array(
             'class_name' => 'InstituteMember',
+            'order_by' => 'ORDER BY priority ASC',
             'on_delete' => 'delete',
             'on_store' => 'store',
         );
@@ -405,12 +406,6 @@ class User extends AuthUserMd5
             }
         }
 
-        $config['notification_map']['after_create'] = 'UserDidCreate';
-        $config['notification_map']['after_store'] = 'UserDidUpdate';
-        $config['notification_map']['after_delete'] = 'UserDidDelete';
-        $config['notification_map']['before_create'] = 'UserWillCreate';
-        $config['notification_map']['before_store'] = 'UserWillUpdate';
-        $config['notification_map']['before_delete'] = 'UserWillDelete';
         parent::configure($config);
     }
 
@@ -606,6 +601,22 @@ class User extends AuthUserMd5
     }
 
     /**
+     * Get the decorated StudIP-Kings information
+     * @return String
+     */
+    public function getStudipKingIcon() {
+        $is_king = StudipKing::is_king($this->user_id, TRUE);
+
+        $result = '';
+        foreach ($is_king as $type => $text) {
+            $type = str_replace('_', '-', $type);
+            $result .= Assets::img('crowns/crown-' . $type . '.png', ['alt' => $text, 'title' => $text]);
+        }
+
+        return $result ?: null;
+    }
+
+    /**
      * Builds an array containing all available elements that are part of a
      * user's homepage together with their visibility. It isn't sufficient to
      * just load the visibility settings from database, because if the user
@@ -798,7 +809,7 @@ class User extends AuthUserMd5
             return true;
         }
 
-        if (!$GLOBALS['ALLOW_CHANGE_EMAIL']) {
+        if (!Config::get()->ALLOW_CHANGE_EMAIL) {
             return false;
         }
 

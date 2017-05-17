@@ -9,7 +9,7 @@ section.contentbox {
         .flex();
         .flex-wrap(wrap);
         .flex-justify-content(space-between);
-        
+
         padding: 2px;
         background-color: @content-color-20;
 
@@ -29,11 +29,11 @@ section.contentbox {
         > nav {
             align-items: center;
             display: flex;
-            flex: 1 1 auto;
+            flex: 0 1 auto;
             justify-content: end;
             padding: 2px;
             text-align: right;
-            
+
             > *:not(:first-child) {
                 padding-left: 0.25em;
             }
@@ -206,6 +206,13 @@ section.contentbox {
         &.new {
             header h1 a {
                 .icon('before', "arr_1right", 'new');
+            }
+        }
+
+        &.indented {
+            margin-left: calc(10px + 1em);
+            > header {
+                background-color: mix(@content-color, #fff, 10%);
             }
         }
     }

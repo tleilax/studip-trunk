@@ -51,7 +51,7 @@ class StudipSemTree extends TreeAbstract {
     function __construct($args) {
         DbView::addView('sem_tree');
 
-        $this->root_name = $GLOBALS['UNI_NAME_CLEAN'];
+        $this->root_name = Config::get()->UNI_NAME_CLEAN;
         if (isset($args['visible_only'])){
             $this->visible_only = (int)$args['visible_only'];
         }
@@ -126,6 +126,10 @@ class StudipSemTree extends TreeAbstract {
         return isset($GLOBALS['SEM_TREE_TYPES'][$this->getValue($item_id, 'type')]['is_module']);
     }
 
+    function isHiddenItem($item_id){
+        return (bool) $GLOBALS['SEM_TREE_TYPES'][$this->getValue($item_id, 'type')]['hidden'];
+    }
+    
     function getSemIds($item_id,$ids_from_kids = false){
         if (!$this->tree_data[$item_id])
             return false;

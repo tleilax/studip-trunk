@@ -64,6 +64,17 @@ jQuery(function ($) {
         // create new toolbar container
         var textareaWidth = (textarea.width() / textarea.parent().width() * 100) + '%';
 
+        // fetch ckeditor configuration
+        var options = textarea.attr('data-editor'),
+            extraPlugins,
+            removePlugins;
+
+        if (options) {
+            options = STUDIP.parseOptions(options);
+            extraPlugins = options.extraPlugins;
+            removePlugins = options.removePlugins;
+        }
+
         // replace textarea with editor
         CKEDITOR.replace(textarea[0], {
             allowedContent: {
@@ -78,7 +89,7 @@ jQuery(function ($) {
                     // and internal links should not have any attributes except
                     // for href, but this cannot be enforced here
                     attributes: ['!href', 'target', 'rel'],
-                    classes: 'link-extern'
+                    classes: ['link-extern', 'link-intern']
                 },
                 blockquote: {},
                 br: {},
@@ -157,9 +168,11 @@ jQuery(function ($) {
             width: textareaWidth,
             skin: 'studip,' + STUDIP.ASSETS_URL + 'stylesheets/ckeditor-skin/',
             // NOTE codemirror crashes when not explicitely loaded in CKEditor 4.4.7
-            extraPlugins: 'codemirror,confighelper,magicline,studip-floatbar,studip-quote,studip-settings,studip-wiki,smiley'
+            extraPlugins: 'codemirror,confighelper,magicline,studip-floatbar,studip-quote,studip-settings,smiley'
+                + (extraPlugins ? ',' + extraPlugins : '')
                 // only enable uploads in courses with a file section
                 + ($('li#nav_course_files').length > 0 ? ',studip-upload' : ''),
+            removePlugins: removePlugins ? removePlugins : '',
             enterMode: CKEDITOR.ENTER_BR,
             mathJaxLib: STUDIP.URLHelper.getURL('assets/javascripts/mathjax/MathJax.js?config=TeX-AMS_HTML,default'),
             studipUpload_url: STUDIP.URLHelper.getURL('dispatch.php/wysiwyg/upload'),
@@ -191,6 +204,7 @@ jQuery(function ($) {
             toolbarStartupExpanded: textarea.width() > 420,
 
             // configure dialogs
+            dialog_buttonsOrder: 'ltr',
             removeDialogTabs: 'image:Link;image:advanced;'
                 + 'link:target;link:advanced;'
                 + 'table:advanced',

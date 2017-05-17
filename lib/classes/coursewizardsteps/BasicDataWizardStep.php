@@ -58,7 +58,7 @@ class BasicDataWizardStep implements CourseWizardStep
                 $values['institute'] = Config::get()->STUDYGROUP_DEFAULT_INST;
             // Normal course.
             } else {
-                if (!$class['course_creation_forbidden']) {
+                if (!$class['course_creation_forbidden'] && !$class['studygroup_mode']) {
                     $typestruct[$class['name']][] = $type;
                 }
             }
@@ -310,6 +310,12 @@ class BasicDataWizardStep implements CourseWizardStep
         $errors = array();
         if (!trim($values['name'])) {
             $errors[] = _('Bitte geben Sie den Namen der Veranstaltung an.');
+        }
+        if ($values['number'] != '') {
+            $course_number_format = get_config('COURSE_NUMBER_FORMAT');
+            if ($course_number_format && !preg_match('/^' . $course_number_format . '$/', $values['number'])) {
+                $errors[] = _('Die Veranstaltungsnummer hat ein ungültiges Format.');
+            }
         }
         if (!$values['lecturers']) {
             $errors[] = sprintf(_('Bitte tragen Sie mindestens eine Person als %s ein.'),

@@ -81,8 +81,8 @@ class CourseSet
         $this->id = $setId;
         $this->name = _("Anmeldeset");
         $this->algorithm = new RandomAlgorithm();
-        // Define autoload function for admission rules.
-        spl_autoload_register(array('AdmissionRule', 'getAvailableAdmissionRules'));
+        // Autoload admission rules.
+        AdmissionRule::getAvailableAdmissionRules();
         // Define autoload function for admission rules.
         spl_autoload_register(array('UserFilterField', 'getAvailableFilterFields'));
         if ($setId) {
@@ -347,9 +347,12 @@ class CourseSet
      * @param String $courseSetId
      * @return Array
      */
-    public static function getCoursesByCourseSetId($courseSetId) {
-        $stmt = DBManager::get()->prepare("SELECT seminar_id FROM `seminar_courseset`
-            WHERE courseset_id=?");
+    public static function getCoursesByCourseSetId($courseSetId)
+    {
+        $query = "SELECT `seminar_id`
+                  FROM `seminar_courseset`
+                  WHERE `set_id` = ?";
+        $stmt = DBManager::get()->prepare($query);
         $stmt->execute(array($courseSetId));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

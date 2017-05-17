@@ -100,10 +100,14 @@ class Course_RoomRequestsController extends AuthenticatedController
     public function edit_action()
     {
         Helpbar::get()->addPlainText(_('Information'), _('Hier können Sie Angaben zu gewünschten Raumeigenschaften machen.'));
+        
+        $request_was_closed_before = false;
+        
         if (Request::option('new_room_request_type')) {
             $request = new RoomRequest();
             $request->seminar_id = $this->course_id;
             $request->user_id = $GLOBALS['user']->id;
+
             list($new_type, $id) = explode('_', Request::option('new_room_request_type'));
             if ($new_type == 'course') {
                 if ($existing_request = RoomRequest::existsByCourse($this->course_id)) {
@@ -123,6 +127,12 @@ class Course_RoomRequestsController extends AuthenticatedController
             }
         } else {
             $request = RoomRequest::find(Request::option('request_id'));
+
+            if($request->user_id != $GLOBALS['user']->id) {
+                $request->last_modified_by = $GLOBALS['user']->id;
+            }
+            
+            $request_was_closed_before = $request->getClosed() > 0;
         }
 
         $admission_turnout = Seminar::getInstance($this->course_id)->admission_turnout;
@@ -139,6 +149,12 @@ class Course_RoomRequestsController extends AuthenticatedController
                 PageLayout::postMessage(MessageBox::error(_("Die Anfrage konnte nicht gespeichert werden, da Sie mindestens einen Raum oder mindestens eine Eigenschaft (z.B. Anzahl der Sitzplätze) angeben müssen!")));
             } else {
                 $request->setClosed(0);
+                if ($request_was_closed_before) {
+                    //The one who re-activates a request shall be the one who owns it.
+                    //(Fix for Biest #2794).
+                    $request->user_id = $GLOBALS['user']->id;
+                }
+                
                 $this->request_stored = $request->store();
                 if ($this->request_stored) {
                     PageLayout::postMessage(MessageBox::success(_("Die Raumanfrage und gewünschte Raumeigenschaften wurden gespeichert")));
@@ -300,9 +316,7 @@ class Course_RoomRequestsController extends AuthenticatedController
                 $request_property_val = Request::getArray('request_property_val');
                 foreach ($request->getAvailableProperties() as $prop) {
                     if ($prop["system"] == 2) { //it's the property for the seat/room-size!
-                        if (Request::get('seats_are_admission_turnout') && $admission_turnout) {
-                            $request->setPropertyState($prop['property_id'], $admission_turnout);
-                        } else if (!Request::submitted('send_room_type')) {
+                        if (!Request::submitted('send_room_type')) {
                             $request->setPropertyState($prop['property_id'], abs($request_property_val[$prop['property_id']]));
                         }
                     } else {

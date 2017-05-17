@@ -54,10 +54,10 @@ namespace {
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/sidebar');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/visibility');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/coursewizardsteps');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/filesystem');
+
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/calendar');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/exceptions');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/files');
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/filesystem');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/modules');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/navigation');
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib');
@@ -109,25 +109,60 @@ namespace {
     ));
     StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/vendor/mishal-iless/lib/ILess', 'ILess');
 
-    // sample the request time and number of db queries every tenth time
-    register_shutdown_function(function ($timer) {
-        $timer('core.request_time', 0.1);
 
-        $query_count = DBManager::get()->query_count;
-        Metrics::gauge('core.database.queries', $query_count, 0.1);
-    }, Metrics::startTimer());
+    $ABSOLUTE_PATH_STUDIP = $STUDIP_BASE_PATH . '/public/';
 
-    require 'lib/phplib/page_open.php';
+    $CANONICAL_RELATIVE_PATH_STUDIP = dirname($_SERVER['PHP_SELF']);
+    if (DIRECTORY_SEPARATOR != '/') {
+        $CANONICAL_RELATIVE_PATH_STUDIP = str_replace(DIRECTORY_SEPARATOR, '/', $CANONICAL_RELATIVE_PATH_STUDIP);
+    }
+    // CANONICAL_RELATIVE_PATH_STUDIP should end with a '/'
+    if (substr($CANONICAL_RELATIVE_PATH_STUDIP,-1) != "/"){
+        $CANONICAL_RELATIVE_PATH_STUDIP .= "/";
+    }
 
-    StudipFileloader::load('config_local.inc.php', $GLOBALS, compact('STUDIP_BASE_PATH'));
+    $ABSOLUTE_URI_STUDIP = "";
+
+    // automagically compute ABSOLUTE_URI_STUDIP if $_SERVER['SERVER_NAME'] is set
+    if (isset($_SERVER['SERVER_NAME'])) {
+        // work around possible bug in lighttpd
+        if (mb_strpos($_SERVER['SERVER_NAME'], ':') !== false) {
+            list($_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT']) =
+                explode(':', $_SERVER['SERVER_NAME']);
+        }
+
+        $ABSOLUTE_URI_STUDIP = $_SERVER['HTTPS'] == 'on' ? 'https' : 'http';
+        $ABSOLUTE_URI_STUDIP .= '://'.$_SERVER['SERVER_NAME'];
+
+        if ($_SERVER['HTTPS'] == 'on' && $_SERVER['SERVER_PORT'] != 443 ||
+            $_SERVER['HTTPS'] != 'on' && $_SERVER['SERVER_PORT'] != 80) {
+            $ABSOLUTE_URI_STUDIP .= ':'.$_SERVER['SERVER_PORT'];
+        }
+
+        $ABSOLUTE_URI_STUDIP .= $CANONICAL_RELATIVE_PATH_STUDIP;
+    }
+
+    // default ASSETS_URL, customize if required
+    $GLOBALS['ASSETS_URL'] = $ABSOLUTE_URI_STUDIP . 'assets/';
+
+    StudipFileloader::load('config_defaults.inc.php config_local.inc.php', $GLOBALS, compact('STUDIP_BASE_PATH', 'ABSOLUTE_URI_STUDIP', 'ASSETS_URL', 'CANONICAL_RELATIVE_PATH_STUDIP'), true);
+
+    // construct absolute URL for ASSETS_URL
+    if ($GLOBALS['ASSETS_URL'][0] === '/') {
+        $host = preg_replace('%^([a-z]+:/*[^/]*).*%', '$1', $GLOBALS['ABSOLUTE_URI_STUDIP']);
+        $GLOBALS['ASSETS_URL'] = $host . $GLOBALS['ASSETS_URL'];
+    } else if (!preg_match('/^[a-z]+:/', $GLOBALS['ASSETS_URL'])) {
+        $GLOBALS['ASSETS_URL'] = $GLOBALS['ABSOLUTE_URI_STUDIP'] . $GLOBALS['ASSETS_URL'];
+    }
 
     require 'config.inc.php';
 
+    require 'lib/phplib/page_open.php';
     require_once 'lib/functions.php';
     require_once 'lib/language.inc.php';
     require_once 'lib/visual.inc.php';
     require_once 'lib/deputies_functions.inc.php';
-    
+
     //setup default logger
     Log::get()->setHandler($GLOBALS['TMP_PATH'] . '/studip.log');
     if (Studip\ENV == 'development') {
@@ -135,9 +170,6 @@ namespace {
     } else {
         Log::get()->setLogLevel(Log::ERROR);
     }
-
-    // set default time zone
-    date_default_timezone_set($DEFAULT_TIMEZONE ? : @date_default_timezone_get());
 
     // set assets url
     Assets::set_assets_url($GLOBALS['ASSETS_URL']);
@@ -147,20 +179,20 @@ namespace {
     $GLOBALS['template_factory'] =
         new Flexi_TemplateFactory($STUDIP_BASE_PATH . '/templates');
 
-    // set default exception handler
-    // command line or http request?
-    if (isset($_SERVER['REQUEST_METHOD'])) {
-        set_exception_handler('studip_default_exception_handler');
-    }
 
     // set default pdo connection
-    DBManager::getInstance()
-        ->setConnection('studip',
-            'mysql:host=' . $GLOBALS['DB_STUDIP_HOST'] .
-            ';dbname=' . $GLOBALS['DB_STUDIP_DATABASE'],
-            $GLOBALS['DB_STUDIP_USER'],
-            $GLOBALS['DB_STUDIP_PASSWORD']);
-
+    try {
+        DBManager::getInstance()
+            ->setConnection('studip',
+                'mysql:host=' . $GLOBALS['DB_STUDIP_HOST'] .
+                ';dbname=' . $GLOBALS['DB_STUDIP_DATABASE'],
+                $GLOBALS['DB_STUDIP_USER'],
+                $GLOBALS['DB_STUDIP_PASSWORD']);
+    } catch (PDOException $exception) {
+        header('HTTP/1.1 500 Internal Server Error');
+        die(sprintf('database connection %s failed', 'mysql:host=' . $GLOBALS['DB_STUDIP_HOST'] .
+        ';dbname=' . $GLOBALS['DB_STUDIP_DATABASE']));
+    }
     // set slave connection
     if (isset($GLOBALS['DB_STUDIP_SLAVE_HOST'])) {
         try {
@@ -177,6 +209,24 @@ namespace {
     } else {
         DBManager::getInstance()->aliasConnection('studip', 'studip-slave');
     }
+
+    // set default exception handler
+    // command line or http request?
+    if (isset($_SERVER['REQUEST_METHOD'])) {
+        set_exception_handler('studip_default_exception_handler');
+    }
+
+    // set default time zone
+    date_default_timezone_set(Config::get()->DEFAULT_TIMEZONE ? : @date_default_timezone_get());
+
+    // sample the request time and number of db queries every tenth time
+    register_shutdown_function(function ($timer) {
+        $timer('core.request_time', 0.1);
+
+        $query_count = DBManager::get()->query_count;
+        Metrics::gauge('core.database.queries', $query_count, 0.1);
+    }, Metrics::startTimer());
+
     //include 'tools/debug/StudipDebugPDO.class.php';
 
     /**
@@ -197,23 +247,23 @@ namespace {
     // Add paths to autoloader that were defined in config_local.inc.php and
     // may be optional
 
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib');
-    require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/resourcesFunc.inc.php';
-    require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/list_assign.inc.php';
+    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/resources/lib');
+    require_once 'lib/resources/resourcesFunc.inc.php';
+    require_once 'lib/resources/lib/list_assign.inc.php';
 
     if (Config::get()->EXTERN_ENABLE) {
-        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib');
-        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/extern_config.inc.php';
-        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib/extern_functions.inc.php';
+        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/extern/lib');
+        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/lib/extern/extern_config.inc.php';
+        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/lib/extern/lib/extern_functions.inc.php';
     }
 
     if (Config::get()->CALENDAR_ENABLE) {
-        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/lib');
+        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/calendar/lib');
         require_once 'lib/calendar_functions.inc.php';
     }
 
     if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
-        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE']);
+        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/elearning');
     }
 
     // set dummy navigation until db is ready
@@ -260,8 +310,8 @@ namespace {
         include 'vendor/email_message/smtp.php';
         $mail_transporter->localhost = ($GLOBALS['MAIL_LOCALHOST'] == "") ? $_SERVER["SERVER_NAME"] : $GLOBALS['MAIL_LOCALHOST'];
         $mail_transporter->smtp_host = ($GLOBALS['MAIL_HOST_NAME'] == "") ? $_SERVER["SERVER_NAME"] : $GLOBALS['MAIL_HOST_NAME'];
-        if (is_array($MAIL_SMTP_OPTIONS)) {
-            foreach ($MAIL_SMTP_OPTIONS as $key => $value) {
+        if (is_array($GLOBALS['MAIL_SMTP_OPTIONS'])) {
+            foreach ($GLOBALS['MAIL_SMTP_OPTIONS'] as $key => $value) {
                 $mail_transporter->{"smtp_$key"} = $value;
             }
             if ($mail_transporter->smtp_user !== '') {

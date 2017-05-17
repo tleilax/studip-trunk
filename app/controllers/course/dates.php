@@ -98,6 +98,10 @@ class Course_DatesController extends AuthenticatedController
                 $this->date->range_id,
                 'cancelled_dates'
             );
+            $this->metadata_locked = LockRules::Check(
+                $this->date->range_id,
+                'edit_dates_in_schedule'
+            );
             $this->dates_locked = LockRules::Check(
                 $this->date->range_id,
                 'room_time'
@@ -328,7 +332,8 @@ class Course_DatesController extends AuthenticatedController
                         'title' => $title,
                         'description' => $description,
                         'start' => $singledate->getStartTime(),
-                        'related_persons' => $singledate->getRelatedPersons()
+                        'related_persons' => $singledate->getRelatedPersons(),
+                        'room' => $singledate->getRoom() ?: $singledate->raum
                     );
                 } elseif ($singledate->getComment()) {
                     $dates[] = array(
@@ -336,7 +341,8 @@ class Course_DatesController extends AuthenticatedController
                         'title' => _('fällt aus') . ' (' . _('Kommentar:') . ' ' . $singledate->getComment() . ')',
                         'description' => '',
                         'start' => $singledate->getStartTime(),
-                        'related_persons' => array()
+                        'related_persons' => array(),
+                        'room' => ''
                     );
                 }
             }
@@ -346,6 +352,7 @@ class Course_DatesController extends AuthenticatedController
         $template = $factory->open($this->get_default_template("export"));
 
         $template->set_attribute('dates', $dates);
+        $template->lecturer_count = $course->countMembersWithStatus('dozent');
         $content = $template->render();
 
         $content = mb_encode_numericentity($content, array(0x80, 0xffff, 0, 0xffff), 'cp1252');

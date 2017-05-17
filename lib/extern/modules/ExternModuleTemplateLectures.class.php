@@ -38,7 +38,7 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
+require_once 'lib/extern/views/extern_html_templates.inc.php';
 require_once 'lib/dates.inc.php';
 
 
@@ -107,6 +107,7 @@ class ExternModuleTemplateLectures extends ExternModule {
         $markers['TemplateGeneric'][] = array('__GLOBAL__', _("Globale Variablen (gültig im gesamten Template)."));
         $markers['TemplateGeneric'][] = array('###LECTURES-COUNT###', '');
         $markers['TemplateGeneric'][] = array('###LECTURES-SUBSTITUTE-GROUPED-BY###', '');
+        $markers['TemplateGeneric'][] = array('###START_SEMESTER###', _('Name des Startsemesters'));
 
         $markers['TemplateGeneric'][] = array('<!-- BEGIN LECTURES -->', '');
 
@@ -249,6 +250,8 @@ class ExternSemBrowseTemplate extends SemBrowse {
         for (;$last_sem > $current_sem; $last_sem--)
             $this->sem_number[] = $last_sem - 1;
 
+        $this->start_sem = $current_sem;
+
         $semclasses = $this->module->config->getValue('Main', 'semclasses');
         foreach ($SEM_TYPE as $key => $type) {
             if (in_array($type['class'], (array) $semclasses))
@@ -311,7 +314,7 @@ class ExternSemBrowseTemplate extends SemBrowse {
 
             $dbv = DbView::getView('sem_tree');
 
-            $query = "SELECT seminare.*
+            $query = "SELECT seminare.Seminar_id, seminare.Name, seminare.Untertitel, seminare.VeranstaltungsNummer, seminare.status, seminare.art
                 , Institute.Name AS Institut,Institute.Institut_id,
                 seminar_sem_tree.sem_tree_id AS bereich, " . $GLOBALS['_fullname_sql'][$nameformat] ." AS fullname, auth_user_md5.username, Vorname, Nachname, title_front, title_rear,
                 " . $dbv->sem_number_sql . " AS sem_number, " . $dbv->sem_number_end_sql . " AS sem_number_end,
@@ -423,6 +426,7 @@ class ExternSemBrowseTemplate extends SemBrowse {
             $content['__GLOBAL__']['LECTURES-COUNT'] = count($sem_data);
             $group_by_name = $this->module->config->getValue("Main", "aliasesgrouping");
             $content['__GLOBAL__']['LECTURES-SUBSTITUTE-GROUPED-BY'] = $group_by_name[$this->sem_browse_data['group_by']];
+            $content['__GLOBAL__']['START_SEMESTER'] = ExternModule::ExtHtmlReady($this->sem_dates[$this->start_sem]['name']);
 
             $i = 0;
             foreach ((array) $group_by_data as $group_field => $sem_ids) {

@@ -127,6 +127,9 @@ if (isset($file_ref) && $file_ref->file->url_access_type == 'proxy') {
     if (!$filesize) $filesize = false;
 } else {
     $filesize = @filesize($path_file);
+    if (!filesize === false) {
+        throw new Exception(_('Fehler beim Laden der Inhalte der Datei'));
+    }
 }
 // close session, download will mostly be a parallel action
 page_close();

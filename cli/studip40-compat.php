@@ -58,7 +58,7 @@ $rules = [
     'ContainerTable'   => false,
     'DbCrossTableView' => false,
     'DbPermissions'    => false,
-    
+
     'pclzip' => 'Use #{yellow:Studip\\ZipArchive} instead',
     'get_global_visibility_by_id' => 'Use #{yellow:User::visible} attribute instead',
 
@@ -121,6 +121,7 @@ $rules = [
     'get_local_visibility_by_username' => false,
     'get_homepage_element_visibility' => false,
     'set_homepage_element_visibility' => false,
+    'checkVisibility' => 'Use #{yellow:Visibility::verify($param, $this->current_user->user_id)} instead',
 
     'InsertPersonStatusgruppe' => 'Use #{Statusgruppen::addUser()} instead',
     'RemovePersonStatusgruppe(' => 'Use #{yellow:Statusgruppen::find($group_id)->removeUser($user_id)} instead',
@@ -143,15 +144,12 @@ $rules = [
     'getExternDefaultForUser' => 'Use #{yellow:InstituteMember::getDefaultInstituteIdForUser($user_id)} instead.',
     'checkExternDefaultForUser' => 'Use #{yellow:InstituteMember::ensureDefaultInstituteIdForUser($user_id)} instead.',
     'getAllChildIDs' => false,
+    'getKingsInformations' => 'Use #{yellow:User} model instead',
 
     'AutoInsert::existSeminars' => false,
     'ZebraTable' => 'No longer neccessary. Use #{table.default} instead.',
     'Table' => 'No longer neccessary. Use #{table.default} instead.',
-    
-    
-    //MOADB:
-    
-    
+
     //old datei.inc.php and visual.inc.php functions:
     'createSelectedZip' => 'Removed. Use #{yellow:FileArchiveManager::createArchiveFromFileRefs} instead.',
     'create_zip_from_directory' => 'Removed(?). Use #{yellow:FileArchiveManager::createArchiveFromPhysicalFolder} instead.',
@@ -164,17 +162,18 @@ $rules = [
     'parse_link' => 'Removed. Use #{yellow:FileManager::fetchURLMetadata} instead.',
     'extract_zip' => 'Removed. Use #{yellow:Studip\ZipArchive::extractToPath} or #yellow:Studip\ZipArchive::test} instead.',
     'datei.inc.php' => 'Removed. Use methods in functions.inc.php, FileManager, FileArchiveManager, FileRef, File or FolderType instead.',
-    
+
     //StudipDocument and related classes:
     'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
     'StudipDocumentTree(' => 'Removed(?). Use class #{yellow:Folder} or #{yellow:FolderType} instead.',
     'WysiwygDocument' => 'Deprecated/To be removed. Use class #{yellow:FileRef} in conjunction with a #{yellow:FolderType} implementation instead.',
-    
+
     'ZIP_USE_INTERNAL' => 'Removed. Please avoid querying the value of this configuration variable!',
     'ZIP_PATH' => 'Removed. Please avoid querying the value of this configuration variable!',
     'ZIP_OPTIONS' => 'Removed. Please avoid querying the value of this configuration variable!',
     'UNZIP_PATH' => 'Removed. Please avoid querying the value of this configuration variable!',
-    
+
+    'RuleAdministrationModel::getAdmissionRuleTypes' => 'Use #{yellow:AdmissionRule::getAvailableAdmissionRules(false)} instead.',
 ];
 
 

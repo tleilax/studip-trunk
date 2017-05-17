@@ -18,6 +18,8 @@ class DocumentsProvider implements ActivityProvider
      */
     public function getActivityDetails($activity)
     {
+        $activity->content = \htmlReady($activity->content);
+
         $document = \StudipDocument::find($activity->object_id);
 
         // check, if current observer has access to document
@@ -68,7 +70,7 @@ class DocumentsProvider implements ActivityProvider
             $course = \Institute::find($course_id );
         }
 
-        if ($event == 'DocumentDidCreate') {
+        if (in_array($event, ['StudipDocumentDidCreate', 'DocumentDidCreate'])) {
             $verb = 'created';
             if ($type == 'sem') {
                 $summary = _('Die Datei %s wurde von %s in der Veranstaltung "%s" hochgeladen.');
@@ -77,7 +79,7 @@ class DocumentsProvider implements ActivityProvider
             }
             $summary = sprintf($summary,$file_name, get_fullname($user_id) ,$course->name);
             $mkdate = $document_info['mkdate'];
-        } elseif ($event == 'DocumentDidUpdate') {
+        } elseif (in_array($event, ['StudipDocumentDidUpdate', 'DocumentDidUpdate'])) {
             $verb = 'edited';
             if ($type == 'sem') {
                 $summary = _('Die Datei %s wurde von %s in der Veranstaltung "%s" aktualisiert.');
@@ -86,7 +88,7 @@ class DocumentsProvider implements ActivityProvider
             }
             $summary = sprintf($summary,$file_name, get_fullname($user_id), $course->name);
             $mkdate = $document_info['chdate'];
-        } elseif ($event == 'DocumentDidDelete') {
+        } elseif (in_array($event, ['StudipDocumentDidDelete', 'DocumentDidDelete'])) {
             $verb = 'voided';
             if ($type == 'sem') {
                 $summary = _('Die Datei %s wurde von %s in der Veranstaltung "%s" gelöscht.');
@@ -97,22 +99,22 @@ class DocumentsProvider implements ActivityProvider
             $mkdate = $document_info['chdate'];
         }
 
-
-        $activity = Activity::create(
-            array(
-                'provider'     => __CLASS__,
-                'context'      => ($type == 'sem') ? 'course' : 'institute',
-                'context_id'   => $course_id,
-                'content'      => $summary,
-                'actor_type'   => 'user',      // who initiated the activity?
-                'actor_id'     => $user_id,    // id of initiator
-                'verb'         => $verb,       // the activity type
-                'object_id'    => $file_id,    // the id of the referenced object
-                'object_type'  => 'documents', // type of activity object
-                'mkdate'       =>  $mkdate
-            )
-        );
-
+        if (isset($verb)) {
+            $activity = Activity::create(
+                array(
+                    'provider'     => __CLASS__,
+                    'context'      => ($type == 'sem') ? 'course' : 'institute',
+                    'context_id'   => $course_id,
+                    'content'      => $summary,
+                    'actor_type'   => 'user',      // who initiated the activity?
+                    'actor_id'     => $user_id,    // id of initiator
+                    'verb'         => $verb,       // the activity type
+                    'object_id'    => $file_id,    // the id of the referenced object
+                    'object_type'  => 'documents', // type of activity object
+                    'mkdate'       =>  $mkdate
+                )
+            );
+        }
     }
 
     /**

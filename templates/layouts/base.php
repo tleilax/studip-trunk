@@ -36,21 +36,24 @@ if ($navigation) {
 <head>
     <meta charset="WINDOWS-1252">
     <title data-original="<?= htmlReady(PageLayout::getTitle()) ?>">
-      <?= htmlReady(PageLayout::getTitle() . ' - ' . $GLOBALS['UNI_NAME_CLEAN']) ?>
+      <?= htmlReady(PageLayout::getTitle() . ' - ' . Config::get()->UNI_NAME_CLEAN) ?>
     </title>
+
+    <script>String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";</script>
+<? if ($_SESSION['_language'] !== $GLOBALS['DEFAULT_LANGUAGE']): ?>
+    <link rel="localization" hreflang="<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>" href="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>" type="application/vnd.oftn.l10n+json">
+<? endif; ?>
+
     <?php
         // needs to be included in lib/include/html_head.inc.php as well
         include 'app/views/WysiwygHtmlHeadBeforeJS.php';
     ?>
     <?= PageLayout::getHeadElements() ?>
 
-    <script src="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>
-
     <script>
         STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
         STUDIP.ASSETS_URL = "<?= $GLOBALS['ASSETS_URL'] ?>";
         STUDIP.STUDIP_SHORT_NAME = "<?= Config::get()->STUDIP_SHORT_NAME ?>";
-        String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
         <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor') && PersonalNotifications::isActivated()) : ?>
         STUDIP.jsupdate_enable = true;
         <? endif ?>
@@ -76,24 +79,43 @@ if ($navigation) {
             <?= $this->render_partial('change_view', array('changed_status' => $_SESSION['seminar_change_view_'.$GLOBALS['SessionSeminar']])) ?>
         <? endif ?>
 
-        <? if (PageLayout::isHeaderEnabled() && isset($navigation)) : ?>
-            <?= $this->render_partial('tabs', compact("navigation")) ?>
-        <? endif ?>
+        <? if (PageLayout::isHeaderEnabled() /*&& isset($navigation)*/) : ?>
+            <?= $this->render_partial('tabs', compact('navigation')) ?>
+        <? endif; ?>
 
-        <?= Helpbar::get()->render() ?>
+        <?
+        if (is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') {
+            // only mark course if user is logged in and free access enabled
+            if (Config::get()->ENABLE_FREE_ACCESS
+                && Navigation::hasItem('/course')
+                && Navigation::getItem('/course')->isActive())
+            {
+                // indicate to the template that this course is publicly visible
+                // need to handle institutes separately (always visible)
+                if ($GLOBALS['SessSemName']['class'] == 'inst') {
+                    $header_template->public_hint = _('öffentliche Einrichtung');
+                } else if (Course::findCurrent()->lesezugriff == 0) {
+                    $header_template->public_hint = _('öffentliche Veranstaltung');
+                }
+            }
+        }
+        ?>
+        <div id="page_title_container">
+            <div id="current_page_title">
+                <?= htmlReady(PageLayout::getTitle()) ?>
+                <?= $public_hint ? '(' . htmlReady($public_hint) . ')' : '' ?>
+            </div>
+            <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor')) : ?>
+            	<?= Helpbar::get()->render() ?>
+            <? endif; ?>
+         </div>
+
         <div id="layout_container">
             <?= Sidebar::get()->render() ?>
             <div id="layout_content">
                 <?= implode(PageLayout::getMessages()) ?>
                 <?= $content_for_layout ?>
             </div>
-            <? if ($infobox) : ?>
-            <div id="layout_sidebar">
-                <div id="layout_infobox">
-                    <?= is_array($infobox) ? $this->render_partial('infobox/infobox_generic_content', $infobox) : $infobox ?>
-                </div>
-            </div>
-            <? endif ?>
         </div>
     </div> <? // Closes #layout_page opened in included templates/header.php ?>
 

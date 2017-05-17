@@ -9,12 +9,14 @@
  *
  * @author      Nico Müller <nico.mueller@uni-oldenburg.de>
  * @author      Michael Riehemann <michael.riehemann@uni-oldenburg.de>
+ * @author      David Siegfried <david.siegfried@uni-vechta.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @package     admin
  * @since       2.1
  */
 require_once 'vendor/email_message/blackhole_message.php';
+require_once 'lib/statusgruppe.inc.php';
 
 /**
  *
@@ -110,7 +112,7 @@ class Admin_UserController extends AuthenticatedController
             $request['datafields'] = $search_datafields;
             $request['sort']       = $this->sortby;
             $request['order']      = $this->order;
-            $empty_search = $request['perm'] === 'alle';
+            $empty_search          = $request['perm'] === 'alle';
 
             foreach (words('username vorname nachname email inaktiv locked datafields inaktiv_tage institute studycourse degree userdomains auth_plugins') as $value) {
                 if (!empty($request[$value])) {
@@ -163,10 +165,10 @@ class Admin_UserController extends AuthenticatedController
                 }
             }
         }
-        $this->degrees                = Abschluss::findBySQL('1 order by name');
-        $this->studycourses           = Fach::findBySQL('1 order by name');
-        $this->userdomains            = UserDomain::getUserDomains();
-        $this->institutes             = Institute::getInstitutes();
+        $this->degrees      = Abschluss::findBySQL('1 order by name');
+        $this->studycourses = Fach::findBySQL('1 order by name');
+        $this->userdomains  = UserDomain::getUserDomains();
+        $this->institutes   = Institute::getInstitutes();
         foreach ($GLOBALS['STUDIP_AUTH_PLUGIN'] as $ap) {
             $this->available_auth_plugins[mb_strtolower($ap)] = $ap;
         }
@@ -189,7 +191,7 @@ class Admin_UserController extends AuthenticatedController
     {
         if (Request::get('method') == 'delete') {
             PageLayout::setTitle(_('Folgende Nutzer löschen'));
-            if($user_id != '') {
+            if ($user_id != '') {
                 $this->users = [User::find($user_id)];
             } else {
                 $this->users = User::findMany(Request::getArray('user_ids'));
@@ -215,7 +217,7 @@ class Admin_UserController extends AuthenticatedController
     /**
      * Deleting one or more users
      *
-     * @param md5 $user_id
+     * @param md5    $user_id
      * @param string $parent redirect to this page after deleting users
      */
     public function delete_action($user_id = null, $parent = '')
@@ -395,14 +397,6 @@ class Admin_UserController extends AuthenticatedController
                 $details[]                                = _('Der Validation-Key wurde entfernt.');
             }
 
-            //locking the user
-            if (Request::get('locked')) {
-                $editUser['auth_user_md5.locked']       = 1;
-                $editUser['auth_user_md5.lock_comment'] = Request::get('locked_comment');
-                $editUser['auth_user_md5.locked_by']    = $auth->auth["uid"];
-                $details[]                              = _('Person wurde gesperrt.');
-            }
-
             //changing studiendaten
             if (in_array($editPerms[0], ['autor', 'tutor', 'dozent']) && Request::option('new_studiengang') != 'none' && Request::option('new_abschluss') != 'none') {
                 //change studycourses
@@ -465,7 +459,7 @@ class Admin_UserController extends AuthenticatedController
             ) {
                 StudipLog::log('INST_USER_ADD', Request::option('new_student_inst'), $user_id, 'user');
                 $db = DBManager::get()->prepare("INSERT IGNORE INTO user_inst (user_id, Institut_id, inst_perms) "
-                                                . "VALUES (?,?,'user')");
+                    . "VALUES (?,?,'user')");
                 $db->execute([$user_id, Request::option('new_student_inst')]);
                 NotificationCenter::postNotification('UserInstitutionDidCreate', Request::option('new_student_inst'), $user_id);
                 $details[] = _('Die Einrichtung wurde hinzugefügt.');
@@ -479,7 +473,7 @@ class Admin_UserController extends AuthenticatedController
             ) {
                 StudipLog::log('INST_USER_ADD', Request::option('new_inst'), $user_id, $editPerms[0]);
                 $db = DBManager::get()->prepare("REPLACE INTO user_inst (user_id, Institut_id, inst_perms) "
-                                                . "VALUES (?,?,?)");
+                    . "VALUES (?,?,?)");
                 $db->execute([$user_id, Request::option('new_inst'), $editPerms[0]]);
                 NotificationCenter::postNotification('UserInstitutionDidUpdate', Request::option('new_inst'), $user_id);
                 InstituteMember::ensureDefaultInstituteForUser($user_id);
@@ -573,9 +567,9 @@ class Admin_UserController extends AuthenticatedController
             });
         }
 
-        $this->available_institutes   = Institute::getMyInstitutes();
-        $this->userfields             = DataFieldEntry::getDataFieldEntries($user_id, 'user');
-        $this->userdomains            = UserDomain::getUserDomainsForUser($user_id);
+        $this->available_institutes = Institute::getMyInstitutes();
+        $this->userfields           = DataFieldEntry::getDataFieldEntries($user_id, 'user');
+        $this->userdomains          = UserDomain::getUserDomainsForUser($user_id);
         if (LockRules::CheckLockRulePermission($user_id) && LockRules::getObjectRule($user_id)->description) {
             PageLayout::postMessage(MessageBox::info(formatLinks(LockRules::getObjectRule($user_id)->description)));
         }
@@ -717,9 +711,9 @@ class Admin_UserController extends AuthenticatedController
                             foreach ($users as $admin) {
                                 $subject  = _("Neuer Administrator in Ihrer Einrichtung angelegt");
                                 $mailbody = sprintf(_("Liebe(r) %s %s,\n\n"
-                                                      . "in der Einrichtung '%s' wurde %s %s als Administrator eingetragen "
-                                                      . " und steht Ihnen als neuer Ansprechpartner bei Fragen oder Problemen "
-                                                      . "in Stud.IP zur Verfügung. "),
+                                    . "in der Einrichtung '%s' wurde %s %s als Administrator eingetragen "
+                                    . " und steht Ihnen als neuer Ansprechpartner bei Fragen oder Problemen "
+                                    . "in Stud.IP zur Verfügung. "),
                                     $admin['Vorname'], $admin['Nachname'],
                                     $inst_name, $this->user['Vorname'], $this->user['Nachname']);
 
@@ -751,9 +745,9 @@ class Admin_UserController extends AuthenticatedController
                                 foreach ($fak_admins as $admin) {
                                     $subject  = _("Neuer Administrator in Ihrer Einrichtung angelegt");
                                     $mailbody = sprintf(_("Liebe(r) %s %s,\n\n"
-                                                          . "in der Einrichtung '%s' wurde %s %s als Administrator eingetragen "
-                                                          . " und steht Ihnen als neuer Ansprechpartner bei Fragen oder Problemen "
-                                                          . "in Stud.IP zur Verfügung. "),
+                                        . "in der Einrichtung '%s' wurde %s %s als Administrator eingetragen "
+                                        . " und steht Ihnen als neuer Ansprechpartner bei Fragen oder Problemen "
+                                        . "in Stud.IP zur Verfügung. "),
                                         $admin['Vorname'], $admin['Nachname'],
                                         $inst_name, $this->user['Vorname'], $this->user['Nachname']);
 
@@ -904,6 +898,46 @@ class Admin_UserController extends AuthenticatedController
     }
 
     /**
+     * Add lock-comment for locked user
+     * @param $user_id
+     */
+    public function lock_comment_action($user_id)
+    {
+        $this->user = User::find($user_id);
+        PageLayout::setTitle(sprintf(_('%s sperren'), htmlReady($this->user->getFullname())));
+
+        $this->params = [];
+        if (Request::int('from_index')) {
+            $this->params['from_index'] = 1;
+        }
+    }
+
+    /**
+     * Lock user
+     * @param $user_id
+     */
+    public function lock_action($user_id)
+    {
+        CSRFProtection::verifyUnsafeRequest();
+        $user               = User::find($user_id);
+        $user->locked       = 1;
+        $user->lock_comment = Request::get('lock_comment');
+        $user->locked_by = $GLOBALS['user']->id;
+
+
+        if($user->store()) {
+            PageLayout::postSuccess(sprintf(_('%s wurde gesperrt.'), htmlReady($user->getFullname())));
+        }
+
+
+        if(Request::int('from_index')) {
+            $this->redirect('admin/user');
+        } else {
+            $this->redirect('admin/user/edit/' . $user_id);
+        }
+    }
+
+    /**
      * Unlock an user, without security-query
      *
      * @param md5 $user_id
@@ -916,12 +950,18 @@ class Admin_UserController extends AuthenticatedController
         $user->locked_by    = null;
 
         if ($user->store()) {
-            PageLayout::postSuccess(_('Person wurde entsperrt.'));
+            PageLayout::postSuccess(sprintf(_('%s wurde entsperrt.'), htmlReady($user->getFullname())));
         } else {
-            PageLayout::postError(_('Person konnte nicht entsperrt werden.'));
+            PageLayout::postError(sprintf(_('%s konnte nicht entsperrt werden.'), htmlReady($user->getFullname())));
         }
-        $this->redirect('admin/user/edit/' . $user_id);
+
+        if(Request::int('from_index')) {
+            $this->redirect('admin/user');
+        } else {
+            $this->redirect('admin/user/edit/' . $user_id);
+        }
     }
+
 
     /**
      * Display institute informations of an user and save changes to it.
@@ -1105,7 +1145,7 @@ class Admin_UserController extends AuthenticatedController
         $this->fullname = $this->user->getFullname();
         $this->params   = [];
 
-        if(Request::int('from_index')) {
+        if (Request::int('from_index')) {
             $this->params['from_index'] = 1;
         }
         if (is_null($this->user)) {
@@ -1378,7 +1418,7 @@ class Admin_UserController extends AuthenticatedController
 
     /**
      * Download documents
-     * @param $user_id
+     * @param        $user_id
      * @param string $course_id
      */
     public function download_user_files_action($user_id, $course_id = '')
@@ -1436,12 +1476,12 @@ class Admin_UserController extends AuthenticatedController
             $actions->addLink(_('Neues Konto anlegen'),
                 $this->url_for('admin/user/new'),
                 Icon::create('person+add', 'clickable'))
-                    ->asDialog();
+                ->asDialog();
         }
         $actions->addLink(_('Vorläufiges Konto anlegen'),
             $this->url_for('admin/user/new/prelim'),
             Icon::create('date+add', 'clickable'))
-                ->asDialog();
+            ->asDialog();
         $actions->addLink(_('Konten zusammenführen'),
             $this->url_for('admin/user/migrate/' . (($this->user && is_array($this->user)) ? $this->user->user_id : '')),
             Icon::create('persons+new', 'clickable'));
@@ -1474,12 +1514,17 @@ class Admin_UserController extends AuthenticatedController
         $user_actions->addLink(_('Nachricht an Person verschicken'),
             URLHelper::getLink('dispatch.php/messages/write?rec_uname=' . $this->user->username),
             Icon::create('mail', 'clickable'))
-                     ->asDialog();
+            ->asDialog();
 
         if ($this->user['locked']) {
             $user_actions->addLink(_('Personenaccount entsperren'),
                 $this->url_for('admin/user/unlock/' . $this->user['user_id']),
                 Icon::create('lock-unlocked', 'clickable'));
+        } else {
+            $user_actions->addLink(_('Personenaccount sperren'),
+                $this->url_for('admin/user/lock_comment/' . $this->user['user_id']),
+                Icon::create('lock-locked', 'clickable'),
+                ['data-dialog' => 'size=auto']);
         }
 
         if ($this->user->auth_plugin !== 'preliminary' && ($GLOBALS['perm']->have_perm('root') || $GLOBALS['perm']->is_fak_admin() || !in_array($this->user->perms, words('root admin')))) {
@@ -1510,10 +1555,10 @@ class Admin_UserController extends AuthenticatedController
         $views = new ViewsWidget();
         $views->addLink(_('Zurück zur Übersicht'),
             $this->url_for('admin/user'))
-              ->setActive(false);
+            ->setActive(false);
         $views->addLink(_('Person verwalten'),
             $this->url_for('admin/user/edit/' . $this->user->user_id))
-              ->setActive($this->action == 'edit');
+            ->setActive($this->action == 'edit');
         $views->addLink(_('Zum Profil'),
             URLHelper::getLink('dispatch.php/profile?username=' . $this->user->username),
             Icon::create('person', 'clickable'));
@@ -1522,7 +1567,7 @@ class Admin_UserController extends AuthenticatedController
             $views->addLink(_('Datei- und Aktivitätsübersicht'),
                 $this->url_for('admin/user/activities/' . $this->user->user_id),
                 Icon::create('vcard', 'clickable'))
-                  ->setActive($this->action == 'activities');
+                ->setActive($this->action == 'activities');
 
 
             if (Config::get()->LOG_ENABLE) {

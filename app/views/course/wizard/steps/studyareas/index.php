@@ -1,4 +1,3 @@
-<h1><?= _('Studienbereiche') ?></h1>
 <div id="assigned">
     <h2>
         <span class="required">
@@ -7,8 +6,8 @@
     </h2>
     <ul class="css-tree">
         <li class="sem-tree-assigned-root keep-node" data-id="root"<?=
-                $assigned ? ' class="hidden-no-js hidden-no-js"' : '' ?>>
-            <?= $GLOBALS['UNI_NAME'] ?>
+                $assigned ? ' class="hidden-no-js hidden-js"' : '' ?>>
+            <?= htmlReady($GLOBALS['UNI_NAME_CLEAN']) ?>
             <ul>
             <?php foreach ($assigned as $element) : ?>
             <?= $element->name ?>
@@ -43,7 +42,7 @@
             <li class="sem-tree-root tree-loaded keep-node">
                 <input type="checkbox" id="root" checked="checked">
                 <label for="root" class="undecorated">
-                    <?= $GLOBALS['UNI_NAME'] ?>
+                    <?= htmlReady($GLOBALS['UNI_NAME_CLEAN']) ?>
                 </label>
                 <ul>
                 <?php foreach ($tree as $node) : ?>

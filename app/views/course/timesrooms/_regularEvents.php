@@ -26,7 +26,7 @@
                 <header class="<?= $course->getCycleColorClass($metadate_id) ?>">
                     <h1>
                     <? if ($info = $course->getBookedRoomsTooltip($metadate_id)) : ?>
-                        <?= tooltipIcon($info); ?>
+                        <?= tooltipHtmlIcon($info) ?>
                     <? elseif ($course->getCycleColorClass($metadate_id) === 'red'): ?>
                         <?= tooltipIcon(_('Keine Raumbuchungen vorhanden')) ?>
                     <? else: ?>
@@ -87,13 +87,22 @@
                     <? foreach ($cycle['dates'] as $semester_id => $termine) : ?>
                         <thead>
                             <tr>
-                                <th colspan="<?= !$locked ? 5 : 4?>"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
+                                <th colspan="<?= !$locked ? 5 : 4?>">
+                                    <label>
+                                        <? if(!$locked) : ?>
+                                            <input type="checkbox" class="date-proxy_<?= $metadate_id ?>"
+                                                   data-proxyfor="#<?= $metadate_id ?>-<?= $semester_id ?> .ids-regular"
+                                                   data-activates=".actionForAllRegular_<?= $metadate_id ?>">
+                                        <? endif ?>
+                                        <?= htmlReady(Semester::find($semester_id)->name) ?>
+                                    </label>
+                                </th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="<?= $metadate_id ?>-<?= $semester_id ?>">
                         <? foreach ($termine as $termin) : ?>
                             <?= $this->render_partial('course/timesrooms/_cycleRow.php',
-                                    array('termin' => $termin,'class_ids' => 'ids-regular_' . $metadate_id)) ?>
+                                    array('termin' => $termin, 'class_ids' => 'ids-regular')) ?>
                         <? endforeach ?>
                         </tbody>
                     <? endforeach ?>
@@ -103,7 +112,7 @@
                                     <td colspan="2">
                                         <label>
                                             <input type="checkbox"
-                                                    data-proxyfor=".ids-regular_<?=$metadate_id?>"
+                                                    data-proxyfor=".date-proxy_<?= $metadate_id ?>"
                                                     data-activates=".actionForAllRegular_<?= $metadate_id ?>">
                                             <?= _('Alle auswählen') ?>
                                         </label>
@@ -113,9 +122,9 @@
                                             <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                                         </select>
                                         <?= Studip\Button::create(_('Ausführen'), 'run', array(
-                                            'class' => sprintf('actionForAllRegular_%s', $metadate_id),
-                                            'data-dialog' => 'size=big',
-                                            )) ?>
+                                                'class' => 'actionForAllRegular_' . $metadate_id,
+                                                'data-dialog' => 'size=big'
+                                        )) ?>
                                     </td>
                                 </tr>
                             </tfoot>

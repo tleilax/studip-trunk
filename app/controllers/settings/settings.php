@@ -29,8 +29,8 @@ class Settings_SettingsController extends AuthenticatedController
     public function before_filter(&$action, &$args)
     {
         // Abwärtskompatibilität, erst ab 1.1 bekannt
-        if (!isset($GLOBALS['ALLOW_CHANGE_NAME'])) {
-            $GLOBALS['ALLOW_CHANGE_NAME'] = TRUE;
+        if (!isset(Config::get()->ALLOW_CHANGE_NAME)) {
+            Config::get()->ALLOW_CHANGE_NAME = TRUE;
         }
 
         parent::before_filter($action, $args);
@@ -81,9 +81,8 @@ class Settings_SettingsController extends AuthenticatedController
 
         // Show info message if user is not on his own profile
         if ($username != $GLOBALS['user']->username) {
-            $message = sprintf(_('Daten von: %s %s (%s), Status: %s'),
-                               htmlReady($this->user->Vorname),
-                               htmlReady($this->user->Nachname),
+            $message = sprintf(_('Daten von: %1$s (%2$s), Status: %3$s'),
+                               htmlReady($this->user->getFullName()),
                                htmlReady($username),
                                htmlReady($this->user->perms));
             $mbox = MessageBox::info($message);
@@ -179,7 +178,7 @@ class Settings_SettingsController extends AuthenticatedController
             'username' => 'ALLOW_CHANGE_USERNAME',
         );
 
-        if (isset($global_mapping[$attribute]) and !$GLOBALS[$global_mapping[$attribute]]) {
+        if (isset($global_mapping[$attribute]) and !Config::get()->{$global_mapping[$attribute]}) {
             return false;
         }
 
@@ -244,7 +243,7 @@ class Settings_SettingsController extends AuthenticatedController
             $message = _("Ihre persönliche Seite wurde von Admin verändert.\n "
                         ."Folgende Veränderungen wurden vorgenommen:\n \n")
                         . '- ' . implode("\n- ", $this->private_messages);
-            $subject = _('Systemnachricht:') . ' ' . _('Profil verändert');
+            $subject = _('Systemnachricht: Profil verändert');
 
             restoreLanguage();
 
