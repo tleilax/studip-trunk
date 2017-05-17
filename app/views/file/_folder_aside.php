@@ -1,22 +1,24 @@
 <aside id="folder_aside">
     <div class="FolderIcon"><?= $folder->getIcon('info') ?></div>
-    <h3><?= htmlReady($folder->name) ?></h3>
     <table class="default nohover">
-        <tr>
-            <td><?= _('Erstellt') ?></td>
-            <td><?= date('d.m.Y H:i', $folder->mkdate) ?></td>
-        </tr>
-        <tr>
-            <td><?= _('Geändert') ?></td>
-            <td><?= date('d.m.Y H:i', $folder->chdate) ?></td>
-        </tr>
-        <tr>
-            <td><?= _('Besitzer/-in') ?></td>
-            <td>
-            <? if($folder->owner): ?>
-            <?= htmlReady($folder->owner->getFullName()) ?>
-            <? endif ?>
-            </td>
-        </tr>
+        <caption><?= htmlReady($folder->name) ?></caption>
+        <tbody>
+            <tr>
+                <td><?= _('Erstellt') ?></td>
+                <td><?= date('d.m.Y H:i', $folder->mkdate) ?></td>
+            </tr>
+            <tr>
+                <td><?= _('Geändert') ?></td>
+                <td><?= date('d.m.Y H:i', $folder->chdate) ?></td>
+            </tr>
+            <tr>
+                <td><?= _('Besitzer/-in') ?></td>
+                <td>
+                <? if($folder->owner): ?>
+                <?= htmlReady($folder->owner->getFullName()) ?>
+                <? endif ?>
+                </td>
+            </tr>
+        </tbody>
     </table>
 </aside>

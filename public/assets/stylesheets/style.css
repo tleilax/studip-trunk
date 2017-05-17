@@ -6157,7 +6157,6 @@ input.document-checkbox[type="checkbox"]:indeterminate + label span::after {
   }
   #file_aside h3,
   #folder_aside h3 {
-    text-align: center;
     font-size: 140%;
     padding-top: 1em;
   }
@@ -6205,7 +6204,6 @@ input.document-checkbox[type="checkbox"]:indeterminate + label span::after {
   }
   #file_aside h3,
   #folder_aside h3 {
-    text-align: center;
     font-size: 1.1em;
   }
   #file_management_forms,
