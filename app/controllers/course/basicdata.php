@@ -540,11 +540,6 @@ class Course_BasicdataController extends AuthenticatedController
         if ($GLOBALS['perm']->have_studip_perm("dozent", $course_id)) {
             $sem = Seminar::GetInstance($course_id);
             if (addDeputy($deputy, $sem->getId())) {
-                // Check if we need to add user to course parent as well.
-                if ($sem->parent_course) {
-                    $this->addDeputy($deputy, $sem->parent_course);
-                }
-
                 return MessageBox::success(sprintf(_("%s wurde hinzugefügt."), get_title_for_status('deputy', 1, $sem->status)));
             }
         }

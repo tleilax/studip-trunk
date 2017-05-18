@@ -94,8 +94,25 @@ function getDeputyBosses($user_id, $name_format='full_rev') {
  * @return int Number of affected rows in the database (hopefully 1).
  */
 function addDeputy($user_id, $range_id) {
-    return DBManager::get()->exec(
-       "INSERT INTO deputies SET range_id='$range_id', user_id='$user_id'");
+    if (!Deputy::exists([$range_id, $user_id])) {
+        $d = new Deputy();
+        $d->user_id = $user_id;
+        $d->range_id = $range_id;
+
+        // Check if the given range_id is a course and has a parent.
+        if ($course = Course::find($range_id)) {
+            if ($course->parent_course && !Deputy::exists([$course->parent_course, $user_id])) {
+                $p = new Deputy();
+                $p->user_id = $user_id;
+                $p->range_id = $course->parent_course;
+                $p->store();
+            }
+        }
+
+        return $d->store();
+    } else {
+        return true;
+    }
 }
 
 /**
@@ -107,17 +124,19 @@ function addDeputy($user_id, $range_id) {
  * @return int Number of affected rows in the database ("1" if successful).
  */
 function deleteDeputy($user_id, $range_id) {
+    $success = true;
     if (is_array($user_id)) {
-        return DBManager::get()->exec(
-               "DELETE FROM deputies ".
-               "WHERE range_id='$range_id' AND user_id IN ('".
-               implode("', '", $user_id)."')"
-            );
+        foreach ($user_id as $u) {
+            $success = $success && deleteDeputy($u, $range_id);
+        }
+        return $success;
     } else {
-        return DBManager::get()->exec(
-                "DELETE FROM deputies ".
-                "WHERE range_id='$range_id' AND user_id='$user_id'"
-           );
+        $d = Deputy::find([$range_id, $user_id]);
+        if ($d) {
+            return $d->delete();
+        } else {
+            return true;
+        }
     }
 }
 
@@ -128,9 +147,10 @@ function deleteDeputy($user_id, $range_id) {
  * @return int Number of affected database rows (>0 if successful).
  */
 function deleteAllDeputies($range_id) {
-    return DBManager::get()->exec(
-           "DELETE FROM deputies WHERE range_id='".$range_id."'"
-       );
+    $success = true;
+    foreach (Deputy::findByRange_id($range_id) as $d) {
+        $success = $success && $d->delete();
+    }
 }
 
 /**
@@ -144,13 +164,14 @@ function deleteAllDeputies($range_id) {
  * @return boolean Is the given person deputy in the given context?
  */
 function isDeputy($user_id, $range_id, $check_edit_about=false) {
-    $query = "SELECT COUNT(user_id) AS deputy FROM deputies ".
-        "WHERE range_id='$range_id' AND user_id='$user_id'";
-    if ($check_edit_about)
-        $query .= " AND edit_about=1";
-    $data = DBManager::get()->query($query);
-    $current = $data->fetch();
-    return $current['deputy'];
+    $d = Deputy::find([$range_id, $user_id]);
+    if (!$d) {
+        return false;
+    } else if ($check_edit_about) {
+        return ($d->edit_about == 1);
+    } else {
+        return true;
+    }
 }
 
 /**
@@ -162,8 +183,13 @@ function isDeputy($user_id, $range_id, $check_edit_about=false) {
  * @return Number of affected database rows ("1" if successful).
  */
 function setDeputyHomepageRights($user_id, $range_id, $rights) {
-    return DBManager::get()->exec("UPDATE deputies SET edit_about=$rights ".
-       "WHERE user_id='$user_id' AND range_id='$range_id'");
+    $d = Deputy::find([$range_id, $user_id]);
+    if ($d) {
+        $d->edit_about = $rights;
+        return $d->store();
+    } else {
+        return false;
+    }
 }
 
 /**
