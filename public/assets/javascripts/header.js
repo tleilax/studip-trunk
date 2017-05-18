@@ -1,7 +1,7 @@
 /*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
 /*global window, $, jQuery, _ */
 
-(function ($, document) {
+(function ($) {
 
     var fold,
         $wrapper,
@@ -48,14 +48,9 @@
             STUDIP.HeaderMagic.enable();
         }
 
-        $(window).scroll(function() {
+        $(window).on('scroll resize', function() {
             moveTopAvatar();
         });
-
-        $(window).resize(function() {
-            moveTopAvatar();
-        });
-
     });
 
     $('#barBottomright').ready(function(){
@@ -81,7 +76,7 @@
         }
     };
 
-}(jQuery, window.document));
+}(jQuery));
 
 (function ($) {
 

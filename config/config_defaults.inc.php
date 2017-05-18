@@ -54,7 +54,7 @@ $USER_DOC_PATH = $STUDIP_BASE_PATH . "/data/user_doc";
 $ARCHIV_PATH = $STUDIP_BASE_PATH . "/data/archiv";
 
 // path and url for dynamically generated static content like smilies..
-$DYNAMIC_CONTENT_PATH = $STUDIP_BASE_PATH . "public/pictures";
+$DYNAMIC_CONTENT_PATH = $STUDIP_BASE_PATH . "/public/pictures";
 $DYNAMIC_CONTENT_URL  = $ABSOLUTE_URI_STUDIP  . "pictures";
 
 
@@ -379,6 +379,7 @@ $CASAbstractUserDataMapping_CONFIG = array();
 $STUDIP_AUTH_CONFIG_CAS = array("host" => "cas.studip.de",
                                         "port" => 8443,
                                         "uri"  => "cas",
+                                        "proxy"  => false,
                                         "cacert" => "/path/to/server/cert",
                                         "user_data_mapping_class" => "CASAbstractUserDataMapping",
                                         "user_data_mapping" => // map_args are dependent on your own data mapping class
