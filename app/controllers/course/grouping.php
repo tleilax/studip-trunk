@@ -145,18 +145,20 @@ class Course_GroupingController extends AuthenticatedController
             _('Teilnehmende in Unterveranstaltungen')));
         PageLayout::addScript('members.js');
         Navigation::activateItem('course/members/children');
-        $this->courses = SimpleORMapCollection::createFromArray(Course::findByParent_Course($this->course->id))
-            ->orderBy(Config::get()->IMPORTANT_SEMNUMBER ? 'veranstaltungsnummer, name' : 'name');
+        $this->courses = SimpleCollection::createFromArray(
+            Course::findByParent_Course($this->course->id,
+                                        'ORDER BY ' . (Config::get()->IMPORTANT_SEMNUMBER ? 'veranstaltungsnummer, name' : 'name'))
+            );
 
         if (count($this->course->children) > 0) {
             $this->parentOnly = DBManager::get()->fetchFirst(
                 "SELECT DISTINCT s.`user_id`
                 FROM `seminar_user` s WHERE s.`Seminar_id` = :parent AND NOT EXISTS (
                     SELECT `user_id` FROM `seminar_user` WHERE `user_id` = s.`user_id` AND `Seminar_id` IN (:children)
-                    )",
+                    ) LIMIT 1",
                 ['parent' => $this->course->id, 'children' => $this->course->children->pluck('seminar_id')]);
         } else {
-            $this->parentOnly = $this->course->members;
+            $this->parentOnly = true;
         }
     }
 
@@ -175,13 +177,11 @@ class Course_GroupingController extends AuthenticatedController
     public function parent_only_members_action()
     {
         if (count($this->course->children) > 0) {
-            $this->parentOnly = SimpleORMapCollection::createFromArray(DBManager::get()->fetchAll(
-                "SELECT DISTINCT s.*
-                FROM `seminar_user` s WHERE s.`Seminar_id` = :parent AND NOT EXISTS (
-                    SELECT `user_id` FROM `seminar_user` WHERE `user_id` = s.`user_id` AND `Seminar_id` IN (:children)
-                    )",
-                ['parent' => $this->course->id, 'children' => $this->course->children->pluck('seminar_id')],
-                'CourseMember::buildExisting'))->orderBy('nachname, vorname');
+            $childrens_users = DBManager::get()->fetchFirst(
+                "SELECT DISTINCT `user_id` FROM `seminar_user` WHERE `Seminar_id` IN (:children)",
+                ['children' => $this->course->children->pluck('seminar_id')]);
+
+            $this->parentOnly = $this->course->members->findBy('user_id', $childrens_users, '!=');
         } else {
             $this->parentOnly = $this->course->members;
         }
@@ -241,7 +241,7 @@ class Course_GroupingController extends AuthenticatedController
             [$user_id] :
             Request::getArray('users');
         $this->targets = count($this->course->children) > 0 ?
-            $this->course->children->filter(function ($c) use ($source_id) { return $c->id != $source_id; }) :
+            $this->course->children->findBy('id', $source_id, '!=') :
             new SimpleORMapCollection();
     }
 

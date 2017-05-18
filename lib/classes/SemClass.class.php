@@ -352,11 +352,11 @@ class SemClass implements ArrayAccess
 
     /**
      * Checks if any SemClasses exist that provide grouping functionality.
-     * @return bool
+     * @return SimpleCollection
      */
     public static function getGroupClasses()
     {
-        return DBManager::get()->fetchAll("SELECT * FROM `sem_classes` WHERE `is_group` = 1 ORDER BY `id`");
+        return SimpleCollection::createFromArray(self::getClasses())->findBy('is_group', true);
     }
 
     /**

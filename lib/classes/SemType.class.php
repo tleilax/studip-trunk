@@ -209,10 +209,7 @@ class SemType implements ArrayAccess
      */
     public static function getGroupingSemTypes()
     {
-        return DBManager::get()->fetchFirst("SELECT t.`id` FROM `sem_types` t
-            JOIN `sem_classes` c ON (t.`class` = c.`id`)
-            WHERE c.`is_group` = 1
-            ORDER BY t.`id`");
+        return SimpleCollection::createFromArray(array_flatten(SemClass::getGroupClasses()->getSemTypes()))->pluck('id');
     }
 
     /**
@@ -221,10 +218,8 @@ class SemType implements ArrayAccess
      */
     public static function getNonGroupingSemTypes()
     {
-        return DBManager::get()->fetchFirst("SELECT t.`id` FROM `sem_types` t
-            JOIN `sem_classes` c ON (t.`class` = c.`id`)
-            WHERE c.`is_group` = 0
-            ORDER BY t.`id`");
+        $non_grouping = SimpleCollection::createFromArray(SemClass::getClasses())->findBy('is_group', false)->findBy('studygroup_mode', false);
+        return SimpleCollection::createFromArray(array_flatten($non_grouping->getSemTypes()))->pluck('id');
     }
 
     /**

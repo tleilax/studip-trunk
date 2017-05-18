@@ -37,7 +37,7 @@ class Deputy extends SimpleORMap
             'foreign_key' => 'range_id',
             'assoc_foreign_key' => 'seminar_id'
         );
-        $config['has_one']['boss'] = array(
+        $config['belongs_to']['boss'] = array(
             'class_name' => 'User',
             'foreign_key' => 'range_id',
             'assoc_foreign_key' => 'user_id'

@@ -423,28 +423,17 @@ class Course extends SimpleORMap
 
     /**
      * Is the current course visible for the current user?
-     * @return Visible?
+     * @param string $user_id
+     * @return bool Visible?
      */
-    public function isVisibleForUser()
+    public function isVisibleForUser($user_id = null)
     {
-        if ($this->visible || $GLOBALS['perm']->have_perm('root')) {
+        if ($this->visible) {
             return true;
-        } else if ($GLOBALS['perm']->have_perm('admin')) {
-            $common = array_intersect(
-                $this->institutes->toArray(),
-                SimpleORMapCollection::createFromArray(Institute::getMyInstitutes())->pluck('institut_id')
-            );
-            return (count($common) > 0);
         } else {
-            $member = false;
-            if (count($this->members) > 0) {
-                $member = (count($this->members->findBy('user_id', $GLOBALS['user']->id)) > 0);
-            }
-            if (!$member && Config::get()->DEPUTIES_ENABLE && count($this->deputies) > 0) {
-                $member = (count($this->deputies->findBy('user_id', $GLOBALS['user']->id)) > 0);
-            }
-        }
-        return $member;
+            return ($GLOBALS['perm']->have_perm(Config::get()->SEM_VISIBILITY_PERM, $user_id)
+                || $GLOBALS['perm']->have_studip_perm('user', $this->id, $user_id));
+       }
     }
 
 }
