@@ -24,7 +24,7 @@ class HiddenFolder extends PermissionEnabledFolder
 
     static public function getTypeName()
     {
-        return _("Unsichtbarer Ordner mit Zugangsbeschränkung (not finished)");
+        return _("Unsichtbarer Ordner mit Zugangsbeschränkung");
     }
 
     public function getIcon($role = Icon::DEFAULT_ROLE)
@@ -34,14 +34,14 @@ class HiddenFolder extends PermissionEnabledFolder
     }
 
     // ToDo für Testzwecke template erstmal noch gleich wie in parent (PermissionEnabledFolder)
-    // später eigenes template mit anderen Auswahlmöglichkeiten
-    public function getEditTemplate()
+    // Was soll ein Unsichtbarer Ordner können, nur gelesen werden wenn sichtbar odedr wie?
+/*    public function getEditTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/hidden_folder/edit.php');
         $template->set_attribute('folder', $this);
         return $template;
     }
-
+*/
     public function getDescriptionTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/hidden_folder/description.php');
