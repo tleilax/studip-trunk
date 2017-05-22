@@ -7,6 +7,7 @@
             <th><?= _('ID') ?></th>
             <th><?= _('Name') ?></th>
             <th><?= _('Download-Bedingung') ?></th>
+            <th><?= _('Standard')?></th>
             <th><?= _('Aktionen') ?></th>
         </tr>
     </thead>
@@ -19,12 +20,13 @@
             <td><?= (($entry->download_condition == '1')
                 ? _('Nur für geschlossene Gruppen')
                 : (($entry->download_condition == '2')
-                    ? _('Nur für Eingentümer')
+                    ? _('Nur für Eigentümer')
                     : _('Ohne Bedingung')
                     )
                 ) ?></td>
+            <td><?= $entry->is_default ? _('Ja') : _('Nein') ?></td>
             <td>
-                <a href="<?= 
+                <a href="<?=
                     URLHelper::getLink(
                         'dispatch.php/admin/content_terms_of_use/edit',
                         [
@@ -33,7 +35,7 @@
                     ) ?>" data-dialog="1">
                     <?= Icon::create('edit', 'clickable')->asImg('20px') ?>
                 </a>
-                <a href="<?= 
+                <a href="<?=
                     URLHelper::getLink(
                         'dispatch.php/admin/content_terms_of_use/delete',
                         [

@@ -25,11 +25,11 @@ action="<?= URLHelper::getLink(
                 <?= ($entry_download_condition == '0') ? 'selected="selected"' : '' ?>>
                 <?= _('Ohne Bedingung') ?>
             </option>
-            <option value="0"
+            <option value="1"
                 <?= ($entry_download_condition == '1') ? 'selected="selected"' : '' ?>>
                 <?= _('Nur für geschlossene Gruppen') ?>
             </option>
-            <option value="0"
+            <option value="2"
                 <?= ($entry_download_condition == '2') ? 'selected="selected"' : '' ?>>
                 <?= _('Nur für Eigentümer') ?>
             </option>
@@ -47,8 +47,16 @@ action="<?= URLHelper::getLink(
         <input type="number" name="entry_position" value="<?= htmlReady($entry_position) ?>">
     </label>
     <label>
+        <?= _('Standardlizenz bei neuen Dateien') ?>
+        <input type="checkbox" name="entry_is_default" value="1" <?= $entry_is_default ? 'checked' : ''?>>
+    </label>
+    <label>
         <?= _('Beschreibung') ?>
         <?= I18N::textarea('entry_description', $entry_description)?>
+    </label>
+    <label>
+        <?= _('Hinweise zur Nutzung') ?>
+        <?= I18N::textarea('entry_student_description', $entry_student_description)?>
     </label>
 </fieldset>
 <div data-dialog-button>

@@ -36,6 +36,9 @@
             <? if($file_ref->terms_of_use): ?>
                 <tr>
                     <td colspan="2">
+                        <h3><?=_('Hinweis zur Nutzung und Weitergabe:')?></h3>
+                        <article><?= htmlReady($file_ref->terms_of_use->student_description) ?></article>
+
                         <h3><?= _('Downloadbedingungen') ?></h3>
 
                         <? if($file_ref->terms_of_use->download_condition == 0): ?>

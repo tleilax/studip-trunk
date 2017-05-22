@@ -35,19 +35,63 @@
  */
 class ContentTermsOfUse extends SimpleORMap
 {
+    /**
+     * @var
+     */
+    private static $cache;
+
+    /**
+     * @param array $config
+     */
     protected static function configure($config = [])
     {
         $config['db_table'] = 'content_terms_of_use_entries';
         $config['i18n_fields']['name'] = true;
         $config['i18n_fields']['description'] = true;
-        //TODO: define has_many relationship for FileRef
-        //(and later: other object types)
+        $config['registered_callbacks']['after_store'][] = 'cbCheckDefault';
+
         parent::configure($config);
     }
 
+    /**
+     * @return ContentTermsOfUse[]
+     */
     public static function findAll()
     {
-        return self::findBySQL("1 ORDER by position,id");
+        if (!isset(self::$cache)) {
+            self::$cache = new SimpleCollection(self::findBySQL("1 ORDER by position,id"));
+        }
+        return self::$cache;
+    }
+
+    /**
+     * @param $id string
+     * @return ContentTermsOfUse
+     */
+    public static function find($id)
+    {
+        $all = self::findAll();
+        return $all->findOneBy('id', $id);
+    }
+
+    /**
+     * @return ContentTermsOfUse
+     */
+    public static function findDefault()
+    {
+        $all = self::findAll();
+        return $all->findOneBy('is_default', 1);
+    }
+
+    /**
+     *
+     */
+    public function cbCheckDefault()
+    {
+        if ($this->is_default) {
+            DBManager::get()->exec("UPDATE content_terms_of_use_entries SET is_default = 0 WHERE id <> " . DBManager::get()->quote($this->id));
+        }
+        self::$cache = null;
     }
 
     /**
@@ -88,7 +132,8 @@ class ContentTermsOfUse extends SimpleORMap
 
                     if ($seminar->admission_prelim == 1 || $seminar->isPasswordProtected() ||
                         $seminar->isAdmissionLocked()
-                        || (is_array($timed_admission) && $timed_admission['end_time'] > 0 && $timed_admission['end_time'] < time())) {
+                        || (is_array($timed_admission) && $timed_admission['end_time'] > 0 && $timed_admission['end_time'] < time())
+                    ) {
                         return true;
                     }
                 } else {

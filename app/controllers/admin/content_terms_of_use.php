@@ -83,6 +83,8 @@ class Admin_ContentTermsOfUseController extends AuthenticatedController
         $this->entry_icon = Request::get('entry_icon', 'license');
         $this->entry_position = Request::get('entry_position', '0');
         $this->entry_description = Request::i18n('entry_description', '');
+        $this->entry_student_description = Request::i18n('entry_student_description', '');
+        $this->entry_is_default = Request::get('entry_is_default', '0');
 
 
         if($this->entry_id && strlen($this->entry_name)) {
@@ -115,6 +117,8 @@ class Admin_ContentTermsOfUseController extends AuthenticatedController
             $new_entry->icon = $this->entry_icon;
             $new_entry->position = $this->entry_position;
             $new_entry->description = $this->entry_description;
+            $new_entry->student_description = $this->entry_student_description;
+            $new_entry->is_default = $this->entry_is_default;
 
             if($new_entry->store()) {
                 PageLayout::postSuccess(
@@ -198,6 +202,9 @@ class Admin_ContentTermsOfUseController extends AuthenticatedController
             );
             $this->entry_description = Request::submitted('entry_description') ? Request::i18n(
                 'entry_description') : $entry->description;
+            $this->entry_student_description = Request::submitted('entry_student_description') ? Request::i18n(
+                'entry_student_description') : $entry->student_description;
+            $this->entry_is_default = Request::submitted('entry_name') ? (int)Request::get('entry_is_default') : $entry->is_default;
         }
 
         if(Request::submitted('save')) {
@@ -210,8 +217,10 @@ class Admin_ContentTermsOfUseController extends AuthenticatedController
                 $entry->icon = $this->entry_icon;
                 $entry->position = $this->entry_position;
                 $entry->description = $this->entry_description;
+                $entry->student_description = $this->entry_student_description;
+                $entry->is_default = $this->entry_is_default;
 
-                if($entry->store()) {
+                if ($entry->store()) {
                     PageLayout::postSuccess(
                         _('Eintrag für Nutzungsbedingungen wurde bearbeitet!')
                     );
@@ -221,10 +230,6 @@ class Admin_ContentTermsOfUseController extends AuthenticatedController
                         );
                     }
                     return;
-                } else {
-                    PageLayout::postError(
-                        _('Fehler beim Speichern des Eintrags für Nutzungsbedingungen')
-                    );
                 }
             } else {
                 PageLayout::postError(

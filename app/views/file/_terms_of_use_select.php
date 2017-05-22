@@ -1,3 +1,6 @@
+<?
+$selected_terms_of_use_id = $selected_terms_of_use_id ?: ContentTermsOfUse::findDefault()->id;
+?>
 <? if ($content_terms_of_use_entries): ?>
     <fieldset class="select_terms_of_use">
         <? foreach ($content_terms_of_use_entries as $content_terms_of_use_entry) : ?>
