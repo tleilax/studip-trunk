@@ -6674,6 +6674,64 @@ input.document-checkbox[type="checkbox"]:indeterminate + label span::after {
     max-width: 100%;
   }
 }
+form.default fieldset.select_terms_of_use {
+  border: none;
+  padding: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+}
+form.default fieldset.select_terms_of_use > input[type=radio] {
+  display: none;
+}
+form.default fieldset.select_terms_of_use > label {
+  cursor: pointer;
+  border: 2px solid #7e92b0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px;
+  padding-bottom: 2px;
+  margin-top: 0px;
+  border-top: none;
+}
+form.default fieldset.select_terms_of_use > label > .text {
+  width: 100%;
+  margin-left: 10px;
+}
+form.default fieldset.select_terms_of_use > label > .arrow {
+  transition: transform 300ms;
+}
+form.default fieldset.select_terms_of_use > label:first-of-type {
+  border-top: 2px solid #7e92b0;
+}
+form.default fieldset.select_terms_of_use > div {
+  border: 2px solid #7e92b0;
+  border-top: none;
+  display: none;
+  padding: 10px;
+}
+form.default fieldset.select_terms_of_use > input[type=radio]:checked + label {
+  background-color: #e7ebf1;
+}
+form.default fieldset.select_terms_of_use > input[type=radio]:checked + label > .arrow {
+  transform: rotate(180deg);
+  transition: transform 300ms;
+}
+form.default fieldset.select_terms_of_use > input[type=radio]:checked + label + div {
+  display: block;
+}
+form.default fieldset.select_terms_of_use > input[type=radio]:checked + label + div .description {
+  animation-duration: 400ms;
+  animation-name: terms_of_use_fadein;
+}
+@keyframes terms_of_use_fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {
   font-size: 1.2em;

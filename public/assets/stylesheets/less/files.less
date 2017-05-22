@@ -257,3 +257,65 @@ input.document-checkbox[type="checkbox"]:indeterminate + label span {
     }
     
 }
+
+form.default fieldset.select_terms_of_use {
+    border: none;
+    padding: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+
+    > input[type=radio] {
+        display: none;
+    }
+    > label {
+        cursor: pointer;
+        border: 2px solid @base-color-60;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px;
+        padding-bottom: 2px;
+        margin-top: 0px;
+        border-top: none;
+        > .text {
+            width: 100%;
+            margin-left: 10px;
+        }
+        > .arrow {
+            transition: transform 300ms;
+        }
+    }
+    > label:first-of-type {
+        border-top: 2px solid @base-color-60;
+    }
+    > div {
+        border: 2px solid @base-color-60;
+        border-top: none;
+        display: none;
+        padding: 10px;
+
+    }
+    > input[type=radio]:checked + label {
+        background-color: @content-color-20;
+        > .arrow {
+            transform: rotate(180deg);
+            transition: transform 300ms;
+        }
+    }
+    > input[type=radio]:checked + label + div {
+        display: block;
+        .description {
+            animation-duration: 400ms;
+            animation-name: terms_of_use_fadein;
+        }
+    }
+}
+
+@keyframes terms_of_use_fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

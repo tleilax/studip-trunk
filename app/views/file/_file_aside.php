@@ -36,17 +36,6 @@
             <? if($file_ref->terms_of_use): ?>
                 <tr>
                     <td colspan="2">
-                        <h3>
-                            <?= Icon::create(
-                                $file_ref->terms_of_use->icon,
-                                'info')->asImg(
-                                '16px',
-                                ['class' => 'text-bottom']
-                            ) ?>
-                            <?= htmlReady($file_ref->terms_of_use->name) ?>
-                        </h3>
-                        <article><?= htmlReady($file_ref->terms_of_use->description) ?></article>
-
                         <h3><?= _('Downloadbedingungen') ?></h3>
 
                         <? if($file_ref->terms_of_use->download_condition == 0): ?>
