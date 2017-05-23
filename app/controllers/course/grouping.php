@@ -54,8 +54,8 @@ class Course_GroupingController extends AuthenticatedController
         if ($GLOBALS['perm']->have_perm('root')) {
             $parameters = array(
                 'semtypes' => SemType::getNonGroupingSemTypes(),
-                'exclude' => array($this->parent_course ?: ''),
-                'semesters' => array($this->parent->start_semester->id)
+                'exclude' => array($this->course->parent_course ?: ''),
+                'semesters' => array($this->course->start_semester->id)
             );
         } else if ($GLOBALS['perm']->have_perm('admin')) {
             $parameters = array(
@@ -63,16 +63,16 @@ class Course_GroupingController extends AuthenticatedController
                 'institutes' => array_map(function ($i) {
                     return $i['Institut_id'];
                 }, Institute::getMyInstitutes()),
-                'exclude' => array($this->parent_course ?: ''),
-                'semesters' => array($this->parent->start_semester->id)
+                'exclude' => array($this->course->parent_course ?: ''),
+                'semesters' => array($this->start_semester->id)
             );
 
         } else {
             $parameters = array(
                 'userid' => $GLOBALS['user']->id,
                 'semtypes' => SemType::getNonGroupingSemTypes(),
-                'exclude' => array($this->parent_course ?: ''),
-                'semesters' => array($this->parent->start_semester->id)
+                'exclude' => array($this->course->parent_course ?: ''),
+                'semesters' => array($this->course->start_semester->id)
             );
         }
 
