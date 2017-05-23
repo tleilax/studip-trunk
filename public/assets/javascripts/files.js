@@ -5,11 +5,13 @@ STUDIP.Files = {
     openAddFilesWindow: function (folder_id) {
         if (jQuery('.files_source_selector').length > 0) {
             STUDIP.Dialog.show(jQuery('.files_source_selector').html(), {
-                title: 'Datei hinzufügen'.toLocaleString()
+                title: 'Datei hinzufügen'.toLocaleString(),
+                size: "auto"
             });
         } else {
             STUDIP.Dialog.fromURL(STUDIP.URLHelper.getURL("dispatch.php/file/add_files_window/" + folder_id), {
-                title: 'Datei hinzufügen'.toLocaleString()
+                title: 'Datei hinzufügen'.toLocaleString(),
+                size: "auto"
             });
         }
     },
@@ -89,7 +91,8 @@ STUDIP.Files = {
                     jQuery(".file_upload_window .uploadbar").css("background-size", "100% 100%");
                     if (json.redirect) {
                         STUDIP.Dialog.fromURL(json.redirect, {
-                            title: json.window_title || 'Lizenz auswählen'.toLocaleString()
+                            title: json.window_title
+                                || (json.new_html.length > 1 ? 'Lizenz auswählen: %s Dateien'.toLocaleString().replace("%s", json.new_html.length) : 'Lizenz auswählen'.toLocaleString())
                         });
                     } else if (json.message) {
                         jQuery(".file_uploader .uploadbar").hide().parent().append(json.message);

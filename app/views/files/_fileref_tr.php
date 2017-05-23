@@ -1,21 +1,23 @@
 <tr class="<?= ($file_ref->chdate > $last_visitdate) ? 'new' : ''?>" <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>">
     <td>
-        <input type="checkbox"
-               class="document-checkbox"
-               name="ids[]"
-               id="file_checkbox_<?=$file_ref->id?>"
-               value="<?= $file_ref->id ?>"
-               <? if (in_array($file_ref->id, (array) $marked_element_ids)) echo 'checked'; ?>>
-        <label for="file_checkbox_<?=$file_ref->id?>"><span></span></label>
+        <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
+            <input type="checkbox"
+                   class="document-checkbox"
+                   name="ids[]"
+                   id="file_checkbox_<?=$file_ref->id?>"
+                   value="<?= $file_ref->id ?>"
+                   <? if (in_array($file_ref->id, (array) $marked_element_ids)) echo 'checked'; ?>>
+            <label for="file_checkbox_<?=$file_ref->id?>"><span></span></label>
+        <? endif ?>
     </td>
     <td class="document-icon" data-sort-value="1">
-        <a href=" <?= $controller->url_for('file/details/' . $file_ref->id) ?>" data-dialog>
-            <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
+        <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
+            <a href="<?= htmlReady($file_ref->download_url) ?>">
                 <?= Icon::create(FileManager::getIconNameForMimeType($file_ref->mime_type), 'clickable')->asImg(24) ?>
-            <? else : ?>
-                <?= Icon::create(FileManager::getIconNameForMimeType($file_ref->mime_type), "inactive")->asImg(24) ?>
-            <? endif ?>
-        </a>
+            </a>
+        <? else : ?>
+            <?= Icon::create(FileManager::getIconNameForMimeType($file_ref->mime_type), "inactive")->asImg(24) ?>
+        <? endif ?>
     </td>
     <td data-sort-value="<?= htmlReady($file_ref->name) ?>">
         <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
@@ -52,13 +54,24 @@
     </td>
     <td class="actions">
         <? $actionMenu = ActionMenu::get() ?>
-
+        <? $actionMenu->addLink(
+            $controller->url_for('file/details/' . $file_ref->id),
+            _('Info'),
+            Icon::create('info-circle', 'clickable', array('size' => 20)),
+            array('data-dialog' => 1)
+        ) ?>
         <? if (Navigation::hasItem('/course/files_new/flat') && Navigation::getItem('/course/files_new/flat')->isActive()) : ?>
-         <? $actionMenu->addLink($controller->url_for('course/files/index/' . $file_ref->folder_id),
-                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable', array('size' => 20))) ?>
-         <? elseif (Navigation::hasItem('/profile/files/flat') && Navigation::getItem('/profile/files/flat')->isActive()) : ?>
-             <? $actionMenu->addLink($controller->url_for('files/index/' . $file_ref->folder_id),
-                _('Ordner öffnen'), Icon::create('folder-empty', 'clickable', array('size' => 20))) ?>
+            <? $actionMenu->addLink(
+                $controller->url_for('course/files/index/' . $file_ref->folder_id),
+                _('Ordner öffnen'),
+                Icon::create('folder-empty', 'clickable', array('size' => 20))
+            ) ?>
+        <? elseif (Navigation::hasItem('/profile/files/flat') && Navigation::getItem('/profile/files/flat')->isActive()) : ?>
+             <? $actionMenu->addLink(
+                 $controller->url_for('files/index/' . $file_ref->folder_id),
+                 _('Ordner öffnen'),
+                 Icon::create('folder-empty', 'clickable', array('size' => 20))
+            ) ?>
         <? endif; ?>
         <? if ($current_folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/edit/' . $file_ref->id),

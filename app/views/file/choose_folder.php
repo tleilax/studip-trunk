@@ -148,7 +148,7 @@ switch ($top_folder->range_type) {
     <div data-dialog-button>
         <?
         $action = ($options['copymode'] == 'copy') ? 'copy' : 'move';
-        $action_text = ($action == 'copy')? _('hierher kopieren') : _('hierher verschieben');
+        $action_text = ($action == 'copy')? _('Hierher kopieren') : _('Hierher verschieben');
         ?>
 
         <?= Studip\LinkButton::createAccept(

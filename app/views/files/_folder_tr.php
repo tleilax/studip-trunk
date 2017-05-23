@@ -17,9 +17,13 @@
         <? endif?>
     </td>
     <td class="document-icon" data-sort-value="0">
-        <a href="<?= $controller->url_for('file/details/' . $folder->getId())  ?>" data-dialog>
-            <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(26) ?>
-        </a>
+        <? if ($is_readable) : ?>
+            <a href="<?= $controller->url_for('file/details/' . $folder->getId())  ?>" data-dialog>
+        <? endif ?>
+        <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(26) ?>
+        <? if ($is_readable) : ?>
+            </a>
+        <? endif ?>
     </td>
     <td>
         <? if ($is_readable) : ?>
@@ -47,6 +51,10 @@
     </td>
     <td class="actions">
         <? $actionMenu = ActionMenu::get() ?>
+        <? $actionMenu->addLink($controller->url_for('file/details/' . $folder->getId()),
+            _('Info'),
+            Icon::create('info-circle', 'clickable', array('size' => 20)),
+            ['data-dialog' => '1']) ?>
         <? if ($folder->isEditable($GLOBALS['user']->id)): ?>
             <? $actionMenu->addLink($controller->url_for('file/edit_folder/' . $folder->getId()),
                     _('Ordner bearbeiten'),

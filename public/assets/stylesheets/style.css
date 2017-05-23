@@ -812,6 +812,9 @@ table.default > tbody > tr.new > td:first-child {
   padding-left: 0px;
   border-left: 2px solid #d60000;
 }
+table.default > tbody > tr.new > td .action-menu {
+  font-weight: normal;
+}
 table.default > tbody:last-of-type > tr:last-child > td {
   border-bottom: 1px solid #1f4171;
 }

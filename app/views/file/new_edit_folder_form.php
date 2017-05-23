@@ -12,8 +12,6 @@
     </label>
 </fieldset>
 
-<?= $folder_template instanceof Flexi_Template ? $folder_template->render() : $folder_template ?>
-
 <fieldset class="select_terms_of_use">
     <legend>
         <?= _("Ordnertyp auswählen") ?>

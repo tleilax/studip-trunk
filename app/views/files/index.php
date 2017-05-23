@@ -28,9 +28,9 @@
                     <? endif ?>
 
                     <? foreach ($breadcrumbs as $crumb): ?>
-                            /<a href="<?= $controller->url_for($controllerpath . '/' . $crumb->getId()) ?>">
-                                <?= htmlReady($crumb->name) ?>
-                            </a>
+                        /<a href="<?= $controller->url_for($controllerpath . '/' . $crumb->getId()) ?>">
+                            <?= htmlReady($crumb->name) ?>
+                        </a>
                     <? endforeach ?>
                 <? endif ?>
             </div>
@@ -108,9 +108,8 @@
                         'disabled' => 'disabled',
                         'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
                     ]) ?>
-          <? endif; ?>
-            <span class="responsive-visible">
-                <? if ($topFolder->isSubfolderAllowed($GLOBALS['user']->id)): ?>
+            <? endif; ?>
+            <? if ($topFolder->isSubfolderAllowed($GLOBALS['user']->id)): ?>
                 <?= Studip\LinkButton::create(
                     _("Neuer Ordner"),
                     URLHelper::getUrl(
@@ -118,17 +117,16 @@
                     ,
                     array(
                         'data-dialog' => ''
-                    )) ?>
-                <? endif ?>
-                <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+                )) ?>
+            <? endif ?>
+            <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
                 <?= Studip\LinkButton::create(
                     _("Datei hinzufügen"),
                     "#",
                     array(
                         'onClick' => "STUDIP.Files.openAddFilesWindow(); return false;"
-                    )) ?>
-                <? endif ?>
-            </span>
+                )) ?>
+            <? endif ?>
             </td>
         </tr>
     </tfoot>
