@@ -403,28 +403,27 @@ class FileController extends AuthenticatedController
 
             $folder_id = Request::get('dest_folder');
 
-            if($file_ref_id && $folder_id) {
+            if ($file_ref_id && $folder_id) {
 
                 $file_ref = FileRef::find($file_ref_id);
                 $source_folder = Folder::find($file_ref->folder_id);
                 $destination_folder = Folder::find($folder_id);
 
-                if(!$destination_folder) {
-                PageLayout::postError(_('Zielordner nicht gefunden!'));
-                return;
+                if (!$destination_folder) {
+                    PageLayout::postError(_('Zielordner nicht gefunden!'));
+                    return;
                 }
 
                 $destination_folder = $destination_folder->getTypedFolder();
-                if(!$destination_folder) {
+                if (!$destination_folder) {
                     PageLayout::postError(_('Ordnertyp des Zielordners konnte nicht ermittelt werden!'));
                     return;
                 }
 
-                if($source_folder && $destination_folder) {
-
+                if ($source_folder && $destination_folder) {
                     $errors = [];
 
-                    if($this->copymode == 'move') {
+                    if ($this->copymode == 'move') {
                         $result = FileManager::moveFileRef($file_ref, $destination_folder, $user);
 
                         if($result instanceof FileRef) {
@@ -459,9 +458,6 @@ class FileController extends AuthenticatedController
             }
 
         } else {
-
-
-
             if ($perm->have_perm('root')) {
                 $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                     "FROM Institute " .
@@ -476,21 +472,7 @@ class FileController extends AuthenticatedController
                     'semtypes' => studygroup_sem_types() ?: array(),
                     'exclude' => array()
                 );
-
-
-            /*} else if ($perm->have_perm('admin')) {
-
-
-                $parameters = array(
-                    'semtypes' => studygroup_sem_types() ?: array(),
-                    'institutes' => array_map(function ($i) {
-                    return $i['Institut_id'];
-                    }, Institute::getMyInstitutes()),
-                    'exclude' => array()
-                    );
-            */
             } else {
-
                 $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                     "FROM Institute " .
                     "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
@@ -514,15 +496,15 @@ class FileController extends AuthenticatedController
             //$instsearch = StandardSearch::get('Institut_id');
             $instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
             $this->search = QuickSearch::get('course_id', $coursesearch)
-            ->setInputStyle('width:100%')
-            ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
-            ->withButton()
-            ->render();
+                ->setInputStyle('width:100%')
+                ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
+                ->withButton()
+                ->render();
             $this->inst_search = QuickSearch::get('Institut_id', $instsearch)
-            ->setInputStyle('width:100%')
-            ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
-            ->withButton()
-            ->render();
+                ->setInputStyle('width:100%')
+                ->fireJSFunctionOnSelect('function(){STUDIP.Files.getFolders();}')
+                ->withButton()
+                ->render();
 
             $this->user_id = $user->id;
             $this->file_ref = $file_ref_id;
@@ -540,13 +522,12 @@ class FileController extends AuthenticatedController
         $refs = explode('-', $fileref_id);
         $first_ref = FileRef::find($refs[0]);
         if ($first_ref) {
-            $this->parent_folder = $first_ref->folder_id;
+            $this->parent_folder = Folder::find($first_ref->folder_id);
         } else {
             $folder = Folder::find($refs[0]);
             if ($folder) {
-                $this->parent_folder = $folder->parent_id;
+                $this->parent_folder = Folder::find($folder->parent_id);
             }
-
         }
 
         $this->plugin = Request::get("to_plugin");
@@ -560,7 +541,7 @@ class FileController extends AuthenticatedController
         
         $folder = Folder::find($folder_id);
         
-        if($folder) {
+        if ($folder) {
             $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
             
             $folder = $folder->getTypedFolder();
@@ -571,7 +552,7 @@ class FileController extends AuthenticatedController
                 $tmp_file
             );
             
-            if($result) {
+            if ($result) {
                 //ZIP file was created successfully
                 $this->redirect(
                     FileManager::getDownloadURLForTemporaryFile(
