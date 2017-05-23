@@ -32,7 +32,6 @@ class FileController extends AuthenticatedController
      */
     private function redirectToFolder($folder)
     {
-        $params = [];
         switch ($folder->range_type) {
                 case 'course':
                 case 'institute':
@@ -138,8 +137,6 @@ class FileController extends AuthenticatedController
         if (Request::isPost()) {
             if (Request::submitted("unzip")) {
                 //unzip!
-
-
                 $file_refs = FileArchiveManager::extractArchiveFileToFolder(
                     $this->file_ref,
                     $this->current_folder,
@@ -199,10 +196,8 @@ class FileController extends AuthenticatedController
             $this->is_downloadable = $folder->isFileDownloadable($this->file_ref->id, User::findCurrent()->id);
             $this->is_editable = $folder->isFileEditable($this->file_ref->id, User::findCurrent()->id);
 
-
             //load the previous and next file in the folder,
             //if the folder is of type FolderType.
-
 
             foreach ($folder->getFiles() as $folder_file_ref) {
                 $last_file_ref_id = $current_file_ref_id;
@@ -221,7 +216,6 @@ class FileController extends AuthenticatedController
                 }
 
             }
-
 
             $this->render_template('file/file_details');
         } else {
@@ -243,8 +237,8 @@ class FileController extends AuthenticatedController
     public function edit_action($file_ref_id)
     {
         $file_ref = FileRef::find($file_ref_id);
-        $folder = FileManager::getTypedFolder($file_ref->folder_id);
-        if (!$folder || !$folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)) {
+        $this->folder = FileManager::getTypedFolder($file_ref->folder_id);
+        if (!$this->folder || !$this->folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
 
@@ -262,7 +256,7 @@ class FileController extends AuthenticatedController
                 } else {
                     PageLayout::postError(_('Fehler beim Speichern der Änderungen!'));
                 }
-                $this->redirectToFolder($folder);
+                $this->redirectToFolder($this->folder);
             } else {
                 PageLayout::postError(_('Bitte geben Sie einen Namen für die Datei ein!'));
             }
@@ -393,10 +387,7 @@ class FileController extends AuthenticatedController
      */
     public function move_action($file_ref_id)
     {
-
-        global $perm;
         $user = User::findCurrent();
-
         $this->copymode = Request::get("copymode", 'move');
 
         if (Request::submitted("do_move")) {
@@ -458,7 +449,7 @@ class FileController extends AuthenticatedController
             }
 
         } else {
-            if ($perm->have_perm('root')) {
+            if ($GLOBALS['perm']->have_perm('root')) {
                 $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
                     "FROM Institute " .
                     "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
@@ -493,7 +484,6 @@ class FileController extends AuthenticatedController
             }
 
             $coursesearch = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
-            //$instsearch = StandardSearch::get('Institut_id');
             $instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
             $this->search = QuickSearch::get('course_id', $coursesearch)
                 ->setInputStyle('width:100%')
@@ -570,10 +560,10 @@ class FileController extends AuthenticatedController
         if (Request::get("course_id")) {
             $folder = Folder::findTopFolder(Request::get("course_id"));
             header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
-                    'to_plugin' => Request::get("to_plugin"),
-                    'fileref_id' => Request::get("fileref_id"),
-                    'copymode' => Request::get("copymode"),
-                    'isfolder' => Request::get("isfolder")
+                'to_plugin' => Request::get("to_plugin"),
+                'fileref_id' => Request::get("fileref_id"),
+                'copymode' => Request::get("copymode"),
+                'isfolder' => Request::get("isfolder")
             )));
         }
 
@@ -600,42 +590,37 @@ class FileController extends AuthenticatedController
         if (Request::get("Institut_id")) {
             $folder = Folder::findTopFolder(Request::get("Institut_id"));
             header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
-                    'to_plugin' => Request::get("to_plugin"),
-                    'fileref_id' => Request::get("fileref_id"),
-                    'copymode' => Request::get("copymode"),
-                    'isfolder' => Request::get("isfolder")
+                'to_plugin' => Request::get("to_plugin"),
+                'fileref_id' => Request::get("fileref_id"),
+                'copymode' => Request::get("copymode"),
+                'isfolder' => Request::get("isfolder")
             )));
         }
 
         if ($GLOBALS['perm']->have_perm('root')) {
-            $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
-                    "FROM Institute " .
-                    "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
-                    "WHERE Institute.Name LIKE :input " .
-                    "OR Institute.Strasse LIKE :input " .
-                    "OR Institute.email LIKE :input " .
-                    "OR range_tree.name LIKE :input " .
-                    "ORDER BY Institute.Name";
-            $parameters = array(
-                    'semtypes' => studygroup_sem_types() ?: array(),
-                    'exclude' => array()
-            );
+            $inst_sql =  "
+                SELECT DISTINCT Institute.Institut_id, Institute.Name 
+                FROM Institute 
+                    LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) 
+                WHERE Institute.Name LIKE :input 
+                    OR Institute.Strasse LIKE :input 
+                    OR Institute.email LIKE :input 
+                    OR range_tree.name LIKE :input 
+                ORDER BY Institute.Name";
         } else {
-            $inst_sql =  "SELECT DISTINCT Institute.Institut_id, Institute.Name " .
-                    "FROM Institute " .
-                    "LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) " .
-                    "LEFT JOIN user_inst ON (user_inst.Institut_id = Institute.Institut_id)" .
-                    "WHERE user_inst.user_id = '" . $user->id . "' " .
-                    "AND Institute.Name LIKE :input " .
-                    "OR Institute.Strasse LIKE :input " .
-                    "OR Institute.email LIKE :input " .
-                    "OR range_tree.name LIKE :input " .
-                    "ORDER BY Institute.Name";
-            $parameters = array(
-                    'userid' => $user->id,
-                    'semtypes' => studygroup_sem_types() ?: array(),
-                    'exclude' => array()
-            );
+            $inst_sql =  "
+                SELECT DISTINCT Institute.Institut_id, Institute.Name 
+                FROM Institute 
+                    LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) 
+                    LEFT JOIN user_inst ON (user_inst.Institut_id = Institute.Institut_id)
+                WHERE user_inst.user_id = '" . $GLOBALS['user']->id . "' 
+                    AND (
+                        Institute.Name LIKE :input 
+                        OR Institute.Strasse LIKE :input 
+                        OR Institute.email LIKE :input 
+                        OR range_tree.name LIKE :input 
+                    )
+                ORDER BY Institute.Name";
         }
         $this->instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
 
@@ -716,10 +701,6 @@ class FileController extends AuthenticatedController
         } else {
             throw new Trails_Exception(404, _('Datei nicht gefunden.'));
         }
-    }
-
-    public function upload_window_action()
-    {
     }
 
     public function add_files_window_action($folder_id)
@@ -1011,6 +992,7 @@ class FileController extends AuthenticatedController
             $folder_type_instance = new $folder_type(new Folder());
             $this->folder_types[] = [
                 'class' => $folder_type,
+                'instance' => $folder_type_instance,
                 'name' => $folder_type::getTypeName(),
                 'icon' => $folder_type_instance->getIcon('clickable')
             ];
@@ -1067,6 +1049,7 @@ class FileController extends AuthenticatedController
             $folder_type_instance = new $folder_type(new Folder());
             $this->folder_types[] = [
                 'class' => $folder_type,
+                'instance' => $folder_type_instance,
                 'name'  => $folder_type::getTypeName(),
                 'icon'  => $folder_type_instance->getIcon('clickable')
             ];

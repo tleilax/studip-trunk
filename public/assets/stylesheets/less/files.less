@@ -259,6 +259,10 @@ input.document-checkbox[type="checkbox"]:indeterminate + label span {
 }
 
 form.default fieldset.select_terms_of_use {
+    > legend {
+        margin: 0px;
+        width: 100%;
+    }
     border: none;
     padding: 0px;
     margin-left: 0px;
@@ -270,6 +274,7 @@ form.default fieldset.select_terms_of_use {
     > label {
         cursor: pointer;
         border: 1px solid @content-color-40;
+        transition: background-color 200ms;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -282,7 +287,10 @@ form.default fieldset.select_terms_of_use {
             margin-left: 10px;
         }
         > .arrow {
-            transition: transform 300ms;
+            margin-right: 5px;
+        }
+        > .check {
+            display: none;
         }
     }
     > label:first-of-type {
@@ -297,9 +305,12 @@ form.default fieldset.select_terms_of_use {
     }
     > input[type=radio]:checked + label {
         background-color: @content-color-20;
+        transition: background-color 200ms;
         > .arrow {
-            transform: rotate(180deg);
-            transition: transform 300ms;
+            display: none;
+        }
+        > .check {
+            display: inline-block;
         }
     }
     > input[type=radio]:checked + label + div {

@@ -22,12 +22,15 @@ $selected_terms_of_use_id = $selected_terms_of_use_id ?: ContentTermsOfUse::find
                     <?= htmlReady($content_terms_of_use_entry->name) ?>
                 </div>
                 <?= Icon::create("arr_1down", "clickable")->asImg(24, array('class' => "arrow")) ?>
+                <?= Icon::create("check-circle", "clickable")->asImg(32, array('class' => "check")) ?>
             </label>
-            <div class="terms_of_use_description">
-                <div class="description">
-                <?= formatReady($content_terms_of_use_entry->description ?: _("Keine Beschreibung")) ?>
+            <? if (trim($content_terms_of_use_entry->description)) : ?>
+                <div class="terms_of_use_description">
+                    <div class="description">
+                    <?= formatReady($content_terms_of_use_entry->description ?: _("Keine Beschreibung")) ?>
+                    </div>
                 </div>
-            </div>
+            <? endif ?>
         <? endforeach ?>
     </fieldset>
 

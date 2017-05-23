@@ -6680,12 +6680,17 @@ form.default fieldset.select_terms_of_use {
   margin-left: 0px;
   margin-right: 0px;
 }
+form.default fieldset.select_terms_of_use > legend {
+  margin: 0px;
+  width: 100%;
+}
 form.default fieldset.select_terms_of_use > input[type=radio] {
   display: none;
 }
 form.default fieldset.select_terms_of_use > label {
   cursor: pointer;
   border: 1px solid #d0d7e3;
+  transition: background-color 200ms;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -6699,7 +6704,10 @@ form.default fieldset.select_terms_of_use > label > .text {
   margin-left: 10px;
 }
 form.default fieldset.select_terms_of_use > label > .arrow {
-  transition: transform 300ms;
+  margin-right: 5px;
+}
+form.default fieldset.select_terms_of_use > label > .check {
+  display: none;
 }
 form.default fieldset.select_terms_of_use > label:first-of-type {
   border-top: 1px solid #d0d7e3;
@@ -6712,10 +6720,13 @@ form.default fieldset.select_terms_of_use > div {
 }
 form.default fieldset.select_terms_of_use > input[type=radio]:checked + label {
   background-color: #e7ebf1;
+  transition: background-color 200ms;
 }
 form.default fieldset.select_terms_of_use > input[type=radio]:checked + label > .arrow {
-  transform: rotate(180deg);
-  transition: transform 300ms;
+  display: none;
+}
+form.default fieldset.select_terms_of_use > input[type=radio]:checked + label > .check {
+  display: inline-block;
 }
 form.default fieldset.select_terms_of_use > input[type=radio]:checked + label + div {
   display: block;
