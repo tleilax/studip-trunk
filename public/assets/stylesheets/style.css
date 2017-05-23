@@ -6685,7 +6685,7 @@ form.default fieldset.select_terms_of_use > input[type=radio] {
 }
 form.default fieldset.select_terms_of_use > label {
   cursor: pointer;
-  border: 2px solid #7e92b0;
+  border: 1px solid #d0d7e3;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -6702,10 +6702,10 @@ form.default fieldset.select_terms_of_use > label > .arrow {
   transition: transform 300ms;
 }
 form.default fieldset.select_terms_of_use > label:first-of-type {
-  border-top: 2px solid #7e92b0;
+  border-top: 1px solid #d0d7e3;
 }
 form.default fieldset.select_terms_of_use > div {
-  border: 2px solid #7e92b0;
+  border: 1px solid #d0d7e3;
   border-top: none;
   display: none;
   padding: 10px;
