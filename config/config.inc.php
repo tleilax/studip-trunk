@@ -157,7 +157,7 @@ $UPLOAD_TYPES["attachments"] =
 
 $UPLOAD_TYPES["personalfiles"] =
                 array(  "type" => "allow",
-                        "file_types" => array ("exe",'pdf'),
+                        "file_types" => array ("exe"),
                         "file_sizes" => array ( "root" => 240* 1048576,
                                     "admin" => 240 * 1048576,
                                     "tutor" => 240 * 1048576,

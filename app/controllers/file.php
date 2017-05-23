@@ -976,16 +976,8 @@ class FileController extends AuthenticatedController
 
         $folder_types = FileManager::getFolderTypes($parent_folder->range_type);
 
-        $this->current_folder_type = Request::get('folder_type', 'StandardFolder');
         $this->name = Request::get('name');
         $this->description = Request::get('description');
-        if (!is_subclass_of($this->current_folder_type, 'FolderType') || !class_exists($this->current_folder_type)) {
-            throw new InvalidArgumentException(_('Unbekannter Ordnertyp!'));
-        }
-
-        $new_folder = new $this->current_folder_type;
-        $this->folder_template = $new_folder->getEditTemplate();
-
         $this->folder_types = [];
 
         foreach ($folder_types as $folder_type) {
@@ -1000,6 +992,8 @@ class FileController extends AuthenticatedController
 
         if (Request::submitted('create')) {
             CSRFProtection::verifyUnsafeRequest();
+            $folder_type = Request::get('folder_type', 'StandardFolder');
+            $new_folder = new $folder_type();
             $ok = $new_folder->setDataFromEditTemplate(Request::getInstance());
             if ($ok instanceof FolderType) {
                 $new_folder->user_id = User::findCurrent()->id;
@@ -1031,15 +1025,9 @@ class FileController extends AuthenticatedController
         $parent_folder = $folder->getParent();
         $folder_types = FileManager::getFolderTypes($parent_folder->range_type);
 
-        $this->current_folder_type = Request::get('folder_type', get_class($folder));
         $this->name = Request::get('name', $folder->name);
         $this->description = Request::get('description', $folder->description);
-        if (!is_subclass_of($this->current_folder_type, 'FolderType') || !class_exists($this->current_folder_type)) {
-            throw new InvalidArgumentException(_('Unbekannter Ordnertyp!'));
-        }
-        if ($this->current_folder_type != get_class($folder)) {
-            $folder = new $this->current_folder_type($folder);
-        }
+
         $this->folder = $folder;
         $this->folder_template = $folder->getEditTemplate();
 
@@ -1058,6 +1046,13 @@ class FileController extends AuthenticatedController
 
         if (Request::submitted('edit')) {
             CSRFProtection::verifyUnsafeRequest();
+            $folder_type = Request::get('folder_type', get_class($folder));
+            if (!is_subclass_of($folder_type, 'FolderType') || !class_exists($folder_type)) {
+                throw new InvalidArgumentException(_('Unbekannter Ordnertyp!'));
+            }
+            if ($folder_type != get_class($folder)) {
+                $folder = new $folder_type($folder);
+            }
             $ok = $folder->setDataFromEditTemplate(Request::getInstance());
             if ($ok instanceof FolderType) {
                 if ($folder->store()) {

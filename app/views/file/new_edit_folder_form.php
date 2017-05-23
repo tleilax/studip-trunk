@@ -22,7 +22,7 @@
         <input type="radio" name="folder_type"
                value="<?= htmlReady($folder_type['class']) ?>"
                id="folder-type-<?= htmlReady($folder_type['class']) ?>"
-            <?= ($content_terms_of_use_entry->id == $selected_terms_of_use_id) ? 'checked="checked"' : '' ?> >
+            <?= ($folder_type['class'] === get_class($folder)) ? 'checked="checked"' : '' ?> >
         <label for="folder-type-<?= htmlReady($folder_type['class']) ?>">
             <div class="icon">
                 <? if ($folder_type['icon']) : ?>
