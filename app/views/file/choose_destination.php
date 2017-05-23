@@ -20,7 +20,7 @@ $options['direct_parent'] = true;
 <div class="files_source_selector" <?= $hidden ? ' style="display: none;"' : "" ?>>
     <?= _("Ziel auswählen") ?>
     <div class="file_select_possibilities">
-        <a href="<?= $controller->link_for("/choose_folder/" . $parent_folder , $options) ?>" data-dialog>
+        <a href="<?= $controller->link_for("/choose_folder/" . $parent_folder->id , $options) ?>" data-dialog>
             <?= Icon::create("folder-parent", "clickable")->asImg(50) ?>
             <?= _("Aktueller Ordner") ?>
         </a>
@@ -48,4 +48,11 @@ $options['direct_parent'] = true;
             <? endif ?>
         <? endforeach ?>
     </div>
+
+
+    <? if (!Request::isDialog()) : ?>
+        <div>
+            <?= \Studip\LinkButton::create(_("Abbrechen"), $controller->url_for(($parent_folder->range_type === "course" ? "course/" : ($folder->range_type === "institute" ? "institute/" : "")).'files/index/' . $parent_folder->id)) ?>
+        </div>
+    <? endif ?>
 </div>
