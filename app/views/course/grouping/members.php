@@ -14,7 +14,7 @@
                     </h1>
                     <span class="actions">
                         <?php $actionMenu = ActionMenu::get() ?>
-                        <?php $actionMenu->addLink(URLHelper::getLink('dispatch.php/messages/write',
+                        <?php $actionMenu->addLink($controller->url_for('messages/write',
                             ['filter' => 'all',
                                 'course_id' => $child->id,
                                 'default_subject' => '[' . $child->getFullname() . ']']),
