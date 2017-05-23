@@ -277,8 +277,8 @@ class FileController extends AuthenticatedController
     public function update_action($file_ref_id)
     {
         $file_ref = FileRef::find($file_ref_id);
-        $folder = FileManager::getTypedFolder($file_ref->folder_id);
-        if (!$folder || !$folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)) {
+        $this->folder = FileManager::getTypedFolder($file_ref->folder_id);
+        if (!$this->folder || !$this->folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
         
@@ -325,7 +325,7 @@ class FileController extends AuthenticatedController
                     )
                 );
             }
-            $this->redirectToFolder($folder);
+            $this->redirectToFolder($this->folder);
         }
     }
     
@@ -536,14 +536,11 @@ class FileController extends AuthenticatedController
 
     public function download_folder_action($folder_id)
     {
-        
         $user = User::findCurrent();
-        
         $folder = Folder::find($folder_id);
         
         if ($folder) {
             $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
-            
             $folder = $folder->getTypedFolder();
             
             $result = FileArchiveManager::createArchive(
@@ -567,17 +564,11 @@ class FileController extends AuthenticatedController
             throw new Exception('Folder not found in database!');
         }
     }
-    
-    
-    
-    
-    
-    
+
     public function choose_folder_from_course_action()
     {
         if (Request::get("course_id")) {
             $folder = Folder::findTopFolder(Request::get("course_id"));
-
             header("Location: ". URLHelper::getURL("dispatch.php/file/choose_folder/".$folder->getId(), array(
                     'to_plugin' => Request::get("to_plugin"),
                     'fileref_id' => Request::get("fileref_id"),
@@ -649,37 +640,12 @@ class FileController extends AuthenticatedController
         $this->instsearch = SQLSearch::get($inst_sql, _("Einrichtung suchen"), 'Institut_id');
 
         $this->plugin = Request::get("to_plugin");
-        /*if (!$GLOBALS['perm']->have_perm("admin")) {
-            $statement = DBManager::get()->prepare("
-                SELECT seminare.*
-                FROM seminare
-                    INNER JOIN seminar_user ON (seminar_user.Seminar_id = seminare.Seminar_id)
-                WHERE seminar_user.user_id = :user_id
-                ORDER BY seminare.duration_time = -1, seminare.start_time DESC, seminare.name ASC
-            ");
-            $statement->execute(array('user_id' => $GLOBALS['user']->id));
-            $this->courses = array();
-            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $coursedata) {
-                $this->courses[] = Course::buildExisting($coursedata);
-            }
-        }*/
-
     }
 
     public function choose_folder_action($folder_id = null)
     {
-        /*
-        if (Request::get("to_plugin")) {
-            $to_plugin = PluginManager::getInstance()->getPlugin(Request::get("to_plugin"));
-            $this->to_folder_type = $to_plugin->getFolder(Request::get("to_folder_id"));
-        } else {
-            $folder = new Folder(Request::option("to_folder_id"));
-            $this->to_folder_type = new StandardFolder($folder);
-        }*/
-
         if (Request::isPost()) {
             //copy
-
             if (Request::get("plugin")) {
                 $plugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
                 //$file = $plugin->getPreparedFile(Request::get("file_id"));
@@ -907,7 +873,6 @@ class FileController extends AuthenticatedController
                     $payload['html'][] = $this->render_template_as_string("files/_fileref_tr");
                 }
 
-
                 $plugins = PluginManager::getInstance()->getPlugins("FileUploadHook");
                 $redirect = null;
                 foreach ($plugins as $plugin) {
@@ -1042,7 +1007,7 @@ class FileController extends AuthenticatedController
 
         $this->folder_types = [];
 
-        foreach($folder_types as $folder_type) {
+        foreach ($folder_types as $folder_type) {
             $folder_type_instance = new $folder_type(new Folder());
             $this->folder_types[] = [
                 'class' => $folder_type,
@@ -1167,13 +1132,10 @@ class FileController extends AuthenticatedController
 
         if (Request::submitted('download')) {
             //bulk downloading:
-
             $tmp_file = tempnam($GLOBALS['TMP_PATH'], 'doc');
-
             $user = User::findCurrent();
 
             //collect file area objects by looking at their IDs:
-
             $file_area_objects = [];
             foreach ($ids as $id) {
                 //check if the ID references a FileRef:
