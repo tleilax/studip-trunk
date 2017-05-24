@@ -6746,6 +6746,10 @@ form.default fieldset.select_terms_of_use > input[type=radio]:checked + label + 
     opacity: 1;
   }
 }
+table.documents td,
+table.documents th {
+  vertical-align: top;
+}
 /* classes for the evaluation modules in Stud.IP ---------------------------- */
 .eval_title {
   font-size: 1.2em;

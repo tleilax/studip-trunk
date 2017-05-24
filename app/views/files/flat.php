@@ -47,4 +47,20 @@ $widget = new SidebarWidget();
 $widget->setTitle(_('Filter'));
 $widget->addElement(new WidgetElement($content));
 $sidebar->addWidget($widget);
-?>
+
+$views = new ViewsWidget();
+$views->addLink(
+    _("Ordneransicht"),
+    $controller->url_for(($range_type ? $range_type."/" : "")."files/index"),
+    null,
+    array(),
+    "index"
+);
+$views->addLink(
+    _("Alle Dateien"),
+    $controller->url_for(($range_type ? $range_type."/" : "")."files/flat"),
+    null,
+    array(),
+    "flat"
+)->setActive(true);
+$sidebar->addWidget($views);

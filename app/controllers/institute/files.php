@@ -120,7 +120,7 @@ class Institute_FilesController extends AuthenticatedController
         //find all files in all subdirectories:
         list($this->files, $this->folders) = array_values(FileManager::getFolderFilesRecursive($this->topFolder, $GLOBALS['user']->id));
 
-
+        $this->range_type = "institute";
         $this->render_template('files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
     }
 }

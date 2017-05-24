@@ -36,7 +36,7 @@ class FilesController extends AuthenticatedController
     /**
      * Helper method for filling the sidebar with actions.
      */
-    private function buildSidebar(FolderType $folder)
+    private function buildSidebar(FolderType $folder, $view = true)
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/files-sidebar.png');
@@ -91,6 +91,26 @@ class FilesController extends AuthenticatedController
         }
 
         $sidebar->addWidget($actions);
+
+        if ($view) {
+            $views = new ViewsWidget();
+            $views->addLink(
+                _("Ordneransicht"),
+                $this->url_for("files/index"),
+                null,
+                array(),
+                "index"
+            )->setActive(true);
+            $views->addLink(
+                _("Alle Dateien"),
+                $this->url_for("files/flat"),
+                null,
+                array(),
+                "flat"
+            );
+
+            $sidebar->addWidget($views);
+        }
     }
 
 
@@ -100,7 +120,11 @@ class FilesController extends AuthenticatedController
      */
     public function index_action($topFolderId = '')
     {
-        Navigation::activateItem('/profile/files/tree');
+        if (Navigation::hasItem("/profile/files/tree")) {
+            Navigation::activateItem('/profile/files/tree');
+        } else {
+            Navigation::activateItem('/profile/files');
+        }
 
         $this->marked_element_ids = [];
 
@@ -161,12 +185,6 @@ class FilesController extends AuthenticatedController
     }
 
 
-
-
-
-
-
-
     /**
      * Action to configure the different FileSystem-plugins
      */
@@ -195,7 +213,7 @@ class FilesController extends AuthenticatedController
         }
         Navigation::activateItem('/profile/files/'.get_class($this->plugin));
         $this->topFolder = $this->plugin->getFolder($folder_id);
-        $this->buildSidebar($this->topFolder);
+        $this->buildSidebar($this->topFolder, false);
         $this->controllerpath = "files/system/".$plugin_id;
         URLHelper::bindLinkParam("to_plugin", get_class($this->plugin));
         $this->render_template("files/index", $GLOBALS['template_factory']->open("layouts/base"));
