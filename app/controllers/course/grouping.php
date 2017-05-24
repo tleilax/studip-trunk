@@ -15,7 +15,6 @@
 
 require_once 'lib/export/export_studipdata_func.inc.php'; // Funktionne für den Export
 require_once 'lib/export/export_linking_func.inc.php';
-require_once 'members.php';
 
 /**
  * @addtogroup notifications
@@ -182,18 +181,43 @@ class Course_GroupingController extends AuthenticatedController
             $widget = new ExportWidget();
 
             // create csv-export link
-            $csvExport = export_link($this->course->id, "person",
-                sprintf('%s %s', htmlReady(get_title_for_status('autor', 2)),
-                    htmlReady($this->course->getFullname())), 'csv', 'csv-teiln', '',
-                _('Teilnehmendenliste als csv-Dokument exportieren'), 'passthrough');
-            $widget->addLink(_('Teilnehmendenliste als CSV-Dokument exportieren'),
-                Course_MembersController::parseHref($csvExport), Icon::create('file-office', 'clickable'));
+            $csvExport = export_link(
+                $this->course->id,
+                'person',
+                htmlReady(sprintf(
+                    '%s %s',
+                    get_title_for_status('autor', 2),
+                    $this->course->getFullname()
+                )),
+                'csv',
+                'csv-teiln',
+                '',
+                _('Teilnehmendenliste als CSV-Dokument exportieren'),
+                'passthrough'
+            );
+            $widget->addLinkFromhtmL(
+                $csvExport,
+                Icon::create('file-office', 'clickable')
+            );
+
             // create csv-export link
-            $rtfExport = export_link($this->course->id, "person", sprintf('%s %s',
-                htmlReady(get_title_for_status('autor', 2)), htmlReady($this->course->getFullname())),
-                'rtf', 'rtf-teiln', '', _('Teilnehmendenliste als rtf-Dokument exportieren'), 'passthrough');
-            $widget->addLink(_('Teilnehmendenliste als rtf-Dokument exportieren'),
-                Course_MembersController::parseHref($rtfExport), Icon::create('file-text', 'clickable'));
+            $rtfExport = export_link(
+                $this->course->id,
+                'person',
+                htmlReady(sprintf(
+                    '%s %s',
+                    get_title_for_status('autor', 2), $this->course->getFullname()
+                )),
+                'rtf',
+                'rtf-teiln',
+                '',
+                _('Teilnehmendenliste als rtf-Dokument exportieren'),
+                'passthrough'
+            );
+            $widget->addLinkFromHTML(
+                $rtfExport,
+                Icon::create('file-text', 'clickable')
+            );
 
             $sidebar->addWidget($widget);
         }

@@ -1515,22 +1515,67 @@ class Course_MembersController extends AuthenticatedController
                 $widget = new ExportWidget();
 
                 // create csv-export link
-                $csvExport = export_link($this->course_id, "person", sprintf('%s %s', htmlReady($this->status_groups['autor']), htmlReady($this->course_title)), 'csv', 'csv-teiln', '', _('Teilnehmendenliste als csv-Dokument exportieren'), 'passthrough');
-                $widget->addLink(_('Teilnehmendenliste als CSV-Dokument exportieren'),
-                                 self::parseHref($csvExport), Icon::create('file-office', 'clickable'));
+                $csvExport = export_link(
+                    $this->course_id,
+                    'person',
+                    htmlReady(sprintf('%s %s', $this->status_groups['autor'], $this->course_title)),
+                    'csv',
+                    'csv-teiln',
+                    '',
+                    _('Teilnehmendenliste als csv-Dokument exportieren'),
+                    'passthrough'
+                );
+                $widget->addLinkFromHTML(
+                    $csvExport,
+                    Icon::create('file-office', 'clickable')
+                );
+
                 // create csv-export link
-                $rtfExport = export_link($this->course_id, "person", sprintf('%s %s', htmlReady($this->status_groups['autor']), htmlReady($this->course_title)), 'rtf', 'rtf-teiln', '', _('Teilnehmendenliste als rtf-Dokument exportieren'), 'passthrough');
-                $widget->addLink(_('Teilnehmendenliste als rtf-Dokument exportieren'),
-                                 self::parseHref($rtfExport), Icon::create('file-text', 'clickable'));
+                $rtfExport = export_link(
+                    $this->course_id,
+                    'person',
+                    htmlReady(sprintf('%s %s', $this->status_groups['autor'], $this->course_title)),
+                    'rtf',
+                    'rtf-teiln',
+                    '',
+                    _('Teilnehmendenliste als rtf-Dokument exportieren'),
+                    'passthrough'
+                );
+                $widget->addLinkFromHTML(
+                    $rtfExport,
+                    Icon::create('file-text', 'clickable')
+                );
 
                 if (count($this->awaiting) > 0) {
-                    $awaiting_rtf = export_link($this->course_id, "person", sprintf(_('Warteliste %s'), htmlReady($this->course_title)), "rtf", "rtf-warteliste", $this->waiting_type, _("Warteliste als Textdokument (.rtf) exportieren"), 'passthrough');
-                    $widget->addLink(_('Warteliste als rtf-Dokument exportieren'),
-                                     self::parseHref($awaiting_rtf), Icon::create('file-office+export', 'clickable'));
+                    $awaiting_rtf = export_link(
+                        $this->course_id,
+                        'person',
+                        htmlReady(sprintf(_('Warteliste %s'), $this->course_title)),
+                        'rtf',
+                        'rtf-warteliste',
+                        $this->waiting_type,
+                        _('Warteliste als rtf-Dokument exportieren'),
+                        'passthrough'
+                    );
+                    $widget->addLinkFromHTML(
+                        $awaiting_rtf,
+                        Icon::create('file-office+export', 'clickable')
+                    );
 
-                    $awaiting_csv = export_link($this->course_id, "person", sprintf(_('Warteliste %s'), htmlReady($this->course_title)), "csv", "csv-warteliste", $this->waiting_type, _("Warteliste als Tabellendokument (.csv) exportieren"), 'passthrough');
-                    $widget->addLink(_('Warteliste als csv-Dokument exportieren'),
-                                     self::parseHref($awaiting_csv), Icon::create('file-text+export', 'clickable'));
+                    $awaiting_csv = export_link(
+                        $this->course_id,
+                        'person',
+                        htmlReady(sprintf(_('Warteliste %s'), $this->course_title)),
+                        'csv',
+                        'csv-warteliste',
+                        $this->waiting_type,
+                        _('Warteliste als csv-Dokument exportieren'),
+                        'passthrough'
+                    );
+                    $widget->addLinkFromHTML(
+                        $awaiting_csv,
+                        Icon::create('file-text+export', 'clickable')
+                    );
                 }
 
                 $sidebar->addWidget($widget);
@@ -1557,12 +1602,6 @@ class Course_MembersController extends AuthenticatedController
                               array('title' => $text));
             $sidebar->addWidget($actions);
         }
-    }
-
-    public static function parseHref($string)
-    {
-        $temp = preg_match('/href="(.*?)"/', $string, $match); // Yes, you're absolutely right - this IS horrible!
-        return $match[1];
     }
 
     public function export_members_csv_action()
