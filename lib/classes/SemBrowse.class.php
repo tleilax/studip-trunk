@@ -836,6 +836,10 @@ class SemBrowse {
                     $row .= "<div style=\"margin-left:5px;font-size:smaller\">" . htmlReady($seminar_number) . "</div>";
                 }
                 $row .= "<div style=\"margin-left:5px;font-size:smaller\">" . $temp_turnus_string . "</div>";
+                if (count($seminar_obj->children) > 0 && count($visibleChildren) > 0) {
+                    $row .= "<div style=\"margin-left:5px;font-size:smaller\">" .
+                        sprintf(_('%u Unterveranstaltungen'), count($visibleChildren)) . "</div>";
+                }
             }
             $row .= '</td>';
             $row .= "<td align=\"right\">(";
