@@ -73,42 +73,44 @@
     <tfoot>
         <tr>
             <td colspan="100">
-            <?= Studip\Button::create(
-                _('Herunterladen'),
-                'download',
-                [
-                    'disabled' => 'disabled'
-                ]) ?>
-            <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-                <?= Studip\Button::create(
-                    _('Verschieben'),
-                    'move',
-                    [
-                        'data-dialog' => '',
-                        'disabled' => 'disabled'
-                    ]) ?>
+                <span class="multibuttons">
+                    <?= Studip\Button::create(
+                        _('Herunterladen'),
+                        'download',
+                        [
+                            'disabled' => 'disabled'
+                        ]) ?>
+                    <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+                        <?= Studip\Button::create(
+                            _('Verschieben'),
+                            'move',
+                            [
+                                'data-dialog' => '',
+                                'disabled' => 'disabled'
+                            ]) ?>
 
-            <? endif; ?>
+                    <? endif; ?>
 
-            <? if ($topFolder->isReadable($GLOBALS['user']->id)): ?>
-                <?= Studip\Button::create(
-                    _('Kopieren'),
-                    'copy',
-                    [
-                        'data-dialog' => '',
-                        'disabled' => 'disabled'
-                    ])?>
-            <? endif; ?>
+                    <? if ($topFolder->isReadable($GLOBALS['user']->id)): ?>
+                        <?= Studip\Button::create(
+                            _('Kopieren'),
+                            'copy',
+                            [
+                                'data-dialog' => '',
+                                'disabled' => 'disabled'
+                            ])?>
+                    <? endif; ?>
 
-            <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-	            <?= Studip\Button::create(
-                    _('Löschen'),
-                    'delete',
-                    [
-                        'disabled' => 'disabled',
-                        'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
-                    ]) ?>
-            <? endif; ?>
+                    <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+                        <?= Studip\Button::create(
+                            _('Löschen'),
+                            'delete',
+                            [
+                                'disabled' => 'disabled',
+                                'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
+                            ]) ?>
+                    <? endif; ?>
+                </span>
             <? if ($topFolder->isSubfolderAllowed($GLOBALS['user']->id)): ?>
                 <?= Studip\LinkButton::create(
                     _("Neuer Ordner"),

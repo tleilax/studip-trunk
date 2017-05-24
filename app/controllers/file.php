@@ -1118,15 +1118,21 @@ class FileController extends AuthenticatedController
             foreach ($ids as $id) {
                 //check if the ID references a FileRef:
                 $filesystem_item = FileRef::find($id);
-                if(!$filesystem_item) {
+                if (!$filesystem_item) {
                     //check if the ID references a Folder:
                     $filesystem_item = Folder::find($id);
-                    if($filesystem_item) {
+                    if ($filesystem_item) {
                         $file_area_objects[] = $filesystem_item->getTypedFolder();
                     }
                 } else {
                     $file_area_objects[] = $filesystem_item;
                 }
+            }
+
+            if ((count($file_area_objects) === 1) && is_a($file_area_objects[0], "FileRef")) {
+                //we have only one file to deliver, so no need for zipping it:
+                $this->redirect($file_area_objects[0]->getDownloadURL());
+                return;
             }
 
             //create a ZIP archive:
