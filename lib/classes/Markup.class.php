@@ -268,6 +268,7 @@ class Markup
         //
         $config->set('HTML.Allowed', '
             a[class|href|target|rel]
+            audio[controls|src|height|width|style]
             big
             blockquote
             br
@@ -302,6 +303,7 @@ class Markup
             th[colspan|rowspan|style|scope]
             tr
             tt
+            video[controls|src|height|width|style]
         ');
 
         $config->set('Attr.AllowedFrameTargets', array('_blank'));
@@ -341,6 +343,20 @@ class Markup
         $img = $def->addBlankElement('img');
         $img->attr_transform_post[]
             = new MarkupPrivate\Purifier\AttrTransform_Image_Source();
+
+        $def->addElement('audio', 'Inline', 'Flow', 'Common', array(
+              'src*' => 'URI',
+              'width' => 'Length',
+              'height' => 'Length',
+              'controls' => 'Text',     // Bool triggers bug in HTMLPurifier
+        ));
+
+        $def->addElement('video', 'Inline', 'Flow', 'Common', array(
+              'src*' => 'URI',
+              'width' => 'Length',
+              'height' => 'Length',
+              'controls' => 'Text',     // Bool triggers bug in HTMLPurifier
+        ));
 
         return new \HTMLPurifier($config);
     }

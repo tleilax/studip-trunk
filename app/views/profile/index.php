@@ -1,3 +1,6 @@
+<div class="responsive-visible">
+    <?= Avatar::getAvatar($current_user->user_id)->getImageTag(Avatar::NORMAL) ?>
+</div>
 <section class="contentbox">
     <header>
         <h1>
@@ -6,8 +9,6 @@
     </header>
     <section>
         <dl>
-            <dt><?= _('Profilbesuche:') ?></dt>
-            <dd><?= object_return_views($current_user->user_id) ?></dd>
             <? if ($public_email): ?>
                 <dt><?= _("E-Mail:") ?></dt>
                 <dd>
@@ -80,7 +81,7 @@
         <? if ($has_denoted_fields): ?>
             <p>
                 <small>
-                    * <?= _('Diese Felder sind nur für Sie und Admins sichtbar') ?>
+                    * <?= _('Diese Felder sind nur für Sie und Administratoren sichtbar') ?>
                 </small>
             </p>
         <? endif ?>

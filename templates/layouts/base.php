@@ -40,10 +40,14 @@ if ($navigation) {
     </title>
     <script>
         CKEDITOR_BASEPATH = "<?= Assets::url('javascripts/ckeditor/') ?>";
+        String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
     </script>
-    <?= PageLayout::getHeadElements() ?>
+    <? if ($_SESSION['_language'] !== $GLOBALS['DEFAULT_LANGUAGE']): ?>
+        <link rel="localization" hreflang="<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>"
+              href="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>" type="application/vnd.oftn.l10n+json">
+    <? endif ?>
 
-    <script src="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>
+    <?= PageLayout::getHeadElements() ?>
 
     <script>
         STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
@@ -53,7 +57,6 @@ if ($navigation) {
         STUDIP.wysiwyg_enabled = <?= Config::get()->WYSIWYG ? 'true' : 'false' ?>;
         STUDIP.editor_enabled = <?= Studip\Markup::editorEnabled() ? 'true' : 'false' ?> && CKEDITOR.env.isCompatible;
         STUDIP.URLHelper.parameters = <?= json_encode(studip_utf8encode(URLHelper::getLinkParams())) ?>;
-        String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
     </script>
 </head>
 
@@ -70,11 +73,37 @@ if ($navigation) {
             <?= $this->render_partial('change_view', array('changed_status' => $_SESSION['seminar_change_view_'.$GLOBALS['SessionSeminar']])) ?>
         <? endif ?>
 
-        <? if (PageLayout::isHeaderEnabled() && isset($navigation)) : ?>
-            <?= $this->render_partial('tabs', compact("navigation")) ?>
-        <? endif ?>
+        <? if (PageLayout::isHeaderEnabled() /*&& isset($navigation)*/) : ?>
+            <?= $this->render_partial('tabs', compact('navigation')) ?>
+        <? endif; ?>
 
-        <?= Helpbar::get()->render() ?>
+        <?
+        if (is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') {
+            // only mark course if user is logged in and free access enabled
+            if (Config::get()->ENABLE_FREE_ACCESS
+                && Navigation::hasItem('/course')
+                && Navigation::getItem('/course')->isActive())
+            {
+                // indicate to the template that this course is publicly visible
+                // need to handle institutes separately (always visible)
+                if ($GLOBALS['SessSemName']['class'] == 'inst') {
+                    $header_template->public_hint = _('öffentliche Einrichtung');
+                } else if (Course::findCurrent()->lesezugriff == 0) {
+                    $header_template->public_hint = _('öffentliche Veranstaltung');
+                }
+            }
+        }
+        ?>
+        <div id="page_title_container">
+            <div id="current_page_title">
+                <?= htmlReady(PageLayout::getTitle()) ?>
+                <?= $public_hint ? '(' . htmlReady($public_hint) . ')' : '' ?>
+            </div>
+            <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor')) : ?>
+            	<?= Helpbar::get()->render() ?>
+            <? endif; ?>
+         </div>
+
         <div id="layout_container">
             <?= Sidebar::get()->render() ?>
             <div id="layout_content">

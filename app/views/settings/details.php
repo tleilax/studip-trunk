@@ -48,34 +48,34 @@
         </label>
         <label>
             <?= _('Hobbys:') ?>
-            <textarea name="hobby" id="hobbies"
+            <textarea name="hobby" id="hobbies" style="width:100%;height:100px;"
                       class="add_toolbar wysiwyg"
-                    <? if (!$controller->shallChange('user_info.hobby')) echo 'disabled'; ?>
+                      <? if (!$controller->shallChange('user_info.hobby')) echo 'disabled'; ?>
             ><?= wysiwygReady($user->hobby) ?></textarea>
         </label>
         <a name="lebenslauf"></a>
         <label>
             <?= _('Lebenslauf:') ?>
-            <textarea id="lebenslauf" name="lebenslauf"
+            <textarea id="lebenslauf" name="lebenslauf" style="width:100%;height:100px;"
                       class="add_toolbar wysiwyg"
-                    <? if (!$controller->shallChange('user_info.lebenslauf')) echo 'disabled'; ?>
+                      <? if (!$controller->shallChange('user_info.lebenslauf')) echo 'disabled'; ?>
             ><?= wysiwygReady($user->lebenslauf) ?></textarea>
         </label>
         <? if ($is_dozent): ?>
             <a name="schwerpunkte"></a>
             <label>
                 <?= _('Schwerpunkte:') ?>
-                <textarea id="schwerp" name="schwerp"
-                          class="add_toolbar wysiwyg"
-                        <? if (!$controller->shallChange('user_info.schwerp')) echo 'disabled'; ?>
+                <textarea id="schwerp" name="schwerp" style="width:100%;height:100px;"
+                      class="add_toolbar wysiwyg"
+                      <? if (!$controller->shallChange('user_info.schwerp')) echo 'disabled'; ?>
                 ><?= wysiwygReady($user->schwerp) ?></textarea>
             </label>
             <a name="publikationen"></a>
             <label>
                 <?= _('Publikationen:') ?>
                 <textarea id="publi" name="publi" style="width:100%;height:100px;"
-                          class="add_toolbar wysiwyg"
-                        <? if (!$controller->shallChange('user_info.publi')) echo 'disabled'; ?>
+                      class="add_toolbar wysiwyg"
+                      <? if (!$controller->shallChange('user_info.publi')) echo 'disabled'; ?>
                 ><?= wysiwygReady($user->publi) ?></textarea>
             </label>
         <? endif; ?>
