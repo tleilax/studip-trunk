@@ -428,15 +428,27 @@ class Markup
         return $mark ? self::markAsHtml($text) : $text;
     }
 
-    public static function removeHTML($html) {
-        $config = self::createDefaultPurifier();
-        $config->set('Core.Encoding', 'WINDOWS-1252');
-        $config->set('HTML.Allowed', 'a[href],img[alt|src],br');
-        $config->set('AutoFormat.Custom', array('Unlinkify'));
+    /**
+     * Call HTMLPurifier to remove all HTML tags from the string (if the source
+     * is detected to contain HTML, returns the argument unchanged otherwise).
+     *
+     * @param   string  $html  HTML code to filter
+     * @return  string         The converted string.
+     */
+    public static function removeHtml($html)
+    {
+        if (self::isHtml($html)) {
+            $config = self::createDefaultPurifier();
+            $config->set('Core.Encoding', 'WINDOWS-1252');
+            $config->set('HTML.Allowed', 'a[href],img[alt|src],br');
+            $config->set('AutoFormat.Custom', array('Unlinkify'));
 
-        $purifier = new \HTMLPurifier($config);
+            $purifier = new \HTMLPurifier($config);
 
-        return \decodeHTML(str_replace('<br />', PHP_EOL, $purifier->purify($html)));
+            return \decodeHTML(str_replace('<br />', PHP_EOL, $purifier->purify($html)));
+        }
+
+        return $html;
     }
 
     private static function createDefaultPurifier() {

@@ -203,7 +203,7 @@ function preg_call_format_signature($username, $timestamp) {
 function kill_format ($text) {
     if (Markup::isHtml($text)) {
         $is_fallback = Markup::isHtmlFallback($text);
-        $text = Markup::removeHTML($text);
+        $text = Markup::removeHtml($text);
 
         if (!$is_fallback) {
             // pure HTML - no Stud.IP markup to remove
