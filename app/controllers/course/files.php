@@ -41,6 +41,15 @@ class Course_FilesController extends AuthenticatedController
 
         $actions = new ActionsWidget();
 
+        if ($this->topFolder->isEditable($GLOBALS['user']->id) && $this->topFolder->parent_id) {
+            $actions->addLink(
+                _("Ordner bearbeiten"),
+                $this->url_for("file/edit_folder/".$this->topFolder->getId()),
+                Icon::create("edit", "clickable"),
+                array('data-dialog' => 1)
+            );
+        }
+
         if ($this->topFolder && $this->topFolder->isSubfolderAllowed($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Neuer Ordner'),

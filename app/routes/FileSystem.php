@@ -116,8 +116,7 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, "Cannot find folder type of the file reference's folder!");
             return;
         }
-        
-        
+
         $user_id = \User::findCurrent()->id;
         
         //check if the current user has the permissions to read this file reference:

@@ -41,6 +41,15 @@ class Institute_FilesController extends AuthenticatedController
 
         $actions = new ActionsWidget();
 
+        if ($this->topFolder->isEditable($GLOBALS['user']->id) && $this->topFolder->parent_id) {
+            $actions->addLink(
+                _("Ordner bearbeiten"),
+                $this->url_for("file/edit_folder/".$this->topFolder->getId()),
+                Icon::create("edit", "clickable"),
+                array('data-dialog' => 1)
+            );
+        }
+
         if ($this->topFolder && $this->topFolder->isSubfolderAllowed($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Neuer Ordner'),
@@ -66,15 +75,11 @@ class Institute_FilesController extends AuthenticatedController
         $sidebar->addWidget($actions);
     }
 
-
-
     /**
     Displays the files in tree view
      **/
     public function index_action($topFolderId = '')
     {
-
-
         Navigation::activateItem('/course/files_new/tree');
 
         $this->marked_element_ids = [];
@@ -101,7 +106,6 @@ class Institute_FilesController extends AuthenticatedController
      **/
     public function flat_action()
     {
-
         Navigation::activateItem('/course/files_new/flat');
 
         $this->marked_element_ids = [];

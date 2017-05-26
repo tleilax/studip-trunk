@@ -43,6 +43,32 @@ class FilesController extends AuthenticatedController
 
         $actions = new ActionsWidget();
 
+        if ($folder->isEditable($GLOBALS['user']->id) && $folder->parent_id) {
+            $actions->addLink(
+                _("Ordner bearbeiten"),
+                $this->url_for("file/edit_folder/".$folder->getId()),
+                Icon::create("edit", "clickable"),
+                array('data-dialog' => 1)
+            );
+        }
+
+        if ($folder->isSubfolderAllowed($GLOBALS['user']->id)) {
+            $actions->addLink(
+                _('Neuer Ordner'),
+                URLHelper::getUrl('dispatch.php/file/new_folder/' . $folder->getId()),
+                Icon::create('folder-empty+add', 'clickable'), ['data-dialog' => 1]
+            );
+        }
+
+        if ($folder->isWritable($GLOBALS['user']->id)) {
+            $actions->addLink(
+                _('Datei hinzufügen'),
+                "#",
+                Icon::create('file+add', 'clickable'),
+                array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
+            );
+        }
+
         $config_urls = array();
         foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) {
             $url = $plugin->filesystemConfigurationURL();
@@ -71,23 +97,6 @@ class FilesController extends AuthenticatedController
                     array('data-dialog' => 1)
                 );
             }
-        }
-
-        if ($folder->isSubfolderAllowed($GLOBALS['user']->id)) {
-            $actions->addLink(
-                _('Neuer Ordner'),
-                URLHelper::getUrl('dispatch.php/file/new_folder/' . $folder->getId()),
-                Icon::create('folder-empty+add', 'clickable'), ['data-dialog' => 1]
-            );
-        }
-
-        if ($folder->isWritable($GLOBALS['user']->id)) {
-            $actions->addLink(
-                _('Datei hinzufügen'),
-                "#",
-                Icon::create('file+add', 'clickable'),
-                array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
-            );
         }
 
         $sidebar->addWidget($actions);

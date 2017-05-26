@@ -307,9 +307,9 @@ class StandardFolder implements FolderType
     {
         $subfolders = $this->folderdata->subfolders;
 
-        if($subfolders) {
-            foreach($subfolders as $subfolder) {
-                if($subfolder->id == $subfolder_id) {
+        if ($subfolders) {
+            foreach ($subfolders as $subfolder) {
+                if ($subfolder->id == $subfolder_id) {
                     //we found the subfolder that shall be deleted
                     return $subfolder->delete();
                 }
