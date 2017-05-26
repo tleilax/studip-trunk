@@ -39,7 +39,7 @@
                         <h3><?=_('Hinweis zur Nutzung und Weitergabe:')?></h3>
                         <article><?= htmlReady($file_ref->terms_of_use->student_description) ?></article>
 
-                        <h3><?= _('Downloadbedingungen') ?></h3>
+                        <h3><?= _('Bedingung zum Herunterladen') ?></h3>
 
                         <? if($file_ref->terms_of_use->download_condition == 0): ?>
                             <p><?= _('Keine Beschränkung') ?></p>

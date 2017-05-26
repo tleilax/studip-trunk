@@ -1,8 +1,8 @@
-<div><?=$type?>:</div>
+<div><?= htmlReady($type) ?>:</div>
 <br/>
 <label>
-    <div>Ein unsichtbarer Ordner, welcher nur vom Dozenten und Tutoren gesehen werden kann.</div>
-    <div>Der Ordner lässt sich auch für Studenten sichtbar schalten.</div>
+    <div><?= _("Ein unsichtbarer Ordner, welcher nur vom Dozenten und Tutoren gesehen werden kann.") ?></div>
+    <div><?= _("Der Ordner lässt sich auch für Studenten sichtbar schalten.") ?></div>
 </label>
 <label>
     <input disabled type="checkbox" value="1" <?= $folder->isReadable() ? "checked" : "" ?>>

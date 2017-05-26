@@ -290,23 +290,41 @@ class FilesController extends AuthenticatedController
             }
         }
 
-        $actiontext = ($copymode == 'copy') ? _('kopiert') : _('verschoben');
-
         if (empty($errors) || $count_files > 0 || $count_folders > 0) {
 
             if (count($filerefs) == 1) {
                 if ($source_folder) {
-                    PageLayout::postSuccess(sprintf(_('Der Ordner wurde %s!'), $actiontext));
+                    if ($copymode == 'copy') {
+                        PageLayout::postSuccess(_('Der Ordner wurde kopiert!'));
+                    } else {
+                        PageLayout::postSuccess(_('Der Ordner wurde verschoben!'));
+                    }
                 } else {
-                    PageLayout::postSuccess(sprintf(_('Die Datei wurde %s!'), $actiontext));
+                    if ($copymode == 'copy') {
+                        PageLayout::postSuccess(_('Die Datei wurde kopiert!'));
+                    } else {
+                        PageLayout::postSuccess(_('Die Datei wurde verschoben!'));
+                    }
                 }
             } else {
                 if ($count_files > 0 && $count_folders > 0) {
-                    PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner und %s Dateien %s!'), $count_folders, $count_files, $actiontext));
+                    if ($copymode == 'copy') {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner und %s Dateien kopiert.'), $count_folders, $count_files));
+                    } else {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner und %s Dateien verschoben.'), $count_folders, $count_files));
+                    }
                 } elseif ($count_files > 0) {
-                    PageLayout::postSuccess(sprintf(_('Es wurden  %s Dateien %s!'), $count_files, $actiontext));
+                    if ($copymode == 'copy') {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Dateien kopiert.'), $count_files));
+                    } else {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Dateien verschoben.'), $count_files));
+                    }
                 } else {
-                    PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner %s!'), $count_folders, $actiontext));
+                    if ($copymode == 'copy') {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner kopiert.'), $count_folders));
+                    } else {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner verschoben.'), $count_folders));
+                    }
                 }
             }
 

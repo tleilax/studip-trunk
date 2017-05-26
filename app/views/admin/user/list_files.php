@@ -33,7 +33,7 @@
 
                 <? if($file->terms_of_use->download_condition > 0): ?>
                 <article>
-                    <?= MessageBox::warning(_('Der Download dieser Datei ist aus aufgrund von Nutzungsbedingungen nur eingeschränkt möglich!')) ?>
+                    <?= MessageBox::warning(_('Das Herunterladen dieser Datei ist aus aufgrund von Nutzungsbedingungen nur eingeschränkt möglich!')) ?>
                 </article>
                 <? endif ?>
             </section>

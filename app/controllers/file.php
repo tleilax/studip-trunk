@@ -62,7 +62,7 @@ class FileController extends AuthenticatedController
             if (count($validatedFiles['error'])) {
                 //error during upload: display error message:
                $this->render_json(['message' => MessageBox::error(
-                   _('Beim Upload ist ein Fehler aufgetreten '),
+                   _('Beim Hochladen ist ein Fehler aufgetreten '),
                    array_map('htmlready', $validatedFiles['error'])
                )]);
 
@@ -817,7 +817,7 @@ class FileController extends AuthenticatedController
         }
         if (Request::get("plugin")) {
             $this->filesystemplugin = PluginManager::getInstance()->getPlugin(Request::get("plugin"));
-            PageLayout::setTitle(_("Datei hinzufügen von")." ".$this->filesystemplugin->getPluginName());
+            PageLayout::setTitle(sprintf(_("Datei hinzufügen von %s"), $this->filesystemplugin->getPluginName()));
             if (Request::get("search") && $this->filesystemplugin->hasSearch()) {
                 $this->top_folder = $this->filesystemplugin->search(Request::get("search"), Request::getArray("parameter"));
             } else {
@@ -925,7 +925,9 @@ class FileController extends AuthenticatedController
                         $file->mime_type = $meta['Content-Type'] ? strstr($meta['Content-Type'], ';', true) : get_mime_type($file->name);
                         $file->size = $meta['Content-Length'];
                     } else {
-                        PageLayout::postError(_("Die angegebene URL kann nicht abgerufen werden."), [_('Fehlercode') . ':' . $meta['response_code']]);
+                        PageLayout::postError(_("Die angegebene URL kann nicht abgerufen werden."), [
+                            sprintf(_('Fehlercode: %s'), $meta['response_code'])
+                        ]);
                     }
                 }
                 if ($file) {

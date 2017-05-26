@@ -6,7 +6,7 @@
 <br>
 <label>
     <input disabled type="checkbox" value="1" <?= $folder->isWritable() ? "checked" : "" ?>>
-    <b>w</b> - <?= _("Schreiben (Dateien können heraufgeladen werden)") ?>
+    <b>w</b> - <?= _("Schreiben (Dateien können hochgeladen werden)") ?>
 </label>
 <br>
 <label>

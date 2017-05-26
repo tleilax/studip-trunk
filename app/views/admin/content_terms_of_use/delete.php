@@ -12,7 +12,7 @@ action="<?= URLHelper::getLink(
 <? if ($dependent_files_count): ?>
     <p><?= 
         sprintf(
-            _('Bevor ein Eintrag gelöscht werden kann, müssen die Dateien, welche auf ihn verweisen, einem anderen Eintrag zugewiesen werden! Es müssen %s Dateien bearbeitet werden!'),
+            _('Bevor ein Eintrag gelöscht werden kann, müssen Dateien, die auf ihn verweisen, einem anderen Eintrag zugewiesen werden! Es müssen %s Dateien bearbeitet werden!'),
             $dependent_files_count
         ) ?></p>
     <label>

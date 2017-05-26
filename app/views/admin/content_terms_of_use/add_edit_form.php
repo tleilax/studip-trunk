@@ -19,7 +19,7 @@ action="<?= URLHelper::getLink(
         <?= I18N::input('entry_name', $entry_name)?>
     </label>
     <label>
-        <?= _('Downloadbedingung') ?>
+        <?= _('Bedingungen für das Herunterladen von Dateien') ?>
         <select name="entry_download_condition">
             <option value="0"
                 <?= ($entry_download_condition == '0') ? 'selected="selected"' : '' ?>>

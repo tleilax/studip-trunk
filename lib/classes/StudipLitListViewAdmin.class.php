@@ -553,7 +553,7 @@ class StudipLitListViewAdmin extends TreeView
                 $temporary_file_name, 
                 $this->tree->tree_data[$item_id]['name'] . '.txt'
             ),
-            ['title' => _('Export der Liste in EndNote kompatiblem Forma')]
+            ['title' => _('Export der Liste in EndNote-kompatiblem Format')]
         );
         $content .= '&nbsp;';
         

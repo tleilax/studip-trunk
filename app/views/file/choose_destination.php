@@ -18,7 +18,11 @@ if ($fileref_id) {
 $options['direct_parent'] = true;
 ?>
 <div class="files_source_selector" <?= $hidden ? ' style="display: none;"' : "" ?>>
-    <?= sprintf(_("Ziel zum %s auswählen"), $copymode === "move" ? _("Verschieben") : _("Kopieren")) ?>
+    <? if ($copymode === "move") : ?>
+        <?= _("Ziel zum Verschieben auswählen") ?>
+    <? else : ?>
+        <?= _("Ziel zum Kopieren auswählen") ?>
+    <? endif ?>
     <div class="file_select_possibilities">
         <a href="<?= $controller->link_for("/choose_folder/" . $parent_folder->id , $options) ?>" data-dialog>
             <?= Icon::create("folder-parent", "clickable")->asImg(50) ?>

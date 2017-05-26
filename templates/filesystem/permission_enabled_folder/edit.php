@@ -4,7 +4,7 @@
 </label>
 <label>
     <input name="perm_write" type="checkbox" value="1" <?= $folder->isWritable() ? "checked" : "" ?>>
-    <b>w</b> - <?= _("Schreiben (Dateien können heraufgeladen werden)") ?>
+    <b>w</b> - <?= _("Schreiben (Dateien können hochgeladen werden)") ?>
 </label>
 <label>
     <input name="perm_visible" type="checkbox" value="1" <?= $folder->isVisible() ? "checked" : "" ?>>
