@@ -2391,31 +2391,6 @@ li#notification_container:hover .list {
   position: relative;
   z-index: 3;
 }
-/* --- public course marker ------------------------------------------------ */
-#barBottomContainer.public_course {
-  background-color: #d60000;
-}
-#barBottomContainer.public_course #barBottommiddle,
-#barBottomContainer.public_course #barBottomright,
-#barBottomContainer.public_course #barBottomLeft {
-  background-color: #d60000;
-}
-#barBottomContainer.public_course #barBottommiddle .helpbar,
-#barBottomContainer.public_course #barBottomright .helpbar,
-#barBottomContainer.public_course #barBottomLeft .helpbar {
-  background-color: #d60000;
-}
-#barBottomContainer.public_course #barBottomright:before {
-  background-color: #d60000;
-  background-image: -moz-linear-gradient(left, rgba(214, 0, 0, 0), #d60000);
-  background-image: -webkit-gradient(linear, 0 0, 100% 0, from(rgba(214, 0, 0, 0)), to(#d60000));
-  background-image: -webkit-linear-gradient(left, rgba(214, 0, 0, 0), #d60000);
-  background-image: -o-linear-gradient(left, rgba(214, 0, 0, 0), #d60000);
-  background-image: linear-gradient(to right, rgba(214, 0, 0, 0), #d60000);
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00d60000', endColorstr='#ffd60000', GradientType=1);
-  background-color: rgba(214, 0, 0, 0);
-}
 /* --- main navigation ----------------------------------------------------- */
 body:not(.fixed) #barTopMenu {
   position: absolute;
@@ -9334,6 +9309,7 @@ select.i18n option {
   height: 30px;
   overflow: hidden;
   max-width: 28px;
+  z-index: 2;
 }
 .i18n_group:not(.single_lang) > select:-moz-focusring {
   color: transparent;
@@ -9352,7 +9328,8 @@ select.i18n option {
 .i18n_group:not(.single_lang).textarea-input > select:last-child {
   border-bottom: 1px solid #c5c7ca;
 }
-.i18n_group:not(.single_lang).textarea-input > textarea {
+.i18n_group:not(.single_lang).textarea-input > textarea,
+.i18n_group:not(.single_lang).textarea-input .cktoolbar .cke_inner {
   padding-left: 34px !important;
 }
 #responsive-container {

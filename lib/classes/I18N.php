@@ -82,6 +82,7 @@ class I18N
     {
         $languages = $GLOBALS['CONTENT_LANGUAGES'];
         $base_lang = Config::get()->DEFAULT_LANGUAGE;
+        $wysiwyg = in_array('wysiwyg', words($attributes['class']));
         $value instanceOf I18NString or $value = new I18NString($value);
 
         $result = "<div class=\"i18n_group textarea-input " . (!self::isEnabled() ? 'single_lang' : '') . "\">";
@@ -111,6 +112,10 @@ class I18N
                 unset($attr['required']);
             }
 
+            if ($wysiwyg && self::isEnabled()) {
+                $result .= '<div class="i18n" style="' . htmlReady($attr['style']) .
+                           '" data-lang_desc="' . htmlReady($attr['data-lang_desc']) . '">';
+            }
             $result .= '<textarea';
             foreach ($attr as $key => $val) {
                 if ($val === true) {
@@ -119,7 +124,10 @@ class I18N
                     $result .= sprintf(' %s="%s"', $key, htmlReady($val));
                 }
             }
-            $result .= '>' . htmlReady($text) . "</textarea>\n";
+            $result .= '>' . ($wysiwyg ? wysiwygReady($text) : htmlReady($text)) . "</textarea>\n";
+            if ($wysiwyg && self::isEnabled()) {
+                $result .= '</div>';
+            }
         }
         $result .= "</div>";
         return $result;
