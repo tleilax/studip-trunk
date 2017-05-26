@@ -63,7 +63,7 @@ if (Request::get("to_folder_id")) {
             <tr>
                 <td colspan="2">
                     <a href="<?= $controller->url_for('file/choose_file/' . $top_folder->parent_id, $options) ?>" title="<?= _('Ein Verzeichnis nach oben wechseln') ?>" data-dialog>
-                        <small><?= _('Ein Verzeichnis nach oben wechseln') ?></small>
+                        <?= _('Ein Verzeichnis nach oben wechseln') ?>
                     </a>
                 </td>
             </tr>

@@ -12,5 +12,8 @@
         ) ?>
     <div data-dialog-button>
         <?= Studip\Button::create(_('Speichern')) ?>
+        <? if (!Request::isDialog()) : ?>
+            <?= \Studip\LinkButton::create(_("Abbrechen"), $controller->url_for(($folder->range_type === "course" ? "course/" : ($folder->range_type === "institute" ? "institute/" : "")).'files/index/' . $folder->id)) ?>
+        <? endif ?>
     </div>
 </form>

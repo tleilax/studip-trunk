@@ -25,13 +25,13 @@ if (Request::get("range_type")) {
                 <th><?= _("Bild") ?></th>
                 <th><?= _("Name") ?></th>
                 <th><?= _("Semester") ?></th>
-                <th><?= _("Zum Dateibereich") ?></th>
+                <th class="actions"><?= _("Zum Dateibereich") ?></th>
             </tr>
         </thead>
         <tbody>
             <? foreach ($courses as $course) : ?>
                 <tr>
-                    <td>
+                    <td class="avatar">
                         <a href="<?= $controller->link_for("file/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
                             <?= CourseAvatar::getAvatar($course->getId())->getImageTag(Avatar::MEDIUM, array('style' => "width: 50px; height: 50px;")) ?>
                         </a>
@@ -44,7 +44,7 @@ if (Request::get("range_type")) {
                     <td>
                         <?= htmlReady($course->start_semester->name) ?>
                     </td>
-                    <td>
+                    <td class="actions">
                         <a href="<?= $controller->link_for("file/choose_file_from_course/".$folder_id, array_merge($options, array('course_id' => $course->getId()))) ?>" data-dialog>
                             <?= Icon::create("folder-full", "clickable")->asImg(30) ?>
                         </a>

@@ -839,6 +839,7 @@ class FileController extends AuthenticatedController
     public function edit_license_action()
     {
         $this->file_refs = FileRef::findMany(Request::getArray("file_refs"));
+        $this->folder = $this->file_refs[0]->folder;
         if (Request::isPost()) {
             foreach ($this->file_refs as $file_ref) {
                 $file_ref['content_terms_of_use_id'] = Request::option("content_terms_of_use_id");

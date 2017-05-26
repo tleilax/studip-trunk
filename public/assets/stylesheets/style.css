@@ -827,6 +827,10 @@ table.default > tfoot > tr > td {
   padding-left: 10px;
   padding-right: 10px;
 }
+table.default td.avatar,
+table.default th.avatar {
+  padding: 5px;
+}
 table.default .actions {
   float: right;
   text-align: right;
