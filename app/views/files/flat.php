@@ -1,4 +1,4 @@
-<form method="post" action="<?= $this->link_for::getLink('file/bulk/' . $topFolder->getId()) ?>">
+<form method="post" action="<?= $controller->link_for('file/bulk/' . $topFolder->getId()) ?>">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default documents sortable-table flat" data-sortlist="[[5, 1]]">
         <?= $this->render_partial('files/_files_thead.php') ?>
@@ -63,4 +63,4 @@ $views->addLink(
     [],
     'flat'
 )->setActive(true);
-$sidebar->addWidget($views);
+Sidebar::get()->addWidget($views);

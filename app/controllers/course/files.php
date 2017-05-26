@@ -113,8 +113,6 @@ class Course_FilesController extends AuthenticatedController
      **/
     public function flat_action()
     {
-        Navigation::activateItem('/course/files_new/flat');
-
         $this->marked_element_ids = [];
 
         $folder = Folder::findTopFolder($this->course->id);
