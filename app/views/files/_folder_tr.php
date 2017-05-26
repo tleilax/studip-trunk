@@ -1,44 +1,47 @@
-<? if (!$controllerpath) : ?>
-    <? $controllerpath = ($topFolder->range_type === "user" ? "" : $topFolder->range_type."/").'files/index' ?>
-<? endif ?>
-<? $is_readable = $folder->isReadable($GLOBALS['user']->id) ?>
-<? $owner = User::find($folder->user_id) ?: new User() ?>
+<?php
+if (!$controllerpath) {
+    $controllerpath = 'files/index';
+    if ($topFolder->range_type !== 'user') {
+        $controllerpath = $topFolder->range_type . '/' . $controllerpath;
+    }
+}
+$is_readable = $folder->isReadable($GLOBALS['user']->id);
+$owner = User::find($folder->user_id) ?: new User();
+ ?>
+
 <tr id="row_folder_<?= $folder->id ?>">
     <td>
-        <? if ($is_readable) : ?>
-        <input type="checkbox"
-                name="ids[]"
-                class="document-checkbox"
-                id="file_checkbox_<?=$folder->getId()?>"
-                value="<?= $folder->getId() ?>"
-                onchange="javascript:void(STUDIP.Files.toggleBulkButtons());"
-                <?= (in_array($folder->getId(), (array) $marked_element_ids)) ? 'checked' : '' ?>>
-        <label for="file_checkbox_<?=$folder->getId()?>"><span></span></label>
-        <? endif?>
+    <? if ($is_readable) : ?>
+        <input type="checkbox" name="ids[]" class="document-checkbox"
+               id="file_checkbox_<?= $folder->getId() ?>"
+               value="<?= $folder->getId() ?>"
+               onchange="STUDIP.Files.toggleBulkButtons();"
+               <? if (in_array($folder->getId(), (array)$marked_element_ids)) echo 'checked'; ?>>
+        <label for="file_checkbox_<?= $folder->getId() ?>"><span></span></label>
+    <? endif?>
     </td>
     <td class="document-icon" data-sort-value="0">
-        <? if ($is_readable) : ?>
-            <a href="<?= $controller->url_for('file/details/' . $folder->getId())  ?>" data-dialog>
-        <? endif ?>
+    <? if ($is_readable) : ?>
+        <a href="<?= $controller->link_for('file/details/' . $folder->getId())  ?>" data-dialog>
+            <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(26) ?>
+        </a>
+    <? else: ?>
         <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(26) ?>
-        <? if ($is_readable) : ?>
-            </a>
-        <? endif ?>
+    <? endif ?>
     </td>
     <td>
-        <? if ($is_readable) : ?>
-            <a href="<?= $controller->url_for($controllerpath . '/' . $folder->getId()) ?>">
-        <? endif ?>
+    <? if ($is_readable) : ?>
+        <a href="<?= $controller->link_for($controllerpath . '/' . $folder->getId()) ?>">
             <?= htmlReady($folder->name) ?>
-        <? if ($is_readable) : ?>
-            </a>
-        <? endif ?>
+        </a>
+    <? else: ?>
+        <?= htmlReady($folder->name) ?>
+    <? endif ?>
     </td>
     <? // -number + file count => directories should be sorted apart from files ?>
-    <td data-sort-value="<?= -1000000 ?>" class="responsive-hidden">
-    </td>
+    <td data-sort-value="-1000000" class="responsive-hidden"></td>
     <td data-sort-value="<?= htmlReady($owner->getFullName('no_title')) ?>" class="responsive-hidden">
-    <? if ($folder->user_id !== $GLOBALS['user']->id) : ?>
+    <? if ($owner->id !== $GLOBALS['user']->id) : ?>
         <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $owner->username) ?>">
             <?= htmlReady($owner->getFullName('no_title')) ?>
         </a>
@@ -50,37 +53,48 @@
         <?= reltime($folder->mkdate) ?>
     </td>
     <td class="actions">
-        <? $actionMenu = ActionMenu::get() ?>
-        <? $actionMenu->addLink($controller->url_for('file/details/' . $folder->getId()),
+    <?php
+        $actionMenu = ActionMenu::get();
+        $actionMenu->addLink(
+            $controller->url_for('file/details/' . $folder->getId()),
             _('Info'),
-            Icon::create('info-circle', 'clickable', array('size' => 20)),
-            ['data-dialog' => '1']) ?>
-        <? if ($folder->isEditable($GLOBALS['user']->id)): ?>
-            <? $actionMenu->addLink($controller->url_for('file/edit_folder/' . $folder->getId()),
-                    _('Ordner bearbeiten'),
-                    Icon::create('edit', 'clickable', array('size' => 20)),
-                    ['data-dialog' => '1']) ?>
-        <? endif; ?>
-        <? $actionMenu->addLink($controller->url_for('file/download_folder/' . $folder->getId()),
-                _('Ordner herunterladen'),
-                Icon::create('download', 'clickable', array('size' => 20))) ?>
-        <? if ($folder->isEditable($GLOBALS['user']->id)): ?>
-           <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $folder->getId(), array('copymode' => 'move', 'isfolder' => 1)),
-                    _('Ordner verschieben'),
-                    Icon::create('folder-empty+move_right', 'clickable', array('size' => 20)),
-                    ['data-dialog' => 'size=auto']) ?>
-            <? $actionMenu->addLink($controller->url_for('file/choose_destination/' . $folder->getId(), array('copymode' => 'copy', 'isfolder' => 1)),
-                    _('Ordner kopieren'),
-                    Icon::create('folder-empty+add', 'clickable', array('size' => 20)),
-                    ['data-dialog' => 'size=auto']) ?>
-            <? $actionMenu->addLink(
-                    $controller->url_for('file/delete_folder/' . $folder->getId()),
-                    _('Ordner löschen'),
-                    Icon::create('trash', 'clickable', array('size' => 20)),
-                    [
-                        'onclick' => "return STUDIP.Dialog.confirmAsPost('".sprintf(_('Soll der Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name))."', this.href);"
-                    ]) ?>
-        <? endif; ?>
+            Icon::create('info-circle', 'clickable', ['size' => 20]),
+            ['data-dialog' => '1']
+        );
+        if ($folder->isEditable($GLOBALS['user']->id)) {
+            $actionMenu->addLink(
+                $controller->url_for('file/edit_folder/' . $folder->getId()),
+                _('Ordner bearbeiten'),
+                Icon::create('edit', 'clickable', ['size' => 20]),
+                ['data-dialog' => '1']
+            );
+        }
+        $actionMenu->addLink(
+            $controller->url_for('file/download_folder/' . $folder->getId()),
+            _('Ordner herunterladen'),
+            Icon::create('download', 'clickable', ['size' => 20])
+        );
+        if ($folder->isEditable($GLOBALS['user']->id)) {
+           $actionMenu->addLink(
+               $controller->url_for('file/choose_destination/' . $folder->getId(), ['copymode' => 'move', 'isfolder' => 1]),
+                _('Ordner verschieben'),
+                Icon::create('folder-empty+move_right', 'clickable', ['size' => 20]),
+                ['data-dialog' => 'size=auto']
+            );
+            $actionMenu->addLink(
+                $controller->url_for('file/choose_destination/' . $folder->getId(), ['copymode' => 'copy', 'isfolder' => 1]),
+                _('Ordner kopieren'),
+                Icon::create('folder-empty+add', 'clickable', ['size' => 20]),
+                ['data-dialog' => 'size=auto']
+            );
+            $actionMenu->addLink(
+                $controller->url_for('file/delete_folder/' . $folder->getId()),
+                _('Ordner löschen'),
+                Icon::create('trash', 'clickable', ['size' => 20]),
+                ['onclick' => "return STUDIP.Dialog.confirmAsPost('" . sprintf(_('Soll der Ordner "%s" wirklich gelöscht werden?'), htmlReady($folder->name)) . "', this.href);"]
+            );
+        }
+    ?>
         <?= $actionMenu->render() ?>
     </td>
 </tr>

@@ -1,5 +1,6 @@
 <aside id="folder_aside">
-    <div class="FolderIcon"><?= $folder->getIcon('info') ?></div>
+    <div class="folder-icon"><?= $folder->getIcon('info') ?></div>
+
     <table class="default nohover">
         <caption><?= htmlReady($folder->name) ?></caption>
         <tbody>
@@ -14,8 +15,8 @@
             <tr>
                 <td><?= _('Besitzer/-in') ?></td>
                 <td>
-                <? if($folder->owner): ?>
-                <?= htmlReady($folder->owner->getFullName()) ?>
+                <? if ($folder->owner): ?>
+                    <?= htmlReady($folder->owner->getFullName()) ?>
                 <? endif ?>
                 </td>
             </tr>

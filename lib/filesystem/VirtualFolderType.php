@@ -1,33 +1,31 @@
 <?php
-
 class VirtualFolderType implements FolderType
 {
+    protected $folderdata;
+    protected $plugin_id;
 
-    protected $folderdata = array();
-    protected $files = array();
-    protected $subfolders = array();
-    protected $plugin_id = null;
+    protected $files      = [];
+    protected $subfolders = [];
 
-
-    public function __construct($folderdata = array(), $plugin_id = null)
+    public function __construct($folderdata = [], $plugin_id = null)
     {
         $this->folderdata = $folderdata;
-        $this->plugin_id = $plugin_id;
+        $this->plugin_id  = $plugin_id;
     }
 
-    static public function getTypeName()
+    public static function getTypeName()
     {
-        return _("Virtueller Ordner");
+        return _('Virtueller Ordner');
+    }
+
+    public static function creatableInStandardFolder($range_type)
+    {
+        return false;
     }
 
     public function getIcon($role = 'info')
     {
         return Icon::create('folder-empty', $role);
-    }
-
-    static public function creatableInStandardFolder($range_type)
-    {
-        return false;
     }
 
     public function getId()
@@ -44,7 +42,6 @@ class VirtualFolderType implements FolderType
     {
         $this->folderdata[$attribute] = $value;
     }
-
 
     public function isVisible($user_id)
     {
@@ -83,7 +80,6 @@ class VirtualFolderType implements FolderType
 
     public function setDataFromEditTemplate($request)
     {
-        return;
     }
 
     public function validateUpload($uploadedfile, $user_id)
@@ -105,11 +101,15 @@ class VirtualFolderType implements FolderType
     {
         if (!$this->folderdata['parent_id']) {
             return null;
-        } elseif ($this->plugin_id) {
-            return PluginManager::getInstance()->getPluginById($this->plugin_id)->getFolder($this->folderdata->parent_id);
-        } else {
-            return $this->folderdata->parent_id ? $this->folderdata->parentfolder->getTypedFolder() : null;
         }
+
+        if ($this->plugin_id) {
+            return PluginManager::getInstance()->getPluginById($this->plugin_id)->getFolder($this->folderdata->parent_id);
+        }
+
+        return $this->folderdata->parent_id
+             ? $this->folderdata->parentfolder->getTypedFolder()
+             : null;
     }
 
     public function createFile($filedata)
@@ -120,12 +120,10 @@ class VirtualFolderType implements FolderType
         $this->files[] = $filedata;
     }
 
-
     public function deleteFile($file_ref_id)
     {
         return true;
     }
-
 
     public function createSubfolder(FolderType $folderdata)
     {
@@ -138,7 +136,6 @@ class VirtualFolderType implements FolderType
         return true;
     }
 
-
     public function delete()
     {
         return true;
@@ -146,7 +143,6 @@ class VirtualFolderType implements FolderType
 
     public function store()
     {
-        return;
     }
 
     public function isFileDownloadable($fileref_or_id, $user_id)

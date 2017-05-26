@@ -1,16 +1,16 @@
 <?php
-
 interface FilesystemPlugin
 {
-
     /**
      * Returns a Navigation-object. Only the title and the image will be used.
+     *
      * @return null|Navigation with title and image
      */
     public function getFileSelectNavigation();
 
     /**
      * Returns an URL to a page, where the filesystem can be configured.
+     *
      * @return mixed
      */
     public function filesystemConfigurationURL();
@@ -18,6 +18,7 @@ interface FilesystemPlugin
     /**
      * Determines if this filesystem plugin should be a source for copying or a search.
      * This may be dependend on the current user and his/her configurations.
+     *
      * @return boolean
      */
     public function isSource();
@@ -26,6 +27,7 @@ interface FilesystemPlugin
      * Determines if this filesystem-plugin should show up as a personal file-area and be a destination
      * for copied files.
      * This may be dependend on the current user and his/her configurations.
+     *
      * @return boolean
      */
     public function isPersonalFileArea();
@@ -34,6 +36,7 @@ interface FilesystemPlugin
      * This method is used to get a folder-object for this plugin.
      * Not recommended but still possible is to return a Flexi_Template for the folder, if you want to
      * take care of the frontend of displaying the folder as well.
+     *
      * @param null $folder_id : folder_id of folder to get or null if you want the top-folder
      * @return FolderType|Flexi_Template
      */
@@ -45,9 +48,9 @@ interface FilesystemPlugin
      */
     public function getPreparedFile($file_id);
 
-
     /**
      * Defines if the filesystem-plugin has a search-function.
+     *
      * @return mixed
      */
     public function hasSearch();
@@ -62,6 +65,7 @@ interface FilesystemPlugin
      *         'placeholder' => "only possible for type 'text' but not mandatory"
      *     )
      * This method can also return an empty array or null if no search parameters are needed or no search is provided at all.
+     *
      * @return null|array(array(), ...)
      */
     public function getSearchParameters();
@@ -69,10 +73,10 @@ interface FilesystemPlugin
     /**
      * Returns a virtual folder that 'contains' all the files as a search-result. Only return null
      * if search is not implemented.
-     * @param $text : a string
+     *
+     * @param string $text a string
      * @param array $parameters : an associative array of additional search parameters as defined in getSearchParameters()
      * @return FolderType|null
      */
-    public function search($text, $parameters = array());
-
+    public function search($text, $parameters = []);
 }

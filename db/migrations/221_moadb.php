@@ -12,7 +12,6 @@ class Moadb extends Migration
         return 'migrates documents to moadb';
     }
 
-
     private function insert52aTermsOfUse($db)
     {
         // Copied and modified from cli script add_52a_tables from Stud.IP 3.5:
@@ -28,7 +27,6 @@ class Moadb extends Migration
 
     }
 
-
     private function updateLicenseIds($db)
     {
         //We must convert the old IDs from the document_licenses table
@@ -43,8 +41,6 @@ class Moadb extends Migration
         $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'TEXT_NO_LICENSE' WHERE content_terms_of_use_id = '7';");
     }
 
-
-
     public function up()
     {
         $db = DBManager::get();
@@ -56,9 +52,6 @@ class Moadb extends Migration
         {
 
         }
-
-
-
 
         $db->exec("CREATE TABLE IF NOT EXISTS `files` (
                  `id` varchar(32) NOT NULL,
@@ -244,7 +237,7 @@ class Moadb extends Migration
             (field = 'PERSONALDOCUMENT_OPEN_ACCESS_ROOT_PRIVILEDGED');"
         );
 
-
+        SimpleORMap::expireTableScheme();
     }
 
 

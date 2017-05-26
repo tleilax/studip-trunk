@@ -1,38 +1,37 @@
-<h1><?= 
-    sprintf(
+<h1>
+    <?= sprintf(
         _('Soll der Eintrag mit der ID "%s" wirklich gelöscht werden?'),
         $entry_id
-    ) ?></h1>
+    ) ?>
+</h1>
 
-<form class="default" method="post"
-action="<?= URLHelper::getLink(
-    'dispatch.php/admin/content_terms_of_use/delete') ?>">
-    <?= CSRFProtection::tokenTag() ?>
+<form class="default" method="post" action="<?= $controller->link_for('admin/content_terms_of_use/delete') ?>">
     <input type="hidden" name="entry_id" value="<?= htmlReady($entry_id) ?>">
 <? if ($dependent_files_count): ?>
-    <p><?= 
-        sprintf(
-            _('Bevor ein Eintrag gelöscht werden kann, müssen Dateien, die auf ihn verweisen, einem anderen Eintrag zugewiesen werden! Es müssen %s Dateien bearbeitet werden!'),
+    <p>
+        <?= sprintf(
+            _('Bevor ein Eintrag gelöscht werden kann, müssen Dateien, welche auf ihn verweisen, einem anderen Eintrag zugewiesen werden! Es müssen %u Dateien bearbeitet werden!'),
             $dependent_files_count
-        ) ?></p>
+        ) ?>
+    </p>
     <label>
         <?= _('Name des anderen Eintrags:') ?>
         <select name="other_entry_id">
-            <? foreach ($other_entries as $other_entry): ?>
-            <option value="<?= htmlReady($other_entry->id) ?>"
-                <?= ($other_entry_id == $other_entry->id) ? 'selected="selected"' : '' ?>>
+        <? foreach ($other_entries as $other_entry): ?>
+            <option value="<?= htmlReady($other_entry->id) ?>" <? if ($other_entry_id === $other_entry->id) echo 'selected'; ?>>
                 <?= htmlReady($other_entry->name) ?>
-            </option>    
-            <? endforeach ?>
+            </option>
+        <? endforeach; ?>
         </select>
     </label>
 <? else: ?>
-<p><?= _('Der Eintrag wird von keiner Datei benutzt!') ?></p>
-<? endif ?>
-<div data-dialog-button>
-    <?= Studip\Button::createAccept(_('Löschen'), 'confirm') ?>
-    <?= Studip\LinkButton::createCancel(_('Abbrechen'),
-        URLHelper::getUrl('dispatch.php/admin/content_terms_of_use/index')
-        ) ?>
-</div>
+    <p><?= _('Der Eintrag wird von keiner Datei benutzt!') ?></p>
+<? endif; ?>
+
+    <div data-dialog-button>
+        <?= Studip\Button::createAccept(_('Löschen'), 'confirm') ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'),
+            URLHelper::getUrl('dispatch.php/admin/content_terms_of_use/index')
+            ) ?>
+    </div>
 </form>

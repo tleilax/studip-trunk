@@ -35,19 +35,20 @@ class File extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'files';
-        $config['belongs_to']['owner'] = array(
+        $config['belongs_to']['owner'] = [
             'class_name'  => 'User',
             'foreign_key' => 'user_id',
-        );
-        $config['has_many']['refs'] = array(
-            'class_name'  => 'FileRef',
+        ];
+        $config['has_many']['refs'] = [
+            'class_name'        => 'FileRef',
             'assoc_foreign_key' => 'file_id',
-        );
-        $config['has_one']['file_url'] = array(
-            'class_name'  => 'FileURL',
-            'on_store' => "store",
-            'on_delete' => 'delete'
-        );
+        ];
+        $config['has_one']['file_url'] = [
+            'class_name' => 'FileURL',
+            'on_store'   => 'store',
+            'on_delete'  => 'delete'
+        ];
+
         $config['additional_fields']['extension'] = true;
         $config['additional_fields']['path'] = true;
         $config['additional_fields']['url'] = true;
@@ -62,35 +63,44 @@ class File extends SimpleORMap
         $config['notification_map']['before_store'] = 'FileWillUpdate';
         $config['notification_map']['after_delete'] = 'FileDidDelete';
         $config['notification_map']['before_delete'] = 'FileWillDelete';
+
         parent::configure($config);
     }
 
     public function getURL()
     {
-        return $this->storage == 'url' && isset($this->file_url) ? $this->file_url->url : null;
+        return $this->storage === 'url' && isset($this->file_url)
+             ? $this->file_url->url
+             : null;
     }
 
     public function setURL($url)
     {
         $this->storage = 'url';
         if (!isset($this->file_url)) {
-            $this->file_url = new FileURL;
+            $this->file_url = new FileURL();
         }
-        return $this->file_url->url = $url;
+        $this->file_url->url = $url;
+
+        return $url;
     }
 
     public function getURL_access_type()
     {
-        return $this->storage == 'url' && isset($this->file_url) ? $this->file_url->access_type : null;
+        return $this->storage === 'url' && isset($this->file_url)
+             ? $this->file_url->access_type
+             : null;
     }
 
     public function setURL_access_type($value)
     {
         $this->storage = 'url';
         if (!isset($this->file_url)) {
-            $this->file_url = new FileURL;
+            $this->file_url = new FileURL();
         }
-        return $this->file_url->access_type = $value;
+        $this->file_url->access_type = $value;
+
+        return $value;
     }
 
     /**
@@ -108,9 +118,9 @@ class File extends SimpleORMap
      *
      * @return null|string Returns the operating system's file system path of the file or null on failure.
      */
-    function getPath()
+    public function getPath()
     {
-        if (!$this->id || $this->storage != 'disk') {
+        if (!$this->id || $this->storage !== 'disk') {
             return null;
         }
         return $GLOBALS['UPLOAD_PATH'] . '/' . substr($this->id, 0, 2) . '/' . $this->id;
@@ -146,6 +156,7 @@ class File extends SimpleORMap
         } else if (!copy($path_to_file, $newpath)) {
             return false;
         }
+
         return true;
 
     }
@@ -156,7 +167,9 @@ class File extends SimpleORMap
             $this->user_id = User::findCurrent()->id;
         }
         if (!$this->author_name) {
-            $user = $this->user_id == User::findCurrent()->id ? User::findCurrent() : $this->owner;
+            $user = $this->user_id === User::findCurrent()->id
+                  ? User::findCurrent()
+                  : $this->owner;
             $this->author_name = $user->getFullName('no_title');
         }
     }

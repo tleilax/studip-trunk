@@ -12,8 +12,6 @@
  * @category    Stud.IP
  * @since       4.0
  */
-
-
 class Course_FilesController extends AuthenticatedController
 {
     public function before_filter(&$action, &$args)
@@ -22,19 +20,19 @@ class Course_FilesController extends AuthenticatedController
 
         checkObject();
         checkObjectModule('documents');
-        $this->course = Course::findCurrent();
         object_set_visit_module('documents');
 
-        PageLayout::addSqueezePackage('tablesorterfork');
-        PageLayout::setHelpKeyword("Basis.Dateien");
-        PageLayout::setTitle($this->course->getFullname() . " - " . _("Dateien"));
-
+        $this->course = Course::findCurrent();
         $this->last_visitdate = object_get_visit($this->course->id, 'documents');
+
+        PageLayout::addSqueezePackage('tablesorterfork');
+        PageLayout::setHelpKeyword('Basis.Dateien');
+        PageLayout::setTitle($this->course->getFullname() . ' - ' . _('Dateien'));
+
         Navigation::activateItem('/course/files');
     }
 
-
-    private function buildSidebar($index = "index")
+    private function buildSidebar($index = 'index')
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/files-sidebar.png');
@@ -53,50 +51,43 @@ class Course_FilesController extends AuthenticatedController
         if ($this->topFolder && $this->topFolder->isSubfolderAllowed($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Neuer Ordner'),
-                URLHelper::getUrl(
-                    'dispatch.php/file/new_folder/' . $this->topFolder ->getId()
-                ),
-                Icon::create('folder-empty+add', 'clickable'),
-                [
-                    'data-dialog' => 1
-                ]
-            );
+                URLHelper::getUrl('dispatch.php/file/new_folder/' . $this->topFolder->getId()),
+                Icon::create('folder-empty+add', 'clickable')
+            )->asDialog();
 
         }
         if ($this->topFolder && $this->topFolder->isWritable($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Datei hinzufügen'),
-                "#",
+                '#',
                 Icon::create('file+add', 'clickable'),
-                array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
+                ['onclick' => "STUDIP.Files.openAddFilesWindow(); return false;"]
             );
         }
         $sidebar->addWidget($actions);
 
         $views = new ViewsWidget();
         $views->addLink(
-            _("Ordneransicht"),
-            $this->url_for("course/files/index"),
+            _('Ordneransicht'),
+            $this->url_for('course/files/index'),
             null,
-            array(),
-            "index"
+            [],
+            'index'
         )->setActive(true);
         $views->addLink(
-            _("Alle Dateien"),
-            $this->url_for("course/files/flat"),
+            _('Alle Dateien'),
+            $this->url_for('course/files/flat'),
             null,
-            array(),
-            "flat"
+            [],
+            'flat'
         );
 
         $sidebar->addWidget($views);
     }
 
-
-
     /**
-        Displays the files in tree view
-    **/
+     * Displays the files in tree view
+     **/
     public function index_action($topFolderId = '')
     {
         $this->marked_element_ids = [];
@@ -113,20 +104,20 @@ class Course_FilesController extends AuthenticatedController
 
         $this->topFolder = $folder->getTypedFolder();
 
-        $this->buildSidebar("index");
-
-        $this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
+        $this->buildSidebar('index');
+        $this->render_template('files/index.php', $this->layout);
     }
 
     /**
-        Displays the files in flat view
-    **/
+     * Displays the files in flat view
+     **/
     public function flat_action()
     {
+        Navigation::activateItem('/course/files_new/flat');
+
         $this->marked_element_ids = [];
 
         $folder = Folder::findTopFolder($this->course->id);
-
         if (!$folder) {
             throw new Exception(_('Fehler beim Laden des Hauptordners!'));
         }
@@ -136,7 +127,7 @@ class Course_FilesController extends AuthenticatedController
         //find all files in all subdirectories:
         list($this->files, $this->folders) = array_values(FileManager::getFolderFilesRecursive($this->topFolder, $GLOBALS['user']->id));
 
-        $this->range_type = "course";
-        $this->render_template('files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
+        $this->range_type = 'course';
+        $this->render_template('files/flat.php', $this->layout);
     }
 }

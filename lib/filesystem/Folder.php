@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Folder.php
  * model class for table folders
@@ -13,7 +12,6 @@
  * @copyright   2016 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
- *
  *
  * @property string id database column
  * @property string user_id database column: owner of folder
@@ -29,51 +27,50 @@
  */
 class Folder extends SimpleORMap
 {
-
     /**
      * @param array $config
      */
     protected static function configure($config = array())
     {
         $config['db_table'] = 'folders';
-        $config['belongs_to']['owner'] = array(
+        $config['belongs_to']['owner'] = [
             'class_name'  => 'User',
             'foreign_key' => 'user_id',
-        );
-        $config['has_many']['file_refs'] = array(
+        ];
+        $config['has_many']['file_refs'] = [
             'class_name'        => 'FileRef',
             'assoc_foreign_key' => 'folder_id',
             'on_delete'         => 'delete',
             'on_store'          => 'store',
             'order_by'          => 'ORDER BY name ASC'
-        );
-        $config['has_many']['subfolders'] = array(
+        ];
+        $config['has_many']['subfolders'] = [
             'class_name'        => 'Folder',
             'assoc_foreign_key' => 'parent_id',
             'on_delete'         => 'delete',
             'on_store'          => 'store',
             'order_by'          => 'ORDER BY name ASC'
-        );
-        $config['belongs_to']['parentfolder'] = array(
+        ];
+        $config['belongs_to']['parentfolder'] = [
             'class_name'  => 'Folder',
             'foreign_key' => 'parent_id',
-        );
-        $config['belongs_to']['course'] = array(
+        ];
+        $config['belongs_to']['course'] = [
             'class_name'  => 'Course',
             'foreign_key' => 'range_id',
-        );
-        $config['belongs_to']['institute'] = array(
+        ];
+        $config['belongs_to']['institute'] = [
             'class_name'  => 'Institute',
             'foreign_key' => 'range_id',
-        );
-        $config['belongs_to']['user'] = array(
+        ];
+        $config['belongs_to']['user'] = [
             'class_name'  => 'User',
             'foreign_key' => 'range_id',
-        );
-        $config['belongs_to']['message'] = array(
+        ];
+        $config['belongs_to']['message'] = [
             'class_name'  => 'Message',
             'foreign_key' => 'range_id',
-        );
+        ];
         $config['serialized_fields']['data_content'] = 'JSONArrayObject';
 
         $config['registered_callbacks']['before_store'][] = 'cbMakeUniqueName';
@@ -84,10 +81,9 @@ class Folder extends SimpleORMap
         $config['notification_map']['before_store'] = 'FolderWillUpdate';
         $config['notification_map']['after_delete'] = 'FolderDidDelete';
         $config['notification_map']['before_delete'] = 'FolderWillDelete';
+
         parent::configure($config);
     }
-
-
 
     /**
      * Creates a top folder (root directory) for a Stud.IP object given by range_id and range_type.
@@ -103,7 +99,7 @@ class Folder extends SimpleORMap
      */
     public static function createTopFolder($range_id, $range_type)
     {
-        $data = [
+        return self::create([
             'parent_id'    => '',
             'range_id'     => $range_id,
             'range_type'   => $range_type,
@@ -111,10 +107,8 @@ class Folder extends SimpleORMap
             'name'         => '',
             'data_content' => '',
             'folder_type'  => 'StandardFolder'
-        ];
-        return self::create($data);
+        ]);
     }
-
 
     /**
      * Determines the range type by probing the given range ID.
@@ -132,27 +126,33 @@ class Folder extends SimpleORMap
     {
         //If range_id isn't set we don't need to query the database at all!
         //Therefore we check first, if range_id validates to false.
-        if(!$range_id) {
+        if (!$range_id) {
             return false;
         }
 
         if (Course::exists($range_id)) {
             return 'course';
-        } elseif (Institute::exists($range_id)) {
-            return 'institute';
-        } elseif (User::exists($range_id)) {
-            return 'user';
-        } elseif (Message::exists($range_id)) {
-            return 'message';
-        } else {
-            return false;
         }
+        if (Institute::exists($range_id)) {
+            return 'institute';
+        }
+        if (User::exists($range_id)) {
+            return 'user';
+        }
+        if (Message::exists($range_id)) {
+            return 'message';
+        }
+
+        return false;
     }
 
-    static public function findByTopic_id($topic_id)
+    public static function findByTopic_id($topic_id)
     {
-        $seminar_id = CourseTopic::find($topic_id)->seminar_id;
-        $topic_folders = self::findBySQL("folder_type = 'CourseTopicFolder' AND range_id = ? AND range_type = 'course'", array($seminar_id));
+        $seminar_id    = CourseTopic::find($topic_id)->seminar_id;
+        $topic_folders = self::findBySQL(
+            "folder_type = 'CourseTopicFolder' AND range_id = ? AND range_type = 'course'",
+            [$seminar_id]
+        );
         foreach ($topic_folders as $key => $folder) {
             if ($folder['data_content']['issue_id'] === $topic_id) {
                 return array($folder);
@@ -180,22 +180,19 @@ class Folder extends SimpleORMap
      **/
     public function fileExists($file_name)
     {
-
         //get files :
-        $found_files = FileRef::countBySql(
-            "name = :file_name AND folder_id = :id",
-            ['file_name' => $file_name,
-             'id'       => $this->id]
-        );
-        $found_folders = Folder::countBySql(
-            "name = :file_name AND parent_id= :id",
-            ['file_name' => $file_name,
-             'id'       => $this->id]
-        );
+        $found_files = FileRef::countBySql("name = :file_name AND folder_id = :id", [
+            'file_name' => $file_name,
+            'id'        => $this->id,
+        ]);
 
-        return ($found_files + $found_folders) > 0;
+        $found_folders = Folder::countBySql("name = :file_name AND parent_id= :id",[
+            'file_name' => $file_name,
+            'id'        => $this->id,
+        ]);
+
+        return $found_files + $found_folders > 0;
     }
-
 
     /**
      * Makes a given file name unique and returns the altered file name.
@@ -214,16 +211,18 @@ class Folder extends SimpleORMap
         $c = 0;
         $ext = pathinfo($file_name, PATHINFO_EXTENSION);
         if ($ext) {
-            $name = substr($file_name, 0, strrpos($file_name, $ext) - 1);
+            $name = substr($file_name, 0, -mb_strlen('.' . $ext));
         } else {
             $name = $file_name;
         }
         while ($this->fileExists($file_name)) {
-            $file_name = $name . '[' . ++$c . ']' . ($ext ? '.' . $ext : '');
+            $file_name = $name . '[' . ++$c . ']';
+            if ($ext) {
+                $filename .= '.' . $ext;
+            }
         }
         return $file_name;
     }
-
 
     /**
      * Find the top folder of a Stud.IP object or create it, if it doesn't exist.
@@ -240,25 +239,26 @@ class Folder extends SimpleORMap
      **/
     public static function findTopFolder($range_id)
     {
-        $top_folder = self::findOneBySQL("range_id = ? AND parent_id=''", [$range_id]);
+        $top_folder = self::findOneBySQL(
+            "range_id = ? AND parent_id=''",
+            [$range_id]
+        );
 
         //top_folder may not exist!
         if (!$top_folder) {
             //top_folder doest not exist: create it
             //determine range type:
             $range_type = self::findRangeTypeById($range_id);
-            if ($range_type) {
-                //range type determined: folder can be created!
-                $top_folder = self::createTopFolder($range_id, $range_type);
-            } else {
+            if (!$range_type) {
                 //no range type means we can't create a folder!
                 return null;
             }
+
+            $top_folder = self::createTopFolder($range_id, $range_type);
         }
 
         return $top_folder;
     }
-
 
     /**
      * Gets the FolderType object for the current folder.
@@ -272,23 +272,20 @@ class Folder extends SimpleORMap
      */
     public function getTypedFolder()
     {
-        if (class_exists($this->folder_type)) {
-            if(is_subclass_of($this->folder_type, 'FolderType')) {
-                return new $this->folder_type($this);
-            } else {
-                throw new UnexpectedValueException(
-                    sprintf(
-                        'Class %s (from folder %s) does not implement the FolderType interface!',
-                        $this->folder_type,
-                        $this->id
-                    )
-                );
-            }
-        } else {
+        if (!class_exists($this->folder_type)) {
             return new UnknownFolderType($this);
         }
-    }
 
+        if (!is_subclass_of($this->folder_type, 'FolderType')) {
+            throw new UnexpectedValueException(sprintf(
+                'Class %s (from folder %s) does not implement the FolderType interface!',
+                $this->folder_type,
+                $this->id
+            ));
+        }
+
+        return new $this->folder_type($this);
+    }
 
     /**
      * Creates a FileRef object for a given File object or its ID.
@@ -311,18 +308,19 @@ class Folder extends SimpleORMap
         }
 
         $ref = new FileRef();
-        $ref->name = $file->name;
+        $ref->name    = $file->name;
         $ref->user_id = $file->user_id;
+
         $ref->setData($file_ref_data);
+
         $ref->file_id = $file->id;
-        $ref->folder = $this;
+        $ref->folder  = $this;
         if ($ref->store()) {
             return $ref;
-        } else {
-            return null;
         }
-    }
 
+        return null;
+    }
 
     /**
      * Removes a file reference.
@@ -334,7 +332,6 @@ class Folder extends SimpleORMap
         $fileref = FileRef::toObject($fileref_or_id);
         return $fileref->delete();
     }
-
 
     /**
      * Returns a list of parent folders, starting with the top folder.
@@ -375,9 +372,7 @@ class Folder extends SimpleORMap
      */
     public function getPath($delimiter = '/')
     {
-        return join($delimiter, SimpleCollection::createFromArray($this->getParents())->pluck('name'));
+        $parents = $this->getParents();
+        return join($delimiter, SimpleCollection::createFromArray($parents)->pluck('name'));
     }
-
-
-
 }

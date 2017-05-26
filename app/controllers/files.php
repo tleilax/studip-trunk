@@ -2,6 +2,8 @@
 /**
  * files.php - controller to display personal files of a user
  *
+ * The FilesController controller provides actions for the personal file area.
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -13,15 +15,12 @@
  * @since       4.0
  */
 
-
-/**
- * The FilesController controller provides actions for the personal file area.
- */
 class FilesController extends AuthenticatedController
 {
+    protected $utf8decode_xhr = true;
+
     public function before_filter(&$action, &$args)
     {
-        $this->utf8decode_xhr = true;
         parent::before_filter($action, $args);
 
         PageLayout::setTitle(_('Meine Dateien'));
@@ -32,7 +31,6 @@ class FilesController extends AuthenticatedController
         $this->last_visitdate = time();
         Navigation::activateItem('/profile/files');
     }
-
 
     /**
      * Helper method for filling the sidebar with actions.
@@ -67,8 +65,8 @@ class FilesController extends AuthenticatedController
 
         if ($folder->isEditable($GLOBALS['user']->id) && $folder->parent_id) {
             $actions->addLink(
-                _("Ordner bearbeiten"),
-                $this->url_for("file/edit_folder/".$folder->getId()),
+                _('Ordner bearbeiten'),
+                $this->url_for('file/edit_folder/'.$folder->getId()),
                 Icon::create("edit", "clickable"),
                 array('data-dialog' => 1)
             );
@@ -85,7 +83,7 @@ class FilesController extends AuthenticatedController
         if ($folder->isWritable($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Datei hinzufügen'),
-                "#",
+                '#',
                 Icon::create('file+add', 'clickable'),
                 array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
             );
@@ -94,57 +92,53 @@ class FilesController extends AuthenticatedController
         $config_urls = array();
         foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) {
             $url = $plugin->filesystemConfigurationURL();
-            $navigation = $plugin->getFileSelectNavigation();
             if ($url) {
-                $config_urls[] = array(
+                $navigation = $plugin->getFileSelectNavigation();
+
+                $config_urls[] = [
                     'name' => $navigation->getTitle(),
                     'icon' => $navigation->getImage(),
-                    'url' => $url
-                );
+                    'url'  => $url,
+                ];
             }
         }
         if (count($config_urls)) {
             if (count($config_urls) > 1) {
                 $actions->addLink(
-                    _("Dateibereiche konfigurieren"),
-                    URLHelper::getUrl('dispatch.php/files/configure'),
-                    Icon::create("admin", "clickable"),
-                    array('data-dialog' => 1)
-                );
+                    _('Dateibereiche konfigurieren'),
+                    $this->url_for('files/configure'),
+                    Icon::create('admin', 'clickable')
+                )->asDialog();
             } else {
                 $actions->addLink(
-                    sprintf(_("%s konfigurieren"), $config_urls[0]['name']),
+                    sprintf(_('%s konfigurieren'), $config_urls[0]['name']),
                     $config_urls[0]['url'],
-                    $config_urls[0]['icon'],
-                    array('data-dialog' => 1)
-                );
+                    $config_urls[0]['icon']
+                )->asDialog();
             }
         }
-
         $sidebar->addWidget($actions);
 
         if ($view) {
             $views = new ViewsWidget();
             $views->addLink(
-                _("Ordneransicht"),
-                $this->url_for("files/index"),
+                _('Ordneransicht'),
+                $this->url_for('files/index'),
                 null,
-                array(),
-                "index"
+                [],
+                'index'
             )->setActive(true);
             $views->addLink(
-                _("Alle Dateien"),
-                $this->url_for("files/flat"),
+                _('Alle Dateien'),
+                $this->url_for('files/flat'),
                 null,
-                array(),
-                "flat"
+                [],
+                'flat'
             );
 
             $sidebar->addWidget($views);
         }
     }
-
-
 
     /**
      * Displays the files in tree view.
@@ -184,16 +178,12 @@ class FilesController extends AuthenticatedController
         }
     }
 
-
-
     /**
-    Displays the files in flat view
+     * Displays the files in flat view
      **/
     public function flat_action()
     {
         $this->marked_element_ids = [];
-
-        $filePreselector = Request::get('select', null);
 
         $folder = Folder::findTopFolder($this->user->id);
 
@@ -207,23 +197,24 @@ class FilesController extends AuthenticatedController
         list($this->files, $this->folders) = array_values(FileManager::getFolderFilesRecursive($this->topFolder, $GLOBALS['user']->id));
     }
 
-
     /**
      * Action to configure the different FileSystem-plugins
      */
     public function configure_action()
     {
-        $this->configure_urls = array();
-        PageLayout::setTitle(_("Dateibereich zur Konfiguration auswählen"));
+        PageLayout::setTitle(_('Dateibereich zur Konfiguration auswählen'));
+
+        $this->configure_urls = [];
         foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) {
             $url = $plugin->filesystemConfigurationURL();
-            $navigation = $plugin->getFileSelectNavigation();
             if ($url) {
-                $this->configure_urls[] = array(
+                $navigation = $plugin->getFileSelectNavigation();
+
+                $this->configure_urls[] = [
                     'name' => $navigation->getTitle(),
                     'icon' => $navigation->getImage(),
-                    'url' => $url
-                );
+                    'url'  => $url,
+                ];
             }
         }
     }
@@ -232,55 +223,62 @@ class FilesController extends AuthenticatedController
     {
         $this->plugin = PluginManager::getInstance()->getPluginById($plugin_id);
         if (!$this->plugin->isPersonalFileArea()) {
-            throw new Exception("Dieser Bereich ist nicht verfügbar.");
+            throw new Exception(_('Dieser Bereich ist nicht verfügbar.'));
         }
+
         $navigation = $this->plugin->getFileSelectNavigation();
         PageLayout::setTitle($navigation->getTitle());
-        $this->topFolder = $this->plugin->getFolder($folder_id);
+
+        URLHelper::bindLinkParam('to_plugin', get_class($this->plugin));
+
+        $this->topFolder      = $this->plugin->getFolder($folder_id);
+        $this->controllerpath = 'files/system/' . $plugin_id;
+
         $this->buildSidebar($this->topFolder, false);
-        $this->controllerpath = "files/system/".$plugin_id;
-        URLHelper::bindLinkParam("to_plugin", get_class($this->plugin));
-        $this->render_template("files/index", $GLOBALS['template_factory']->open("layouts/base"));
+        $this->render_action('index');
     }
 
     public function copyhandler_action($destination_id)
     {
-        $to_plugin = Request::get("to_plugin", null);
-        $plugin = Request::get("plugin", null);
+        $to_plugin = Request::get('to_plugin');
+        $plugin    = Request::get('plugin');
 
-        $fileref_id = Request::get("fileref_id", null);
-        $copymode = Request::get("copymode", null);
+        $fileref_id = Request::get('fileref_id');
+        $copymode   = Request::get('copymode');
 
         $user = User::findCurrent();
         $destination_folder = Folder::find($destination_id)->getTypedFolder();
 
-        $errors = array();
-        $count_files = 0;
+        $errors = [];
+
+        $count_files   = 0;
         $count_folders = 0;
-        $count_dracula = 'vampire'; //sorry
 
         $filerefs = explode('-', $fileref_id);
         if (!empty($filerefs)) {
             foreach ($filerefs as $fileref) {
 
                 if ($source = FileRef::find($fileref)) {
-                    if ($copymode == 'move') {
+                    if ($copymode === 'move') {
                         $result = FileManager::moveFileRef($source, $destination_folder, $user);
                     } else {
                         $result = FileManager::copyFileRef($source, $destination_folder, $user);
                     }
-                    if (!is_array($result)) $count_files++;
+                    if (!is_array($result)) {
+                        $count_files += 1;
+                    }
                 } elseif ($source = Folder::find($fileref)) {
                     $source_folder = $source->getTypedFolder();
-                    if ($copymode == 'move') {
+                    if ($copymode === 'move') {
                         $result = FileManager::moveFolder($source_folder, $destination_folder, $user);
                     } else {
                         $result = FileManager::copyFolder($source_folder, $destination_folder, $user);
                     }
                     if (!is_array($result)) {
-                        $count_folders++;
+                        $count_folders += 1;
+
                         $children = $this->countChildren($result);
-                        $count_files += $children[0];
+                        $count_files   += $children[0];
                         $count_folders += $children[1];
                     }
                 }
@@ -291,7 +289,6 @@ class FilesController extends AuthenticatedController
         }
 
         if (empty($errors) || $count_files > 0 || $count_folders > 0) {
-
             if (count($filerefs) == 1) {
                 if ($source_folder) {
                     if ($copymode == 'copy') {
@@ -308,26 +305,25 @@ class FilesController extends AuthenticatedController
                 }
             } else {
                 if ($count_files > 0 && $count_folders > 0) {
-                    if ($copymode == 'copy') {
-                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner und %s Dateien kopiert.'), $count_folders, $count_files));
+                    if ($copymode === 'copy') {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %u Ordner und %u Dateien kopiert.'), $count_folders, $count_files));
                     } else {
-                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner und %s Dateien verschoben.'), $count_folders, $count_files));
+                        PageLayout::postSuccess(sprintf(_('Es wurden %u Ordner und %u Dateien verschoben.'), $count_folders, $count_files));
                     }
                 } elseif ($count_files > 0) {
-                    if ($copymode == 'copy') {
-                        PageLayout::postSuccess(sprintf(_('Es wurden %s Dateien kopiert.'), $count_files));
+                    if ($copymode === 'copy') {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %u Dateien kopiert.'), $count_files));
                     } else {
-                        PageLayout::postSuccess(sprintf(_('Es wurden %s Dateien verschoben.'), $count_files));
+                        PageLayout::postSuccess(sprintf(_('Es wurden %u Dateien verschoben.'), $count_files));
                     }
                 } else {
-                    if ($copymode == 'copy') {
-                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner kopiert.'), $count_folders));
+                    if ($copymode === 'copy') {
+                        PageLayout::postSuccess(sprintf(_('Es wurden %u Ordner kopiert.'), $count_folders));
                     } else {
-                        PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner verschoben.'), $count_folders));
+                        PageLayout::postSuccess(sprintf(_('Es wurden %u Ordner verschoben.'), $count_folders));
                     }
                 }
             }
-
         } else {
             PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), $errors);
         }
@@ -347,16 +343,18 @@ class FilesController extends AuthenticatedController
 
     }
 
-    private function countChildren (FolderType $folder) {
-        $file_count = count($folder->getFiles());
+    private function countChildren (FolderType $folder)
+    {
+        $file_count   = count($folder->getFiles());
         $folder_count = count($folder->getSubfolders());
-        if ($folder_count > 0) {
-            foreach ($folder->getSubfolders() as $subfolder) {
-                $subs = $this->countChildren($subfolder);
-                $file_count += $subs[0];
-                $folder_count += $subs[1];
-            }
+
+        foreach ($folder->getSubfolders() as $subfolder) {
+            $subs = $this->countChildren($subfolder);
+
+            $file_count   += $subs[0];
+            $folder_count += $subs[1];
         }
-        return array($file_count, $folder_count);
+
+        return [$file_count, $folder_count];
     }
 }

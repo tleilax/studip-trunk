@@ -18,10 +18,10 @@ class FileURL extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'file_urls';
-        $config['belongs_to']['file'] = array(
+        $config['belongs_to']['file'] = [
             'class_name'  => 'File',
             'foreign_key' => 'file_id',
-        );
+        ];
         parent::configure($config);
     }
 }

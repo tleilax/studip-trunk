@@ -7,37 +7,35 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.gruppe
  *
- * @author Dominik Feldschnieders <dofeldsc@uos.de>
+ * @author    Dominik Feldschnieders <dofeldsc@uos.de>
  * @copyright 2016 Stud.IP Core-Group
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category  Stud.IP
  */
 class GroupFolder extends StandardFolder
 {
     protected $group_id;
+
     // tutor and higher of a course can do everything with this foldertype
     protected $must_have_perm = "tutor";
 
-    static public function getTypeName()
+    public static function getTypeName()
     {
-        return _("Gruppenordner");
+        return _('Gruppenordner');
     }
 
-    static public function creatableInStandardFolder($range_type)
+    public static function creatableInStandardFolder($range_type)
     {
-        return $range_type == 'course';
+        return $range_type === 'course';
     }
 
-    public function checkPermission($user_id){
+    public function checkPermission($user_id)
+    {
         $group = new Statusgruppen($this->folderdata['data_content']['group']);
 
-        if($group->isMember($user_id)) {
-            return true;
-        } elseif($user_id && is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id)) {
-            return true;
-        } else {
-                return false;
-        }
+        return $group->isMember($user_id)
+            || ($user_id && is_object($GLOBALS['perm'])
+                && $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id));
     }
 
     public function isVisible($user_id)
@@ -63,8 +61,7 @@ class GroupFolder extends StandardFolder
     // ToDo Icon anpassen
     public function getIcon($role = Icon::DEFAULT_ROLE)
     {
-        $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'group2' : 'group2';
-        return Icon::create($shape, $role);
+        return Icon::create('group2', $role);
     }
 
     public function getEditTemplate()
@@ -76,13 +73,11 @@ class GroupFolder extends StandardFolder
 
     public function setDataFromEditTemplate($request)
     {
-        if($request['group'] == null){
+        if ($request['group'] == null){
             return MessageBox::error(_('Es wurde keine gültige Gruppe ausgewählt.'));
         }
 
-        $group_id = $request['group'];
-
-        $this->folderdata['data_content']['group'] = $group_id;
+        $this->folderdata['data_content']['group'] = $request['group'];
 
         return parent::setDataFromEditTemplate($request);
     }
@@ -92,9 +87,10 @@ class GroupFolder extends StandardFolder
         $group = new Statusgruppen($this->folderdata['data_content']['group']);
 
         $template = $GLOBALS['template_factory']->open('filesystem/group_folder/description.php');
-        $template->set_attribute('type', self::getTypeName());
-        $template->set_attribute('folder', $this);
-        $template->set_attribute('groupname', $group->name);
+        $template->type      = self::getTypeName();
+        $template->folder    = $this;
+        $template->groupname = $group->name;
+
         return $template;
     }
 }

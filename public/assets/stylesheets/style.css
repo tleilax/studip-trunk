@@ -6611,10 +6611,10 @@ input.document-checkbox[type="checkbox"]:indeterminate + label span::after {
   #folder_aside {
     display: block;
   }
-  #file_aside div.FileIcon img,
-  #folder_aside div.FileIcon img,
-  #file_aside div.FolderIcon img,
-  #folder_aside div.FolderIcon img {
+  #file_aside div.file-icon img,
+  #folder_aside div.file-icon img,
+  #file_aside div.folder-icon img,
+  #folder_aside div.folder-icon img {
     width: 30%;
     height: 100%;
     max-height: 10em;
@@ -6658,10 +6658,10 @@ input.document-checkbox[type="checkbox"]:indeterminate + label span::after {
     max-width: calc(30% - 10px);
     /*         overflow: hidden; */
   }
-  #file_aside div.FileIcon img,
-  #folder_aside div.FileIcon img,
-  #file_aside div.FolderIcon img,
-  #folder_aside div.FolderIcon img {
+  #file_aside div.file-icon img,
+  #folder_aside div.file-icon img,
+  #file_aside div.folder-icon img,
+  #folder_aside div.folder-icon img {
     margin-left: 20%;
     width: 60%;
     max-height: 16em;

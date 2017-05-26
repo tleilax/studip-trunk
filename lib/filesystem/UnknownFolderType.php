@@ -25,20 +25,28 @@ class UnknownFolderType implements FolderType
      */
     public function __construct($folderdata)
     {
-        if($folderdata instanceof Folder) {
+        if ($folderdata instanceof Folder) {
             $this->folderdata = $folderdata;
         } else {
             $this->folderdata = new Folder();
         }
     }
 
-
     /**
      * @return string
      */
-    static public function getTypeName()
+    public static function getTypeName()
     {
-        return _("Unbekannter Ordner Typ");
+        return _('Unbekannter Ordner Typ');
+    }
+
+    /**
+     * @param string $range_type
+     * @return bool
+     */
+    public static function creatableInStandardFolder($range_type)
+    {
+        return false;
     }
 
     /**
@@ -47,15 +55,6 @@ class UnknownFolderType implements FolderType
     public function getIcon($role = 'info')
     {
         return Icon::create('folder-broken', $role);
-    }
-
-    /**
-     * @param string $range_type
-     * @return bool
-     */
-    static public function creatableInStandardFolder($range_type)
-    {
-        return false;
     }
 
     /**
@@ -72,9 +71,13 @@ class UnknownFolderType implements FolderType
      */
     public function __get($attribute)
     {
-        if ($attribute == 'name') {
-            return $this->folderdata['name'] . sprintf(' (unbekannter Typ: %s)', $this->folderdata['folder_type']);
+        if ($attribute === 'name') {
+            return $this->folderdata['name'] . sprintf(
+                _(' (unbekannter Typ: %s)'),
+                $this->folderdata['folder_type']
+            );
         }
+
         return $this->folderdata[$attribute];
     }
 
@@ -155,7 +158,7 @@ class UnknownFolderType implements FolderType
      */
     public function getSubfolders()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -163,7 +166,7 @@ class UnknownFolderType implements FolderType
      */
     public function getFiles()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -172,7 +175,9 @@ class UnknownFolderType implements FolderType
      */
     public function getParent()
     {
-        return $this->folderdata->parentfolder ? $this->folderdata->parentfolder->getTypedFolder() : null;
+        return $this->folderdata->parentfolder
+             ? $this->folderdata->parentfolder->getTypedFolder()
+             : null;
     }
 
     /**
@@ -183,24 +188,20 @@ class UnknownFolderType implements FolderType
 
     }
 
-
     public function deleteFile($file_ref_id)
     {
         return false;
     }
-
 
     public function createSubfolder(FolderType $folderdata)
     {
 
     }
 
-
     public function deleteSubfolder($subfolder_id)
     {
         return false;
     }
-
 
     public function delete()
     {
@@ -211,7 +212,6 @@ class UnknownFolderType implements FolderType
     {
         return false;
     }
-
 
     /**
      * @param $fileref_or_id

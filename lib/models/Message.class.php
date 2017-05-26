@@ -109,7 +109,7 @@ class Message extends SimpleORMap
         );
         $config['has_one']['originator'] = array(
             'class_name' => 'MessageUser',
-            'assoc_func' => 'findSendedByMessageId',
+            'assoc_func' => 'findSentByMessageId',
             'on_store' => 'store',
             'on_delete' => 'delete'
         );

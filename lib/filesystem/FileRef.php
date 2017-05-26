@@ -32,26 +32,26 @@
  */
 class FileRef extends SimpleORMap
 {
-    protected static function configure($config = array())
+    protected static function configure($config = [])
     {
         $config['db_table'] = 'file_refs';
-        $config['belongs_to']['file'] = array(
+        $config['belongs_to']['file'] = [
             'class_name'  => 'File',
             'foreign_key' => 'file_id',
-        );
-        $config['belongs_to']['folder'] = array(
+        ];
+        $config['belongs_to']['folder'] = [
             'class_name'  => 'Folder',
             'foreign_key' => 'folder_id',
-        );
-        $config['belongs_to']['owner'] = array(
+        ];
+        $config['belongs_to']['owner'] = [
             'class_name'  => 'User',
             'foreign_key' => 'user_id',
-        );
+        ];
 
-        $config['belongs_to']['terms_of_use'] = array(
+        $config['belongs_to']['terms_of_use'] = [
             'class_name' => 'ContentTermsOfUse',
             'foreign_key' => 'content_terms_of_use_id'
-        );
+        ];
 
         $config['additional_fields']['size'] = ['file', 'size'];
         $config['additional_fields']['mime_type'] = ['file', 'mime_type'];
@@ -74,8 +74,8 @@ class FileRef extends SimpleORMap
 
     public function cbRemoveFileIfOrphaned()
     {
-        if (!self::countBySql("file_id = ?", array($this->file_id))) {
-            File::deleteBySQL("id = ?", array($this->file_id));
+        if (!self::countBySql('file_id = ?', [$this->file_id])) {
+            File::deleteBySQL("id = ?", [$this->file_id]);
         }
     }
 
@@ -88,17 +88,17 @@ class FileRef extends SimpleORMap
 
 
     /**
-        Renames the file associated with this file reference.
-
-        If the parameter forceRename is set to true and the current user
-        is the owner of the file, the file will be renamed
-        even if there are other references linked with it.
-
-        @param newName the new name of the file
-        @param forceRename if set to true, renaming will be forced. Defaults to false.
-
-        @returns true on success, false on failure
-    **/
+     * Renames the file associated with this file reference.
+     *
+     * If the parameter forceRename is set to true and the current user
+     * is the owner of the file, the file will be renamed
+     * even if there are other references linked with it.
+     *
+     * @param newName the new name of the file
+     * @param forceRename if set to true, renaming will be forced. Defaults to false.
+     *
+     * @return true on success, false on failure
+     */
     public function rename($newName = '', $forceRename = false)
     {
         if(!$newName) {
@@ -146,11 +146,11 @@ class FileRef extends SimpleORMap
 
 
     /**
-        Copies a file to the destination folder.
-
-        In case the current user is not the owner of the file
-        the file will be cloned (including the data file).
-    **/
+     * Copies a file to the destination folder.
+     *
+     * In case the current user is not the owner of the file
+     * the file will be cloned (including the data file).
+     **/
     public function copy(Folder $destination)
     {
         //STUB
@@ -159,10 +159,11 @@ class FileRef extends SimpleORMap
     public function getDownloadURL($dltype = 'normal')
     {
         $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
-        $link = array();
+        $link = [];
         $type = '0';
         $file_name = $this->name;
         $file_id = $this->id;
+
         switch($mode) {
             case 'rewrite':
                 $link[] = 'download/';
@@ -174,20 +175,16 @@ class FileRef extends SimpleORMap
                     case 'force_download':
                         $link[] = 'force_download/';
                         break;
-                    case 'normal':
                     default:
                         $link[] = 'normal/';
                 }
-                $link[] = $type . '/';
-                $link[] = '/' . $file_name;
+                $link[] = $type . '/' . $filename;
                 break;
-
-            case 'normal':
             default:
                 $link[] = 'sendfile.php?';
                 if ($dltype == 'zip'){
                     $link[] = 'zip=1&';
-                } elseif ($dltype == 'force_download' || $dltype == 'force') {
+                } elseif (in_array($dltype,  ['force_download', 'force'])) {
                     $link[] = 'force_download=1&';
                 }
                 $link[] = 'type='.$type;
@@ -201,18 +198,18 @@ class FileRef extends SimpleORMap
     {
         if (isset($this->owner)) {
             return $this->owner->getFullName('no_title');
-        }  else {
-            return $this->file->author_name;
         }
+        return $this->file->author_name;
     }
 
     public function incrementDownloadCounter()
     {
-        $this->downloads++;
+        $this->downloads += 1;
         if (!$this->isNew()) {
-            $where_query = $this->getWhereQuery();
-            $query = "UPDATE `{$this->db_table}` SET downloads=downloads+1";
-            $query .= " WHERE " . join(" AND ", $where_query);
+            $where_query = join(' AND ' , $this->getWhereQuery());
+            $query = "UPDATE `{$this->db_table}`
+                      SET `downloads` = `downloads` + 1
+                      WHERE {$where_query}";
             return DBManager::get()->exec($query);
         }
     }
@@ -227,82 +224,46 @@ class FileRef extends SimpleORMap
         if (class_exists($this->license)) {
             return new $this->license();
         }
-        throw new UnexpectedValueException('class: ' . $this->license . ' not found');
+        throw new UnexpectedValueException("class: {$this->license} not found");
     }
 
-    
+
     public function isLink()
     {
-        return $this->file->url_access_type == 'redirect';
+        return $this->file->url_access_type === 'redirect';
     }
-    
-    
+
     /**
      * Determines if the FileRef references an image file.
-     * 
+     *
      * @return bool True, if the file is an image file, false otherwise.
      */
     public function isImage()
     {
-        $mime_types = [
-            'image/png',
-            'image/jpeg',
-            'image/gif',
-            'image/svg+xml'
-        ];
-        
-        if($this->file) {
-            if(in_array($this->file->mime_type, $mime_types)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->file
+            && mb_strpos($this->file->mime_type, 'image/') === 0;
     }
-    
-    
+
     /**
      * Determines if the FileRef references an audio file.
-     * 
+     *
      * @return bool True, if the file is an audio file, false otherwise.
      */
     public function isAudio()
     {
-        $mime_types = [
-            'audio/ogg',
-            'audio/webm',
-            'audio/wav',
-            'audio/mpeg',
-            'audio/opus'
-        ];
-        
-        if($this->file) {
-            if(in_array($this->file->mime_type, $mime_types)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->file
+            && mb_strpos($this->file->mime_type, 'audio/') === 0;
     }
-    
-    
+
+
     /**
      * Determines if the FileRef references a video file.
-     * 
+     *
      * @return bool True, if the file is a video file, false otherwise.
      */
     public function isVideo()
     {
-        $mime_types = [
-            'video/ogg',
-            'video/webm',
-            'video/mp4',
-            'video/3gpp'
-        ];
-        
-        if($this->file) {
-            if(in_array($this->file->mime_type, $mime_types)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->file
+            && mb_strpos($this->file->mime_type, 'video/') === 0;
     }
 }

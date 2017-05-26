@@ -7,10 +7,10 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
- * @copyright   2016 Stud.IP Core-Group
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
+ * @author    André Noack <noack@data-quest.de>
+ * @copyright 2016 Stud.IP Core-Group
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category  Stud.IP
  */
 class StandardFolder implements FolderType
 {
@@ -35,13 +35,21 @@ class StandardFolder implements FolderType
         $this->folderdata['folder_type'] = get_class($this);
     }
 
-
     /**
      * @return string
      */
-    static public function getTypeName()
+    public static function getTypeName()
     {
-        return _("Ordner ohne besondere Merkmale");
+        return _('Ordner ohne besondere Merkmale');
+    }
+
+    /**
+     * @param string $range_type
+     * @return bool
+     */
+    public static function creatableInStandardFolder($range_type)
+    {
+        return true;
     }
 
     /**
@@ -50,20 +58,16 @@ class StandardFolder implements FolderType
     public function getIcon($role = Icon::DEFAULT_ROLE)
     {
         if ($this->parent_id || !$this->id) {
-            $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'folder-empty' : 'folder-full';
+            $shape = count($this->getSubfolders()) + count($this->getFiles()) === 0
+                   ? 'folder-empty'
+                   : 'folder-full';
         } else {
-            $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'folder-home-empty' : 'folder-home-full';
+            $shape = count($this->getSubfolders()) + count($this->getFiles()) === 0
+                   ? 'folder-home-empty'
+                   : 'folder-home-full';
         }
-        return Icon::create($shape, $role);
-    }
 
-    /**
-     * @param string $range_type
-     * @return bool
-     */
-    static public function creatableInStandardFolder($range_type)
-    {
-        return true;
+        return Icon::create($shape, $role);
     }
 
     /**
@@ -93,19 +97,19 @@ class StandardFolder implements FolderType
         return $this->folderdata[$name] = $value;
     }
 
-
     /**
      * @param $user_id
      * @return bool
      */
     public function isVisible($user_id)
     {
-        $visible = ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
+        $visible = ($this->range_type === 'user' && $this->range_id === $user_id)
+                    || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
         if ($visible && $parent_folder = $this->getParent()) {
             return $parent_folder->isVisible($user_id);
-        } else {
-            return $visible;
         }
+
+        return $visible;
     }
 
     /**
@@ -114,12 +118,13 @@ class StandardFolder implements FolderType
      */
     public function isReadable($user_id)
     {
-        $readable = ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
+        $readable = ($this->range_type === 'user' && $this->range_id === $user_id)
+                     || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
         if ($readable && $parent_folder = $this->getParent()) {
             return $parent_folder->isReadable($user_id);
-        } else {
-            return $readable;
         }
+
+        return $readable;
     }
 
     /**
@@ -128,7 +133,8 @@ class StandardFolder implements FolderType
      */
     public function isWritable($user_id)
     {
-        return ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('autor', $this->range_id, $user_id);
+        return ($this->range_type === 'user' && $this->range_id === $user_id)
+            || Seminar_Perm::get()->have_studip_perm('autor', $this->range_id, $user_id);
     }
 
     /**
@@ -137,7 +143,8 @@ class StandardFolder implements FolderType
      */
     public function isEditable($user_id)
     {
-        return ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id, $user_id);
+        return ($this->range_type === 'user' && $this->range_id === $user_id)
+            || Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id, $user_id);
     }
 
     /**
@@ -146,7 +153,8 @@ class StandardFolder implements FolderType
      */
     public function isSubfolderAllowed($user_id)
     {
-        return ($this->range_type == 'user' && $this->range_id == $user_id) || Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id, $user_id);
+        return ($this->range_type === 'user' && $this->range_id === $user_id)
+            || Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id, $user_id);
     }
 
     /**
@@ -172,9 +180,9 @@ class StandardFolder implements FolderType
     public function setDataFromEditTemplate($request)
     {
         if (!$request['name']) {
-            return MessageBox::error(_("Die Bezeichnung des Ordners fehlt."));
+            return MessageBox::error(_('Die Bezeichnung des Ordners fehlt.'));
         }
-        $this->folderdata['name'] = $request['name'];
+        $this->folderdata['name']        = $request['name'];
         $this->folderdata['description'] = $request['description'] ?: '';
         return $this;
     }
@@ -191,30 +199,41 @@ class StandardFolder implements FolderType
      */
     public function validateUpload($uploadedfile, $user_id)
     {
-        if ($this->range_type == 'course') {
+        if ($this->range_type === 'course') {
             $status = $GLOBALS['perm']->get_studip_perm($this->range_id, $user_id);
             $active_upload_type = Course::find($this->range_id)->status;
-        } elseif ($this->range_type == 'institute') {
-                $status = $GLOBALS['perm']->get_studip_perm($this->range_id, $user_id);
-                $active_upload_type = 'institute';
+        } elseif ($this->range_type === 'institute') {
+            $status = $GLOBALS['perm']->get_studip_perm($this->range_id, $user_id);
+            $active_upload_type = 'institute';
         } else {
             $status = $GLOBALS['perm']->get_perm($user_id);
             $active_upload_type = "personalfiles";
         }
+
         if (!isset($GLOBALS['UPLOAD_TYPES'][$active_upload_type])) {
             $active_upload_type = 'default';
         }
+
         $upload_type = $GLOBALS['UPLOAD_TYPES'][$active_upload_type];
-        if ($upload_type["file_sizes"][$status] < $uploadedfile['size']) {
-            return sprintf(_("Die maximale Größe für einen Upload (%s) wurde überschritten."), relsize($upload_type["file_sizes"][$status]));
+        if ($upload_type['file_sizes'][$status] < $uploadedfile['size']) {
+            return sprintf(
+                _('Die maximale Größe für einen Upload (%s) wurde überschritten.'),
+                relsize($upload_type['file_sizes'][$status])
+            );
         }
-        $ext = strtolower(pathinfo($uploadedfile['name'], PATHINFO_EXTENSION));
+
+        $ext   = strtolower(pathinfo($uploadedfile['name'], PATHINFO_EXTENSION));
         $types = array_map('strtolower', $upload_type['file_types']);
-        if (!in_array($ext, $types) && $upload_type['type'] == 'deny') {
-            return sprintf(_("Sie dürfen nur die Dateitypen %s hochladen!"), join(',', $upload_type['file_types']));
+
+        if (!in_array($ext, $types) && $upload_type['type'] === 'deny') {
+            return sprintf(
+                _('Sie dürfen nur die Dateitypen %s hochladen!'),
+                join(',', $upload_type['file_types'])
+            );
         }
-        if (in_array($ext, $types) && $upload_type['type'] == 'allow') {
-            return sprintf(_("Sie dürfen den Dateityp %s nicht hochladen!"), $ext);
+
+        if (in_array($ext, $types) && $upload_type['type'] === 'allow') {
+            return sprintf(_('Sie dürfen den Dateityp %s nicht hochladen!'), $ext);
         }
     }
 
@@ -223,10 +242,10 @@ class StandardFolder implements FolderType
      */
     public function getSubfolders()
     {
-        //We must load the subfolders from the database instead
-        //of using $this->folderdata->subfolders, because subfolders
-        //that have been added to this folder aren't included in
-        //$this->folderdata->subfolders although they are in the database.
+        // We must load the subfolders from the database instead
+        // of using $this->folderdata->subfolders, because subfolders
+        // that have been added to this folder aren't included in
+        // $this->folderdata->subfolders although they are in the database.
         $subfolders = [];
         $database_subfolders = Folder::findByParent_id($this->getId());
         foreach ($database_subfolders as $subfolder) {
@@ -241,9 +260,9 @@ class StandardFolder implements FolderType
      */
     public function getFiles()
     {
-        //We must load the files (FileRefs) directly from the database
-        //since files that were added to this folder object after it was
-        //created are not included in the file_refs attribute:
+        // We must load the files (FileRefs) directly from the database
+        // since files that were added to this folder object after it was
+        // created are not included in the file_refs attribute:
         return FileRef::findByFolder_id($this->getId());
     }
 
@@ -253,7 +272,9 @@ class StandardFolder implements FolderType
      */
     public function getParent()
     {
-        return $this->folderdata->parentfolder ? $this->folderdata->parentfolder->getTypedFolder() : null;
+        return $this->folderdata->parentfolder
+             ? $this->folderdata->parentfolder->getTypedFolder()
+             : null;
     }
 
     /**
@@ -261,27 +282,31 @@ class StandardFolder implements FolderType
      */
     public function createFile($file)
     {
-        if (!is_a($file, "File")) {
+        $newfile = $file;
+        $file_ref_data = [];
+
+        if (!is_a($newfile, 'File')) {
             $newfile = new File();
-            $newfile->name = $file['name'];
+            $newfile->name      = $file['name'];
             $newfile->mime_type = $file['type'];
-            $newfile->size = $file['size'];
-            $newfile->storage = 'disk';
-            $newfile->id = $newfile->getNewId();
+            $newfile->size      = $file['size'];
+            $newfile->storage   = 'disk';
+            $newfile->id        = $newfile->getNewId();
             $newfile->connectWithDataFile($file['tmp_path']);
+
             $file_ref_data['description'] = $file['description'];
             $file_ref_data['content_terms_of_use_id'] = $file['content_terms_of_use_id'];
-        } else {
-            $newfile = $file;
-            $file_ref_data = [];
         }
+
         if ($newfile->isNew()) {
             $newfile->store();
         }
-        $file_ref = $this->folderdata->linkFile($newfile, array_filter($file_ref_data));
-        return $file_ref;
-    }
 
+        return $this->folderdata->linkFile(
+            $newfile,
+            array_filter($file_ref_data)
+        );
+    }
 
     public function deleteFile($file_ref_id)
     {
@@ -295,13 +320,11 @@ class StandardFolder implements FolderType
 
     public function createSubfolder(FolderType $foldertype)
     {
-        $foldertype->range_id = $this->folderdata['range_id'];
+        $foldertype->range_id   = $this->folderdata['range_id'];
         $foldertype->range_type = $this->folderdata['range_type'];
-        $foldertype->parent_id = $this->folderdata['id'];
+        $foldertype->parent_id  = $this->folderdata['id'];
         return $foldertype->store();
-
     }
-
 
     public function deleteSubfolder($subfolder_id)
     {
@@ -309,7 +332,7 @@ class StandardFolder implements FolderType
 
         if ($subfolders) {
             foreach ($subfolders as $subfolder) {
-                if ($subfolder->id == $subfolder_id) {
+                if ($subfolder->id === $subfolder_id) {
                     //we found the subfolder that shall be deleted
                     return $subfolder->delete();
                 }
@@ -321,12 +344,10 @@ class StandardFolder implements FolderType
         return false;
     }
 
-
     public function delete()
     {
         return $this->folderdata->delete();
     }
-
 
     /**
      * @param $fileref_or_id
@@ -339,6 +360,7 @@ class StandardFolder implements FolderType
         if ($this->range_type === 'user') {
             return $user_id === $this->range_id;
         }
+
         if (in_array($this->range_type, ['course', 'institute'])) {
             if (is_object($fileref->terms_of_use)) {
                 //terms of use are defined for this file!
@@ -358,8 +380,8 @@ class StandardFolder implements FolderType
     public function isFileEditable($fileref_or_id, $user_id)
     {
         $fileref = FileRef::toObject($fileref_or_id);
-        return $fileref->user_id == $user_id ||
-        $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
+        return $fileref->user_id === $user_id
+            || $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
     }
 
     /**
@@ -377,8 +399,7 @@ class StandardFolder implements FolderType
     public function isFileWritable($fileref_or_id, $user_id)
     {
         $fileref = FileRef::toObject($fileref_or_id);
-        return $fileref->user_id == $user_id ||
-        $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
+        return $fileref->user_id == $user_id
+            || $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
     }
-
 }

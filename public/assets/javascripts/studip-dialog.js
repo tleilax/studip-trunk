@@ -601,22 +601,22 @@
     };
 
     STUDIP.Dialog.confirmAsPost = function (question, action) {
-        var form = $('<form/>',
-            {
-                action: action,
-                method: 'post'
-            }
-        );
-        form.append($('<input/>',
-            {
-                type: 'hidden',
-                name: STUDIP.CSRF_TOKEN.name,
-                value: STUDIP.CSRF_TOKEN.value
-            }));
+        var form = $('<form/>', {
+            action: action,
+            method: 'post'
+        });
+        $('<input/>', {
+            type: 'hidden',
+            name: STUDIP.CSRF_TOKEN.name,
+            value: STUDIP.CSRF_TOKEN.value
+        }).appendTo(form);
+
         $('body').append(form);
+
         STUDIP.Dialog.confirm(question, function () {
             form.submit();
         });
+
         return false;
     };
 

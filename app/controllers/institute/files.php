@@ -30,9 +30,7 @@ class Institute_FilesController extends AuthenticatedController
         PageLayout::setTitle($this->institute->getFullname() . " - " . _("Dateien"));
 
         $this->last_visitdate = object_get_visit($this->institute->id, 'documents');
-
     }
-
 
     private function buildSidebar()
     {
@@ -56,19 +54,15 @@ class Institute_FilesController extends AuthenticatedController
                 URLHelper::getUrl(
                     'dispatch.php/file/new_folder/' . $this->topFolder ->getId()
                 ),
-                Icon::create('folder-empty+add', 'clickable'),
-                [
-                    'data-dialog' => 1
-                ]
-            );
-
+                Icon::create('folder-empty+add', 'clickable')
+            )->asDialog();
         }
         if ($this->topFolder && $this->topFolder->isWritable($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Datei hinzufügen'),
-                "#",
+                '#',
                 Icon::create('file+add', 'clickable'),
-                array('onClick' => "STUDIP.Files.openAddFilesWindow(); return false;")
+                ['onclick' => "STUDIP.Files.openAddFilesWindow(); return false;"]
             );
         }
 
@@ -76,7 +70,7 @@ class Institute_FilesController extends AuthenticatedController
     }
 
     /**
-    Displays the files in tree view
+     * Displays the files in tree view
      **/
     public function index_action($topFolderId = '')
     {
@@ -98,19 +92,17 @@ class Institute_FilesController extends AuthenticatedController
 
         $this->buildSidebar();
 
-        $this->render_template('files/index.php', $GLOBALS['template_factory']->open('layouts/base'));
+        $this->render_template('files/index.php', $this->layout);
     }
 
     /**
-    Displays the files in flat view
+     * Displays the files in flat view
      **/
     public function flat_action()
     {
         Navigation::activateItem('/course/files_new/flat');
 
         $this->marked_element_ids = [];
-
-        $filePreselector = Request::get('select', null);
 
         $folder = Folder::findTopFolder($this->institute->id);
 
@@ -121,10 +113,9 @@ class Institute_FilesController extends AuthenticatedController
         $this->topFolder = $folder->getTypedFolder();
 
         //find all files in all subdirectories:
-        //find all files in all subdirectories:
         list($this->files, $this->folders) = array_values(FileManager::getFolderFilesRecursive($this->topFolder, $GLOBALS['user']->id));
 
-        $this->range_type = "institute";
-        $this->render_template('files/flat.php', $GLOBALS['template_factory']->open('layouts/base'));
+        $this->range_type = 'institute';
+        $this->render_template('files/flat.php', $this->layout);
     }
 }

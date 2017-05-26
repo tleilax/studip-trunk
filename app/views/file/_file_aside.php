@@ -1,11 +1,11 @@
 <aside id="file_aside">
-    <div class="FileIcon"><?= Icon::create(
-            FileManager::getIconNameForMimeType($file_ref->mime_type),
-            'info'
-        ) ?></div>
+    <div class="file-icon">
+        <?= FileManager::getIconForMimeType($file_ref->mime_type, Icon::ROLE_INFO) ?>
+    </div>
+
     <table class="default nohover">
         <caption><?= htmlReady($file_ref->name) ?></caption>
-        <tobdy>
+        <tbody>
             <tr>
                 <td><?= _('Größe') ?></td>
                 <td><?= relSize($file_ref->size, false) ?></td>
@@ -21,38 +21,30 @@
             <tr>
                 <td><?= _('Besitzer/-in') ?></td>
                 <td>
-                    <? if($file_ref->owner): ?>
-                        <a href="<?= URLHelper::getLink(
-                            'dispatch.php/profile',
-                            ['username' => $file_ref->owner->username]
-                            ) ?>">
-                            <?= htmlReady($file_ref->owner->getFullName()) ?>
-                        </a>
-                    <? else: ?>
-                        <?= 'user_id ' . htmlReady($file_ref->user_id) ?>
-                    <? endif ?>
+                <? if ($file_ref->owner): ?>
+                    <a href="<?= URLHelper::getLink('dispatch.php/profile', ['username' => $file_ref->owner->username]) ?>">
+                        <?= htmlReady($file_ref->owner->getFullName()) ?>
+                    </a>
+                <? else: ?>
+                    <?= _('Unbekannter Nutzer') ?>:
+                    <?= htmlReady('Id: ' . $file_ref->user_id) ?>
+                <? endif ?>
                 </td>
             </tr>
-            <? if($file_ref->terms_of_use): ?>
-                <tr>
-                    <td colspan="2">
-                        <h3><?=_('Hinweis zur Nutzung und Weitergabe:')?></h3>
-                        <article><?= htmlReady($file_ref->terms_of_use->student_description) ?></article>
 
-                        <h3><?= _('Bedingung zum Herunterladen') ?></h3>
+        <? if ($file_ref->terms_of_use): ?>
+            <tr>
+                <td colspan="2">
+                    <h3><?=_('Hinweis zur Nutzung und Weitergabe:')?></h3>
+                    <article><?= htmlReady($file_ref->terms_of_use->student_description) ?></article>
 
-                        <? if($file_ref->terms_of_use->download_condition == 0): ?>
-                            <p><?= _('Keine Beschränkung') ?></p>
-                        <? elseif($file_ref->terms_of_use->download_condition == 1): ?>
-                            <p><?= _('Nur innerhalb geschlossener Gruppen') ?></p>
-                        <? elseif($file_ref->terms_of_use->download_condition == 2): ?>
-                            <p><?= _('Nur für Besitzer/-in erlaubt') ?></p>
-                        <? else: ?>
-                            <p><?= _('Nicht definiert') ?></p>
-                        <? endif ?>
-                    </td>
-                </tr>
-            <? endif ?>
-        </tobdy>
+                    <h3><?= _('Bedingung zum Herunterladen') ?></h3>
+                    <p>
+                        <?= htmlReady(ContentTermsOfUse::describeCondition($file_ref->terms_of_use->download_condition)) ?>
+                    </p>
+                </td>
+            </tr>
+        <? endif ?>
+        </tbody>
     </table>
 </aside>

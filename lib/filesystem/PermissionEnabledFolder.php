@@ -7,36 +7,50 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
- * @copyright   2016 Stud.IP Core-Group
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
+ * @author    André Noack <noack@data-quest.de>
+ * @copyright 2016 Stud.IP Core-Group
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category  Stud.IP
  */
 class PermissionEnabledFolder extends StandardFolder
 {
     protected $permission = 7;
-    protected $perms = array('x' => 1, 'w' => 2, 'r' => 4, 'f' => 8);
+    protected $perms = ['x' => 1, 'w' => 2, 'r' => 4, 'f' => 8];
     protected $must_have_perm;
 
-    static public function creatableInStandardFolder($range_type)
+    public static function creatableInStandardFolder($range_type)
     {
-        return $range_type == 'course' || $range_type == 'institute';
+        return in_array($range_type, ['course', 'institute']);
+    }
+
+    public static function getTypeName()
+    {
+        return _('Ordner mit Zugangsbeschränkung');
     }
 
     public function __construct($folderdata = null)
     {
         parent::__construct($folderdata);
-        $this->permission = isset($this->folderdata['data_content']['permission']) ? $this->folderdata['data_content']['permission'] : 7;
-        $this->must_have_perm = $this->range_type == 'course' ? 'tutor' : 'autor';
+
+        if (isset($this->folderdata['data_content']['permission'])) {
+            $this->permission = $this->folderdata['data_content']['permission'];
+        }
+
+        $this->must_have_perm = $this->range_type === 'course' ? 'tutor' : 'autor';
     }
 
     public function getPermissionString()
     {
         $perms = $this->perms;
         array_pop($perms);
+
         $r = array_flip($perms);
-        foreach($perms as $v => $p) if(!($this->permission & $p)) $r[$p] = '-';
-        return join('', array_reverse($r));
+        foreach($perms as $v => $p) {
+            if (!($this->permission & $p)) {
+                $r[$p] = '-';
+            }
+        }
+        return implode(array_reverse($r));
     }
 
     protected function checkPermission($perm, $user_id = null)
@@ -44,28 +58,34 @@ class PermissionEnabledFolder extends StandardFolder
         if ($user_id && is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id)) {
             return true;
         }
+
         return (bool)($this->permission & $this->perms[$perm]);
     }
 
     public function getIcon($role = Icon::DEFAULT_ROLE)
     {
-        $shape = count($this->getSubfolders()) + count($this->getFiles()) == 0 ? 'folder-lock-empty' : 'folder-lock-full';
+        $shape = count($this->getSubfolders()) + count($this->getFiles()) === 0
+               ? 'folder-lock-empty'
+               : 'folder-lock-full';
         return Icon::create($shape, $role);
     }
 
     public function isVisible($user_id = null)
     {
-        return $this->checkPermission('x', $user_id) && parent::isVisible($user_id);
+        return $this->checkPermission('x', $user_id)
+            && parent::isVisible($user_id);
     }
 
     public function isReadable($user_id = null)
     {
-        return $this->checkPermission('r', $user_id) && parent::isReadable($user_id);
+        return $this->checkPermission('r', $user_id)
+            && parent::isReadable($user_id);
     }
 
     public function isWritable($user_id = null)
     {
-        return $this->checkPermission('w', $user_id) && parent::isWritable($user_id);
+        return $this->checkPermission('w', $user_id)
+            && parent::isWritable($user_id);
     }
 
     public function isSubfolderAllowed($user_id = null)
@@ -76,14 +96,11 @@ class PermissionEnabledFolder extends StandardFolder
     public function getDescriptionTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/permission_enabled_folder/description.php');
-        $template->set_attribute('type', self::getTypeName());
-        $template->set_attribute('folder', $this);
-        return $template;
-    }
 
-    static public function getTypeName()
-    {
-        return _("Ordner mit Zugangsbeschränkung");
+        $template->type   = self::getTypeName();
+        $template->folder = $this;
+
+        return $template;
     }
 
     public function setData($request)
@@ -95,16 +112,16 @@ class PermissionEnabledFolder extends StandardFolder
     public function validateUpload($uploadedfile, $user_id)
     {
         if (!$this->isWritable($user_id)) {
-            return _("Der Dateiordner ist nicht beschreibbar.");
-        } else {
-            return parent::validateUpload($uploadedfile, $user_id);
+            return _('Der Dateiordner ist nicht beschreibbar.');
         }
+
+        return parent::validateUpload($uploadedfile, $user_id);
     }
 
     public function getEditTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/permission_enabled_folder/edit.php');
-        $template->set_attribute('folder', $this);
+        $template->folder = $this;
         return $template;
     }
 

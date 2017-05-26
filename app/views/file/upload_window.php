@@ -5,8 +5,8 @@
         </div>
         <ul class="filenames clean"></ul>
         <div class="uploadbar">
-            <?= Icon::create("ufo", "info_alt")->asImg(30, array('class' => "ufo")) ?>
-            <?= Icon::create("upload", "info_alt")->asImg(30) ?>
+            <?= Icon::create('ufo', Icon::ROLE_INFO_ALT)->asImg(30, ['class' => 'ufo']) ?>
+            <?= Icon::create('upload', Icon::ROLE_INFO_ALT)->asImg(30) ?>
         </div>
     </div>
 </div>

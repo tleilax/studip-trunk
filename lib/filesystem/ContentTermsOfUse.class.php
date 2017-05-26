@@ -3,6 +3,13 @@
  * ContentTermsOfUse.class.php
  * model class for table licenses
  *
+ * The ContentTermsOfUse class provides information about the terms under which
+ * a content object in Stud.IP can be used. Each entry in the database table
+ * content_terms_of_use_entries corresponds to one terms of use variant.
+ *
+ * Content can be a file or another Stud.IP object that is capable
+ * of storing copyrighted material.
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -12,16 +19,6 @@
  * @copyright   2016 data-quest
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
- */
-
-
-/**
- * The ContentTermsOfUse class provides information about the terms under which
- * a content object in Stud.IP can be used. Each entry in the database table
- * content_terms_of_use_entries corresponds to one terms of use variant.
- *
- * Content can be a file or another Stud.IP object that is capable
- * of storing copyrighted material.
  *
  * @property string id database column: ID of the content terms of use object
  * @property string name database column: Short name of the terms of use object
@@ -33,12 +30,13 @@
  *      2 = only for owner
  * @property string icon database column: either the name of the icon or the URL that points to the icon
  */
+
 class ContentTermsOfUse extends SimpleORMap
 {
     /**
      * @var
      */
-    private static $cache;
+    private static $cache = null;
 
     /**
      * @param array $config
@@ -46,8 +44,15 @@ class ContentTermsOfUse extends SimpleORMap
     protected static function configure($config = [])
     {
         $config['db_table'] = 'content_terms_of_use_entries';
+
         $config['i18n_fields']['name'] = true;
         $config['i18n_fields']['description'] = true;
+
+        $config['default_values']['download_condition'] = 0;
+        $config['default_values']['icon'] = 'license';
+        $config['default_values']['position'] = 0;
+        $config['default_values']['is_default'] = false;
+
         $config['registered_callbacks']['after_store'][] = 'cbCheckDefault';
 
         parent::configure($config);
@@ -58,8 +63,8 @@ class ContentTermsOfUse extends SimpleORMap
      */
     public static function findAll()
     {
-        if (!isset(self::$cache)) {
-            self::$cache = new SimpleCollection(self::findBySQL("1 ORDER by position,id"));
+        if (self::$cache === null) {
+            self::$cache = new SimpleCollection(self::findBySQL('1 ORDER by position, id'));
         }
         return self::$cache;
     }
@@ -70,8 +75,7 @@ class ContentTermsOfUse extends SimpleORMap
      */
     public static function find($id)
     {
-        $all = self::findAll();
-        return $all->findOneBy('id', $id);
+        return self::findAll()->findOneBy('id', $id);
     }
 
     /**
@@ -79,8 +83,35 @@ class ContentTermsOfUse extends SimpleORMap
      */
     public static function findDefault()
     {
-        $all = self::findAll();
-        return $all->findOneBy('is_default', 1);
+        return self::findAll()->findOneBy('is_default', 1);
+    }
+
+    /**
+     * Returns a list of all valid conditions.
+     *
+     * @return array
+     */
+    public static function getConditions()
+    {
+        return [
+            0 => _('Ohne Bedingung'),
+            1 => _('Nur innerhalb geschlossene Gruppen erlaubt'),
+            2 => _('Nur für EigentümerIn erlaubt'),
+        ];
+    }
+
+    /**
+     * Returns the textual representation of a condition.
+     *
+     * @param int $condition
+     * @return string
+     */
+    public static function describeCondition($condition)
+    {
+        $conditions = self::getConditions();
+        return isset($conditions[$condition])
+             ? $conditions[$condition]
+             : _('Nicht definiert');
     }
 
     /**
@@ -89,9 +120,34 @@ class ContentTermsOfUse extends SimpleORMap
     public function cbCheckDefault()
     {
         if ($this->is_default) {
-            DBManager::get()->exec("UPDATE content_terms_of_use_entries SET is_default = 0 WHERE id <> " . DBManager::get()->quote($this->id));
+            $query = "UPDATE `content_terms_of_use_entries`
+                      SET `is_default` = 0
+                      WHERE id != :id";
+            $statement = DBManager::get()->prepare($query);
+            $statement->bindValue(':id', $this->id);
+            $statement->execute();
         }
         self::$cache = null;
+    }
+
+    /**
+     * Validates this entry
+     *
+     * @return array with error messages, if it's empty everyhting is fine
+     */
+    public function validate()
+    {
+        $errors = [];
+        if ($this->isNew() && self::exists($this->id)) {
+            $errors[] = sprintf(
+                _('Es existiert bereits ein Eintrag mit der ID %s!'),
+                $this->id
+            );
+        }
+        if (!$this->name) {
+            $errors[] = _('Es wurde kein Name für den Eintrag gesetzt!');
+        }
+        return $errors;
     }
 
     /**
@@ -114,10 +170,12 @@ class ContentTermsOfUse extends SimpleORMap
      */
     public function fileIsDownloadable(FileRef $file_ref, $allow_owner = true, $user_id = null)
     {
-        $user_id = $user_id || $GLOBALS['user_id'];
-        if ($allow_owner && ($file_ref->user_id == $GLOBALS['user']->id || $GLOBALS['perm']->have_perm('root', $user_id))) {
+        $user_id = $user_id ?: $GLOBALS['user_id'];
+
+        if ($allow_owner && ($file_ref->user_id === $GLOBALS['user']->id || $GLOBALS['perm']->have_perm('root', $user_id))) {
             return true;
         }
+
         if ($this->download_condition == 1) {
             $folder = $file_ref->folder;
 
@@ -126,29 +184,30 @@ class ContentTermsOfUse extends SimpleORMap
             //the group must also have a terminated signup deadline.
             if ($folder->range_id && $folder->range_type) {
                 //check where this range_id comes from:
-                if ($folder->range_type == 'course') {
+                if ($folder->range_type === 'course') {
                     $seminar = Seminar::GetInstance($folder->range_id);
                     $timed_admission = $seminar->getAdmissionTimeFrame();
 
-                    if ($seminar->admission_prelim == 1 || $seminar->isPasswordProtected() ||
-                        $seminar->isAdmissionLocked()
+                    if ($seminar->admission_prelim
+                        || $seminar->isPasswordProtected()
+                        || $seminar->isAdmissionLocked()
                         || (is_array($timed_admission) && $timed_admission['end_time'] > 0 && $timed_admission['end_time'] < time())
                     ) {
                         return true;
                     }
-                } else {
-                    return false;
                 }
-            } else {
-                //no range_id set: we can't check if the content is downloadable
-                //so it won't be downloadable at all!
-                return false;
             }
-        } elseif ($this->download_condition == 2) {
-            return (bool)Config::get()->ALLOW_DOWNLOAD_FOR_UNKNOWN_LICENSE;
-        } elseif ($this->download_condition == 3) {
             return false;
         }
+
+        if ($this->download_condition == 2) {
+            return (bool)Config::get()->ALLOW_DOWNLOAD_FOR_UNKNOWN_LICENSE;
+        }
+
+        if ($this->download_condition == 3) {
+            return false;
+        }
+
         return true;
     }
 }
