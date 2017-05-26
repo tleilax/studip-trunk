@@ -141,23 +141,8 @@ class ProfileNavigation extends Navigation
 
         //personal file area (only visible for the owner himself)
         if ($current_user->id === $user->id) {
-            
             $navigation = new Navigation(_('Meine Dateien'), 'dispatch.php/files');
             $this->addSubNavigation('files', $navigation);
-            
-            $filesSubNav = new Navigation(_('Standardansicht'), 'dispatch.php/files');
-            $navigation->addSubNavigation('tree', $filesSubNav);
-            
-            $filesSubNav = new Navigation(_('Alle Dateien'), 'dispatch.php/files/flat');
-            $navigation->addSubNavigation('flat', $filesSubNav);
-
-            foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) {
-                if ($plugin->isPersonalFileArea()) {
-                    $subnav = $plugin->getFileSelectNavigation();
-                    $subnav->setURL(URLHelper::getURL("dispatch.php/files/system/".$plugin->getPluginId()));
-                    $navigation->addSubNavigation(get_class($plugin), $subnav);
-                }
-            }
         }
     }
 }

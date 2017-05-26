@@ -30,6 +30,7 @@ class FilesController extends AuthenticatedController
 
         $this->user = User::findCurrent();
         $this->last_visitdate = time();
+        Navigation::activateItem('/profile/files');
     }
 
 
@@ -40,6 +41,27 @@ class FilesController extends AuthenticatedController
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/files-sidebar.png');
+
+
+        $sources = new LinksWidget();
+        $sources->setTitle(_("Dateiquellen"));
+        $sources->addLink(
+            _("Stud.IP-Dateien"),
+            $this->url_for("files/index"),
+            Icon::create("files", "clickable")
+        );
+        foreach (PluginManager::getInstance()->getPlugins('FilesystemPlugin') as $plugin) {
+            if ($plugin->isPersonalFileArea()) {
+                $subnav = $plugin->getFileSelectNavigation();
+                $sources->addLink(
+                    $subnav->getTitle(),
+                    URLHelper::getURL("dispatch.php/files/system/".$plugin->getPluginId()),
+                    $subnav->getImage()
+                );
+            }
+        }
+        $sidebar->addWidget($sources);
+
 
         $actions = new ActionsWidget();
 
@@ -129,12 +151,6 @@ class FilesController extends AuthenticatedController
      */
     public function index_action($topFolderId = '')
     {
-        if (Navigation::hasItem("/profile/files/tree")) {
-            Navigation::activateItem('/profile/files/tree');
-        } else {
-            Navigation::activateItem('/profile/files');
-        }
-
         $this->marked_element_ids = [];
 
         if (!$topFolderId) {
@@ -175,8 +191,6 @@ class FilesController extends AuthenticatedController
      **/
     public function flat_action()
     {
-        Navigation::activateItem('/profile/files/flat');
-
         $this->marked_element_ids = [];
 
         $filePreselector = Request::get('select', null);
@@ -220,7 +234,8 @@ class FilesController extends AuthenticatedController
         if (!$this->plugin->isPersonalFileArea()) {
             throw new Exception("Dieser Bereich ist nicht verfügbar.");
         }
-        Navigation::activateItem('/profile/files/'.get_class($this->plugin));
+        $navigation = $this->plugin->getFileSelectNavigation();
+        PageLayout::setTitle($navigation->getTitle());
         $this->topFolder = $this->plugin->getFolder($folder_id);
         $this->buildSidebar($this->topFolder, false);
         $this->controllerpath = "files/system/".$plugin_id;
