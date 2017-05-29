@@ -38,10 +38,6 @@ select {
         background-position: right 4px center;
         background-repeat: no-repeat;
 
-        &:focus {
-            .background-icon('arr_1up', 'clickable', @select-arrow-size);
-        }
-
         &:not([size]) {
             height: @select-height-default;
             line-height: 1;
@@ -53,10 +49,6 @@ select {
 
     &:focus {
         border: @select-border-focus;
-    }
-
-    &.has-no-value:not(:focus) {
-        color: @dark-gray-color-60;
     }
 }
 
@@ -162,9 +154,6 @@ select {
             }
         }
     }
-    &.select2-container--open .select2-selection--multiple {
-        .background-icon('arr_1up', 'clickable', @select-arrow-size);
-    }
 
     .select2-selection__arrow {
         .background-icon('arr_1down', 'clickable', @select-arrow-size);
@@ -180,9 +169,6 @@ select {
         .select2-selection--single,
         .select2-selection--multiple {
             border: @select-border-focus;
-        }
-        .select2-selection__arrow {
-            .background-icon('arr_1up', 'clickable', @select-arrow-size);
         }
     }
 

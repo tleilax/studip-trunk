@@ -349,8 +349,11 @@ class Admin_CoursesController extends AuthenticatedController
             $this->semester = Semester::find($GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE);
         }
 
-        if (Request::submitted("search") || Request::get("reset-search")) {
+        if (Request::submitted("search")) {
             $GLOBALS['user']->cfg->store('ADMIN_COURSES_SEARCHTEXT', Request::get("search"));
+        }
+        if (Request::get("reset-search")) {
+            $GLOBALS['user']->cfg->delete('ADMIN_COURSES_SEARCHTEXT');
         }
         if (Request::submitted("teacher_filter")) {
             $GLOBALS['user']->cfg->store('ADMIN_COURSES_TEACHERFILTER', Request::option("teacher_filter"));
@@ -1065,7 +1068,7 @@ class Admin_CoursesController extends AuthenticatedController
             'waiting'       => _('Personen auf Warteliste'),
             'preliminary'   => _('Vorläufige Anmeldungen'),
             'contents'      => _('Inhalt'),
-            'last_activity' => _('letzte Aktivität'),
+            'last_activity' => _('Letzte Aktivität'),
         );
     }
 

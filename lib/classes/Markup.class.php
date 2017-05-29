@@ -192,6 +192,17 @@ class Markup
      */
     public static function purifyHtml($html)
     {
+        if ($html instanceof \I18NString) {
+            $base = self::purifyHtml($html->original());
+            $lang = $html->toArray();
+
+            foreach ($lang as &$value) {
+                $value = self::purifyHtml($value);
+            }
+
+            return new \I18NString($base, $lang);
+        }
+
         if (self::isHtml($html)) {
             $html = self::markAsHtml(self::purify($html));
         }
@@ -244,6 +255,7 @@ class Markup
         //
         $config->set('HTML.Allowed', '
             a[class|href|target|rel]
+            audio[controls|src|height|width|style]
             blockquote
             br
             caption
@@ -274,6 +286,7 @@ class Markup
             thead
             th[colspan|rowspan|style|scope]
             tr
+            video[controls|src|height|width|style]
         ');
 
         $config->set('Attr.AllowedFrameTargets', array('_blank'));
@@ -312,6 +325,20 @@ class Markup
         $img = $def->addBlankElement('img');
         $img->attr_transform_post[]
             = new MarkupPrivate\Purifier\AttrTransform_Image_Source();
+
+        $def->addElement('audio', 'Inline', 'Flow', 'Common', array(
+              'src*' => 'URI',
+              'width' => 'Length',
+              'height' => 'Length',
+              'controls' => 'Text',     // Bool triggers bug in HTMLPurifier
+        ));
+
+        $def->addElement('video', 'Inline', 'Flow', 'Common', array(
+              'src*' => 'URI',
+              'width' => 'Length',
+              'height' => 'Length',
+              'controls' => 'Text',     // Bool triggers bug in HTMLPurifier
+        ));
 
         return new \HTMLPurifier($config);
     }
