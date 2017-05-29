@@ -56,18 +56,18 @@
             <span class="actions">
                 <select id="actions-courses" name="action" disabled>
                     <option value="add_dozent">
-                        <?= sprintf(_('Neue/n %s eintragen'), get_title_for_status('dozent', 2)) ?>
+                        <?= sprintf(_('%s eintragen'), get_title_for_status('dozent', 2)) ?>
                     </option>
                     <?php if (Config::get()->DEPUTIES_ENABLE) : ?>
                         <option value="add_deputy">
-                            <?= _('Neue Vertretung/en eintragen') ?>
+                            <?= _('Vertretung/en eintragen') ?>
                         </option>
                     <?php endif ?>
                     <option value="add_tutor">
-                        <?= sprintf(_('Neue/n %s eintragen'), get_title_for_status('tutor', 2)) ?>
+                        <?= sprintf(_('%s eintragen'), get_title_for_status('tutor', 2)) ?>
                     </option>
                     <option value="add_autor">
-                        <?= sprintf(_('Neue/n %s eintragen'), get_title_for_status('autor', 2)) ?>
+                        <?= sprintf(_('%s eintragen'), get_title_for_status('autor', 2)) ?>
                     </option>
                 </select>
                 <input type="hidden" name="course" value="<?= $current->id ?>">

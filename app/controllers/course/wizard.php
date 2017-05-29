@@ -166,7 +166,7 @@ class Course_WizardController extends AuthenticatedController
                         if (in_array($this->course->status, studygroup_sem_types() ?: array())) {
                             $message = MessageBox::success(
                                 sprintf(_('Die Studien-/Arbeitsgruppe "%s" wurde angelegt. ' .
-                                    'Sie können Sie direkt hier weiter verwalten.'),
+                                    'Sie können sie direkt hier weiter verwalten.'),
                                     htmlReady($this->course->name)));
                             $target = $this->url_for('course/studygroup/edit/' . $this->course->id . '?cid=' . $this->course->id);
                             // "Normal" course.
@@ -177,7 +177,7 @@ class Course_WizardController extends AuthenticatedController
                                 $target = $this->url_for('admin/courses');
                             } else {
                                 $message = MessageBox::success(
-                                    sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
+                                    sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können sie direkt hier weiter verwalten.'),
                                         htmlReady($this->course->getFullname())));
                                 $target = $this->url_for('course/management?cid=' . $this->course->id);
                             }

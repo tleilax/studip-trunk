@@ -511,7 +511,7 @@ class Course_GroupingController extends AuthenticatedController
             $sem = Seminar::getInstance($course);
 
             // ... and selected users.
-            foreach (Request::getArray('users') as $user) {
+            foreach (Request::optionArray('users') as $user) {
                 // Try to add deputies.
                 if (Request::option('permission') == 'deputy') {
                     // If not already deputy, create new entry.
@@ -546,7 +546,9 @@ class Course_GroupingController extends AuthenticatedController
                 _('In folgenden Veranstaltungen sind Probleme beim Eintragen der gewünschten Personen aufgetreten:'),
                     array_keys($fail));
         } else {
-            PageLayout::postSuccess(_('Die gewählte(n) Personen wurden eingetragen.'));
+            PageLayout::postSuccess(ngettext(('Die gewählte Person wurde eingetragen.'),
+                ('Die gewählten Personen wurden eingetragen.'),
+                count(Request::optionArray('users'))));
         }
 
         $this->relocate('course/grouping/members');
