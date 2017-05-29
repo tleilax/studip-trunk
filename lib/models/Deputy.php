@@ -54,11 +54,23 @@ class Deputy extends SimpleORMap
         parent::configure($config);
     }
 
+    /**
+     * Gets the full deputy name (in fact just redirecting to User class)
+     * @see User::getFullname
+     * @param string $format one of full,full_rev,no_title,no_title_rev,no_title_short,no_title_motto,full_rev_username
+     * @return string The deputy's full name, like "John Doe" or "Doe, John"
+     */
     function getDeputyFullname($format = 'full')
     {
         return $this->deputy->getFullname($format);
     }
 
+    /**
+     * Gets the full boss name (in fact just redirecting to User class)
+     * @see User::getFullname
+     * @param string $format one of full,full_rev,no_title,no_title_rev,no_title_short,no_title_motto,full_rev_username
+     * @return string The bosses full name, like "John Doe" or "Doe, John"
+     */
     function getBossFullname($format = 'full')
     {
         if ($this->boss) {
@@ -68,6 +80,13 @@ class Deputy extends SimpleORMap
         }
     }
 
+    /**
+     * Gets the full course name (in fact just redirecting to Course class)
+     * @see Course::getFullname
+     * @param string $format one of default, type-name, number-type-name, number-name,
+     *                       number-name-semester, sem-duration-name
+     * @return string The courses' full name, like "1234 Lecture: Databases"
+     */
     function getCourseFullname($format = 'default')
     {
         if ($this->course) {
