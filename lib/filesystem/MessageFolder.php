@@ -27,14 +27,14 @@ class MessageFolder implements FolderType
      */
     public function __construct($folder = null)
     {
-        if ($folderdata instanceof StandardFolder) {
-            $this->folderdata = $folderdata->folderdata;
-        } elseif ($folderdata instanceof Folder) {
-            $this->folderdata = $folderdata;
+        if ($folder instanceof StandardFolder) {
+            $this->folder = $folder->folderdata;
+        } elseif ($folder instanceof Folder) {
+            $this->folder = $folder;
         } else {
-            $this->folderdata = Folder::build($folderdata);
+            $this->folder = Folder::build($folderdata);
         }
-        $this->folderdata['folder_type'] = get_class($this);
+        $this->folder['folder_type'] = get_class($this);
     }
 
     /**
@@ -292,17 +292,17 @@ class MessageFolder implements FolderType
             $new_file->size      = $file['size'];
             $new_file->storage   = 'disk';
             $new_file->id        = $new_file->getNewId();
-            $new_file->connectWithDataFile($file['tmp_path']);
-
-            $file_ref_data['description'] = $file['description'];
-            $file_ref_data['license']     = $file['license'];
-            $file_ref_data['content_terms_of_use_id'] = $file['content_terms_of_use_id'];
+            $new_file->connectWithDataFile($file['tmp_name']);
         }
 
         if ($new_file->isNew()) {
             $new_file->store();
         }
-
+        
+        $file_ref_data['name'] = $file['name'];
+        $file_ref_data['description'] = $file['description'];
+        $file_ref_data['content_terms_of_use_id'] = $file['content_terms_of_use_id'];
+        
         return $this->folder->linkFile(
             $new_file,
             array_filter($file_ref_data)

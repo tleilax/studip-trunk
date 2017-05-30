@@ -713,7 +713,8 @@ class MessagesController extends AuthenticatedController {
         return $messages;
     }
 
-    public function upload_attachment_action() {
+    public function upload_attachment_action()
+    {
         if ($GLOBALS['user']->id === "nobody") {
             throw new AccessDeniedException();
         }
@@ -747,15 +748,15 @@ class MessagesController extends AuthenticatedController {
         $file_object->storage = 'disk';
         $file_object->author_name = $user->getFullName();
         
-        $file_ref = $message_top_folder->createFile($file_object);
+        $file_ref = $message_top_folder->createFile($file);
         
-        if (!$file_ref) {
-            throw new Exception('Unable to handle uploaded file!');
-        }
-        
-        $result = $file_object->connectWithDataFile($file['tmp_name']);
-        if(!$result) {
-            throw new Exception('Data of file with ID ' . $file_object->id . ' cannot be stored in path for uploaded files!');
+        if (!$file_ref instanceof FileRef) {
+            $error_message = _('Die hochgeladene Datei kann nicht verarbeitet werden!');
+            
+            if ($file_ref instanceof MessageBox) {
+                $error_message .= ' ' . $file_ref->message;
+            }
+            throw new Exception($error_message);
         }
         
         $output['document_id'] = $file_ref->file_id;
