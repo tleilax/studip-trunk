@@ -133,37 +133,36 @@ class FileSystem extends \RESTAPI\RouteMap
     }
 
     /**
-     * Upload file data using a FileReference to it.
+     * Update file data using a FileReference to it.
      *
-     * @put /file/:file_ref_id/upload
+     * @post /file/:file_ref_id/update
      */
-    public function uploadFileData($file_ref_id)
+    public function updateFileData($file_ref_id)
     {
         $file_ref = \FileRef::find($file_ref_id);
         if (!$file_ref) {
             $this->notFound('File reference not found!');
         }
 
-        $user_id = \User::findCurrent()->id;
+        $user = \User::findCurrent();
 
-        //check if the current user has the permissions to upload
-        //data for the file reference's file object:
-        if ($file_ref->folder) {
-            if ($file_ref->folder->isEditable($user_id)) {
-                if (!$file_ref->file) {
-                    $this->halt(500, 'File reference has no associated file object!');
-                }
-                //if this code is executed the user can
-                //upload new data to the associated file object
-                $data_path = $file_ref->file->getPath();
-                if (!file_exists($data_path)) {
-                    $this->notFound("File was not found in the operating system's file system!");
-                }
-
-                //TODO
-            }
+        //We only update the first file:
+        $uploaded_file = array_shift($this->data['_FILES']);
+        
+        //FileManager::updateFileRef handles the whole file upload
+        //and does all the necessary security checks:
+        $result = \FileManager::updateFileRef(
+            $file_ref,
+            $user,
+            $uploaded_file,
+            true,
+            false
+        );
+        
+        if ($result instanceof \FileRef) {
+            return $result->toRawArray();
         } else {
-            $this->halt(500, 'File reference has no associated folder object!');
+            $this->halt(500, 'Error while updating a file reference: ' . implode(' ', $result));
         }
     }
 
