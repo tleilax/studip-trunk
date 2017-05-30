@@ -23,7 +23,7 @@ class HiddenFolder extends PermissionEnabledFolder
 
     public static function getTypeName()
     {
-        return _('Unsichtbarer Ordner mit Zugangsbeschränkung');
+        return _("Unsichtbarer Ordner");
     }
 
     public function getIcon($role = Icon::DEFAULT_ROLE)
@@ -32,6 +32,12 @@ class HiddenFolder extends PermissionEnabledFolder
                ? 'folder-lock-empty+visibility-invisible'
                : 'folder-lock-full+visibility-invisible';
         return Icon::create($shape, $role);
+    }
+
+    public function __construct($folderdata = null)
+    {
+        parent::__construct($folderdata);
+        $this->permission = 6;
     }
 
     public function getDescriptionTemplate()
