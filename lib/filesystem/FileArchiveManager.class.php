@@ -100,7 +100,10 @@ class FileArchiveManager
                     //The archive file may not exist if it is empty!
                     if (file_exists($archive->filename) && filesize($archive->filename) > $archive_max_size) {
                         throw new FileArchiveManagerException(
-                            "Zip archive is too big! Limit is {$archive_max_size} bytes!"
+                            sprintf(
+                                _('Das ZIP-Archiv ist zu groß! Die maximal erlaubte Größe ist %d bytes!'),
+                                $archive_max_size
+                            )
                         );
                     }
 
@@ -194,7 +197,10 @@ class FileArchiveManager
 
         if (file_exists($archive->filename) && filesize($archive->filename) > $archive_max_size) {
             throw new FileArchiveManagerException(
-                "Zip archive is too big! Limit is {$archive_max_size} bytes!"
+                sprintf(
+                    _('Das ZIP-Archiv ist zu groß! Die maximal erlaubte Größe ist %d bytes!'),
+                    $archive_max_size
+                )
             );
         }
 
@@ -249,7 +255,7 @@ class FileArchiveManager
         // check if archive path is set:
         if (!$archive_file_path) {
             throw new FileArchiveManagerException(
-                'Destination path for file archive is not set!'
+                _('Der Zielpfad für das Archiv wurde nicht angegeben!')
             );
         }
 
@@ -269,7 +275,10 @@ class FileArchiveManager
         //In that case, stop here.
         if ($archive_max_num_files && count($file_area_objects) > $archive_max_num_files) {
             throw new FileArchiveManagerException(
-                "Too many file area objects! Limit is {$archive_max_num_files}!"
+                sprintf(
+                    _('Das Archiv beinhaltet zu viele Dateibereich-Objekte! Die Obergrenze liegt bei %d Objekten!'),
+                    $archive_max_num_files
+                )
             );
         }
 
@@ -336,7 +345,7 @@ class FileArchiveManager
 
         if (!$archive_file_path) {
             throw new FileArchiveManagerException(
-                'Destination path for file archive is not set!'
+                _('Der Zielpfad für das Archiv wurde nicht angegeben!')
             );
         }
 
@@ -560,7 +569,9 @@ class FileArchiveManager
 
         if (!file_exists($folder_path)) {
             //path to physical folder does not exist!
-            throw new FileArchiveManagerException('Physical folder does not exist!');
+            throw new FileArchiveManagerException(
+                _('Der Ordner wurde im Dateisystem des Servers nicht gefunden!')
+            );
         }
 
         //Put all the content of the folder inside an archive:
