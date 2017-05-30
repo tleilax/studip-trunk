@@ -2,51 +2,57 @@
 /**
  * InboxOutboxFolder.class.php
  *
- * This is a common FolderType implementation for inbox and outbox folders.
- * It it not meant to be used directly! Instead use the InboxFolder and
- * OutboxFolder extensions of this class!
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author     Moritz Strohm <strohm@data-quest.de>
- * @copyright  2016 data-quest
- * @license    http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category   Stud.IP
+ * @author      Moritz Strohm <strohm@data-quest.de>
+ * @copyright   2016 data-quest
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category    Stud.IP
+ */
+
+
+/**
+ * Class InboxOutboxFolder
+ *
+ * This is a common FolderType implementation for inbox and outbox folders.
+ * It it not meant to be used directly! Instead use the InboxFolder and
+ * OutboxFolder extensions of this class!
  */
 class InboxOutboxFolder implements FolderType
 {
-    protected $user = null;
+    protected $user;
     protected $folder;
 
     public function __construct($folder)
     {
         if ($folder instanceof Folder) {
             $this->folder = $folder;
-            $this->user   = User::find($folder->user_id);
+            $this->user = User::find($folder->user_id);
         } else {
             $this->folder = new Folder();
+            $this->user = null;
         }
     }
+
 
     public function __get($attribute)
     {
         return $this->folder[$attribute];
     }
 
-    public static function getTypeName()
+
+    static public function getTypeName()
     {
         return _('InboxOutboxFolder');
     }
 
+
     public function getIcon($role)
     {
-        $icon = count($this->getFiles())
-              ? 'folder-full'
-              : 'folder-empty';
-        return Icon::create($icon, $role);
+        return Icon::create(count($this->getFiles()) ? 'folder-full' : 'folder-empty', $role);
     }
 
     public function getId()
@@ -54,21 +60,27 @@ class InboxOutboxFolder implements FolderType
         return $this->folder->id;
     }
 
-    public static function creatableInStandardFolder($range_type)
+    static public function creatableInStandardFolder($range_type)
     {
-        return $range_type === 'user';
+        return false;
     }
 
     public function isVisible($user_id)
     {
-        return $this->user
-            && $user_id === $this->user->id;
+        if ($this->user) {
+            return ($user_id == $this->user->id);
+        } else {
+            return false;
+        }
     }
 
     public function isReadable($user_id)
     {
-        return $this->user
-            && $user_id === $this->user->id;
+        if ($this->user) {
+            return ($user_id == $this->user->id);
+        } else {
+            return false;
+        }
     }
 
     public function isWritable($user_id)
@@ -89,16 +101,16 @@ class InboxOutboxFolder implements FolderType
 
     public function getDescriptionTemplate()
     {
-        return [];
+        return '';
     }
 
     public function getParent()
     {
         if ($this->folder->parentFolder) {
             return $this->folder->parentFolder->getTypedFolder();
+        } else {
+            return null;
         }
-
-        return null;
     }
 
     public function getSubfolders()
@@ -116,13 +128,14 @@ class InboxOutboxFolder implements FolderType
 
     public function getEditTemplate()
     {
-        return [];
+        return '';
     }
 
     public function setDataFromEditTemplate($folderdata)
     {
         return MessageBox::error(_('InboxOutbox-Ordner können nicht bearbeitet werden!'));
     }
+
     public function store()
     {
 
@@ -155,15 +168,20 @@ class InboxOutboxFolder implements FolderType
         return false;
     }
 
+
     public function delete()
     {
         return $this->folder->delete();
     }
 
+
     public function isFileDownloadable($file_ref_id, $user_id)
     {
-        return $this->user
-            && $user_id === $this->user->id;
+        if ($this->user) {
+            return ($user_id == $this->user->id);
+        } else {
+            return false;
+        }
     }
 
     public function isFileEditable($file_ref_id, $user_id)

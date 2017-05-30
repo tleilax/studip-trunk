@@ -52,14 +52,4 @@ class InboxFolder extends InboxOutboxFolder
 
         return $files;
     }
-
-    public function setDataFromEditTemplate($folderdata)
-    {
-        return MessageBox::error(_('Inbox-Ordner können nicht bearbeitet werden!'));
-    }
-
-    public function createFile($file)
-    {
-        return MessageBox::error(_('In Inbox-Ordnern können keine Dateien erzeugt werden!'));
-    }
 }
