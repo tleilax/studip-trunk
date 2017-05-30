@@ -141,8 +141,9 @@ interface FolderType
     /**
      * gets data from edit form
      *
-     * @param ArrayAccess|array $folderdata
-     * @return array array of strings containing errors
+     * @param ArrayAccess|Request $folderdata
+     * @return FolderType|MessageBox FolderType instance on success,
+     *     a MessageBox object with an error message on failure.
      */
     public function setDataFromEditTemplate($folderdata);
 

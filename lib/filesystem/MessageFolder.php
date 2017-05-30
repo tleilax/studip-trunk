@@ -27,12 +27,14 @@ class MessageFolder implements FolderType
      */
     public function __construct($folder = null)
     {
-        if ($folder instanceof Folder) {
-            $this->folder  = $folder;
-            $this->message = Message::find($folder->range_id);
+        if ($folderdata instanceof StandardFolder) {
+            $this->folderdata = $folderdata->folderdata;
+        } elseif ($folderdata instanceof Folder) {
+            $this->folderdata = $folderdata;
         } else {
-            $this->folder = new Folder();
+            $this->folderdata = Folder::build($folderdata);
         }
+        $this->folderdata['folder_type'] = get_class($this);
     }
 
     /**
@@ -235,46 +237,17 @@ class MessageFolder implements FolderType
 
     public function getEditTemplate()
     {
-        if ($this->folder) {
-            return [
-                'parent_id'   => $this->folder->parent_id,
-                'range_id'    => $this->folder->range_id,
-                'name'        => $this->folder->name,
-                'description' => $this->folder->description
-            ];
-        }
-
-        return [];
+        
     }
 
-    public function setDataFromEditTemplate($edit_template)
+    public function setDataFromEditTemplate($request)
     {
-        //IMPORTANT NOTICE: The attribute name of the folder MUST NOT be editable
-        //if the folder is the top folder of a message!
-        //This is because the top folder name is set to the message ID
-        //(because folders must have a name)
-        //and the message's topic is displayed as the top folder's name.
-        //Therefore it doesn't make any sense to change the folder name, too.
-
-        if ($this->folder) {
-            if (!empty($edit_template['parent_id'])) {
-                $this->folder->parent_id = $edit_template['parent_id'];
-            }
-
-            if (!empty($edit_template['range_id'])) {
-                $this->folder->range_id = $edit_template['range_id'];
-            }
-
-            // Note: Description may be empty
-            if (array_key_exists('description', $edit_template)) {
-                $this->folder->description = $edit_template['description'];
-            }
-
-            if ($this->folder->isDirty()) {
-                //we only want to store data if the folder data were changed:
-                $this->folder->store();
-            }
+        if (!$request['name']) {
+            return MessageBox::error(_('Die Bezeichnung des Ordners fehlt.'));
         }
+        $this->folderdata['name']        = $request['name'];
+        $this->folderdata['description'] = $request['description'] ?: '';
+        return $this;
     }
 
     public function validateUpload($uploaded_file, $user_id)

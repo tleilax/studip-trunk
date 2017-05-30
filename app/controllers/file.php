@@ -1027,6 +1027,10 @@ class FileController extends AuthenticatedController
                     PageLayout::postSuccess(_('Der Ordner wurde angelegt.'));
                     $this->response->add_header('X-Dialog-Close', '1');
                     $this->render_nothing();
+                } else {
+                    PageLayout::postError(
+                        _('Fehler beim Anlegen des Ordners!')
+                    );
                 }
             } else {
                 PageLayout::postMessage($result);
