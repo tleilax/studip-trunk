@@ -1,1 +1,0 @@
-TODO: Confirm dialog with number of files and folders!
