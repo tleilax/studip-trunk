@@ -1011,9 +1011,13 @@ class FileController extends AuthenticatedController
         if (Request::submitted('create')) {
             CSRFProtection::verifyUnsafeRequest();
 
+            //Get class name of folder type and check if the class
+            //is a subclass of FolderType before initialising it:
             $folder_type = Request::get('folder_type', 'StandardFolder');
-            if (!is_a($new_folder, 'FolderType')) {
-                throw new Exception('Requested folder type is invalid');
+            if (!is_subclass_of($folder_type, 'FolderType')) {
+                throw new Exception(
+                    _('Der gewünschte Ordnertyp ist ungültig!')
+                );
             }
             $new_folder = new $folder_type();
             $result = $new_folder->setDataFromEditTemplate(Request::getInstance());
