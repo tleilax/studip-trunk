@@ -283,7 +283,7 @@ class StudipMail
      */
     function addStudipAttachment(FileRef $file_ref)
     {
-        if(!$file_ref->isNew()) {
+        if (!$file_ref->isNew()) {
             $this->addFileAttachment(
                 $file_ref->file->getPath(),
                 $file_ref->name

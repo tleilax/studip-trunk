@@ -185,14 +185,9 @@ class messaging
             $reply_to = $sender->Email;
         }
         $attachments = array();
-        if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
-            $attachment_folder = MessageFolder::findMessageTopFolder($msg->id, $msg->autor_id);
-            $attachments = FileManager::getFolderFilesRecursive($attachment_folder, $msg->autor_id)['files'];
-
-            $size_of_attachments = 0;
-            foreach($attachments as $attachment) {
-                $size_of_attachments += $attachment->file->size;
-            }
+        if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS'] && $msg->attachment_folder) {
+            $attachments = $msg->attachment_folder->file_refs;
+            $size_of_attachments = array_sum($attachments->pluck('size')) ?: 0;
             //assume base64 takes 33% more space
             $attachments_as_links = $size_of_attachments * 1.33 > $GLOBALS['MAIL_ATTACHMENTS_MAX_SIZE'] * 1048576; //1MiB = 1024 KiB = 1048576 Bytes
         }
@@ -293,18 +288,6 @@ class messaging
             $message .= _('Diese Nachricht wurde automatisch vom Stud.IP-System generiert. Sie können darauf nicht antworten.');
 
             restoreLanguage();
-        }
-
-        // Setzen der Message-ID als Range_ID für angehängte Dateien
-        if (isset($this->provisonal_attachment_id) && $GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
-            $attachment_folder = MessageFolder::findMessageTopFolder($this->provisonal_attachment_id, $user_id);
-
-            if($attachment_folder) {
-                $folder_data = $attachment_folder->getEditTemplate();
-                $folder_data['range_id'] = $tmp_message_id;
-                $folder_data['description'] = $subject;
-                $attachment_folder->setDataFromEditTemplate($folder_data);
-            }
         }
 
         // insert message

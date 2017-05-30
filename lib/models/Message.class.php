@@ -283,8 +283,7 @@ class Message extends SimpleORMap
 
     public function getNumAttachments()
     {
-        return MessageFolder::getNumMessageAttachments($this->id);
-        //return StudipDocument::countBySQL("range_id=?", array($this->id));
+        return FileRef::countBySql("INNER JOIN folders ON(folders.id = folder_id) WHERE folders.range_id = ?", [$this->id]);
     }
 
     /**

@@ -97,7 +97,7 @@ class Folder extends SimpleORMap
      *
      * @return Folder Created Folder object.
      */
-    public static function createTopFolder($range_id, $range_type)
+    public static function createTopFolder($range_id, $range_type, $folder_type = 'StandardFolder')
     {
         return self::create([
             'parent_id'    => '',
@@ -106,7 +106,8 @@ class Folder extends SimpleORMap
             'description'  => '',
             'name'         => '',
             'data_content' => '',
-            'folder_type'  => 'StandardFolder'
+            'folder_type'  => $folder_type,
+            'user_id'      => $GLOBALS['user']->id
         ]);
     }
 
@@ -218,7 +219,7 @@ class Folder extends SimpleORMap
         while ($this->fileExists($file_name)) {
             $file_name = $name . '[' . ++$c . ']';
             if ($ext) {
-                $filename .= '.' . $ext;
+                $file_name .= '.' . $ext;
             }
         }
         return $file_name;

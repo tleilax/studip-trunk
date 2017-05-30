@@ -79,6 +79,15 @@ class ContentTermsOfUse extends SimpleORMap
     }
 
     /**
+     * @param $id string
+     * @return ContentTermsOfUse
+     */
+    public static function findOrBuild($id)
+    {
+        return self::find($id) ?: self::build(['id' => 'UNDEFINED', 'name' => 'unbekannt']);
+    }
+
+    /**
      * @return ContentTermsOfUse
      */
     public static function findDefault()

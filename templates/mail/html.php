@@ -11,17 +11,17 @@
     <p>
       <?= formatReady($message, true, true) ?>
     </p>
-    <? if (is_array($attachments) && count($attachments)) : ?>
+    <? if (isset($attachments) && count($attachments)) : ?>
     <hr>
-    <span class="minor"> 
+    <span class="minor">
       <?=_("Dateianhänge:")?>
-        <ul> 
+        <ul>
         <? foreach($attachments as $attachment) : ?>
-       	  <li> 
-            <a href="<?= $attachment->getDownloadURL() ?>"><?= htmlReady($attachment->name . ' (' . relsize($attachment->file->size, false) . ')') ?></a> 
+       	  <li>
+            <a href="<?= $attachment->getDownloadURL() ?>"><?= htmlReady($attachment->name . ' (' . relsize($attachment->file->size, false) . ')') ?></a>
           </li>
         <? endforeach;?>
-     	</ul> 
+     	</ul>
      </span>
   	<? endif;?>
     <hr>

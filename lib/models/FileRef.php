@@ -50,7 +50,8 @@ class FileRef extends SimpleORMap
 
         $config['belongs_to']['terms_of_use'] = [
             'class_name' => 'ContentTermsOfUse',
-            'foreign_key' => 'content_terms_of_use_id'
+            'foreign_key' => 'content_terms_of_use_id',
+            'assoc_func' => 'findOrBuild'
         ];
 
         $config['additional_fields']['size'] = ['file', 'size'];
@@ -108,7 +109,7 @@ class FileRef extends SimpleORMap
                     default:
                         $link[] = 'normal/';
                 }
-                $link[] = $type . '/' . $filename;
+                $link[] = $type . '/' . $file_name;
                 break;
             default:
                 $link[] = 'sendfile.php?';
