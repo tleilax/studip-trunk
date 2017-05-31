@@ -65,7 +65,7 @@ if (in_array($type, array(0, 6, 7))) {
     }
 }
 //download from archive, allowed if former participant
-if ($type == 1){
+if ($type == 1) {
     $query = "SELECT seminar_id FROM archiv WHERE archiv_file_id = ?";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($file_id));
@@ -85,7 +85,7 @@ if ($type == 1){
 
 //download ad hoc created files, always allowed
 if ($type == 4) {
-    $no_access = false;
+    $no_access = !(Token::is_valid(Request::option('token')) === $GLOBALS['user']->id);
 }
 
 //if download not allowed throw exception to terminate script
@@ -125,7 +125,8 @@ if (isset($file_ref) && $file_ref->file->url_access_type == 'proxy') {
 
     $filesize = $link_data['Content-Length'];
     if (!$filesize) $filesize = false;
-} else {
+}
+if (isset($file_ref) && $file_ref->file->storage == 'disk') {
     $filesize = @filesize($path_file);
     if ($filesize === false) {
         throw new Exception(_('Fehler beim Laden der Inhalte der Datei'));
@@ -159,7 +160,7 @@ if (Request::int('force_download') || $content_type == "application/octet-stream
 }
 
 $start = $end = null;
-if ($filesize && $file_ref->file->storage == 'disk' && !Request::int('zip')) {
+if ($filesize && $file_ref->file->storage == 'disk') {
     header("Accept-Ranges: bytes");
     $start = 0;
     $end = $filesize - 1;
@@ -218,7 +219,7 @@ if (isset($file_ref) && !$start) {
     $file_ref->incrementDownloadCounter();
 }
 
-//remove temporary file after zipping
-if (Request::int('zip') || $type == 4) {
+//remove temporary file
+if ($type == 4) {
     @unlink($path_file);
 }

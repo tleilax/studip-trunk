@@ -146,12 +146,12 @@ class FileManager
         $attributes = []
     )
     {
-        $icon = self::getIconNameForMimeType($mimet_type);
+        $icon = self::getIconNameForMimeType($mime_type);
         return Icon::create($icon, $role, $attributes);
     }
 
     /**
-     * Builds a download link for the file archive of an archived course.
+     * Builds a download URL for the file archive of an archived course.
      *
      * @param ArchivedCourse $archived_course An archived course whose file archive is requested.
      * @param bool $protected_archive True, if the protected file archive is requested.
@@ -159,7 +159,7 @@ class FileManager
      *
      * @return string The download link for the file or an empty string on failure.
      */
-    public static function getDownloadLinkForArchivedCourse(
+    public static function getDownloadURLForArchivedCourse(
         ArchivedCourse $archived_course,
         $protected_archive = false
     )
@@ -176,7 +176,7 @@ class FileManager
             );
 
             //file_id is set: file archive exists
-            return URLHelper::getLink('sendfile.php', [
+            return URLHelper::getURL('sendfile.php', [
                 'type'           => 1,
                 'file_id'        => $file_id,
                 'file_name'      => $file_name,
@@ -189,6 +189,23 @@ class FileManager
     }
 
     /**
+     * Builds a download link for the file archive of an archived course.
+     *
+     * @param ArchivedCourse $archived_course An archived course whose file archive is requested.
+     * @param bool $protected_archive True, if the protected file archive is requested.
+     *     False, if the "readable for everyone" file archive is requested (default).
+     *
+     * @return string The download link for the file or an empty string on failure.
+     */
+    public static function getDownloadLinkForArchivedCourse(
+        ArchivedCourse $archived_course,
+        $protected_archive = false
+    )
+    {
+        return htmlReady(self::getDownloadURLForArchivedCourse($archived_course, $protected_archive));
+    }
+
+    /**
      * Builds a download link for temporary files.
      */
     public static function getDownloadLinkForTemporaryFile(
@@ -196,12 +213,7 @@ class FileManager
         $download_file_name = null
     )
     {
-        return URLHelper::getLink('sendfile.php', [
-            'type'           => 4,
-            'file_id'        => $temporary_file_name,
-            'file_name'      => $download_file_name,
-            'force_download' => true, //because temporary files have a reason for their name
-        ], true);
+        return htmlReady(self::getDownloadURLForTemporaryFile($temporary_file_name, $download_file_name));
     }
 
 
@@ -213,7 +225,9 @@ class FileManager
         $download_file_name = null
     )
     {
+        $token = new Token($GLOBALS['user']->id);
         return URLHelper::getURL('sendfile.php', [
+            'token'          => (string)$token,
             'type'           => 4,
             'file_id'        => $temporary_file_name,
             'file_name'      => $download_file_name,
@@ -1187,7 +1201,7 @@ class FileManager
 
     /**
      * Creates a list of files and subfolders of a folder.
-     * 
+     *
      * @param FolderType $top_folder The folder whose content shall be retrieved.
      * @param string $user_id The ID of the user who wishes to get all
      *     files and subfolders of a folder.
@@ -1214,7 +1228,7 @@ class FileManager
      * Returns a FolderType instance for a given folder-ID.
      * This method can also get FolderType instances which are defined
      * in a file system plugin.
-     * 
+     *
      * @param $id The ID of a Folder object.
      * @param null $pluginclass The name of a Plugin's main class.
      * @return FolderType|null A FolderType object if it can be retrieved
