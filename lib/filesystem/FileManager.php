@@ -536,7 +536,6 @@ class FileManager
         )];
     }
 
-
     /**
      * This method handles copying a file to a new folder.
      *
@@ -1187,9 +1186,12 @@ class FileManager
 
 
     /**
-     * @param FolderType $top_folder
-     * @param string $user_id
-     * @return array
+     * Creates a list of files and subfolders of a folder.
+     * 
+     * @param FolderType $top_folder The folder whose content shall be retrieved.
+     * @param string $user_id The ID of the user who wishes to get all
+     *     files and subfolders of a folder.
+     * @return mixed[] A mixed array with FolderType and FileRef objects.
      */
     public static function getFolderFilesRecursive(FolderType $top_folder, $user_id)
     {
@@ -1209,9 +1211,15 @@ class FileManager
     }
 
     /**
-     * @param $id
-     * @param null $pluginclass
-     * @return FolderType
+     * Returns a FolderType instance for a given folder-ID.
+     * This method can also get FolderType instances which are defined
+     * in a file system plugin.
+     * 
+     * @param $id The ID of a Folder object.
+     * @param null $pluginclass The name of a Plugin's main class.
+     * @return FolderType|null A FolderType object if it can be retrieved
+     *     using the Folder-ID (and by option the plugin class name)
+     *     or null in case no FolderType object can be created.
      */
     public static function getTypedFolder($id, $pluginclass = null)
     {

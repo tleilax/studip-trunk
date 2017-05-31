@@ -1,10 +1,6 @@
 <?php
 /**
- * FileArchiveManager.php
- *
- * The FileArchiveManager class gives programmers a simple way to handle
- * file archives by providing different methods for packing and unpacking
- * file archives in a simple manner.
+ * FileArchiveManager.class.php
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -15,6 +11,13 @@
  * @copyright   2016 data-quest
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
+ */
+
+
+/**
+ * The FileArchiveManager class gives programmers a simple way to handle
+ * file archives by providing different methods for packing and unpacking
+ * file archives in a simple manner.
  */
 class FileArchiveManager
 {
