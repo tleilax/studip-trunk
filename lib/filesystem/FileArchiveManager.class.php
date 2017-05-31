@@ -89,28 +89,39 @@ class FileArchiveManager
             if ($file) {
                 //Check if the FileRef references a file
                 //in the file system or a link:
-                if ($file_ref->isLink()) {
+                if ($file_ref->file->storage == 'url') {
                     //The FileRef references a link:
-                    //TODO: put the URL into a file ending with .url
-                    return true;
-                }
+                    //Put the URL into a file ending with .url:
 
-                //The FileRef references a file:
-                $file_path = $file->getPath();
-                if ($file_path && file_exists($file_path)) {
-                    $archive->addFile($file_path, $archive_fs_path . $file_ref->name);
+                    $url = $file_ref->file->getURL();
 
-                    //The archive file may not exist if it is empty!
-                    if (file_exists($archive->filename) && filesize($archive->filename) > $archive_max_size) {
-                        throw new FileArchiveManagerException(
-                            sprintf(
-                                _('Das ZIP-Archiv ist zu groß! Die maximal erlaubte Größe ist %d bytes!'),
-                                $archive_max_size
-                            )
+                    if ($url) {
+                        //The URL has been fetched and we can put it
+                        //in a file in the archive:
+                        $archive->addFromString(
+                            $archive_fs_path . $file_ref->name . '.url',
+                            $url
                         );
+                        return true;
                     }
+                } else {
+                    //The FileRef references a file:
+                    $file_path = $file->getPath();
+                    if ($file_path && file_exists($file_path)) {
+                        $archive->addFile($file_path, $archive_fs_path . $file_ref->name);
 
-                    return true;
+                        //The archive file may not exist if it is empty!
+                        if (file_exists($archive->filename) && filesize($archive->filename) > $archive_max_size) {
+                            throw new FileArchiveManagerException(
+                                sprintf(
+                                    _('Das ZIP-Archiv ist zu groß! Die maximal erlaubte Größe ist %d bytes!'),
+                                    $archive_max_size
+                                )
+                            );
+                        }
+
+                        return true;
+                    }
                 }
             }
         }
