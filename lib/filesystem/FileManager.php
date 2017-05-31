@@ -1103,11 +1103,7 @@ class FileManager
         // loop through all subfolders, create a directory for each subfolder
         // and call this method recursively:
         foreach ($folder->getSubfolders() as $subfolder) {
-            //TODO: finalise permission check:
-            if ($subfolder->isReadable($user_id) /* &&
-                $GLOBALS['perm']->have_studip_perm($user_id, $folder->range_id)
-                && $GLOBALS['perm']->have_perm($min_perms)*/
-                || $ignore_perms)
+            if ($subfolder->isReadable($user_id) || $ignore_perms)
             {
                 //User has permissions to read the folder or permission checks
                 //are ignored.
@@ -1145,16 +1141,6 @@ class FileManager
         //Everything went fine.
         return true;
     }
-
-    /**
-     * Returns a FolderType object for the public folder of the given user.
-     *
-     * @param User user The user whose public folder is requested.
-     */
-    public static function getPublicFolder(User $user)
-    {
-    }
-
 
     /**
      * Counts the number of files inside a folder and its subfolders.
