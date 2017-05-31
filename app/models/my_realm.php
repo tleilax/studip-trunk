@@ -614,12 +614,11 @@ class MyRealmModel
                )
             GROUP BY questionnaire_assignments.range_id
         ");
-        $statement->execute(array(
+        $statement->execute([
             'threshold' => $threshold,
-            'user_id' => $user_id,
+            'user_id'   => $user_id,
             'course_id' => $object_id
-        ));
-
+        ]);
 
         $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -634,24 +633,16 @@ class MyRealmModel
             }
         }
 
-        $sql = "SELECT
-                COUNT(a.eval_id) as count,
-                COUNT(IF((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id !=:user_id ), a.eval_id, NULL)) AS neue,
-                MAX(IF ((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id != :user_id), chdate, 0)) AS last_modified
-            FROM
-                eval_range a
-            INNER JOIN
-              eval d
-            ON
-              (a.eval_id = d.eval_id AND d.startdate < UNIX_TIMESTAMP() AND (d.stopdate > UNIX_TIMESTAMP() OR d.startdate + d.timespan > UNIX_TIMESTAMP() OR (d.stopdate IS NULL AND d.timespan IS NULL)))
-            LEFT JOIN
-                object_user_visits b
-            ON
-              (b.object_id = a.eval_id AND b.user_id = :user_id AND b . type = 'eval')
-            WHERE
-              a.range_id = :course_id
-            GROUP BY
-              a.range_id";
+        $sql = "SELECT COUNT(a.eval_id) as count,
+                       COUNT(IF((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id !=:user_id ), a.eval_id, NULL)) AS neue,
+                       MAX(IF ((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id != :user_id), chdate, 0)) AS last_modified
+                FROM eval_range a
+                INNER JOIN eval d
+                  ON (a.eval_id = d.eval_id AND d.startdate < UNIX_TIMESTAMP() AND (d.stopdate > UNIX_TIMESTAMP() OR d.startdate + d.timespan > UNIX_TIMESTAMP() OR (d.stopdate IS NULL AND d.timespan IS NULL)))
+                LEFT JOIN object_user_visits b
+                  ON (b.object_id = a.eval_id AND b.user_id = :user_id AND b . type = 'eval')
+                WHERE a.range_id = :course_id
+                GROUP BY a.range_id";
 
         $statement = DBManager::get()->prepare($sql);
         $statement->bindValue(':user_id', $user_id);
@@ -673,41 +664,29 @@ class MyRealmModel
         if ($neue || $count > 0) {
             $nav = new Navigation('vote', '#vote');
             if ($neue) {
-                $nav->setImage(
-                    Icon::create(
-                        'vote+new',
-                        'attention',
-                        [
-                            'title' => sprintf(
-                                ngettext(
-                                    '%1$d Fragebogen, %2$d neuer',
-                                    '%1$d Fragebögen, %2$d neue',
-                                    $count
-                                ),
-                                $count,
-                                $neue
-                            )
-                        ]
+                $nav->setImage(Icon::create('vote+new', 'attention', [
+                    'title' => sprintf(
+                        ngettext(
+                            '%1$u Fragebogen, %2$u neuer',
+                            '%1$u Fragebögen, %2$u neue',
+                            $count
+                        ),
+                        $count,
+                        $neue
                     )
-                );
+                ]));
                 $nav->setBadgeNumber($neue);
             } else if ($count) {
-                $nav->setImage(
-                    Icon::create(
-                        'vote',
-                        'inactive',
-                        [
-                            'title' => sprintf(
-                                ngettext(
-                                    '%d Fragebogen',
-                                    '%d Fragebögen',
-                                    $count
-                                ),
-                                $count
-                            )
-                        ]
+                $nav->setImage(Icon::create('vote', 'inactive', [
+                    'title' => sprintf(
+                        ngettext(
+                            '%u Fragebogen',
+                            '%u Fragebögen',
+                            $count
+                        ),
+                        $count
                     )
-                );
+                ]));
             }
             return $nav;
         }
@@ -887,17 +866,17 @@ class MyRealmModel
             // filtering courses
             $modules = new Modules();
             $member_ships = User::findCurrent()->course_memberships->toGroupedArray('seminar_id', 'status gruppe');
-            $children = array();
-            $semester_assign = array();
+            $children = [];
+            $semester_assign = [];
             foreach ($courses as $index => $course) {
                 // export object to array for simple handling
-                $_course                   = $course->toArray($param_array);
+                $_course = $course->toArray($param_array);
                 $_course['start_semester'] = $course->start_semester->name;
                 $_course['end_semester']   = $course->end_semester->name;
                 $_course['sem_class']      = $course->getSemClass();
                 $_course['obj_type']       = 'sem';
 
-                if ($group_field == 'sem_tree_id') {
+                if ($group_field === 'sem_tree_id') {
                     $_course['sem_tree'] = $course->study_areas->toArray();
                 }
 
@@ -910,7 +889,7 @@ class MyRealmModel
                 }
 
                 // get teachers only if grouping selected (for better performance)
-                if ($group_field == 'dozent_id') {
+                if ($group_field === 'dozent_id') {
                     $teachers = new SimpleCollection($course->getMembersWithStatus('dozent'));
                     $teachers->filter(function ($a) use (&$_course) {
                         return $_course['teachers'][] = $a->user->getFullName('no_title_rev');
@@ -947,7 +926,7 @@ class MyRealmModel
                             $semester_assign[$course->id] = $max_sem_key;
                         }
                     } else {
-                        for ($i = $min_sem_key; $i <= $max_sem_key; $i++) {
+                        for ($i = $min_sem_key; $i <= $max_sem_key; $i += 1) {
                             if ($i >= $_course['sem_number'] && $i <= $_course['sem_number_end']) {
                                 $sem_courses[$i][$course->id] = $_course;
                                 $semester_assign[$course->id] = $i;
@@ -1593,25 +1572,20 @@ class MyRealmModel
 
     private static function sortCourses($courses, $order)
     {
-
         $sorted = $courses->orderBy($order);
 
         // First get all courses that can act as parent and have child courses.
-        $parents = $courses->filter(function($c) {
-            if ($c->getSemClass()->isGroup()) {
-                return count($c->children) > 0;
-            } else {
-                return false;
-            }
+        $parents = $courses->filter(function ($c) {
+            return $c->getSemClass()->isGroup()
+                && count($c->children) > 0;
         });
 
         // Sort children directly after parents. Only necessary if parents exist.
         if (count($parents) > 0) {
-
             $withChildren = new SimpleCollection();
 
             foreach ($sorted as $c) {
-                if ($c->parent_course == null) {
+                if ($c->parent_course === null) {
                     $withChildren->append($c);
                     if (count($c->children) > 0) {
                         foreach ($sorted->findBy('parent_course', $c->id) as $child) {

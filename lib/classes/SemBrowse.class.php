@@ -358,11 +358,16 @@ class SemBrowse {
             }
             $the_tree = $this->sem_tree->tree;
 
-            SkipLinks::addIndex(_("Suchergebnis"), 'sem_search_result', 90);
+            SkipLinks::addIndex(_('Suchergebnis'), 'sem_search_result', 90);
 
             list($group_by_data, $sem_data) = $this->get_result();
 
-            $visibles = $GLOBALS['perm']->have_perm('root') ? $sem_data : array_filter($sem_data, function ($c) { return key($c['visible']) == 1; });
+            $visibles = $sem_data;
+            if (!$GLOBALS['perm']->have_perm('root')) {
+                $visibles = array_filter($visibles, function ($c) {
+                    return key($c['visible']) == 1;
+                });
+            }
 
             echo "\n<table class='default' id=\"sem_search_result\" border=\"0\" align=\"center\" cellspacing=0 cellpadding=2 width = \"99%\">\n";
             echo "<caption>"
@@ -833,12 +838,13 @@ class SemBrowse {
                     $temp_turnus_string = htmlReady($temp_turnus_string);
                 }
                 if (!Config::get()->IMPORTANT_SEMNUMBER) {
-                    $row .= "<div style=\"margin-left:5px;font-size:smaller\">" . htmlReady($seminar_number) . "</div>";
+                    $row .= '<div style="margin-left:5px;font-size:smaller">' . htmlReady($seminar_number) . '</div>';
                 }
-                $row .= "<div style=\"margin-left:5px;font-size:smaller\">" . $temp_turnus_string . "</div>";
+                $row .= '<div style="margin-left:5px;font-size:smaller">' . $temp_turnus_string . '</div>';
                 if (count($seminar_obj->children) > 0 && count($visibleChildren) > 0) {
-                    $row .= "<div style=\"margin-left:5px;font-size:smaller\">" .
-                        sprintf(_('%u Unterveranstaltungen'), count($visibleChildren)) . "</div>";
+                    $row .= '<div style="margin-left:5px;font-size:smaller">';
+                    $row .= sprintf(_('%u Unterveranstaltungen'), count($visibleChildren));
+                    $row .= '</div>';
                 }
             }
             $row .= '</td>';
@@ -886,4 +892,3 @@ class SemBrowse {
         return $row;
     }
 }
-

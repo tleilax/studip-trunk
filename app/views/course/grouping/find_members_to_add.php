@@ -7,9 +7,9 @@
     <footer data-dialog-button>
         <?= CSRFProtection::tokenTag() ?>
         <input type="hidden" name="permission" value="<?= $permission ?>">
-        <?php foreach ($courses as $course) : ?>
-            <input type="hidden" name="courses[]" value="<?= $course ?>" required>
-        <?php endforeach ?>
+    <? foreach ($courses as $course) : ?>
+        <input type="hidden" name="courses[]" value="<?= $course ?>" required>
+    <? endforeach ?>
         <?= Studip\Button::createAccept(_('Personen hinzufügen'), 'add') ?>
         <?= Studip\LinkButton::createCancel(_('Abbrechen'), 'cancel', ['data-dialog' => 'close']) ?>
     </footer>

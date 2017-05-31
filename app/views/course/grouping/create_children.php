@@ -36,10 +36,13 @@
             <?= _('Buchstaben (A, B, C, ...)') ?>
         </label>
     </section>
+
     <footer data-dialog-button>
         <input type="hidden" name="batchcreate[parent]" value="<?= $course->id ?>">
         <?= Studip\Button::createAccept(_('Weiter zum Anlegeassistenten'), 'submit') ?>
-        <?= Studip\LinkButton::createCancel(_('Abbrechen'),
-            $controller->url_for('course/grouping/children')) ?>
+        <?= Studip\LinkButton::createCancel(
+            _('Abbrechen'),
+            $controller->url_for('course/grouping/children')
+        ) ?>
     </footer>
 </form>

@@ -25,7 +25,6 @@ require_once 'lib/export/export_linking_func.inc.php';
  */
 class Course_GroupingController extends AuthenticatedController
 {
-    protected $allow_nobody = false;
     protected $utf8decode_xhr = true;
 
     /**
@@ -55,35 +54,33 @@ class Course_GroupingController extends AuthenticatedController
 
         // Prepare context for MyCoursesSearch...
         if ($GLOBALS['perm']->have_perm('root')) {
-            $parameters = array(
-                'semtypes' => SemType::getNonGroupingSemTypes(),
-                'exclude' => array($this->course->parent_course ?: ''),
-                'semesters' => array($this->course->start_semester->id)
-            );
-        } else if ($GLOBALS['perm']->have_perm('admin')) {
-            $parameters = array(
-                'semtypes' => SemType::getNonGroupingSemTypes(),
+            $parameters = [
+                'semtypes'  => SemType::getNonGroupingSemTypes(),
+                'exclude'   => [$this->course->parent_course ?: ''],
+                'semesters' => [$this->course->start_semester->id],
+            ];
+        } elseif ($GLOBALS['perm']->have_perm('admin')) {
+            $parameters = [
+                'semtypes'   => SemType::getNonGroupingSemTypes(),
                 'institutes' => array_map(function ($i) {
                     return $i['Institut_id'];
                 }, Institute::getMyInstitutes()),
-                'exclude' => array($this->course->parent_course ?: ''),
-                'semesters' => array($this->start_semester->id)
-            );
-
+                'exclude'    => [$this->course->parent_course ?: ''],
+                'semesters'  => [$this->start_semester->id],
+            ];
         } else {
-            $parameters = array(
-                'userid' => $GLOBALS['user']->id,
-                'semtypes' => SemType::getNonGroupingSemTypes(),
-                'exclude' => array($this->course->parent_course ?: ''),
-                'semesters' => array($this->course->start_semester->id)
-            );
+            $parameters = [
+                'userid'    => $GLOBALS['user']->id,
+                'semtypes'  => SemType::getNonGroupingSemTypes(),
+                'exclude'   => [$this->course->parent_course ?: ''],
+                'semesters' => [$this->course->start_semester->id],
+            ];
         }
 
         // Provide search object for finding groupable courses.
         $find = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
 
-        $this->search = QuickSearch::get('parent', $find)
-            ->setInputClass('target-seminar');
+        $this->search = QuickSearch::get('parent', $find)->setInputClass('target-seminar');
     }
 
     /**
@@ -98,42 +95,43 @@ class Course_GroupingController extends AuthenticatedController
 
         // Prepare context for MyCoursesSearch...
         if ($GLOBALS['perm']->have_perm('root')) {
-            $parameters = array(
-                'semtypes' => array_merge(studygroup_sem_types(), SemType::getGroupingSemTypes()),
-                'exclude' => count($this->children) > 0 ? $this->children->pluck('seminar_id') : array(),
-                'semesters' => array($this->course->start_semester->id)
-            );
+            $parameters = [
+                'semtypes'  => array_merge(studygroup_sem_types(), SemType::getGroupingSemTypes()),
+                'exclude'   => count($this->children) > 0 ? $this->children->pluck('seminar_id') : [],
+                'semesters' => [$this->course->start_semester->id],
+            ];
         } else if ($GLOBALS['perm']->have_perm('admin')) {
-            $parameters = array(
-                'semtypes' => array_merge(studygroup_sem_types(), SemType::getGroupingSemTypes()),
+            $parameters = [
+                'semtypes'   => array_merge(studygroup_sem_types(), SemType::getGroupingSemTypes()),
                 'institutes' => array_map(function ($i) {
                     return $i['Institut_id'];
                 }, Institute::getMyInstitutes()),
-                'exclude' => count($this->children) > 0 ? $this->children->pluck('seminar_id') : array(),
-                'semesters' => array($this->course->start_semester->id)
-            );
+                'exclude'    => count($this->children) > 0 ? $this->children->pluck('seminar_id') : [],
+                'semesters'  => [$this->course->start_semester->id],
+            ];
 
         } else {
-            $parameters = array(
-                'userid' => $GLOBALS['user']->id,
-                'semtypes' => array_merge(studygroup_sem_types(), SemType::getGroupingSemTypes()),
-                'exclude' => count($this->children) > 0 ? $this->children->pluck('seminar_id') : array(),
-                'semesters' => array($this->course->start_semester->id)
-            );
+            $parameters = [
+                'userid'    => $GLOBALS['user']->id,
+                'semtypes'  => array_merge(studygroup_sem_types(), SemType::getGroupingSemTypes()),
+                'exclude'   => count($this->children) > 0 ? $this->children->pluck('seminar_id') : [],
+                'semesters' => [$this->course->start_semester->id]
+            ];
         }
 
         // Provide search object for finding groupable courses.
         $find = MyCoursesSearch::get('Seminar_id', $GLOBALS['perm']->get_perm(), $parameters);
 
-        $this->search = QuickSearch::get('child', $find)
-            ->setInputClass('target-seminar');
+        $this->search = QuickSearch::get('child', $find)->setInputClass('target-seminar');
 
         if ($GLOBALS['perm']->have_perm(Config::get()->SEM_CREATE_PERM)) {
             $sidebar = Sidebar::get();
             $actions = new ActionsWidget();
-            $actions->addLink(_('Unterveranstaltungen anlegen'),
+            $actions->addLink(
+                _('Unterveranstaltungen anlegen'),
                 $this->url_for('course/grouping/create_children'),
-                Icon::create('seminar+add', 'clickable'))->asDialog('size=auto');
+                Icon::create('seminar+add', 'clickable')
+            )->asDialog('size=auto');
             $sidebar->addWidget($actions);
         }
     }
@@ -143,23 +141,34 @@ class Course_GroupingController extends AuthenticatedController
      */
     public function members_action()
     {
-        PageLayout::setTitle(sprintf('%s - %s',
+        PageLayout::setTitle(sprintf(
+            '%s - %s',
             Course::findCurrent()->getFullname(),
-            _('Teilnehmende in Unterveranstaltungen')));
+            _('Teilnehmende in Unterveranstaltungen')
+        ));
         PageLayout::addScript('members.js');
         Navigation::activateItem('course/members/children');
         $this->courses = SimpleCollection::createFromArray(
-            Course::findByParent_Course($this->course->id,
-                                        'ORDER BY ' . (Config::get()->IMPORTANT_SEMNUMBER ? 'veranstaltungsnummer, name' : 'name'))
-            );
+            Course::findByParent_Course(
+                $this->course->id,
+                'ORDER BY ' . (Config::get()->IMPORTANT_SEMNUMBER ? 'veranstaltungsnummer, name' : 'name')
+            )
+        );
 
         if (count($this->course->children) > 0) {
-            $this->parentOnly = DBManager::get()->fetchFirst(
-                "SELECT DISTINCT s.`user_id`
-                FROM `seminar_user` s WHERE s.`Seminar_id` = :parent AND NOT EXISTS (
-                    SELECT `user_id` FROM `seminar_user` WHERE `user_id` = s.`user_id` AND `Seminar_id` IN (:children)
-                    ) LIMIT 1",
-                ['parent' => $this->course->id, 'children' => $this->course->children->pluck('seminar_id')]);
+            $query = "SELECT DISTINCT s.`user_id`
+                      FROM `seminar_user` s
+                      WHERE s.`Seminar_id` = :parent AND NOT EXISTS (
+                          SELECT `user_id`
+                          FROM `seminar_user`
+                          WHERE `user_id` = s.`user_id`
+                            AND `Seminar_id` IN (:children)
+                      )
+                      LIMIT 1";
+            $this->parentOnly = DBManager::get()->fetchFirst($query, [
+                'parent'   => $this->course->id,
+                'children' => $this->course->children->pluck('seminar_id'),
+            ]);
         } else {
             $this->parentOnly = true;
         }
@@ -167,17 +176,19 @@ class Course_GroupingController extends AuthenticatedController
         // Write message to all participants.
         $sidebar = Sidebar::get();
         $actions = new ActionsWidget();
-        $actions->addLink(_('Nachricht an alle Teilnehmenden schreiben'),
-            $this->url_for('messages/write',
-                ['filter' => 'all',
-                    'course_id' => $this->course->id,
-                    'default_subject' => '[' . $this->course->getFullname() . ']']),
-            Icon::create('mail', 'clickable'))->asDialog('size=auto');
+        $actions->addLink(
+            _('Nachricht an alle Teilnehmenden schreiben'),
+            $this->url_for('messages/write', [
+                'filter'          => 'all',
+                'course_id'       => $this->course->id,
+                'default_subject' => '[' . $this->course->getFullname() . ']',
+            ]),
+            Icon::create('mail', 'clickable')
+        )->asDialog('size=auto');
         $sidebar->addWidget($actions);
 
         // Export all participants.
         if (Config::get()->EXPORT_ENABLE) {
-
             $widget = new ExportWidget();
 
             // create csv-export link
@@ -240,7 +251,8 @@ class Course_GroupingController extends AuthenticatedController
         if (count($this->course->children) > 0) {
             $childrens_users = DBManager::get()->fetchFirst(
                 "SELECT DISTINCT `user_id` FROM `seminar_user` WHERE `Seminar_id` IN (:children)",
-                ['children' => $this->course->children->pluck('seminar_id')]);
+                ['children' => $this->course->children->pluck('seminar_id')]
+            );
 
             $this->parentOnly = $this->course->members->findBy('user_id', $childrens_users, '!=');
         } else {
@@ -254,33 +266,35 @@ class Course_GroupingController extends AuthenticatedController
     public function action_action()
     {
         if (Request::submitted('single_action')) {
-
             list($course_id, $permission) = explode('-', Request::get('single_action'));
 
             $selected = Request::getArray('members');
 
             $users = SimpleORMapCollection::createFromArray(
-                User::findMany($selected[$course_id][$permission]));
+                User::findMany($selected[$course_id][$permission])
+            );
 
             switch (Request::option('selected_single_action_' . $course_id . '_' . $permission)) {
                 case 'message':
-                    $this->redirect($this->url_for('messages/write',
-                        ['rec_uname' => $users->pluck('username'),
-                            'default_subject' => '[' . Course::find($course_id)->getFullname() . ']']));
+                    $this->redirect($this->url_for('messages/write', [
+                        'rec_uname'       => $users->pluck('username'),
+                        'default_subject' => '[' . Course::find($course_id)->getFullname() . ']',
+                    ]));
                     break;
                 case 'move':
-                    $this->redirect($this->url_for('course/grouping/move_members_target', $course_id,
-                        ['users' => $selected[$course_id][$permission]]));
+                    $this->redirect($this->url_for('course/grouping/move_members_target', $course_id, [
+                        'users' => $selected[$course_id][$permission],
+                    ]));
                     break;
                 case 'remove':
-                    $this->relocate('course/grouping/remove_members', $course_id);
                     $this->flash['users'] = $selected[$course_id][$permission];
+                    $this->relocate('course/grouping/remove_members', $course_id);
                     break;
                 default:
                     $this->relocate('course/grouping/members');
             }
-        } else if (Request::submitted('courses_action')) {
-            $this->flash['action'] = Request::option('action');
+        } elseif (Request::submitted('courses_action')) {
+            $this->flash['action']  = Request::option('action');
             $this->flash['courses'] = Request::getArray('courses');
 
             $this->redirect($this->url_for('course/grouping/find_members_to_add'));
@@ -297,13 +311,12 @@ class Course_GroupingController extends AuthenticatedController
     public function move_members_target_action($source_id, $user_id = '')
     {
         PageLayout::setTitle(_('Personen verschieben'));
+
         $this->source_id = $source_id;
-        $this->users = $user_id ?
-            [$user_id] :
-            Request::getArray('users');
-        $this->targets = count($this->course->children) > 0 ?
-            $this->course->children->findBy('id', $source_id, '!=') :
-            new SimpleORMapCollection();
+        $this->users   = $user_id ? [$user_id] : Request::getArray('users');
+        $this->targets = count($this->course->children) > 0
+                       ? $this->course->children->findBy('id', $source_id, '!=')
+                       : new SimpleORMapCollection();
     }
 
     /**
@@ -316,16 +329,16 @@ class Course_GroupingController extends AuthenticatedController
         $target = Seminar::getInstance(Request::option('target'));
 
         $success = 0;
-        $fail = 0;
+        $fail    = 0;
         foreach (Request::getArray('users') as $user) {
             $m = CourseMember::find([$source_id, $user]);
             $status = $m->status;
 
             if ($source->deleteMember($user)) {
                 $target->addMember($user, $status);
-                $success++;
+                $success += 1;
             } else {
-                $fail++;
+                $fail += 1;
             }
         }
 
@@ -349,12 +362,12 @@ class Course_GroupingController extends AuthenticatedController
         $s = Seminar::getInstance($course_id);
 
         $success = 0;
-        $fail = 0;
+        $fail    = 0;
         foreach ($this->flash['users'] as $user) {
             if ($s->deleteMember($user)) {
-                $success++;
+                $success += 1;
             } else {
-                $fail++;
+                $fail += 1;
             }
         }
 
@@ -397,8 +410,10 @@ class Course_GroupingController extends AuthenticatedController
         PageLayout::setTitle(sprintf(_('%s hinzufügen'), $title));
 
         $this->courses = $this->flash['courses'];
-        $searchtype = new PermissionSearch('user',
-            sprintf(_("%s suchen"), $title), 'user_id',
+        $searchtype = new PermissionSearch(
+            'user',
+            sprintf(_('%s suchen'), $title),
+            'user_id',
             ['permission' => 'dozent', 'exclude_user' => []]
         );
 
@@ -406,7 +421,6 @@ class Course_GroupingController extends AuthenticatedController
             ->withoutButton()
             ->setInputStyle('width: 75%')
             ->fireJSFunctionOnSelect('STUDIP.Members.addPersonToSelection');
-
     }
 
     /**
@@ -495,7 +509,9 @@ class Course_GroupingController extends AuthenticatedController
     /**
      * Batch creation of several subcourses at once.
      */
-    public function create_children_action() {}
+    public function create_children_action()
+    {
+    }
 
     /**
      * Add selected members to given courses
@@ -533,10 +549,8 @@ class Course_GroupingController extends AuthenticatedController
                         }
                     }
                 // Add member with given permission.
-                } else {
-                    if (!$sem->addMember($user, Request::option('permission'))) {
-                        $fail[$sem->getFullname()][] = $user;
-                    }
+                } elseif (!$sem->addMember($user, Request::option('permission'))) {
+                    $fail[$sem->getFullname()][] = $user;
                 }
             }
         }
@@ -544,11 +558,14 @@ class Course_GroupingController extends AuthenticatedController
         if (count($fail) > 0) {
             PageLayout::postError(
                 _('In folgenden Veranstaltungen sind Probleme beim Eintragen der gewünschten Personen aufgetreten:'),
-                    array_keys($fail));
+                array_keys($fail)
+            );
         } else {
-            PageLayout::postSuccess(ngettext(('Die gewählte Person wurde eingetragen.'),
-                ('Die gewählten Personen wurden eingetragen.'),
-                count(Request::optionArray('users'))));
+            PageLayout::postSuccess(ngettext(
+                'Die gewählte Person wurde eingetragen.',
+                'Die gewählten Personen wurden eingetragen.',
+                count(Request::optionArray('users'))
+            ));
         }
 
         $this->relocate('course/grouping/members');
@@ -566,15 +583,17 @@ class Course_GroupingController extends AuthenticatedController
         /*
          * Find users that are in current course but not in parent.
          */
-        $diff = DBManager::get()->prepare(
-            "SELECT u.`user_id` FROM `seminar_user` u
-            WHERE u.`Seminar_id` = :course
-                AND u.`status` = :status
-                AND NOT EXISTS (
-                    SELECT `user_id` FROM `seminar_user`
-                    WHERE `Seminar_id` = :parent
-                        AND `status` = :status
-                        AND `user_id` = u.`user_id`)");
+         $query = "SELECT u.`user_id`
+                   FROM `seminar_user` u
+                   WHERE u.`Seminar_id` = :course
+                     AND u.`status` = :status
+                     AND NOT EXISTS (
+                         SELECT `user_id` FROM `seminar_user`
+                         WHERE `Seminar_id` = :parent
+                           AND `status` = :status
+                           AND `user_id` = u.`user_id`
+                     )";
+        $diff = DBManager::get()->prepare($query);
 
         /*
          * Before synchronizing the lecturers, we add all institutes
@@ -587,20 +606,22 @@ class Course_GroupingController extends AuthenticatedController
          * and deputies with parent course.
          */
         foreach (words('user autor tutor dozent') as $permission) {
-            $diff->execute(array(
+            $diff->execute([
                 'course' => $child_id,
                 'status' => $permission,
                 'parent' => $parent_id
-            ));
+            ]);
             foreach ($diff->fetchFirst() as $user) {
                 $sem->addMember($user, $permission);
 
                 // Add default deputies of current user if applicable.
-                if ($permission == 'dozent' && Config::get()->DEPUTIES_ENABLE &&
-                        Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
+                if ($permission === 'dozent' && Config::get()->DEPUTIES_ENABLE
+                    && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE)
+                {
                     foreach (Deputy::findByRange_id($user) as $deputy) {
                         if (!Deputy::exists(array($parent_id, $deputy->user_id)) &&
-                                !CourseMember::exists(array($parent_id, $deputy->user_id))) {
+                                !CourseMember::exists(array($parent_id, $deputy->user_id)))
+                        {
                             $d = new Deputy();
                             $d->range_id = $parent_id;
                             $d->user_id = $user;
@@ -614,8 +635,9 @@ class Course_GroupingController extends AuthenticatedController
         // Deputies.
         if (Config::get()->DEPUTIES_ENABLE) {
             foreach (Deputy::findByRange_id($child_id) as $deputy) {
-                if (!Deputy::exists(array($parent_id, $deputy->user_id)) &&
-                        !CourseMember::exists(array($parent_id, $deputy->user_id))) {
+                if (!Deputy::exists(array($parent_id, $deputy->user_id))
+                    && !CourseMember::exists(array($parent_id, $deputy->user_id)))
+                {
                     $d = new Deputy();
                     $d->range_id = $parent_id;
                     $d->user_id = $deputy->user_id;

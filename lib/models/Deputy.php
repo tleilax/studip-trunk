@@ -28,28 +28,28 @@ class Deputy extends SimpleORMap
     {
         $config['db_table'] = 'deputies';
 
-        $config['belongs_to']['deputy'] = array(
-            'class_name' => 'User',
+        $config['belongs_to']['deputy'] = [
+            'class_name'  => 'User',
             'foreign_key' => 'user_id'
-        );
-        $config['belongs_to']['course'] = array(
-            'class_name' => 'Course',
-            'foreign_key' => 'range_id',
+        ];
+        $config['belongs_to']['course'] = [
+            'class_name'        => 'Course',
+            'foreign_key'       => 'range_id',
             'assoc_foreign_key' => 'seminar_id'
-        );
-        $config['belongs_to']['boss'] = array(
-            'class_name' => 'User',
-            'foreign_key' => 'range_id',
+        ];
+        $config['belongs_to']['boss'] = [
+            'class_name'        => 'User',
+            'foreign_key'       => 'range_id',
             'assoc_foreign_key' => 'user_id'
-        );
+        ];
 
-        $config['additional_fields']['vorname'] = array('deputy', 'vorname');
-        $config['additional_fields']['nachname'] = array('deputy', 'nachname');
-        $config['additional_fields']['username'] = array('deputy', 'username');
-        $config['additional_fields']['boss_vorname'] = array('boss', 'vorname');
-        $config['additional_fields']['boss_nachname'] = array('boss', 'nachname');
-        $config['additional_fields']['course_name'] = array('course', 'name');
-        $config['additional_fields']['course_number'] = array('course', 'veranstaltungsnummer');
+        $config['additional_fields']['vorname']       = ['deputy', 'vorname'];
+        $config['additional_fields']['nachname']      = ['deputy', 'nachname'];
+        $config['additional_fields']['username']      = ['deputy', 'username'];
+        $config['additional_fields']['boss_vorname']  = ['boss', 'vorname'];
+        $config['additional_fields']['boss_nachname'] = ['boss', 'nachname'];
+        $config['additional_fields']['course_name']   = ['course', 'name'];
+        $config['additional_fields']['course_number'] = ['course', 'veranstaltungsnummer'];
 
         parent::configure($config);
     }
@@ -60,7 +60,7 @@ class Deputy extends SimpleORMap
      * @param string $format one of full,full_rev,no_title,no_title_rev,no_title_short,no_title_motto,full_rev_username
      * @return string The deputy's full name, like "John Doe" or "Doe, John"
      */
-    function getDeputyFullname($format = 'full')
+    public function getDeputyFullname($format = 'full')
     {
         return $this->deputy->getFullname($format);
     }
@@ -71,7 +71,7 @@ class Deputy extends SimpleORMap
      * @param string $format one of full,full_rev,no_title,no_title_rev,no_title_short,no_title_motto,full_rev_username
      * @return string The bosses full name, like "John Doe" or "Doe, John"
      */
-    function getBossFullname($format = 'full')
+    public function getBossFullname($format = 'full')
     {
         if ($this->boss) {
             return $this->boss->getFullname($format);
@@ -87,7 +87,7 @@ class Deputy extends SimpleORMap
      *                       number-name-semester, sem-duration-name
      * @return string The courses' full name, like "1234 Lecture: Databases"
      */
-    function getCourseFullname($format = 'default')
+    public function getCourseFullname($format = 'default')
     {
         if ($this->course) {
             return $this->course->getFullname($format);
@@ -95,5 +95,4 @@ class Deputy extends SimpleORMap
             return null;
         }
     }
-
 }

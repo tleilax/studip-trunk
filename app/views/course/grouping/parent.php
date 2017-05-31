@@ -1,20 +1,27 @@
 <h1>
     <?= _('Zuordnung zu Hauptveranstaltung') ?>
 </h1>
-<?php if ($parent) : ?>
+<? if ($parent) : ?>
     <form class="default" action="<?= $controller->url_for('course/grouping/unassign_parent') ?>">
         <section>
             <p>
-                <?= sprintf(_('Diese Veranstaltung gehört zur Hauptveranstaltung %s.'),
-                    '<a href="' . URLHelper::getURL('dispatch.php/course/grouping/children', array('cid' => $parent->id)) .
-                    '" title="' . $parent->getFullname() . '">' . $parent->getFullname() . '</a>') ?>
+                <?= sprintf(
+                    _('Diese Veranstaltung gehört zur Hauptveranstaltung %s%s%s.'),
+                    sprintf(
+                        '<a href="%s" title="%s">',
+                        $controller->link_for('course/grouping/children', ['cid' => $parent->id]),
+                        htmlReady($parent->getFullname())
+                    ),
+                    htmlReady($parent->getFullname()),
+                    '</a>'
+                ) ?>
             </p>
         </section>
         <footer>
             <?= Studip\Button::createCancel(_('Zuordnung aufheben'), 'unassign') ?>
         </footer>
     </form>
-<?php else : ?>
+<? else : ?>
     <p>
         <?= _('Diese Veranstaltung ist noch keiner Hauptveranstaltung zugeordnet.') ?>
     </p>
@@ -26,4 +33,4 @@
             <?= Studip\Button::createAccept(_('Zuordnen'), 'assign') ?>
         </footer>
     </form>
-<?php endif ?>
+<? endif ?>
