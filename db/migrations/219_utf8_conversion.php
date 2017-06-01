@@ -48,8 +48,7 @@ class Utf8Conversion extends Migration
                             SET codepoint = CAST(SUBSTRING(entity, 3, pos2 - pos1 -
             2) AS UNSIGNED);
                             IF codepoint > 31 THEN
-                                SET tmp = CONCAT(LEFT(tmp, pos1 - 1), CHAR(codepoint
-            USING utf8mb4), SUBSTRING(tmp, pos2 + 1));
+                                SET tmp = CONCAT(LEFT(tmp, pos1 - 1), CONVERT(CONVERT(UNHEX(HEX(codepoint)) USING utf32) USING utf8mb4), SUBSTRING(tmp, pos2 + 1));
                             END IF;
                         END IF;
                     END IF;
@@ -83,14 +82,19 @@ class Utf8Conversion extends Migration
                     $collation = false;
 
                     // convert index columns to latin1_bin to save space and speed things up
-                    if (mb_strpos($column['Type'], 'varchar') !== false) {
+                    if (mb_strpos($column['Type'], 'char') !== false) {
                         $matches = array();
-                        preg_match('/varchar\((.*)\)/', $column['Type'], $matches);
+                        preg_match('/char\((.*)\)/', $column['Type'], $matches);
 
                         if ((int)$matches[1] <= 32) {
                             $charset = 'latin1';
                             $collation = 'latin1_bin';
                         }
+                    }
+
+                    if (mb_strpos($column['Type'], 'enum') !== false) {
+                        $charset = 'latin1';
+                        $collation = 'latin1_bin';
                     }
 
                     if (!$collation) {
