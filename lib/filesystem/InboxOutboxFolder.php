@@ -31,16 +31,25 @@ class InboxOutboxFolder implements FolderType
         }
     }
 
+    /**
+     * Overloaded magic get method to get the attributes of the folder object.
+     */
     public function __get($attribute)
     {
         return $this->folder[$attribute];
     }
 
+    /**
+     * Returns a localised name of the InboxOutboxFolder type.
+     */
     public static function getTypeName()
     {
         return _('InboxOutboxFolder');
     }
 
+    /**
+     * Returns the Icon object for the InboxOutboxFolder type.
+     */
     public function getIcon($role)
     {
         $icon = count($this->getFiles())
@@ -49,49 +58,77 @@ class InboxOutboxFolder implements FolderType
         return Icon::create($icon, $role);
     }
 
+    /**
+     * Returns the ID of the folder object of this InboxOutboxFolder.
+     */
     public function getId()
     {
         return $this->folder->id;
     }
 
+    /**
+     * This method returns always false since InboxOutboxFolders are not
+     * creatable in standard folders. They are a standalone folder type.
+     */
     public static function creatableInStandardFolder($range_type)
     {
         return false;
     }
 
+    /**
+     * InboxOutboxFolders are only visible for the owner.
+     */
     public function isVisible($user_id)
     {
         return $this->user
             && $user_id === $this->user->id;
     }
 
+    /**
+     * InboxOutboxFolders are only readable for the owner.
+     */
     public function isReadable($user_id)
     {
         return $this->user
             && $user_id === $this->user->id;
     }
 
+    /**
+     * InboxOutboxFolders are not writable.
+     */
     public function isWritable($user_id)
     {
         return false;
     }
 
+    /**
+     * InboxOutboxFolders are not editable.
+     */
     public function isEditable($user_id)
     {
         return false;
     }
 
+    /**
+     * InboxOutboxFolders do not allow subfolders.
+     */
     public function isSubfolderAllowed($user_id)
     {
         //this folder type does not allow subfolders!
         return false;
     }
 
+    /**
+     * InboxOutboxFolders don't have a description template.
+     */
     public function getDescriptionTemplate()
     {
         return '';
     }
 
+    /**
+     * Returns the parent InboxOutboxFolder.
+     */
     public function getParent()
     {
         if ($this->folder->parentFolder) {
@@ -101,12 +138,19 @@ class InboxOutboxFolder implements FolderType
         return null;
     }
 
+    /**
+     * InboxOutboxFolders do not allow subfolders.
+     */
     public function getSubfolders()
     {
         //no subfolders allowed!
         return [];
     }
 
+    /**
+     * InboxOutboxFolders do not contain any files since the InboxOutboxFolder
+     * type is not meant to be used directly.
+     */
     public function getFiles()
     {
         //this folder type is not meant to be used directly, so no files
@@ -114,11 +158,17 @@ class InboxOutboxFolder implements FolderType
         return [];
     }
 
+    /**
+     * InboxOutboxFolders do not have an edit template.
+     */
     public function getEditTemplate()
     {
         return '';
     }
 
+    /**
+     * InboxOutboxFolders do not have an edit template.
+     */
     public function setDataFromEditTemplate($folderdata)
     {
         return MessageBox::error(_('InboxOutbox-Ordner können nicht bearbeitet werden!'));
@@ -128,50 +178,79 @@ class InboxOutboxFolder implements FolderType
 
     }
 
+    /**
+     * InboxOutboxFolders do not allow uploads.
+     */
     public function validateUpload($file, $user_id)
     {
         //no uploads allowed
         return false;
     }
 
+    /**
+     * InboxOutboxFolders do not allow creating files.
+     */
     public function createFile($file)
     {
         return MessageBox::error(_('In InboxOutbox-Ordnern können keine Dateien erzeugt werden!'));
     }
 
+    /**
+     * InboxOutboxFolders do not allow deleting files.
+     */
     public function deleteFile($file_ref_id)
     {
         return false;
     }
 
+    /**
+     * InboxOutboxFolders do not allow the creation of subfolders.
+     */
     public function createSubfolder(FolderType $folderdata)
     {
         throw new UnexpectedValueException(_('In InboxOutbox-Ordnern können keine nutzerdefinierten Unterordner erzeugt werden!'));
     }
 
+    /**
+     * InboxOutboxFolders do not allow deleting subfolders.
+     */
     public function deleteSubfolder($subfolder_id)
     {
         //there are no subfolders, so they can't be deleted:
         return false;
     }
 
+    /**
+     * Deletes the Folder object of an InboxOutboxFolder instance.
+     *
+     * @return True on success, false on failure.
+     */
     public function delete()
     {
         return $this->folder->delete();
     }
 
+    /**
+     * Files are only downloadable for the owner.
+     */
     public function isFileDownloadable($file_ref_id, $user_id)
     {
         return $this->user
             && $user_id === $this->user->id;
     }
 
+    /**
+     * InboxOutboxFolders do not allow editing files.
+     */
     public function isFileEditable($file_ref_id, $user_id)
     {
         //files shall be unchanged in here
         return false;
     }
 
+    /**
+     * InboxOutboxFolders do not allow writing files.
+     */
     public function isFileWritable($file_ref_id, $user_id)
     {
         //files shall be unchanged in here
