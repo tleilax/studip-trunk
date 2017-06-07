@@ -147,6 +147,14 @@ class Folder extends SimpleORMap
         return false;
     }
 
+    /**
+     * Retrieves folders by the ID of a CourseTopic object.
+     * 
+     * @param string $topic_id The ID of a CourseTopic object.
+     * 
+     * @return Folder[]|null An array with one folder object matching the topic-ID
+     *     if such a folder can be found. Null otherwise.
+     */
     public static function findByTopic_id($topic_id)
     {
         $seminar_id    = CourseTopic::find($topic_id)->seminar_id;
@@ -161,6 +169,11 @@ class Folder extends SimpleORMap
         }
     }
 
+    /**
+     * This callback is called before storing a Folder object.
+     * In case the name field is changed this callback assures that the
+     * name of the Folder object is unique inside the parent folder.
+     */
     public function cbMakeUniqueName()
     {
         if (isset($this->parentfolder) && $this->isFieldDirty('name')) {

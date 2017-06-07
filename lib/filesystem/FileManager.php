@@ -1254,6 +1254,15 @@ class FileManager
         return null;
     }
 
+    /**
+     * Retrieves additional data for an URL by looking at the HTTP header.
+     * 
+     * @param string $url The URL from which additional data shall be fetched.
+     * @param int $level The amount of redirects that have already been walked through.
+     *     The $level parameter is only useful when this method calls itself recursively.
+     * 
+     * @return array An array with additional data retrieved from the HTTP header.
+     */
     public static function fetchURLMetadata($url, $level = 0)
     {
         if ($level > 5) {

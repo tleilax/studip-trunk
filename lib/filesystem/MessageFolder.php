@@ -61,11 +61,26 @@ class MessageFolder implements FolderType
         }
     }
 
+    /**
+     * Creates a root folder (top folder) for a message referenced by its ID.
+     * 
+     * @param string $message_id The ID of a message for which a root folder
+     *     shall be generated.
+     * 
+     * @return MessageFolder A new MessageFolder as root folder for a message.
+     */
     public static function createTopFolder($message_id)
     {
         return new MessageFolder(Folder::createTopFolder($message_id, 'message', 'MessageFolder'));
     }
 
+    /**
+     * Returns the amount of attachments for a message.
+     * 
+     * @param string $message_id The ID of a message.
+     * 
+     * @return int The amount of attachments that have been found for the message.
+     */
     public static function getNumMessageAttachments($message_id)
     {
 
@@ -83,32 +98,54 @@ class MessageFolder implements FolderType
         return $num_file_ref;
     }
 
+    /**
+     * This method returns always false since MessageFolder types are not
+     * creatable in standard folders. They are a standalone folder type.
+     */
     public static function creatableInStandardFolder($range_type)
     {
         return false;
     }
 
-
+    /**
+     * Returns a localised name of the MessageFolder type.
+     */
     public static function getTypeName()
     {
         return _('Nachrichtenordner');
     }
 
+    /**
+     * Returns the Icon object for the MessageFolder type.
+     */
     public function getIcon($role)
     {
         return Icon::create('folder-message', $role);
     }
 
+    /**
+     * Returns the ID of the folder object of this MessageFolder.
+     */
     public function getId()
     {
         return $this->folder->id;
     }
 
+    /**
+     * See method MessageFolder::isReadable.
+     */
     public function isVisible($user_id)
     {
         return $this->isReadable($user_id);
     }
 
+    /**
+     * This method checks if a specified user can read the MessageFolder object.
+     * 
+     * @param string $user_id The ID of the user whose read permission shall be checked.
+     * 
+     * @return True, if the user, specified by $user_id, can read the folder, false otherwise.
+     */
     public function isReadable($user_id)
     {
         $condition = 'message_id = :message_id AND user_id = :user_id';
@@ -118,32 +155,52 @@ class MessageFolder implements FolderType
             ]) > 0;
     }
 
+    /**
+     * MessageFolders are never writable.
+     */
     public function isWritable($user_id)
     {
         return false;
     }
 
+    /**
+     * MessageFolders are never editable.
+     */
     public function isEditable($user_id)
     {
         return false;
     }
 
+    /**
+     * MessageFolders will never allow subfolders.
+     */
     public function isSubfolderAllowed($user_id)
     {
         return false;
     }
 
-
+    /**
+     * MessageFolders don't have a description template.
+     */
     public function getDescriptionTemplate()
     {
         return '';
     }
 
+    /**
+     * MessageFolders don't have subfolders.
+     */
     public function getSubfolders()
     {
         return [];
     }
 
+    /**
+     * Returns the files of this MessageFolder (e.g. the attachments of a message).
+     * 
+     * @return FileRef[] An array of FileRef objects containing all files
+     *     that are placed inside this folder.
+     */
     public function getFiles()
     {
         if ($this->folder) {
@@ -152,20 +209,38 @@ class MessageFolder implements FolderType
         return [];
     }
 
+    /**
+     * MessageFolders don't have parents.
+     */
     public function getParent()
     {
         return null;
     }
 
+    /**
+     * MessageFolders don't have an edit template.
+     */
     public function getEditTemplate()
     {
         return '';
     }
 
+    /**
+     * MessageFolders don't have an edit template and therefore cannot
+     * handle requests from such templates.
+     */
     public function setDataFromEditTemplate($request)
     {
     }
 
+    /**
+     * This method handles file upload validation.
+     * 
+     * @param array $uploaded_file The uploaded file that shall be validated.
+     * @param string $user_id The user who wishes to upload a file in this MessageFolder.
+     * 
+     * @return string|null An error message on failure, null on success.
+     */
     public function validateUpload($uploaded_file, $user_id)
     {
         $status      = $GLOBALS['perm']->get_perm($user_id);
@@ -192,6 +267,13 @@ class MessageFolder implements FolderType
         }
     }
 
+    /**
+     * This method handles creating a file inside the MessageFolder.
+     * 
+     * @param File|array $file The file that shall be created inside the MessageFolder.
+     * 
+     * @return FileRef|null On success, a FileRef for the given file is returned. Null otherwise.
+     */
     public function createFile($file)
     {
         if (!$this->folder) {
@@ -225,6 +307,13 @@ class MessageFolder implements FolderType
         );
     }
 
+    /**
+     * Handles the deletion of a file inside this folder.
+     * 
+     * @param string $file_ref_id The ID of the FileRef whose file shall be deleted.
+     * 
+     * @return True, if the file has been deleted successfully, false otherwise.
+     */
     public function deleteFile($file_ref_id)
     {
         $file_refs = $this->folderdata->file_refs;
@@ -243,35 +332,60 @@ class MessageFolder implements FolderType
         return false;
     }
 
+    /**
+     * Stores the MessageFolder object.
+     * 
+     * @return True, if the MessageFolder has been stored successfully, false otheriwse.
+     */
     public function store()
     {
         return $this->folder->store();
     }
 
+    /**
+     * MessageFolders cannot have subfolders.
+     */
     public function createSubfolder(FolderType $folderdata)
     {
     }
 
+    /**
+     * MessageFolders cannot have subfolders.
+     */
     public function deleteSubfolder($subfolder_id)
     {
     }
 
+    /**
+     * Deletes the MessageFolder object.
+     * 
+     * @return True, if the MessageFolder has been deleted successfully, false otheriwse.
+     */
     public function delete()
     {
         return $this->folder->delete();
     }
 
+    /**
+     * See method MessageFolder::isReadable
+     */
     public function isFileDownloadable($file_ref_id, $user_id)
     {
         return $this->isReadable($user_id);
     }
 
+    /**
+     * Files inside MessageFolders are not editable.
+     */
     public function isFileEditable($file_ref_id, $user_id)
     {
         //message attachments are never editable!
         return false;
     }
 
+    /**
+     * Files inside MessageFolders are not writable.
+     */
     public function isFileWritable($file_ref_id, $user_id)
     {
         //message attachments are never writable!

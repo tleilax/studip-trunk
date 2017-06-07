@@ -73,6 +73,11 @@ class FileRef extends SimpleORMap
         parent::configure($config);
     }
 
+    /**
+     * This callback is called after deleting a FileRef.
+     * It removes the File object that is associated with the FileRef,
+     * if the File is not referenced by any other FileRef object.
+     */
     public function cbRemoveFileIfOrphaned()
     {
         if (!self::countBySql('file_id = ?', [$this->file_id])) {
@@ -80,6 +85,12 @@ class FileRef extends SimpleORMap
         }
     }
 
+    /**
+     * This callback is called before storing a FileRef object.
+     * In case the name field is changed this callback assures that the
+     * name of the FileRef is unique inside the folder where
+     * the FileRef is placed.
+     */
     public function cbMakeUniqueFilename()
     {
         if (isset($this->folder) && $this->isFieldDirty('name')) {
@@ -87,6 +98,13 @@ class FileRef extends SimpleORMap
         }
     }
 
+    /**
+     * Returns the download-URL for the FileRef.
+     * 
+     * @param string $dltype The download type: 'normal', 'zip', 'force' or 'force_download'.
+     * 
+     * @return string The URL for the FileRef.
+     */
     public function getDownloadURL($dltype = 'normal')
     {
         $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
@@ -125,6 +143,11 @@ class FileRef extends SimpleORMap
         return URLHelper::getScriptURL(implode('', $link));
     }
 
+    /**
+     * Returns the name of the FileRef's author.
+     * 
+     * @return string The name of the FileRef's author.
+     */
     public function getAuthorName()
     {
         if (isset($this->owner)) {
@@ -133,6 +156,11 @@ class FileRef extends SimpleORMap
         return $this->file->author_name;
     }
 
+    /**
+     * This method increments the download counter of the FileRef.
+     * 
+     * @return The number of rows of the file_refs table that have been altered.
+     */
     public function incrementDownloadCounter()
     {
         $this->downloads += 1;
@@ -158,7 +186,11 @@ class FileRef extends SimpleORMap
         throw new UnexpectedValueException("class: {$this->license} not found");
     }
 
-
+    /**
+     * Determines whether this FileRef is a link or not.
+     * 
+     * @return bool True, if the FileRef references a link, false otherwise.
+     */
     public function isLink()
     {
         return $this->file->url_access_type === 'redirect';
@@ -167,7 +199,7 @@ class FileRef extends SimpleORMap
     /**
      * Determines if the FileRef references an image file.
      *
-     * @return bool True, if the file is an image file, false otherwise.
+     * @return bool True, if the referenced file is an image file, false otherwise.
      */
     public function isImage()
     {
@@ -178,7 +210,7 @@ class FileRef extends SimpleORMap
     /**
      * Determines if the FileRef references an audio file.
      *
-     * @return bool True, if the file is an audio file, false otherwise.
+     * @return bool True, if the referenced file is an audio file, false otherwise.
      */
     public function isAudio()
     {
@@ -190,7 +222,7 @@ class FileRef extends SimpleORMap
     /**
      * Determines if the FileRef references a video file.
      *
-     * @return bool True, if the file is a video file, false otherwise.
+     * @return bool True, if the referenced file is a video file, false otherwise.
      */
     public function isVideo()
     {

@@ -67,6 +67,11 @@ class File extends SimpleORMap
         parent::configure($config);
     }
 
+    /**
+     * Returns the URL, if the File object stores an URL.
+     * 
+     * @return string|null The URL if the File object stores an URL, null otherwise.
+     */
     public function getURL()
     {
         return $this->storage === 'url' && isset($this->file_url)
@@ -74,6 +79,12 @@ class File extends SimpleORMap
              : null;
     }
 
+    /**
+     * Sets the URL for the File object, if it stores an URL.
+     * 
+     * @param string $url The URL which shall be stored in the File object.
+     * @return string The URL from the $url parameter.
+     */
     public function setURL($url)
     {
         $this->storage = 'url';
@@ -85,6 +96,11 @@ class File extends SimpleORMap
         return $url;
     }
 
+    /**
+     * Returns the URL access type, if the File object stores an URL.
+     * 
+     * @return string|null The URL access type, if the File object stores an URL, null otherwise.
+     */
     public function getURL_access_type()
     {
         return $this->storage === 'url' && isset($this->file_url)
@@ -92,6 +108,12 @@ class File extends SimpleORMap
              : null;
     }
 
+    /**
+     * Sets the URL access type for the File object, if it stores an URL.
+     * 
+     * @param string $value The URL access type for the File object.
+     * @return string The URL access type from the $value parameter.
+     */
     public function setURL_access_type($value)
     {
         $this->storage = 'url';
@@ -161,6 +183,14 @@ class File extends SimpleORMap
 
     }
 
+    /**
+     * This callback is called before creating a File object.
+     * It assures that the author is set to a valid user
+     * by setting the user_id and author_name field.
+     * In case no user_id is set the ID of the current user is used.
+     * In case the author_name field is not set either the name of the user,
+     * referenced by user_id is set or the name of the current user is set.
+     */
     public function cbSetAuthor()
     {
         if (!$this->user_id) {
