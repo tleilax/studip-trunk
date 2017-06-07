@@ -18,18 +18,32 @@
 class OutboxFolder extends InboxOutboxFolder
 {
 
+    /**
+     * Returns a localised name of the OutboxFolder type.
+     * 
+     * @return string The localised name of this folder type.
+     */
     public static function getTypeName()
     {
         return _('Alle Anhänge gesendeter Nachrichten');
     }
 
-
+    /**
+     * Returns the Icon object for the OutboxFolder type.
+     * 
+     * @return Icon An icon object with the icon for this folder type.
+     */
     public function getIcon($role)
     {
         return Icon::create(count($this->getFiles()) ? 'folder-inbox-full' : 'folder-inbox-empty', $role);
     }
 
-
+    /**
+     * Gets all attachments of sent messages of a specific user
+     * and places the attachments inside this folder.
+     * 
+     * @return FileRef[] Array of FileRef objects representing the message attachments.
+     */
     public function getFiles()
     {
         //get all folders of the user that belongs to a received message:

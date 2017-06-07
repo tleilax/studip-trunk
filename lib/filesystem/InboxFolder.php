@@ -17,11 +17,21 @@
  */
 class InboxFolder extends InboxOutboxFolder
 {
+    /**
+     * Returns a localised name of the InboxFolder type.
+     * 
+     * @return string The localised name of this folder type.
+     */
     public static function getTypeName()
     {
         return _('Alle Anhänge eingegangener Nachrichten');
     }
 
+    /**
+     * Returns the Icon object for the InboxFolder type.
+     * 
+     * @return Icon An icon object with the icon for this folder type.
+     */
     public function getIcon($role)
     {
         $icon = count($this->getFiles()) > 0
@@ -30,7 +40,12 @@ class InboxFolder extends InboxOutboxFolder
         return Icon::create($icon, $role);
     }
 
-    //get all folders of the user that belongs to a received message:
+    /**
+     * Gets all attachments of received messages of a specific user
+     * and places the attachments inside this folder.
+     * 
+     * @return FileRef[] Array of FileRef objects representing the message attachments.
+     */
     public function getFiles()
     {
         $condition = "INNER JOIN message_user

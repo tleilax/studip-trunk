@@ -41,6 +41,8 @@ class InboxOutboxFolder implements FolderType
 
     /**
      * Returns a localised name of the InboxOutboxFolder type.
+     * 
+     * @return string The localised name of this folder type.
      */
     public static function getTypeName()
     {
@@ -49,6 +51,8 @@ class InboxOutboxFolder implements FolderType
 
     /**
      * Returns the Icon object for the InboxOutboxFolder type.
+     * 
+     * @return Icon An icon object with the icon for this folder type.
      */
     public function getIcon($role)
     {
