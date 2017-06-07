@@ -669,8 +669,11 @@ class FileArchiveManager
     /**
      * Extracts one file from an opened archive and stores it in a folder.
      *
-     * TODO: description!!
-     *
+     * @param ZipArchive $archive The archive from which a file shall be extracted.
+     * @param string $archive_path The path of the file in the archive.
+     * @param FolderType $target_folder The folder where the file shall be stored.
+     * @param User $user The user who wishes to extract the file from the archive.
+     * 
      * @return FileRef|null FileRef instance on success, null otherwise.
      */
     public static function extractFileFromArchive(
