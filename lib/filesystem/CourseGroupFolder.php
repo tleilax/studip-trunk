@@ -1,6 +1,6 @@
 <?php
 /**
- *  GroupFolder.php
+ *  CourseGroupFolder.php
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -12,7 +12,7 @@
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category  Stud.IP
  */
-class GroupFolder extends StandardFolder
+class CourseGroupFolder extends StandardFolder
 {
     // the id from the associated group
     protected $group_id;
