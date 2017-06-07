@@ -1145,7 +1145,8 @@ function link_form ($range_id, $updating=FALSE)
 // public/folder.php
 //DEPRECATED: replaced by template views/files/_fileref_tr.php
 function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh=FALSE, $filelink="") {
-    global $rechte, $user, $SessionSeminar;
+    global $user, $SessionSeminar;
+    $rechte = $GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar);
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
 
     $type = $datei['url'] != '' ? 6 : 0;
@@ -1284,8 +1285,9 @@ $countfiles = 0;
 // public/folder.php
 //DEPRECATED: replaced by template views/files/_fileref_tr.php and views/files/_folder_tr.php
 function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh=FALSE, $filelink="", $anchor_id, $position = "middle") {
-    global $_fullname_sql,$SessionSeminar,$SessSemName, $rechte, $anfang,
-        $user, $SemSecLevelWrite, $SemUserStatus, $check_all, $countfiles;
+    global $_fullname_sql,$SessionSeminar, $anfang,
+        $user, $check_all, $countfiles;
+    $rechte = $GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar);
     //Einbinden einer Klasse, die Informationen über den ganzen Baum enthält
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
     $javascriptok = true;
@@ -1427,7 +1429,8 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
 // public/folder.php
 //DEPRECATED: replaced by template views/files/_folder_tr.php
 function display_folder_body($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $level = 0) {
-    global $_fullname_sql, $SessionSeminar, $SemUserStatus, $SessSemName, $user, $perm, $rechte, $countfolder;
+    global $_fullname_sql, $SessionSeminar, $user, $perm, $countfolder;
+    $rechte = $GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar);
     $db = DBManager::get();
     //Einbinden einer Klasse, die Informationen über den ganzen Baum enthält
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
@@ -1707,8 +1710,9 @@ $droppable_folder = 0;
 // public/folder.php
 //DEPRECATED: replaced by template views/files/_folder_tr.php
 function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $position="middle", $isissuefolder = false) {
-    global $_fullname_sql,$SessionSeminar,$SessSemName, $rechte, $anfang,
-        $user, $SemSecLevelWrite, $SemUserStatus, $check_all, $countfolder, $droppable_folder;
+    global $_fullname_sql,$SessionSeminar, $anfang,
+        $user, $check_all, $countfolder, $droppable_folder;
+    $rechte = $GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar);
     $option = true;
     $countfolder++;
     $more = true;
@@ -2253,9 +2257,9 @@ function create_zip_from_file($file_name, $zip_file_name) {
     $archive = Studip\ZipArchive::create($zip_file_name);
     $localfilename = $archive->addFile($file_name);
     $archive->close();
-    
+
     return [$localfilename];
-    
+
     // return false, if nothing worked
     return false;
 }
@@ -2285,7 +2289,7 @@ function extract_zip($file_name, $dir_name = '', $testonly = false) {
     if ($testonly) {
         return Studip\ZipArchive::test($file_name);
     }
-    
+
     return Studip\ZipArchive::extractToPath($file_name, $dir_name);
 }
 */

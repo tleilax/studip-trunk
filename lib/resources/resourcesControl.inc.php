@@ -146,15 +146,15 @@ if ($perm->have_perm('admin')) {
 
         $resources_nav->addSubNavigation('room_requests', $navigation);
 
-        //CSV EXPORT
-        if ($view == "list_requests"){
+        // CSV EXPORT
+        if ($view == "list_requests") {
             // Set default sidebar image
             $sidebar = Sidebar::get();
             $sidebar->setImage('sidebar/person-sidebar.png');
 
             if (Config::get()->EXPORT_ENABLE) {
                 $widget = new ExportWidget();
-                $link = URLHelper::getLink('dispatch.php/resources/export_requestlist');
+                $link = URLHelper::getLink('dispatch.php/resources/helpers/export_requestlist');
                 $widget->addLink(_('Anfragenliste als CSV-Dokument exportieren'), $link, Icon::create('file-office'));
                 $sidebar->addWidget($widget);
             }
@@ -180,15 +180,16 @@ if ((getGlobalPerms($user->id) == 'admin') || ($perm->have_perm('root'))) {
 Belegungen exportieren, views: export_list
 /*****************************************************************************/
 if (Request::submitted('export_list')) {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/ShowSchedules.class.php");
-    if ($_SESSION['resources_data']["actual_object"]) {
-        $ViewSchedules=new ShowSchedules($_SESSION['resources_data']["actual_object"]);
-        $ViewSchedules->setStartTime($_SESSION['resources_data']["schedule_start_time"]);
-        $ViewSchedules->setEndTime($_SESSION['resources_data']["schedule_end_time"]);
-        $ViewSchedules->setLengthFactor($_SESSION['resources_data']["schedule_length_factor"]);
-        $ViewSchedules->setLengthUnit($_SESSION['resources_data']["schedule_length_unit"]);
-        $ViewSchedules->setWeekOffset($_SESSION['resources_data']["schedule_week_offset"]);
+    require_once $RELATIVE_PATH_RESOURCES . '/views/ShowSchedules.class.php';
+    if ($_SESSION['resources_data']['actual_object']) {
+        $ViewSchedules=new ShowSchedules($_SESSION['resources_data']['actual_object']);
+        $ViewSchedules->setStartTime($_SESSION['resources_data']['schedule_start_time']);
+        $ViewSchedules->setEndTime($_SESSION['resources_data']['schedule_end_time']);
+        $ViewSchedules->setLengthFactor($_SESSION['resources_data']['schedule_length_factor']);
+        $ViewSchedules->setLengthUnit($_SESSION['resources_data']['schedule_length_unit']);
+        $ViewSchedules->setWeekOffset($_SESSION['resources_data']['schedule_week_offset']);
         $ViewSchedules->exportScheduleList();
+
         $_SESSION['resources_data'] = serialize($_SESSION['resources_data']);
         page_close();
         die();

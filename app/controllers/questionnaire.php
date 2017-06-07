@@ -28,10 +28,10 @@ class QuestionnaireController extends AuthenticatedController
         //Navigation::activateItem("/tools/questionnaire/overview");
         $this->questionnaires = Questionnaire::findBySQL("user_id = ? ORDER BY mkdate DESC", array($GLOBALS['user']->id));
         foreach ($this->questionnaires as $questionnaire) {
-            if (!$questionnaire['visible'] && $questionnaire['startdate'] && $questionnaire['startdate'] <= time() && $questionnaire['stopdate'] > time()) {
+            if (!$questionnaire['visible'] && $questionnaire->isRunning()) {
                 $questionnaire->start();
             }
-            if ($questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
+            if ($questionnaire['visible'] && $questionnaire->isStopped()) {
                 $questionnaire->stop();
             }
         }
@@ -52,10 +52,10 @@ class QuestionnaireController extends AuthenticatedController
         Navigation::activateItem("/course/admin/questionnaires");
         $this->questionnaires = Questionnaire::findBySQL("INNER JOIN questionnaire_assignments USING (questionnaire_id) WHERE questionnaire_assignments.range_id = ? AND questionnaire_assignments.range_type = ? ORDER BY questionnaires.mkdate DESC", array($GLOBALS['SessionSeminar'], $this->range_type));
         foreach ($this->questionnaires as $questionnaire) {
-            if (!$questionnaire['visible'] && $questionnaire['startdate'] && $questionnaire['startdate'] <= time() && $questionnaire['stopdate'] > time()) {
+            if (!$questionnaire['visible'] && $questionnaire->isRunning()) {
                 $questionnaire->start();
             }
-            if ($questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
+            if ($questionnaire['visible'] && $questionnaire->isStopped()) {
                 $questionnaire->stop();
             }
         }
@@ -372,12 +372,7 @@ class QuestionnaireController extends AuthenticatedController
         if (!$this->questionnaire->isEditable()) {
             throw new AccessDeniedException("Der Fragebogen ist nicht bearbeitbar.");
         }
-        $this->questionnaire['visible'] = 1;
-        $this->questionnaire['startdate'] = time();
-        if ($this->questionnaire['stopdate'] && $this->questionnaire['stopdate'] < time()) {
-            $this->questionnaire['stopdate'] = null;
-        }
-        $this->questionnaire->store();
+        $this->questionnaire->start();
 
         PageLayout::postMessage(MessageBox::success(_("Die Befragung wurde gestartet.")));
         if (Request::get("redirect")) {
@@ -556,10 +551,10 @@ class QuestionnaireController extends AuthenticatedController
         $stopped_visible = 0;
         foreach ($this->questionnaire_data as $i => $questionnaire) {
             $one = Questionnaire::buildExisting($questionnaire);
-            if (!$questionnaire['visible'] && $questionnaire['startdate'] && $questionnaire['startdate'] <= time()) {
+            if (!$questionnaire['visible'] && $one->isRunning()) {
                 $one->start();
             }
-            if ($questionnaire['visible'] && $questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
+            if ($questionnaire['visible'] && $one->isStopped()) {
                 $one->stop();
             }
             if ($one->isStopped() && $one->resultsVisible()) {

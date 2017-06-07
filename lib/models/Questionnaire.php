@@ -148,13 +148,16 @@ class Questionnaire extends SimpleORMap
 
     public function start()
     {
-        if (!$this['startdate']) {
+        if (!$this->isRunning()) {
             $this['startdate'] = time();
-        }
-        $this['visible'] = 1;
-        $this->store();
-        foreach ($this->questions as $question) {
-            $question->onBeginning();
+            $this['visible'] = 1;
+            if ($this->isStopped()) {
+                $this['stopdate'] = null;
+            }
+            $this->store();
+            foreach ($this->questions as $question) {
+                $question->onBeginning();
+            }
         }
     }
 
@@ -162,9 +165,7 @@ class Questionnaire extends SimpleORMap
     {
         if (!$this->isStopped()) {
             $this['visible'] = $this['resultvisibility'] === 'never' ? 0 : 1;
-            if (!$this['stopdate']) {
-                $this['stopdate'] = time();
-            }
+            $this['stopdate'] = time();
             $this->store();
             foreach ($this->questions as $question) {
                 $question->onEnding();
@@ -174,7 +175,7 @@ class Questionnaire extends SimpleORMap
 
     public function isStarted()
     {
-        return $this['visible'] && $this['startdate'] && ($this['startdate'] <= time());
+        return $this['startdate'] && ($this['startdate'] <= time());
     }
 
     public function isStopped()

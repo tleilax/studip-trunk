@@ -16,7 +16,7 @@ if (isset($_COOKIE['navigation-length'])) {
 ?>
 
 <!-- Leiste unten -->
-<div id="barBottomContainer" <?= $public_hint ? 'class="public_course"' : '' ?>>
+<div id="barBottomContainer">
     <div id="barBottomLeft">
         <input type="checkbox" id="barTopMenu-toggle">
         <label for="barTopMenu-toggle">
@@ -68,6 +68,7 @@ if (isset($_COOKIE['navigation-length'])) {
                 ?>
                 <?= $action_menu->render(); ?>
                </div>
+               <?= Icon::create('arr_1down', 'clickable', array('id' => 'avatar-arrow')); ?>
 
             <? if (is_object($GLOBALS['perm']) && PersonalNotifications::isActivated() && $GLOBALS['perm']->have_perm('autor')) : ?>
                 <? $notifications = PersonalNotifications::getMyNotifications() ?>

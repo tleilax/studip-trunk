@@ -147,8 +147,8 @@ $rules = [
     'getKingsInformations' => 'Use #{yellow:User} model instead',
 
     'AutoInsert::existSeminars' => false,
-    'ZebraTable' => 'No longer neccessary. Use #{table.default} instead.',
-    'Table' => 'No longer neccessary. Use #{table.default} instead.',
+    'new ZebraTable' => 'No longer neccessary. Use #{table.default} instead.',
+    'new Table' => 'No longer neccessary. Use #{table.default} instead.',
 
     //old datei.inc.php and visual.inc.php functions:
     'createSelectedZip' => 'Removed. Use #{yellow:FileArchiveManager::createArchiveFromFileRefs} instead.',
@@ -174,6 +174,10 @@ $rules = [
     'UNZIP_PATH' => 'Removed. Please avoid querying the value of this configuration variable!',
 
     'RuleAdministrationModel::getAdmissionRuleTypes' => 'Use #{yellow:AdmissionRule::getAvailableAdmissionRules(false)} instead.',
+    'SessSemName' => 'Use class #{yellow:Context} instead',
+    '_SESSION["SessionSeminar"]' => 'Use class #{yellow:Context} instead',
+    '_SESSION[\'SessionSeminar\']' => 'Use class #{yellow:Context} instead',
+
 ];
 
 
