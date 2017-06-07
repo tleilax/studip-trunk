@@ -1,11 +1,24 @@
 <?php
 class PublicFolder extends StandardFolder
 {
+    /**
+     * Returns a localised name of the PublicFolder type.
+     * 
+     * @return string The localised name of this folder type.
+     */
     static public function getTypeName()
     {
         return _('Ein Ordner für öffentlich zugängliche Daten');
     }
 
+    /**
+     * PublicFolders are only creatable in StandardFolder types
+     * in a user's personal file area.
+     * 
+     * @param string $range_type A range type ('user', 'course', ...).
+     * 
+     * @return bool True if the range_type is 'user', false otherwise.
+     */
     static public function creatableInStandardFolder($range_type)
     {
         return $range_type === 'user';
@@ -36,50 +49,111 @@ class PublicFolder extends StandardFolder
         return $this->folderdata[$name] = $value;
     }
 
+    /**
+     * PublicFolders are always visible.
+     * 
+     * @param string $user_id The user who wishes to see the folder.
+     * 
+     * @return bool True
+     */
     public function isVisible($user_id)
     {
         return true;
     }
 
+    /**
+     * PublicFolders are always readable.
+     *
+     * @param string $user_id The user who wishes to read the folder.
+     * 
+     * @return bool True
+     */
     public function isReadable($user_id)
     {
         return true;
     }
 
+    /**
+     * PublicFolders are writable for the owner.
+     * 
+     * @param string $user_id The user who wishes to write inside the folder.
+     * 
+     * @return bool True, if the user is the owner, false otherwise.
+     */
     public function isWritable($user_id)
     {
         return $user_id === $GLOBALS['user']->id;
     }
 
+    /**
+     * Only the owner may put subfolders inside a PublicFolder.
+     * 
+     * @param string $user_id The user who wishes to create a subfolder inside the folder.
+     * 
+     * @return bool True, if the user is the owner, false otherwise.
+     */
     public function isSubfolderAllowed($user_id)
     {
         return $user_id === $GLOBALS['user']->id;
     }
 
+    /**
+     * Returns a description template for PublicFolders.
+     * 
+     * @return string A string describing this folder type.
+     */
     public function getDescriptionTemplate()
     {
         return _('Öffentlich sichtbar für alle.');
     }
 
+    /**
+     * Files in PublicFolders are always downloadable.
+     *
+     * @param string $file_id The ID to a FileRef.
+     * @param string $user_id The user who wishes to downlaod the file.
+     * 
+     * @return bool True
+     */
     public function isFileDownloadable($file_id, $user_id)
     {
         //public folder => everyone can download a file
         return true;
     }
 
+    /**
+     * Files in PublicFolders are editable for the owner only.
+     *
+     * @param string $file_id The ID to a FileRef.
+     * @param string $user_id The user who wishes to edit the file.
+     * 
+     * @return bool True, if the user is the owner of the file, false otherwise.
+     */
     public function isFileEditable($file_id, $user_id)
     {
         //only the owner may edit files
         return $user_id === $this->folderdata['user_id'];
     }
 
-
+    /**
+     * Files in PublicFolders are writable for the owner only.
+     *
+     * @param string $file_id The ID to a FileRef.
+     * @param string $user_id The user who wishes to write to the file.
+     * 
+     * @return bool True, if the user is the owner of the file, false otherwise.
+     */
     public function isFileWritable($file_id, $user_id)
     {
         //only the owner may delete files
         return $user_id === $this->folderdata['user_id'];
     }
 
+    /**
+     * Returns the edit template for this folder type.
+     * 
+     * @return template
+     */
     public function getEditTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/public_folder/edit.php');
@@ -87,6 +161,13 @@ class PublicFolder extends StandardFolder
         return $template;
     }
 
+    /**
+     * Sets the data from a submitted edit template.
+     * 
+     * @param array $request The data from the edit template.
+     * 
+     * @return PublicFolder A "reference" to this PublicFolder.
+     */
     public function setDataFromEditTemplate($request)
     {
         $this->viewable = (int)$request['public_folder_viewable'];
