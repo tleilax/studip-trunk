@@ -14,18 +14,35 @@
  */
 class HiddenFolder extends PermissionEnabledFolder
 {
-    protected $permission = 6;
+    // nobody can see, write or read in this folder except the lecturer and his tutors
+    protected $permission = 0;
 
+    /**
+     * Checks if this type of folder can be created at this location
+     *
+     * @param string $range_type the range_type where the folder should be created
+     * @return bool True, if the range_type is course, false with every other range_type
+     */
     public static function creatableInStandardFolder($range_type)
     {
         return $range_type === 'course';
     }
 
+    /**
+     * Returns the name of the HiddenFolder type.
+     *
+     * @return string the name of the HiddenFolder type
+     */
     public static function getTypeName()
     {
         return _("Unsichtbarer Ordner");
     }
 
+    /**
+     * This function returns the suitable Icon for this folder type (HiddenFolder)
+     *
+     * @return Icon The icon object for this folder type
+     */
     public function getIcon($role = Icon::DEFAULT_ROLE)
     {
         $shape = count($this->getSubfolders()) + count($this->getFiles()) === 0
@@ -34,12 +51,20 @@ class HiddenFolder extends PermissionEnabledFolder
         return Icon::create($shape, $role);
     }
 
+    /**
+     * HiddenFolder constructor.
+     */
     public function __construct($folderdata = null)
     {
         parent::__construct($folderdata);
         $this->permission = 6;
     }
 
+    /**
+     * Returns the description template for a instance of a HiddenFolder type
+     *
+     * @return mixed A description template for a instance of the type HiddenFolder
+     */
     public function getDescriptionTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/hidden_folder/description.php');
@@ -49,4 +74,13 @@ class HiddenFolder extends PermissionEnabledFolder
 
         return $template;
     }
+
+    /**
+     * This method returns the special part for the edit template for the folder type GroupFolder
+     */
+    public function getEditTemplate()
+    {
+        return ;
+    }
+
 }

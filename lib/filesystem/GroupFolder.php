@@ -14,21 +14,39 @@
  */
 class GroupFolder extends StandardFolder
 {
+    // the id from the associated group
     protected $group_id;
 
     // tutor and higher of a course can do everything with this foldertype
     protected $must_have_perm = "tutor";
 
+    /**
+     * Returns the name of the GroupFolder type.
+     *
+     * @return string the name of the GroupFolder type
+     */
     public static function getTypeName()
     {
         return _('Gruppenordner');
     }
 
+    /**
+     * Checks if this type of folder can be created at this location
+     *
+     * @param string $range_type the range_type where the folder should be created
+     * @return bool True, if the range_type is course, false with every other range_type
+     */
     public static function creatableInStandardFolder($range_type)
     {
         return $range_type === 'course';
     }
 
+    /**
+     * This method check the permission (global and if he is in the group) for a given user
+     *
+     * @param $user_id The User-ID
+     * @return bool True if user have permission, False otherwise
+     */
     public function checkPermission($user_id)
     {
         $group = new Statusgruppen($this->folderdata['data_content']['group']);
@@ -38,32 +56,64 @@ class GroupFolder extends StandardFolder
                 && $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id));
     }
 
+    /**
+     * Check if this GroupFolder instance is visible for this user or not.
+     *
+     * @param user_id The User-ID
+     * @return bool True, if the user is in this group or is the lecturer, false otherwise
+     */
     public function isVisible($user_id)
     {
         return $this->checkPermission($user_id);
     }
 
+    /**
+     * Check if this GroupFolder instance is readable for this user or not.
+     *
+     * @param user_id The User-ID
+     * @return bool True, if the user is in this group or is the lecturer, false otherwise
+     */
     public function isReadable($user_id)
     {
         return $this->checkPermission($user_id);
     }
 
+    /**
+     * Check if this GroupFolder instance is writable for this user or not.
+     *
+     * @param user_id The User-ID
+     * @return bool True, if the user is in this group or is the lecturer, false otherwise
+     */
     public function isWritable($user_id)
     {
         return $this->checkPermission($user_id);
     }
 
+    /**
+     * Check if a Subfolder can be created.
+     *
+     * @return bool True, if the user is in this group or is the lecturer, false otherwise
+     */
     public function isSubfolderAllowed($user_id)
     {
         return $this->checkPermission($user_id);
     }
 
-    // ToDo Icon anpassen
+    /**
+     * This function returns the suitable Icon for this folder type (GroupFolder)
+     *
+     * @return Icon The icon object for this folder type
+     */
     public function getIcon($role = Icon::DEFAULT_ROLE)
     {
         return Icon::create('group2', $role);
     }
 
+    /**
+     * This method returns the special part for the edit template for the folder type GroupFolder
+     *
+     * @return mixed  A edit template for a instance of the type GroupFolder
+     */
     public function getEditTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/group_folder/edit.php');
@@ -71,6 +121,10 @@ class GroupFolder extends StandardFolder
         return $template;
     }
 
+    /**
+     * Stores the data which was edited in the edit template
+     * @return mixed The template with the edited data
+     */
     public function setDataFromEditTemplate($request)
     {
         if ($request['group'] == null){
@@ -82,6 +136,11 @@ class GroupFolder extends StandardFolder
         return parent::setDataFromEditTemplate($request);
     }
 
+    /**
+     * Returns the description template for a instance of a GroupFolder type
+     *
+     * @return mixed A description template for a instance of the type GroupFolder
+     */
     public function getDescriptionTemplate()
     {
         $group = new Statusgruppen($this->folderdata['data_content']['group']);
