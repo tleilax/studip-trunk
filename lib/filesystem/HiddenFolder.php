@@ -57,7 +57,7 @@ class HiddenFolder extends PermissionEnabledFolder
     public function __construct($folderdata = null)
     {
         parent::__construct($folderdata);
-        $this->permission = 6;
+        $this->permission = 0;
     }
 
     /**

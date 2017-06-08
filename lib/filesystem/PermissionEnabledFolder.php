@@ -20,7 +20,7 @@ class PermissionEnabledFolder extends StandardFolder
 
     public static function creatableInStandardFolder($range_type)
     {
-        return in_array($range_type, ['course', 'institute']);
+        return false;
     }
 
     public static function getTypeName()
@@ -103,12 +103,6 @@ class PermissionEnabledFolder extends StandardFolder
         return $template;
     }
 
-    public function setData($request)
-    {
-        $this->permission = $request['permission'];
-        $this->folderdata['data_content']['permission'] = $this->permission;
-    }
-
     public function validateUpload($uploadedfile, $user_id)
     {
         if (!$this->isWritable($user_id)) {
@@ -120,21 +114,25 @@ class PermissionEnabledFolder extends StandardFolder
 
     public function getEditTemplate()
     {
-        $template = $GLOBALS['template_factory']->open('filesystem/permission_enabled_folder/edit.php');
-        $template->folder = $this;
-        return $template;
+        return '';
     }
 
-    public function setDataFromEditTemplate($request)
+    /**
+     * @param $fileref_or_id
+     * @param $user_id
+     * @return bool
+     */
+    public function isFileDownloadable($fileref_or_id, $user_id)
     {
-        foreach (['r' => 'read', 'w' => 'write', 'x' => 'visible'] as $p => $v) {
-            if ($request['perm_' . $v]) {
-                $this->permission |= $this->perms[$p];
-            } else {
-                $this->permission &= ~$this->perms[$p];
+        $fileref = FileRef::toObject($fileref_or_id);
+
+        if (is_object($fileref)) {
+            if ($this->isVisible($user_id) && $this->isReadable($user_id)) {
+                return $fileref->terms_of_use->fileIsDownloadable($fileref, true, $user_id);
             }
         }
-        $this->folderdata['data_content']['permission'] = $this->permission;
-        return parent::setDataFromEditTemplate($request);
+        return false;
     }
+
+
 }

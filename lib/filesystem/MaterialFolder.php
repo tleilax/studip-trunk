@@ -15,56 +15,24 @@
 class MaterialFolder extends PermissionEnabledFolder
 {
     /**
+     * Checks if this type of folder can be created at this location
+     *
+     * @param string $range_type the range_type where the folder should be created
+     * @return bool True, if the range_type is course, false with every other range_type
+     */
+    public static function creatableInStandardFolder($range_type)
+    {
+        return $range_type === 'course';
+    }
+
+    /**
      * MaterialFolder constructor.
      */
     public function __construct($folderdata = null)
     {
         parent::__construct($folderdata);
 
-        // you need to be at least tutor to have the right to do more then read
-        $this->must_have_perm = 'tutor';
-    }
-
-    /**
-     * The type of folder are always visible
-     *
-     * @return bool True
-     */
-    public function isVisible($user_id)
-    {
-        return true;
-    }
-
-    /**
-     * The type of folder are always readable
-     *
-     * @return bool True
-     */
-    public function isReadable($user_id)
-    {
-        return true;
-    }
-
-    /**
-     * This folder is only writable if the user is the lecturer or his tutor
-     *
-     * @param null $user_id
-     * @return bool True, if the user is the lecturer or his tutor
-     */
-    public function isWritable($user_id)
-    {
-        return $this->checkPermission($user_id);
-    }
-
-    /**
-     * This folder is only writable if the user is the lecturer or his tutor
-     *
-     * @param null $user_id
-     * @return bool True, if the user is the lecturer or his tutor
-     */
-    public function isSubfolderAllowed($user_id)
-    {
-        return $this->checkPermission($user_id);
+        $this->permission = 5;
     }
 
     /**
@@ -92,21 +60,7 @@ class MaterialFolder extends PermissionEnabledFolder
      */
     public function getEditTemplate()
     {
-        return null;
-    }
-
-    /**
-     * This method check the studip-permission for a given user. The User need to be at
-     * least a tutor (or higher) in this course
-     *
-     * @param $user_id The User-ID
-     * @return bool True if user have permission, False otherwise
-     */
-    protected function checkPermission($perm, $user_id = null)
-    {
-        return $user_id
-            && is_object($GLOBALS['perm'])
-            && $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id);
+        return '';
     }
 
     /**
