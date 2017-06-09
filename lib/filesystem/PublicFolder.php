@@ -1,9 +1,22 @@
 <?php
+/**
+ * PublicFolder.php
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * @author    André Noack <noack@data-quest.de>
+ * @copyright 2017 Stud.IP Core-Group
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
+ * @category  Stud.IP
+ */
 class PublicFolder extends StandardFolder
 {
     /**
      * Returns a localised name of the PublicFolder type.
-     * 
+     *
      * @return string The localised name of this folder type.
      */
     static public function getTypeName()
@@ -12,16 +25,14 @@ class PublicFolder extends StandardFolder
     }
 
     /**
-     * PublicFolders are only creatable in StandardFolder types
-     * in a user's personal file area.
-     * 
-     * @param string $range_type A range type ('user', 'course', ...).
-     * 
-     * @return bool True if the range_type is 'user', false otherwise.
+     * @param Object|string $range_id_or_object
+     * @param string $user_id
+     * @return bool
      */
-    static public function creatableInStandardFolder($range_type)
+    public static function availableInRange($range_id_or_object, $user_id)
     {
-        return $range_type === 'user';
+        $range_id = is_object($range_id_or_object) ? $range_id_or_object->id : $range_id_or_object;
+        return $range_id === $user_id;
     }
 
     /**
@@ -51,9 +62,9 @@ class PublicFolder extends StandardFolder
 
     /**
      * PublicFolders are always visible.
-     * 
+     *
      * @param string $user_id The user who wishes to see the folder.
-     * 
+     *
      * @return bool True
      */
     public function isVisible($user_id)
@@ -65,7 +76,7 @@ class PublicFolder extends StandardFolder
      * PublicFolders are always readable.
      *
      * @param string $user_id The user who wishes to read the folder.
-     * 
+     *
      * @return bool True
      */
     public function isReadable($user_id)
@@ -75,9 +86,9 @@ class PublicFolder extends StandardFolder
 
     /**
      * PublicFolders are writable for the owner.
-     * 
+     *
      * @param string $user_id The user who wishes to write inside the folder.
-     * 
+     *
      * @return bool True, if the user is the owner, false otherwise.
      */
     public function isWritable($user_id)
@@ -87,9 +98,9 @@ class PublicFolder extends StandardFolder
 
     /**
      * Only the owner may put subfolders inside a PublicFolder.
-     * 
+     *
      * @param string $user_id The user who wishes to create a subfolder inside the folder.
-     * 
+     *
      * @return bool True, if the user is the owner, false otherwise.
      */
     public function isSubfolderAllowed($user_id)
@@ -99,7 +110,7 @@ class PublicFolder extends StandardFolder
 
     /**
      * Returns a description template for PublicFolders.
-     * 
+     *
      * @return string A string describing this folder type.
      */
     public function getDescriptionTemplate()
@@ -112,7 +123,7 @@ class PublicFolder extends StandardFolder
      *
      * @param string $file_id The ID to a FileRef.
      * @param string $user_id The user who wishes to downlaod the file.
-     * 
+     *
      * @return bool True
      */
     public function isFileDownloadable($file_id, $user_id)
@@ -126,7 +137,7 @@ class PublicFolder extends StandardFolder
      *
      * @param string $file_id The ID to a FileRef.
      * @param string $user_id The user who wishes to edit the file.
-     * 
+     *
      * @return bool True, if the user is the owner of the file, false otherwise.
      */
     public function isFileEditable($file_id, $user_id)
@@ -140,7 +151,7 @@ class PublicFolder extends StandardFolder
      *
      * @param string $file_id The ID to a FileRef.
      * @param string $user_id The user who wishes to write to the file.
-     * 
+     *
      * @return bool True, if the user is the owner of the file, false otherwise.
      */
     public function isFileWritable($file_id, $user_id)
@@ -151,8 +162,8 @@ class PublicFolder extends StandardFolder
 
     /**
      * Returns the edit template for this folder type.
-     * 
-     * @return template
+     *
+     * @return Flexi_Template
      */
     public function getEditTemplate()
     {
@@ -163,9 +174,9 @@ class PublicFolder extends StandardFolder
 
     /**
      * Sets the data from a submitted edit template.
-     * 
+     *
      * @param array $request The data from the edit template.
-     * 
+     *
      * @return PublicFolder A "reference" to this PublicFolder.
      */
     public function setDataFromEditTemplate($request)

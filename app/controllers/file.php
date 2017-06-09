@@ -992,7 +992,7 @@ class FileController extends AuthenticatedController
 
         $this->parent_folder_id = $parent_folder->getId();
 
-        $folder_types = FileManager::getFolderTypes($parent_folder->range_type);
+        $folder_types = FileManager::getAvailableFolderTypes($parent_folder->range_id, $GLOBALS['user']->id);
 
         $this->name = Request::get('name');
         $this->description = Request::get('description');
@@ -1051,8 +1051,7 @@ class FileController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         $parent_folder = $folder->getParent();
-        $folder_types = FileManager::getFolderTypes($parent_folder->range_type);
-
+        $folder_types = FileManager::getAvailableFolderTypes($parent_folder->range_id, $GLOBALS['user']->id);
         $this->name = Request::get('name', $folder->name);
         $this->description = Request::get('description', $folder->description);
 

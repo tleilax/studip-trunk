@@ -63,10 +63,10 @@ class MessageFolder implements FolderType
 
     /**
      * Creates a root folder (top folder) for a message referenced by its ID.
-     * 
+     *
      * @param string $message_id The ID of a message for which a root folder
      *     shall be generated.
-     * 
+     *
      * @return MessageFolder A new MessageFolder as root folder for a message.
      */
     public static function createTopFolder($message_id)
@@ -76,9 +76,9 @@ class MessageFolder implements FolderType
 
     /**
      * Returns the amount of attachments for a message.
-     * 
+     *
      * @param string $message_id The ID of a message.
-     * 
+     *
      * @return int The amount of attachments that have been found for the message.
      */
     public static function getNumMessageAttachments($message_id)
@@ -102,7 +102,7 @@ class MessageFolder implements FolderType
      * This method returns always false since MessageFolder types are not
      * creatable in standard folders. They are a standalone folder type.
      */
-    public static function creatableInStandardFolder($range_type)
+    public static function availableInRange($range_id_or_object, $user_id)
     {
         return false;
     }
@@ -141,9 +141,9 @@ class MessageFolder implements FolderType
 
     /**
      * This method checks if a specified user can read the MessageFolder object.
-     * 
+     *
      * @param string $user_id The ID of the user whose read permission shall be checked.
-     * 
+     *
      * @return True, if the user, specified by $user_id, can read the folder, false otherwise.
      */
     public function isReadable($user_id)
@@ -197,7 +197,7 @@ class MessageFolder implements FolderType
 
     /**
      * Returns the files of this MessageFolder (e.g. the attachments of a message).
-     * 
+     *
      * @return FileRef[] An array of FileRef objects containing all files
      *     that are placed inside this folder.
      */
@@ -235,10 +235,10 @@ class MessageFolder implements FolderType
 
     /**
      * This method handles file upload validation.
-     * 
+     *
      * @param array $uploaded_file The uploaded file that shall be validated.
      * @param string $user_id The user who wishes to upload a file in this MessageFolder.
-     * 
+     *
      * @return string|null An error message on failure, null on success.
      */
     public function validateUpload($uploaded_file, $user_id)
@@ -269,9 +269,9 @@ class MessageFolder implements FolderType
 
     /**
      * This method handles creating a file inside the MessageFolder.
-     * 
+     *
      * @param File|array $file The file that shall be created inside the MessageFolder.
-     * 
+     *
      * @return FileRef|null On success, a FileRef for the given file is returned. Null otherwise.
      */
     public function createFile($file)
@@ -309,9 +309,9 @@ class MessageFolder implements FolderType
 
     /**
      * Handles the deletion of a file inside this folder.
-     * 
+     *
      * @param string $file_ref_id The ID of the FileRef whose file shall be deleted.
-     * 
+     *
      * @return True, if the file has been deleted successfully, false otherwise.
      */
     public function deleteFile($file_ref_id)
@@ -334,7 +334,7 @@ class MessageFolder implements FolderType
 
     /**
      * Stores the MessageFolder object.
-     * 
+     *
      * @return True, if the MessageFolder has been stored successfully, false otheriwse.
      */
     public function store()
@@ -358,7 +358,7 @@ class MessageFolder implements FolderType
 
     /**
      * Deletes the MessageFolder object.
-     * 
+     *
      * @return True, if the MessageFolder has been deleted successfully, false otheriwse.
      */
     public function delete()

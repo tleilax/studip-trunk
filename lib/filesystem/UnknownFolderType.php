@@ -40,11 +40,7 @@ class UnknownFolderType implements FolderType
         return _('Unbekannter Ordner Typ');
     }
 
-    /**
-     * @param string $range_type
-     * @return bool
-     */
-    public static function creatableInStandardFolder($range_type)
+    public static function availableInRange($range_id_or_object, $user_id)
     {
         return false;
     }

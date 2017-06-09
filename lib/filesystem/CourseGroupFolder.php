@@ -30,15 +30,13 @@ class CourseGroupFolder extends StandardFolder
         return _('Gruppenordner');
     }
 
-    /**
-     * Checks if this type of folder can be created at this location
-     *
-     * @param string $range_type the range_type where the folder should be created
-     * @return bool True, if the range_type is course, false with every other range_type
-     */
-    public static function creatableInStandardFolder($range_type)
+
+    public static function availableInRange($range_id_or_object, $user_id)
     {
-        return $range_type === 'course';
+        $course = Course::toObject($range_id_or_object);
+        if ($course && !$course->isNew()) {
+            return Seminar_Perm::get()->have_studip_perm('tutor', $course->id, $user_id) && Statusgruppen::countBySql("range_id = ?" , [$course->id]);
+        }
     }
 
     /**

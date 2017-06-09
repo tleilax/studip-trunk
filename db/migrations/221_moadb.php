@@ -137,7 +137,7 @@ class Moadb extends Migration
             $folder['user_id'] = $GLOBALS['user']->id;
             $folder['description'] = '';
             $folder['mkdate'] = $folder['chdate'] = time();
-            $this->migrateFolder($folder, $folder['new_range_id'], 'institute', 'StandardFolder');
+            $this->migrateFolder($folder, $folder['new_range_id'], 'institute', 'RootFolder');
             $institute_folders[$folder['new_range_id']] = $folder['folder_id'];
         }
         //aka Allgemeiner Dateiordner
@@ -167,7 +167,7 @@ class Moadb extends Migration
             $folder['user_id'] = $GLOBALS['user']->id;
             $folder['description'] = '';
             $folder['mkdate'] = $folder['chdate'] = time();
-            $this->migrateFolder($folder, $folder['new_range_id'], 'course', 'StandardFolder');
+            $this->migrateFolder($folder, $folder['new_range_id'], 'course', 'RootFolder');
             $seminar_folders[$folder['new_range_id']] = $folder['folder_id'];
         }
         //aka Allgemeiner Dateiordner
@@ -184,7 +184,7 @@ class Moadb extends Migration
 
         //group folder
         foreach ($db->query("SELECT f.*, s.range_id AS seminar_id FROM `folder` f INNER JOIN `statusgruppen` s ON s.statusgruppe_id = f.range_id") as $folder) {
-            $data_content = json_encode(['group_id' => $folder['range_id']]);
+            $data_content = json_encode(['group' => $folder['range_id']]);
             $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
             $this->migrateFolder($folder, $folder['seminar_id'], 'course', 'CourseGroupFolder', $data_content);
         }

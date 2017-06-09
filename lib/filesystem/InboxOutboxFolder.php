@@ -41,7 +41,7 @@ class InboxOutboxFolder implements FolderType
 
     /**
      * Returns a localised name of the InboxOutboxFolder type.
-     * 
+     *
      * @return string The localised name of this folder type.
      */
     public static function getTypeName()
@@ -51,7 +51,7 @@ class InboxOutboxFolder implements FolderType
 
     /**
      * Returns the Icon object for the InboxOutboxFolder type.
-     * 
+     *
      * @return Icon An icon object with the icon for this folder type.
      */
     public function getIcon($role)
@@ -70,11 +70,7 @@ class InboxOutboxFolder implements FolderType
         return $this->folder->id;
     }
 
-    /**
-     * This method returns always false since InboxOutboxFolders are not
-     * creatable in standard folders. They are a standalone folder type.
-     */
-    public static function creatableInStandardFolder($range_type)
+    public static function availableInRange($range_id_or_object, $user_id)
     {
         return false;
     }

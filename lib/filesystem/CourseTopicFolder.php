@@ -19,9 +19,12 @@ class CourseTopicFolder extends StandardFolder implements FolderType
         return _('Themen-Ordner');
     }
 
-    public static function creatableInStandardFolder($range_type)
+    public static function availableInRange($range_id_or_object, $user_id)
     {
-        return $range_type == 'course';
+        $course = Course::toObject($range_id_or_object);
+        if ($course && !$course->isNew()) {
+            return Seminar_Perm::get()->have_studip_perm('tutor', $course->id, $user_id) && CourseTopic::countBySql("seminar_id = ?" , [$course->id]);
+        }
     }
 
     public function getIcon($role = Icon::DEFAULT_ROLE)

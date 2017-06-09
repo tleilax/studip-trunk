@@ -40,19 +40,16 @@ class StandardFolder implements FolderType
      */
     public static function getTypeName()
     {
-        return _('Ordner ohne besondere Merkmale');
+        return _('Ordner');
     }
 
-    /**
-     * @param string $range_type
-     * @return bool
-     */
-    public static function creatableInStandardFolder($range_type)
+    public static function availableInRange($range_id_or_object, $user_id)
     {
         return true;
     }
 
     /**
+     * @param string $role
      * @return Icon
      */
     public function getIcon($role = Icon::DEFAULT_ROLE)
@@ -79,7 +76,7 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @param $attribute
+     * @param string $attribute
      * @return mixed
      */
     public function __get($attribute)
@@ -88,8 +85,8 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @param $name
-     * @param $value
+     * @param string $name
+     * @param mixed $value
      * @return mixed
      */
     public function __set($name, $value)
@@ -98,7 +95,7 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @param $user_id
+     * @param string $user_id
      * @return bool
      */
     public function isVisible($user_id)
@@ -113,7 +110,7 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @param $user_id
+     * @param string $user_id
      * @return bool
      */
     public function isReadable($user_id)
@@ -128,7 +125,7 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @param $user_id
+     * @param string $user_id
      * @return bool
      */
     public function isWritable($user_id)
@@ -138,7 +135,7 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @param $user_id
+     * @param string $user_id
      * @return bool
      */
     public function isEditable($user_id)
@@ -148,7 +145,7 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @param $user_id
+     * @param string $user_id
      * @return bool
      */
     public function isSubfolderAllowed($user_id)
@@ -158,7 +155,7 @@ class StandardFolder implements FolderType
     }
 
     /**
-     *
+     * @return string|Flexi_Template
      */
     public function getDescriptionTemplate()
     {
@@ -166,15 +163,15 @@ class StandardFolder implements FolderType
     }
 
     /**
-     *
+     * @return string|Flexi_Template
      */
     public function getEditTemplate()
     {
-
+        return '';
     }
 
     /**
-     * @param $request
+     * @param Request $request
      * @return FolderType|MessageBox
      */
     public function setDataFromEditTemplate($request)
@@ -187,14 +184,17 @@ class StandardFolder implements FolderType
         return $this;
     }
 
+    /**
+     * @return bool|number
+     */
     public function store()
     {
         return $this->folderdata->store();
     }
 
     /**
-     * @param $uploadedfile
-     * @param $user_id
+     * @param array $uploadedfile
+     * @param string $user_id
      * @return string
      */
     public function validateUpload($uploadedfile, $user_id)
@@ -278,7 +278,8 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @param $file
+     * @param File|array $file
+     * @return FileRef
      */
     public function createFile($file)
     {
@@ -308,6 +309,10 @@ class StandardFolder implements FolderType
         );
     }
 
+    /**
+     * @param string $file_ref_id
+     * @return int
+     */
     public function deleteFile($file_ref_id)
     {
         $file_ref = $this->folderdata->file_refs->find($file_ref_id);
@@ -318,6 +323,10 @@ class StandardFolder implements FolderType
     }
 
 
+    /**
+     * @param FolderType $foldertype
+     * @return bool
+     */
     public function createSubfolder(FolderType $foldertype)
     {
         $foldertype->range_id   = $this->folderdata['range_id'];
@@ -326,6 +335,10 @@ class StandardFolder implements FolderType
         return $foldertype->store();
     }
 
+    /**
+     * @param string $subfolder_id
+     * @return bool
+     */
     public function deleteSubfolder($subfolder_id)
     {
         $subfolders = $this->folderdata->subfolders;
@@ -344,14 +357,17 @@ class StandardFolder implements FolderType
         return false;
     }
 
+    /**
+     * @return int
+     */
     public function delete()
     {
         return $this->folderdata->delete();
     }
 
     /**
-     * @param $fileref_or_id
-     * @param $user_id
+     * @param FileRef|string $fileref_or_id
+     * @param string $user_id
      * @return bool
      */
     public function isFileDownloadable($fileref_or_id, $user_id)
@@ -373,8 +389,8 @@ class StandardFolder implements FolderType
     }
 
     /**
-     * @param $fileref_or_id
-     * @param $user_id
+     * @param FileRef|string $fileref_or_id
+     * @param string $user_id
      * @return bool
      */
     public function isFileEditable($fileref_or_id, $user_id)
@@ -392,8 +408,8 @@ class StandardFolder implements FolderType
      * tutor permissions on the Stud.IP object specified by range_id
      * (such objects may be courses or institutes for example).
      *
-     * @param $fileref_or_id
-     * @param $user_id
+     * @param FileRef|string $fileref_or_id
+     * @param string $user_id
      * @return bool
      */
     public function isFileWritable($fileref_or_id, $user_id)

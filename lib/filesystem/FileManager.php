@@ -784,8 +784,7 @@ class FileManager
 
         // check if the sub folder type is creatable in a StandardFolder,
         // if the destination folder is a StandardFolder:
-        if (get_class($destination_folder) === 'StandardFolder'
-            && !$sub_folder_type->creatableInStandardFolder($destination_folder->range_type))
+        if (!$folder_type_class_name::availableInRange($destination_folder->range_id, $user->id))
         {
             $errors[] = sprintf(
                 _('Ein Ordner vom Typ %s kann nicht in einem Ordner vom Typ %s erzeugt werden!'),
@@ -1036,18 +1035,14 @@ class FileManager
 
 
     /**
-     * returns the available folder types, sorted (and at your option selected) by range type
-     *
+     * returns the available folder types,
      * There are several types of folders in Stud.IP. This method returns
-     * all available folder types. If the parameter range_type is set then only
-     * the folder types allowed in that range are returned.
-     *
-     * @param range_type the range type: "course", "institute", "user", ...
+     * all available folder types.
      *
      * @return array with strings representing the class names of available folder types.
      *
      */
-    public static function getFolderTypes($range_type = null)
+    public static function getFolderTypes()
     {
         $result = [];
         foreach (scandir(__DIR__) as $filename) {
@@ -1056,35 +1051,32 @@ class FileManager
                 class_exists($path['filename']);
             }
         }
-
+        $result = [];
         foreach (get_declared_classes() as $declared_class) {
             if (!is_a($declared_class, 'FolderType', true)) {
                 continue;
             }
+            $result[] = $declared_class;
+        }
+        return $result;
+    }
 
-            if ($range_type === null) {
-                foreach(['course', 'institute', 'message', 'user'] as $known_range_type) {
-                    if ($declared_class::creatableInStandardFolder($known_range_type)) {
-                        if (!is_array($result[$known_range_type])) {
-                            $result[$known_range_type] = [];
-                        }
-                        $result[$known_range_type][] = $declared_class;
-                    }
-                }
-            } else {
-                if ($declared_class::creatableInStandardFolder($range_type)) {
-                    if (!is_array($result[$range_type])) {
-                        $result[$range_type] = [];
-                    }
-                    $result[$range_type][] = $declared_class;
-                }
+    /**
+     * returns the available folder types, for given context and user
+     *
+     * @param string|SimpleORMap $range_id_or_object
+     * @param string $user_id
+     * @return array with strings representing the class names of available folder types.
+     *
+     */
+    public static function getAvailableFolderTypes($range_id_or_object, $user_id)
+    {
+        $result = [];
+        foreach (self::getFolderTypes() as $type) {
+            if ($type::availableInRange($range_id_or_object, $user_id)) {
+                $result[] = $type;
             }
         }
-
-        if ($range_type) {
-            return @$result[$range_type] ?: [];
-        }
-
         return $result;
     }
 
@@ -1256,11 +1248,11 @@ class FileManager
 
     /**
      * Retrieves additional data for an URL by looking at the HTTP header.
-     * 
+     *
      * @param string $url The URL from which additional data shall be fetched.
      * @param int $level The amount of redirects that have already been walked through.
      *     The $level parameter is only useful when this method calls itself recursively.
-     * 
+     *
      * @return array An array with additional data retrieved from the HTTP header.
      */
     public static function fetchURLMetadata($url, $level = 0)

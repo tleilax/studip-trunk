@@ -18,7 +18,7 @@ class PermissionEnabledFolder extends StandardFolder
     protected $perms = ['x' => 1, 'w' => 2, 'r' => 4, 'f' => 8];
     protected $must_have_perm;
 
-    public static function creatableInStandardFolder($range_type)
+    public static function availableInRange($range_id_or_object, $user_id)
     {
         return false;
     }

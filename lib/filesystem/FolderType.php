@@ -32,6 +32,14 @@
  * @copyright   2016 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
+ *
+ * @property string user_id database column: owner of folder
+ * @property string parent_id database column: parent folder
+ * @property string range_id database column: user-ID, course-ID, institute-ID etc.
+ * @property string range_type 'course', 'institute', 'user', ...
+ * @property string name folder name
+ * @property string mkdate unix timestamp
+ * @property string chdate unix timestamp
  */
 interface FolderType
 {
@@ -51,10 +59,11 @@ interface FolderType
      * if folders of the FolderType implementation can be placed inside
      * standard folders.
      *
-     * @param string $range_type : "course", "user", "institute", "message"
-     * @return boolean True, if creatable in standard folder, false otherwise.
+     * @param string|Object $range_id_or_object id or object of type "course", "user", "institute", "message"
+     * @param string $user_id
+     * @return boolean True, if creatable, false otherwise.
      */
-     public static function creatableInStandardFolder($range_type);
+     public static function availableInRange($range_id_or_object, $user_id);
 
     /**
      * Returns the name of the icon shape that shall be used with the FolderType implementation.

@@ -14,15 +14,10 @@
  */
 class MaterialFolder extends PermissionEnabledFolder
 {
-    /**
-     * Checks if this type of folder can be created at this location
-     *
-     * @param string $range_type the range_type where the folder should be created
-     * @return bool True, if the range_type is course, false with every other range_type
-     */
-    public static function creatableInStandardFolder($range_type)
+    public static function availableInRange($range_id_or_object, $user_id)
     {
-        return $range_type === 'course';
+        $range_id = is_object($range_id_or_object) ? $range_id_or_object->id : $range_id_or_object;
+        return Seminar_Perm::get()->have_studip_perm('tutor', $range_id, $user_id);
     }
 
     /**

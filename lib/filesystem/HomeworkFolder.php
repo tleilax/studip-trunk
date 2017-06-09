@@ -17,9 +17,8 @@
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category  Stud.IP
  */
-class HomeworkFolder extends StandardFolder
+class HomeworkFolder extends PermissionEnabledFolder
 {
-    public $folderdata = null;
 
     /**
      * Returns a localised name of the HomeworkFolder type.
@@ -29,6 +28,20 @@ class HomeworkFolder extends StandardFolder
     public static function getTypeName()
     {
         return _('Ordner für Hausarbeiten');
+    }
+
+    public static function availableInRange($range_id_or_object, $user_id)
+    {
+        $course = Course::toObject($range_id_or_object);
+        if ($course && !$course->isNew()) {
+            return Seminar_Perm::get()->have_studip_perm('tutor', $course->id, $user_id);
+        }
+    }
+
+    public function __construct($folderdata = null)
+    {
+        parent::__construct($folderdata);
+        $this->permission = 3;
     }
 
     /**
@@ -44,111 +57,6 @@ class HomeworkFolder extends StandardFolder
         return Icon::create($shape, $role);
     }
 
-    /**
-     * @param string $range_type The range type where the creatable flag shall be checked.
-     *
-     * @return bool True, if the range type is 'course', false otherwise.
-     */
-    public static function creatableInStandardFolder($range_type)
-    {
-        return $range_type === 'course';
-    }
-
-    /**
-     * HomeworkFolders are always visible.
-     *
-     * @return bool True
-     */
-    public function isVisible($user_id)
-    {
-        //folders of this type are visible for everyone
-        return true;
-    }
-
-    /**
-     * HomeworkFolders are always readable.
-     *
-     * @return bool True
-     */
-    public function isReadable($user_id)
-    {
-        //We need to enter this folder even as a student
-        return true;
-    }
-
-    /**
-     * Returns all files of the folder object.
-     *
-     * @return FileRef[] An array with all files of this folder.
-     */
-    public function getFiles()
-    {
-        return $this->folderdata->file_refs->getArrayCopy();
-    }
-
-    /**
-     * A file is downloadable for the owner or if the user specified by $user_id
-     * is a tutor in the course (specified by $this->range_id).
-     *
-     * @param mixed $fileref_or_id Either a FileRef object or an ID of a FileRef object.
-     * @param string $user_id The user who wishes to download the file.
-     *
-     * @return True, if the file is downloadable, false otherwise.
-     */
-    public function isFileDownloadable($fileref_or_id, $user_id)
-    {
-        $fileref = FileRef::toObject($fileref_or_id);
-        return $fileref['user_id'] === $user_id
-            || $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
-    }
-
-    /**
-     * A file is editable for the owner or if the user specified by $user_id
-     * is a tutor in the course (specified by $this->range_id).
-     *
-     * @param mixed $fileref_or_id Either a FileRef object or an ID of a FileRef object.
-     * @param string $user_id The user who wishes to edit the file.
-     *
-     * @return True, if the file is editable, false otherwise.
-     */
-    public function isFileEditable($fileref_or_id, $user_id)
-    {
-        return $this->isFileDownloadable($fileref_or_id, $user_id);
-    }
-
-    /**
-     * A file is writeable for the owner or if the user specified by $user_id
-     * is a tutor in the course (specified by $this->range_id).
-     *
-     * @param mixed $fileref_or_id Either a FileRef object or an ID of a FileRef object.
-     * @param string $user_id The user who wishes to write to the file.
-     *
-     * @return True, if the file is writeable, false otherwise.
-     */
-    public function isFileWritable($fileref_or_id, $user_id)
-    {
-        return $this->isFileDownloadable($fileref_or_id, $user_id);
-    }
-
-    /**
-     * Folders of this type are writable for users which have the author
-     * permissions inside the course of this folder.
-     *
-     * @param string $user_id The user who wishes to do a write operation
-     *     on this folder.
-     *
-     * @return True, if the folder is writeable, false otherwise.
-     */
-    public function isWritable($user_id)
-    {
-        // folders of this type are writable for users with permissions author
-        if ($this->folderdata) {
-            return $GLOBALS['perm']->have_studip_perm('autor', $this->folderdata->range_id, $user_id);
-        }
-
-        // a non-existant folder isn't writable!
-        return false;
-    }
 
     /**
      * Homework folders don't allow subfolders.
@@ -168,23 +76,13 @@ class HomeworkFolder extends StandardFolder
      */
     public function getDescriptionTemplate()
     {
-        if ($this->folderdata) {
-            $course = Course::find($this->folderdata->range_id);
-            if ($course) {
-                return sprintf(
-                    _('Hausarbeitenordner für %s'),
-                    $course->getFullName()
-                );
-            }
-
             return _('Hausarbeitenordner');
-        }
     }
 
     /**
      * Folders of this type don't have an edit template.
      *
-     * @return null
+     * @return string
      */
     public function getEditTemplate()
     {
