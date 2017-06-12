@@ -159,6 +159,10 @@ class FilesController extends AuthenticatedController
 
         $this->topFolder = $folder->getTypedFolder();
 
+        if (!$this->topFolder->isVisible($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
+        }
+
         $this->buildSidebar($this->topFolder);
 
         //check for INBOX and OUTBOX folder:

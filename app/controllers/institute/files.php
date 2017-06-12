@@ -90,6 +90,10 @@ class Institute_FilesController extends AuthenticatedController
 
         $this->topFolder = $folder->getTypedFolder();
 
+        if (!$this->topFolder->isVisible($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
+        }
+
         $this->buildSidebar();
 
         $this->render_template('files/index.php', $this->layout);

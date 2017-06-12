@@ -190,7 +190,7 @@ class Moadb extends Migration
         }
         //issue folder
         foreach ($db->query("SELECT f.*, t.seminar_id AS seminar_id FROM `folder` f INNER JOIN `themen` t ON t.issue_id = f.range_id") as $folder) {
-            $data_content = json_encode(['issue_id' => $folder['range_id']]);
+            $data_content = json_encode(['topic_id' => $folder['range_id']]);
             $folder['range_id'] = $seminar_folders[$folder['seminar_id']];
             $this->migrateFolder($folder, $folder['seminar_id'], 'course', 'CourseTopicFolder', $data_content);
         }

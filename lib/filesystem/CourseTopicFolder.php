@@ -35,5 +35,52 @@ class CourseTopicFolder extends StandardFolder implements FolderType
         );
     }
 
+    /**
+     * This method returns the special part for the edit template for the folder type GroupFolder
+     *
+     * @return mixed  A edit template for a instance of the type GroupFolder
+     */
+    public function getEditTemplate()
+    {
+        $template = $GLOBALS['template_factory']->open('filesystem/topic_folder/edit.php');
+        $template->set_attribute('folder', $this);
+        return $template;
+    }
+
+    /**
+     * Stores the data which was edited in the edit template
+     * @return mixed The template with the edited data
+     */
+    public function setDataFromEditTemplate($request)
+    {
+        if ($request['topic_id'] == null) {
+            return MessageBox::error(_('Es wurde kein Thema ausgewählt.'));
+        }
+
+        $this->folderdata['data_content']['topic_id'] = $request['topic_id'];
+        if (!$request['name']) {
+            $request['name'] = CourseTopic::find($request['topic_id'])->title;
+        }
+
+        return parent::setDataFromEditTemplate($request);
+    }
+
+    /**
+     * Returns the description template for a instance of a GroupFolder type
+     *
+     * @return mixed A description template for a instance of the type GroupFolder
+     */
+    public function getDescriptionTemplate()
+    {
+        $topic = CourseTopic::find($this->folderdata['data_content']['topic_id']);
+
+        $template = $GLOBALS['template_factory']->open('filesystem/topic_folder/description.php');
+        $template->type      = self::getTypeName();
+        $template->folder    = $this;
+        $template->topic = $topic;
+
+        return $template;
+    }
+
 
 }

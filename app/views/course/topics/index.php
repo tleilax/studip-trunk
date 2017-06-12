@@ -37,7 +37,7 @@
                             <td>
                                 <? $material = false ?>
                                 <ul class="clean">
-                                    <? $folder = $topic->folder ?>
+                                    <? $folder = $topic->folders->first() ?>
                                     <? if ($documents_activated && $folder) : ?>
                                         <li>
                                             <a href="<?= URLHelper::getLink(

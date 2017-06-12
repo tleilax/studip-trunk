@@ -87,7 +87,7 @@ class FileController extends AuthenticatedController
             if (Request::isXhr()) {
                 $output = ['new_html' => []];
 
-                if (count($storedFiles) === 1 && $storedFiles[0]['mime_type'] === 'application/zip') {
+                if (count($storedFiles) === 1 && $storedFiles[0]['mime_type'] === 'application/zip' && Seminar_Perm::get()->have_studip_perm('tutor', $folder->range_id)) {
                     $ref_ids = [];
                     foreach ($storedFiles as $file_ref) {
                         $ref_ids[] = $file_ref->getId();
@@ -148,7 +148,7 @@ class FileController extends AuthenticatedController
                 $ref_ids = [$this->file_ref->getId()];
             }
 
-            $this->redirect($this->url_for('file_edit/license', [
+            $this->redirect($this->url_for('file/edit_license', [
                 'file_refs' => $ref_ids,
             ]));
         }
@@ -182,22 +182,24 @@ class FileController extends AuthenticatedController
 
             //load the previous and next file in the folder,
             //if the folder is of type FolderType.
-            foreach ($folder->getFiles() as $folder_file_ref) {
-                $last_file_ref_id    = $current_file_ref_id;
-                $current_file_ref_id = $folder_file_ref->id;
+            if ($folder->isReadable(User::findCurrent()->id)) {
+                foreach ($folder->getFiles() as $folder_file_ref) {
+                    $last_file_ref_id = $current_file_ref_id;
+                    $current_file_ref_id = $folder_file_ref->id;
 
-                if ($folder_file_ref->id === $this->file_ref->id) {
-                    $this->previous_file_ref_id = $last_file_ref_id;
+                    if ($folder_file_ref->id === $this->file_ref->id) {
+                        $this->previous_file_ref_id = $last_file_ref_id;
+                    }
+
+                    if ($last_file_ref_id === $this->file_ref->id) {
+                        $this->next_file_ref_id = $folder_file_ref->id;
+                        //at this point we have the ID of the previous
+                        //and the next file ref so that we can exit
+                        //the foreach loop:
+                        break;
+                    }
+
                 }
-
-                if ($last_file_ref_id === $this->file_ref->id) {
-                    $this->next_file_ref_id = $folder_file_ref->id;
-                    //at this point we have the ID of the previous
-                    //and the next file ref so that we can exit
-                    //the foreach loop:
-                    break;
-                }
-
             }
 
             $this->render_template('file/file_details');
@@ -999,7 +1001,11 @@ class FileController extends AuthenticatedController
         $this->folder_types = [];
 
         foreach ($folder_types as $folder_type) {
-            $folder_type_instance = new $folder_type(new Folder());
+            $folder_type_instance = new $folder_type(
+                ['range_id' => $parent_folder->range_id,
+                 'range_type' => $parent_folder->range_type,
+                 'parent_id' => $parent_folder->getId()]
+            );
             $this->folder_types[] = [
                 'class'    => $folder_type,
                 'instance' => $folder_type_instance,
@@ -1061,7 +1067,11 @@ class FileController extends AuthenticatedController
         $this->folder_types = [];
 
         foreach ($folder_types as $folder_type) {
-            $folder_type_instance = new $folder_type(new Folder());
+            $folder_type_instance = new $folder_type(
+                ['range_id' => $parent_folder->range_id,
+                 'range_type' => $parent_folder->range_type,
+                 'parent_id' => $parent_folder->getId()]
+            );
             $this->folder_types[] = [
                 'class'    => $folder_type,
                 'instance' => $folder_type_instance,

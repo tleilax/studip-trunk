@@ -76,7 +76,15 @@ class HomeworkFolder extends PermissionEnabledFolder
      */
     public function getDescriptionTemplate()
     {
-            return _('Hausarbeitenordner');
+
+        $template = $GLOBALS['template_factory']->open('filesystem/homework_folder/description.php');
+        $template->folder    = $this;
+        if (!Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id)) {
+            $files = new SimpleCollection($this->getFiles());
+            $template->own_files = $files->findBy('user_id', $GLOBALS['user']->id)->orderBy('name');
+        }
+
+        return $template;
     }
 
     /**
@@ -87,5 +95,32 @@ class HomeworkFolder extends PermissionEnabledFolder
     public function getEditTemplate()
     {
         return '';
+    }
+
+    /**
+     * @param FileRef|string $fileref_or_id
+     * @param string $user_id
+     * @return bool
+     */
+    public function isFileEditable($fileref_or_id, $user_id)
+    {
+        return $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
+    }
+
+    /**
+     * Checks if a user has write permissions to a file.
+     *
+     * For standard folders write permissions are granted
+     * if the user is the owner of the file or if the user has at least
+     * tutor permissions on the Stud.IP object specified by range_id
+     * (such objects may be courses or institutes for example).
+     *
+     * @param FileRef|string $fileref_or_id
+     * @param string $user_id
+     * @return bool
+     */
+    public function isFileWritable($fileref_or_id, $user_id)
+    {
+        return  $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
     }
 }

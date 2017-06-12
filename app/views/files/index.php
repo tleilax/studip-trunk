@@ -26,7 +26,7 @@ if (!$controllerpath) {
             <div>
                 <a href="<?= $controller->link_for($controllerpath . '/' . $root_dir->getId()) ?>" title="<?= _('Zum Hauptordner') ?>">
                     <?= Icon::create('folder-home-full', 'clickable')->asImg(30, ['class' => 'text-bottom']) ?>
-                    <? if (count($breadcrumbs) < 6): ?><?= htmlReady($root_dir->name) ?><? endif ?>
+                    <? if (count($breadcrumbs) == 0): ?><?= htmlReady($root_dir->name) ?><? endif ?>
                 </a>
                 <? if(!empty($breadcrumbs)): ?>
                     <? if (count($breadcrumbs) > 5): ?>/&hellip;<?
@@ -42,8 +42,8 @@ if (!$controllerpath) {
                 <? endif ?>
             </div>
         </div>
-        <? if ($last_crumb->description) : ?>
-        <small><?= htmlReady($last_crumb->description) ?></small>
+        <? if (is_object($last_crumb) && ($description_template = $last_crumb->getDescriptionTemplate())) : ?>
+        <small><?= $description_template instanceof Flexi_Template ? $description_template->render() : (string)$description_template ?></small>
         <? endif; ?>
     </caption>
     <?= $this->render_partial('files/_files_thead.php') ?>

@@ -21,22 +21,14 @@ $owner = User::find($folder->user_id) ?: new User();
     <? endif?>
     </td>
     <td class="document-icon" data-sort-value="0">
-    <? if ($is_readable) : ?>
-        <a href="<?= $controller->link_for('file/details/' . $folder->getId())  ?>" data-dialog>
-            <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(26) ?>
+    <a href="<?= $controller->link_for('file/details/' . $folder->getId())  ?>" data-dialog>
+            <?= $folder->getIcon('clickable')->asImg(26) ?>
         </a>
-    <? else: ?>
-        <?= $folder->getIcon($is_readable ? 'clickable': 'info')->asImg(26) ?>
-    <? endif ?>
     </td>
     <td>
-    <? if ($is_readable) : ?>
         <a href="<?= $controller->link_for($controllerpath . '/' . $folder->getId()) ?>">
             <?= htmlReady($folder->name) ?>
         </a>
-    <? else: ?>
-        <?= htmlReady($folder->name) ?>
-    <? endif ?>
     </td>
     <? // -number + file count => directories should be sorted apart from files ?>
     <td data-sort-value="-1000000" class="responsive-hidden"></td>
@@ -69,11 +61,13 @@ $owner = User::find($folder->user_id) ?: new User();
                 ['data-dialog' => '1']
             );
         }
-        $actionMenu->addLink(
-            $controller->url_for('file/download_folder/' . $folder->getId()),
-            _('Ordner herunterladen'),
-            Icon::create('download', 'clickable', ['size' => 20])
-        );
+        if ($folder->isReadable($GLOBALS['user']->id)) {
+            $actionMenu->addLink(
+                $controller->url_for('file/download_folder/' . $folder->getId()),
+                _('Ordner herunterladen'),
+                Icon::create('download', 'clickable', ['size' => 20])
+            );
+        }
         if ($folder->isEditable($GLOBALS['user']->id)) {
            $actionMenu->addLink(
                $controller->url_for('file/choose_destination/' . $folder->getId(), ['copymode' => 'move', 'isfolder' => 1]),

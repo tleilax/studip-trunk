@@ -159,7 +159,7 @@ class StandardFolder implements FolderType
      */
     public function getDescriptionTemplate()
     {
-        return self::getTypeName();
+        return htmlReady($this->folderdata['description']);
     }
 
     /**

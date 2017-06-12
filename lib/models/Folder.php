@@ -97,7 +97,7 @@ class Folder extends SimpleORMap
      *
      * @return Folder Created Folder object.
      */
-    public static function createTopFolder($range_id, $range_type, $folder_type = 'StandardFolder')
+    public static function createTopFolder($range_id, $range_type, $folder_type = 'RootFolder')
     {
         return self::create([
             'parent_id'    => '',
@@ -149,9 +149,9 @@ class Folder extends SimpleORMap
 
     /**
      * Retrieves folders by the ID of a CourseTopic object.
-     * 
+     *
      * @param string $topic_id The ID of a CourseTopic object.
-     * 
+     *
      * @return Folder[]|null An array with one folder object matching the topic-ID
      *     if such a folder can be found. Null otherwise.
      */
@@ -162,11 +162,13 @@ class Folder extends SimpleORMap
             "folder_type = 'CourseTopicFolder' AND range_id = ? AND range_type = 'course'",
             [$seminar_id]
         );
+        $ret = [];
         foreach ($topic_folders as $key => $folder) {
-            if ($folder['data_content']['issue_id'] === $topic_id) {
-                return array($folder);
+            if ($folder['data_content']['topic_id'] === $topic_id) {
+                $ret[] = $folder;
             }
         }
+        return $ret;
     }
 
     /**

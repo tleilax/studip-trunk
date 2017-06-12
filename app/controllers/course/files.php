@@ -104,6 +104,9 @@ class Course_FilesController extends AuthenticatedController
 
         $this->topFolder = $folder->getTypedFolder();
 
+        if (!$this->topFolder->isVisible($GLOBALS['user']->id)) {
+            throw new AccessDeniedException();
+        }
         $this->buildSidebar('index');
         $this->render_template('files/index.php', $this->layout);
     }
