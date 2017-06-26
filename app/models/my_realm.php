@@ -1407,14 +1407,68 @@ class MyRealmModel
     public static function groupBySemTree(&$sem_courses)
     {
         foreach ($sem_courses as $sem_key => $collection) {
+            //We have to store the sem_tree names separately
+            //since we first need the sem_tree IDs as array keys.
+            //This makes it more easy to get the ordering
+            //of the sem_tree objects.
+            $sem_tree_names = [];
             foreach ($collection as $course) {
                 if (!empty($course['sem_tree'])) {
                     foreach ($course['sem_tree'] as $tree) {
-                        $_tmp_courses[$sem_key][(string)$tree['name']][$course['seminar_id']] = $course;
+                        $sem_tree_names[$tree['sem_tree_id']] = $tree['name'];
+                        $_tmp_courses[$sem_key][(string)$tree['sem_tree_id']][$course['seminar_id']] = $course;
                     }
                 } else {
                     $_tmp_courses[$sem_key][""][$course['seminar_id']] = $course;
                 }
+            }
+            uksort($_tmp_courses[$sem_key], function ($a, $b) use ($sem_tree_names) {
+                $the_tree = TreeAbstract::GetInstance(
+                    'StudipSemTree',
+                    ['build_index' => true]
+                );
+                return (int)($the_tree->tree_data[$a]['index'] 
+                    - $the_tree->tree_data[$b]['index']);
+            });
+            //At this point the $_tmp_courses array is sorted by the ordering
+            //of the sem_tree.
+            //Now we have to replace the sem_tree IDs in the second layer
+            //of the $_tmp_courses array with the sem_tree names:
+            foreach ($_tmp_courses[$sem_key] as $sem_tree_id => $courses) {
+                $_tmp_courses[$sem_key][(string)$sem_tree_names[$sem_tree_id]] = $courses;
+                unset($_tmp_courses[$sem_key][$sem_tree_id]);
+            }
+        }
+        
+        //After the $_tmp_courses array has been built we must sort the
+        //third layer (course collection) by group (color),
+        //by number (at your option) and by name:
+        foreach ($_tmp_courses as $sem_key => $sem_tree) {
+            foreach ($sem_tree as $sem_tree_name => $collection) {
+                //We must sort all courses by their group and their name:
+                uasort($collection, function ($a, $b) {
+                    if (Config::get()->IMPORTANT_SEMNUMBER) {
+                        if ($a['gruppe'] == $b['gruppe']) {
+                            if ($a['number'] == $b['number']) {
+                                if ($a['temp_name'] == $b['temp_name']) {
+                                    return 0;
+                                }
+                                return ($a['temp_name'] < $b['temp_name']) ? -1 : 1;
+                            }
+                            return ($a['number'] < $b['number']) ? -1 : 1;
+                        }
+                        return ($a['gruppe'] < $b['gruppe']) ? -1 : 1;
+                    } else {
+                        if ($a['gruppe'] == $b['gruppe']) {
+                            if ($a['temp_name'] == $b['temp_name']) {
+                                return 0;
+                            }
+                            return ($a['temp_name'] < $b['temp_name']) ? -1 : 1;
+                        }
+                        return ($a['gruppe'] < $b['gruppe']) ? -1 : 1;
+                    }
+                });
+                $_tmp_courses[$sem_key][$sem_tree_name] = $collection;
             }
         }
 

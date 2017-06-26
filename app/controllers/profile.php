@@ -20,13 +20,12 @@ require_once 'lib/user_visible.inc.php';
 
 class ProfileController extends AuthenticatedController
 {
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
 
         // Remove cid
-        URLHelper::removeLinkParam('cid');
-        unset($_SESSION['SessionSeminar']);
+        Context::close();
 
         Navigation::activateItem('/profile/index');
         URLHelper::addLinkParam('username', Request::username('username'));
@@ -70,10 +69,12 @@ class ProfileController extends AuthenticatedController
         if (Config::get()->NEWS_RSS_EXPORT_ENABLE) {
             $news_author_id = StudipNews::GetRssIdFromUserId($this->current_user->user_id);
             if ($news_author_id) {
-                PageLayout::addHeadElement('link', ['rel'   => 'alternate',
-                                                    'type'  => 'application/rss+xml',
-                                                    'title' => 'RSS',
-                                                    'href'  => 'rss.php?id=' . $news_author_id]);
+                PageLayout::addHeadElement('link', [
+                    'rel'   => 'alternate',
+                    'type'  => 'application/rss+xml',
+                    'title' => 'RSS',
+                    'href'  => 'rss.php?id=' . $news_author_id,
+                ]);
             }
         }
 
@@ -103,20 +104,20 @@ class ProfileController extends AuthenticatedController
         $this->longDatafields  = $this->profile->getLongDatafields();
 
         // get working station of an user (institutes)
-        $this->institutes = $this->getInstitutInformations();
+        $this->institutes = $this->getInstitutInformation();
 
         // get studying informations of an user
-        if ($this->current_user->perms != 'dozent') {
+        if ($this->current_user->perms !== 'dozent') {
 
             if (count($this->current_user->institute_memberships) > 0 && Visibility::verify('studying', $this->current_user->user_id)) {
-                $study_institutes       = $this->current_user->institute_memberships->filter(function ($a) {
-                    return $a->inst_perms == 'user';
+                $study_institutes = $this->current_user->institute_memberships->filter(function ($a) {
+                    return $a->inst_perms === 'user';
                 });
                 $this->study_institutes = $study_institutes;
             }
         }
 
-        if (($this->current_user->user_id == $this->user->user_id) && $GLOBALS['has_denoted_fields']) {
+        if ($this->current_user->user_id === $this->user->user_id && $GLOBALS['has_denoted_fields']) {
             $this->has_denoted_fields = true;
         }
 
@@ -131,17 +132,16 @@ class ProfileController extends AuthenticatedController
             }
         }
 
-        $show_admin = ($this->perm->have_perm('autor') && $this->user->user_id == $this->current_user->user_id) ||
-            (isDeputyEditAboutActivated() && isDeputy($this->user->user_id, $this->current_user->user_id, true));
-        if (Visibility::verify('news', $this->current_user->user_id) OR $show_admin === true) {
+        $show_admin = ($this->perm->have_perm('autor') && $this->user->user_id == $this->current_user->user_id)
+                   || (isDeputyEditAboutActivated() && isDeputy($this->user->user_id, $this->current_user->user_id, true));
+        if (Visibility::verify('news', $this->current_user->user_id) || $show_admin) {
             $response   = $this->relay('news/display/' . $this->current_user->user_id);
             $this->news = $response->body;
         }
 
-
         // calendar
         if (Config::get()->CALENDAR_ENABLE) {
-            if (!in_array($this->current_user->perms, words('admin root'))) {
+            if (!in_array($this->current_user->perms, ['admin', 'root'])) {
                 if (Visibility::verify('termine', $this->current_user->user_id)) {
                     $response    = $this->relay('calendar/contentbox/display/' . $this->current_user->user_id);
                     $this->dates = $response->body;
@@ -163,7 +163,7 @@ class ProfileController extends AuthenticatedController
             'lebenslauf' => _('Lebenslauf'),
             'hobby'      => _('Hobbys'),
             'publi'      => _('Publikationen'),
-            'schwerp'    => _('Arbeitsschwerpunkte')
+            'schwerp'    => _('Arbeitsschwerpunkte'),
         ];
 
         $ausgabe_inhalt = [];
@@ -237,35 +237,28 @@ class ProfileController extends AuthenticatedController
             });
         }
 
-        
+
         $sidebar = Sidebar::Get();
-        
+
         //The profile avatar, profile visits and profile score
         //shall be visible in the sidebar. Therefore we must construct
-        //generic WidgetElement objects and their HTML in here.
-        
-        // First the avatar:
+        //a generic WidgetElement object and its HTML in here.
+
         $avatar_widget = new TemplateWidget(
-                $this->current_user->getFullName(),
-                $this->get_template_factory()->open('profile/widget-avatar.php'),
-                ['avatar' => Avatar::getAvatar($this->current_user->user_id)]
-                );
+            $this->current_user->getFullName(),
+            $this->get_template_factory()->open('profile/widget-avatar.php'),
+            [
+                'avatar' => Avatar::getAvatar($this->current_user->user_id),
+                'kings' => $this->kings,
+                'views' => object_return_views($this->current_user->user_id),
+                'score' => $this->score,
+                'score_title' => $this->score_title
+            ]
+        );
+        
         $avatar_widget->setTitle($this->current_user->getFullName());
         $sidebar->addWidget($avatar_widget);
-        
-        //Then visits and score (below the avatar image):
-        $details_widget = new TemplateWidget(
-                _('Status'),
-                $this->get_template_factory()->open('profile/widget-details.php'), [
-                        'kings'       => $this->kings,
-                        'views'       => object_return_views($this->current_user->user_id),
-                        'score'       => $this->score,
-                        'score_title' => $this->score_title,
-                ]
-                );
-        $details_widget->setTitle(_('Status'));
-        $sidebar->addWidget($details_widget);
-        
+
         $actions = new ActionsWidget();
         //If a user visits the profile of another user
         //we add a few more actions to the sidebar:
@@ -376,7 +369,7 @@ class ProfileController extends AuthenticatedController
      * Returns user-institutes
      * @return mixed
      */
-    private function getInstitutInformations()
+    private function getInstitutInformation()
     {
         $institutes = $this->current_user->institute_memberships->filter(function ($member) {
             return $member->inst_perms !== 'user'
@@ -389,7 +382,7 @@ class ProfileController extends AuthenticatedController
         foreach ($institutes as $id => $institute) {
             $entries = DataFieldEntry::getDataFieldEntries([
                 $this->current_user->user_id,
-                $institute['institut_id']
+                $institute['institut_id'],
             ]);
 
             foreach ($entries as $entry) {
@@ -410,10 +403,17 @@ class ProfileController extends AuthenticatedController
                 }
             }
 
-            $groups          = GetAllStatusgruppen($institute['institut_id'], $this->current_user->user_id);
+            $groups = GetAllStatusgruppen(
+                $institute['institut_id'],
+                $this->current_user->user_id
+            );
+
             $default_entries = $entries;
-            $data            = get_role_data_recursive($groups,
-                $this->current_user->user_id, $default_entries);
+            $data = get_role_data_recursive(
+                $groups,
+                $this->current_user->user_id,
+                $default_entries
+            );
 
             $institutes[$id]['role'] = $data['standard'];
         }
@@ -421,4 +421,3 @@ class ProfileController extends AuthenticatedController
         return $institutes;
     }
 }
-
