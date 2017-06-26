@@ -456,7 +456,7 @@ class Markup
 
             $purifier = new \HTMLPurifier($config);
 
-            return \decodeHTML(str_replace('<br />', PHP_EOL, $purifier->purify($html)));
+            return \decodeHTML(trim(str_replace('<br />', PHP_EOL, $purifier->purify($html))));
         }
 
         return $html;
