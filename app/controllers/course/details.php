@@ -69,14 +69,6 @@ class Course_DetailsController extends AuthenticatedController
         $this->title             = $this->course->getFullname();
         $this->course_domains    = UserDomain::getUserDomainsForSeminar($this->course->id);
         $this->sem = new Seminar($this->course);
-        if ($studienmodulmanagement = PluginEngine::getPlugin('StudienmodulManagement')) {
-            foreach ($this->course->study_areas->filter(function ($m) {
-                return $m->isModule();
-            }) as $module) {
-                $this->studymodules[] = array('nav'   => $studienmodulmanagement->getModuleInfoNavigation($module->id, $this->course->start_semester->id),
-                                              'title' => $studienmodulmanagement->getModuleTitle($module->id, $this->course->start_semester->id));
-            }
-        }
 
         // Retrive display of sem_tree
         if (Config::get()->COURSE_SEM_TREE_DISPLAY) {
@@ -132,6 +124,25 @@ class Course_DetailsController extends AuthenticatedController
                     }
                 }
             }
+        }
+
+        $order = Config::get()->IMPORTANT_SEMNUMBER ? 'veranstaltungsnummer, name' : 'name';
+
+        // Find child courses or parent course if applicable.
+        if ($this->course->getSemClass()->isGroup()) {
+            $this->children = SimpleCollection::createFromArray(
+                Course::findByParent_Course($this->course->id, "ORDER BY $order")
+            )->filter(function ($c) {
+                return $c->isVisibleForUser();
+            });
+        // Find other courses belonging to the same parent.
+        } else if ($this->course->parent_course) {
+            $this->siblings = SimpleCollection::createFromArray(
+                Course::findbyParent_Course($this->course->parent_course, "ORDER BY $order")
+            )->findBy('id', $this->course->id, '!=')
+             ->filter(function ($c) {
+                 return $c->isVisibleForUser();
+             });
         }
 
         if (Request::isXhr()) {

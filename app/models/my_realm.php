@@ -774,12 +774,11 @@ class MyRealmModel
                )
             GROUP BY questionnaire_assignments.range_id
         ");
-        $statement->execute(array(
+        $statement->execute([
             'threshold' => $threshold,
-            'user_id' => $user_id,
+            'user_id'   => $user_id,
             'course_id' => $object_id
-        ));
-
+        ]);
 
         $result = $statement->fetch(PDO::FETCH_ASSOC);
 
@@ -794,24 +793,16 @@ class MyRealmModel
             }
         }
 
-        $sql = "SELECT
-                COUNT(a.eval_id) as count,
-                COUNT(IF((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id !=:user_id ), a.eval_id, NULL)) AS neue,
-                MAX(IF ((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id != :user_id), chdate, 0)) AS last_modified
-            FROM
-                eval_range a
-            INNER JOIN
-              eval d
-            ON
-              (a.eval_id = d.eval_id AND d.startdate < UNIX_TIMESTAMP() AND (d.stopdate > UNIX_TIMESTAMP() OR d.startdate + d.timespan > UNIX_TIMESTAMP() OR (d.stopdate IS NULL AND d.timespan IS NULL)))
-            LEFT JOIN
-                object_user_visits b
-            ON
-              (b.object_id = a.eval_id AND b.user_id = :user_id AND b . type = 'eval')
-            WHERE
-              a.range_id = :course_id
-            GROUP BY
-              a.range_id";
+        $sql = "SELECT COUNT(a.eval_id) as count,
+                       COUNT(IF((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id !=:user_id ), a.eval_id, NULL)) AS neue,
+                       MAX(IF ((chdate > IFNULL(b.visitdate, :threshold) AND d.author_id != :user_id), chdate, 0)) AS last_modified
+                FROM eval_range a
+                INNER JOIN eval d
+                  ON (a.eval_id = d.eval_id AND d.startdate < UNIX_TIMESTAMP() AND (d.stopdate > UNIX_TIMESTAMP() OR d.startdate + d.timespan > UNIX_TIMESTAMP() OR (d.stopdate IS NULL AND d.timespan IS NULL)))
+                LEFT JOIN object_user_visits b
+                  ON (b.object_id = a.eval_id AND b.user_id = :user_id AND b . type = 'eval')
+                WHERE a.range_id = :course_id
+                GROUP BY a.range_id";
 
         $statement = DBManager::get()->prepare($sql);
         $statement->bindValue(':user_id', $user_id);
@@ -833,41 +824,29 @@ class MyRealmModel
         if ($neue || $count > 0) {
             $nav = new Navigation('vote', '#vote');
             if ($neue) {
-                $nav->setImage(
-                    Icon::create(
-                        'vote+new',
-                        'attention',
-                        [
-                            'title' => sprintf(
-                                ngettext(
-                                    '%1$d Fragebogen, %2$d neuer',
-                                    '%1$d Fragebögen, %2$d neue',
-                                    $count
-                                ),
-                                $count,
-                                $neue
-                            )
-                        ]
+                $nav->setImage(Icon::create('vote+new', 'attention', [
+                    'title' => sprintf(
+                        ngettext(
+                            '%1$u Fragebogen, %2$u neuer',
+                            '%1$u Fragebögen, %2$u neue',
+                            $count
+                        ),
+                        $count,
+                        $neue
                     )
-                );
+                ]));
                 $nav->setBadgeNumber($neue);
             } else if ($count) {
-                $nav->setImage(
-                    Icon::create(
-                        'vote',
-                        'inactive',
-                        [
-                            'title' => sprintf(
-                                ngettext(
-                                    '%d Fragebogen',
-                                    '%d Fragebögen',
-                                    $count
-                                ),
-                                $count
-                            )
-                        ]
+                $nav->setImage(Icon::create('vote', 'inactive', [
+                    'title' => sprintf(
+                        ngettext(
+                            '%u Fragebogen',
+                            '%u Fragebögen',
+                            $count
+                        ),
+                        $count
                     )
-                );
+                ]));
             }
             return $nav;
         }
@@ -951,7 +930,7 @@ class MyRealmModel
             return $a->start_time <= $max_sem['beginn'] &&
                    ($min_sem['beginn'] <= $a->start_time + $a->duration_time || $a->duration_time == -1);
         });
-        $courses->orderBy($ordering);
+        $courses = self::sortCourses($courses, $ordering);
 
         return $courses;
     }
@@ -1047,15 +1026,17 @@ class MyRealmModel
             // filtering courses
             $modules = new Modules();
             $member_ships = User::findCurrent()->course_memberships->toGroupedArray('seminar_id', 'status gruppe');
+            $children = [];
+            $semester_assign = [];
             foreach ($courses as $index => $course) {
                 // export object to array for simple handling
-                $_course                   = $course->toArray($param_array);
+                $_course = $course->toArray($param_array);
                 $_course['start_semester'] = $course->start_semester->name;
                 $_course['end_semester']   = $course->end_semester->name;
                 $_course['sem_class']      = $course->getSemClass();
                 $_course['obj_type']       = 'sem';
 
-                if ($group_field == 'sem_tree_id') {
+                if ($group_field === 'sem_tree_id') {
                     $_course['sem_tree'] = $course->study_areas->toArray();
                 }
 
@@ -1068,7 +1049,7 @@ class MyRealmModel
                 }
 
                 // get teachers only if grouping selected (for better performance)
-                if ($group_field == 'dozent_id') {
+                if ($group_field === 'dozent_id') {
                     $teachers = new SimpleCollection($course->getMembersWithStatus('dozent'));
                     $teachers->filter(function ($a) use (&$_course) {
                         return $_course['teachers'][] = $a->user->getFullName('no_title_rev');
@@ -1089,22 +1070,39 @@ class MyRealmModel
                 if ($show_semester_name && $course->duration_time != 0 && !$course->getSemClass()->offsetGet('studygroup_mode')) {
                     $_course['name'] .= ' (' . $course->getFullname('sem-duration-name') . ')';
                 }
+                if ($course->parent_course) {
+                    $_course['parent_course'] = $course->parent_course;
+                }
                 // add the the course to the correct semester
                 self::getObjectValues($_course);
-                if ($course->duration_time == -1) {
-                    if ($current_semester_nr >= $min_sem_key && $current_semester_nr <= $max_sem_key) {
-                        $sem_courses[$current_semester_nr][$course->id] = $_course;
+
+                if (!$_course['parent_course']) {
+                    if ($course->duration_time == -1) {
+                        if ($current_semester_nr >= $min_sem_key && $current_semester_nr <= $max_sem_key) {
+                            $sem_courses[$current_semester_nr][$course->id] = $_course;
+                            $semester_assign[$course->id] = $current_semester_nr;
+                        } else {
+                            $sem_courses[$max_sem_key][$course->id] = $_course;
+                            $semester_assign[$course->id] = $max_sem_key;
+                        }
                     } else {
-                        $sem_courses[$max_sem_key][$course->id] = $_course;
-                    }
-                } else {
-                    for ($i = $min_sem_key; $i <= $max_sem_key; $i++) {
-                        if ($i >= $_course['sem_number'] && $i <= $_course['sem_number_end']) {
-                            $sem_courses[$i][$course->id] = $_course;
+                        for ($i = $min_sem_key; $i <= $max_sem_key; $i += 1) {
+                            if ($i >= $_course['sem_number'] && $i <= $_course['sem_number_end']) {
+                                $sem_courses[$i][$course->id] = $_course;
+                                $semester_assign[$course->id] = $i;
+                            }
                         }
                     }
+                } else {
+                    $children[$_course['parent_course']][] = $_course;
                 }
             }
+
+            // Now sort children directly under their parent.
+            foreach ($children as $parent => $kids) {
+                $sem_courses[$semester_assign[$parent]][$parent]['children'] = $kids;
+            }
+
         } else {
             return null;
         }
@@ -1567,14 +1565,68 @@ class MyRealmModel
     public static function groupBySemTree(&$sem_courses)
     {
         foreach ($sem_courses as $sem_key => $collection) {
+            //We have to store the sem_tree names separately
+            //since we first need the sem_tree IDs as array keys.
+            //This makes it more easy to get the ordering
+            //of the sem_tree objects.
+            $sem_tree_names = [];
             foreach ($collection as $course) {
                 if (!empty($course['sem_tree'])) {
                     foreach ($course['sem_tree'] as $tree) {
-                        $_tmp_courses[$sem_key][(string)$tree['name']][$course['seminar_id']] = $course;
+                        $sem_tree_names[$tree['sem_tree_id']] = $tree['name'];
+                        $_tmp_courses[$sem_key][(string)$tree['sem_tree_id']][$course['seminar_id']] = $course;
                     }
                 } else {
                     $_tmp_courses[$sem_key][""][$course['seminar_id']] = $course;
                 }
+            }
+            uksort($_tmp_courses[$sem_key], function ($a, $b) use ($sem_tree_names) {
+                $the_tree = TreeAbstract::GetInstance(
+                    'StudipSemTree',
+                    ['build_index' => true]
+                );
+                return (int)($the_tree->tree_data[$a]['index'] 
+                    - $the_tree->tree_data[$b]['index']);
+            });
+            //At this point the $_tmp_courses array is sorted by the ordering
+            //of the sem_tree.
+            //Now we have to replace the sem_tree IDs in the second layer
+            //of the $_tmp_courses array with the sem_tree names:
+            foreach ($_tmp_courses[$sem_key] as $sem_tree_id => $courses) {
+                $_tmp_courses[$sem_key][(string)$sem_tree_names[$sem_tree_id]] = $courses;
+                unset($_tmp_courses[$sem_key][$sem_tree_id]);
+            }
+        }
+        
+        //After the $_tmp_courses array has been built we must sort the
+        //third layer (course collection) by group (color),
+        //by number (at your option) and by name:
+        foreach ($_tmp_courses as $sem_key => $sem_tree) {
+            foreach ($sem_tree as $sem_tree_name => $collection) {
+                //We must sort all courses by their group and their name:
+                uasort($collection, function ($a, $b) {
+                    if (Config::get()->IMPORTANT_SEMNUMBER) {
+                        if ($a['gruppe'] == $b['gruppe']) {
+                            if ($a['number'] == $b['number']) {
+                                if ($a['temp_name'] == $b['temp_name']) {
+                                    return 0;
+                                }
+                                return ($a['temp_name'] < $b['temp_name']) ? -1 : 1;
+                            }
+                            return ($a['number'] < $b['number']) ? -1 : 1;
+                        }
+                        return ($a['gruppe'] < $b['gruppe']) ? -1 : 1;
+                    } else {
+                        if ($a['gruppe'] == $b['gruppe']) {
+                            if ($a['temp_name'] == $b['temp_name']) {
+                                return 0;
+                            }
+                            return ($a['temp_name'] < $b['temp_name']) ? -1 : 1;
+                        }
+                        return ($a['gruppe'] < $b['gruppe']) ? -1 : 1;
+                    }
+                });
+                $_tmp_courses[$sem_key][$sem_tree_name] = $collection;
             }
         }
 
@@ -1730,5 +1782,36 @@ class MyRealmModel
             }
         }
         return array_reverse($temp);
+    }
+
+    private static function sortCourses($courses, $order)
+    {
+        $sorted = $courses->orderBy($order);
+
+        // First get all courses that can act as parent and have child courses.
+        $parents = $courses->filter(function ($c) {
+            return $c->getSemClass()->isGroup()
+                && count($c->children) > 0;
+        });
+
+        // Sort children directly after parents. Only necessary if parents exist.
+        if (count($parents) > 0) {
+            $withChildren = new SimpleCollection();
+
+            foreach ($sorted as $c) {
+                if ($c->parent_course === null) {
+                    $withChildren->append($c);
+                    if (count($c->children) > 0) {
+                        foreach ($sorted->findBy('parent_course', $c->id) as $child) {
+                            $withChildren->append($child);
+                        }
+                    }
+                }
+            }
+
+            $sorted = $withChildren;
+        }
+
+        return $sorted;
     }
 }

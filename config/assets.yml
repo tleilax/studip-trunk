@@ -160,6 +160,9 @@ javascripts:
   lightbox:
     - javascripts/jquery/lightbox/lightbox.min.js
 
+  subcourses:
+    - javascripts/subcourses.js
+
 css:
   base:
     # filename : media

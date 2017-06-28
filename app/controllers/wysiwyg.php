@@ -22,8 +22,6 @@
 
 use Studip\WysiwygRequest;
 
-use Studip\MarkupPrivate\MediaProxy; // TODO remove  debug code
-
 class WysiwygException extends Exception {};
 
 class WysiwygHttpException extends WysiwygException {};
