@@ -75,13 +75,6 @@ class Folder extends SimpleORMap
 
         $config['registered_callbacks']['before_store'][] = 'cbMakeUniqueName';
 
-        $config['notification_map']['after_create'] = 'FolderDidCreate';
-        $config['notification_map']['after_store'] = 'FolderDidUpdate';
-        $config['notification_map']['before_create'] = 'FolderWillCreate';
-        $config['notification_map']['before_store'] = 'FolderWillUpdate';
-        $config['notification_map']['after_delete'] = 'FolderDidDelete';
-        $config['notification_map']['before_delete'] = 'FolderWillDelete';
-
         parent::configure($config);
     }
 

@@ -57,19 +57,12 @@ class File extends SimpleORMap
         $config['registered_callbacks']['after_delete'][] = 'deleteDataFile';
         $config['registered_callbacks']['before_create'][] = 'cbSetAuthor';
 
-        $config['notification_map']['after_create'] = 'FileDidCreate';
-        $config['notification_map']['after_store'] = 'FileDidUpdate';
-        $config['notification_map']['before_create'] = 'FileWillCreate';
-        $config['notification_map']['before_store'] = 'FileWillUpdate';
-        $config['notification_map']['after_delete'] = 'FileDidDelete';
-        $config['notification_map']['before_delete'] = 'FileWillDelete';
-
         parent::configure($config);
     }
 
     /**
      * Returns the URL, if the File object stores an URL.
-     * 
+     *
      * @return string|null The URL if the File object stores an URL, null otherwise.
      */
     public function getURL()
@@ -81,7 +74,7 @@ class File extends SimpleORMap
 
     /**
      * Sets the URL for the File object, if it stores an URL.
-     * 
+     *
      * @param string $url The URL which shall be stored in the File object.
      * @return string The URL from the $url parameter.
      */
@@ -98,7 +91,7 @@ class File extends SimpleORMap
 
     /**
      * Returns the URL access type, if the File object stores an URL.
-     * 
+     *
      * @return string|null The URL access type, if the File object stores an URL, null otherwise.
      */
     public function getURL_access_type()
@@ -110,7 +103,7 @@ class File extends SimpleORMap
 
     /**
      * Sets the URL access type for the File object, if it stores an URL.
-     * 
+     *
      * @param string $value The URL access type for the File object.
      * @return string The URL access type from the $value parameter.
      */

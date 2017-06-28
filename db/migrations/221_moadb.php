@@ -229,14 +229,19 @@ class Moadb extends Migration
 
 
         //delete configuration variables designed for the old file area:
+        /*
         $db->exec(
             "DELETE FROM `config`
             WHERE
-            (field = 'PERSONALDOCUMENT_OPEN_ACCESS')
-            OR
-            (field = 'PERSONALDOCUMENT_OPEN_ACCESS_ROOT_PRIVILEDGED');"
+            `field` IN
+            ('PERSONALDOCUMENT_OPEN_ACCESS',
+            'PERSONALDOCUMENT_OPEN_ACCESS_ROOT_PRIVILEDGED',
+            'PERSONALDOCUMENT_ENABLE',
+            'FILESYSTEM_MULTICOPY_ENABLE',
+            'DOCUMENTS_EMBEDD_FLASH_MOVIES')"
         );
-
+        $db->exec("DROP TABLE `doc_filetype`, `doc_filetype_forbidden`, `doc_usergroup_config`, `dokumente`, `files_backend_studip`, `files_backend_url`, `files_share`, `folder`, `_files`, `_file_refs`");
+        */
         SimpleORMap::expireTableScheme();
     }
 
@@ -407,5 +412,8 @@ class Moadb extends Migration
 
     public function down()
     {
+        /*
+         * I’M SORRY DAVE, I’M AFRAID I CAN’T DO THAT
+         */
     }
 }

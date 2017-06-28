@@ -63,13 +63,6 @@ class FileRef extends SimpleORMap
         $config['registered_callbacks']['after_delete'][] = 'cbRemoveFileIfOrphaned';
         $config['registered_callbacks']['before_store'][] = 'cbMakeUniqueFilename';
 
-        $config['notification_map']['after_create'] = 'FileRefDidCreate';
-        $config['notification_map']['after_store'] = 'FileRefDidUpdate';
-        $config['notification_map']['before_create'] = 'FileRefWillCreate';
-        $config['notification_map']['before_store'] = 'FileRefWillUpdate';
-        $config['notification_map']['after_delete'] = 'FileRefDidDelete';
-        $config['notification_map']['before_delete'] = 'FileRefWillDelete';
-
         parent::configure($config);
     }
 
@@ -100,9 +93,9 @@ class FileRef extends SimpleORMap
 
     /**
      * Returns the download-URL for the FileRef.
-     * 
+     *
      * @param string $dltype The download type: 'normal', 'zip', 'force' or 'force_download'.
-     * 
+     *
      * @return string The URL for the FileRef.
      */
     public function getDownloadURL($dltype = 'normal')
@@ -145,7 +138,7 @@ class FileRef extends SimpleORMap
 
     /**
      * Returns the name of the FileRef's author.
-     * 
+     *
      * @return string The name of the FileRef's author.
      */
     public function getAuthorName()
@@ -158,7 +151,7 @@ class FileRef extends SimpleORMap
 
     /**
      * This method increments the download counter of the FileRef.
-     * 
+     *
      * @return The number of rows of the file_refs table that have been altered.
      */
     public function incrementDownloadCounter()
@@ -188,7 +181,7 @@ class FileRef extends SimpleORMap
 
     /**
      * Determines whether this FileRef is a link or not.
-     * 
+     *
      * @return bool True, if the FileRef references a link, false otherwise.
      */
     public function isLink()
