@@ -2,6 +2,9 @@
 /**
  * UnknownFolderType.php
  *
+ * this folder type implementation is used when a folder type entry in
+ * the database is no longer available in the main system
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -40,6 +43,11 @@ class UnknownFolderType implements FolderType
         return _('Unbekannter Ordner Typ');
     }
 
+    /**
+     * @param Object|string $range_id_or_object
+     * @param string $user_id
+     * @return bool
+     */
     public static function availableInRange($range_id_or_object, $user_id)
     {
         return false;
@@ -131,6 +139,7 @@ class UnknownFolderType implements FolderType
 
     }
 
+
     /**
      *
      */
@@ -139,18 +148,25 @@ class UnknownFolderType implements FolderType
 
     }
 
+    /**
+     * @param ArrayAccess|Request $request
+     */
     public function setDataFromEditTemplate($request)
     {
 
     }
 
+    /**
+     * @param $uploadedfile
+     * @param string $user_id
+     */
     public function validateUpload($uploadedfile, $user_id)
     {
 
     }
 
     /**
-     * @return FolderType[]
+     * @return array
      */
     public function getSubfolders()
     {
@@ -158,7 +174,7 @@ class UnknownFolderType implements FolderType
     }
 
     /**
-     * @return FileRef[]
+     * @return array
      */
     public function getFiles()
     {
@@ -166,8 +182,7 @@ class UnknownFolderType implements FolderType
     }
 
     /**
-     * Returns the parent-folder as a StandardFolder
-     * @return FolderType
+     * @return null
      */
     public function getParent()
     {
@@ -177,41 +192,58 @@ class UnknownFolderType implements FolderType
     }
 
     /**
-     * @param $file
+     * @param array|ArrayAccess $file
      */
     public function createFile($file)
     {
 
     }
 
+    /**
+     * @param string $file_ref_id
+     * @return bool
+     */
     public function deleteFile($file_ref_id)
     {
         return false;
     }
 
+    /**
+     * @param FolderType $folderdata
+     */
     public function createSubfolder(FolderType $folderdata)
     {
 
     }
 
+    /**
+     * @param string $subfolder_id
+     * @return bool
+     */
     public function deleteSubfolder($subfolder_id)
     {
         return false;
     }
 
+    /**
+     * @return bool
+     */
     public function delete()
     {
         return false;
     }
 
+    /**
+     * @return bool
+     */
     public function store()
     {
         return false;
     }
 
     /**
-     * @param $fileref_or_id
-     * @param $user_id
+     * @param string $fileref_or_id
+     * @param string $user_id
      * @return bool
      */
     public function isFileDownloadable($fileref_or_id, $user_id)
@@ -219,9 +251,10 @@ class UnknownFolderType implements FolderType
         return false;
     }
 
+
     /**
-     * @param $fileref_or_id
-     * @param $user_id
+     * @param string $fileref_or_id
+     * @param string $user_id
      * @return bool
      */
     public function isFileEditable($fileref_or_id, $user_id)
@@ -231,7 +264,7 @@ class UnknownFolderType implements FolderType
 
     /**
      * @param $fileref_or_id
-     * @param $user_id
+     * @param string $user_id
      * @return bool
      */
     public function isFileWritable($fileref_or_id, $user_id)

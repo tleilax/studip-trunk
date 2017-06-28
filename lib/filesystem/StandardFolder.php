@@ -2,6 +2,9 @@
 /**
  * StandardFolder.php
  *
+ * the standard folder is the default implementation for folders from courses institutes
+ * and users. Special folders should extend this class
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
