@@ -28,7 +28,6 @@
 
 use Studip\Button, Studip\LinkButton;
 
-require_once 'lib/datei.inc.php';
 require_once 'lib/classes/lit_search_plugins/StudipLitSearchPluginZ3950Abstract.class.php';
 
 /**

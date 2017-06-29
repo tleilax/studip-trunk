@@ -24,9 +24,7 @@
 
 // Imports
 require_once 'lib/admission.inc.php';   // remove user from waiting lists
-require_once 'lib/datei.inc.php';   // remove documents of user
 require_once 'lib/statusgruppe.inc.php';    // remove user from statusgroups
-require_once 'lib/dates.inc.php';   // remove appointments of user
 require_once 'lib/messaging.inc.php';   // remove messages send or recieved by user
 require_once 'lib/object.inc.php';
 
