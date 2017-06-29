@@ -353,7 +353,7 @@ class MessagesController extends AuthenticatedController {
                                 $new_attachment->folder_id = $new_attachment_folder->getId();
                                 $new_attachment->name = $old_attachment->file->name;
                                 $new_attachment->description = $old_attachment->description;
-                                $new_attachment->license = $old_attachment->license;
+                                $new_attachment->content_terms_of_use_id = $old_attachment->content_terms_of_use_id;
                                 $new_attachment->user_id = $GLOBALS['user']->id;
 
                                 if ($new_attachment->store()) {

@@ -74,7 +74,8 @@
             <?= $this->render_partial('files/_fileref_tr',
                 [
                     'file_ref' => $file_ref,
-                    'current_folder' => $attachment_folder
+                    'current_folder' => $attachment_folder,
+                    'last_visitdate' => time()
                 ]) ?>
         <? endforeach ?>
     </table>
