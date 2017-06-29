@@ -456,7 +456,7 @@ class Markup
             $config->set('AutoFormat.Custom', array('Unlinkify'));
 
             $purifier = new \HTMLPurifier($config);
-            $html = studip_utf8decode($purifier->purify(studip_utf8encode($html)));
+            $html = $purifier->purify($html);
             $html = \decodeHTML(trim(str_replace('<br />', PHP_EOL, $html)));
         }
 
