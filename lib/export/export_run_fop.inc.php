@@ -4,16 +4,16 @@
 # Lifter003: TODO
 # Lifter010: TODO
 /**
-* Export-Subfile that calls the FOP.
-*
-* This file calls the Formatting-Objects-Processor to generate PDF-Files.
-*
-* @author       Arne Schroeder <schroeder@data.quest.de>
-* @access       public
-* @modulegroup      export_modules
-* @module       export_run_fop
-* @package      Export
-*/
+ * Export-Subfile that calls the FOP.
+ *
+ * This file calls the Formatting-Objects-Processor to generate PDF-Files.
+ *
+ * @author       Arne Schroeder <schroeder@data.quest.de>
+ * @access       public
+ * @modulegroup      export_modules
+ * @module       export_run_fop
+ * @package      Export
+ */
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // export_run_fop.inc.php
@@ -39,21 +39,19 @@
 if (($o_mode != "direct") AND ($o_mode != "passthrough"))
     $perm->check("tutor");
 
-require_once('lib/datei.inc.php');
-
 
 /**
-* Checks given parameters
-*
-* This function checks the given parameters. If some are missing
-* it returns false and adds a warning to $export_error.
-*
-* @access   public
-* @return       boolean
-*/
+ * Checks given parameters
+ *
+ * This function checks the given parameters. If some are missing
+ * it returns false and adds a warning to $export_error.
+ *
+ * @access   public
+ * @return       boolean
+ */
 function CheckParamRUN_FOP()
 {
-global $export_error, $export_error_num, $result_file;
+    global $export_error, $export_error_num, $result_file;
 
     if ($result_file == "") {
         $export_error .= "<b>" . _("Fehlende Parameter!") . "</b><br>";
@@ -78,31 +76,27 @@ if (!CheckParamRUN_FOP()) {
     $export_pagename = _("Download der PDF-Datei");
 
     // Process the document
-    escapeshellcmd ( $result_file );
-    escapeshellcmd ( $TMP_PATH );
-    $pdf_file = md5(uniqid(rand())) .".pdf";
+    escapeshellcmd($result_file);
+    escapeshellcmd($TMP_PATH);
+    $pdf_file = md5(uniqid(rand())) . ".pdf";
 
-    $str = "$FOP_SH_CALL $TMP_PATH/export/$result_file $TMP_PATH/export/$pdf_file ";
+    $str = "$FOP_SH_CALL $TMP_PATH/export/$result_file $TMP_PATH/$pdf_file ";
 
-    $out = exec( $str );
+    $out = exec($str);
     if ($out == '') {
         $out = $str;
     }
-
-    if (file_exists($TMP_PATH.'/export/'.$pdf_file)) {
-        $link2 = '<a href="'. GetDownloadLink($pdf_file, $xslt_filename . '.pdf', 2).'">';
+    if (file_exists($TMP_PATH . '/' . $pdf_file)) {
+        $link2 = '<a href="' . FileManager::getDownloadLinkForTemporaryFile($pdf_file, $xslt_filename . '.pdf') . '">';
         $export_pagecontent = '<table cellspacing="0" cellpadding="0" border="0" width="40%"><tr align="center"><td>';
         $export_pagecontent .= '<b>' . _("Ausgabe-Datei: ") . '</b>';
         $export_pagecontent .= '</td><td>' . $link2 . $xslt_filename . '.pdf</a>';
-//          $export_pagecontent .= "</td><td>" . $result_file . "</td></tr><tr><td colspan=\"2\">";
-//          $export_pagecontent .= "&nbsp;&nbsp;&nbsp;&nbsp; - &nbsp;&nbsp;" . $link1 . _("Datei öffnen") . "</a></td></tr><tr><td colspan=\"2\">";
-//          $export_pagecontent .= "&nbsp;&nbsp;&nbsp;&nbsp; - &nbsp;&nbsp;" . $link2 . _("Datei herunterladen") . "</a></td></tr>";
         $export_pagecontent .= '</td></tr></table><br>';
 
-        $result_printimage = ' <a href="' . GetDownloadLink($pdf_file, $xslt_filename . '.pdf', 2). '">';
-        $result_printimage.= Icon::create($export_icon['pdf'], 'clickable')->asImg(['class' => 'text-top']);
-        $result_printimage.= '</a>';
-        $result_printlink = ' <a href="'. GetDownloadLink($pdf_file, $xslt_filename . '.pdf', 2).   '" class="tree"> ' . $xslt_filename . '.pdf</a>';
+        $result_printimage = ' <a href="' . FileManager::getDownloadLinkForTemporaryFile($pdf_file, $xslt_filename . '.pdf') . '">';
+        $result_printimage .= Icon::create($export_icon['pdf'], 'clickable')->asImg(['class' => 'text-top']);
+        $result_printimage .= '</a>';
+        $result_printlink = ' <a href="' . FileManager::getDownloadLinkForTemporaryFile($pdf_file, $xslt_filename . '.pdf') . '" class="tree"> ' . $xslt_filename . '.pdf</a>';
         $result_printdesc = _("PDF-Datei");
         $result_printcontent = _("Dies ist die fertige PDF-Datei.") . '<br>';
     } else {
@@ -114,20 +108,20 @@ if (!CheckParamRUN_FOP()) {
         unset($export_msg);
         $export_pagecontent = "";
         $export_error = "<b>" . sprintf(_("Bei der Erzeugung der PDF-Datei ist ein Fehler aufgetreten. <br>Fehlermeldung: %s <br>Datei: %s"), $out, $pdf_file) . "</b><br>";
-        $export_error_num ++;
+        $export_error_num++;
     }
 
-    $xml_printimage = ' <a href="'. GetDownloadLink($xml_file_id, $xml_filename, 2). '">';
-    $xml_printimage.= Icon::create($export_icon['xml'], 'clickable')->asImg(['class' => 'text-top']);
-    $xml_printimage.= '</a>';
-    $xml_printlink = ' <a href="'. GetDownloadLink($xml_file_id, $xml_filename, 2) .  '" class="tree"> ' . $xml_filename . '</a>';
+    $xml_printimage = ' <a href="' . FileManager::getDownloadLinkForTemporaryFile($xml_file_id, $xml_filename) . '">';
+    $xml_printimage .= Icon::create($export_icon['xml'], 'clickable')->asImg(['class' => 'text-top']);
+    $xml_printimage .= '</a>';
+    $xml_printlink = ' <a href="' . FileManager::getDownloadLinkForTemporaryFile($xml_file_id, $xml_filename) . '" class="tree"> ' . $xml_filename . '</a>';
     $xml_printdesc = _("XML-Daten");
     $xml_printcontent = _("In dieser Datei sind die Daten als XML-Tags gespeichert. Diese Tags können mit einem XSLT-Script verarbeitet werden.") . "<br>";
 
-    $xslt_printimage = '<a href="'. GetDownloadLink($result_file,$xslt_filename .'.'. $format,2) . '">';
-    $xslt_printimage.= Icon::create($export_icon[$format], 'clickable')->asImg(['class' => 'text-top']);
-    $xslt_printimage.= '</a>';
-    $xslt_printlink = '<a href="'. GetDownloadLink($result_file,$xslt_filename .'.'. $format,2) . '" class="tree">' . $xslt_filename .'.'. $format . '</a>';
+    $xslt_printimage = '<a href="' . FileManager::getDownloadLinkForTemporaryFile($result_file, $xslt_filename . '.' . $format) . '">';
+    $xslt_printimage .= Icon::create($export_icon[$format], 'clickable')->asImg(['class' => 'text-top']);
+    $xslt_printimage .= '</a>';
+    $xslt_printlink = '<a href="' . FileManager::getDownloadLinkForTemporaryFile($result_file, $xslt_filename . '.' . $format) . '" class="tree">' . $xslt_filename . '.' . $format . '</a>';
     $xslt_printdesc = _("Formatting-Objects-Datei");
     $xslt_printcontent = _("In dieser Datei sind die Formatting Objects zur Erzeugung der PDF-Datei gespeichert.") . "<br>";
 
