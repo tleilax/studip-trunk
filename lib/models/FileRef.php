@@ -120,7 +120,7 @@ class FileRef extends SimpleORMap
                     default:
                         $link[] = 'normal/';
                 }
-                $link[] = $type . '/' . $file_name;
+                $link[] = $type . '/' . $file_id . '/' . $file_name;
                 break;
             default:
                 $link[] = 'sendfile.php?';

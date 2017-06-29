@@ -129,8 +129,8 @@ class MessagesController extends AuthenticatedController {
         }
 
         //load the message's top folder (if any):
-        $attachment_folder = Folder::findTopFolder($this->message->id);
-        if($attachment_folder) {
+        $attachment_folder = Folder::findOneByRange_id($this->message->id);
+        if ($attachment_folder) {
             $this->attachment_folder = $attachment_folder->getTypedFolder();
         }
 
