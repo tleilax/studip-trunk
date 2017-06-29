@@ -2271,14 +2271,6 @@ li#notification_container:hover .list {
 #notification_container .list .item:first-child {
   border-top: 0;
 }
-#notification_container .list .item:last-child {
-  -webkit-border-bottom-right-radius: 5px;
-  -moz-border-radius-bottomright: 5px;
-  border-bottom-right-radius: 5px;
-  -webkit-border-bottom-left-radius: 5px;
-  -moz-border-radius-bottomleft: 5px;
-  border-bottom-left-radius: 5px;
-}
 #notification_container .list .item .content {
   display: -ms-flexbox;
   display: -webkit-box;
