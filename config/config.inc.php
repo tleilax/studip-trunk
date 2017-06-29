@@ -97,8 +97,6 @@ $DEFAULT_TITLE_FOR_STATUS = array(
 /*
 possible types of sem_tree ("Veranstaltungshierarchie") types
 the "editable" flag could be used to prevent modifications, e.g. imported data
-the "is_module" flag specifies an entry which represents a "Studienmodul", if the "studienmodulmanagement"
-plugin interface is used
 */
 $SEM_TREE_TYPES[0] = array("name" => "", "editable" => true); //default type, must be present
 //$SEM_TREE_TYPES[1] = array("name" => _("Studienmodul") , "editable" => true, "is_module" => true);
@@ -363,8 +361,8 @@ $FLASHPLAYER_DEFAULT_CONFIG_MAX = "&amp;showstop=1&amp;showvolume=1&amp;bgcolor=
 
 //Here you have to add the datafield_ids as elements. They will be shown in the standard / extended view on inst_admin.php
 $INST_ADMIN_DATAFIELDS_VIEW = array(
-    'default' => array(),
-    'extended' => array()
+    'default' => array('8ff7c9de0a3a7a8a9ee4b7cdd4cece43'),
+    'extended' => array('8ff7c9de0a3a7a8a9ee4b7cdd4cece43')
 );
 /*
  * Fields that may not be hidden by users in their privacy settings.
@@ -383,4 +381,3 @@ $NOT_HIDEABLE_FIELDS = array(
 );
 //Add ids of datafields to use for import on teilnehmer.php
 $TEILNEHMER_IMPORT_DATAFIELDS = array();
-

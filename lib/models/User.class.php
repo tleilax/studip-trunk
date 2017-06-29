@@ -71,6 +71,92 @@
 class User extends AuthUserMd5
 {
     /**
+     *
+     */
+    protected static function configure($config = array())
+    {
+        $config['has_many']['course_memberships'] = [
+            'class_name' => 'CourseMember',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['institute_memberships'] = [
+            'class_name' => 'InstituteMember',
+            'order_by'   => 'ORDER BY priority ASC',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['admission_applications'] = [
+            'class_name' => 'AdmissionApplication',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['archived_course_memberships'] = [
+            'class_name' => 'ArchivedCourseMember',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['datafields'] = [
+            'class_name'  => 'DatafieldEntryModel',
+            'foreign_key' => function ($user) {
+                return array($user);
+            },
+            'assoc_foreign_key' => function ($model, $params) {
+                $model->setValue('range_id', $params[0]->id);
+            },
+            'assoc_func' => 'findByModel',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['studycourses'] = [
+            'class_name' => 'UserStudyCourse',
+            'assoc_func' => 'findByUser',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_and_belongs_to_many']['contacts'] = [
+            'class_name'     => 'User',
+            'thru_table'     => 'contact',
+            'thru_key'       => 'owner_id',
+            'thru_assoc_key' => 'user_id',
+            'order_by'       => 'ORDER BY Nachname, Vorname',
+            'on_delete'      => 'delete',
+            'on_store'       => 'store',
+        ];
+        $config['has_many']['contactgroups'] = [
+            'class_name'        => 'Statusgruppen',
+            'assoc_foreign_key' => 'range_id',
+            'on_delete'         => 'delete',
+            'on_store'          => 'store',
+        ];
+        $config['has_one']['info'] = [
+            'class_name' => 'UserInfo',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_one']['online'] = [
+            'class_name' => 'UserOnline',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+
+        $info = new UserInfo();
+        $info_meta = $info->getTableMetadata();
+        foreach ($info_meta ['fields'] as $field => $meta) {
+            if ($field !== $info_meta['pk'][0]) {
+                $config['additional_fields'][$field] = [
+                    'get'            => '_getAdditionalValueFromRelation',
+                    'set'            => '_setAdditionalValueFromRelation',
+                    'relation'       => 'info',
+                    'relation_field' => $field,
+                ];
+            }
+        }
+
+        parent::configure($config);
+    }
+
+    /**
      * Returns the currently authenticated user.
      *
      * @return User User
@@ -108,7 +194,10 @@ class User extends AuthUserMd5
      */
     public static function findFull($id)
     {
-        $sql = "SELECT * FROM auth_user_md5 LEFT JOIN user_info USING (user_id) WHERE auth_user_md5.user_id = ?";
+        $sql = "SELECT *
+                FROM auth_user_md5
+                LEFT JOIN user_info USING (user_id)
+                WHERE user_id = ?";
         $data = DbManager::get()->fetchOne($sql, array($id));
         if ($data) {
             return self::buildExisting($data);
@@ -135,15 +224,14 @@ class User extends AuthUserMd5
      */
     public static function findByDatafield($datafield_id, $value)
     {
-        $search = DBManager::get()->prepare(
-            "SELECT range_id " .
-            "FROM datafields_entries " .
-            "WHERE datafield_id = :datafield_id " .
-                "AND content = :value " .
-        "");
-        $search->execute(compact("datafield_id", "value"));
+        $query = "SELECT range_id
+                  FROM datafields_entries
+                  WHERE datafield_id = :datafield_id
+                    AND content = :value";
+        $search = DBManager::get()->prepare($query);
+        $search->execute(compact('datafield_id', 'value'));
         $users = array();
-        foreach ($search->fetchAll(PDO::FETCH_COLUMN, 0) as $user_id) {
+        foreach ($search->fetchAll(PDO::FETCH_COLUMN) as $user_id) {
             $users[] = new User($user_id);
         }
         return $users;
@@ -153,22 +241,21 @@ class User extends AuthUserMd5
     {
         $record = new User();
         $db = DBManager::get();
-        $sql = "
-            SELECT `" .  $record->db_table . "`.*
-            FROM `" .  $record->db_table . "`
-                INNER JOIN termin_related_persons USING (user_id)
-            WHERE termin_related_persons.range_id = ?
-            ORDER BY Nachname, Vorname ASC
-        ";
-        $st = $db->prepare($sql);
-        $st->execute(array($termin_id));
-        $ret = array();
-        $c = 0;
-        while($row = $st->fetch(PDO::FETCH_ASSOC)) {
-            $ret[$c] = new User();
-            $ret[$c]->setData($row, true);
-            $ret[$c]->setNew(false);
-            ++$c;
+        $sql = "SELECT `{$record->db_table}`.*
+                FROM `{$record->db_table}`
+                INNER JOIN `termin_related_persons` USING (user_id)
+                WHERE `termin_related_persons`.`range_id` = ?
+                ORDER BY Nachname, Vorname ASC";
+        $statement = $db->prepare($sql);
+        $statement->execute([$termin_id]);
+
+        $ret = [];
+        while($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $item = new User();
+            $item->setData($row, true);
+            $item->setNew(false);
+
+            $ret[] = $item;
         }
         return $ret;
     }
@@ -199,16 +286,16 @@ class User extends AuthUserMd5
     {
         $params = [];
 
-        $query = "SELECT au.*,ui.* "
-                 ."FROM auth_user_md5 au "
-                 ."LEFT JOIN datafields_entries de ON de.range_id=au.user_id "
-                 ."LEFT JOIN user_online uo ON au.user_id = uo.user_id "
-                 ."LEFT JOIN user_info ui ON (au.user_id = ui.user_id) "
-                 ."LEFT JOIN user_userdomains uud ON (au.user_id = uud.user_id) "
-                 ."LEFT JOIN userdomains uds USING (userdomain_id) "
-                 ."LEFT JOIN user_studiengang us ON us.user_id = au.user_id "
-                 ."LEFT JOIN user_inst uis ON uis.user_id = au.user_id "
-                 ."WHERE 1 ";
+        $query = "SELECT au.*,ui.*
+                  FROM auth_user_md5 au
+                  LEFT JOIN datafields_entries de ON (de.range_id = au.user_id)
+                  LEFT JOIN user_online uo ON (au.user_id = uo.user_id)
+                  LEFT JOIN user_info ui ON (au.user_id = ui.user_id)
+                  LEFT JOIN user_userdomains uud ON (au.user_id = uud.user_id)
+                  LEFT JOIN userdomains uds USING (userdomain_id)
+                  LEFT JOIN user_studiengang us ON (us.user_id = au.user_id)
+                  LEFT JOIN user_inst uis ON uis.user_id = au.user_id
+                  WHERE 1 ";
         if ($attributes['username']) {
             $query .= "AND au.username like :username ";
             $params[':username'] = self::searchParam($attributes['username']);
@@ -320,98 +407,9 @@ class User extends AuthUserMd5
 
 
     /**
-     *
-     */
-    protected static function configure($config = array())
-    {
-        $config['has_many']['course_memberships'] = array(
-            'class_name' => 'CourseMember',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_many']['institute_memberships'] = array(
-            'class_name' => 'InstituteMember',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_many']['admission_applications'] = array(
-            'class_name' => 'AdmissionApplication',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_many']['archived_course_memberships'] = array(
-            'class_name' => 'ArchivedCourseMember',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_many']['datafields'] = array(
-            'class_name' => 'DatafieldEntryModel',
-            'assoc_foreign_key' =>
-                function($model, $params) {
-                    $model->setValue('range_id', $params[0]->id);
-                },
-            'assoc_func' => 'findByModel',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-            'foreign_key' =>
-                function($user) {
-                    return array($user);
-                }
-        );
-        $config['has_many']['studycourses'] = array(
-            'class_name' => 'UserStudyCourse',
-            'assoc_func' => 'findByUser',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_and_belongs_to_many']['contacts'] = array(
-            'class_name' => 'User',
-            'thru_table' => 'contact',
-            'thru_key' => 'owner_id',
-            'thru_assoc_key' => 'user_id',
-            'order_by' => 'ORDER BY Nachname, Vorname',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_many']['contactgroups'] = array(
-            'class_name' => 'Statusgruppen',
-            'assoc_foreign_key' => 'range_id',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_one']['info'] = array(
-            'class_name' => 'UserInfo',
-            'assoc_func' => 'find',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_one']['online'] = array(
-            'class_name' => 'UserOnline',
-            'assoc_func' => 'find',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-
-        $info = new UserInfo();
-        $info_meta = $info->getTableMetadata();
-        foreach ( $info_meta ['fields'] as $field => $meta ) {
-            if ($field !== $info_meta ['pk'] [0]) {
-                $config ['additional_fields'] [$field] = array (
-                        'get' => '_getAdditionalValueFromRelation',
-                        'set' => '_setAdditionalValueFromRelation',
-                        'relation' => 'info',
-                        'relation_field' => $field
-                );
-            }
-        }
-
-        parent::configure($config);
-    }
-
-    /**
      * @see SimpleORMap::store()
      */
-    function store()
+    public function store()
     {
         if ($this->isDirty() && !$this->info->isFieldDirty('chdate')) {
             $this->info->setValue('chdate', time());
@@ -422,7 +420,7 @@ class User extends AuthUserMd5
     /**
      * @see SimpleORMap::triggerChdate()
      */
-    function triggerChdate()
+    public function triggerChdate()
     {
        return $this->info->triggerChdate();
     }
@@ -434,7 +432,7 @@ class User extends AuthUserMd5
      * @param string one of full,full_rev,no_title,no_title_rev,no_title_short,no_title_motto,full_rev_username
      * @return string guess what - the fullname
      */
-    function getFullName($format = "full")
+    public function getFullName($format = 'full')
     {
         static $concat,$left,$if,$quote;
 
@@ -462,7 +460,7 @@ class User extends AuthUserMd5
         return eval('return ' . $eval . ';');
     }
 
-    function toArrayRecursive($only_these_fields = null)
+    public function toArrayRecursive($only_these_fields = null)
     {
         $ret = parent::toArrayRecursive($only_these_fields);
         unset($ret['info']);
@@ -590,13 +588,30 @@ class User extends AuthUserMd5
             return ['admin'];
         }
         $allowed_status = [];
-        $possible_status = words('autor tutor dozent');
+        $possible_status = ['autor', 'tutor', 'dozent'];
 
         $pos = array_search($this->perms, $possible_status);
-        if($pos) {
-            $allowed_status = array_slice($possible_status, 0, $pos+1);
+        if ($pos) {
+            $allowed_status = array_slice($possible_status, 0, $pos + 1);
         }
         return $allowed_status;
+    }
+
+    /**
+     * Get the decorated StudIP-Kings information
+     * @return String
+     */
+    public function getStudipKingIcon()
+    {
+        $is_king = StudipKing::is_king($this->user_id, TRUE);
+
+        $result = '';
+        foreach ($is_king as $type => $text) {
+            $type = str_replace('_', '-', $type);
+            $result .= Assets::img('crowns/crown-' . $type . '.png', ['alt' => $text, 'title' => $text]);
+        }
+
+        return $result ?: null;
     }
 
     /**
@@ -645,61 +660,81 @@ class User extends AuthUserMd5
         $homepage_elements = [];
 
         if (Avatar::getAvatar($this->id)->is_customized() && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['picture']) {
-            $homepage_elements['picture'] = ['name'         => _('Eigenes Bild'),
-                                              'visibility'  => $homepage_visibility['picture'] ?: get_default_homepage_visibility($this->id),
-                                              'extern'      => true,
-                                              'category'    => 'Allgemeine Daten'];
+            $homepage_elements['picture'] = [
+                'name'        => _('Eigenes Bild'),
+                'visibility'  => $homepage_visibility['picture'] ?: get_default_homepage_visibility($this->id),
+                'extern'      => true,
+                'category'    => 'Allgemeine Daten',
+            ];
         }
 
         if ($this->info->motto && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['motto']) {
-            $homepage_elements['motto'] = ['name'       => _('Motto'),
-                                           'visibility' => $homepage_visibility['motto'] ?: get_default_homepage_visibility($this->id),
-                                           'category'   => 'Private Daten'];
+            $homepage_elements['motto'] = [
+                'name'       => _('Motto'),
+                'visibility' => $homepage_visibility['motto'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Private Daten',
+            ];
         }
         if (Config::get()->ENABLE_SKYPE_INFO) {
             if ($GLOBALS['user']->cfg->getValue('SKYPE_NAME') && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['skype_name']) {
-                $homepage_elements['skype_name'] = ['name'              => _('Skype Name'),
-                                                         'visibility'   => $homepage_visibility['skype_name'] ?: get_default_homepage_visibility($this->id),
-                                                         'category'     => 'Private Daten'];
+                $homepage_elements['skype_name'] = [
+                    'name'       => _('Skype Name'),
+                    'visibility' => $homepage_visibility['skype_name'] ?: get_default_homepage_visibility($this->id),
+                    'category'   => 'Private Daten',
+                ];
             }
         }
         if ($this->info->privatnr && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['Private Daten_phone']) {
-            $homepage_elements['private_phone'] = ['name'       => _('Private Telefonnummer'),
-                                                   'visibility' => $homepage_visibility['private_phone'] ?: get_default_homepage_visibility($this->id),
-                                                   'category'   => 'Private Daten'];
+            $homepage_elements['private_phone'] = [
+                'name'       => _('Private Telefonnummer'),
+                'visibility' => $homepage_visibility['private_phone'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->privatcell && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['private_cell']) {
-            $homepage_elements['private_cell'] = ['name'        => _('Private Handynummer'),
-                                                  'visibility'  => $homepage_visibility['private_cell'] ?: get_default_homepage_visibility($this->id),
-                                                  'category'    => 'Private Daten'];
+            $homepage_elements['private_cell'] = [
+                'name'       => _('Private Handynummer'),
+                'visibility' => $homepage_visibility['private_cell'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->privadr && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['privadr']) {
-            $homepage_elements['privadr'] = ['name'         => _('Private Adresse'),
-                                             'visibility'   => $homepage_visibility['privadr'] ?: get_default_homepage_visibility($this->id),
-                                             'category'     => 'Private Daten'];
+            $homepage_elements['privadr'] = [
+                'name'         => _('Private Adresse'),
+                'visibility'   => $homepage_visibility['privadr'] ?: get_default_homepage_visibility($this->id),
+                'category'     => 'Private Daten',
+            ];
         }
         if ($this->info->home && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['homepage']) {
-            $homepage_elements['homepage'] = ['name'        => _('Homepage-Adresse'),
-                                              'visibility'  => $homepage_visibility['homepage'] ?: get_default_homepage_visibility($this->id),
-                                              'extern'      => true,
-                                              'category'    => 'Private Daten'];
+            $homepage_elements['homepage'] = [
+                'name'        => _('Homepage-Adresse'),
+                'visibility'  => $homepage_visibility['homepage'] ?: get_default_homepage_visibility($this->id),
+                'extern'      => true,
+                'category'    => 'Private Daten',
+            ];
         }
         if ($news && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['news']) {
-            $homepage_elements['news'] = ['name'        => _('Ankündigungen'),
-                                          'visibility'  => $homepage_visibility['news'] ?: get_default_homepage_visibility($this->id),
-                                          'extern'      => true,
-                                          'category'    => 'Allgemeine Daten'];
+            $homepage_elements['news'] = [
+                'name'       => _('Ankündigungen'),
+                'visibility' => $homepage_visibility['news'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Allgemeine Daten',
+            ];
         }
         if (Config::get()->CALENDAR_ENABLE && $dates && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['dates']) {
-            $homepage_elements['termine'] = ['name'        => _('Termine'),
-                                             'visibility'  => $homepage_visibility['termine'] ?: get_default_homepage_visibility($this->id),
-                                             'extern'      => true,
-                                             'category'    => 'Allgemeine Daten'];
+            $homepage_elements['termine'] = [
+                'name'       => _('Termine'),
+                'visibility' => $homepage_visibility['termine'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Allgemeine Daten',
+            ];
         }
         if (Config::get()->VOTE_ENABLE && ($activeVotes || $stoppedVotes || $activeEvals) && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['votes']) {
-            $homepage_elements['votes'] = ['name'       => _('Fragebögen'),
-                                           'visibility' => $homepage_visibility['votes'] ?: get_default_homepage_visibility($this->id),
-                                           'category'   => 'Allgemeine Daten'];
+            $homepage_elements['votes'] = [
+                'name'       => _('Fragebögen'),
+                'visibility' => $homepage_visibility['votes'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Allgemeine Daten',
+            ];
         }
 
         $query = "SELECT 1
@@ -709,37 +744,49 @@ class User extends AuthUserMd5
         $statement = DBManager::get()->prepare($query);
         $statement->execute([$this->id]);
         if ($statement->fetchColumn() && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['studying']) {
-            $homepage_elements['studying'] = ['name'        => _('Wo ich studiere'),
-                                              'visibility'  => $homepage_visibility['studying'] ?: get_default_homepage_visibility($this->id),
-                                              'category'    => 'Studien-/Einrichtungsdaten'];
+            $homepage_elements['studying'] = [
+                'name'       => _('Wo ich studiere'),
+                'visibility' => $homepage_visibility['studying'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Studien-/Einrichtungsdaten',
+            ];
         }
         if ($lit_list && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['literature']) {
-            $homepage_elements["literature"] = ['name'          => _('Literaturlisten'),
-                                                'visibility'    => $homepage_visibility['literature'] ?: get_default_homepage_visibility($this->id),
-                                                'category'      => 'Allgemeine Daten'];
+            $homepage_elements['literature'] = [
+                'name'       => _('Literaturlisten'),
+                'visibility' => $homepage_visibility['literature'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Allgemeine Daten',
+            ];
         }
         if ($this->info->lebenslauf && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['lebenslauf']) {
-            $homepage_elements['lebenslauf'] = ['name'          => _('Lebenslauf'),
-                                                'visibility'    => $homepage_visibility['lebenslauf'] ?: get_default_homepage_visibility($this->id),
-                                                'extern'        => true,
-                                                'category'      => 'Private Daten'];
+            $homepage_elements['lebenslauf'] = [
+                'name'       => _('Lebenslauf'),
+                'visibility' => $homepage_visibility['lebenslauf'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->hobby && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['hobby']) {
-            $homepage_elements['hobby'] = ['name'            => _('Hobbies'),
-                                           'visibility'      => $homepage_visibility['hobby'] ?: get_default_homepage_visibility($this->id),
-                                           'category'        => 'Private Daten'];
+            $homepage_elements['hobby'] = [
+                'name'       => _('Hobbies'),
+                'visibility' => $homepage_visibility['hobby'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->publi && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['publi']) {
-            $homepage_elements['publi'] = ['name'           => _('Publikationen'),
-                                           'visibility'     => $homepage_visibility['publi'] ?: get_default_homepage_visibility($this->id),
-                                           'extern'         => true,
-                                           'category'       => 'Private Daten'];
+            $homepage_elements['publi'] = [
+                'name'       => _('Publikationen'),
+                'visibility' => $homepage_visibility['publi'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->schwerp && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['schwerp']) {
-            $homepage_elements['schwerp'] = ['name'         => _('Arbeitsschwerpunkte'),
-                                             'visibility'   => $homepage_visibility['schwerp'] ?: get_default_homepage_visibility($this->id),
-                                             'extern'       => true,
-                                             'category'     => 'Private Daten'];
+            $homepage_elements['schwerp'] = [
+                'name'       => _('Arbeitsschwerpunkte'),
+                'visibility' => $homepage_visibility['schwerp'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Private Daten',
+            ];
         }
 
         if ($data_fields) {
@@ -747,55 +794,55 @@ class User extends AuthUserMd5
                 if ($field->getValue() && $field->isEditable($this->perms) && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms][$key]) {
                     $homepage_elements[$key] = [
                         'name'       => $field->getName(),
-                        'visibility' => $homepage_visibility[$key]
-                            ?: get_default_homepage_visibility($this->id),
+                        'visibility' => $homepage_visibility[$key] ?: get_default_homepage_visibility($this->id),
                         'extern'     => true,
-                        'category'   => 'Zusätzliche Datenfelder'
+                        'category'   => 'Zusätzliche Datenfelder',
                     ];
                 }
             }
         }
 
-        $query = "SELECT kategorie_id, name
-                  FROM kategorien
-                  WHERE range_id = ?
-                  ORDER BY priority";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute([$this->id]);
-        while ($category = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $homepage_elements['kat_'.$category['kategorie_id']] = ['name'          => $category['name'],
-                                                                    'visibility'    => $homepage_visibility['kat_'.$category['kategorie_id']] ?: get_default_homepage_visibility($this->id),
-                                                                    'extern'        => true,
-                                                                    'category'      => 'Eigene Kategorien'];
+        foreach (Kategorie::findByUserId($this->id) as $category) {
+            $homepage_elements['kat_' . $category->id] = [
+                'name'       => $category->name,
+                'visibility' => $homepage_visibility['kat_' . $category->id] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Eigene Kategorien',
+            ];
         }
 
         if ($homepageplugins) {
             foreach ($homepageplugins as $plugin) {
-                $homepage_elements['plugin_'.$plugin->getPluginId()] = ['name'          => $plugin->getPluginName(),
-                                                                        'visibility'    => $homepage_visibility['plugin_'.$plugin->getPluginId()] ?: get_default_homepage_visibility($this->id),
-                                                                        'category'      => 'Plugins'];
+                $homepage_elements['plugin_' . $plugin->getPluginId()] = [
+                    'name'       => $plugin->getPluginName(),
+                    'visibility' => $homepage_visibility['plugin_'.$plugin->getPluginId()] ?: get_default_homepage_visibility($this->id),
+                    'category'   => 'Plugins',
+                ];
             }
         }
         return $homepage_elements;
     }
 
-
     /**
-     * @param $user
-     * @param $email
-     * @param bool $force
+     * Changes a user's email adress.
+     *
+     * @param string $email New email
+     * @param bool   $force Force update (even if nothing actually changed)
      * @return bool
      */
     public function changeEmail($email, $force = false)
     {
-        if ($this->email == $email && !$force) {
+        // Email did not actually change and update is not forced
+        if ($this->email === $email && !$force) {
             return true;
         }
 
+        // Is changing of email globally allowed?
         if (!Config::get()->ALLOW_CHANGE_EMAIL) {
             return false;
         }
 
+        // Is changing of email allowed by auth plugin?
         if (StudipAuthAbstract::CheckField('auth_user_md5.Email', $this->auth_plugin) || LockRules::check($this->user_id, 'email')) {
             return false;
         }
@@ -803,7 +850,7 @@ class User extends AuthUserMd5
         $validator          = new email_validation_class; ## Klasse zum Ueberpruefen der Eingaben
         $validator->timeout = 10;
         $REMOTE_ADDR        = $_SERVER['REMOTE_ADDR'];
-        $Zeit               = date('H:i:s, d.m.Y', time());
+        $Zeit               = date('H:i:s, d.m.Y');
 
         // accept only registered domains if set
         $email_restriction = trim(Config::get()->EMAIL_DOMAIN_RESTRICTION);
@@ -880,7 +927,7 @@ class User extends AuthUserMd5
             $this->store();
 
             PageLayout::postInfo(sprintf(_('An Ihre neue E-Mail-Adresse <b>%s</b> wurde ein Aktivierungslink geschickt, dem Sie folgen müssen bevor Sie sich das nächste mal einloggen können.'), $email));
-            StudipLog::log("USER_NEWPWD", $this->user_id);
+            StudipLog::log('USER_NEWPWD', $this->user_id);
         }
         return true;
     }
@@ -1154,7 +1201,6 @@ class User extends AuthUserMd5
         return $messages;
     }
 
-
     /**
      * Delete double entries of the old and new user. This is a part of the old
      * numit-plugin.
@@ -1182,7 +1228,7 @@ class User extends AuthUserMd5
 
         if (!empty($items)) {
             $query = "DELETE FROM `{$table}`
-                  WHERE user_id = :user_id AND `{$field}` IN (:items)";
+                      WHERE user_id = :user_id AND `{$field}` IN (:items)";
 
             $statement = DBManager::get()->prepare($query);
             $statement->bindValue(':user_id', $new_id);

@@ -16,67 +16,78 @@ class RefactorConfigLocal extends Migration
                 'type' => "string"
             ),
             "STUDIP_INSTALLATION_ID" => array(
-                'description' => "unique identifier for installation",
+                'description' => "Unique identifier for installation",
                 'type' => "string"
             ),
             "MEDIA_CACHE_MAX_LENGTH" => array(
-                'description' => "Wie große Dateien sollen maximal gecached werden (in Bytes)?",
+                'description' => "Maximale Größe von Dateien, die im Media-Cache gecached werden (in Bytes)?",
                 'type' => "integer"
             ),
             "MEDIA_CACHE_LIFETIME" => array(
-                'description' => "Wieviele Sekunden soll cecached werden?",
+                'description' => "Wieviele Sekunden soll gecached werden?",
                 'type' => "integer"
             ),
             "MEDIA_CACHE_MAX_FILES" => array(
-                'description' => "Wieviele Dateien sollen maximal cecached werden?",
+                'description' => "Wieviele Dateien sollen maximal gecached werden?",
                 'type' => "integer"
             ),
             "XSLT_ENABLE" => array(
                 'description' => "Soll Export mit XSLT angeschaltet sein?",
-                'type' => "boolean"
+                'type' => "boolean",
+                'default' => 1
             ),
             "FOP_ENABLE" => array(
                 'description' => "Soll Export mit FOP erlaubt sein?",
-                'type' => "boolean"
+                'type' => "boolean",
+                'default' => 1
             ),
             "EXTERN_SRI_ENABLE" => array(
-                'description' => "allow the usage of SRI-interface (Stud.IP Remote Include)",
-                'type' => "boolean"
+                'description' => "Allow the usage of SRI-interface (Stud.IP Remote Include)",
+                'type' => "boolean",
+                'default' => 1
             ),
             "EXTERN_SRI_ENABLE_BY_ROOT" => array(
-                'description' => "only root allows the usage of SRI-interface for specific institutes",
-                'type' => "boolean"
+                'description' => "Only root allows the usage of SRI-interface for specific institutes",
+                'type' => "boolean",
+                'default' => 0
             ),
             "EXTERN_ALLOW_ACCESS_WITHOUT_CONFIG" => array(
-                'description' => "free access to external pages (without the need of a configuration), independent of SRI settings above",
-                'type' => "boolean"
+                'description' => "Free access to external pages (without the need of a configuration), independent of SRI settings above",
+                'type' => "boolean",
+                'default' => 0
             ),
             "SOAP_ENABLE" => array(
                 'description' => "Schaltet die SOAP-Schnittstelle an.",
-                'type' => "boolean"
+                'type' => "boolean",
+                'default' => 0
             ),
             "SOAP_USE_PHP5" => array(
                 'description' => "Sollen PHP-Bibliotheken für SOAP verwendet werden?",
-                'type' => "boolean"
+                'type' => "boolean",
+                'default' => 0
             ),
             "ALLOW_SELFASSIGN_STUDYCOURSE" => array(
-                'description' => "if true, students are allowed to set or change their studycourse (studiengang)",
-                'type' => "boolean"
+                'description' => "If true, students are allowed to set or change their studycourse (studiengang)",
+                'type' => "boolean",
+                'default' => 1
             ),
             "SHOW_TERMS_ON_FIRST_LOGIN" => array(
-                'description' => "if true, the user has to accept the terms on his first login (this feature makes only sense, if you use disable ENABLE_SELF_REGISTRATION).",
-                'type' => "boolean"
+                'description' => "If true, the user has to accept the terms on his first login (this feature makes only sense, if you use disable ENABLE_SELF_REGISTRATION).",
+                'type' => "boolean",
+                'default' => 0
             ),
             "CONVERT_IDNA_URL" => array(
-                'description' => "if true, urls with german \"umlauts\" are converted",
-                'type' => "boolean"
+                'description' => "If true, urls with german \"umlauts\" are converted",
+                'type' => "boolean",
+                'default' => 1
             ),
             "USER_VISIBILITY_CHECK" => array(
-                'description' => "enable presentation of visibility decision texts for users after first login. see lib/include/header.php and lib/user_visible.inc.php for further info",
-                'type' => "boolean"
+                'description' => "Enable presentation of visibility decision texts for users after first login. see lib/include/header.php and lib/user_visible.inc.php for further info",
+                'type' => "boolean",
+                'default' => 0
             ),
             "USERNAME_REGULAR_EXPRESSION" => array(
-                'description' => "regex for allowed characters in usernames",
+                'description' => "Regex for allowed characters in usernames",
                 'type' => "string"
             ),
             "DEFAULT_TIMEZONE" => array(
@@ -88,46 +99,55 @@ class RefactorConfigLocal extends Migration
                 'type' => "string"
             ),
             "ALLOW_CHANGE_USERNAME" => array(
-                'description' => "if true, users are allowed to change their username",
+                'description' => "If true, users are allowed to change their username",
                 'type' => "boolean",
-                'section' => "permissions"
+                'section' => "permissions",
+                'default' => 1
             ),
             "ALLOW_CHANGE_EMAIL" => array(
-                'description' => "if true, users are allowed to change their username",
+                'description' => "If true, users are allowed to change their username",
                 'type' => "boolean",
-                'section' => "permissions"
+                'section' => "permissions",
+                'default' => 1
             ),
             "ALLOW_CHANGE_NAME" => array(
-                'description' => "if true, users are allowed to change their name",
+                'description' => "If true, users are allowed to change their name",
                 'type' => "boolean",
-                'section' => "permissions"
+                'section' => "permissions",
+                'default' => 1
             ),
             "ALLOW_CHANGE_TITLE" => array(
-                'description' => "if true, users are allowed to change their titles",
+                'description' => "If true, users are allowed to change their titles",
                 'type' => "boolean",
-                'section' => "permissions"
+                'section' => "permissions",
+                'default' => 1
             ),
             "ENABLE_SELF_REGISTRATION" => array(
-                'description' => "should it be possible for an user to register himself",
+                'description' => "Should it be possible for an user to register himself",
                 'type' => "boolean",
-                'section' => "permissions"
+                'section' => "permissions",
+                'default' => 1
             ),
             "ENABLE_REQUEST_NEW_PASSWORD_BY_USER" => array(
-                'description' => "if true, users are able to request a new password themselves",
+                'description' => "If true, users are able to request a new password themselves",
                 'type' => "boolean",
-                'section' => "permissions"
+                'section' => "permissions",
+                'default' => 1
             ),
             "PHPASS_USE_PORTABLE_HASH" => array(
                 'description' => "PHPASS_USE_PORTABLE_HASH",
-                'type' => "boolean"
+                'type' => "boolean",
+                'default' => 0
             ),
             "WEBSERVICES_ENABLE" => array(
                 'description' => "Schaltet die Webservice-Schnittstelle an.",
-                'type' => "boolean"
+                'type' => "boolean",
+                'default' => 0
             ),
             "ENABLE_FREE_ACCESS" => array(
-                'description' => "if true, courses with public access are available",
-                'type' => "boolean"
+                'description' => "If true, courses with public access are available",
+                'type' => "boolean",
+                'default' => 1
             ),
         );
 
@@ -135,7 +155,7 @@ class RefactorConfigLocal extends Migration
             INSERT IGNORE INTO config
                 (config_id, field, value, is_default, type, `range`, section, mkdate, chdate, description)
             VALUES
-                (MD5(:name), :name, :value, 1, :type, :range, :section, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)
+                (MD5(:name), :name, :value, :is_default, :type, :range, :section, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)
         ");
 
         foreach ($global_boolean_parameter as $name => $data) {
@@ -143,6 +163,7 @@ class RefactorConfigLocal extends Migration
                 'name'        => $name,
                 'type'        => $data['type'],
                 'value'       => $GLOBALS[$name],
+                'is_default'  => $data['default'] ?: "",
                 'range'       => 'global',
                 'section'     => $data['section'] ?: "global",
                 'description' => $data['description']

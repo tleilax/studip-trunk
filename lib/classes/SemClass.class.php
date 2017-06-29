@@ -9,10 +9,6 @@
  *  the License, or (at your option) any later version.
  */
 
-if (isset($GLOBALS['SEM_CLASS'])) {
-    $GLOBALS['SEM_CLASS_OLD_VAR'] = $GLOBALS['SEM_CLASS'];
-}
-
 /**
  * Class to define and manage attributes of seminar classes (or seminar categories).
  * Usually all sem-classes are stored in a global variable $SEM_CLASS which is
@@ -92,7 +88,8 @@ class SemClass implements ArrayAccess
             'calendar' => "CoreCalendar",
             'elearning_interface' => "CoreElearningInterface",
             'modules' => '{"CoreOverview":{"activated":1,"sticky":1},"CoreAdmin":{"activated":1,"sticky":1}, "CoreResources":{"activated":1,"sticky":0}}',
-            'visible' => 1
+            'visible' => 1,
+            'is_group' => false
         );
         return new SemClass($data);
     }
@@ -324,7 +321,7 @@ class SemClass implements ArrayAccess
     {
         $module = $this->getModule($slot);
         if ($module) {
-            return (array) $module->getTabNavigation($course_id ? $course_id : $_SESSION['SessionSeminar']);
+            return (array) $module->getTabNavigation($course_id ? $course_id : Context::getId());
         } else {
             return array();
         }
@@ -339,6 +336,23 @@ class SemClass implements ArrayAccess
             }
         }
         return $types;
+    }
+
+    /**
+     * Checks if the current sem class is usable for course grouping.
+     */
+    public function isGroup()
+    {
+        return $this->data['is_group'];
+    }
+
+    /**
+     * Checks if any SemClasses exist that provide grouping functionality.
+     * @return SimpleCollection
+     */
+    public static function getGroupClasses()
+    {
+        return SimpleCollection::createFromArray(self::getClasses())->findBy('is_group', true);
     }
 
     /**
@@ -389,6 +403,7 @@ class SemClass implements ArrayAccess
                 "admission_prelim_default = :admission_prelim_default, " .
                 "admission_type_default = :admission_type_default, " .
                 "show_raumzeit = :show_raumzeit, " .
+                "is_group = :is_group, " .
                 "chdate = UNIX_TIMESTAMP() " .
             "WHERE id = :id ".
         "");
@@ -444,7 +459,8 @@ class SemClass implements ArrayAccess
                 : null,
             'admission_prelim_default' => (int)$this->data['admission_prelim_default'],
             'admission_type_default' => (int)$this->data['admission_type_default'],
-            'show_raumzeit' => (int) $this->data['show_raumzeit']
+            'show_raumzeit' => (int) $this->data['show_raumzeit'],
+            'is_group' => (int) $this->data['is_group']
         ));
     }
 
@@ -546,6 +562,8 @@ class SemClass implements ArrayAccess
                return (int) $this->data['admission_prelim_default'];
             case "admission_type_default":
                return (int) $this->data['admission_type_default'];
+            case "is_group":
+               return (bool) $this->data['is_group'];
         }
         //ansonsten
         return $this->data[$offset];
@@ -653,6 +671,7 @@ class SemClass implements ArrayAccess
         _("Community");
         _("Arbeitsgruppen");
         _("importierte Kurse");
+        _("Hauptveranstaltungen");
 
         _("Hier finden Sie alle in Stud.IP registrierten Lehrveranstaltungen");
         _("Verwenden Sie diese Kategorie, um normale Lehrveranstaltungen anzulegen");
@@ -664,6 +683,7 @@ class SemClass implements ArrayAccess
         _("Wenn Sie Veranstaltungen als Diskussiongruppen zu unterschiedlichen Themen anlegen möchten, verwenden Sie diese Kategorie.");
         _("Hier finden Sie verschiedene Arbeitsgruppen an der %s");
         _("Verwenden Sie diese Kategorie, um unterschiedliche Arbeitsgruppen anzulegen.");
+        _("Veranstaltungen dieser Kategorie dienen als Gruppierungselement, um die Zusammengehörigkeit von Veranstaltungen anderer Kategorien abzubilden.");
     }
 
 }

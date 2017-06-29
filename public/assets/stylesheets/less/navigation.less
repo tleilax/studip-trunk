@@ -1,48 +1,46 @@
 /* --- main navigation ----------------------------------------------------- */
-#barTopMenu {
-    left: 0;
-    margin: 0;
-    padding: 0;
-    position: absolute;
-    top: 45px;
-    z-index: 3;
+body:not(.fixed) #barTopMenu {
+    .flex-align-self(flex-end);
 
-    li {
-        float: left;
+    margin: 0 0 4px 5px;
+    padding: 0;
+    z-index: 1000;
+
+    > li {
+        display: inline-block;
         list-style-type: none;
-        min-width: 64px;
+        width: 64px;
+        height: 55px;
         padding: 0;
         z-index: 2;
     }
     a {
-        color: #abb7ce;
+        color: @base-color;
         display: block;
-        font-size: 12px;
-        padding: 0 3px;
+        padding: 0 0px;
         text-align: center;
-        line-height: 1.3em;
+        line-height: 1em;
 
         // Icon state: normal
         span {
             background: no-repeat 0 0;
             display: inline-block;
-            .size(32px, 32px);
+            .square(32px);
 
             // Icon state: new
-            &.new { background-position: -64px 0; }
+            &.new {
+                background-position: -64px 0;
+            }
         }
 
         img.original {
-            margin-left: 6px;
-            margin-right: 6px;
-            margin-top: 4px;
-            margin-bottom: 0px;
-            width: 28px;
-            height: 28px;
+            margin: 5px 0px;
+            .square(28px);
         }
         canvas.punch {
             display: none;
             margin: 0px;
+            margin-bottom: 5px;
             width: 42px;
             height: 32px;
         }
@@ -58,7 +56,7 @@
                 }
             }
 
-            &:before, &:after {
+            &::before, &::after {
                 position: absolute;
                 left: 50%;
                 margin-left: 5px;
@@ -66,20 +64,19 @@
             }
 
             // Just draw the badge
-            &:before {
+            &::before {
                 background-color: @red;
                 border-radius: 8px;
                 content: ' ';
                 display: inline-block;
-                width: 16px;
-                height: 16px;
+                .square(16px);
             }
 
             // Write the text on top of the badge so it will never
             // expand the badge into regions we don't want.
             // Text may overflow into the icon. There's no good way
             // to prevent that...
-            &:after {
+            &::after {
                 content: attr(data-badge);
                 color: white;
                 width: 16px;
@@ -93,18 +90,244 @@
             }
         }
     }
-    a:hover, li.active a {
-        color: #fff;
 
-        canvas, img {
-            filter: url('filter.svg#brightness');
-            filter: brightness(200%);
-            -webkit-filter: brightness(200%);
+    > li > a,
+    > li > label {
+        .navtitle {
+            position: absolute;
+            white-space: nowrap;
+
+            left: 50%;
+            .translate(-50%, 0);
+
+            opacity: 0;
+        }
+    }
+
+    img,
+    canvas {
+        -webkit-filter:hue-rotate(350deg) saturate(8.7%) brightness(177.3%) !important;
+        filter: hue-rotate(350deg) saturate(8.7%) brightness(177.3%) !important;
+    }
+
+    // Hide all navigation item title on hover and display only the currently
+    // hovered one
+    .navtitle {
+        .transition(opacity 300ms); // Smooth change when entering
+    }
+    &:hover {
+        > li.active .navtitle {
+            opacity: 0;
+        }
+        > li:hover .navtitle {
+            opacity: 1;
+            .transition(opacity 0); // Quick change when leaving
+        }
+    }
+
+    // Recolor on hover and for active items
+    li:hover,
+    li.active {
+        .navtitle {
+            opacity: 1;
+        }
+        > a {
+            canvas,
+            img {
+                -webkit-filter:hue-rotate(0deg) saturate(100%) brightness(100%) !important;
+                filter: hue-rotate(0deg) saturate(100%) brightness(100%) !important;
+
+                filter: url('filter.svg#brightness');
+                filter: brightness(100%);
+                -webkit-filter: brightness(100%);
+            }
         }
 
         // Icon state: hover
         span     { background-position: -32px 0; }
         // Icon state: hover and new
         span.new { background-position: -96px 0; }
+    }
+
+    > .overflow {
+        position: relative;
+
+        // Hide overflow and touch toggle
+        > input[type="checkbox"] {
+            display: none;
+        }
+
+        // Rotate icon
+        > label img {
+            transition: transform 300ms;
+            transform: rotate(90deg);
+        }
+
+        // Display menu on activation
+        &:hover label,
+        input[type="checkbox"]:checked {
+             ~ ul {
+                max-height: 1000px;
+            }
+             img,
+             ~ label img {
+                 transform: rotate(180deg);
+             }
+        }
+
+        > ul {
+            display: block;
+
+            position: absolute;
+            right: 0;
+            top: 100%;
+            z-index: 10;
+
+            list-style: none;
+            margin: 5px 0 0;
+            padding: 0;
+
+            background-color: @dark-gray-color-5;
+
+            min-width: 150px;
+            max-width: 250px;
+            max-height: 0;
+            overflow: hidden;
+
+            li {
+                display: block;
+                a {
+                    .flex();
+                    .flex-direction-row();
+                    .flex-wrap(nowrap);
+                    .flex-align-items(center);
+
+                    padding: 0.5em 1em;
+                }
+                img, canvas {
+                    .flex-item(1, 0, 24px);
+                    .square(24px);
+                    margin: 2px 0.7em 0 0;
+                }
+                .navtitle {
+                    .flex-item(1, 0, 100%);
+                    text-align: left;
+                    white-space: nowrap;
+                }
+                br {
+                    display: none;
+                }
+            }
+        }
+    }
+    &:not(.overflown) > .overflow {
+        display: none;
+    }
+}
+
+// Toggle mechanism for touch/hover
+#barTopMenu-toggle {
+    display: none;
+}
+label[for="barTopMenu-toggle"] {
+    .background-icon('hamburger', 'info_alt', 16);
+    background-position: 5px center;
+    background-repeat: no-repeat;
+
+    color: @white;
+    line-height: @bar-bottom-container-height;
+    overflow: hidden;
+    padding-left: (5px + 16px + 5px); // padding + icon + next padding
+    white-space: nowrap;
+
+    height: 0;
+    max-height: 0;
+    opacity: 0;
+    transition: all 300ms;
+
+    // 1/4 of the screen's width, creates a bigger hover area
+    width: 25vw;
+
+}
+html.no-touch {
+    #barTopMenu-toggle,
+    label[for="barTopMenu-toggle"] {
+        pointer-events: none;
+    }
+}
+
+body.fixed {
+    #flex-header {
+        height: @header-height;
+    }
+
+    label[for="barTopMenu-toggle"] {
+        opacity: 1;
+        max-height: @bar-bottom-container-height;
+        height: auto;
+    }
+    #barTopMenu {
+        background-color: @base-color;
+
+        list-style: none;
+        margin: 0 -10px;
+        padding: 0;
+
+        // Hide menu
+        display: none;
+
+        // Hide action menu and canvas (which is kinda obsolete)
+        #nav_extra,
+        canvas {
+            display: none;
+        }
+
+        img {
+            filter: url('filter.svg#brightness'); // IE?
+            -webkit-filter: contrast(0) brightness(2); // Order is important!
+            filter: contrast(0) brightness(2);
+
+            .square(16px);
+            margin-right: 0.4em;
+        }
+
+        li {
+            padding: 0.25em 15px;
+            > a {
+                .flex();
+                .flex-direction-row();
+                .flex-wrap(nowrap);
+                .flex-align-items(center);
+
+                color: @white;
+            }
+
+            &:hover {
+                background-color: @base-color-80;
+            }
+
+            &.overflow {
+                padding: 0;
+
+                &:hover {
+                    background-color: inherit;
+                }
+
+                input[type="checkbox"],
+                label {
+                    display: none;
+                }
+
+                ul {
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                }
+            }
+        }
+    }
+    #barBottomLeft:hover #barTopMenu,
+    #barTopMenu-toggle:checked ~ #barTopMenu {
+        display: block;
     }
 }

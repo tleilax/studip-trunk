@@ -1499,7 +1499,8 @@ function link_form ($range_id, $updating=FALSE)
  *
  */
 function display_file_body($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh=FALSE, $filelink="") {
-    global $rechte, $user, $SessionSeminar;
+    global $user, $SessionSeminar;
+    $rechte = $GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar);
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
 
     $type = $datei['url'] != '' ? 6 : 0;
@@ -1631,8 +1632,9 @@ $countfiles = 0;
  *
  */
 function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, $all, $refresh=FALSE, $filelink="", $anchor_id, $position = "middle") {
-    global $_fullname_sql,$SessionSeminar, $rechte, $anfang,
+    global $_fullname_sql,$SessionSeminar, $anfang,
         $user, $check_all, $countfiles;
+    $rechte = $GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar);
     //Einbinden einer Klasse, die Informationen über den ganzen Baum enthält
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
     $javascriptok = true;
@@ -1767,7 +1769,8 @@ function display_file_line ($datei, $folder_id, $open, $change, $move, $upload, 
  *
  */
 function display_folder_body($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $level = 0) {
-    global $_fullname_sql, $SessionSeminar, $user, $perm, $rechte, $countfolder;
+    global $_fullname_sql, $SessionSeminar, $user, $perm, $countfolder;
+    $rechte = $GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar);
     $db = DBManager::get();
     //Einbinden einer Klasse, die Informationen über den ganzen Baum enthält
     $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $SessionSeminar));
@@ -1833,7 +1836,7 @@ function display_folder_body($folder_id, $open, $change, $move, $upload, $refres
             . ' style="width:98%" class="add_toolbar wysiwyg"'
             . ' aria-label="Beschreibung des Ordners eingeben"'
             . ' rows="3">'
-            . htmlReady($result["description"])
+            . wysiwygReady($result["description"])
             . '</textarea>';
 
         if($rechte){
@@ -2040,8 +2043,9 @@ $droppable_folder = 0;
  *
  */
 function display_folder ($folder_id, $open, $change, $move, $upload, $refresh=FALSE, $filelink="", $anchor_id, $position="middle", $isissuefolder = false) {
-    global $_fullname_sql,$SessionSeminar, $rechte, $anfang,
+    global $_fullname_sql,$SessionSeminar, $anfang,
         $user, $check_all, $countfolder, $droppable_folder;
+    $rechte = $GLOBALS['perm']->have_studip_perm('tutor', $SessionSeminar);
     $option = true;
     $countfolder++;
     $more = true;

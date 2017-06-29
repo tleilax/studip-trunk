@@ -216,7 +216,7 @@ STUDIP.Messages = {
                 jQuery.ajax({
                     url: STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/messages/preview",
                     data: {
-                        text: written_text
+                        text: STUDIP.editor_enabled ? STUDIP.wysiwyg.markAsHtml(written_text) : written_text
                     },
                     type: "POST",
                     success: function (html) {
@@ -288,12 +288,11 @@ jQuery(function () {
 
     /*********** dragging the messages to the tags ***********/
 
-    jQuery("#messages > tbody").on("mouseover touchstart", function () {
-        if (Modernizr.mq("screen and (max-width:800px)")
-                || jQuery("#messages-tags ul > li").length === 0) {
-            jQuery("#messages > tbody > tr").draggable("disable");
+    jQuery('#messages > tbody').on('mouseover touchstart', function () {
+        if ($('html').is('.responsive-display') || jQuery('#messages-tags ul > li').length === 0) {
+            jQuery('#messages > tbody > tr').draggable('disable');
         } else {
-            jQuery("#messages > tbody > tr").draggable("enable");
+            jQuery('#messages > tbody > tr').draggable('enable');
         }
     });
 

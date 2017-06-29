@@ -11,7 +11,7 @@
     STUDIP.Sidebar.setSticky = function (is_sticky) {
         if (is_sticky === undefined || is_sticky) {
             $('#layout-sidebar .sidebar').stick_in_parent({
-                offset_top: $('#barBottomContainer').outerHeight(true),
+                offset_top: $('#barBottomContainer').outerHeight(true) + 15,
                 inner_scrolling: true
             }).on('sticky_kit:stick sticky_kit:unbottom', function () {
                 var stuckHandler = function (top, left) {
@@ -82,11 +82,9 @@
 
         // Specialized handler to trigger recalculation when wysiwyg
         // instances are created.
-        if (STUDIP.wysiwyg) {
-            $(document).on('load.wysiwyg', 'textarea', function () {
-                $(document.body).trigger('sticky_kit:recalc');
-            });
-        }
+        $(document).on('load.wysiwyg', 'textarea', function () {
+            $(document.body).trigger('sticky_kit:recalc');
+        });
     }
 
     // Engage

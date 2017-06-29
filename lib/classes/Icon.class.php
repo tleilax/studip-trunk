@@ -48,7 +48,7 @@ class Icon
         self::ROLE_ACCEPT        => 'green',
         self::ROLE_STATUS_GREEN  => 'green',
         self::ROLE_INACTIVE      => 'grey',
-        self::ROLE_NAVIGATION    => 'lightblue',
+        self::ROLE_NAVIGATION    => 'blue',
         self::ROLE_NEW           => 'red',
         self::ROLE_ATTENTION     => 'red',
         self::ROLE_STATUS_RED    => 'red',
@@ -231,7 +231,7 @@ class Icon
             // consider some attributes with need to be moved form the icon to the button
             $button_attributes = array();
             foreach (self::$formaction_attributes as $attr) {
-                if ($attributes[$attr]) {
+                if (isset($attributes[$attr])) {
                     $button_attributes[$attr] = $attributes[$attr];
                 }
             }

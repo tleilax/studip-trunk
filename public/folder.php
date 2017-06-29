@@ -44,6 +44,8 @@ object_set_visit_module('documents');
 // -- here you have to put initialisations for the current page
 require_once 'lib/datei.inc.php';
 
+$rechte = $perm->have_studip_perm('tutor', $SessionSeminar);
+
 $open = Request::option('open');
 $close = Request::option('close');
 $check_all = Request::option('check_all');
@@ -293,7 +295,7 @@ if ($rechte || $owner || $create_folder_perm) {
 
     //wurde Code fuer Speichern von Aenderungen uebermittelt (=id+"_sc_"), wird entsprechende Funktion aufgerufen
     if ($open_cmd == 'sc' && (!Request::submitted("cancel"))) {
-        edit_item($open_id, Request::int('type'), Request::get('change_name'), Request::get('change_description'), Request::int('change_protected', 0));
+        edit_item($open_id, Request::int('type'), Request::get('change_name'), Studip\Markup::purifyHtml(Request::get('change_description')), Request::int('change_protected', 0));
     }
 
     //wurde Code fuer Verschieben-Vorwaehlen uebermittelt (=id+"_m_"), wird entsprechende Funktion aufgerufen
