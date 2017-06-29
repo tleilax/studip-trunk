@@ -68,7 +68,7 @@
 </div>
 <? if($attachment_folder): ?>
 <h3><?= Icon::create('staple', 'inactive')->asImg(20, ["class" => "text-bottom"]) ?><?= _('Anhänge') ?></h3>
-    <table class="default documents" data-folder_id="<?= htmlReady($attachment_folder->getId()) ?>">
+    <table class="default sortable-table" data-sortlist="[[2, 0]]">
         <?= $this->render_partial('files/_files_thead') ?>
         <? foreach($attachment_folder->getFiles() as $file_ref): ?>
             <?= $this->render_partial('files/_fileref_tr',

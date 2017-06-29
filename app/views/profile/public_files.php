@@ -6,7 +6,7 @@
     </header>
 
     <section>
-        <table class="default documents sortable-table" data-sortlist="[[2, 0]]" data-folder_id="public-files-<?=$current_user->id?>" >
+        <table class="default sortable-table" data-sortlist="[[2, 0]]">
             <?= $this->render_partial('files/_files_thead') ?>
             <? foreach($public_files as $file_ref): ?>
                 <?= $this->render_partial('files/_fileref_tr',
