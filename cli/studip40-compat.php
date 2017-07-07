@@ -159,11 +159,12 @@ $rules = [
     'prepareFilename' => 'Removed. Use #{yellow:FileManager::cleanFileName} instead.',
     'GetFileIcon' => 'Removed. Use #{yellow:FileManager::getIconNameForMimeType} instead.',
     'parse_link' => 'Removed. Use #{yellow:FileManager::fetchURLMetadata} instead.',
-    'extract_zip' => 'Removed. Use #{yellow:Studip\ZipArchive::extractToPath} or #yellow:Studip\ZipArchive::test} instead.',
+    'unzip_file' => 'Removed. Use #{yellow:Studip\ZipArchive::extractToPath} or #yellow:Studip\ZipArchive::test} instead.',
     'datei.inc.php' => 'Removed. Use methods in functions.inc.php, FileManager, FileArchiveManager, FileRef, File or FolderType instead.',
-
+    'TrackAccess' => 'Removed(?). Use {yellow:FileRef::incrementDownloadCounter}',
     //StudipDocument and related classes:
     'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
+    'DocumentFolder(' => 'Removed(?). Use class #{yellow:Folder} instead.',
     'StudipDocumentTree(' => 'Removed(?). Use class #{yellow:Folder} or #{yellow:FolderType} instead.',
     'WysiwygDocument' => 'Deprecated/To be removed. Use class #{yellow:FileRef} in conjunction with a #{yellow:FolderType} implementation instead.',
 
@@ -177,6 +178,7 @@ $rules = [
     '_SESSION["SessionSeminar"]' => 'Use class #{yellow:Context} instead',
     '_SESSION[\'SessionSeminar\']' => 'Use class #{yellow:Context} instead',
 
+    'Statusgruppe(' => 'Removed(?). Use class #{yellow:Statusgruppen} instead.',
 ];
 
 
