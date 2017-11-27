@@ -38,7 +38,7 @@ jQuery(function () {
     // Bind search to STRG + Space.
     $(window).keydown(function (e) {
         // ctrl + space
-        if (e.which === 32 && e.ctrlKey) {
+        if (e.which === 32 && e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
             e.preventDefault();
             STUDIP.GlobalSearch.toggle();
         }
