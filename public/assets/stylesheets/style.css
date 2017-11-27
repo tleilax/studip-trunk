@@ -2057,13 +2057,6 @@ form.default label.packed button {
   margin: 2px;
   padding: 0px 10px;
 }
-#barBottomright #quicksearch_item input[type="text"] {
-  height: 26px;
-  width: 273px;
-}
-#barBottomright #quicksearch_item .quicksearchbutton {
-  margin: 7px 8px;
-}
 #barTopAvatar {
   display: inline-flex;
 }
@@ -10075,6 +10068,64 @@ div.i18n_group > div.i18n > textarea,
 div.i18n_group > div.i18n .editor_toolbar .buttons,
 div.i18n_group > div.i18n .cktoolbar .cke_inner {
   padding-left: 34px !important;
+}
+div#globalsearch-searchbar {
+  position. relative;
+}
+div#globalsearch-searchbar #globalsearch-input {
+  -webkit-transform-origin: 100% 50%;
+  -moz-transform-origin: 100% 50%;
+  -ms-transform-origin: 100% 50%;
+  -o-transform-origin: 100% 50%;
+  transform-origin: 100% 50%;
+  animation: slideleft .5s;
+}
+div#globalsearch-searchbar #globalsearch-list {
+  transform-origin: 100% 50%;
+  animation: slidedown .5s;
+  background-color: #fff;
+  width: 353px;
+  position: absolute;
+  color: #000;
+  padding: 5px;
+  box-shadow: 0px 5px 8px rgba(0,0,0,0.5);
+}
+div#globalsearch-searchbar #globalsearch-list a {
+  color: #28497c;
+}
+div#globalsearch-searchbar #globalsearch-list a:hover {
+  color: #d60000;
+}
+div#globalsearch-searchbar #globalsearch-list section {
+  color: #000;
+}
+div#globalsearch-searchbar #globalsearch-list section header h1 {
+  color: #28497c;
+  border-bottom: none;
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: normal;
+}
+div#globalsearch-searchbar #globalsearch-list section p {
+  margin-left: 10px;
+  margin-top: -10px;
+  font-size: 12px;
+}
+@keyframes slideleft {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes slideright {
+  0% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
 }
 #responsive-container {
   display: none;

@@ -127,6 +127,8 @@ javascripts:
 
     - javascripts/course_archive.js
 
+    - javascripts/globalsearch.js
+
   raumzeit:
     - javascripts/raumzeit.js
 
