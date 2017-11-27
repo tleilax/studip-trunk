@@ -46,7 +46,7 @@
             $.each(filelist, function (index, file) {
                 if (file.size > 0) {
                     if (STUDIP.Files.validateUpload(file)) {
-                        data.append('file[]', file);
+                        data.append('file[]', file, file.name);
                         $('<li/>').text(file.name).appendTo('.file_upload_window .filenames');
                         files += 1;
                     } else {

@@ -87,7 +87,7 @@
                     <?= Icon::create('file-archive', 'clickable')->asImg('16px') ?>
                 </a>
                 <? endif ?>
-                <? if(archiv_check_perm($course->id)) : ?>
+                <? if (archiv_check_perm($course->id)): ?>
                 <a href="<?= $controller->url_for(
                                 'archive/forum',
                                 $course->id
@@ -99,6 +99,24 @@
                                 $course->id
                                 ) ?>" data-dialog>
                     <?= Icon::create('wiki', 'clickable')->asImg('16px') ?>
+                </a>
+                <? endif ?>
+                <? if (archiv_check_perm($course->id) == 'admin'): ?>
+                <a href="<?= URLHelper::getLink(
+                         'dispatch.php/archive/delete/' . $course->id,
+                         [
+                             'criteria' => $criteria,
+                             'selectedSemester' => $selectedSemester,
+                             'selectedDepartment' => $selectedDepartment
+                         ]
+                         ) ?>"
+                   title="<?= _('Löschen') ?>"
+                   onclick="return STUDIP.Dialog.confirmAsPost('<?=
+                       sprintf(
+                           _('Soll die Veranstaltung %1$s wirklich aus dem Archiv gelöscht werden?'),
+                           htmlReady($course->name)
+                       ) ?>', this.href);">
+                    <?= Icon::create('trash', 'clickable')->asImg('16px') ?>
                 </a>
                 <? endif ?>
             </td>

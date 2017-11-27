@@ -1,14 +1,31 @@
 /*jslint browser: true, nomen: true, unparam: true, newcap: true */
-/*global Notification, jQuery, STUDIP, _, Notificon */
+/*global Notification, jQuery, STUDIP, _, Favico */
 
-(function ($) {
+(function ($, STUDIP, Favico) {
     'use strict';
 
     var stack = {},
         originalTitle,
-        favicon_url,
         audio_notification = false,
-        directlydeleted = [];
+        directlydeleted = [],
+        favicon = null;
+
+    function updateFavicon(text) {
+        if (favicon === null) {
+            var valid = $('head').find('link[rel=icon]').first();
+            $('head').find('link[rel*=icon]').not(valid).remove();
+
+            favicon = new Favico({
+                bgColor: '#d60000',
+                textColor: '#fff',
+                fontStyle: 'normal',
+                fontFamily: 'Lato',
+                position: 'right',
+                type: 'rectangle'
+            });
+        }
+        favicon.badge(text);
+    }
 
     // Wrapper function that creates a desktop notification from given data
     function create_desktop_notification(data) {
@@ -78,14 +95,25 @@
             STUDIP.PersonalNotifications.sendReadInfo(id, notification);
             return false;
         },
+        markAllAsRead: function (event) {
+            var notifications = $(this).parent().find('.notification');
+            STUDIP.PersonalNotifications.sendReadInfo('all', notifications);
+            return false;
+        },
         sendReadInfo: function (id, notification) {
             $.get(STUDIP.URLHelper.getURL('dispatch.php/jsupdater/mark_notification_read/' + id))
-                .then(function () {
+                .done(function () {
                     if (notification) {
+                        var count = notification.length;
                         notification.toggle('blind', 'fast', function () {
-                            delete stack[id];
-                            STUDIP.PersonalNotifications.update();
+                            var data = $(this).data();
+                            delete stack[data.id];
                             $(this).remove();
+
+                            count -= 1;
+                            if (count === 0) {
+                                STUDIP.PersonalNotifications.update();
+                            }
                         });
                     }
                 });
@@ -116,7 +144,8 @@
             }
             if (old_count !== count) {
                 $('#notification_marker').text(count);
-                Notificon(count || '', {favicon: favicon_url});
+                updateFavicon(count);
+                $('#notification_container .mark-all-as-read').toggleClass('hidden', count < 2);
             }
         },
         isVisited: function () {
@@ -150,8 +179,12 @@
 
     $(document).ready(function () {
         if ($("#notification_marker").length > 0) {
+            $('#notification_list .notification').map(function () {
+                var data = $(this).data();
+                stack[data.id] = data;
+            });
+
             originalTitle = window.document.title;
-            favicon_url = $('link[rel="shortcut icon"]').attr('href');
             STUDIP.PersonalNotifications.newNotifications = process_notifications;
 
             if ($('#audio_notification').length > 0) {
@@ -159,6 +192,8 @@
                 audio_notification.load();
             }
         }
+
+        $('#notification_container .mark-all-as-read').click(STUDIP.PersonalNotifications.markAllAsRead);
     });
 
-}(jQuery));
+}(jQuery, STUDIP, Favico));
