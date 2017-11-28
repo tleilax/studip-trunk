@@ -24,7 +24,9 @@ jQuery(function () {
     });
     // Close search on click on page.
     jQuery('div#flex-header, div#layout_page, div#layout_footer').on('click', function() {
-        STUDIP.GlobalSearch.toggle();
+        if (!jQuery('#globalsearch-input').hasClass('hidden-js')) {
+            STUDIP.GlobalSearch.toggle();
+        }
     });
     // Show/hide hints on click.
     jQuery('#globalsearch-togglehints').on('click', function() {
