@@ -1,5 +1,6 @@
 STUDIP.GlobalSearch = {
 
+    // Toggles visibility of search input field and hints.
     toggle: function() {
         var input = jQuery('#globalsearch-input');
         if (input.hasClass('hidden-js')) {
@@ -13,8 +14,15 @@ STUDIP.GlobalSearch = {
             input.addClass('hidden-js');
         }
         return false;
-    }
+    },
 
+    // Performs the actual search.
+    doSearch: function() {
+        var searchterm = jQuery('#globalsearch-input').val();
+        if (jQuery('#globalsearch-input').val() != '') {
+            alert('Searching for "' + searchterm + '"...');
+        }
+    }
 };
 
 jQuery(function () {
@@ -46,4 +54,6 @@ jQuery(function () {
         }
     });
 
+    // Start searching 750 ms after user stopped typing.
+    jQuery('#globalsearch-input').keyup(_.debounce(function() { STUDIP.GlobalSearch.doSearch(); }, 750));
 });
