@@ -7,7 +7,7 @@
  * @category    Stud.IP
  * @since       4.1
  */
-class GlobalSearchUsers implements GlobalSearchModule, GlobalSearchFulltext
+class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFulltext
 {
 
     /**
@@ -48,7 +48,7 @@ class GlobalSearchUsers implements GlobalSearchModule, GlobalSearchFulltext
                     OR CONCAT_WS(' ', user.`Vorname`, user.`Nachname`) LIKE $query
                     OR `username` LIKE $query
                 )
-            LIMIT ".GlobalSearch::MAX_RESULT_OF_TYPE;
+            LIMIT ".Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
         return $sql;
     }
 
@@ -73,9 +73,9 @@ class GlobalSearchUsers implements GlobalSearchModule, GlobalSearchFulltext
         $user = User::buildExisting($data);
         $result = array(
             'id' => $user->id,
-            'name' => GlobalSearch::mark($user->getFullname(), $search),
+            'name' => self::mark($user->getFullname(), $search),
             'url' => URLHelper::getURL("dispatch.php/profile", array('username' => $user->username)),
-            'additional' => GlobalSearch::mark($user->username, $search),
+            'additional' => self::mark($user->username, $search),
             'expand' => URLHelper::getURL("browse.php", array('name' => $search)),
         );
         $avatar = Avatar::getAvatar($user->id);
@@ -110,7 +110,7 @@ class GlobalSearchUsers implements GlobalSearchModule, GlobalSearchFulltext
             FROM `auth_user_md5` AS user 
                 LEFT JOIN `user_visibility` USING (`user_id`) 
             WHERE $visQuery MATCH(`username`, `Vorname`, `Nachname`) AGAINST($query IN BOOLEAN MODE)
-            LIMIT ".GlobalSearch::MAX_RESULT_OF_TYPE;
+            LIMIT ".Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
         return $sql;
     }
 }

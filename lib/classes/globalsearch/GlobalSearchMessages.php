@@ -8,7 +8,7 @@
  * @category    Stud.IP
  * @since       4.1
  */
-class GlobalSearchMessages implements GlobalSearchModule
+class GlobalSearchMessages extends GlobalSearchModule
 {
 
     /**
@@ -67,10 +67,10 @@ class GlobalSearchMessages implements GlobalSearchModule
     {
         $message = Message::buildExisting($message_id);
         $result = array(
-            'name' => GlobalSearch::mark($message->subject, $search),
+            'name' => self::mark($message->subject, $search),
             'url' => URLHelper::getURL("dispatch.php/messages/overview/" . $message->id),
             'date' => strftime('%x', $message->mkdate),
-            'description' => GlobalSearch::mark($message->message, $search, true),
+            'description' => self::mark($message->message, $search, true),
             'additional' => $message->autor_id != "____%system%____" ? htmlReady($message->author->getFullname()) : _("Systemnachricht"),
             'expand' => URLHelper::getURL("dispatch.php/messages/overview", array('search' => $search, 'search_subject' => 1, 'search_content' => 1, 'search_autor' => 1)
             )

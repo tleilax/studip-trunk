@@ -20,7 +20,34 @@ STUDIP.GlobalSearch = {
     doSearch: function() {
         var searchterm = jQuery('#globalsearch-input').val();
         if (jQuery('#globalsearch-input').val() != '') {
-            alert('Searching for "' + searchterm + '"...');
+            var resultsDiv = jQuery('#globalsearch-results');
+            jQuery.ajax(
+                'find/' + searchterm,
+                {
+                    beforeSend: function(xhr, settings) {
+                        resultsDiv.attr('align', 'center');
+                        resultsDiv.html('');
+                        resultsDiv.removeClass('hidden-js');
+                        resultsDiv.append(
+                            jQuery('<div>').
+                                attr('id', 'globalsearch-loading-text').
+                                html(resultsDiv.data('loading-text')));
+                        resultsDiv.append(jQuery('<img>').
+                            attr('src', STUDIP.ASSETS_URL + 'images/ajax-indicator-black.svg').
+                            attr('id', 'globalsearch-loading-icon'));
+                    },
+                    success: function (data, status, xhr) {
+                        /*var items = $.parseJSON(data);
+                        jQuery('#globalsearch-loading-results').remove();
+                        if (items.length > 0) {
+                        }*/
+                        console.log(data);
+                    },
+                    error: function (xhr, status, error) {
+                        alert(error);
+                    }
+                }
+            );
         }
     }
 };

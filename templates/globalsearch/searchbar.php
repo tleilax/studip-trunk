@@ -9,5 +9,7 @@
             <?= _('Tipps einblenden') ?>
         </a>
         <?= $GLOBALS['template_factory']->render('globalsearch/_hints') ?>
+        <div id="globalsearch-results" class="hidden-js" data-loading-text="<?= _('Suche...') ?>">
+        </div>
     </div>
 </div>

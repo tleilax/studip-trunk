@@ -1,14 +1,19 @@
 <?php
 /**
- * GlobalSearchModule for my courses
- *
- * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
- * @since       4.1
+ * GlobalSearchModule for courses
  */
-class GlobalSearchMyCourses extends GlobalSearchModule
+class PodiumNews extends GlobalSearchModule
 {
+
+    /**
+     * Returns the id for this podium module. The search sql must also return this id as type
+     *
+     * @return String id for this module
+     */
+    public static function getId()
+    {
+        return 'news';
+    }
 
     /**
      * Returns the displayname for this module
@@ -17,7 +22,7 @@ class GlobalSearchMyCourses extends GlobalSearchModule
      */
     public static function getName()
     {
-        return _('Meine Veranstaltungen');
+        return _('Ank�ndiungen');
     }
 
     /**
@@ -31,21 +36,16 @@ class GlobalSearchMyCourses extends GlobalSearchModule
      */
     public static function getSQL($search)
     {
-        if (!$search) {
-            return null;
-        }
         $search = str_replace(" ", "% ", $search);
         $query = DBManager::get()->quote("%$search%");
-        $user_id = DBManager::get()->quote($GLOBALS['user']->id);
-        $sql = "SELECT courses.* FROM `seminare` AS  courses
-                JOIN `seminar_user` USING (`Seminar_id`)
-                JOIN `sem_types` ON (courses.`status` = `sem_types`.`id`)
-            WHERE `user_id` = $user_id
-                AND (courses.`Name` LIKE $query
-                        OR courses.`VeranstaltungsNummer` LIKE $query
-                        OR CONCAT_WS(' ', `sem_types`.`name`, courses.`Name`) LIKE $query
-                    )
-            ORDER BY `start_time` DESC";
+
+        // visibility
+        if (!$GLOBALS['perm']->have_perm('admin')) {
+            $visibility = "courses.visible = 1 AND ";
+            $seminaruser = " AND NOT EXISTS (SELECT 1 FROM seminar_user WHERE seminar_id = courses.Seminar_id AND user_id = ".DBManager::get()->quote($GLOBALS['user']->id).") ";
+        }
+
+        $sql = "SELECT courses.Seminar_id,courses.start_time,courses.name,courses.veranstaltungsnummer,courses.status FROM seminare courses JOIN sem_types ON (courses.status = sem_types.id) WHERE $visibility(courses.Name LIKE $query OR courses.VeranstaltungsNummer LIKE $query OR CONCAT_WS(' ', sem_types.name,courses.Name) LIKE $query) $seminaruser ORDER BY ABS(start_time - unix_timestamp()) ASC LIMIT ".Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
         return $sql;
     }
 
@@ -65,9 +65,9 @@ class GlobalSearchMyCourses extends GlobalSearchModule
      * @param $search
      * @return mixed
      */
-    public static function filter($course_id, $search)
+    public static function filter($data, $search)
     {
-        $course = Course::buildExisting($course_id);
+        $course = Course::buildExisting($data);
         $result = array(
             'id' => $course->id,
             'name' => self::mark($course->getFullname(), $search),

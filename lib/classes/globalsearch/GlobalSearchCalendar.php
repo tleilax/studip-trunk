@@ -7,7 +7,7 @@
  * @category    Stud.IP
  * @since       4.1
  */
-class GlobalSearchCalendar implements GlobalSearchModule
+class GlobalSearchCalendar extends GlobalSearchModule
 {
 
     /**

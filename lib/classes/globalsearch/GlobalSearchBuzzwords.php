@@ -8,7 +8,7 @@
  * @category    Stud.IP
  * @since       4.1
  */
-class GlobalSearchBuzzwords extends SimpleORMap implements GlobalSearchModule
+class GlobalSearchBuzzwords extends SimpleORMap
 {
     protected static function configure($config = array()) {
         $config['db_table'] = 'globalsearch_buzzwords';

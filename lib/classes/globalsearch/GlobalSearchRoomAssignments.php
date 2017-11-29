@@ -7,7 +7,7 @@
  * @category    Stud.IP
  * @since       4.1
  */
-class GlobalSearchRoomAssignments implements GlobalSearchModule
+class GlobalSearchRoomAssignments extends GlobalSearchModule
 {
 
     /**
@@ -72,13 +72,13 @@ class GlobalSearchRoomAssignments implements GlobalSearchModule
     public static function filter($res, $search)
     {
         return array(
-            'name' => GlobalSearch::mark($res['user_free_name'], $search),
+            'name' => self::mark($res['user_free_name'], $search),
             'url' => URLHelper::getURL("resources.php", array(
                 'view' => 'view_schedule',
                 'show_object' => $res['resource_id'],
                 'start_time' => strtotime('last monday', $res['begin'] + 24*60*60))
             ),
-            'additional' => GlobalSearch::mark($res['name'] . ', ' .
+            'additional' => self::mark($res['name'] . ', ' .
                 date('d.m.Y H:i', $res['begin']) . ' - ' .
                 date('d.m.Y H:i', $res['end']), $search),
             'expand' => null

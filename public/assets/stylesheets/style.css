@@ -10111,6 +10111,19 @@ div#globalsearch-searchbar #globalsearch-list section p {
   margin-top: -10px;
   font-size: 12px;
 }
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results {
+  border-top: 1px solid #a7abaf;
+  padding-top: 10px;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results div#globalsearch-loading-text {
+  text-align: center;
+  font-style: italic;
+  color: #a7abaf;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results #globalsearch-loading-icon {
+  height: 32px;
+  width: 32px;
+}
 @keyframes slideleft {
   0% {
     transform: scaleX(0);

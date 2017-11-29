@@ -19,10 +19,70 @@ class GlobalSearchController extends AuthenticatedController
     /**
      * Perform search in all registered modules for the given search term.
      */
-    public function search_action($searchterm)
+    public function find_action($search)
     {
+        // Now load all modules
+        $modules = Config::get()->GLOBALSEARCH_MODULES;
+
+        $search = trim($search);
+
+        $sql = "";
+
+        $result = [];
+
+        $classes = [];
+
+        foreach ($modules as $className => $data) {
+            if ($data['active']) {
+                $class = new $className();
+                $classes[$className] = $class;
+                $partSQL = $class->getSQL($search);
+                if ($partSQL) {
+                    $new = mysqli_connect($GLOBALS['DB_STUDIP_HOST'], $GLOBALS['DB_STUDIP_USER'], $GLOBALS['DB_STUDIP_PASSWORD'], $GLOBALS['DB_STUDIP_DATABASE']);
+                    $new->query($partSQL, MYSQLI_ASYNC);
+                    $new->id = $className;
+                    $all_links[] = $new;
+                }
+            }
+        }
+
+        $read = $error = $reject = array();
+        while (count($read) + count($error) + count($reject) < count($all_links)) {
+
+            // Parse all links
+            $error = $reject = $read = $all_links;
+
+            // Poll will reject connection that have no query running
+            mysqli_poll($read, $error, $reject, 1);
+
+            foreach ($read as $r) {
+                if ($r && $set = $r->reap_async_query()) {
+                    $id = $r->id;
+
+                    while ($data = $set->fetch_assoc()) {
+                        if (sizeof($result[$id]['content']) < Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
+                            $arg = $data['type'] && count($data) == 2 ? $data['id'] : $data;
+                            $class = new $id();
+                            if ($item = $classes[$id]->filter($arg, $search)) {
+                                $result[$id]['name'] = $classes[$id]->getName();
+                                $result[$id]['content'][] = $item;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Sort
+        //$result = array_filter(array_merge(array_keys($modules), $result));
+
+        // Send me an answer
+        $this->render_json($result);
     }
 
+    /**
+     * Provide a GUI for configuring the search module order and other settings.
+     */
     public function settings_action()
     {
         PageLayout::setTitle(_('Globale Suche: Einstellungen'));
@@ -57,6 +117,9 @@ class GlobalSearchController extends AuthenticatedController
         ksort($this->modules);
     }
 
+    /**
+     * Saves the set values to global configuration.
+     */
     public function saveconfig_action()
     {
         CSRFProtection::verifyUnsafeRequest();

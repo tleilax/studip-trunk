@@ -7,7 +7,7 @@
  * @category    Stud.IP
  * @since       4.1
  */
-class GlobalSearchCourses implements GlobalSearchModule, GlobalSearchFulltext
+class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFulltext
 {
 
     /**
@@ -57,7 +57,7 @@ class GlobalSearchCourses implements GlobalSearchModule, GlobalSearchFulltext
                 )
                 $seminaruser
             ORDER BY ABS(start_time - unix_timestamp()) ASC
-            LIMIT ".GlobalSearch::MAX_RESULT_OF_TYPE;
+            LIMIT ".Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
         return $sql;
     }
 
@@ -82,7 +82,7 @@ class GlobalSearchCourses implements GlobalSearchModule, GlobalSearchFulltext
         $course = Course::buildExisting($data);
         $result = array(
             'id' => $course->id,
-            'name' => GlobalSearch::mark($course->getFullname(), $search),
+            'name' => self::mark($course->getFullname(), $search),
             'url' => URLHelper::getURL("dispatch.php/course/details/index/" . $course->id),
             'date' => $course->start_semester->name,
             'expand' => URLHelper::getURL("dispatch.php/search/courses", array(
@@ -150,7 +150,7 @@ class GlobalSearchCourses implements GlobalSearchModule, GlobalSearchFulltext
             WHERE MATCH(`VeranstaltungsNummer`, `Name`) AGAINST ($query IN BOOLEAN MODE)
             ORDER BY $semstatus ABS(`start_time` - UNIX_TIMESTAMP()) ASC,
                 MATCH(`VeranstaltungsNummer`, `Name`) AGAINST ($query IN BOOLEAN MODE) DESC
-            LIMIT ".GlobalSearch::MAX_RESULT_OF_TYPE;
+            LIMIT ".Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
         return $sql;
     }
 }

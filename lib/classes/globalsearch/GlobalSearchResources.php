@@ -7,7 +7,7 @@
  * @category    Stud.IP
  * @since       4.1
  */
-class GlobalSearchResources implements GlobalSearchModule
+class GlobalSearchResources extends GlobalSearchModule
 {
 
     /**
@@ -37,10 +37,10 @@ class GlobalSearchResources implements GlobalSearchModule
     public static function filter($res, $search)
     {
         return array(
-            'name' => GlobalSearch::mark($res['name'], $search),
+            'name' => self::mark($res['name'], $search),
             'url' => URLHelper::getURL("resources.php",
                 array('view' => 'view_schedule', 'show_object' => $res['resource_id'])),
-            'additional' => GlobalSearch::mark($res['description'], $search),
+            'additional' => self::mark($res['description'], $search),
             'expand' => URLHelper::getURL('resources.php',
                 array('view' => 'search', 'search_exp' => $search, 'start_search' => ''))
         );

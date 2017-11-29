@@ -1,14 +1,19 @@
 <?php
 /**
- * GlobalSearchModule for institutes
- *
- * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
- * @since       4.1
+ * GlobalSearchModule for SemTree
  */
-class GlobalSearchInstitutes extends GlobalSearchModule
+class PodiumSemTree extends GlobalSearchModule
 {
+
+    /**
+     * Returns the id for this podium module. The search sql must also return this id as type
+     *
+     * @return String id for this module
+     */
+    public static function getId()
+    {
+        return 'semtree';
+    }
 
     /**
      * Returns the displayname for this module
@@ -17,7 +22,7 @@ class GlobalSearchInstitutes extends GlobalSearchModule
      */
     public static function getName()
     {
-        return _('Einrichtungen');
+        return  _('Studienbereiche');
     }
 
     /**
@@ -34,9 +39,8 @@ class GlobalSearchInstitutes extends GlobalSearchModule
         if (!$search) {
             return null;
         }
-        $search = str_replace(" ", "% ", $search);
         $query = DBManager::get()->quote("%$search%");
-        $sql = "SELECT * FROM `Institute` WHERE `Name` LIKE $query ORDER BY `Name` DESC";
+        $sql = "SELECT * FROM sem_tree WHERE name LIKE $query ORDER BY name DESC LIMIT ".Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
         return $sql;
     }
 
@@ -56,19 +60,13 @@ class GlobalSearchInstitutes extends GlobalSearchModule
      * @param $search
      * @return mixed
      */
-    public static function filter($inst_id, $search)
+    public static function filter($semtree_id, $search)
     {
-        $inst = Institute::buildExisting($inst_id);
-        $result = array(
-            'id' => $inst->id,
-            'name' => self::mark($inst->getFullname(), $search),
-            'url' => URLHelper::getURL("dispatch.php/institute/overview", array('cid' => $inst->id)),
-            'expand' => URLHelper::getURL('institut_browse.php', array('cmd' => 'suche', 'search_name' => $search))
+        $semtree = StudipStudyArea::buildExisting($semtree_id);
+        return array(
+            'id' => $semtree->id,
+            'name' => self::mark($semtree->name, $search),
+            'url' => URLHelper::getURL("dispatch.php/search/courses", array('start_item_id' => $semtree->id, 'level' => 'vv', 'cmd' => 'qs'))
         );
-        $avatar = InstituteAvatar::getAvatar($inst->id);
-        if ($avatar->is_customized()) {
-            $result['img'] = $avatar->getUrl(AVATAR::MEDIUM);
-        }
-        return $result;
     }
 }
