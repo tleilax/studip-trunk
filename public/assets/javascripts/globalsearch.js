@@ -22,8 +22,11 @@ STUDIP.GlobalSearch = {
         if ($('#globalsearch-input').val() != '') {
             var resultsDiv = $('#globalsearch-results');
             $.ajax(
-                STUDIP.ABSOLUTE_URI_STUDIP +'dispatch.php/globalsearch/find/' + searchterm,
+                STUDIP.ABSOLUTE_URI_STUDIP +'dispatch.php/globalsearch/find',
                 {
+                    data: {
+                        'search': encodeURIComponent(searchterm)
+                    },
                     beforeSend: function(xhr, settings) {
                         resultsDiv.attr('align', 'center');
                         resultsDiv.html('');

@@ -19,12 +19,12 @@ class GlobalSearchController extends AuthenticatedController
     /**
      * Perform search in all registered modules for the given search term.
      */
-    public function find_action($search)
+    public function find_action()
     {
         // Now load all modules
         $modules = Config::get()->GLOBALSEARCH_MODULES;
 
-        $search = trim($search);
+        $search = trim(urldecode(Request::get('search')));
 
         $sql = "";
 
