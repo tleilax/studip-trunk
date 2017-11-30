@@ -74,7 +74,7 @@ abstract class GlobalSearchModule
         if ($found) {
 
             // Check for overlength
-            if ($longtext && strlen($result) > 200) {
+            if ($longtext && strlen($result) > 100) {
                 $start = max(array(0, stripos($result, '<mark>') - 20));
                 $space = stripos($result, ' ', $start);
                 $start = $space < $start + 20 ? $space : $start;

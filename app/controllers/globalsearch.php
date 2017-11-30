@@ -26,11 +26,7 @@ class GlobalSearchController extends AuthenticatedController
 
         $search = trim(urldecode(Request::get('search')));
 
-        $sql = "";
-
-        $result = [];
-
-        $classes = [];
+        $result = $classes = [];
 
         foreach ($modules as $className => $data) {
             if ($data['active']) {
