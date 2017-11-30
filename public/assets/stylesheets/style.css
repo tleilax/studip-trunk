@@ -10084,7 +10084,7 @@ div#globalsearch-searchbar #globalsearch-list {
   transform-origin: 100% 50%;
   animation: slidedown .5s;
   background-color: #fff;
-  width: 353px;
+  width: 423px;
   position: absolute;
   color: #000;
   padding: 5px;
@@ -10123,6 +10123,58 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results div#globa
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results #globalsearch-loading-icon {
   height: 32px;
   width: 32px;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article {
+  border: 1px solid #d0d7e3;
+  margin: 3px;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article > header {
+  background-color: #e7ebf1;
+  color: #28497c;
+  padding: 3px;
+  font-weight: bold;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section:not(:last-child) {
+  border-bottom: 1px solid #d0d7e3;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section:hover {
+  background-color: rgba(109, 114, 122, 0.2);
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-img {
+  height: 50px;
+  margin-left: 6px;
+  width: 50px;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data div.globalsearch-result-link {
+  font-weight: bold;
+  margin: 0;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data div.globalsearch-result-link a {
+  margin: 0;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data div.globalsearch-result-details {
+  color: #636a71;
+  font-size: 12px;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-time {
+  color: #636a71;
+  font-weight: normal;
+  font-size: 10px;
+  font-style: italic;
+  margin-right: 6px;
+  text-align: right;
+  width: 100px;
 }
 @keyframes slideleft {
   0% {

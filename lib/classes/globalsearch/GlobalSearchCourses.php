@@ -85,6 +85,9 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
             'name' => self::mark($course->getFullname(), $search),
             'url' => URLHelper::getURL("dispatch.php/course/details/index/" . $course->id),
             'date' => $course->start_semester->name,
+            'additional' => implode(', ', array_map(function ($u) {
+                    return $u->getUserFullname();
+                }, $course->getMembersWithStatus('dozent'))),
             'expand' => URLHelper::getURL("dispatch.php/search/courses", array(
                 'reset_all' => 1,
                 'search_sem_qs_choose' => 'title_lecturer_number',
@@ -94,9 +97,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
             ))
         );
         $avatar = CourseAvatar::getAvatar($course->id);
-        if ( $avatar->is_customized()) {
-            $result['img'] = $avatar->getUrl(AVATAR::MEDIUM);
-        }
+        $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
         return $result;
     }
 

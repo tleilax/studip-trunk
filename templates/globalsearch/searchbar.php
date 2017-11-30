@@ -1,5 +1,5 @@
 <div id="globalsearch-searchbar">
-    <input type="text" name="globalsearchterm" id="globalsearch-input" size="50" class="hidden-js"
+    <input type="text" name="globalsearchterm" id="globalsearch-input" size="60" class="hidden-js"
         placeholder="<?= _('Was suchen Sie?') ?>">
     <a href="#" id="globalsearch-icon">
         <?= Icon::create('search', 'info_alt')->asImg(24) ?>
@@ -9,7 +9,8 @@
             <?= _('Tipps einblenden') ?>
         </a>
         <?= $GLOBALS['template_factory']->render('globalsearch/_hints') ?>
-        <div id="globalsearch-results" class="hidden-js" data-loading-text="<?= _('Suche...') ?>">
+        <div id="globalsearch-results" class="hidden-js" data-loading-text="<?= _('Suche...') ?>"
+             data-no-result="<?= _('Keine Ergebnisse gefunden.') ?>">
         </div>
     </div>
 </div>

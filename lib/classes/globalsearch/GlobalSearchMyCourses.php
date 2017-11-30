@@ -82,9 +82,7 @@ class GlobalSearchMyCourses extends GlobalSearchModule
             ))
         );
         $avatar = CourseAvatar::getAvatar($course->id);
-        if ($avatar->is_customized()) {
-            $result['img'] = $avatar->getUrl(AVATAR::MEDIUM);
-        }
+        $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
         return $result;
     }
 }

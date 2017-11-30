@@ -83,7 +83,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             'id' => $data['topic_id'],
             'name' => $data['name'] ? self::mark($data['name'], $search)  : ($course ? htmlReady($course->getFullname()) : _('Ohne Titel')),
             'url' => URLHelper::getURL("plugins.php/coreforum/index/index/" . $data['topic_id']."#".$data['topic_id'], array('cid' => $data['seminar_id'])),
-            'date' => strftime('%x %X', $data['chdate']),
+            'date' => date('d.m.Y H:i', $data['chdate']),
             'description' => self::mark($data['content'], $search, true),
             'additional' => htmlReady((($user && !$data['anonymous']) ? $user->getFullname() : _('Anonym'))." "._('in')." ".($course ? $course->getFullname() : '')),
             'expand' => URLHelper::getURL("plugins.php/coreforum/index/search", array(

@@ -79,9 +79,7 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
             'expand' => URLHelper::getURL("browse.php", array('name' => $search)),
         );
         $avatar = Avatar::getAvatar($user->id);
-        if ($avatar->is_customized()) {
-            $result['img'] = $avatar->getUrl(AVATAR::MEDIUM);
-        }
+        $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
         return $result;
     }
 
