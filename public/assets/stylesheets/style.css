@@ -8792,6 +8792,7 @@ table.default tr.subcourses td:nth-child(-n+4) {
   font-weight: bold;
   padding: 15px 15px 15px 55px;
   text-align: left;
+  max-height: 60vh;
 }
 .ui-dialog.studip-confirmation .ui-dialog-buttonpane {
   text-align: center;
@@ -8923,6 +8924,15 @@ ol ol {
 }
 dl dt {
   font-weight: bold;
+}
+.formatted-content ul {
+  list-style-type: disc;
+}
+.formatted-content ul ul {
+  list-style-type: circle;
+}
+.formatted-content ul ul ul {
+  list-style-type: square;
 }
 select {
   -webkit-box-sizing: border-box;
@@ -10046,7 +10056,7 @@ div.i18n_group > select.i18n {
   position: absolute;
   top: 1px;
   left: 1px;
-  height: 30px;
+  height: 31px;
   overflow: hidden;
   max-width: 28px;
   z-index: 2;
@@ -10063,7 +10073,7 @@ div.i18n_group > select.i18n > option {
   background-repeat: no-repeat;
   padding-left: 28px;
 }
-div.i18n_group > div.i18n > input[type=text],
+div.i18n_group > div.i18n input[type=text],
 div.i18n_group > div.i18n > textarea,
 div.i18n_group > div.i18n .editor_toolbar .buttons,
 div.i18n_group > div.i18n .cktoolbar .cke_inner {
