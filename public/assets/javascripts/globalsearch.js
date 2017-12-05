@@ -26,7 +26,7 @@ STUDIP.GlobalSearch = {
                 STUDIP.ABSOLUTE_URI_STUDIP +'dispatch.php/globalsearch/find',
                 {
                     data: {
-                        'search': encodeURIComponent(searchterm)
+                        'search': searchterm
                     },
                     // Display spinner symbol, user should always see something is happening.
                     beforeSend: function(xhr, settings) {

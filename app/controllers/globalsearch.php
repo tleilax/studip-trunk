@@ -24,7 +24,7 @@ class GlobalSearchController extends AuthenticatedController
         // Now load all modules
         $modules = Config::get()->GLOBALSEARCH_MODULES;
 
-        $search = trim(urldecode(Request::get('search')));
+        $search = trim(Request::get('search'));
 
         $result = $classes = [];
 
