@@ -92,6 +92,7 @@ div#globalsearch-searchbar {
           }
 
           div.globalsearch-result-img {
+            flex: none;
             height: 36px;
             margin-left: 6px;
             margin-right: 6px;
@@ -99,6 +100,7 @@ div#globalsearch-searchbar {
           }
 
           div.globalsearch-result-data {
+            flex: auto;
             padding-left: 6px;
             padding-right: 6px;
 
@@ -118,12 +120,13 @@ div#globalsearch-searchbar {
 
           div.globalsearch-result-time {
             color: @dark-gray-color-80;
+            flex: none;
             font-size: ceil(@font-size-small * 0.85);
             font-weight: normal;
             font-style: italic;
             margin-right: 6px;
             text-align: right;
-            width: 100px;
+            width: 60px;
           }
         }
       }

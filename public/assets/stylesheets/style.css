@@ -10159,12 +10159,14 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article s
   background-color: rgba(109, 114, 122, 0.2);
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-img {
+  flex: none;
   height: 36px;
   margin-left: 6px;
   margin-right: 6px;
   width: 30px;
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data {
+  flex: auto;
   padding-left: 6px;
   padding-right: 6px;
 }
@@ -10181,12 +10183,13 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article s
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-time {
   color: #636a71;
+  flex: none;
   font-weight: normal;
   font-size: 10px;
   font-style: italic;
   margin-right: 6px;
   text-align: right;
-  width: 100px;
+  width: 60px;
 }
 @keyframes slideleft {
   0% {
