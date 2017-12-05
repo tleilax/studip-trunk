@@ -71,7 +71,10 @@ class GlobalSearchController extends AuthenticatedController
         }
 
         // Sort
-        //$result = array_filter(array_merge(array_keys($modules), $result));
+        //$result = array_filter(array_merge(array_combine(array_keys($modules), array(false)), $result));
+        uksort($result, function($a, $b) use ($modules) {
+            return $modules[$a]['order'] - $modules[$b]['order'];
+        });
 
         // Send me an answer
         $this->render_json($result);

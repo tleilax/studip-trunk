@@ -44,6 +44,7 @@ STUDIP.GlobalSearch = {
                         $('#globalsearch-loading-icon').remove();
                         if ($(data).length > 0) {
                             resultsDiv.attr('align', null);
+                            resultsDiv.css('max-height', ($('html').height() - 150));
                             // Iterate over each result category.
                             $.each(data, function(name, value) {
                                 // Create an <article> for category...
@@ -67,8 +68,8 @@ STUDIP.GlobalSearch = {
                                     if (result.img != null) {
                                         single.append($('<div class="globalsearch-result-img">').
                                             append(singleImg = $('<img>').
-                                                attr('height', '50').
-                                                attr('width', '50').
+                                                attr('height', '36').
+                                                attr('width', '36').
                                                 attr('src', result.img)));
                                     }
                                     var dataDiv = $('<div>').

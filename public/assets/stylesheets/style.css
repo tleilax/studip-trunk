@@ -10123,6 +10123,7 @@ div#globalsearch-searchbar #globalsearch-list section p {
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results {
   border-top: 1px solid #a7abaf;
+  overflow: scroll;
   padding-top: 10px;
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results div#globalsearch-loading-text {
@@ -10158,9 +10159,10 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article s
   background-color: rgba(109, 114, 122, 0.2);
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-img {
-  height: 50px;
+  height: 36px;
   margin-left: 6px;
-  width: 50px;
+  margin-right: 6px;
+  width: 30px;
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data {
   padding-left: 6px;
