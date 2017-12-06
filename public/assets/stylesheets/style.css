@@ -10091,14 +10091,16 @@ div#globalsearch-searchbar #globalsearch-input {
   animation: slideleft .5s;
 }
 div#globalsearch-searchbar #globalsearch-list {
-  transform-origin: 100% 50%;
-  animation: slidedown .5s;
   background-color: #fff;
-  width: 423px;
-  position: absolute;
-  color: #000;
-  padding: 5px;
   box-shadow: 0px 5px 8px rgba(0,0,0,0.5);
+  color: #000;
+  font-size: 18px;
+  font-weight: normal;
+  overflow: auto;
+  padding: 5px;
+  position: absolute;
+  transform-origin: 100% 50%;
+  width: 423px;
 }
 div#globalsearch-searchbar #globalsearch-list a {
   color: #28497c;
@@ -10171,8 +10173,8 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article s
   padding-right: 6px;
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data div.globalsearch-result-link {
+  font-size: 14px;
   font-weight: bold;
-  margin: 0;
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data div.globalsearch-result-link a {
   margin: 0;

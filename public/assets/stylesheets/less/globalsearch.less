@@ -12,15 +12,16 @@ div#globalsearch-searchbar {
   }
 
   div#globalsearch-list {
-    transform-origin: 100% 50%;
     background-color: @white;
-    width: 423px;
-    position: absolute;
+    box-shadow: 0px 5px 8px rgba(0,0,0,0.5);
     color: @text-color;
-    padding: 5px;
     font-size: 18px;
     font-weight: normal;
-    box-shadow: 0px 5px 8px rgba(0,0,0,0.5);
+    overflow: auto;
+    padding: 5px;
+    position: absolute;
+    transform-origin: 100% 50%;
+    width: 423px;
 
     a {
       color: @base-color;
@@ -105,6 +106,7 @@ div#globalsearch-searchbar {
             padding-right: 6px;
 
             div.globalsearch-result-link {
+              font-size: @font-size;
               font-weight: bold;
 
               a {

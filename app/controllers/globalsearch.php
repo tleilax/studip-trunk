@@ -36,6 +36,7 @@ class GlobalSearchController extends AuthenticatedController
                 if ($partSQL) {
                     $new = mysqli_connect($GLOBALS['DB_STUDIP_HOST'], $GLOBALS['DB_STUDIP_USER'],
                         $GLOBALS['DB_STUDIP_PASSWORD'], $GLOBALS['DB_STUDIP_DATABASE']);
+                    mysqli_set_charset($new, 'UTF8');
                     $new->query($partSQL, MYSQLI_ASYNC);
                     $new->id = $className;
                     $all_links[] = $new;
