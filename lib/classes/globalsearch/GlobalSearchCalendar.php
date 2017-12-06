@@ -40,7 +40,8 @@ class GlobalSearchCalendar extends GlobalSearchModule
                     JOIN `seminar_user` ON (`range_id` = `seminar_id`)
                 WHERE user_id = $user_id
                     AND `date` BETWEEN $time AND $endtime
-                ORDER BY `date`";
+                ORDER BY `date`
+                LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
         }
     }
 
@@ -65,6 +66,7 @@ class GlobalSearchCalendar extends GlobalSearchModule
         return array(
             'name' => htmlReady($termin['name']),
             'url' => URLHelper::getURL("dispatch.php/course/details", array('cid' => $termin['seminar_id'])),
+            'img' => Icon::create('schedule', 'info')->asImagePath(),
             'additional' => strftime('%H:%M', $termin['date']) . " - " .
                 strftime('%H:%M', $termin['end_time']) . ", " .
                 strftime('%x', $termin['date']),

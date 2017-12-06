@@ -58,6 +58,9 @@ class GlobalSearchController extends AuthenticatedController
                     $id = $r->id;
 
                     while ($data = $set->fetch_assoc()) {
+                        if (sizeof($result[$id]['content']) >= Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
+                            $result[$id]['more'] = true;
+                        }
                         if (sizeof($result[$id]['content']) < Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
                             $arg = $data['type'] && count($data) == 2 ? $data['id'] : $data;
                             $class = new $id();
@@ -72,7 +75,6 @@ class GlobalSearchController extends AuthenticatedController
         }
 
         // Sort
-        //$result = array_filter(array_merge(array_combine(array_keys($modules), array(false)), $result));
         uksort($result, function($a, $b) use ($modules) {
             return $modules[$a]['order'] - $modules[$b]['order'];
         });

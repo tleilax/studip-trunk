@@ -10144,8 +10144,21 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article {
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article > header {
   background-color: #e7ebf1;
   color: #28497c;
-  padding: 3px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   font-weight: bold;
+  padding: 3px;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article > header div.globalsearch-category {
+  flex: auto;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article > header div.globalsearch-more-results {
+  flex: none;
+  font-size: 12px;
+  font-weight: normal;
+  text-align: right;
+  width: 100px;
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section {
   display: flex;

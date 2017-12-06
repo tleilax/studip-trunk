@@ -55,7 +55,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
                     OR `content` LIKE $query
                 ) $seminaruser
             ORDER BY `chdate` DESC
-            LIMIT " . Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
+            LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
         return $sql;
     }
 
@@ -83,6 +83,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             'id' => $data['topic_id'],
             'name' => $data['name'] ? self::mark($data['name'], $search)  : ($course ? htmlReady($course->getFullname()) : _('Ohne Titel')),
             'url' => URLHelper::getURL("plugins.php/coreforum/index/index/" . $data['topic_id']."#".$data['topic_id'], array('cid' => $data['seminar_id'])),
+            'img' => CourseAvatar::getAvatar($course->id)->getUrl(Avatar::MEDIUM),
             'date' => date('d.m.Y H:i', $data['chdate']),
             'description' => self::mark($data['content'], $search, true),
             'additional' => htmlReady((($user && !$data['anonymous']) ? $user->getFullname() : _('Anonym'))." "._('in')." ".($course ? $course->getFullname() : '')),

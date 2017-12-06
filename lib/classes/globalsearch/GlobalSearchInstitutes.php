@@ -36,7 +36,8 @@ class GlobalSearchInstitutes extends GlobalSearchModule
         }
         $search = str_replace(" ", "% ", $search);
         $query = DBManager::get()->quote("%$search%");
-        $sql = "SELECT * FROM `Institute` WHERE `Name` LIKE $query ORDER BY `Name` DESC";
+        $sql = "SELECT * FROM `Institute` WHERE `Name` LIKE $query ORDER BY `Name` DESC LIMIT " .
+            (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
         return $sql;
     }
 

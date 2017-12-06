@@ -10,7 +10,7 @@
         </a>
         <?= $GLOBALS['template_factory']->render('globalsearch/_hints') ?>
         <div id="globalsearch-results" class="hidden-js" data-loading-text="<?= _('Suche...') ?>"
-             data-no-result="<?= _('Keine Ergebnisse gefunden.') ?>">
+             data-no-result="<?= _('Keine Ergebnisse gefunden.') ?>" data-more-results="<?= _('alle anzeigen') ?>">
         </div>
     </div>
 </div>

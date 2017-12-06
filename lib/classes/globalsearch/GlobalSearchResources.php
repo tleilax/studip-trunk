@@ -31,7 +31,8 @@ class GlobalSearchResources extends GlobalSearchModule
             WHERE `name` LIKE $query
                 OR `description` LIKE $query
                 OR REPLACE(`name`, ' ', '') LIKE $query
-                OR REPLACE(`description`, ' ', '') LIKE $query";
+                OR REPLACE(`description`, ' ', '') LIKE $query
+            ORDER BY `name` ASC LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
     }
 
     public static function filter($res, $search)
@@ -40,6 +41,7 @@ class GlobalSearchResources extends GlobalSearchModule
             'name' => self::mark($res['name'], $search),
             'url' => URLHelper::getURL("resources.php",
                 array('view' => 'view_schedule', 'show_object' => $res['resource_id'])),
+            'img' => Icon::create('resources', 'info')->asImagePath(),
             'additional' => self::mark($res['description'], $search),
             'expand' => URLHelper::getURL('resources.php',
                 array('view' => 'search', 'search_exp' => $search, 'start_search' => ''))

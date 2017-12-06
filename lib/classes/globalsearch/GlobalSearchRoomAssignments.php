@@ -64,7 +64,8 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
             $sql .= $datefilter;
         }
 
-        $sql .= " ORDER BY `begin` DESC, `user_free_name`";
+        $sql .= " ORDER BY `begin` DESC, `user_free_name` LIMIT " .
+            (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
 
         return $sql;
     }
@@ -78,6 +79,7 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
                 'show_object' => $res['resource_id'],
                 'start_time' => strtotime('last monday', $res['begin'] + 24*60*60))
             ),
+            'img' => Icon::create('room-clear', 'info')->asImagePath(),
             'additional' => self::mark($res['name'] . ', ' .
                 date('d.m.Y H:i', $res['begin']) . ' - ' .
                 date('d.m.Y H:i', $res['end']), $search),

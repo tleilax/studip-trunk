@@ -39,7 +39,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
 
         // visibility
         if (!$GLOBALS['perm']->have_perm('admin')) {
-            $visibility = "`courses`.`visible` = 1 AND ";
+            $visibility = "courses.`visible` = 1 AND ";
             $seminaruser = " AND NOT EXISTS (
                 SELECT 1 FROM `seminar_user`
                 WHERE `seminar_id` = `courses`.`Seminar_id`
@@ -48,16 +48,28 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
 
         $sql = "SELECT courses.`Seminar_id`, courses.`start_time`, courses.`Name`,
                 courses.`VeranstaltungsNummer`, courses.`status`
-            FROM `seminare` AS courses
+            FROM `seminare` courses
                 JOIN `sem_types` ON (courses.`status` = `sem_types`.`id`)
+                JOIN `seminar_user` u ON (u.`Seminar_id` = courses.`Seminar_id` AND u.`status` = 'dozent')
+                JOIN `auth_user_md5` a ON (a.`user_id` = u.`user_id`)
             WHERE $visibility
                 (courses.`Name` LIKE $query
                     OR courses.`VeranstaltungsNummer` LIKE $query
                     OR CONCAT_WS(' ', `sem_types`.`name`, courses.`Name`, `sem_types`.`name`) LIKE $query
+                    OR a.`Nachname` LIKE $query
+                    OR CONCAT_WS(' ', a.`Vorname`, a.`Nachname`) LIKE $query
+                    OR CONCAT_WS(' ', a.`Nachname`, a.`Vorname`) LIKE $query
                 )
                 $seminaruser
-            ORDER BY ABS(start_time - unix_timestamp()) ASC
-            LIMIT ".Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
+            ORDER BY ABS(start_time - unix_timestamp()) ASC";
+
+        if (Config::get()->IMPORTANT_SEMNUMBER) {
+            $sql .= ", courses.`VeranstaltungsNummer`";
+        }
+
+        $sql .= ", courses. `Name`";
+        $sql .= " LIMIT ".(Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
+
         return $sql;
     }
 
@@ -85,8 +97,8 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
             'name' => self::mark($course->getFullname(), $search),
             'url' => URLHelper::getURL("dispatch.php/course/details/index/" . $course->id),
             'date' => $course->start_semester->name,
-            'additional' => implode(', ', array_map(function ($u) {
-                    return $u->getUserFullname();
+            'additional' => implode(', ', array_map(function ($u) use ($search) {
+                    return self::mark($u->getUserFullname(), $search);
                 }, $course->getMembersWithStatus('dozent'))),
             'expand' => URLHelper::getURL("dispatch.php/search/courses", array(
                 'reset_all' => 1,

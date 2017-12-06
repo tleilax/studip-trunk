@@ -50,11 +50,19 @@ STUDIP.GlobalSearch = {
                             $('#globalsearch-list').css('max-height', ($('html').height() - 100));
                             // Iterate over each result category.
                             $.each(data, function(name, value) {
-                                // Create an <article> for category...
-                                var category = $('<article>').
-                                    append($('<header>').
-                                        text(value.name + ' (' + value.content.length + ')'));
-                                resultsDiv.append(category);
+                                // Create an <article> for category.
+                                var category = $('<article>');
+                                var header = $('<header>');
+                                header.append($('<div>').
+                                    attr('class', 'globalsearch-category').
+                                    text(value.name));
+                                if (value.more != null) {
+                                    header.append($('<div>').
+                                        attr('class', 'globalsearch-more-results').
+                                        text(resultsDiv.data('more-results'))
+                                    );
+                                }
+                                resultsDiv.append(category.append(header));
 
                                 // Process results and create corresponding entries.
                                 $.each(value.content, function(index, result) {

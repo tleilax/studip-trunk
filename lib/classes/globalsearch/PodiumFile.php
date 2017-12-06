@@ -2,18 +2,8 @@
 /**
  * GlobalSearchModule for files
  */
-class PodiumFile extends GlobalSearchModule,GlobalSearchFulltext
+class GlobalSearchFile extends GlobalSearchModule implements GlobalSearchFulltext
 {
-
-    /**
-     * Returns the id for this podium module. The search sql must also return this id as type
-     *
-     * @return String id for this module
-     */
-    public static function getId()
-    {
-        return 'file';
-    }
 
     /**
      * Returns the displayname for this module
@@ -22,7 +12,7 @@ class PodiumFile extends GlobalSearchModule,GlobalSearchFulltext
      */
     public static function getName()
     {
-        return _('Datei');
+        return _('Dateien');
     }
 
     /**
@@ -56,7 +46,7 @@ class PodiumFile extends GlobalSearchModule,GlobalSearchFulltext
             . "ORDER BY dokumente.chdate DESC LIMIT ".(2*Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE * 2);
         } else {
             $query = DBManager::get()->quote("%$search%");
-            return "SELECT dokumente.* FROM dokumente IGNORE INDEX (chdate) "
+            return "SELECT `file_refs`.* FROM `file_refs` IGNORE INDEX (chdate) "
             . " $ownseminars "
             . "WHERE dokumente.name LIKE $query "
             . "ORDER BY dokumente.chdate DESC LIMIT ".(Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE * 2);

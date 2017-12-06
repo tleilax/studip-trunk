@@ -57,7 +57,7 @@ abstract class GlobalSearchModule
     public static function mark($string, $query, $longtext = false, $filename = true)
     {
         // Secure
-        $string = htmlReady($string);
+        $string = strip_tags($string);
 
         if (strpos($query, '/') !== FALSE) {
             $args = explode('/', $query);
@@ -78,7 +78,7 @@ abstract class GlobalSearchModule
                 $start = max(array(0, stripos($result, '<mark>') - 20));
                 $space = stripos($result, ' ', $start);
                 $start = $space < $start + 20 ? $space : $start;
-                return substr($result, $start, 200);
+                return '[...]' . substr($result, $start, 200) . '[...]';
             }
 
             return $result;
@@ -91,12 +91,24 @@ abstract class GlobalSearchModule
             $replacement .= "<mark>$" . ++$i . "</mark>$" . ++$i;
         }
 
-
         $pattern = "/([\w\W]*)" . join('([\w\W]*)', $queryletter) . "/";
         $result = preg_replace($pattern, $replacement, $string, -1, $found);
 
         if ($found) {
+            // Check for overlength
+            if ($longtext && strlen($result) > 100) {
+                $start = max(array(0, stripos($result, '<mark>') - 20));
+                $space = stripos($result, ' ', $start);
+                $start = $space < $start + 20 ? $space : $start;
+                return '[...]' . substr($result, $start, 100) . '[...]';
+            }
+
             return $result;
+        }
+
+        // Check for overlength
+        if ($longtext && strlen($result) > 100) {
+            return '[...]' . substr($string, 0, 100) . '[...]';
         }
 
         return $string;

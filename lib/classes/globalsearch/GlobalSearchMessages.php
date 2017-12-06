@@ -43,7 +43,7 @@ class GlobalSearchMessages extends GlobalSearchModule
                 JOIN `message_user` USING (`message_id`)
             WHERE `user_id` = $user_id
                 AND (`subject` LIKE $query OR `message` LIKE $query)
-            ORDER BY `message`.`mkdate` DESC ";
+            ORDER BY `message`.`mkdate` DESC LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
         return $sql;
     }
 
@@ -69,6 +69,7 @@ class GlobalSearchMessages extends GlobalSearchModule
         $result = array(
             'name' => self::mark($message->subject, $search),
             'url' => URLHelper::getURL("dispatch.php/messages/overview/" . $message->id),
+            'img' => Icon::create('mail', 'info')->asImagePath(),
             'date' => strftime('%x', $message->mkdate),
             'description' => self::mark($message->message, $search, true),
             'additional' => $message->autor_id != "____%system%____" ? htmlReady($message->author->getFullname()) : _("Systemnachricht"),
