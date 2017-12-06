@@ -58,6 +58,11 @@ class StEP00278GlobalSearch extends Migration
                 'order' => 10,
                 'active' => true,
                 'fulltext' => false
+            ],
+            'GlobalSearchModules' => [
+                'order' => 11,
+                'active' => true,
+                'fulltext' => false
             ]
         ];
 
