@@ -132,9 +132,9 @@ class GlobalSearchController extends AuthenticatedController
         $order = 1;
         foreach (Request::getArray('modules') as $module) {
             $config[$module['class']] = [
-                'order' => $order,
-                'active' => $module['active'] ? true : false,
-                'fulltext' => is_a($module, 'GlobalSearchFulltext') && $module['fulltext'] ? true : false
+                'order'    => $order,
+                'active'   => $module['active'],
+                'fulltext' => is_a($module['class'], 'GlobalSearchFulltext', true) && $module['fulltext']
             ];
             $order++;
         }
