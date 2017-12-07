@@ -121,8 +121,19 @@ class GlobalSearchModules extends GlobalSearchModule
             'url'    => URLHelper::getURL("plugins.php/mvvplugin/search/module/details/{$modul_id}?sterm={$code}"),
             'img'    => Icon::create('learnmodule', $icon_role)->asImagePath(),
             'date'   => $duration,
-            'expand' => URLHelper::getURL("plugins.php/mvvplugin/search/module/index?page_module=1&sterm={$code}"),
+            'expand' => self::getSearchURL($search),
         ];
+    }
+
+    /**
+     * Returns the url to the global modules search populated with the current
+     * search term.
+     *
+     * @param string $searchterm what to search for?
+     */
+    public static function getSearchURL($searchterm)
+    {
+        return URLHelper::getURL("plugins.php/mvvplugin/search/module/index?page_module=1&sterm={$searchterm}");
     }
 
      // TODO: This probably needs some roles or something else
