@@ -70,4 +70,20 @@ class GlobalSearchInstitutes extends GlobalSearchModule
         $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
         return $result;
     }
+
+    /**
+     * Returns the URL that can be called for a full search.
+     *
+     * This could become obsolete when we have a real global search page.
+     *
+     * @param string $searchterm what to search for?
+     */
+    public static function getSearchURL($searchterm)
+    {
+        return URLHelper::getURL("institut_browse.php", [
+            'cmd' => 'suche',
+            'search_name' => $searchterm
+        ]);
+    }
+
 }

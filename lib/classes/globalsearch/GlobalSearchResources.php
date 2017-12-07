@@ -47,4 +47,21 @@ class GlobalSearchResources extends GlobalSearchModule
                 array('view' => 'search', 'search_exp' => $search, 'start_search' => ''))
         );
     }
+
+    /**
+     * Returns the URL that can be called for a full search.
+     *
+     * This could become obsolete when we have a real global search page.
+     *
+     * @param string $searchterm what to search for?
+     */
+    public static function getSearchURL($searchterm)
+    {
+        return URLHelper::getURL("resources.php", [
+            'view' => 'search',
+            'search_exp' => $searchterm,
+            'start_search' => ''
+        ]);
+    }
+
 }

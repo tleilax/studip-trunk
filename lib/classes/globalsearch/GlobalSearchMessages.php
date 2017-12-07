@@ -78,4 +78,22 @@ class GlobalSearchMessages extends GlobalSearchModule
         );
         return $result;
     }
+
+    /**
+     * Returns the URL that can be called for a full search.
+     *
+     * This could become obsolete when we have a real global search page.
+     *
+     * @param string $searchterm what to search for?
+     */
+    public static function getSearchURL($searchterm)
+    {
+        return URLHelper::getURL("dispatch.php/messages/overview", [
+            'search' => $searchterm,
+            'search_subject' => 1,
+            'search_content' => 1,
+            'search_autor' => 1
+        ]);
+    }
+
 }

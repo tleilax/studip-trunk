@@ -56,10 +56,16 @@ STUDIP.GlobalSearch = {
                                 header.append($('<div>').
                                     attr('class', 'globalsearch-category').
                                     text(value.name));
-                                if (value.more != null) {
+                                /*
+                                 * We have more search results than shown,
+                                 * provide link to full search if available.
+                                 */
+                                if (value.more != null && value.fullsearch != '') {
                                     header.append($('<div>').
                                         attr('class', 'globalsearch-more-results').
-                                        text(resultsDiv.data('more-results'))
+                                        append($('<a>').
+                                            attr('href', value.fullsearch).
+                                            text(resultsDiv.data('more-results')))
                                     );
                                 }
                                 resultsDiv.append(category.append(header));

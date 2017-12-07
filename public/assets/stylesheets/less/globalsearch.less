@@ -26,6 +26,10 @@ div#globalsearch-searchbar {
     a {
       color: @base-color;
 
+      &#globalsearch-togglehints {
+        font-size: @font-size-small;
+      }
+
       &:hover {
         color: @active-color;
       }
@@ -87,6 +91,7 @@ div#globalsearch-searchbar {
             flex: none;
             font-size: @font-size-small;
             font-weight: normal;
+            line-height: @font-size-h3;
             text-align: right;
             width: 100px;
           }

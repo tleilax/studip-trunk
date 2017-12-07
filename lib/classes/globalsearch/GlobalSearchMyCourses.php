@@ -86,4 +86,23 @@ class GlobalSearchMyCourses extends GlobalSearchModule
         $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
         return $result;
     }
+
+    /**
+     * Returns the URL that can be called for a full search.
+     *
+     * This could become obsolete when we have a real global search page.
+     *
+     * @param string $searchterm what to search for?
+     */
+    public static function getSearchURL($searchterm)
+    {
+        return URLHelper::getURL("dispatch.php/search/courses", [
+            'reset_all' => 1,
+            'search_sem_qs_choose' => 'title_lecturer_number',
+            'search_sem_sem' => 'all',
+            'search_sem_quick_search_parameter' => $searchterm,
+            'search_sem_1508068a50572e5faff81c27f7b3a72f' => 1 // Why the hell is that needed?
+        ]);
+    }
+
 }

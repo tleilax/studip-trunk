@@ -83,6 +83,20 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
         return $result;
     }
 
+    /**
+     * Returns the URL that can be called for a full search.
+     *
+     * This could become obsolete when we have a real global search page.
+     *
+     * @param string $searchterm what to search for?
+     */
+    public static function getSearchURL($searchterm)
+    {
+        return URLHelper::getURL("browse.php", [
+            'name' => $searchterm
+        ]);
+    }
+
     public static function enable()
     {
         DBManager::get()->exec("ALTER TABLE `auth_user_md5` ADD FULLTEXT INDEX globalsearch (`username`, `Vorname`, `Nachname`)");

@@ -10105,6 +10105,9 @@ div#globalsearch-searchbar #globalsearch-list {
 div#globalsearch-searchbar #globalsearch-list a {
   color: #28497c;
 }
+div#globalsearch-searchbar #globalsearch-list a#globalsearch-togglehints {
+  font-size: 12px;
+}
 div#globalsearch-searchbar #globalsearch-list a:hover {
   color: #d60000;
 }
@@ -10157,6 +10160,7 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article >
   flex: none;
   font-size: 12px;
   font-weight: normal;
+  line-height: 24px;
   text-align: right;
   width: 100px;
 }

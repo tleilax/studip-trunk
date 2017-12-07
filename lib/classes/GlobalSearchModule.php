@@ -47,6 +47,20 @@ abstract class GlobalSearchModule
     abstract public static function filter($data, $search);
 
     /**
+     * Returns the URL that can be called for a full search.
+     *
+     * This could become obsolete when we have a real global search page.
+     * Overwrite this method in your subclass to provide the category
+     * specific search page.
+     *
+     * @param string $searchterm what to search for?
+     */
+    public static function getSearchURL($searchterm)
+    {
+        return '';
+    }
+
+    /**
      * Function to mark a querystring in a resultstring
      *
      * @param $string

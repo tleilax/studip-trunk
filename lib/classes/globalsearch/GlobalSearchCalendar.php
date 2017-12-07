@@ -21,6 +21,20 @@ class GlobalSearchCalendar extends GlobalSearchModule
     }
 
     /**
+     * Returns the URL that can be called for a full search.
+     *
+     * This could become obsolete when we have a real global search page.
+     *
+     * @param string $searchterm what to search for?
+     */
+    public static function getSearchURL($searchterm)
+    {
+        return URLHelper::getURL("dispatch.php/calendar/single/week", [
+            'atime' => strtotime($searchterm)
+        ]);
+    }
+
+    /**
      * Transforms the search request into an sql statement, that provides the id (same as getId) as type and
      * the object id, that is later passed to the filter.
      *
