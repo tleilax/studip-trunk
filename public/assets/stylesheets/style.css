@@ -10186,6 +10186,7 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article s
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data {
   flex: auto;
+  overflow: hidden;
   padding-left: 6px;
   padding-right: 6px;
 }

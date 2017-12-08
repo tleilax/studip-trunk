@@ -29,7 +29,7 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
      */
     public static function getSQL($search)
     {
-        if (!$search || !$GLOBALS['perm']->have_perm('root')) {
+        if (!Config::get()->RESOURCES_ENABLE || !$search || !$GLOBALS['perm']->have_perm('root')) {
             return null;
         }
 

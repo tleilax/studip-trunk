@@ -95,11 +95,16 @@ class GlobalSearchController extends AuthenticatedController
 
         $this->modules = [];
 
-        foreach ($this->config as $className => $data) {
-            $c = new $className();
+        // Scan for available modules.
+        foreach (scandir($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/globalsearch') as $filename) {
+            $path = pathinfo($filename);
+            if ($path['extension'] === 'php') {
+                class_exists($path['filename']);
+            }
         }
 
         // Search declared classes for GlobalSearchModules
+        $endindex = 100;
         foreach (get_declared_classes() as $className) {
             if (is_a($className, 'GlobalSearchModule', true)
                     && $className !== 'GlobalSearchModule') {
@@ -107,13 +112,10 @@ class GlobalSearchController extends AuthenticatedController
 
                 // Add new classes at module array end and not activated.
                 if (in_array($className, array_keys($this->config))) {
-                    $active = $this->config[$className]['active'];
-                    $order = $this->config[$className]['order'];
+                    $this->modules[$this->config[$className]['order']] = $class;
                 } else {
-                    $active = false;
-                    $order = 100;
+                    $this->modules[$endindex++] = $class;
                 }
-                $this->modules[$order] = $class;
             }
         }
 

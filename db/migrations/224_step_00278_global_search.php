@@ -34,33 +34,38 @@ class StEP00278GlobalSearch extends Migration
                 'active' => true,
                 'fulltext' => false
             ],
-            'GlobalSearchCalendar' => [
+            'GlobalSearchFiles' => [
                 'order' => 6,
                 'active' => true,
                 'fulltext' => false
             ],
-            'GlobalSearchMessages' => [
+            'GlobalSearchCalendar' => [
                 'order' => 7,
                 'active' => true,
                 'fulltext' => false
             ],
-            'GlobalSearchForum' => [
+            'GlobalSearchMessages' => [
                 'order' => 8,
                 'active' => true,
                 'fulltext' => false
             ],
-            'GlobalSearchResources' => [
+            'GlobalSearchForum' => [
                 'order' => 9,
                 'active' => true,
                 'fulltext' => false
             ],
-            'GlobalSearchRoomAssignments' => [
+            'GlobalSearchResources' => [
                 'order' => 10,
                 'active' => true,
                 'fulltext' => false
             ],
-            'GlobalSearchModules' => [
+            'GlobalSearchRoomAssignments' => [
                 'order' => 11,
+                'active' => true,
+                'fulltext' => false
+            ],
+            'GlobalSearchModules' => [
+                'order' => 12,
                 'active' => true,
                 'fulltext' => false
             ]
