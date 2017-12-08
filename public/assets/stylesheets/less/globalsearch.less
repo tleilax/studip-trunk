@@ -2,15 +2,6 @@ div#globalsearch-searchbar {
 
   position: relative;
 
-  input#globalsearch-input {
-    -webkit-transform-origin: 100% 50%;
-    -moz-transform-origin: 100% 50%;
-    -ms-transform-origin: 100% 50%;
-    -o-transform-origin: 100% 50%;
-    transform-origin: 100% 50%;
-    animation: slideleft .5s;
-  }
-
   div#globalsearch-list {
     background-color: @white;
     box-shadow: 0px 5px 8px rgba(0,0,0,0.5);
@@ -20,7 +11,6 @@ div#globalsearch-searchbar {
     overflow: auto;
     padding: 5px;
     position: absolute;
-    transform-origin: 100% 50%;
     width: 423px;
 
     a {
@@ -156,22 +146,4 @@ div#globalsearch-searchbar {
     }
   }
 
-}
-
-@keyframes slideleft {
-  0% {
-    transform: scaleX(0);
-  }
-  100% {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes slideright {
-  0% {
-    transform: scaleX(1);
-  }
-  100% {
-    transform: scaleX(0);
-  }
 }

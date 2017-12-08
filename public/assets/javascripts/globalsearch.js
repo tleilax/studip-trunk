@@ -1,18 +1,18 @@
 STUDIP.GlobalSearch = {
 
     // Toggles visibility of search input field and hints.
-    toggle: function() {
+    toggleSearchBar: function(mode) {
         var input = $('#globalsearch-input');
-        if (input.hasClass('hidden-js')) {
-            input.removeClass('hidden-js');
-            setTimeout(function() {
-                input.focus();
-                $('#globalsearch-list').removeClass('hidden-js');
-            }, 500);
-        } else {
-            $('#globalsearch-list').addClass('hidden-js');
-            input.addClass('hidden-js');
+        var list = $('#globalsearch-list');
+
+        if (mode == 'show') {
+            input.attr('size', '60');
+            list.removeClass('hidden-js');
+        } else if (mode == 'hide') {
+            list.addClass('hidden-js');
+            input.attr('size', '30');
         }
+
         return false;
     },
 
@@ -142,14 +142,14 @@ STUDIP.GlobalSearch = {
 };
 
 $(function () {
-    // Handle search icon click.
-    $('#globalsearch-icon').on('click', function() {
-        STUDIP.GlobalSearch.toggle();
+    // Enlarge search input on focus and show hints.
+    $('#globalsearch-input').on('focus', function() {
+        STUDIP.GlobalSearch.toggleSearchBar('show');
     });
     // Close search on click on page.
     $('div#flex-header, div#layout_page, div#layout_footer').on('click', function() {
         if (!$('#globalsearch-input').hasClass('hidden-js')) {
-            STUDIP.GlobalSearch.toggle();
+            STUDIP.GlobalSearch.toggleSearchBar('hide');
         }
     });
     // Show/hide hints on click.
@@ -166,7 +166,7 @@ $(function () {
         // ctrl + space
         if (e.which === 32 && e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
             e.preventDefault();
-            STUDIP.GlobalSearch.toggle();
+            STUDIP.GlobalSearch.toggleSearchBar();
         }
     });
 

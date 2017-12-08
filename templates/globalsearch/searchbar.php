@@ -1,5 +1,5 @@
 <div id="globalsearch-searchbar">
-    <input type="text" name="globalsearchterm" id="globalsearch-input" size="60" class="hidden-js"
+    <input type="text" name="globalsearchterm" id="globalsearch-input" size="30"
         placeholder="<?= _('Was suchen Sie?') ?>">
     <a href="#" id="globalsearch-icon">
         <?= Icon::create('search', 'info_alt')->asImg(24) ?>
