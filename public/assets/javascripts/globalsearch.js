@@ -7,10 +7,12 @@ STUDIP.GlobalSearch = {
 
         if (mode == 'show') {
             input.attr('size', '60');
+            input.css('width', '425');
             list.removeClass('hidden-js');
         } else if (mode == 'hide') {
             list.addClass('hidden-js');
             input.attr('size', '30');
+            input.css('width', '');
         }
 
         return false;
@@ -23,7 +25,7 @@ STUDIP.GlobalSearch = {
             var resultsDiv = $('#globalsearch-results');
             // Call AJAX endpoint and get search results.
             $.ajax(
-                STUDIP.ABSOLUTE_URI_STUDIP +'dispatch.php/globalsearch/find',
+                STUDIP.ABSOLUTE_URI_STUDIP + 'dispatch.php/globalsearch/find',
                 {
                     data: {
                         'search': searchterm
