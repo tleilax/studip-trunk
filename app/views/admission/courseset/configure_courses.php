@@ -30,6 +30,15 @@
             <td style="white-space:nowrap">
                 <input <?=$editable?> type="checkbox" name="configure_courses_disable_waitlist[<?= $course->id?>]" value="1" <?= $course->admission_disable_waitlist ? '' : 'checked' ?>>
                 <input <?=$editable?> type="text" size="2" name="configure_courses_waitlist_max[<?= $course->id?>]" value="<?= $course->admission_waitlist_max ?: ''?>">
+
+                <input <?=$editable?> type="checkbox" class="waitlist_move_toggle" 
+                    id="waitlist_move_<?= $course->id?>"
+                    name="admission_disable_waitlist_move[<?= $course->id?>]" value="1"
+                    <? if (!$course->admission_disable_waitlist_move) echo 'checked'; ?>>
+
+                <label for="waitlist_move_<?= $course->id ?>"
+                       title="<?= htmlReady(sprintf(_('Aktivieren des automatischen Nachrückens aus der Warteliste für %s'), $course->name)) ?>">
+                </label>
             </td>
         </tr>
     <? endforeach ?>

@@ -85,6 +85,13 @@ class StudipFileCache implements StudipCache {
     }
 
     /**
+     * Expire all items from the cache.
+     */
+    public function flush() {
+        rmdirr($this->dir);
+    }
+
+    /**
      * retrieve cache item from filesystem
      * tests first if item is expired
      *
@@ -100,7 +107,7 @@ class StudipFileCache implements StudipCache {
                 $result = stream_get_contents($f);
                 @fclose($f);
             }
-            return $result;
+            return unserialize($result);
         }
         return false;
     }
@@ -110,7 +117,7 @@ class StudipFileCache implements StudipCache {
      *
      * @see StudipCache::write()
      * @param string a cache key
-     * @param string data to store
+     * @param mixed  data to store
      * @param int expiry time in seconds, default 12h
      * @return int|bool the number of bytes that were written to the file,
      *         or false on failure
@@ -118,7 +125,7 @@ class StudipFileCache implements StudipCache {
     public function write($key, $content, $expire = 43200) {
         $this->expire($key);
         $file = $this->getPathAndFile($key, $expire);
-        return @file_put_contents($file, $content, LOCK_EX);
+        return @file_put_contents($file, serialize($content), LOCK_EX);
     }
 
     /**
