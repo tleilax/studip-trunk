@@ -72,8 +72,10 @@ class GlobalSearchMessages extends GlobalSearchModule
             'img' => Icon::create('mail', 'info')->asImagePath(),
             'date' => strftime('%x', $message->mkdate),
             'description' => self::mark($message->message, $search, true),
-            'additional' => $message->autor_id != "____%system%____" ? htmlReady($message->author->getFullname()) : _("Systemnachricht"),
-            'expand' => URLHelper::getURL("dispatch.php/messages/overview", array('search' => $search, 'search_subject' => 1, 'search_content' => 1, 'search_autor' => 1)
+            'additional' => $message->autor_id != "____%system%____" ?
+                htmlReady($message->author->getFullname()) : _("Systemnachricht"),
+            'expand' => URLHelper::getURL("dispatch.php/messages/overview",
+                ['search' => $search, 'search_subject' => 1, 'search_content' => 1, 'search_autor' => 1]
             )
         );
         return $result;

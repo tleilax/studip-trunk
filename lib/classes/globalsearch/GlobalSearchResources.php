@@ -44,7 +44,7 @@ class GlobalSearchResources extends GlobalSearchModule
             'img' => Icon::create('resources', 'info')->asImagePath(),
             'additional' => self::mark($res['description'], $search),
             'expand' => URLHelper::getURL('resources.php',
-                array('view' => 'search', 'search_exp' => $search, 'start_search' => ''))
+                ['view' => 'search', 'search_exp' => $search, 'start_search' => ''])
         );
     }
 

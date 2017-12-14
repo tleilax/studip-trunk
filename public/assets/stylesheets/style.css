@@ -10109,6 +10109,17 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 div#globalsearch-searchbar {
   position. relative;
 }
+div#globalsearch-searchbar #globalsearch-clear {
+  height: 16px;
+  left: -22px;
+  position: relative;
+  top: 3px;
+  width: 16px;
+}
+div#globalsearch-searchbar a#globalsearch-icon {
+  position: relative;
+  top: 6px;
+}
 div#globalsearch-searchbar input#globalsearch-input {
   width: 215px;
 }
@@ -10118,7 +10129,7 @@ div#globalsearch-searchbar #globalsearch-list {
   color: #000;
   font-size: 18px;
   font-weight: normal;
-  overflow: auto;
+  overflow: scroll;
   padding: 5px;
   position: absolute;
   width: 423px;
@@ -10149,7 +10160,6 @@ div#globalsearch-searchbar #globalsearch-list section p {
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results {
   border-top: 1px solid #a7abaf;
-  overflow: scroll;
   padding-top: 10px;
 }
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results div#globalsearch-loading-text {
@@ -10231,6 +10241,12 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article s
   margin-right: 6px;
   text-align: right;
   width: 60px;
+}
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-expand {
+  flex: none;
+  margin-bottom: auto;
+  margin-top: auto;
+  width: 20px;
 }
 #responsive-container {
   display: none;

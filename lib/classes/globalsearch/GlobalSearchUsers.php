@@ -74,9 +74,9 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
         $result = array(
             'id' => $user->id,
             'name' => self::mark($user->getFullname(), $search),
-            'url' => URLHelper::getURL("dispatch.php/profile", array('username' => $user->username)),
+            'url' => URLHelper::getURL("dispatch.php/profile", ['username' => $user->username]),
             'additional' => self::mark($user->username, $search),
-            'expand' => URLHelper::getURL("browse.php", array('name' => $search)),
+            'expand' => URLHelper::getURL("browse.php", ['name' => $search]),
         );
         $avatar = Avatar::getAvatar($user->id);
         $result['img'] = $avatar->getUrl(Avatar::MEDIUM);

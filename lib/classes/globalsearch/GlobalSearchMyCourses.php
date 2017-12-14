@@ -74,13 +74,13 @@ class GlobalSearchMyCourses extends GlobalSearchModule
             'name' => self::mark($course->getFullname(), $search),
             'url' => URLHelper::getURL("dispatch.php/course/details/index/" . $course->id),
             'date' => $course->start_semester->name,
-            'expand' => URLHelper::getURL("dispatch.php/search/courses", array(
+            'expand' => URLHelper::getURL("dispatch.php/search/courses", [
                 'reset_all' => 1,
                 'search_sem_qs_choose' => 'title_lecturer_number',
                 'search_sem_sem' => 'all',
                 'search_sem_quick_search_parameter' => $search,
                 'search_sem_1508068a50572e5faff81c27f7b3a72f' => 1 // Fuck you Stud.IP
-            ))
+            ])
         );
         $avatar = CourseAvatar::getAvatar($course->id);
         $result['img'] = $avatar->getUrl(Avatar::MEDIUM);

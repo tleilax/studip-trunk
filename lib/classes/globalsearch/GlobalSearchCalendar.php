@@ -85,7 +85,7 @@ class GlobalSearchCalendar extends GlobalSearchModule
                 strftime('%H:%M', $termin['end_time']) . ", " .
                 strftime('%x', $termin['date']),
             'expand' => URLHelper::getURL('dispatch.php/calendar/single/week',
-                array('atime' => strtotime($search)))
+                ['atime' => strtotime($search)])
         );
     }
 }

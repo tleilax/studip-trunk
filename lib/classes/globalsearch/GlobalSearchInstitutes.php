@@ -60,12 +60,12 @@ class GlobalSearchInstitutes extends GlobalSearchModule
     public static function filter($inst_id, $search)
     {
         $inst = Institute::buildExisting($inst_id);
-        $result = array(
+        $result = [
             'id' => $inst->id,
             'name' => self::mark($inst->getFullname(), $search),
             'url' => URLHelper::getURL("dispatch.php/institute/overview", array('cid' => $inst->id)),
-            'expand' => URLHelper::getURL('institut_browse.php', array('cmd' => 'suche', 'search_name' => $search))
-        );
+            'expand' => URLHelper::getURL('institut_browse.php', ['cmd' => 'suche', 'search_name' => $search])
+        ];
         $avatar = InstituteAvatar::getAvatar($inst->id);
         $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
         return $result;

@@ -74,11 +74,11 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
     {
         return array(
             'name' => self::mark($res['user_free_name'], $search),
-            'url' => URLHelper::getURL("resources.php", array(
+            'url' => URLHelper::getURL("resources.php", [
                 'view' => 'view_schedule',
                 'show_object' => $res['resource_id'],
-                'start_time' => strtotime('last monday', $res['begin'] + 24*60*60))
-            ),
+                'start_time' => strtotime('last monday', $res['begin'] + 24*60*60)
+            ]),
             'img' => Icon::create('room-clear', 'info')->asImagePath(),
             'additional' => self::mark($res['name'] . ', ' .
                 date('d.m.Y H:i', $res['begin']) . ' - ' .

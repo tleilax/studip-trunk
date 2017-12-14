@@ -100,13 +100,13 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
             'additional' => implode(', ', array_map(function ($u) use ($search) {
                     return self::mark($u->getUserFullname(), $search);
                 }, $course->getMembersWithStatus('dozent'))),
-            'expand' => URLHelper::getURL("dispatch.php/search/courses", array(
+            'expand' => URLHelper::getURL("dispatch.php/search/courses", [
                 'reset_all' => 1,
                 'search_sem_qs_choose' => 'title_lecturer_number',
                 'search_sem_sem' => 'all',
                 'search_sem_quick_search_parameter' => $search,
                 'search_sem_1508068a50572e5faff81c27f7b3a72f' => 1 // Fuck you Stud.IP
-            ))
+            ])
         );
         $avatar = CourseAvatar::getAvatar($course->id);
         $result['img'] = $avatar->getUrl(Avatar::MEDIUM);

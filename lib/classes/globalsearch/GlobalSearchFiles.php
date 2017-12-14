@@ -234,11 +234,13 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
             return array(
                 'id' => $fileref['id'],
                 'name' => self::mark($fileref['name'], $search, true),
-                'url' => URLHelper::getURL("sendfile.php?type=0&file_id={$fileref['id']}&file_name={$fileref['name']}"),
+                'url' => URLHelper::getURL(
+                    "sendfile.php?type=0&file_id={$fileref['id']}&file_name={$fileref['name']}"),
                 'img' => FileManager::getIconForMimeType($fileref['mime_type'], 'info')->asImagePath(),
                 'additional' => self::mark($range ? $range->getFullname() : '', $search, false),
                 'date' => strftime('%x %X', $fileref['chdate']),
-                'expand' => URLHelper::getURL('dispatch.php' . $range_path . '/index/' . $fileref['folder_id'],
+                'expand' => URLHelper::getURL(
+                    "dispatch.php{$range_path}/files/index/{$fileref['folder_id']}",
                     ['cid' => $fileref['range_id']])
             );
         }

@@ -21,7 +21,10 @@ STUDIP.GlobalSearch = {
     // Performs the actual search.
     doSearch: function() {
         var searchterm = $('#globalsearch-input').val();
-        if ($('#globalsearch-input').val() != '') {
+        if (searchterm != '') {
+            $('#globalsearch-clear').removeClass('hidden-js');
+        }
+        if (searchterm != '' && searchterm.length >= 3) {
             var resultsDiv = $('#globalsearch-results');
             // Call AJAX endpoint and get search results.
             $.ajax(
@@ -55,8 +58,7 @@ STUDIP.GlobalSearch = {
                                 // Create an <article> for category.
                                 var category = $('<article>');
                                 var header = $('<header>');
-                                header.append($('<div>').
-                                    attr('class', 'globalsearch-category').
+                                header.append($('<div class="globalsearch-category">').
                                     text(value.name));
                                 /*
                                  * We have more search results than shown,
@@ -65,8 +67,7 @@ STUDIP.GlobalSearch = {
                                 if (value.more != null && value.fullsearch != '') {
                                     header.append($('<div>').
                                         attr('class', 'globalsearch-more-results').
-                                        append($('<a>').
-                                            attr('href', value.fullsearch).
+                                        append($('<a href="' + value.fullsearch + '">').
                                             text(resultsDiv.data('more-results')))
                                     );
                                 }
@@ -77,14 +78,12 @@ STUDIP.GlobalSearch = {
                                     // Build detail text.
                                     var description = null;
                                     if (result.description != null) {
-                                        description = $('<div>').
-                                            attr('class', 'globalsearch-result-description').
+                                        description = $('<div class="globalsearch-result-description">').
                                             html($.parseHTML(result.description));
                                     }
                                     var additional = null;
                                     if (result.additional != null) {
-                                        additional = $('<div>').
-                                            attr('class', 'globalsearch-result-additional').
+                                        additional = $('<div class="globalsearch-result-additional">').
                                             html($.parseHTML(result.additional));
                                     }
                                     // Create single result entry.
@@ -92,23 +91,16 @@ STUDIP.GlobalSearch = {
                                     // Optional image...
                                     if (result.img != null) {
                                         single.append($('<div class="globalsearch-result-img">').
-                                            append(singleImg = $('<img>').
-                                                attr('height', '36').
-                                                attr('width', '36').
-                                                attr('src', result.img)));
+                                            append($('<img height="36" width="36" src="' + result.img + '">')));
                                     }
                                     // Name/title
-                                    var dataDiv = $('<div>').
-                                        attr('class', 'globalsearch-result-data');
+                                    var dataDiv = $('<div class="globalsearch-result-data">');
                                     single.append(dataDiv);
-                                    dataDiv.append($('<div>').
-                                        attr('class', 'globalsearch-result-link').
-                                        append($('<a>').
-                                            attr('href', result.url).
+                                    dataDiv.append($('<div class="globalsearch-result-link">').
+                                        append($('<a href="' + result.url + '">').
                                             html($.parseHTML(result.name))));
                                     // Details like:
-                                    var singleDetails = $('<div>').
-                                        attr('class', 'globalsearch-result-details');
+                                    var singleDetails = $('<div class="globalsearch-result-details">');
                                     // Descriptional text
                                     if (description != null) {
                                         singleDetails.append(description);
@@ -120,11 +112,23 @@ STUDIP.GlobalSearch = {
                                     dataDiv.append(singleDetails);
                                     // Date/Time of entry
                                     if (result.date != null) {
-                                        var singleTime = $('<div>').
-                                            attr('class', 'globalsearch-result-time').
+                                        var singleTime = $('<div class="globalsearch-result-time">').
                                             css('max-width', '20%').
                                             html($.parseHTML(result.date));
                                         single.append(singleTime);
+                                    }
+                                    /*
+                                     * "Expand" attribute for further,
+                                     * result-related search (e.g. search in
+                                     * course of found forum entry)
+                                     */
+                                    if (result.expand != null && result.expand != value.fullsearch && value.more) {
+                                        var singleExpand = $('<div class="globalsearch-result-expand">').
+                                            css('max-width', '25px').
+                                            append($('<a href="' + result.expand + '">').
+                                                append($('<img src="' + STUDIP.ASSETS_URL +
+                                                    'images/icons/blue/arr_1right.svg">')));
+                                        single.append(singleExpand);
                                     }
                                     category.append(single);
                                 });
@@ -139,11 +143,28 @@ STUDIP.GlobalSearch = {
                 }
             );
         }
+    },
+
+    resetSearch: function() {
+        $('#globalsearch-input').val('');
+        $('#globalsearch-clear').addClass('hidden-js');
+        $('#globalsearch-results').html('');
+        $('#globalsearch-input').focus();
     }
 
 };
 
 $(function () {
+    // Clear search term
+    $('#globalsearch-clear').on('click', function() {
+        STUDIP.GlobalSearch.resetSearch();
+        return false;
+    });
+    // Bind icon click to performing search.
+    $('#globalsearch-icon').on('click', function() {
+        STUDIP.GlobalSearch.doSearch();
+        return false;
+    });
     // Enlarge search input on focus and show hints.
     $('#globalsearch-input').on('focus', function() {
         STUDIP.GlobalSearch.toggleSearchBar('show');

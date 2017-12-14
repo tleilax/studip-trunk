@@ -81,20 +81,23 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
         $course = Course::find($data['seminar_id']);
         $result = array(
             'id' => $data['topic_id'],
-            'name' => $data['name'] ? self::mark($data['name'], $search)  : ($course ? htmlReady($course->getFullname()) : _('Ohne Titel')),
-            'url' => URLHelper::getURL("plugins.php/coreforum/index/index/" . $data['topic_id']."#".$data['topic_id'], array('cid' => $data['seminar_id'])),
+            'name' => $data['name'] ? self::mark($data['name'], $search) :
+                ($course ? htmlReady($course->getFullname()) : _('Ohne Titel')),
+            'url' => URLHelper::getURL("plugins.php/coreforum/index/index/" . $data['topic_id'] .
+                '#' . $data['topic_id'], array('cid' => $data['seminar_id'])),
             'img' => CourseAvatar::getAvatar($course->id)->getUrl(Avatar::MEDIUM),
-            'date' => date('d.m.Y H:i', $data['chdate']),
+            'date' => strftime('%X %x', $data['chdate']),
             'description' => self::mark($data['content'], $search, true),
-            'additional' => htmlReady((($user && !$data['anonymous']) ? $user->getFullname() : _('Anonym'))." "._('in')." ".($course ? $course->getFullname() : '')),
-            'expand' => URLHelper::getURL("plugins.php/coreforum/index/search", array(
+            'additional' => htmlReady((($user && !$data['anonymous']) ? $user->getFullname() :
+                    _('Anonym'))." "._('in')." ".($course ? $course->getFullname() : '')),
+            'expand' => URLHelper::getURL("plugins.php/coreforum/index/search", [
                 'cid' => $data['seminar_id'],
                 'backend' => 'search',
                 'searchfor' => $search,
                 'search_title' => 1,
                 'search_content' => 1,
                 'search_author' => 1
-            ))
+            ])
         );
         return $result;
     }
