@@ -1,8 +1,8 @@
 <?php
 # Lifter010: TODO
 /**
- * UserConfig.class.php
- * provides access to user preferences
+ * CourseConfig.class.php
+ * provides access to course preferences
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -15,11 +15,11 @@
  * @category    Stud.IP
 */
 
-class UserConfig extends ObjectConfig
+class CourseConfig extends ObjectConfig
 {
     /**
      * range type ('user' or 'course')
      * @var string
      */
-    protected $range_type = 'user';
+    protected $range_type = 'course';
 }

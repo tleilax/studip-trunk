@@ -86,7 +86,7 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
     {
         $temp = $this->metadata;
 
-        if (in_array($range, words('global user'))) {
+        if (in_array($range, words('global user course'))) {
             $temp = array_filter($temp, function ($a) use ($range) {
                 return $a['range'] === $range;
             });
@@ -217,7 +217,8 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
         } else {
             $this->data = array();
             $db = DbManager::get();
-            $rs = $db->query("SELECT field, value, type, section, `range`, description, comment, is_default FROM `config` ORDER BY is_default DESC, section, field");
+            // $rs = $db->query("SELECT field, value, type, section, `range`, description, comment, is_default FROM `config` ORDER BY is_default DESC, section, field");
+            $rs = $db->query("SELECT config.field, IFNULL(config_values.value, config.value) AS value, type, section, `range`, description, IFNULL(config_values.comment, config.comment) AS comment, config_values.value IS NULL AS is_default FROM config LEFT JOIN config_values ON config.field = config_values.field AND range_id = 'studip' WHERE is_default = 1 ORDER BY section, config.field");
             while ($row = $rs->fetch(PDO::FETCH_ASSOC)) {
                 // set the the type of the default entry for the modified entry
                 if (!empty($this->metadata[$row['field']])) {
@@ -280,33 +281,25 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
         }
 
         if (isset($values['value'])) {
-            if(count($entries) == 1 &&  $entries[0]->is_default == 1) {
-                $entries[1] = clone $entries[0];
-                $entries[1]->setId($entries[1]->getNewId());
-                $entries[1]->setNew(true);
-                $entries[1]->is_default = 0;
-            }
-            $value_entry = $entries[0]->is_default == 1 ? $entries[1] : $entries[0];
-            $old_value = $value_entry->value;
+            $value_entry = new ConfigValue(array($field, 'studip'));
+            $old_value = $value_entry->isNew() ? $entries[0]->value : $value_entry->value;
             $value_entry->value = $values['value'];
+            if (isset($values['comment'])) {
+                $value_entry->comment = $values['comment'];
+            }
+            if ($value_entry->value == $entries[0]->value) {
+                $ret += $value_entry->delete();
+            } else {
+                $ret += $value_entry->store();
+            }
         }
 
         foreach ($entries as $entry) {
             if (isset($values['section'])) {
                 $entry->section = $values['section'];
             }
-            if (isset($values['comment'])) {
-                $entry->comment = $values['comment'];
-            }
 
-            // store the default-type for the modified entry
-            $entry->type = $this->metadata[$field]['type'];
-
-            if (count($entries) > 1 && !$entry->is_default && $entry->value == $entries[0]->value) {
-                $ret += $entry->delete();
-            } else {
-                $ret += $entry->store();
-            }
+            $ret += $entry->store();
         }
         if ($ret) {
             $this->fetchData();
@@ -363,6 +356,7 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
         if (!$field) {
             throw new InvalidArgumentException("config fieldname is mandatory");
         }
+        ConfigValue::deleteBySql("field=" . DbManager::get()->quote($field));
         $deleted = ConfigEntry::deleteBySql("field=" . DbManager::get()->quote($field));
         if ($deleted) {
             $this->fetchData();

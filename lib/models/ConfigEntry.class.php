@@ -15,19 +15,16 @@
  *
  * @property string config_id database column
  * @property string id alias column for config_id
- * @property string parent_id database column
  * @property string field database column
  * @property string value database column
  * @property string is_default database column
  * @property string type database column
  * @property string range database column
  * @property string section database column
- * @property string position database column
  * @property string mkdate database column
  * @property string chdate database column
  * @property string description database column
  * @property string comment database column
- * @property string message_template database column
  */
 
 class ConfigEntry extends SimpleORMap
