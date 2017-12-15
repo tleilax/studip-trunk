@@ -30,17 +30,6 @@
 class ConfigEntry extends SimpleORMap
 {
     /**
-     * Customized finder by field that takes sorting into account.
-     *
-     * @param String $field Field for lookup
-     * @return array containing the found records
-     */
-    public static function findByField($field)
-    {
-        return self::findBySql("`field`=? ORDER BY is_default DESC", array($field));
-    }
-
-    /**
      * Configures this model.
      *
      * @param array $config Configuration array
