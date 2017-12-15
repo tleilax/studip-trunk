@@ -169,6 +169,14 @@ $(function () {
     $('#globalsearch-input').on('focus', function() {
         STUDIP.GlobalSearch.toggleSearchBar('show');
     });
+    // Start search on Enter
+    $('#globalsearch-input').on('keypress', function(e) {
+        // ctrl + space
+        if (e.which === 13) {
+            e.preventDefault();
+            STUDIP.GlobalSearch.doSearch();
+        }
+    });
     // Close search on click on page.
     $('div#flex-header, div#layout_page, div#layout_footer').on('click', function() {
         if (!$('#globalsearch-input').hasClass('hidden-js')) {
