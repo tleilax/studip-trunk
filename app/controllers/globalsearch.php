@@ -74,7 +74,7 @@ class GlobalSearchController extends AuthenticatedController
                                 $result[$id]['fullsearch'] = $classes[$id]->getSearchURL($search);
                             }
 
-                            if (count($result[$id]['content']) < Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
+                            //if (count($result[$id]['content']) < Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
                                 $arg = $data['type'] && count($data) == 2 ? $data['id'] : $data;
 
                                 // Filter item and add to result if necessary.
@@ -82,7 +82,7 @@ class GlobalSearchController extends AuthenticatedController
                                     $result[$id]['name'] = $classes[$id]->getName();
                                     $result[$id]['content'][] = $item;
                                 }
-                            }
+                            //}
                         }
                     }
                 }

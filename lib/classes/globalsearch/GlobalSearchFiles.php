@@ -175,7 +175,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                             OR fo.`range_id` = '" . $GLOBALS['user']->id . "'
                             OR fo.`range_id` IN ('" . implode("', '", $institutes) . "'))
                             AND (r.`name` LIKE {$query} OR r.`description` LIKE {$query})
-                        ORDER BY r.`chdate` DESC LIMIT " . (3 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                        ORDER BY r.`chdate` DESC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
             }
         }
 

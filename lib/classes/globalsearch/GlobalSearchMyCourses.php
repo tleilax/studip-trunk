@@ -46,7 +46,7 @@ class GlobalSearchMyCourses extends GlobalSearchModule
                         OR CONCAT_WS(' ', `sem_types`.`name`, courses.`Name`) LIKE $query
                     )
             ORDER BY `start_time` DESC
-            LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
+            LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $sql;
     }
 

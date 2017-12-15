@@ -74,7 +74,7 @@ class GlobalSearchModules extends GlobalSearchModule
                     )
                   GROUP BY `m`.`modul_id`
                   ORDER BY `m`.`code`, `md`.`bezeichnung`
-                  LIMIT {$limit}";
+                  LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $query;
     }
 

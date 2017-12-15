@@ -43,7 +43,7 @@ class GlobalSearchMessages extends GlobalSearchModule
                 JOIN `message_user` USING (`message_id`)
             WHERE `user_id` = $user_id
                 AND (`subject` LIKE $query OR `message` LIKE $query)
-            ORDER BY `message`.`mkdate` DESC LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
+            ORDER BY `message`.`mkdate` DESC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $sql;
     }
 

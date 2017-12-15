@@ -10208,6 +10208,9 @@ div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article s
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section:hover {
   background-color: rgba(109, 114, 122, 0.2);
 }
+div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section.globalsearch-extended-result {
+  display: none;
+}
 div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-img {
   flex: none;
   height: 36px;

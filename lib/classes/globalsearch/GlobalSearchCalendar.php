@@ -55,7 +55,7 @@ class GlobalSearchCalendar extends GlobalSearchModule
                 WHERE user_id = $user_id
                     AND `date` BETWEEN $time AND $endtime
                 ORDER BY `date`
-                LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
+                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         }
     }
 

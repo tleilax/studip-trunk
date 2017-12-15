@@ -1,6 +1,10 @@
 STUDIP.GlobalSearch = {
 
-    // Toggles visibility of search input field and hints.
+    /**
+     * Toggles visibility of search input field and hints.
+     * @param mode 'show' or 'hide'
+     * @returns {boolean}
+     */
     toggleSearchBar: function(mode) {
         var input = $('#globalsearch-input');
         var list = $('#globalsearch-list');
@@ -18,7 +22,9 @@ STUDIP.GlobalSearch = {
         return false;
     },
 
-    // Performs the actual search.
+    /**
+     * Performs the actual search.
+     */
     doSearch: function() {
         var searchterm = $('#globalsearch-input').val();
         if (searchterm != '') {
@@ -56,10 +62,15 @@ STUDIP.GlobalSearch = {
                             // Iterate over each result category.
                             $.each(data, function(name, value) {
                                 // Create an <article> for category.
-                                var category = $('<article>');
+                                var category = $('<article id="globalsearch-' + name + '">');
                                 var header = $('<header>');
                                 header.append($('<div class="globalsearch-category">').
-                                    text(value.name));
+                                    append($('<a href="">').
+                                        on('click', function() {
+                                            STUDIP.GlobalSearch.expandCategory(name);
+                                            return false;
+                                        }).
+                                        text(value.name)));
                                 /*
                                  * We have more search results than shown,
                                  * provide link to full search if available.
@@ -73,21 +84,17 @@ STUDIP.GlobalSearch = {
                                 }
                                 resultsDiv.append(category.append(header));
 
+                                var counter = 0;
+                                var resultsPerType = $(resultsDiv).data('results-per-type');
                                 // Process results and create corresponding entries.
                                 $.each(value.content, function(index, result) {
-                                    // Build detail text.
-                                    var description = null;
-                                    if (result.description != null) {
-                                        description = $('<div class="globalsearch-result-description">').
-                                            html($.parseHTML(result.description));
-                                    }
-                                    var additional = null;
-                                    if (result.additional != null) {
-                                        additional = $('<div class="globalsearch-result-additional">').
-                                            html($.parseHTML(result.additional));
-                                    }
                                     // Create single result entry.
                                     var single = $('<section>');
+
+                                    if (counter >= resultsPerType) {
+                                        single.addClass('globalsearch-extended-result');
+                                    }
+
                                     // Optional image...
                                     if (result.img != null) {
                                         single.append($('<div class="globalsearch-result-img">').
@@ -101,15 +108,24 @@ STUDIP.GlobalSearch = {
                                             html($.parseHTML(result.name))));
                                     // Details like:
                                     var singleDetails = $('<div class="globalsearch-result-details">');
+
+                                    var description = null;
                                     // Descriptional text
-                                    if (description != null) {
+                                    if (result.description != null) {
+                                        description = $('<div class="globalsearch-result-description">').
+                                        html($.parseHTML(result.description));
                                         singleDetails.append(description);
                                     }
                                     // Additional information
-                                    if (additional != null) {
+                                    var additional = null;
+                                    if (result.additional != null) {
+                                        additional = $('<div class="globalsearch-result-additional">').
+                                        html($.parseHTML(result.additional));
                                         singleDetails.append(additional);
                                     }
+
                                     dataDiv.append(singleDetails);
+
                                     // Date/Time of entry
                                     if (result.date != null) {
                                         var singleTime = $('<div class="globalsearch-result-time">').
@@ -131,6 +147,8 @@ STUDIP.GlobalSearch = {
                                         single.append(singleExpand);
                                     }
                                     category.append(single);
+
+                                    counter++;
                                 });
                             });
                         } else {
@@ -145,13 +163,56 @@ STUDIP.GlobalSearch = {
         }
     },
 
+    /**
+     * Clear search term and remove results for previous search term.
+     */
     resetSearch: function() {
         $('#globalsearch-input').val('');
         $('#globalsearch-clear').addClass('hidden-js');
         $('#globalsearch-results').html('');
         $('#globalsearch-input').focus();
-    }
+    },
 
+    /**
+     * Expand a single category, showing more results, and hide other
+     * categories.
+     * @param category
+     * @returns {boolean}
+     */
+    expandCategory: function(category) {
+        // Hide other categories.
+        $('#globalsearch-results article:not([id="globalsearch-' + category + '"])').hide();
+        // Show all results.
+        $('#globalsearch-' + category + ' section.globalsearch-extended-result').
+            removeClass('globalsearch-extended-result');
+        // Reassign category click to closing extended view.
+        $('#globalsearch-results article#globalsearch-' + category + ' header a').
+            off('click').
+            on('click', function() {
+                STUDIP.GlobalSearch.showAllCategories(category);
+                return false;
+            });
+        return false;
+    },
+
+    /**
+     * Close expanded view of a single category, showing normal view with
+     * all categories again.
+     * @param currentCategory
+     */
+    showAllCategories: function(currentCategory) {
+        $('#globalsearch-results article#globalsearch-' + currentCategory + ' header a').
+            off('click').
+            on('click', function() {
+                STUDIP.GlobalSearch.expandCategory(currentCategory);
+                return false;
+            });
+        var resultCount = $('#globalsearch-results').data('results-per-type') - 1;
+        $('#globalsearch-' + currentCategory + ' section:gt(' + resultCount + ')').
+            addClass('globalsearch-extended-result');
+        $('#globalsearch-results').children('article:not([id="globalsearch-' + currentCategory + '"])').show();
+        return false;
+    }
 };
 
 $(function () {

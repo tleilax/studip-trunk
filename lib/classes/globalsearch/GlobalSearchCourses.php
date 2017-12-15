@@ -68,7 +68,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
         }
 
         $sql .= ", courses. `Name`";
-        $sql .= " LIMIT ".(Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
+        $sql .= " LIMIT ".(4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
 
         return $sql;
     }

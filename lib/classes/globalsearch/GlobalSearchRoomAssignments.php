@@ -40,7 +40,8 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
                 JOIN `resources_objects` r USING (`resource_id`)
             WHERE a.`user_free_name` != ''
                 AND a.`user_free_name` IS NOT NULL
-                AND (a.`user_free_name` LIKE $query";
+                AND (a.`user_free_name` LIKE $query
+            ORDER BY a.`begin` DESC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
 
         $datefilter = '';
 

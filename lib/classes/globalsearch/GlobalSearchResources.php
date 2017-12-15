@@ -32,7 +32,7 @@ class GlobalSearchResources extends GlobalSearchModule
                 OR `description` LIKE $query
                 OR REPLACE(`name`, ' ', '') LIKE $query
                 OR REPLACE(`description`, ' ', '') LIKE $query
-            ORDER BY `name` ASC LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
+            ORDER BY `name` ASC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
     }
 
     public static function filter($res, $search)

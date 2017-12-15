@@ -48,7 +48,7 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
                     OR CONCAT_WS(' ', user.`Vorname`, user.`Nachname`) LIKE $query
                     OR `username` LIKE $query
                 )
-            LIMIT ".(Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
+            LIMIT ".(4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $sql;
     }
 

@@ -55,7 +55,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
                     OR `content` LIKE $query
                 ) $seminaruser
             ORDER BY `chdate` DESC
-            LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
+            LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $sql;
     }
 

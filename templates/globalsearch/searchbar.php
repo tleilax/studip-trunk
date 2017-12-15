@@ -12,7 +12,8 @@
         </a>
         <?= $GLOBALS['template_factory']->render('globalsearch/_hints') ?>
         <div id="globalsearch-results" class="hidden-js" data-loading-text="<?= _('Suche...') ?>"
-             data-no-result="<?= _('Keine Ergebnisse gefunden.') ?>" data-more-results="<?= _('alle anzeigen') ?>">
+             data-no-result="<?= _('Keine Ergebnisse gefunden.') ?>" data-more-results="<?= _('alle anzeigen') ?>"
+             data-results-per-type="<?= Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE ?>">
         </div>
     </div>
 </div>
