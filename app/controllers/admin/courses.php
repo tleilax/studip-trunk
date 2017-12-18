@@ -611,6 +611,10 @@ class Admin_CoursesController extends AuthenticatedController
                 $row['room_time'] = $_room ?: _('nicht angegeben');
             }
 
+            if (in_array('requests', $filter_config)) {
+                $row['requests'] = $course['requests'];
+            }
+
             if (in_array('teachers', $filter_config)) {
                 $row['teachers'] = implode(', ', array_map(function ($d) {return $d['fullname'];}, $course['dozenten']));
             }
@@ -938,11 +942,11 @@ class Admin_CoursesController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         $course = Course::find($course_id);
-        $course->is_complete = !$course->is_complete;
+        $course->completion = ($course->completion + 1) % 3;
         $course->store();
 
         if (Request::isXhr()) {
-            $this->render_json((bool)$course->is_complete);
+            $this->render_json((int)$course->completion);
         } else {
             $this->redirect('admin/courses/index#course-' . $course_id);
         }
@@ -1116,6 +1120,7 @@ class Admin_CoursesController extends AuthenticatedController
             'type'          => _('Veranstaltungstyp'),
             'room_time'     => _('Raum/Zeit'),
             'semester'      => _('Semester'),
+            'requests'      => _('Raumanfragen'),
             'teachers'      => _('Lehrende'),
             'members'       => _('Teilnehmende'),
             'waiting'       => _('Personen auf Warteliste'),
@@ -1226,8 +1231,6 @@ class Admin_CoursesController extends AuthenticatedController
         $filter->filterByInstitute($inst_ids);
         if ($params['sortby'] === "status") {
             $filter->orderBy(sprintf('sem_classes.name %s, sem_types.name %s, VeranstaltungsNummer', $params['sortFlag'], $params['sortFlag'], $params['sortFlag']), $params['sortFlag']);
-        } elseif ($params['sortby'] === 'completion') {
-            $filter->orderBy('is_complete', $params['sortFlag']);
         } elseif ($params['sortby']) {
             $filter->orderBy($params['sortby'], $params['sortFlag']);
         }
