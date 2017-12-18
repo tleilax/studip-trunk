@@ -14,9 +14,13 @@ STUDIP.GlobalSearch = {
             input.css('width', '425');
             list.removeClass('hidden-js');
         } else if (mode == 'hide') {
-            list.addClass('hidden-js');
             input.attr('size', '30');
             input.css('width', '');
+            input.val('');
+            $('#globalsearch-clear').addClass('hidden-js');
+            $('#globalsearch-results').html('');
+            list.addClass('hidden-js');
+            input.blur();
         }
 
         return false;
@@ -253,12 +257,16 @@ $(function () {
         var hints = $('#globalsearch-hints');
         hints.toggleClass('hidden-js');
     });
-    // Bind search to STRG + Space.
+    // Key bindings.
     $(window).keydown(function (e) {
         // ctrl + space
         if (e.which === 32 && e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
             e.preventDefault();
-            STUDIP.GlobalSearch.toggleSearchBar();
+            $('#globalsearch-input').focus();
+        // escape
+        } else if (e.which === 27 && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+            e.preventDefault();
+            STUDIP.GlobalSearch.toggleSearchBar('hide');
         }
     });
 
