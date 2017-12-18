@@ -42,12 +42,35 @@ class ConfigValues extends Migration
 
         $db->exec('DELETE FROM config WHERE is_default = 0');
 
+        // migrate setting from seminare.student_mailing
+        $stmt = $db->prepare('INSERT INTO config (config_id, field, value, is_default, type, `range`, mkdate, chdate, description)
+                              VALUES (MD5(:name), :name, :value, 1, :type, :range, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)');
+        $stmt->execute(array(
+            'name'        => 'COURSE_STUDENT_MAILING',
+            'description' => 'Über diese Option können Sie Studierenden das Schreiben von Nachrichten an alle anderen Teilnehmer der Veranstaltung erlauben.',
+            'range'       => 'course',
+            'type'        => 'boolean',
+            'value'       => '0'
+        ));
+
+        $db->exec("INSERT INTO config_values (field, range_id, value, mkdate, chdate)
+                   SELECT 'COURSE_STUDENT_MAILING', Seminar_id, student_mailing, mkdate, chdate
+                   FROM seminare WHERE student_mailing = 1");
+
+        $db->exec('ALTER TABLE seminare DROP student_mailing');
+
         SimpleORMap::expireTableScheme();
     }
 
     function down()
     {
         $db = DBManager::get();
+
+        // migrate setting to seminare.student_mailing
+        $db->exec('ALTER TABLE seminare ADD student_mailing tinyint(1) unsigned NOT NULL DEFAULT 0');
+
+        $db->exec("UPDATE config_values JOIN seminare ON range_id = Seminar_id
+                   SET student_mailing = value WHERE field = 'COURSE_STUDENT_MAILING'");
 
         // delete no longer supported values
         $db->exec("DELETE config, config_values FROM config JOIN config_values USING(field) WHERE `range` = 'course'");
