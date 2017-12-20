@@ -23,6 +23,8 @@ class ConfigValues extends Migration
 
         // drop unused fields and update range
         $db->exec("ALTER TABLE config DROP parent_id, DROP position, DROP message_template,
+                   CHANGE field field varchar(255) COLLATE latin1_bin NOT NULL,
+                   CHANGE type type enum('boolean', 'integer', 'string', 'array') COLLATE latin1_bin NOT NULL DEFAULT 'string',
                    CHANGE `range` `range` enum('global', 'user', 'course') COLLATE latin1_bin NOT NULL DEFAULT 'global'");
 
         // create new table and migrate all settings
@@ -30,11 +32,11 @@ class ConfigValues extends Migration
                    RENAME TO config_values,
                    DROP userconfig_id,
                    DROP parent_id,
+                   CHANGE field field varchar(255) COLLATE latin1_bin NOT NULL,
                    CHANGE user_id range_id varchar(32) COLLATE latin1_bin NOT NULL AFTER field,
                    ADD PRIMARY KEY (field, range_id),
                    ADD KEY range_id (range_id),
-                   DROP KEY user_id,
-                   DROP KEY field");
+                   DROP KEY user_id");
 
         $db->exec("INSERT INTO config_values (field, range_id, value, comment, mkdate, chdate)
                    SELECT field, 'studip', value, comment, mkdate, chdate
@@ -42,9 +44,12 @@ class ConfigValues extends Migration
 
         $db->exec('DELETE FROM config WHERE is_default = 0');
 
+        // drop more obsolete fields
+        $db->exec('ALTER TABLE config DROP config_id, DROP is_default, DROP comment, DROP KEY field, ADD PRIMARY KEY (field)');
+
         // migrate setting from seminare.student_mailing
-        $stmt = $db->prepare('INSERT INTO config (config_id, field, value, is_default, type, `range`, mkdate, chdate, description)
-                              VALUES (MD5(:name), :name, :value, 1, :type, :range, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)');
+        $stmt = $db->prepare('INSERT INTO config (field, value, type, `range`, mkdate, chdate, description)
+                              VALUES (:name, :value, :type, :range, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)');
         $stmt->execute(array(
             'name'        => 'COURSE_STUDENT_MAILING',
             'description' => 'Über diese Option können Sie Studierenden das Schreiben von Nachrichten an alle anderen Teilnehmer der Veranstaltung erlauben.',
@@ -75,12 +80,23 @@ class ConfigValues extends Migration
         // delete no longer supported values
         $db->exec("DELETE config, config_values FROM config JOIN config_values USING(field) WHERE `range` = 'course'");
 
+        // restore old primary key
+        $db->exec("ALTER TABLE config
+                   ADD config_id varchar(32) COLLATE latin1_bin NOT NULL DEFAULT '' FIRST,
+                   ADD is_default tinyint(4) NOT NULL DEFAULT 0 AFTER value,
+                   ADD comment text NOT NULL,
+                   DROP PRIMARY KEY");
+
+        $db->exec('UPDATE config SET config_id = MD5(field), is_default = 1');
+        $db->exec('ALTER TABLE config ADD PRIMARY KEY (config_id), ADD KEY field (field, `range`)');
+
         // restore user_config and old settings
         $db->exec("ALTER TABLE config_values
                    RENAME TO user_config,
                    ADD userconfig_id varchar(32) COLLATE latin1_bin NOT NULL DEFAULT '' FIRST,
                    ADD parent_id varchar(32) COLLATE latin1_bin DEFAULT NULL AFTER userconfig_id,
-                   CHANGE range_id user_id varchar(32) COLLATE latin1_bin NOT NULL AFTER parent_id");
+                   CHANGE range_id user_id varchar(32) COLLATE latin1_bin NOT NULL AFTER parent_id,
+                   CHANGE field field varchar(255) NOT NULL DEFAULT ''");
 
         $db->exec('UPDATE user_config SET userconfig_id = MD5(CONCAT(field, user_id))');
 
@@ -88,8 +104,7 @@ class ConfigValues extends Migration
                    DROP PRIMARY KEY,
                    DROP KEY range_id,
                    ADD PRIMARY KEY (userconfig_id),
-                   ADD KEY user_id (user_id, field, value(5)),
-                   ADD KEY field (field, value(10))");
+                   ADD KEY user_id (user_id, field, value(5))");
 
         $db->exec("INSERT INTO config (config_id, field, value, is_default, type, `range`, section, mkdate, chdate, description, comment)
                    SELECT userconfig_id, field, user_config.value, 0, type, `range`, section,
@@ -100,6 +115,8 @@ class ConfigValues extends Migration
 
         // restore unused fields and update range
         $db->exec("ALTER TABLE config
+                   CHANGE field field varchar(255) NOT NULL DEFAULT '',
+                   CHANGE type type enum('boolean', 'integer', 'string', 'array') COLLATE latin1_bin NOT NULL DEFAULT 'boolean',
                    CHANGE `range` `range` enum('global', 'user') COLLATE latin1_bin NOT NULL DEFAULT 'global',
                    ADD parent_id varchar(32) COLLATE latin1_bin NOT NULL DEFAULT '' AFTER config_id,
                    ADD position int(11) NOT NULL DEFAULT 0 AFTER section,

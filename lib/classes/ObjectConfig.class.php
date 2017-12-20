@@ -129,73 +129,23 @@ class ObjectConfig extends Config
         return $this->range_id;
     }
 
-    /** old style usage with $range_id, $key as params
-     * still works but is deprecated
-     *
+    /**
      * @see lib/classes/Config::getValue()
      */
     function getValue($field)
     {
-        $args = func_get_args();
-        if(count($args) > 1) {
-            list($range_id, $key) = $args;
-            if($range_id !== null && $key !== null) {
-                $ret = self::get($range_id)->$key;
-            }
-            if($range_id === null) {
-                $ret = parent::getValue($key);
-            }
-            trigger_error('deprecated use of ' . __METHOD__, E_USER_NOTICE);
-            return $ret;
-        }
         if (array_key_exists($field, $this->data)) {
             return $this->data[$field];
         }
         return null;
     }
 
-    /** old style usage with $value, $range_id, $key as params
-     * still works but is deprecated
-     *
-     * @see lib/classes/Config::setValue()
-     */
-    function setValue($field, $value)
-    {
-        $args = func_get_args();
-        if(count($args) > 2) {
-            list($value, $range_id, $key) = $args;
-            if($range_id !== null && $key !== null) {
-                $ret = self::get($range_id)->store($key, $value);
-            }
-            if($range_id === null && $key !== null) {
-                $ret = $this->store($key, $value);
-            }
-            trigger_error('deprecated use of ' . __METHOD__, E_USER_NOTICE);
-            return $ret;
-        }
-        return parent::setValue($field, $value);
-    }
-
     /**
-     * old style usage with $range_id, $key as params
-     * still works but is deprecated
      * @param string $field
      * @return bool
      */
     function unsetValue($field)
     {
-        $args = func_get_args();
-        if(count($args) > 1) {
-            list($range_id, $key) = $args;
-            if($range_id !== null && $key !== null) {
-                $ret = self::get($range_id)->delete($key);
-            }
-            if($range_id === null) {
-                $ret = $this->delete($key);
-            }
-            trigger_error('deprecated use of ' . __METHOD__, E_USER_NOTICE);
-            return $ret;
-        }
         return $this->delete($field);
     }
 

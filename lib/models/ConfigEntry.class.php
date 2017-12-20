@@ -13,18 +13,15 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  *
- * @property string config_id database column
- * @property string id alias column for config_id
+ * @property string id alias column for field
  * @property string field database column
  * @property string value database column
- * @property string is_default database column
  * @property string type database column
  * @property string range database column
  * @property string section database column
  * @property string mkdate database column
  * @property string chdate database column
  * @property string description database column
- * @property string comment database column
  */
 
 class ConfigEntry extends SimpleORMap
@@ -37,7 +34,6 @@ class ConfigEntry extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'config';
-        $config['default_values']['type'] = 'string';
         parent::configure($config);
     }
 }
