@@ -399,9 +399,10 @@ class MessagesController extends AuthenticatedController {
         }
         $settings = UserConfig::get($GLOBALS['user']->id)->MESSAGING_SETTINGS;
         $this->mailforwarding = Request::get('emailrequest') ? true : $settings['request_mail_forward'];
-        $this->show_adressees = Request::get('inst_id') || Request::get('course_id') || Request::option("group_id")
-            ? false
-            : true;
+        $this->show_adressees = true;
+        if (Request::get('inst_id') || Request::get('course_id') || Request::option('group_id')) {
+            $this->show_adressees = false;
+        }
         if (trim($settings['sms_sig'])) {
             if (Studip\Markup::editorEnabled()) {
                 $this->default_message['message'] .= Studip\Markup::markAsHtml('<br><hr>' . Studip\Markup::markupToHtml($settings['sms_sig']));
