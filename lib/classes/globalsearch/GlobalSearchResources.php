@@ -9,7 +9,6 @@
  */
 class GlobalSearchResources extends GlobalSearchModule
 {
-
     /**
      * Returns the displayname for this module
      *
@@ -27,24 +26,26 @@ class GlobalSearchResources extends GlobalSearchModule
         }
         $query = DBManager::get()->quote("%$search%");
         return "SELECT `resource_id`, `name`, `description`
-            FROM `resources_objects`
-            WHERE `name` LIKE $query
-                OR `description` LIKE $query
-                OR REPLACE(`name`, ' ', '') LIKE $query
-                OR REPLACE(`description`, ' ', '') LIKE $query
-            ORDER BY `name` ASC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                FROM `resources_objects`
+                WHERE `name` LIKE $query
+                  OR `description` LIKE $query
+                  OR REPLACE(`name`, ' ', '') LIKE $query
+                  OR REPLACE(`description`, ' ', '') LIKE $query
+                ORDER BY `name` ASC
+                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
     }
 
     public static function filter($res, $search)
     {
         return array(
             'name' => self::mark($res['name'], $search),
-            'url' => URLHelper::getURL("resources.php",
-                array('view' => 'view_schedule', 'show_object' => $res['resource_id'])),
-            'img' => Icon::create('resources', 'info')->asImagePath(),
+            'url'  => URLHelper::getURL('resources.php', [
+                'view'        => 'view_schedule',
+                'show_object' => $res['resource_id'],
+            ]),
+            'img'        => Icon::create('resources', 'info')->asImagePath(),
             'additional' => self::mark($res['description'], $search),
-            'expand' => URLHelper::getURL('resources.php',
-                ['view' => 'search', 'search_exp' => $search, 'start_search' => ''])
+            'expand'     => self::getSearchURL($search),
         );
     }
 
@@ -57,11 +58,10 @@ class GlobalSearchResources extends GlobalSearchModule
      */
     public static function getSearchURL($searchterm)
     {
-        return URLHelper::getURL("resources.php", [
-            'view' => 'search',
-            'search_exp' => $searchterm,
+        return URLHelper::getURL('resources.php', [
+            'view'         => 'search',
+            'search_exp'   => $searchterm,
             'start_search' => ''
         ]);
     }
-
 }

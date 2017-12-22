@@ -9,7 +9,6 @@
  */
 class GlobalSearchCalendar extends GlobalSearchModule
 {
-
     /**
      * Returns the displayname for this module
      *
@@ -29,7 +28,7 @@ class GlobalSearchCalendar extends GlobalSearchModule
      */
     public static function getSearchURL($searchterm)
     {
-        return URLHelper::getURL("dispatch.php/calendar/single/week", [
+        return URLHelper::getURL('dispatch.php/calendar/single/week', [
             'atime' => strtotime($searchterm)
         ]);
     }
@@ -45,17 +44,18 @@ class GlobalSearchCalendar extends GlobalSearchModule
      */
     public static function getSQL($search)
     {
-        $time = strtotime($search);
-        $endtime = $time + 86400;
+        $time    = strtotime($search);
+        $endtime = $time + 24 * 60 * 60;
         $user_id = DBManager::get()->quote($GLOBALS['user']->id);
+
         if ($time) {
             return "SELECT `name`, `date`, `end_time`, `seminar_id`
-                FROM `termine`
+                    FROM `termine`
                     JOIN `seminar_user` ON (`range_id` = `seminar_id`)
-                WHERE user_id = $user_id
-                    AND `date` BETWEEN $time AND $endtime
-                ORDER BY `date`
-                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                    WHERE user_id = {$user_id}
+                      AND `date` BETWEEN {$time} AND {$endtime}
+                    ORDER BY `date`
+                    LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         }
     }
 
@@ -77,15 +77,18 @@ class GlobalSearchCalendar extends GlobalSearchModule
      */
     public static function filter($termin, $search)
     {
-        return array(
-            'name' => htmlReady($termin['name']),
-            'url' => URLHelper::getURL("dispatch.php/course/details", array('cid' => $termin['seminar_id'])),
-            'img' => Icon::create('schedule', 'info')->asImagePath(),
-            'additional' => strftime('%H:%M', $termin['date']) . " - " .
-                strftime('%H:%M', $termin['end_time']) . ", " .
-                strftime('%x', $termin['date']),
-            'expand' => URLHelper::getURL('dispatch.php/calendar/single/week',
-                ['atime' => strtotime($search)])
-        );
+        $additional  = strftime('%H:%M', $termin['date']) . ' - ';
+        $additional .= strftime('%H:%M', $termin['end_time']) . ', ';
+        $additional .= strftime('%x', $termin['date']);
+
+        return [
+            'name'       => htmlReady($termin['name']),
+            'url'        => URLHelper::getURL('dispatch.php/course/details', [
+                'cid' => $termin['seminar_id'],
+            ]),
+            'img'        => Icon::create('schedule', 'info')->asImagePath(),
+            'additional' => $additional,
+            'expand'     => self::getSearchURL($search),
+        ];
     }
 }

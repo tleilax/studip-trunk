@@ -1,177 +1,174 @@
 div#globalsearch-searchbar {
-
-  position: relative;
-
-  #globalsearch-clear {
-    height: 16px;
-    left: -22px;
     position: relative;
-    top: 3px;
-    width: 16px;
-  }
 
-  a#globalsearch-icon {
-    position: relative;
-    top: 6px;
-  }
-
-  input#globalsearch-input {
-    width: 423px;
-  }
-
-  div#globalsearch-list {
-    background-color: @white;
-    box-shadow: 0px 5px 8px rgba(0,0,0,0.5);
-    color: @text-color;
-    font-size: 18px;
-    font-weight: normal;
-    overflow: hidden;
-    padding: 5px;
-    position: absolute;
-    width: 215px;
-
-    a {
-      color: @base-color;
-
-      &#globalsearch-togglehints {
-        font-size: @font-size-small;
-      }
-
-      &:hover {
-        color: @active-color;
-      }
+    #globalsearch-clear {
+        height: 16px;
+        left: -22px;
+        position: relative;
+        top: 3px;
+        width: 16px;
     }
 
-    section {
-
-      color: @text-color;
-
-      header {
-        h1 {
-          color: @base-color;
-          border-bottom: none;
-          margin-top: 10px;
-        }
-      }
-
-      p {
-        margin-left: 10px;
-        margin-top: -10px;
-        font-size: 12px;
-      }
+    a#globalsearch-icon {
+        position: relative;
+        top: 6px;
     }
 
-    div#globalsearch-results {
-      border-top: 1px solid @light-gray-color-60;
-      overflow: scroll;
-      padding-top: 10px;
+    input#globalsearch-input {
+        width: 423px;
+    }
 
-      div#globalsearch-loading-text {
-        text-align: center;
-        font-style: italic;
-        color: @dark-gray-color-80;
-      }
+    div#globalsearch-list {
+        background-color: @white;
+        box-shadow: 0px 5px 8px rgba(0,0,0,0.5);
+        color: @text-color;
+        font-size: 18px;
+        font-weight: normal;
+        overflow: hidden;
+        padding: 5px;
+        position: absolute;
+        width: 215px;
 
-      #globalsearch-loading-icon {
-        height: 32px;
-        width: 32px;
-      }
+        a {
+            color: @base-color;
 
-      article {
-        border: 1px solid @content-color-40;
-        margin: 3px;
+            &#globalsearch-togglehints {
+                font-size: @font-size-small;
+            }
 
-        > header {
-          background-color: @content-color-20;
-          color: @base-color;
-          display: flex;
-          flex-direction: row;
-          flex-wrap: nowrap;
-          font-weight: bold;
-          padding: 3px;
-
-          div.globalsearch-category {
-            flex: auto;
-          }
-
-          div.globalsearch-more-results {
-            flex: none;
-            font-size: @font-size-small;
-            font-weight: normal;
-            line-height: @font-size-h3;
-            text-align: right;
-            width: 100px;
-          }
+            &:hover {
+                color: @active-color;
+            }
         }
 
         section {
-          display: flex;
-          flex-direction: row;
-          flex-wrap: nowrap;
-          padding-top: 3px;
-          padding-bottom: 3px;
+            color: @text-color;
 
-          &:not(:last-child) {
-            border-bottom: 1px solid @content-color-40;
-          }
-
-          &:hover {
-            background-color: fadeout(@light-gray-color, 80%);
-          }
-
-          &.globalsearch-extended-result {
-            display: none;
-          }
-
-          div.globalsearch-result-img {
-            flex: none;
-            height: 36px;
-            margin-left: 6px;
-            margin-right: 6px;
-            width: 36px;
-          }
-
-          div.globalsearch-result-data {
-            flex: auto;
-            overflow: hidden;
-            padding-left: 6px;
-            padding-right: 6px;
-
-            div.globalsearch-result-link {
-              font-size: @font-size;
-              font-weight: bold;
-
-              a {
-                margin: 0;
-              }
+            header {
+                h1 {
+                    color: @base-color;
+                    border-bottom: none;
+                    margin-top: 10px;
+                }
             }
 
-            div.globalsearch-result-details {
-              color: @dark-gray-color-80;
-              font-size: @font-size-small;
+            p {
+                font-size: 12px;
+                margin-left: 10px;
+                margin-top: -10px;
             }
-          }
-
-          div.globalsearch-result-time {
-            color: @dark-gray-color-80;
-            flex: none;
-            font-size: ceil(@font-size-small * 0.85);
-            font-weight: normal;
-            font-style: italic;
-            margin-right: 6px;
-            text-align: right;
-            width: 60px;
-          }
-
-          div.globalsearch-result-expand {
-            flex: none;
-            margin-bottom: auto;
-            margin-top: auto;
-            width: 20px;
-          }
         }
-      }
-    }
-  }
 
+        div#globalsearch-results {
+            border-top: 1px solid @light-gray-color-60;
+            overflow: scroll;
+            padding-top: 10px;
+
+            div#globalsearch-loading-text {
+                text-align: center;
+                font-style: italic;
+                color: @dark-gray-color-80;
+            }
+
+            #globalsearch-loading-icon {
+                height: 32px;
+                width: 32px;
+            }
+
+            article {
+                border: 1px solid @content-color-40;
+                margin: 3px;
+
+                > header {
+                    background-color: @content-color-20;
+                    color: @base-color;
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    font-weight: bold;
+                    padding: 3px;
+
+                    div.globalsearch-category {
+                        flex: auto;
+                    }
+
+                    div.globalsearch-more-results {
+                        flex: none;
+                        font-size: @font-size-small;
+                        font-weight: normal;
+                        line-height: @font-size-h3;
+                        text-align: right;
+                        width: 100px;
+                    }
+                }
+
+                section {
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    padding-top: 3px;
+                    padding-bottom: 3px;
+
+                    &:not(:last-child) {
+                        border-bottom: 1px solid @content-color-40;
+                    }
+
+                    &:hover {
+                        background-color: fadeout(@light-gray-color, 80%);
+                    }
+
+                    &.globalsearch-extended-result {
+                        display: none;
+                    }
+
+                    div.globalsearch-result-img {
+                        flex: none;
+                        height: 36px;
+                        margin-left: 6px;
+                        margin-right: 6px;
+                        width: 36px;
+                    }
+
+                    div.globalsearch-result-data {
+                        flex: auto;
+                        overflow: hidden;
+                        padding-left: 6px;
+                        padding-right: 6px;
+
+                        div.globalsearch-result-link {
+                            font-size: @font-size;
+                            font-weight: bold;
+
+                            a {
+                                margin: 0;
+                            }
+                        }
+
+                        div.globalsearch-result-details {
+                            color: @dark-gray-color-80;
+                            font-size: @font-size-small;
+                        }
+                    }
+
+                    div.globalsearch-result-time {
+                        color: @dark-gray-color-80;
+                        flex: none;
+                        font-size: ceil(@font-size-small * 0.85);
+                        font-weight: normal;
+                        font-style: italic;
+                        margin-right: 6px;
+                        text-align: right;
+                        width: 60px;
+                    }
+
+                    div.globalsearch-result-expand {
+                        flex: none;
+                        margin-bottom: auto;
+                        margin-top: auto;
+                        width: 20px;
+                    }
+                }
+            }
+        }
+    }
 }

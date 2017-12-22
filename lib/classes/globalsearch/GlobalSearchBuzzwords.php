@@ -10,36 +10,44 @@
  */
 class GlobalSearchBuzzwords extends SimpleORMap
 {
-    protected static function configure($config = array()) {
+    protected static function configure($config = array())
+    {
         $config['db_table'] = 'globalsearch_buzzwords';
         $config['additional_fields']['rightsname'] = true;
         parent::configure($config);
     }
 
-    public function getRightsname() {
+    public function getRightsname()
+    {
         return array_search($this->rights, $GLOBALS['perm']->permissions);
     }
 
-    public static function getName() {
+    public static function getName()
+    {
         return _('Stichwörter');
     }
 
-    public static function getSQL($search) {
+    public static function getSQL($search)
+    {
         if (!$search) {
             return null;
         }
 
-        $query = DBManager::get()->quote("%$search%");
+        $query = DBManager::get()->quote("%{$search}%");
         $rights = $GLOBALS['perm']->permissions[$GLOBALS['perm']->get_perm()];
-        return "SELECT * FROM `globalsearch_buzzwords` WHERE `buzzwords` LIKE $query AND $rights >= rights";
+
+        return "SELECT *
+                FROM `globalsearch_buzzwords`
+                WHERE `buzzwords` LIKE {$query}
+                  AND {$rights} >= rights";
     }
 
     public static function filter($buzz, $search)
     {
-        return array(
-            'name' => htmlReady($buzz['name']),
-            'url' => $buzz['url'],
+        return [
+            'name'       => htmlReady($buzz['name']),
+            'url'        => $buzz['url'],
             'additional' => $buzz['subtitle']
-        );
+        ];
     }
 }

@@ -9,7 +9,6 @@
  */
 class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFulltext
 {
-
     /**
      * Returns the displayname for this module
      *
@@ -39,7 +38,8 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             $seminaruser = " AND EXISTS (
                 SELECT 1 FROM `seminar_user`
                 WHERE `forum_entries`.`seminar_id` = `seminar_user`.`seminar_id`
-                    AND `seminar_user`.`user_id` = ".DBManager::get()->quote($GLOBALS['user']->id).") ";
+                  AND `seminar_user`.`user_id` = " . DBManager::get()->quote($GLOBALS['user']->id)."
+              ) ";
         }
 
         // anonymous postings
@@ -49,13 +49,16 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             $anonymous = "";
         }
 
-        $sql = "SELECT `forum_entries`.* FROM `forum_entries`
-            WHERE $anonymous (
-                    `name` LIKE $query
-                    OR `content` LIKE $query
-                ) $seminaruser
-            ORDER BY `chdate` DESC
-            LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+        $sql = "SELECT `forum_entries`.*
+                FROM `forum_entries`
+                WHERE {$anonymous} (
+                    `name` LIKE {$query}
+                    OR `content` LIKE {$query}
+                )
+                {$seminaruser}
+                ORDER BY `chdate` DESC
+                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+
         return $sql;
     }
 
@@ -77,28 +80,48 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
      */
     public static function filter($data, $search)
     {
-        $user = User::find($data['user_id']);
+        $user   = User::find($data['user_id']);
         $course = Course::find($data['seminar_id']);
-        $result = array(
-            'id' => $data['topic_id'],
-            'name' => $data['name'] ? self::mark($data['name'], $search) :
-                ($course ? htmlReady($course->getFullname()) : _('Ohne Titel')),
-            'url' => URLHelper::getURL("plugins.php/coreforum/index/index/" . $data['topic_id'] .
-                '#' . $data['topic_id'], array('cid' => $data['seminar_id'])),
-            'img' => CourseAvatar::getAvatar($course->id)->getUrl(Avatar::MEDIUM),
-            'date' => strftime('%X %x', $data['chdate']),
-            'description' => self::mark($data['content'], $search, true),
-            'additional' => htmlReady((($user && !$data['anonymous']) ? $user->getFullname() :
-                    _('Anonym'))." "._('in')." ".($course ? $course->getFullname() : '')),
-            'expand' => URLHelper::getURL("plugins.php/coreforum/index/search", [
-                'cid' => $data['seminar_id'],
-                'backend' => 'search',
-                'searchfor' => $search,
-                'search_title' => 1,
-                'search_content' => 1,
-                'search_author' => 1
-            ])
+
+        // Get name
+        $name = _('Ohne Titel');
+        if ($data['name']) {
+            $name = self::mark($data['name'], $search);
+        } elseif ($course) {
+            $name = htmlReady($course->getFullname());
+        }
+
+        // Get additional info
+        if ($user && !$data['anonymous']) {
+            $temp = $user->getFullname();
+        } else {
+            $temp = _('Anonym');
+        }
+        $additional = sprintf(
+            _('%1$s in %2$s'),
+            $temp,
+            $course ? $course->getFullname() : _('Ohne Titel')
         );
+
+        $result = [
+            'id'          => $data['topic_id'],
+            'name'        => $name,
+            'url'         => URLHelper::getURL('plugins.php/coreforum/index/index/' . $data['topic_id'] .
+                '#' . $data['topic_id'], array('cid' => $data['seminar_id'])
+            ),
+            'img'         => CourseAvatar::getAvatar($course->id)->getUrl(Avatar::MEDIUM),
+            'date'        => strftime('%X %x', $data['chdate']),
+            'description' => self::mark($data['content'], $search, true),
+            'additional'  => htmlReady($additional),
+            'expand' => URLHelper::getURL('plugins.php/coreforum/index/search', [
+                'cid'            => $data['seminar_id'],
+                'backend'        => 'search',
+                'searchfor'      => $search,
+                'search_title'   => 1,
+                'search_content' => 1,
+                'search_author'  => 1
+            ]),
+        ];
         return $result;
     }
 
@@ -114,7 +137,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
 
     public static function getFulltextSearch($search)
     {
-        $search = str_replace(" ", "% ", $search);
+        $search = str_replace(' ', '% ', $search);
         $query = DBManager::get()->quote(preg_replace("/(\w+)[*]*\s?/", "+$1* ", $search));
         $words = substr(preg_replace("/\W*(\w+)\W*/", "$1|", $search), 0, -1);
         $quoteRegex = '`content` REGEXP "[[]quote=.*['.$words.'].*[]]|[<]admin_msg autor=.*[.'.$words.'.].*[>]" ASC, ';
@@ -124,20 +147,21 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             $seminaruser = " AND EXISTS (
                 SELECT 1 FROM `seminar_user`
                 WHERE `forum_entries`.`seminar_id` = `seminar_user`.`seminar_id`
-                    AND `seminar_user`.`user_id` = ".DBManager::get()->quote($GLOBALS['user']->id).") ";
+                  AND `seminar_user`.`user_id` = " . DBManager::get()->quote($GLOBALS['user']->id) . "
+            ) ";
         }
 
         // anonymous postings
         if (!$GLOBALS['perm']->have_perm('root') && Config::get()->FORUM_ANONYMOUS_POSTINGS) {
             $anonymous = "`anonymous` = 0 AND";
         } else {
-            $anonymous = "";
+            $anonymous = '';
         }
 
         $sql = "SELECT `forum_entries`.* FROM `forum_entries`
-            WHERE $anonymous MATCH(`name`, `content`) AGAINST($query IN BOOLEAN MODE)
-                $seminaruser
-            ORDER BY $quoteRegex `chdate` DESC LIMIT " . Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
+                WHERE {$anonymous} MATCH(`name`, `content`) AGAINST({$query} IN BOOLEAN MODE)
+                {$seminaruser}
+                ORDER BY $quoteRegex `chdate` DESC LIMIT " . Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
         return $sql;
     }
 }

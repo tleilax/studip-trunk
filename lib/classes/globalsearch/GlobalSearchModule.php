@@ -12,7 +12,6 @@
  */
 abstract class GlobalSearchModule
 {
-
     /**
      * Returns the displayname for this module
      *
@@ -73,20 +72,20 @@ abstract class GlobalSearchModule
         // Secure
         $string = strip_tags($string);
 
-        if (strpos($query, '/') !== FALSE) {
+        if (strpos($query, '/') !== false) {
             $args = explode('/', $query);
             if ($filename) {
                 return self::mark($string, trim($args[1]));
             }
             return self::mark($string, trim($args[0]));
-        } else {
-            $query = trim($query);
         }
 
-        // Replace direct string
-        $result = preg_replace("/$query/i", "<mark>$0</mark>", $string, -1, $found);
-        if ($found) {
+        $query = trim($query);
 
+        // Replace direct string
+        $result = preg_replace("/{$query}/i", "<mark>$0</mark>", $string, -1, $found);
+
+        if ($found) {
             // Check for overlength
             if ($longtext && strlen($result) > 100) {
                 $start = max(array(0, stripos($result, '<mark>') - 20));
@@ -99,13 +98,14 @@ abstract class GlobalSearchModule
         }
 
         // Replace camelcase
-        $replacement = "$" . (++$i);
+        $i = 1;
+        $replacement = "${$i}";
         foreach (str_split(strtoupper($query)) as $letter) {
-            $queryletter[] = "($letter)";
-            $replacement .= "<mark>$" . ++$i . "</mark>$" . ++$i;
+            $queryletter[] = "({$letter})";
+            $replacement .= '<mark>$' . ++$i . '</mark>$' . ++$i;
         }
 
-        $pattern = "/([\w\W]*)" . join('([\w\W]*)', $queryletter) . "/";
+        $pattern = '/([\w\W]*)' . join('([\w\W]*)', $queryletter) . '/';
         $result = preg_replace($pattern, $replacement, $string, -1, $found);
 
         if ($found) {
@@ -127,5 +127,4 @@ abstract class GlobalSearchModule
 
         return $string;
     }
-
 }

@@ -36,12 +36,12 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
         $query = DBManager::get()->quote('%' . trim($search) . '%');
 
         $sql = "SELECT DISTINCT a.`assign_id`, a.`user_free_name`, r.`resource_id`, r.`name`, a.`begin`, a.`end`
-            FROM `resources_assign` a
+                FROM `resources_assign` a
                 JOIN `resources_objects` r USING (`resource_id`)
-            WHERE a.`user_free_name` != ''
-                AND a.`user_free_name` IS NOT NULL
-                AND (a.`user_free_name` LIKE $query
-            ORDER BY a.`begin` DESC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                WHERE a.`user_free_name` != ''
+                  AND a.`user_free_name` IS NOT NULL
+                  AND (a.`user_free_name` LIKE {$query}
+                ORDER BY a.`begin` DESC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
 
         $datefilter = '';
 
@@ -73,18 +73,20 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
 
     public static function filter($res, $search)
     {
-        return array(
+        $additional  = $res['name'] . ', ';
+        $additional .= date('d.m.Y H:i', $res['begin']) . ' - ';
+        $additional .= date('d.m.Y H:i', $res['end']);
+
+        return [
             'name' => self::mark($res['user_free_name'], $search),
-            'url' => URLHelper::getURL("resources.php", [
-                'view' => 'view_schedule',
+            'url'  => URLHelper::getURL('resources.php', [
+                'view'        => 'view_schedule',
                 'show_object' => $res['resource_id'],
-                'start_time' => strtotime('last monday', $res['begin'] + 24*60*60)
+                'start_time'  => strtotime('last monday', $res['begin'] + 24*60*60)
             ]),
-            'img' => Icon::create('room-clear', 'info')->asImagePath(),
-            'additional' => self::mark($res['name'] . ', ' .
-                date('d.m.Y H:i', $res['begin']) . ' - ' .
-                date('d.m.Y H:i', $res['end']), $search),
-            'expand' => null
-        );
+            'img'        => Icon::create('room-clear', 'info')->asImagePath(),
+            'additional' => self::mark($additional, $search),
+            'expand'     => null
+        ];
     }
 }

@@ -9,7 +9,6 @@
  */
 class GlobalSearchInstitutes extends GlobalSearchModule
 {
-
     /**
      * Returns the displayname for this module
      *
@@ -34,10 +33,13 @@ class GlobalSearchInstitutes extends GlobalSearchModule
         if (!$search) {
             return null;
         }
-        $search = str_replace(" ", "% ", $search);
-        $query = DBManager::get()->quote("%$search%");
-        $sql = "SELECT * FROM `Institute` WHERE `Name` LIKE $query ORDER BY `Name` DESC LIMIT " .
-            (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+        $search = str_replace(' ', '% ', $search);
+        $query = DBManager::get()->quote("%{$search}%");
+        $sql = "SELECT *
+                FROM `Institute`
+                WHERE `Name` LIKE {$query}
+                ORDER BY `Name` DESC
+                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $sql;
     }
 
@@ -61,10 +63,12 @@ class GlobalSearchInstitutes extends GlobalSearchModule
     {
         $inst = Institute::buildExisting($inst_id);
         $result = [
-            'id' => $inst->id,
-            'name' => self::mark($inst->getFullname(), $search),
-            'url' => URLHelper::getURL("dispatch.php/institute/overview", array('cid' => $inst->id)),
-            'expand' => URLHelper::getURL('institut_browse.php', ['cmd' => 'suche', 'search_name' => $search])
+            'id'     => $inst->id,
+            'name'   => self::mark($inst->getFullname(), $search),
+            'url'    => URLHelper::getURL('dispatch.php/institute/overview', [
+                'cid' => $inst->id,
+            ]),
+            'expand' => self::getSearchURL($search),
         ];
         $avatar = InstituteAvatar::getAvatar($inst->id);
         $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
@@ -80,8 +84,8 @@ class GlobalSearchInstitutes extends GlobalSearchModule
      */
     public static function getSearchURL($searchterm)
     {
-        return URLHelper::getURL("institut_browse.php", [
-            'cmd' => 'suche',
+        return URLHelper::getURL('institut_browse.php', [
+            'cmd'         => 'suche',
             'search_name' => $searchterm
         ]);
     }

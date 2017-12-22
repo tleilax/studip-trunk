@@ -10,7 +10,6 @@
  */
 class GlobalSearchMessages extends GlobalSearchModule
 {
-
     /**
      * Returns the displayname for this module
      *
@@ -36,14 +35,15 @@ class GlobalSearchMessages extends GlobalSearchModule
             return null;
         }
 
-        $query = DBManager::get()->quote("%$search%");
+        $query = DBManager::get()->quote("%{$search}%");
         $user_id = DBManager::get()->quote($GLOBALS['user']->id);
         $sql = "SELECT `message`.*
-            FROM `message`
+                FROM `message`
                 JOIN `message_user` USING (`message_id`)
-            WHERE `user_id` = $user_id
-                AND (`subject` LIKE $query OR `message` LIKE $query)
-            ORDER BY `message`.`mkdate` DESC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                WHERE `user_id` = {$user_id}
+                  AND (`subject` LIKE {$query} OR `message` LIKE {$query})
+                ORDER BY `message`.`mkdate` DESC
+                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $sql;
     }
 
@@ -66,18 +66,20 @@ class GlobalSearchMessages extends GlobalSearchModule
     public static function filter($message_id, $search)
     {
         $message = Message::buildExisting($message_id);
-        $result = array(
-            'name' => self::mark($message->subject, $search),
-            'url' => URLHelper::getURL("dispatch.php/messages/overview/" . $message->id),
-            'img' => Icon::create('mail', 'info')->asImagePath(),
-            'date' => strftime('%x', $message->mkdate),
+
+        $additional = $message->autor_id === '____%system%____'
+                    ? _('Systemnachricht')
+                    : $message->author->getFullname();
+
+        $result = [
+            'name'        => self::mark($message->subject, $search),
+            'url'         => URLHelper::getURL('dispatch.php/messages/overview/' . $message->id),
+            'img'         => Icon::create('mail', 'info')->asImagePath(),
+            'date'        => strftime('%x', $message->mkdate),
             'description' => self::mark($message->message, $search, true),
-            'additional' => $message->autor_id != "____%system%____" ?
-                htmlReady($message->author->getFullname()) : _("Systemnachricht"),
-            'expand' => URLHelper::getURL("dispatch.php/messages/overview",
-                ['search' => $search, 'search_subject' => 1, 'search_content' => 1, 'search_autor' => 1]
-            )
-        );
+            'additional'  => htmlReady($additional),
+            'expand'      => self::getSearchURL($search),
+        ];
         return $result;
     }
 

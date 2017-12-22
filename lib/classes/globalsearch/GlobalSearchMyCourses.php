@@ -9,7 +9,6 @@
  */
 class GlobalSearchMyCourses extends GlobalSearchModule
 {
-
     /**
      * Returns the displayname for this module
      *
@@ -35,18 +34,18 @@ class GlobalSearchMyCourses extends GlobalSearchModule
             return null;
         }
         $search = str_replace(" ", "% ", $search);
-        $query = DBManager::get()->quote("%$search%");
+        $query = DBManager::get()->quote("%{$search}%");
         $user_id = DBManager::get()->quote($GLOBALS['user']->id);
         $sql = "SELECT courses.* FROM `seminare` AS  courses
                 JOIN `seminar_user` USING (`Seminar_id`)
                 JOIN `sem_types` ON (courses.`status` = `sem_types`.`id`)
-            WHERE `user_id` = $user_id
-                AND (courses.`Name` LIKE $query
+                WHERE `user_id` = $user_id
+                  AND (courses.`Name` LIKE $query
                         OR courses.`VeranstaltungsNummer` LIKE $query
                         OR CONCAT_WS(' ', `sem_types`.`name`, courses.`Name`) LIKE $query
-                    )
-            ORDER BY `start_time` DESC
-            LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                      )
+                ORDER BY `start_time` DESC
+                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $sql;
     }
 
@@ -69,19 +68,13 @@ class GlobalSearchMyCourses extends GlobalSearchModule
     public static function filter($course_id, $search)
     {
         $course = Course::buildExisting($course_id);
-        $result = array(
-            'id' => $course->id,
-            'name' => self::mark($course->getFullname(), $search),
-            'url' => URLHelper::getURL("dispatch.php/course/details/index/" . $course->id),
-            'date' => $course->start_semester->name,
-            'expand' => URLHelper::getURL("dispatch.php/search/courses", [
-                'reset_all' => 1,
-                'search_sem_qs_choose' => 'title_lecturer_number',
-                'search_sem_sem' => 'all',
-                'search_sem_quick_search_parameter' => $search,
-                'search_sem_1508068a50572e5faff81c27f7b3a72f' => 1 // Fuck you Stud.IP
-            ])
-        );
+        $result = [
+            'id'     => $course->id,
+            'name'   => self::mark($course->getFullname(), $search),
+            'url'    => URLHelper::getURL('dispatch.php/course/details/index/' . $course->id),
+            'date'   => $course->start_semester->name,
+            'expand' => self::getSearchURL($search),
+        ];
         $avatar = CourseAvatar::getAvatar($course->id);
         $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
         return $result;
@@ -96,11 +89,11 @@ class GlobalSearchMyCourses extends GlobalSearchModule
      */
     public static function getSearchURL($searchterm)
     {
-        return URLHelper::getURL("dispatch.php/search/courses", [
-            'reset_all' => 1,
-            'search_sem_qs_choose' => 'title_lecturer_number',
-            'search_sem_sem' => 'all',
-            'search_sem_quick_search_parameter' => $searchterm,
+        return URLHelper::getURL('dispatch.php/search/courses', [
+            'reset_all'                                   => 1,
+            'search_sem_qs_choose'                        => 'title_lecturer_number',
+            'search_sem_sem'                              => 'all',
+            'search_sem_quick_search_parameter'           => $searchterm,
             'search_sem_1508068a50572e5faff81c27f7b3a72f' => 1 // Why the hell is that needed?
         ]);
     }

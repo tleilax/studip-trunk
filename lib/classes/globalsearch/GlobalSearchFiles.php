@@ -9,7 +9,6 @@
  */
 class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFulltext
 {
-
     // internal caching for already checked folders.
     private static $checked = [];
 
@@ -53,9 +52,9 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                 // Roots see all files, no matter where.
                 case 'root':
                     $mycourses = "SELECT DISTINCT `Seminar_id`
-                        FROM `seminare`
-                        WHERE `Name` LIKE {$prequery}
-                            OR `VeranstaltungsNummer` LIKE {$prequery}";
+                                  FROM `seminare`
+                                  WHERE `Name` LIKE {$prequery}
+                                     OR `VeranstaltungsNummer` LIKE {$prequery}";
                     break;
 
                 /*
@@ -65,10 +64,10 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                     $institutes = array_map(function ($i) { return $i['Institut_id']; }, Institute::getMyInstitutes());
 
                     $mycourses = "SELECT DISTINCT i.`seminar_id`
-                        FROM `seminar_inst` i
-                            JOIN `seminare` s ON (s.`Seminar_id` = i.`seminar_id`)
-                        WHERE i.`institute_id` IN ('" . implode(',', $institutes) . "')
-                            AND (s.`Name` LIKE {$prequery} OR s.`VeranstaltungsNummer` LIKE {$prequery})";
+                                  FROM `seminar_inst` i
+                                  JOIN `seminare` s ON (s.`Seminar_id` = i.`seminar_id`)
+                                  WHERE i.`institute_id` IN ('" . implode(',', $institutes) . "')
+                                    AND (s.`Name` LIKE {$prequery} OR s.`VeranstaltungsNummer` LIKE {$prequery})";
                     break;
                 /*
                  * dozent, tutor, autor, user see files in their own courses,
@@ -78,9 +77,9 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                     $institutes = array_map(function ($i) { return $i['Institut_id']; }, Institute::getMyInstitutes());
 
                     $mycourses = "SELECT DISTINCT u.`Seminar_id`
-                                FROM `seminar_user` u
-                                    JOIN `seminare` s ON (s.`Seminar_id` = u.`Seminar_id`)
-                                WHERE u.`user_id` = '" . $GLOBALS['user']->id . "'
+                                  FROM `seminar_user` u
+                                  JOIN `seminare` s ON (s.`Seminar_id` = u.`Seminar_id`)
+                                  WHERE u.`user_id` = '" . $GLOBALS['user']->id . "'
                                     AND (s.`Name` LIKE {$prequery} OR s.`VeranstaltungsNummer` LIKE {$prequery})";
 
                     if (Config::get()->DEPUTIES_ENABLE) {
@@ -99,13 +98,13 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
 
             // Fetch all files from relevant courses.
             return "SELECT DISTINCT r.`id`, r.`folder_id`, r.`name`, r.`description`,
-                    r.`chdate`, fo.`range_id`, f.`mime_type`
-                FROM `file_refs` r
+                        r.`chdate`, fo.`range_id`, f.`mime_type`
+                    FROM `file_refs` r
                     JOIN `folders` fo ON (r.`folder_id` = fo.`id`)
                     JOIN `files` f ON (r.`file_id` = f.`id`)
-                WHERE fo.`range_id` IN ('" . implode("', '", $course_ids) . "')
-                    AND (r.`name` LIKE {$query} OR r.`description` LIKE {$query})
-                ORDER BY r.`chdate` DESC LIMIT " . (3 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                    WHERE fo.`range_id` IN ('" . implode("', '", $course_ids) . "')
+                      AND (r.`name` LIKE {$query} OR r.`description` LIKE {$query})
+                    ORDER BY r.`chdate` DESC LIMIT " . (3 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
 
         } else {
 
@@ -117,12 +116,12 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                 // Roots see all files, no matter where.
                 case 'root':
                     return "SELECT DISTINCT r.`id`, r.`folder_id`, r.`name`, r.`description`,
-                            r.`chdate`, fo.`range_id`, f.`mime_type`
-                        FROM `file_refs` r
+                                r.`chdate`, fo.`range_id`, f.`mime_type`
+                            FROM `file_refs` r
                             JOIN `folders` fo ON (r.`folder_id` = fo.`id`)
                             JOIN `files` f ON (r.`file_id` = f.`id`)
-                        WHERE (r.`name` LIKE {$query} OR r.`description` LIKE {$query})
-                        ORDER BY r.`chdate` DESC LIMIT " . (3 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                            WHERE (r.`name` LIKE {$query} OR r.`description` LIKE {$query})
+                            ORDER BY r.`chdate` DESC LIMIT " . (3 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
 
                 /*
                  * Admins see files in courses at their own institutes,
@@ -131,20 +130,20 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                 case 'admin':
                     $institutes = array_map(function ($i) { return $i['Institut_id']; }, Institute::getMyInstitutes());
 
-                    "SELECT DISTINCT r.`id`, r.`folder_id`, r.`name`, r.`description`,
-                            r.`chdate`, fo.`range_id`, f.`mime_type`
-                        FROM `file_refs` r
+                    return "SELECT DISTINCT r.`id`, r.`folder_id`, r.`name`, r.`description`,
+                                r.`chdate`, fo.`range_id`, f.`mime_type`
+                            FROM `file_refs` r
                             JOIN `folders` fo ON (r.`folder_id` = fo.`id`)
                             JOIN `files` f ON (r.`file_id` = f.`id`)
-                        WHERE (fo.`range_id` IN (
-                                SELECT `Seminar_id`
-                                FROM `seminar_inst`
-                                WHERE `institute_id` IN ('" . implode("','", $institutes) . "')
-                            )
-                            OR fo.`range_id` = '" . $GLOBALS['user']->id . "'
-                            OR fo.`range_id` IN ('" . implode("','", $institutes) . "'))
-                            AND (r.`name` LIKE {$query} OR r.`description` LIKE {$query})
-                        ORDER BY r.`chdate` DESC LIMIT " . (3 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                            WHERE (fo.`range_id` IN (
+                                    SELECT `Seminar_id`
+                                    FROM `seminar_inst`
+                                    WHERE `institute_id` IN ('" . implode("','", $institutes) . "')
+                                  )
+                                  OR fo.`range_id` = '{$GLOBALS['user']->id}'
+                                  OR fo.`range_id` IN ('" . implode("','", $institutes) . "')
+                              ) AND (r.`name` LIKE {$query} OR r.`description` LIKE {$query})
+                            ORDER BY r.`chdate` DESC LIMIT " . (3 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
                 /*
                  * dozent, tutor, autor, user see files in their own courses,
                  * at institutes or in their personal file area.
@@ -153,8 +152,8 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                     $institutes = array_map(function ($i) { return $i['Institut_id']; }, Institute::getMyInstitutes());
 
                     $mycourses = "SELECT `Seminar_id`
-                                FROM `seminar_user`
-                                WHERE `user_id` = '" . $GLOBALS['user']->id . "'";
+                                  FROM `seminar_user`
+                                  WHERE `user_id` = '{$GLOBALS['user']->id}'";
 
                     if (Config::get()->DEPUTIES_ENABLE) {
                         $mycourses .= "
@@ -165,17 +164,15 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                     }
 
                     return "SELECT DISTINCT r.`id`, r.`folder_id`, r.`name`, r.`description`,
-                            r.`chdate`, fo.`range_id`, f.`mime_type`
-                        FROM `file_refs` r
+                                r.`chdate`, fo.`range_id`, f.`mime_type`
+                            FROM `file_refs` r
                             JOIN `folders` fo ON (r.`folder_id` = fo.`id`)
                             JOIN `files` f ON (r.`file_id` = f.`id`)
-                        WHERE (fo.`range_id` IN (
-                                {$mycourses}
-                            )
-                            OR fo.`range_id` = '" . $GLOBALS['user']->id . "'
-                            OR fo.`range_id` IN ('" . implode("', '", $institutes) . "'))
-                            AND (r.`name` LIKE {$query} OR r.`description` LIKE {$query})
-                        ORDER BY r.`chdate` DESC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                            WHERE (fo.`range_id` IN ({$mycourses})
+                                   OR fo.`range_id` = '{$GLOBALS['user']->id}'
+                                   OR fo.`range_id` IN ('" . implode("', '", $institutes) . "')
+                              ) AND (r.`name` LIKE {$query} OR r.`description` LIKE {$query})
+                            ORDER BY r.`chdate` DESC LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
             }
         }
 
@@ -232,16 +229,18 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
             }
 
             return array(
-                'id' => $fileref['id'],
-                'name' => self::mark($fileref['name'], $search, true),
-                'url' => URLHelper::getURL(
-                    "sendfile.php?type=0&file_id={$fileref['id']}&file_name={$fileref['name']}"),
-                'img' => FileManager::getIconForMimeType($fileref['mime_type'], 'info')->asImagePath(),
+                'id'         => $fileref['id'],
+                'name'       => self::mark($fileref['name'], $search, true),
+                'url'        => URLHelper::getURL(
+                    "sendfile.php?type=0&file_id={$fileref['id']}&file_name={$fileref['name']}"
+                ),
+                'img'        => FileManager::getIconForMimeType($fileref['mime_type'], 'info')->asImagePath(),
                 'additional' => self::mark($range ? $range->getFullname() : '', $search, false),
-                'date' => strftime('%x %X', $fileref['chdate']),
-                'expand' => URLHelper::getURL(
+                'date'       => strftime('%x %X', $fileref['chdate']),
+                'expand'     => URLHelper::getURL(
                     "dispatch.php{$range_path}/files/index/{$fileref['folder_id']}",
-                    ['cid' => $fileref['range_id']])
+                    ['cid' => $fileref['range_id']]
+                )
             );
         }
 
@@ -273,17 +272,20 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
             $query = DBManager::get()->quote("%" . trim($args[1]) . "%");
             $binary = DBManager::get()->quote('%' . join('%', str_split(strtoupper(trim($args[0])))) . '%');
             $comp = "AND";
-            return "SELECT dokumente.* FROM dokumente "
-                . "JOIN seminare USING (seminar_id) $ownseminars "
-                . "WHERE (seminare.name LIKE BINARY $binary OR seminare.name LIKE $prequery ) "
-                . "$comp dokumente.name LIKE $query "
-                . "ORDER BY dokumente.chdate DESC LIMIT ".(2*Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE * 2);
+            return "SELECT dokumente.*
+                    FROM dokumente
+                    JOIN seminare USING (seminar_id)
+                    {$ownseminars}
+                    WHERE (seminare.name LIKE BINARY {$binary} OR seminare.name LIKE {$prequery})
+                      {$comp} dokumente.name LIKE {$query}
+                    ORDER BY dokumente.chdate DESC LIMIT " . (2*Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE * 2);
         } else {
             $query = DBManager::get()->quote(preg_replace("/(\w+)[*]*\s?/", "+$1* ", $search));
-            return "SELECT dokumente.* FROM dokumente IGNORE INDEX (chdate) "
-                . " $ownseminars "
-                . "WHERE MATCH(dokumente.name) AGAINST($query IN BOOLEAN MODE) "
-                . "ORDER BY dokumente.chdate DESC LIMIT ".(Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE * 2);
+            return "SELECT dokumente.*
+                    FROM dokumente IGNORE INDEX (chdate)
+                    {$ownseminars}
+                    WHERE MATCH(dokumente.name) AGAINST ($query IN BOOLEAN MODE)
+                    ORDER BY dokumente.chdate DESC LIMIT " . (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE * 2);
         }
     }
 }
