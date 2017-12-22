@@ -265,15 +265,18 @@ class Admin_ConfigurationController extends AuthenticatedController
 
         // Views
         $views = new ViewsWidget();
-        $views->addLink(_('Globale Konfiguration'),
-                        $this->url_for('admin/configuration/configuration'))
-              ->setActive($range_type === 'global');
-        $views->addLink(_('Personenkonfiguration'),
-                        $this->url_for('admin/configuration/user_configuration'))
-              ->setActive($range_type === 'user');
-        $views->addLink(_('Veranstaltungskonfiguration'),
-                        $this->url_for('admin/configuration/course_configuration'))
-              ->setActive($range_type === 'course');
+        $views->addLink(
+            _('Globale Konfiguration'),
+            $this->url_for('admin/configuration/configuration')
+        )->setActive($range_type === 'global');
+        $views->addLink(
+            _('Personenkonfiguration'),
+            $this->url_for('admin/configuration/user_configuration')
+        )->setActive($range_type === 'user');
+        $views->addLink(
+            _('Veranstaltungskonfiguration'),
+            $this->url_for('admin/configuration/course_configuration')
+        )->setActive($range_type === 'course');
         $sidebar->addWidget($views);
 
         // Add section selector when not in user mode
@@ -282,9 +285,12 @@ class Admin_ConfigurationController extends AuthenticatedController
             foreach (ConfigurationModel::getConfig() as $key => $value) {
                 $options[$key] = $key ?: '- ' . _('Ohne Kategorie') . ' -';
             }
-            $widget = new SelectWidget(_('Anzeigefilter'),
-                                       $this->url_for('admin/configuration/configuration'),
-                                       'section', 'get');
+            $widget = new SelectWidget(
+                _('Anzeigefilter'),
+                $this->url_for('admin/configuration/configuration'),
+                'section',
+                'get'
+            );
             $widget->addElement(new SelectElement(-1, _('alle anzeigen')));
             $widget->setOptions($options);
             $sidebar->addWidget($widget);
@@ -294,14 +300,18 @@ class Admin_ConfigurationController extends AuthenticatedController
         // otherwise)
         if ($range_type === 'user') {
             $search = new SearchWidget($this->url_for('admin/configuration/user_configuration'));
-            $search->addNeedle(_('Person suchen'), 'user_id', true,
-                               new StandardSearch('user_id'),
-                               'function () { $(this).closest("form").submit(); }');
+            $search->addNeedle(
+                _('Person suchen'), 'user_id', true,
+                new StandardSearch('user_id'),
+                'function () { $(this).closest("form").submit(); }'
+            );
         } else if ($range_type === 'course') {
             $search = new SearchWidget($this->url_for('admin/configuration/course_configuration'));
-            $search->addNeedle(_('Veranstaltung suchen'), 'range_id', true,
-                               new StandardSearch('Seminar_id'),
-                               'function () { $(this).closest("form").submit(); }');
+            $search->addNeedle(
+                _('Veranstaltung suchen'), 'range_id', true,
+                new StandardSearch('Seminar_id'),
+                'function () { $(this).closest("form").submit(); }'
+            );
         } else {
             $search = new SearchWidget($this->url_for('admin/configuration/configuration'));
             $search->addNeedle(_('Suchbegriff'), 'needle', true);

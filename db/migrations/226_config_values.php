@@ -1,13 +1,12 @@
 <?php
-
 class ConfigValues extends Migration
 {
-    function description()
+    public function description()
     {
         return 'add database table for generic config values';
     }
 
-    function up()
+    public function up()
     {
         $db = DBManager::get();
 
@@ -67,7 +66,7 @@ class ConfigValues extends Migration
         SimpleORMap::expireTableScheme();
     }
 
-    function down()
+    public function down()
     {
         $db = DBManager::get();
 

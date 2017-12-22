@@ -1,5 +1,4 @@
 <?php
-# Lifter010: TODO
 /**
  * CourseConfig.class.php
  * provides access to course preferences

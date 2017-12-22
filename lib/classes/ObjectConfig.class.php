@@ -1,5 +1,4 @@
 <?php
-# Lifter010: TODO
 /**
  * ObjectConfig.class.php
  * provides access to object preferences
@@ -71,7 +70,7 @@ class ObjectConfig extends Config
      * @param string $range_id
      * @param array $data
      */
-    function __construct($range_id = null, $data = null)
+    public function __construct($range_id = null, $data = null)
     {
         $this->range_id = $range_id;
         if ($range_id !== null || $data !== null) {
@@ -92,7 +91,7 @@ class ObjectConfig extends Config
                 $this->data[$field] = Config::get()->$field;
                 $metadata[$field] = Config::get()->getMetadata($field);
             }
-            $db = DbManager::get();
+            $db = DBManager::get();
             $version = new DBSchemaVersion();
             if ($version->get() < 226) {
                 $query = 'SELECT field, value FROM user_config WHERE user_id = ';
@@ -124,7 +123,7 @@ class ObjectConfig extends Config
      *
      * @return string
      */
-    function getRangeId()
+    public function getRangeId()
     {
         return $this->range_id;
     }
@@ -132,7 +131,7 @@ class ObjectConfig extends Config
     /**
      * @see lib/classes/Config::getValue()
      */
-    function getValue($field)
+    public function getValue($field)
     {
         if (array_key_exists($field, $this->data)) {
             return $this->data[$field];
@@ -144,7 +143,7 @@ class ObjectConfig extends Config
      * @param string $field
      * @return bool
      */
-    function unsetValue($field)
+    public function unsetValue($field)
     {
         return $this->delete($field);
     }
@@ -152,7 +151,7 @@ class ObjectConfig extends Config
     /**
      * @see lib/classes/Config::store()
      */
-    function store($field, $value)
+    public function store($field, $value)
     {
         $entry = new ConfigValue(array($field, $this->range_id));
         $this->data[$field] = $value;
@@ -188,11 +187,11 @@ class ObjectConfig extends Config
     /**
      * @see lib/classes/Config::delete()
      */
-    function delete($field)
+    public function delete($field)
     {
         $entry = ConfigValue::find(array($field, $this->range_id));
-        if($entry !== null) {
-            if($ret = $entry->delete()) {
+        if ($entry !== null) {
+            if ($ret = $entry->delete()) {
                 $this->data[$field] = Config::get()->$field;
             }
             return $ret;

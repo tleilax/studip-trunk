@@ -45,7 +45,7 @@ class ConfigurationModel
             $uconfig = UserConfig::get($user_id);
             foreach ($uconfig as $field => $value) {
                 $data = $config->getMetadata($field);
-                if(!count($data)) {
+                if (!count($data)) {
                     $data['field'] = $field;
                     $data['type'] = 'string';
                     $data['description'] = 'missing in table `config`';

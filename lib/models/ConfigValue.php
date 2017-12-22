@@ -20,7 +20,7 @@ class ConfigValue extends SimpleORMap
      *
      * @param array $config Configuration array
      */
-    protected static function configure($config = array())
+    protected static function configure($config = [])
     {
         $config['db_table'] = 'config_values';
         parent::configure($config);
