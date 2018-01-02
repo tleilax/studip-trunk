@@ -3,28 +3,6 @@
 (function ($, STUDIP, _) {
     'use strict';
 
-    // Define templating using underscore's _.template with delimiters {{ and }}
-    var templates = (function () {
-        var old_delimiters = _.templateSettings.interpolate,
-            result = {};
-        _.templateSettings.interpolate = /\{\{([\s\S]+?)\}\}/g;
-
-        result.category = '<article id="globalsearch-{{name}}">';
-        result.categoryHeader = '<div class="globalsearch-category">';
-
-        _.templateSettings.interpolate = old_delimiters;
-
-        Object.keys(result).forEach(function (key) {
-            result[key] = _.template(result[key]);
-        });
-
-        return result;
-    }());
-
-    function $template(name, variables) {
-        return $(templates[name](variables));
-    }
-
     STUDIP.GlobalSearch = {
         lastSearch: null,
 
