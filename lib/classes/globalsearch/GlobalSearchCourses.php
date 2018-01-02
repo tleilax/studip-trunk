@@ -92,16 +92,18 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
     public static function filter($data, $search)
     {
         $course = Course::buildExisting($data);
-        $result = array(
+        $semester = $course->start_semester;
+
+        $result = [
             'id'         => $course->id,
             'name'       => self::mark($course->getFullname(), $search),
             'url'        => URLHelper::getURL('dispatch.php/course/details/index/' . $course->id),
-            'date'       => $course->start_semester->name,
+            'date'       => $semester->token ?: $semester->name,
             'additional' => implode(', ', array_map(function ($u) use ($search) {
                 return self::mark($u->getUserFullname(), $search);
             }, $course->getMembersWithStatus('dozent'))),
             'expand'     => self::getSearchURL($search),
-        );
+        ];
         $avatar = CourseAvatar::getAvatar($course->id);
         $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
         return $result;

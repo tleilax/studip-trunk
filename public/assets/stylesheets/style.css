@@ -10120,150 +10120,268 @@ div.i18n_group > div.i18n .editor_toolbar .buttons,
 div.i18n_group > div.i18n .cktoolbar .cke_inner {
   padding-left: 34px !important;
 }
-div#globalsearch-searchbar {
-  position. relative;
+#quicksearch_item {
+  -webkit-align-self: flex-start;
+  -ms-align-self: flex-start;
+  align-self: flex-start;
 }
-div#globalsearch-searchbar #globalsearch-clear {
-  height: 16px;
-  left: -22px;
+#globalsearch-searchbar {
   position: relative;
-  top: 3px;
-  width: 16px;
 }
-div#globalsearch-searchbar a#globalsearch-icon {
+#globalsearch-searchbar > * {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+#globalsearch-searchbar #globalsearch-clear {
+  width: 16px;
+  height: 16px;
+  margin-left: -22px;
+  vertical-align: middle;
+  opacity: 0;
+  -webkit-transition: opacity 300ms;
+  -moz-transition: opacity 300ms;
+  -o-transition: opacity 300ms;
+  transition: opacity 300ms;
+}
+#globalsearch-searchbar.has-value #globalsearch-clear {
+  opacity: 1;
+}
+#globalsearch-searchbar #globalsearch-input {
+  width: 215px;
+  -webkit-transition: width 300ms;
+  -moz-transition: width 300ms;
+  -o-transition: width 300ms;
+  transition: width 300ms;
+}
+#globalsearch-searchbar.is-visible #globalsearch-input {
+  width: 423px;
+}
+#globalsearch-searchbar #globalsearch-icon {
+  margin-left: 5px;
   position: relative;
   top: 6px;
 }
-div#globalsearch-searchbar input#globalsearch-input {
-  width: 215px;
+#globalsearch-searchbar #globalsearch-togglehints {
+  font-size: 12px;
+  margin: 0;
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: -webkit-box-flex;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  -moz-box-align: center;
+  align-items: center;
 }
-div#globalsearch-searchbar #globalsearch-list {
+#globalsearch-searchbar #globalsearch-togglehints::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 12px;
+  margin-right: 2px;
+  background-image: url("../images/icons/blue/arr_1right.svg");
+  -webkit-background-size: 12px 12px;
+  -moz-background-size: 12px 12px;
+  -o-background-size: 12px 12px;
+  background-size: 12px 12px;
+  vertical-align: text-top;
+  width: 12px;
+}
+#globalsearch-searchbar #globalsearch-togglehints + #globalsearch-hints {
+  display: none;
+}
+#globalsearch-searchbar #globalsearch-togglehints.open::before {
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  -o-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+#globalsearch-searchbar #globalsearch-togglehints.open + #globalsearch-hints {
+  display: block;
+}
+#globalsearch-searchbar #globalsearch-list {
   background-color: #fff;
-  box-shadow: 0px 5px 8px rgba(0,0,0,0.5);
+  box-shadow: 0px 5px 8px rgba(0, 0, 0, 0.5);
   color: #000;
   font-size: 18px;
   font-weight: normal;
-  overflow: scroll;
+  max-height: 90vh;
+  overflow: auto;
   padding: 5px;
   position: absolute;
   width: 423px;
+  opacity: 0;
+  -webkit-transition: opacity 300ms;
+  -moz-transition: opacity 300ms;
+  -o-transition: opacity 300ms;
+  transition: opacity 300ms;
 }
-div#globalsearch-searchbar #globalsearch-list a {
+#globalsearch-searchbar #globalsearch-list a {
   color: #28497c;
 }
-div#globalsearch-searchbar #globalsearch-list a#globalsearch-togglehints {
-  font-size: 12px;
-}
-div#globalsearch-searchbar #globalsearch-list a:hover {
+#globalsearch-searchbar #globalsearch-list a:hover {
   color: #d60000;
 }
-div#globalsearch-searchbar #globalsearch-list section {
+#globalsearch-searchbar #globalsearch-list section {
   color: #000;
 }
-div#globalsearch-searchbar #globalsearch-list section header h1 {
+#globalsearch-searchbar #globalsearch-list section header h1 {
   color: #28497c;
   border-bottom: none;
   margin-top: 10px;
-  font-size: 18px;
-  font-weight: normal;
 }
-div#globalsearch-searchbar #globalsearch-list section p {
+#globalsearch-searchbar #globalsearch-list section p {
+  font-size: 12px;
   margin-left: 10px;
   margin-top: -10px;
-  font-size: 12px;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results {
-  border-top: 1px solid #a7abaf;
+#globalsearch-searchbar.is-visible #globalsearch-list {
+  opacity: 1;
+}
+#globalsearch-searchbar #globalsearch-searching {
+  border-top: 1px solid #a8abb0;
+  color: #a8abb0;
+  display: none;
+  font-style: italic;
+  text-align: center;
+  background-image: url("../images/ajax-indicator-black.svg");
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-size: 32px;
+  padding-bottom: 37px;
+}
+#globalsearch-searchbar.is-searching #globalsearch-searching {
+  display: block;
+}
+#globalsearch-searchbar.is-searching #globalsearch-results {
+  display: none;
+}
+#globalsearch-searchbar #globalsearch-results {
+  border-top: 1px solid #a8abb0;
   padding-top: 10px;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results div#globalsearch-loading-text {
-  text-align: center;
-  font-style: italic;
-  color: #a7abaf;
+#globalsearch-searchbar #globalsearch-results:empty {
+  display: none;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results #globalsearch-loading-icon {
-  height: 32px;
-  width: 32px;
-}
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article {
+#globalsearch-searchbar #globalsearch-results article {
   border: 1px solid #d0d7e3;
   margin: 3px;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article > header {
+#globalsearch-searchbar #globalsearch-results article > header {
   background-color: #e7ebf1;
   color: #28497c;
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: -webkit-box-flex;
+  display: -webkit-flex;
+  display: -moz-box;
   display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  -moz-box-direction: normal;
+  -moz-box-orient: horizontal;
+  -webkit-box-orient: horizontal;
   flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
   flex-wrap: nowrap;
   font-weight: bold;
   padding: 3px;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article > header div.globalsearch-category {
+#globalsearch-searchbar #globalsearch-results article > header div.globalsearch-category {
   flex: auto;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article > header div.globalsearch-more-results {
-  flex: none;
+#globalsearch-searchbar #globalsearch-results article > header div.globalsearch-more-results {
   font-size: 12px;
   font-weight: normal;
-  line-height: 24px;
+  line-height: 16px;
   text-align: right;
   width: 100px;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section {
+#globalsearch-searchbar #globalsearch-results article section {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: -webkit-box-flex;
+  display: -webkit-flex;
+  display: -moz-box;
   display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  -moz-box-direction: normal;
+  -moz-box-orient: horizontal;
+  -webkit-box-orient: horizontal;
   flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
   flex-wrap: nowrap;
   padding-top: 3px;
   padding-bottom: 3px;
+  border-top: 1px solid #d0d7e3;
+  -webkit-transition: background-color 300ms;
+  -moz-transition: background-color 300ms;
+  -o-transition: background-color 300ms;
+  transition: background-color 300ms;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section:not(:last-child) {
-  border-bottom: 1px solid #d0d7e3;
+#globalsearch-searchbar #globalsearch-results article section:hover {
+  background-color: rgba(109, 115, 123, 0.2);
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section:hover {
-  background-color: rgba(109, 114, 122, 0.2);
-}
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section.globalsearch-extended-result {
+#globalsearch-searchbar #globalsearch-results article section.globalsearch-extended-result {
   display: none;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-img {
-  flex: none;
-  height: 36px;
+#globalsearch-searchbar #globalsearch-results article section .globalsearch-result-img {
   margin-left: 6px;
   margin-right: 6px;
-  width: 30px;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data {
+#globalsearch-searchbar #globalsearch-results article section .globalsearch-result-img img {
+  width: 36px;
+  height: 36px;
+}
+#globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data {
   flex: auto;
   overflow: hidden;
   padding-left: 6px;
   padding-right: 6px;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data div.globalsearch-result-link {
+#globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data .globalsearch-result-link {
   font-size: 14px;
   font-weight: bold;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data div.globalsearch-result-link a {
+#globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data .globalsearch-result-link a {
   margin: 0;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-data div.globalsearch-result-details {
-  color: #636a71;
+#globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data .globalsearch-result-details {
+  color: #646a72;
   font-size: 12px;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-time {
-  color: #636a71;
-  flex: none;
+#globalsearch-searchbar #globalsearch-results article section .globalsearch-result-time {
+  color: #646a72;
+  font-size: 11px;
   font-weight: normal;
-  font-size: 10px;
   font-style: italic;
   margin-right: 6px;
   text-align: right;
+  max-width: 20%;
   width: 60px;
 }
-div#globalsearch-searchbar #globalsearch-list div#globalsearch-results article section div.globalsearch-result-expand {
-  flex: none;
+#globalsearch-searchbar #globalsearch-results article section .globalsearch-result-expand {
   margin-bottom: auto;
   margin-top: auto;
+  max-width: 25px;
   width: 20px;
+}
+#globalsearch-searchbar #globalsearch-results article section .globalsearch-result-expand a {
+  background-image: url("../images/icons/blue/arr_1right.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  width: 16px;
+  height: 16px;
+  display: inline-block;
 }
 #responsive-container {
   display: none;

@@ -1,4 +1,4 @@
-<article id="globalsearch-hints" class="hidden-js">
+<article id="globalsearch-hints">
     <section>
         <header>
             <h1><?= _('[STRG] + [Leertaste]') ?></h1>
