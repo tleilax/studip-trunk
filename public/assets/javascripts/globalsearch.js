@@ -160,6 +160,8 @@
          * Clear search term and remove results for previous search term.
          */
         resetSearch: function () {
+            STUDIP.GlobalSearch.lastSearch = null;
+
             $('#globalsearch-searchbar').removeClass('is-visible has-value');
             $('#globalsearch-input').val('');
             $('#globalsearch-results').html('');
