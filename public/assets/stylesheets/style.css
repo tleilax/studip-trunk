@@ -2375,12 +2375,12 @@ li#notification_container:hover .list {
 #notification_container a.mark-all-as-read {
   position: relative;
   margin-top: 10px;
-  background-image: url("../images/icons/blue/decline.svg");
+  background-image: url("../images/icons/blue/accept.svg");
   -webkit-background-size: 16px 16px;
   -moz-background-size: 16px 16px;
   -o-background-size: 16px 16px;
   background-size: 16px 16px;
-  background-color: #c5c7ca;
+  background-color: #e2e3e5;
   background-repeat: no-repeat;
   background-position: right 8px center;
   border-bottom: thin solid #a8abb0;
@@ -2392,28 +2392,27 @@ li#notification_container:hover .list {
   -o-transition: all 300ms;
   transition: all 300ms;
   max-height: 31px;
-  overflow: hidden;
 }
 #notification_container a.mark-all-as-read:before {
-  border: 10px solid rgba(197, 199, 202, 0);
+  border: 10px solid rgba(139, 143, 149, 0);
   content: "";
   height: 0;
   width: 0;
   position: absolute;
   pointer-events: none;
-  border-bottom-color: #c5c7ca;
+  border-bottom-color: #8b8f95;
   bottom: 100%;
   left: 50%;
   margin-left: -10px;
 }
 #notification_container a.mark-all-as-read:after {
-  border: 9px solid rgba(197, 199, 202, 0);
+  border: 9px solid rgba(226, 227, 229, 0);
   content: "";
   height: 0;
   width: 0;
   position: absolute;
   pointer-events: none;
-  border-bottom-color: #c5c7ca;
+  border-bottom-color: #e2e3e5;
   bottom: 100%;
   left: 50%;
   margin-left: -9px;
@@ -5305,11 +5304,23 @@ div.clear {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
+  color: #444444;
 }
 #qr_code .code > div {
   margin-left: auto;
   margin-right: auto;
   text-align: center;
+}
+#qr_code .code img {
+  width: 70vh;
+  height: 70vh;
+}
+#qr_code .header {
+  background-image: url("../images/logos/logoklein.png");
+  height: 100px;
+  width: 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
 }
 #qr_code:-moz-full-screen {
   display: flex;
@@ -5322,13 +5333,6 @@ div.clear {
 }
 #qr_code:fullscreen {
   display: flex;
-}
-#qr_code .code img {
-  width: 70vh;
-  height: 70vh;
-}
-a[data-qr-code] .qrcode_image {
-  display: none;
 }
 .copyable-link-animation {
   position: relative;
@@ -8492,35 +8496,6 @@ table.default tr.subcourses td:nth-child(-n+4) {
 }
 .check_actions a {
   cursor: pointer;
-}
-.waitlist_move_toggle {
-  display: none;
-}
-.waitlist_move_toggle + label {
-  background-image: url("../images/icons/red/room-occupied.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  display: inline-block;
-  background-repeat: no-repeat;
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-}
-.waitlist_move_toggle:checked + label {
-  background-image: url("../images/icons/green/room-clear.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-}
-.waitlist_move_toggle:disabled + label {
-  background-image: url("../images/icons/grey/room-request.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
 }
 #enrollment ul {
   list-style: none inside;

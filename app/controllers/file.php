@@ -885,6 +885,10 @@ class FileController extends AuthenticatedController
     public function choose_file_from_course_action($folder_id)
     {
         if (Request::get('course_id')) {
+            $folder_id = substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], "dispatch.php/file/choose_file_from_course/") + strlen("dispatch.php/file/choose_file_from_course/"));
+            if (strpos($folder_id, "?") !== false) {
+                $folder_id = substr($folder_id, 0, strpos($folder_id, "?"));
+            }
             $folder = Folder::findTopFolder(Request::get('course_id'));
             $this->redirect($this->url_for(
                 'file/choose_file/' . $folder->getId(), [
@@ -1094,12 +1098,12 @@ class FileController extends AuthenticatedController
 
     public function add_url_action($folder_id)
     {
-        if (Request::get("from_plugin")) {
+        if (Request::get("to_plugin")) {
             $folder_id = substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], "dispatch.php/file/add_url/") + strlen("dispatch.php/file/add_url/"));
             if (strpos($folder_id, "?") !== false) {
                 $folder_id = substr($folder_id, 0, strpos($folder_id, "?"));
             }
-            $plugin = PluginManager::getInstance()->getPlugin(Request::get("from_plugin"));
+            $plugin = PluginManager::getInstance()->getPlugin(Request::get("to_plugin"));
             if (!$plugin) {
                 throw new Trails_Exception(404, _('Plugin existiert nicht.'));
             }
@@ -1107,7 +1111,7 @@ class FileController extends AuthenticatedController
         } else {
             $this->top_folder = FileManager::getTypedFolder($folder_id);
         }
-        URLHelper::addLinkParam('from_plugin', Request::get('from_plugin'));
+        URLHelper::addLinkParam('to_plugin', Request::get('to_plugin'));
         if (!$this->top_folder || !$this->top_folder->isWritable($GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
@@ -1209,7 +1213,7 @@ class FileController extends AuthenticatedController
         }
         
         URLHelper::addLinkParam('from_plugin', Request::get('from_plugin'));
-        if (!$parent_folder || !$parent_folder->isWritable($GLOBALS['user']->id)|| !$parent_folder->isSubfolderAllowed($GLOBALS['user']->id)) {
+        if (!$parent_folder || !$parent_folder->isSubfolderAllowed($GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
 

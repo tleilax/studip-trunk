@@ -230,11 +230,13 @@ class FilesController extends AuthenticatedController
         $navigation = $this->plugin->getFileSelectNavigation();
         PageLayout::setTitle($navigation->getTitle());
 
+        URLHelper::addLinkParam('to_plugin', get_class($this->plugin));
         URLHelper::addLinkParam('from_plugin', get_class($this->plugin));
 
-        $args = func_get_args();
-        array_shift($args);
-        $folder_id = implode("/", array_map("rawurlencode", $args));
+        $folder_id = substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], "dispatch.php/files/system/".$this->plugin->getPluginId()) + strlen("dispatch.php/files/system/".$this->plugin->getPluginId()));
+        if (strpos($folder_id, "?") !== false) {
+            $folder_id = substr($folder_id, 0, strpos($folder_id, "?"));
+        }
 
         $this->topFolder      = $this->plugin->getFolder($folder_id);
         $this->controllerpath = 'files/system/' . $plugin_id;
@@ -259,7 +261,6 @@ class FilesController extends AuthenticatedController
             if (strpos($destination_id, "?") !== false) {
                 $destination_id = substr($destination_id, 0, strpos($destination_id, "?"));
             }
-            $destination_id = urldecode($destination_id);
 
             $destination_plugin = PluginManager::getInstance()->getPlugin($to_plugin);
             if (!$destination_plugin) {

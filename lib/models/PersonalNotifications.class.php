@@ -115,18 +115,15 @@ class PersonalNotifications extends SimpleORMap
         $notification['dialog']  = $dialog ? 1 : 0;
         $notification->store();
 
-
-        $query = "INSERT INTO personal_notifications_user (user_id, personal_notification_id, seen)
-                  VALUES (:user_id, :id, '0')";
-        $insert_statement = DBManager::get()->prepare($query);
-        $insert_statement->bindValue(':id', $notification->id);
-
         foreach ($user_ids as $user_id) {
             self::expireCache($user_id);
 
             if (self::isActivated($user_id)) {
-                $insert_statement->bindValue(':user_id', $user_id);
-                $insert_statement->execute();
+                $assignment = new PersonalNotificationsUser();
+                $assignment['personal_notification_id'] = $notification->id;
+                $assignment['user_id'] = $user_id;
+                $assignment['seen'] = 0;
+                $assignment->store();
             }
         }
         return true;
@@ -192,17 +189,14 @@ class PersonalNotifications extends SimpleORMap
         self::expireCache($user_id);
 
         $pn = new PersonalNotifications($notification_id);
-        $statement = DBManager::get()->prepare(
-            "UPDATE personal_notifications_user AS pnu " .
-            "INNER JOIN personal_notifications AS pn ON (pn.personal_notification_id = pnu.personal_notification_id) " .
-            "SET pnu.seen = '1' " .
-            "WHERE pnu.user_id = :user_id AND pnu.seen = 0 " .
-            "AND pn.url = :url " .
-            "");
-        return $statement->execute(array(
+        $notification_users = PersonalNotificationsUser::findBySQL("INNER JOIN personal_notifications USING (personal_notification_id) WHERE user_id = :user_id AND seen = '0' AND personal_notifications.url = :url ", array(
             'user_id' => $user_id,
             'url' => $pn['url']
         ));
+        foreach ($notification_users as $notification_user) {
+            $notification_user['seen'] = 1;
+            $notification_user->store();
+        }
     }
 
     /**
@@ -218,12 +212,14 @@ class PersonalNotifications extends SimpleORMap
         }
         self::expireCache($user_id);
 
-        $query = "UPDATE `personal_notifications_user`
-                  SET `seen` = '1'
-                  WHERE `user_id` = :user_id AND `seen` = 0";
-        $statement = DBManager::get()->prepare($query);
-        $statement->bindValue(':user_id', $user_id);
-        return $statement->execute();
+        $notification_users = PersonalNotificationsUser::findBySQL("user_id = :user_id AND seen = '0'", array(
+            'user_id' => $user_id
+        ));
+        foreach ($notification_users as $notification_user) {
+            $notification_user['seen'] = 1;
+            $notification_user->store();
+        }
+        return true;
     }
 
     /**
@@ -240,17 +236,14 @@ class PersonalNotifications extends SimpleORMap
         }
         self::expireCache($user_id);
 
-        $statement = DBManager::get()->prepare(
-            "UPDATE personal_notifications_user AS pnu " .
-                "INNER JOIN personal_notifications AS pn ON (pn.personal_notification_id = pnu.personal_notification_id) " .
-            "SET pnu.seen = '1' " .
-            "WHERE pnu.user_id = :user_id AND pnu.seen = 0 " .
-                "AND pn.html_id LIKE :html_id " .
-        "");
-        return $statement->execute(array(
+        $notification_users = PersonalNotificationsUser::findBySQL("INNER JOIN personal_notifications USING (personal_notification_id) WHERE user_id = :user_id AND seen = '0' AND personal_notifications.html_id = :html_id ", array(
             'user_id' => $user_id,
             'html_id' => $html_id
         ));
+        foreach ($notification_users as $notification_user) {
+            $notification_user['seen'] = 1;
+            $notification_user->store();
+        }
     }
 
     /**
