@@ -72,11 +72,10 @@ class StEP00278GlobalSearch extends Migration
         ];
 
         $stmt = DBManager::get()->prepare("INSERT INTO `config`
-            (`config_id`, `parent_id`, `field`, `value`, `is_default`, `type`,
-                `range`, `section`, `mkdate`, `chdate`, `description`)
+            (`field`, `value`, `type`, `range`, `section`, `mkdate`, `chdate`, `description`)
             VALUES
-            (MD5(:name), '', :name, :value, 1, :type, 'global', 'globalsearch', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :desc)
-            ON DUPLICATE KEY UPDATE `chdate`=VALUES (`chdate`)");
+            (:name, :value, :type, 'global', 'globalsearch', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :desc)
+            ON DUPLICATE KEY UPDATE `chdate`=VALUES(`chdate`)");
 
         $stmt->execute([
                 'name' => 'GLOBALSEARCH_MODULES',
