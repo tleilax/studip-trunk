@@ -10102,6 +10102,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 }
 #globalsearch-searchbar {
   position: relative;
+  top: 4px;
 }
 #globalsearch-searchbar > * {
   -webkit-box-sizing: border-box;
@@ -10204,15 +10205,15 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 #globalsearch-searchbar #globalsearch-list section {
   color: #000;
 }
-#globalsearch-searchbar #globalsearch-list section header h1 {
+#globalsearch-searchbar #globalsearch-list section header {
+  margin: 5px;
+  margin-bottom: 0;
   color: #28497c;
-  border-bottom: none;
-  margin-top: 10px;
 }
 #globalsearch-searchbar #globalsearch-list section p {
   font-size: 12px;
-  margin-left: 10px;
-  margin-top: -10px;
+  margin-left: 15px;
+  margin-right: 10px;
 }
 #globalsearch-searchbar.is-visible #globalsearch-list {
   opacity: 1;
@@ -10221,7 +10222,6 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   border-top: 1px solid #a8abb0;
   color: #a8abb0;
   display: none;
-  font-style: italic;
   text-align: center;
   background-image: url("../images/ajax-indicator-black.svg");
   background-position: center bottom;
@@ -10235,16 +10235,14 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 #globalsearch-searchbar.is-searching #globalsearch-results {
   display: none;
 }
-#globalsearch-searchbar #globalsearch-results {
-  border-top: 1px solid #a8abb0;
-  padding-top: 10px;
-}
 #globalsearch-searchbar #globalsearch-results:empty {
   display: none;
 }
 #globalsearch-searchbar #globalsearch-results article {
   border: 1px solid #d0d7e3;
   margin: 3px;
+  margin-bottom: 8px;
+  margin-top: 8px;
 }
 #globalsearch-searchbar #globalsearch-results article > header {
   background-color: #e7ebf1;
@@ -10293,8 +10291,8 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   -webkit-flex-wrap: nowrap;
   -ms-flex-wrap: nowrap;
   flex-wrap: nowrap;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   border-top: 1px solid #d0d7e3;
   -webkit-transition: background-color 300ms;
   -moz-transition: background-color 300ms;
@@ -10317,8 +10315,8 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data {
   flex: auto;
+  max-width: calc(100% - 120px);
   overflow: hidden;
-  padding-left: 6px;
   padding-right: 6px;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data .globalsearch-result-link {
@@ -10336,7 +10334,6 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   color: #646a72;
   font-size: 11px;
   font-weight: normal;
-  font-style: italic;
   margin-right: 6px;
   text-align: right;
   max-width: 20%;
@@ -10344,18 +10341,20 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-expand {
   margin-bottom: auto;
+  margin-right: 5px;
   margin-top: auto;
   max-width: 25px;
-  width: 20px;
+  padding-right: 5px;
+  width: 40px;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-expand a {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  width: 16px;
-  height: 16px;
+  -webkit-background-size: 24px 24px;
+  -moz-background-size: 24px 24px;
+  -o-background-size: 24px 24px;
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
   display: inline-block;
 }
 #responsive-container {

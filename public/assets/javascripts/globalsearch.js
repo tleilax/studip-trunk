@@ -76,7 +76,7 @@
 
                     // We have more search results than shown, provide link to
                     // full search if available.
-                    if (value.more !== null && value.fullsearch !== '') {
+                    if (value.more == true && value.fullsearch !== '') {
                         $('<a>').attr('href',  value.fullsearch)
                             .text(moreResultsText)
                             .wrap('<div class="globalsearch-more-results">')

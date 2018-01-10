@@ -7,6 +7,7 @@
     @transition-duration: 300ms;
 
     position: relative;
+    top: 4px;
 
     // Reset alignments among browsers
     > * {
@@ -94,17 +95,15 @@
             color: @text-color;
 
             header {
-                h1 {
-                    color: @base-color;
-                    border-bottom: none;
-                    margin-top: 10px;
-                }
+                color: @base-color;
+                margin: 5px;
+                margin-bottom: 0;
             }
 
             p {
                 font-size: 12px;
-                margin-left: 10px;
-                margin-top: -10px;
+                margin-left: 15px;
+                margin-right: 10px;
             }
         }
 
@@ -122,7 +121,6 @@
         border-top: 1px solid @light-gray-color-60;
         color: @dark-gray-color-45;
         display: none;
-        font-style: italic;
         text-align: center;
 
         background-image: url("@{image-path}/ajax-indicator-black.svg");
@@ -145,12 +143,11 @@
             display: none;
         }
 
-        border-top: 1px solid @light-gray-color-60;
-        padding-top: 10px;
-
         article {
             border: 1px solid @content-color-40;
             margin: 3px;
+            margin-bottom: 8px;
+            margin-top: 8px;
 
             > header {
                 background-color: @content-color-20;
@@ -181,8 +178,8 @@
                 .flex-direction-row();
                 .flex-wrap(nowrap);
 
-                padding-top: 3px;
-                padding-bottom: 3px;
+                padding-top: 6px;
+                padding-bottom: 6px;
 
                 border-top: 1px solid @content-color-40;
                 .transition(background-color @transition-duration);
@@ -206,8 +203,8 @@
 
                 .globalsearch-result-data {
                     flex: auto;
+                    max-width: calc(100% - 120px);
                     overflow: hidden;
-                    padding-left: 6px;
                     padding-right: 6px;
 
                     .globalsearch-result-link {
@@ -229,7 +226,6 @@
                     color: @dark-gray-color-80;
                     font-size: ceil((@font-size-small * 0.85));
                     font-weight: normal;
-                    font-style: italic;
                     margin-right: 6px;
                     text-align: right;
                     max-width: 20%;
@@ -238,13 +234,15 @@
 
                 .globalsearch-result-expand {
                     margin-bottom: auto;
+                    margin-right: 5px;
                     margin-top: auto;
                     max-width: 25px;
-                    width: 20px;
+                    padding-right: 5px;
+                    width: 24px;
 
                     a {
                         .background-icon('arr_1right', 'clickable');
-                        .square(16px);
+                        .square(24px);
                         display: inline-block;
                     }
                 }
