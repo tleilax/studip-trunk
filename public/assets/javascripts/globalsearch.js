@@ -52,6 +52,7 @@
             $.getJSON(STUDIP.URLHelper.getURL('dispatch.php/globalsearch/find'), {
                 search: searchterm
             }).done(function (json) {
+                console.log(json);
                 resultsDiv.html('');
 
                 // No results found...
