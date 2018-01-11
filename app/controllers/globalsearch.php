@@ -31,8 +31,6 @@ class GlobalSearchController extends AuthenticatedController
 
         $result = $classes = [];
 
-        Log::set('search', $GLOBALS['TMP_PATH'] . '/search.log');
-
         // Global config setting says to use mysqli
         if ($async) {
             foreach ($modules as $className => $data) {
@@ -40,8 +38,6 @@ class GlobalSearchController extends AuthenticatedController
                     $class = new $className();
                     $classes[$className] = $class;
                     $partSQL = $class->getSQL($search);
-                    Log::info_search($className . ':');
-                    Log::info_search($partSQL);
                     if ($partSQL) {
                         $new = mysqli_connect($GLOBALS['DB_STUDIP_HOST'], $GLOBALS['DB_STUDIP_USER'],
                             $GLOBALS['DB_STUDIP_PASSWORD'], $GLOBALS['DB_STUDIP_DATABASE']);
@@ -75,7 +71,7 @@ class GlobalSearchController extends AuthenticatedController
                              */
                             if (count($result[$id]['content']) >= Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
                                 $result[$id]['more'] = true;
-                                $result[$id]['fullsearch'] = $classes[$id]->getSearchURL($search);
+                                $result[$id]['fullsearch'] = $classes[$id]->getSearchURL($search) ?: '';
                             }
 
                             //if (count($result[$id]['content']) < Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
@@ -137,9 +133,6 @@ class GlobalSearchController extends AuthenticatedController
         uksort($result, function($a, $b) use ($modules) {
             return $modules[$a]['order'] - $modules[$b]['order'];
         });
-
-        Log::info_search(print_r($result, 1));
-        Log::info_search(json_encode($result));
 
         // Send me an answer
         $this->render_json($result);
@@ -227,15 +220,6 @@ class GlobalSearchController extends AuthenticatedController
         }
 
         $this->relocate('globalsearch/settings');
-    }
-
-    public function debuglog_action()
-    {
-        if (file_exists($GLOBALS['TMP_PATH'] . '/search.log')) {
-            $this->render_text(file_get_contents($GLOBALS['TMP_PATH'] . '/search.log'));
-        } else {
-            $this->render_text('Logfile not found.');
-        }
     }
 
 }
