@@ -10272,6 +10272,8 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   font-size: 12px;
   font-weight: normal;
   line-height: 16px;
+  margin-bottom: auto;
+  margin-top: auto;
   text-align: right;
   width: 100px;
 }
