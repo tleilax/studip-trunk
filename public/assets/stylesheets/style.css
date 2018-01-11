@@ -10375,6 +10375,9 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   height: 24px;
   display: inline-block;
 }
+#globalsearch-searchbar #globalsearch-results article section mark {
+  background-color: #d0d7e3;
+}
 #responsive-container {
   display: none;
   -webkit-user-select: none;
