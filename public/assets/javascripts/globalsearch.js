@@ -9,12 +9,13 @@
         /**
          * Toggles visibility of search input field and hints.
          * @param visible boolean indicating whether shown or not
+         * @param cleanup boolean whether to clear search term and results
          * @returns {boolean}
          */
-        toggleSearchBar: function (visible) {
+        toggleSearchBar: function (visible, cleanup) {
             $('#globalsearch-searchbar').toggleClass('is-visible', visible);
 
-            if (!visible) {
+            if (!visible && cleanup) {
                 $('#globalsearch-searchbar').removeClass('has-value');
                 $('#globalsearch-results').html('');
                 $('#globalsearch-input').blur().val('');
@@ -226,7 +227,7 @@
 
         // Enlarge search input on focus and show hints.
         $('#globalsearch-input').on('focus', function () {
-            STUDIP.GlobalSearch.toggleSearchBar(true);
+            STUDIP.GlobalSearch.toggleSearchBar(true, false);
         });
 
         // Start search on Enter
@@ -240,7 +241,7 @@
         // Close search on click on page.
         $('div#flex-header, div#layout_page, div#layout_footer').on('click', function () {
             if (!$('#globalsearch-input').hasClass('hidden-js')) {
-                STUDIP.GlobalSearch.toggleSearchBar(false);
+                STUDIP.GlobalSearch.toggleSearchBar(false, false);
             }
         });
 
@@ -272,7 +273,7 @@
             // escape
             } else if (e.which === 27 && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
                 e.preventDefault();
-                STUDIP.GlobalSearch.toggleSearchBar(false);
+                STUDIP.GlobalSearch.toggleSearchBar(false, true);
             }
         });
 
