@@ -31,6 +31,8 @@ class GlobalSearchController extends AuthenticatedController
 
         $result = $classes = [];
 
+        Log::set('search', $GLOBALS['STUDIP_BASE_PATH'] . '/public/search.log');
+
         // Global config setting says to use mysqli
         if ($async) {
             foreach ($modules as $className => $data) {
@@ -38,6 +40,8 @@ class GlobalSearchController extends AuthenticatedController
                     $class = new $className();
                     $classes[$className] = $class;
                     $partSQL = $class->getSQL($search);
+                    Log::info_search($className . ':');
+                    Log::info_search($partSQL);
                     if ($partSQL) {
                         $new = mysqli_connect($GLOBALS['DB_STUDIP_HOST'], $GLOBALS['DB_STUDIP_USER'],
                             $GLOBALS['DB_STUDIP_PASSWORD'], $GLOBALS['DB_STUDIP_DATABASE']);
@@ -133,6 +137,9 @@ class GlobalSearchController extends AuthenticatedController
         uksort($result, function($a, $b) use ($modules) {
             return $modules[$a]['order'] - $modules[$b]['order'];
         });
+
+        Log::info_search(print_r($result, 1));
+        Log::info_search(json_encode($result));
 
         // Send me an answer
         $this->render_json($result);

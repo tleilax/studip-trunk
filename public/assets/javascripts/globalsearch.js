@@ -52,7 +52,6 @@
             $.getJSON(STUDIP.URLHelper.getURL('dispatch.php/globalsearch/find'), {
                 search: searchterm
             }).done(function (json) {
-                console.log(json);
                 resultsDiv.html('');
 
                 // No results found...
@@ -77,7 +76,7 @@
 
                     // We have more search results than shown, provide link to
                     // full search if available.
-                    if (value.more == true && value.fullsearch !== '') {
+                    if (value.more && value.fullsearch !== '') {
                         $('<a>').attr('href',  value.fullsearch)
                             .text(moreResultsText)
                             .wrap('<div class="globalsearch-more-results">')
