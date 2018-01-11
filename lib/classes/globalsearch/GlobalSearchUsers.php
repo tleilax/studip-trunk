@@ -97,16 +97,28 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
         ]);
     }
 
+    /**
+     * Enables fulltext (MATCH AGAINST) search by creating the corresponding indices.
+     */
     public static function enable()
     {
         DBManager::get()->exec("ALTER TABLE `auth_user_md5` ADD FULLTEXT INDEX globalsearch (`username`, `Vorname`, `Nachname`)");
     }
 
+    /**
+     * Disables fulltext (MATCH AGAINST) search by removing the corresponding indices.
+     */
     public static function disable()
     {
         DBManager::get()->exec("DROP INDEX globalsearch ON `auth_user_md5`");
     }
 
+    /**
+     * Executes a fulltext (MATCH AGAINST) search in database for the given search term.
+     *
+     * @param string $search the term to search for.
+     * @return string SQL query.
+     */
     public static function getFulltextSearch($search)
     {
         if (!$search) {

@@ -247,16 +247,28 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
         return null;
     }
 
+    /**
+     * Enables fulltext (MATCH AGAINST) search by creating the corresponding indices.
+     */
     public static function enable()
     {
         DBManager::get()->exec("ALTER TABLE dokumente ADD FULLTEXT INDEX podium (name)");
     }
 
+    /**
+     * Disables fulltext (MATCH AGAINST) search by removing the corresponding indices.
+     */
     public static function disable()
     {
         DBManager::get()->exec("DROP INDEX podium ON dokumente");
     }
 
+    /**
+     * Executes a fulltext (MATCH AGAINST) search in database for the given search term.
+     *
+     * @param string $search the term to search for.
+     * @return string SQL query.
+     */
     public static function getFulltextSearch($search)
     {
         // Filter for own courses

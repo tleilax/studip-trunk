@@ -12,7 +12,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
     /**
      * Returns the displayname for this module
      *
-     * @return mixed
+     * @return string
      */
     public static function getName()
     {
@@ -125,16 +125,28 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
         return $result;
     }
 
+    /**
+     * Enables fulltext (MATCH AGAINST) search by creating the corresponding indices.
+     */
     public static function enable()
     {
         DBManager::get()->exec("ALTER TABLE `forum_entries` ADD FULLTEXT INDEX globalsearch (`name`, `content`)");
     }
 
+    /**
+     * Disables fulltext (MATCH AGAINST) search by removing the corresponding indices.
+     */
     public static function disable()
     {
         DBManager::get()->exec("DROP INDEX globalsearch ON `forum_entries`");
     }
 
+    /**
+     * Executes a fulltext (MATCH AGAINST) search in database for the given search term.
+     *
+     * @param string $search the term to search for.
+     * @return string SQL query.
+     */
     public static function getFulltextSearch($search)
     {
         $search = str_replace(' ', '% ', $search);

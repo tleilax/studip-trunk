@@ -109,18 +109,30 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
         return $result;
     }
 
+    /**
+     * Enables fulltext (MATCH AGAINST) search by creating the corresponding indices.
+     */
     public static function enable()
     {
         DBManager::get()->exec("ALTER TABLE `seminare` ADD FULLTEXT INDEX globalsearch (`VeranstaltungsNummer`, `Name`)");
         DBManager::get()->exec("ALTER TABLE `sem_types` ADD FULLTEXT INDEX globalsearch (`Name`)");
     }
 
+    /**
+     * Disables fulltext (MATCH AGAINST) search by removing the corresponding indices.
+     */
     public static function disable()
     {
         DBManager::get()->exec("DROP INDEX globalsearch ON `seminare`");
         DBManager::get()->exec("DROP INDEX globalsearch ON `sem_types`");
     }
 
+    /**
+     * Executes a fulltext (MATCH AGAINST) search in database for the given search term.
+     *
+     * @param string $search the term to search for.
+     * @return string SQL query.
+     */
     public static function getFulltextSearch($search)
     {
         if (!$search) {
