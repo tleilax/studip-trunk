@@ -95,21 +95,22 @@
                             single.addClass('globalsearch-extended-result');
                         }
 
+                        var link = $('<a href="' + result.url + '">')
+                            .appendTo(single);
+
                         // Optional image...
                         if (result.img !== null) {
                             $('<img src="' + result.img + '">')
                                 .wrap('<div class="globalsearch-result-img">')
                                 .parent() // Element is now the wrapper
-                                .appendTo(single);
+                                .appendTo(link);
                         }
 
-                        single.append(data);
+                        link.append(data);
 
                         // Name/title
-                        $('<a href="' + result.url + '">')
+                        $('<div class="globalsearch-result-title">')
                             .html($.parseHTML(result.name))
-                            .wrap('<div class="globalsearch-result-link">')
-                            .parent() // Element is now the wrapper
                             .appendTo(data);
 
                         // Details: Descriptional text
@@ -132,7 +133,7 @@
                         if (result.date !== null) {
                             $('<div class="globalsearch-result-time">')
                                 .html($.parseHTML(result.date))
-                                .appendTo(single);
+                                .appendTo(link);
                         }
 
                         // "Expand" attribute for further, result-related search

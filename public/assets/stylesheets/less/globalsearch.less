@@ -194,6 +194,14 @@
                     display: none;
                 }
 
+                & > a {
+                    .flex();
+                    .flex-direction-row();
+                    .flex-wrap(nowrap);
+                    flex: auto;
+                    margin: 0;
+                }
+
                 .globalsearch-result-img {
                     margin-left: 6px;
                     margin-right: 6px;
@@ -209,13 +217,9 @@
                     overflow: hidden;
                     padding-right: 6px;
 
-                    .globalsearch-result-link {
+                    .globalsearch-result-title {
                         font-size: @font-size-base;
                         font-weight: bold;
-
-                        a {
-                            margin: 0;
-                        }
                     }
 
                     .globalsearch-result-details {
@@ -234,6 +238,7 @@
                 }
 
                 .globalsearch-result-expand {
+                    flex: auto;
                     margin-bottom: auto;
                     margin-right: 5px;
                     margin-top: auto;
