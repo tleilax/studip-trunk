@@ -31,7 +31,7 @@ class GlobalSearchController extends AuthenticatedController
 
         $result = $classes = [];
 
-        Log::set('search', $GLOBALS['STUDIP_BASE_PATH'] . '/public/search.log');
+        Log::set('search', $GLOBALS['TMP_PATH'] . '/search.log');
 
         // Global config setting says to use mysqli
         if ($async) {
@@ -227,6 +227,15 @@ class GlobalSearchController extends AuthenticatedController
         }
 
         $this->relocate('globalsearch/settings');
+    }
+
+    public function debuglog_action()
+    {
+        if (file_exists($GLOBALS['TMP_PATH'] . '/search.log')) {
+            $this->render_text(file_get_contents($GLOBALS['TMP_PATH'] . '/search.log'));
+        } else {
+            $this->render_text('Logfile not found.');
+        }
     }
 
 }
