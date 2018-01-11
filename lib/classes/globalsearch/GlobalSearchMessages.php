@@ -74,7 +74,7 @@ class GlobalSearchMessages extends GlobalSearchModule
         $result = [
             'name'        => self::mark($message->subject, $search),
             'url'         => URLHelper::getURL('dispatch.php/messages/overview/' . $message->id),
-            'img'         => Icon::create('mail', 'info')->asImagePath(),
+            'img'         => Icon::create('mail', 'clickable')->asImagePath(),
             'date'        => strftime('%x', $message->mkdate),
             'description' => self::mark($message->message, $search, true),
             'additional'  => htmlReady($additional),

@@ -86,7 +86,7 @@ class GlobalSearchCalendar extends GlobalSearchModule
             'url'        => URLHelper::getURL('dispatch.php/course/details', [
                 'cid' => $termin['seminar_id'],
             ]),
-            'img'        => Icon::create('schedule', 'info')->asImagePath(),
+            'img'        => Icon::create('schedule', 'clickable')->asImagePath(),
             'additional' => $additional,
             'expand'     => self::getSearchURL($search),
         ];

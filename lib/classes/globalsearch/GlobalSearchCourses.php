@@ -159,7 +159,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
                 WHERE MATCH(`VeranstaltungsNummer`, `Name`) AGAINST ($query IN BOOLEAN MODE)
                 ORDER BY $semstatus ABS(`start_time` - UNIX_TIMESTAMP()) ASC,
                      MATCH(`VeranstaltungsNummer`, `Name`) AGAINST ($query IN BOOLEAN MODE) DESC
-                LIMIT ".Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE;
+                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $sql;
     }
 

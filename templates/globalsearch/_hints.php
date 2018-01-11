@@ -23,11 +23,11 @@
     </section>
     <section>
         <header>
-            <?= _('[ALT] oder Klick auf Überschrift') ?>
+            <?= _('Klick auf Überschrift') ?>
         </header>
         <p>
-            <?= _('Erweitert die ausgewählte Suchkategorie. ' .
-                ' Bei einem weiteren Klick wird an die entsprechende Vollsuche weitergeleitet.') ?>
+            <?= _('Erweitert die ausgewählte Suchkategorie, um mehr Suchergebnisse aus dieser Kategorie anzuzeigen. ' .
+                ' Ein weiterer Klick zeigt wieder Ergebnisse aus allen Kategorien an.') ?>
         </p>
     </section>
     <section>

@@ -43,7 +43,7 @@ class GlobalSearchResources extends GlobalSearchModule
                 'view'        => 'view_schedule',
                 'show_object' => $res['resource_id'],
             ]),
-            'img'        => Icon::create('resources', 'info')->asImagePath(),
+            'img'        => Icon::create('resources', 'clickable')->asImagePath(),
             'additional' => self::mark($res['description'], $search),
             'expand'     => self::getSearchURL($search),
         );

@@ -84,7 +84,7 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
                 'show_object' => $res['resource_id'],
                 'start_time'  => strtotime('last monday', $res['begin'] + 24*60*60)
             ]),
-            'img'        => Icon::create('room-clear', 'info')->asImagePath(),
+            'img'        => Icon::create('room-clear', 'clickable')->asImagePath(),
             'additional' => self::mark($additional, $search),
             'expand'     => null
         ];
