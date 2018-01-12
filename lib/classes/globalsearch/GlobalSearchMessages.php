@@ -39,9 +39,9 @@ class GlobalSearchMessages extends GlobalSearchModule
         $user_id = DBManager::get()->quote($GLOBALS['user']->id);
         $sql = "SELECT `message`.*
                 FROM `message`
-                JOIN `message_user` USING (`message_id`)
+                    JOIN `message_user` USING (`message_id`)
                 WHERE `user_id` = {$user_id}
-                  AND (`subject` LIKE {$query} OR `message` LIKE {$query})
+                    AND (`subject` LIKE {$query} OR `message` LIKE {$query})
                 ORDER BY `message`.`mkdate` DESC
                 LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $sql;
@@ -75,10 +75,11 @@ class GlobalSearchMessages extends GlobalSearchModule
             'name'        => self::mark($message->subject, $search),
             'url'         => URLHelper::getURL('dispatch.php/messages/overview/' . $message->id),
             'img'         => Icon::create('mail', 'clickable')->asImagePath(),
-            'date'        => strftime('%x', $message->mkdate),
+            'date'        => strftime('%x %X', $message->mkdate),
             'description' => self::mark($message->message, $search, true),
             'additional'  => htmlReady($additional),
             'expand'      => self::getSearchURL($search),
+            'user'        => $message->author->getFullName()
         ];
         return $result;
     }

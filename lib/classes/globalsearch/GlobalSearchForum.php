@@ -121,6 +121,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
                 'search_content' => 1,
                 'search_author'  => 1
             ]),
+            'user'        => $temp
         ];
         return $result;
     }

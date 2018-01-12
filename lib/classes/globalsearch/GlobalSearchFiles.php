@@ -116,7 +116,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                 // Roots see all files, no matter where.
                 case 'root':
                     return "SELECT DISTINCT r.`id`, r.`folder_id`, r.`name`, r.`description`,
-                                r.`chdate`, fo.`range_id`, f.`mime_type`
+                                r.`chdate`, fo.`range_id`, f.`mime_type`, r.`user_id`
                             FROM `file_refs` r
                             JOIN `folders` fo ON (r.`folder_id` = fo.`id`)
                             JOIN `files` f ON (r.`file_id` = f.`id`)
@@ -131,7 +131,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                     $institutes = array_map(function ($i) { return $i['Institut_id']; }, Institute::getMyInstitutes());
 
                     return "SELECT DISTINCT r.`id`, r.`folder_id`, r.`name`, r.`description`,
-                                r.`chdate`, fo.`range_id`, f.`mime_type`
+                                r.`chdate`, fo.`range_id`, f.`mime_type`, r.`user_id`
                             FROM `file_refs` r
                             JOIN `folders` fo ON (r.`folder_id` = fo.`id`)
                             JOIN `files` f ON (r.`file_id` = f.`id`)
@@ -164,7 +164,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                     }
 
                     return "SELECT DISTINCT r.`id`, r.`folder_id`, r.`name`, r.`description`,
-                                r.`chdate`, fo.`range_id`, f.`mime_type`
+                                r.`chdate`, fo.`range_id`, f.`mime_type`, r.`user_id`
                             FROM `file_refs` r
                             JOIN `folders` fo ON (r.`folder_id` = fo.`id`)
                             JOIN `files` f ON (r.`file_id` = f.`id`)
@@ -198,6 +198,8 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
      */
     public static function filter($fileref, $search)
     {
+        $log = fopen($GLOBALS['TMP_PATH'] . '/search.log', 'w');
+        fwrite($log, print_r($fileref, 1));
         /*
          * If folder wasn't already checked, get typed folder and add it to
          * cache. This way, we don't need to query the database for folders
@@ -240,7 +242,8 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                 'expand'     => URLHelper::getURL(
                     "dispatch.php{$range_path}/files/index/{$fileref['folder_id']}",
                     ['cid' => $fileref['range_id']]
-                )
+                ),
+                'user'       => User::find($fileref['user_id'])->getFullname()
             );
         }
 
