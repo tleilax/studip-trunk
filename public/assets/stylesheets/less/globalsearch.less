@@ -73,7 +73,7 @@
     // List display
     #globalsearch-list {
         background-color: @white;
-        box-shadow: 0px 5px 8px rgba(0,0,0,0.5);
+        box-shadow: 1px 1px 1px @light-gray-color-80;
         color: @text-color;
         font-size: 18px;
         font-weight: normal;
@@ -118,7 +118,6 @@
     #globalsearch-searching {
         @icon-size: 32px;
 
-        border-top: 1px solid @light-gray-color-60;
         color: @dark-gray-color-45;
         display: none;
         text-align: center;
@@ -127,6 +126,7 @@
         background-position: center bottom;
         background-repeat: no-repeat;
         background-size: @icon-size;
+        margin-bottom: 10px;
         padding-bottom: (@icon-size + 5px);
     }
     &.is-searching {

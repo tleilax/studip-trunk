@@ -243,6 +243,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                     "dispatch.php{$range_path}/files/index/{$fileref['folder_id']}",
                     ['cid' => $fileref['range_id']]
                 ),
+                'expandtext'  => _('In diesem Dateibereich suchen'),
                 'user'       => User::find($fileref['user_id'])->getFullname()
             );
         }

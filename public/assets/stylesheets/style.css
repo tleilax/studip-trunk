@@ -10170,7 +10170,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 }
 #globalsearch-searchbar #globalsearch-list {
   background-color: #fff;
-  box-shadow: 0px 5px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 1px 1px 1px #8b8f95;
   color: #000;
   font-size: 18px;
   font-weight: normal;
@@ -10208,7 +10208,6 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   opacity: 1;
 }
 #globalsearch-searchbar #globalsearch-searching {
-  border-top: 1px solid #a8abb0;
   color: #a8abb0;
   display: none;
   text-align: center;
@@ -10216,6 +10215,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   background-position: center bottom;
   background-repeat: no-repeat;
   background-size: 32px;
+  margin-bottom: 10px;
   padding-bottom: 37px;
 }
 #globalsearch-searchbar.is-searching #globalsearch-searching {

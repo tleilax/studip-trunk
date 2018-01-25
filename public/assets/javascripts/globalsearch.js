@@ -140,7 +140,7 @@
                         // "Expand" attribute for further, result-related search
                         // (e.g. search in course of found forum entry)
                         if (result.expand !== null && result.expand !== value.fullsearch && value.more) {
-                            $('<a href="' + result.expand + '">')
+                            $('<a href="' + result.expand + '" title="' + result.expandtext + '">')
                                 .wrap('<div class="globalsearch-result-expand">')
                                 .parent() // Element is now the wrapper
                                 .appendTo(single);
@@ -269,7 +269,12 @@
             // ctrl + space
             if (e.which === 32 && e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
                 e.preventDefault();
-                $('#globalsearch-input').focus();
+                if ($('#globalsearch-searchbar').hasClass('is-visible')) {
+                    STUDIP.GlobalSearch.toggleSearchBar(false, false);
+                    $('#globalsearch-input').blur();
+                } else {
+                    $('#globalsearch-input').focus();
+                }
             // escape
             } else if (e.which === 27 && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
                 e.preventDefault();

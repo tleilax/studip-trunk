@@ -98,7 +98,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             $temp = _('Anonym');
         }
         $additional = sprintf(
-            _('%1$s in %2$s'),
+            _('Beitrag von %1$s in %2$s'),
             $temp,
             $course ? $course->getFullname() : _('Ohne Titel')
         );
@@ -121,6 +121,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
                 'search_content' => 1,
                 'search_author'  => 1
             ]),
+            'expandtext'  => _('Im Forum dieser Veranstaltung suchen'),
             'user'        => $temp
         ];
         return $result;
