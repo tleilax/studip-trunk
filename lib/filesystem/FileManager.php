@@ -325,6 +325,7 @@ class FileManager
                     'name'     => $filename,
                     'type'     => $filetype,
                     'tmp_name' => $tmpname,
+                    'url'      => "",
                     'size'     => $size,
                     'user_id'  => $user_id,
                     'error'    => $uploaded_files['error'][$key]
@@ -694,14 +695,49 @@ class FileManager
                 }
 
                 $file_meta = array(
-                    'name' => [$source->name],
+                    'name' => $source->name,
                     'error' => [0],
-                    'type' => [$source->mime_type],
-                    'tmp_name' => [$source->path_to_blob],
-                    'size' => [$source->size]);
+                    'type' => $source->mime_type,
+                    'tmp_name' => $source->path_to_blob,
+                    'url' => $source->file->url,
+                    'size' => $source->size
+                );
 
-                $fcopy = self::handleFileUpload($file_meta, $destination_folder, $user->id);
-                $new_reference = $fcopy["files"][0];
+                if ($source->file->url) {
+                    if ($destination_plugin) {
+                        $new_reference = $destination_folder->createFile($file_meta);
+                    } else {
+                        $copied_file = new File();
+                        $copied_file->setData($source->file);
+                        $copied_file['user_id'] = $user->id;
+                        $copied_file->setId($copied_file->getNewId());
+                        $copied_file->store();
+
+                        $fileurl = new FileURL();
+                        $fileurl->setData($source->file->file_url->toArray());
+                        $fileurl['file_id'] = $copied_file->getId();
+                        $fileurl->store();
+
+                        $new_reference = new FileRef();
+                        $new_reference->file_id     = $copied_file->id;
+                        $new_reference->folder_id   = $destination_folder->getId();
+                        $new_reference->name        = $source->file->name;
+                        $new_reference->description = $source->description;
+                        $new_reference->user_id     = $user->id;
+                    }
+                } else {
+                    $file_meta = array(
+                        'name' => array($source->name),
+                        'error' => [0],
+                        'type' => array($source->mime_type),
+                        'tmp_name' => array($source->path_to_blob),
+                        'url' => array($source->file->url),
+                        'size' => array($source->size)
+                    );
+                    $fcopy = self::handleFileUpload($file_meta, $destination_folder, $user->id);
+                    $new_reference = $fcopy["files"][0];
+                }
+
                 $new_reference->content_terms_of_use_id = $source->content_terms_of_use_id;
 
             }
@@ -1002,24 +1038,49 @@ class FileManager
             )];
         }
 
-        //the user has the permissions to copy the folder
-        $unique_name = Folder::find($destination_folder->getId())->getUniqueName($source_folder->name);
-        $unique_id   = Folder::find($destination_folder->getId())->getNewId();
-        $folder_class_name = get_class($source_folder);
 
-        $clone_folder = clone Folder::find($source_folder->getId());
-        $clone_folder->setNew(true);
 
-        $clone_folder->id         = $unique_id;
-        $clone_folder->user_id    = $user->id;
-        $clone_folder->parent_id  = $destination_folder->id;
-        $clone_folder->range_id   = $destination_folder->range_id;
-        $clone_folder->range_type = $destination_folder->range_type;
-        $clone_folder->name       = $unique_name;
-        if ($clone_folder->store()) {
-            $new_folder = new $folder_class_name($clone_folder);
-            $new_folder->store();
+        //The user has the permissions to copy the folder.
+
+        //Now we must check if a folder is to be copied inside itself
+        //or one of its subfolders. This is not allowed since it
+        //leads to infinite recursion.
+
+        $recursion_error = false;
+
+        //First we check if the source folder is the destination folder:
+        if ($destination_folder->getId() == $source_folder->getId()) {
+            $recursion_error = true;
         }
+
+        //After that we search the hierarchy of the destination folder
+        //for the ID of the source folder:
+        $parent = $destination_folder->getParent();
+        while ($parent) {
+            if ($parent->getId() == $source_folder->getId()) {
+                $recursion_error = true;
+                break;
+            }
+            $parent = $parent->getParent();
+        }
+
+        if ($recursion_error) {
+            return [
+                _('Ein Ordner kann nicht in sich selbst oder einen seiner Unterordner kopiert werden!')
+            ];
+        }
+
+
+        //We must copy the source folder first.
+        //The copy must be the same folder type like the destination folder.
+        //Therefore we must first get the destination folder's FolderType class.
+        $new_folder_class = get_class($source_folder);
+        $destination_folder_type = in_array($new_folder_class, self::getAvailableFolderTypes($destination_folder->range_id, $user->id))
+            ? $new_folder_class
+            : "StandardFolder";
+        $new_folder = new $destination_folder_type();
+        $new_folder->name = $source_folder->name;
+        $new_folder = $destination_folder->createSubfolder($new_folder);
 
         //now we go through all subfolders and copy them:
         foreach ($source_folder->getSubfolders() as $sub_folder) {
@@ -1061,10 +1122,32 @@ class FileManager
             )];
         }
 
-        $source_folder->parent_id = $destination_folder->getId();
-        $source_folder->range_id = $destination_folder->range_id;
-        $source_folder->store();
-        return $source_folder;
+        //Check if the destination folder is a subfolder of the source folder
+        //or if destination and source folder are identical:
+        $recursion_error = false;
+
+        if ($destination_folder->getId() == $source_folder->getId()) {
+            $recursion_error = true;
+        }
+
+        $parent = $destination_folder->getParent();
+        while ($parent) {
+            if ($parent->getId() == $source_folder->getId()) {
+                $recursion_error = true;
+                break;
+            }
+            $parent = $parent->getParent();
+        }
+
+        if ($recursion_error) {
+            return [
+                _('Ein Ordner kann nicht in sich selbst oder einen seiner Unterordner verschoben werden!')
+            ];
+        }
+
+        return $destination_folder->createSubfolder(
+            $source_folder
+        );
     }
 
     /**
@@ -1121,9 +1204,15 @@ class FileManager
             if (!is_a($declared_class, 'FolderType', true)) {
                 continue;
             }
-            $result[] = $declared_class;
+            $reflected_ft = new ReflectionClass($declared_class);
+            $ft_sorter = $reflected_ft->getStaticPropertyValue('sorter', PHP_INT_MAX);
+            if ($ft_sorter == 0 && $declared_class != 'StandardFolder') {
+                $ft_sorter = PHP_INT_MAX;
+            }
+            $result[$declared_class] = $ft_sorter;
         }
-        return $result;
+        asort($result, SORT_NUMERIC);
+        return array_keys($result);
     }
 
     /**
