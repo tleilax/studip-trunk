@@ -182,6 +182,7 @@
             // Show all results.
             $('#globalsearch-' + category + ' section.globalsearch-extended-result').
                 removeClass('globalsearch-extended-result');
+            $('article#globalsearch-' + category).get(0).scrollIntoView();
             // Reassign category click to closing extended view.
             $('#globalsearch-results article#globalsearch-' + category + ' header a').
                 off('click').
