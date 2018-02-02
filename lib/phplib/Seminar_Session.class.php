@@ -263,7 +263,6 @@ class Seminar_Session
 
         switch ($this->module) {
             case "user" :
-                session_module_name('user');
                 $name = $this->that_class;
                 $this->that = new $name;
                 $this->that->ac_start();
