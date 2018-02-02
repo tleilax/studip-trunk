@@ -507,13 +507,16 @@ class StudipPDOStatement implements IteratorAggregate
         // bind query parameters on the actual statement
         if (!$emulate_prepare) {
             foreach ($this->params as $key => $param) {
-                $this->stmt->bindValue($key, $param['value'], $param['type']);
+                $this->stmt->bindValue($key, $param['value'], $param['type'] ?: PDO::PARAM_STR);
             }
         }
 
         // set up column bindings on the actual statement
         if (isset($this->columns)) {
             foreach ($this->columns as $args) {
+                if (!isset($args[2])) {
+                    $args[2] = PDO::PARAM_STR;
+                }
                 call_user_func_array(array($this->stmt, 'bindColumn'), $args);
             }
         }
