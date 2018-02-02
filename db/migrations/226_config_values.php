@@ -20,6 +20,15 @@ class ConfigValues extends Migration
                    FROM user_config LEFT JOIN config ON user_config.field = config.field AND is_default = 1
                    WHERE config_id IS NULL");
 
+        // abort migration on duplicate entries in config
+        $result = $db->query('SELECT field FROM config c1 JOIN config c2 USING(field, is_default) WHERE c1.config_id > c2.config_id');
+        $errors = $result->fetchAll(PDO::FETCH_COLUMN);
+
+        if (count($errors)) {
+            echo "Duplicate field names in config table, aborting migration:\n", implode(', ', $errors), "\n";
+            die;
+        }
+
         // delete duplicate config values in user_config
         $db->exec('DELETE c1 FROM user_config c1 JOIN user_config c2 USING(field, user_id) WHERE c1.userconfig_id > c2.userconfig_id');
 
@@ -80,7 +89,7 @@ class ConfigValues extends Migration
                    SET student_mailing = value WHERE field = 'COURSE_STUDENT_MAILING'");
 
         // delete no longer supported values
-        $db->exec("DELETE config, config_values FROM config JOIN config_values USING(field) WHERE `range` = 'course'");
+        $db->exec("DELETE config, config_values FROM config LEFT JOIN config_values USING(field) WHERE `range` = 'course'");
 
         // restore old primary key
         $db->exec("ALTER TABLE config

@@ -53,7 +53,7 @@ a.button, button.button {
 .button-with-empty-icon {
     white-space: nowrap;
 
-    &:before {
+    &::before {
         background: no-repeat;
         content: " ";
         float: left;
@@ -65,13 +65,20 @@ a.button, button.button {
 
 .button-with-icon(@icon, @role, @roleOnHover) {
     &:extend(.button-with-empty-icon);
-    &:before {
-        &:extend(.button-with-empty-icon:before);
+    &::before {
+        &:extend(.button-with-empty-icon::before);
         .background-icon(@icon, @role);
     }
 
-    &:hover:before {
+    &:hover::before {
         .background-icon(@icon, @roleOnHover);
+    }
+
+    &.disabled,
+    &[disabled] {
+        &:hover::before {
+            .background-icon(@icon, @role);
+        }
     }
 }
 
@@ -81,6 +88,10 @@ a.button, button.button {
 
 .button.cancel {
   .button-with-icon("decline", "clickable", "info_alt");
+}
+
+.button.download {
+  .button-with-icon("download2", "clickable", "info_alt");
 }
 
 .button.edit {
@@ -97,6 +108,10 @@ a.button, button.button {
 
 .button.add {
   .button-with-icon("add", "clickable", "info_alt");
+}
+
+.button.download {
+  .button-with-icon("download", "clickable", "info_alt");
 }
 
 /* Grouped Buttons */

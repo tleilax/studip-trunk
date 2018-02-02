@@ -244,7 +244,7 @@ class FileController extends AuthenticatedController
                 }
             }
 
-            $this->render_template('file/file_details');
+            $this->render_action('file_details');
         } else {
             //file area object is not a FileRef: maybe it's a folder:
             if (Request::get("from_plugin")) {
@@ -258,7 +258,7 @@ class FileController extends AuthenticatedController
 
             //file system object is a Folder
             PageLayout::setTitle($this->folder->name);
-            $this->render_template('file/folder_details');
+            $this->render_action('folder_details');
         }
     }
 
@@ -301,6 +301,15 @@ class FileController extends AuthenticatedController
             $new_description = Request::get('description');
             $new_content_terms_of_use_id = Request::get('content_terms_of_use_id');
 
+            //Check if the FileRef is unmodified:
+            if (($new_name == $this->file_ref->name) &&
+                ($new_description == $this->file_ref->description) &&
+                ($new_content_terms_of_use_id == $this->file_ref->content_terms_of_use_id)) {
+                //The FileRef is unmodified. We can redirect to the folder
+                //where the FileRef is stored in.
+                $this->redirectToFolder($this->folder);
+                return;
+            }
 
             if (Request::get("from_plugin")) {
                 $result = $this->folder->editFile($file_ref_id, $new_name, $new_description, $new_content_terms_of_use_id);
@@ -817,6 +826,56 @@ class FileController extends AuthenticatedController
                 throw new AccessException();
             }
         }
+
+        $this->top_folder_name = _('Hauptordner');
+
+        //A top folder can have its parent-ID set to an emtpy string
+        //or its folder_type is set to 'RootFolder'.
+        if ($this->top_folder->parent_id == ''
+            or $this->top_folder->folder_type == 'RootFolder') {
+            //We have a top folder. Now we check if its range-ID
+            //references a Stud.IP object and set the displayed folder name
+            //to the name of that object.
+            if ($this->top_folder->range_id) {
+                $range_type = Folder::findRangeTypeById($this->top_folder->range_id);
+
+                switch ($range_type) {
+                    case 'course': {
+                        $course = Course::find($this->top_folder->range_id);
+                        if ($course) {
+                            $this->top_folder_name = $course->getFullName();
+                        }
+                        break;
+                    }
+                    case 'institute': {
+                        $institute = Institute::find($this->top_folder->range_id);
+                        if ($institute) {
+                            $this->top_folder_name = $institute->getFullName();
+                        }
+                        break;
+                    }
+                    case 'user': {
+                        $user = User::find($this->top_folder->range_id);
+                        if ($user) {
+                            $this->top_folder_name = $user->getFullName();
+                        }
+                        break;
+                    }
+                    case 'message': {
+                        $message = Message::find($this->top_folder->range_id);
+                        if ($message) {
+                            $this->top_folder_name = $message->subject;
+                        }
+                        break;
+                    }
+                }
+
+            }
+        }
+        else {
+            //$top_folder is not a top folder. We can use its name directly.
+            $this->top_folder_name = $this->top_folder->name;
+        }
     }
 
     public function getFolders_action()
@@ -1048,6 +1107,54 @@ class FileController extends AuthenticatedController
             if (!$this->top_folder->isReadable($GLOBALS['user']->id)) {
                 throw new AccessException();
             }
+        }
+
+        $this->to_folder_name = _('Hauptordner');
+
+        //A top folder can have its parent-ID set to an empty string
+        //or its folder_type set to 'RootFolder'.
+        if ($this->to_folder_type->parent_id == ''
+            or $this->to_folder_type->folder_type == 'RootFolder') {
+            //We have a top folder. Now we check if its range-ID
+            //references a Stud.IP object and set the displayed folder name
+            //to the name of that object.
+            if ($this->to_folder_type->range_id) {
+                $range_type = Folder::findRangeTypeById($this->to_folder_type->range_id);
+
+                switch ($range_type) {
+                    case 'course': {
+                        $course = Course::find($this->to_folder_type->range_id);
+                        if ($course) {
+                            $this->to_folder_name = $course->getFullName();
+                        }
+                        break;
+                    }
+                    case 'institute': {
+                        $institute = Institute::find($this->to_folder_type->range_id);
+                        if ($institute) {
+                            $this->to_folder_name = $institute->getFullName();
+                        }
+                        break;
+                    }
+                    case 'user': {
+                        $user = User::find($this->to_folder_type->range_id);
+                        if ($user) {
+                            $this->to_folder_name = $user->getFullName();
+                        }
+                        break;
+                    }
+                    case 'message': {
+                        $message = Message::find($this->to_folder_type->range_id);
+                        if ($message) {
+                            $this->to_folder_name = $message->subject;
+                        }
+                        break;
+                    }
+                }
+            }
+        } else {
+            //The folder is not a top folder. We can use its name directly.
+            $this->to_folder_name = $this->to_folder_type->name;
         }
     }
 
@@ -1342,9 +1449,9 @@ class FileController extends AuthenticatedController
             if ($result instanceof FolderType) {
                 if ($folder->store()) {
                     PageLayout::postSuccess(_('Der Ordner wurde bearbeitet.'));
-                    $this->response->add_header('X-Dialog-Close', '1');
-                    $this->render_nothing();
                 }
+                $this->response->add_header('X-Dialog-Close', '1');
+                $this->render_nothing();
             } else {
                 PageLayout::postMessage($result);
             }
