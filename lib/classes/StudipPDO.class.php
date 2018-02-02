@@ -514,9 +514,6 @@ class StudipPDOStatement implements IteratorAggregate
         // set up column bindings on the actual statement
         if (isset($this->columns)) {
             foreach ($this->columns as $args) {
-                if (!isset($args[2])) {
-                    $args[2] = PDO::PARAM_STR;
-                }
                 call_user_func_array(array($this->stmt, 'bindColumn'), $args);
             }
         }
