@@ -1,4 +1,4 @@
-<? $count = count($versionen); ?>
+<? $count = is_array($versionen) ? count($versionen) : 0; ?>
 <?= $controller->renderMessages(); ?>
 <div class="mvv-version-content">
     <table class="default collapsable">

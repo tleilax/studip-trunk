@@ -175,7 +175,7 @@ class Admin_UserController extends AuthenticatedController
 
         //show datafields search
         if ($advanced
-            || count($search_datafields) > 0
+            || !empty($search_datafields)
             || (!empty($request)
                 && ($request['auth_plugins'] || $request['userdomains'] || $request['degree'] || $request['institute'] || $request['studycourse'])
             )
@@ -1384,7 +1384,7 @@ class Admin_UserController extends AuthenticatedController
                   WHERE (file_refs.user_id = ?)
                   AND (files.storage <> 'url')
                   AND (
-                    (folders.range_type = 'course') 
+                    (folders.range_type = 'course')
                     OR (folders.range_type = 'institute')
                   )
                   GROUP BY file_refs.user_id",
@@ -1398,7 +1398,7 @@ class Admin_UserController extends AuthenticatedController
                   WHERE (file_refs.user_id = ?)
                   AND (files.storage <> 'url')
                   AND (
-                    (folders.range_type = 'course') 
+                    (folders.range_type = 'course')
                     OR (folders.range_type = 'institute')
                   )
                   GROUP BY file_refs.user_id",
@@ -1506,7 +1506,7 @@ class Admin_UserController extends AuthenticatedController
         $sidebar->addWidget($actions);
         $sidebar->addWidget($search);
 
-        if ($this->action === 'index' && count($this->users) > 0) {
+        if ($this->action === 'index' && !empty($this->users)) {
             $export = new ExportWidget();
             $export->addLink(_('Suchergebnis exportieren'),
                 $this->url_for('admin/user?export=1'),

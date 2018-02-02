@@ -115,7 +115,7 @@ class StudipLitList extends TreeAbstract {
 
     function getVisibleListIds(){
         $ret = false;
-        $lists = $this->getKids('root');
+        $lists = $this->getKids('root') ?: [];
         for ($i = 0; $i < count($lists); ++$i){
             if ($this->tree_data[$lists[$i]]['visibility']){
                 $ret[] = $lists[$i];

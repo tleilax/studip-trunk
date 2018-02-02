@@ -490,7 +490,7 @@ class Institute_MembersController extends AuthenticatedController
             unset($table_structure['statusgruppe']);
         }
 
-        $table_structure = array_merge($table_structure, $additional_structure);
+        $table_structure = array_merge($table_structure, (array)$additional_structure);
 
         if ($this->admin_view || $GLOBALS['perm']->have_studip_perm('autor', $this->institute->id)) {
             $table_structure['actions'] = array(
@@ -608,7 +608,7 @@ class Institute_MembersController extends AuthenticatedController
             ->setTitle(_('Personen in die Einrichtung eintragen'))
             ->setExecuteURL($this->link_for('institute/members/add', $this->type, ['admin_view' => 1]))
             ->setSearchObject($search_obj)
-            ->setAdditionalHTML('<p><strong>' . _('Nur bei Zuordnung eines Admins:') .' </strong> 
+            ->setAdditionalHTML('<p><strong>' . _('Nur bei Zuordnung eines Admins:') .' </strong>
                             <label><input name="additional[]" value="admins" type="checkbox">' . _('Benachrichtigung der Admins') . '</label>
                             <label><input name="additional[]" value="dozenten" type="checkbox">' . _('Benachrichtigung der Dozenten') . '</label>
                             </p>');

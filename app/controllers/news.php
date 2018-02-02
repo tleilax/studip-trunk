@@ -580,7 +580,7 @@ class NewsController extends StudipController
 
         // sort grouped list by title
         foreach($this->area_structure as $type => $area_data) {
-            if (count($this->news_groups[$type])) {
+            if (isset($this->news_groups[$type]) && count($this->news_groups[$type])) {
                 ksort($this->news_groups[$type]);
             }
         }
