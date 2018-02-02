@@ -1,4 +1,4 @@
-<? if (!$dates['regular']['turnus_data'] && (!sizeof($dates['irregular']))) : ?>
+<? if (!$dates['regular']['turnus_data'] && empty($dates['irregular'])) : ?>
     <? if ($dates['ort'] && $show_room) : ?>
         <?= htmlReady($dates['ort']) ?>
     <? else : ?>
