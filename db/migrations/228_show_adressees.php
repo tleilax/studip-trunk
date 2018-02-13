@@ -19,16 +19,8 @@ class ShowAdressees extends Migration
 
     public function up()
     {
-        $db = DBManager::get();
-        $stmt = $db->prepare("
-                INSERT INTO config
-                    (config_id, field, value, is_default, type, section, mkdate, chdate, description)
-                VALUES
-                    (MD5(:name), :name, :value, 1, :type, :section, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)
-                ");
-
         foreach ($this->options as $option) {
-            $stmt->execute($option);
+            Config::get()->create($option['name'], $option);
         }
 
         DBManager::get()->exec("
