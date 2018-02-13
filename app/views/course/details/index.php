@@ -57,9 +57,9 @@
                 <td>
                     <strong>
                     <? if ($sem->isAdmissionEnabled()) : ?>
-                        <?= _('maximale Teilnehmeranzahl') ?>
+                        <?= _('maximale Teilnehmendenanzahl') ?>
                     <? else : ?>
-                        <?= _('erwartete Teilnehmeranzahl') ?>
+                        <?= _('erwartete Teilnehmendenanzahl') ?>
                     <? endif ?>
                     </strong>
                 </td>
@@ -306,6 +306,10 @@
             } ?>
         </section>
     </article>
+<? endif ?>
+
+<? if (isset($public_files)) : ?>
+    <?= $this->render_partial('profile/public_files') ?>
 <? endif ?>
 
 <article class="studip">

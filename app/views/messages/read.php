@@ -24,15 +24,15 @@
                 <? if ($message["autor_id"] !== $GLOBALS["user"]->id && (!$message['show_adressees'] || $num_recipients > Config::get()->SHOW_ADRESSEES_LIMIT)) : ?>
                     <?= $num_recipients > 1 ? sprintf(_("%s Personen"), $num_recipients) : _("Eine Person") ?>
                 <? else : ?>
-                    <ul class='clean' id="adressees">
-                    <? foreach ($message->getRecipients() as $message_user) : ?>
-                        <li>
-                            <a href="<?= URLHelper::getLink("dispatch.php/profile", array('username' => $message_user["username"])) ?>">
-                                <?= htmlReady($message_user['fullname']) ?>
-                            </a>
-                        </li>
-                    <? endforeach ?>
-                    </ul>
+                <ul class="list-csv" id="adressees">
+                <? foreach ($message->getRecipients() as $message_user) : ?>
+                    <li>
+                        <a href="<?= URLHelper::getLink("dispatch.php/profile", array('username' => $message_user["username"])) ?>">
+                            <?= htmlReady($message_user['fullname']) ?><!-- avoid extra space before ::after
+                     --></a><!--
+                 --></li>
+                <? endforeach ?>
+                </ul>
                 <? endif ?>
             </td>
         </tr>

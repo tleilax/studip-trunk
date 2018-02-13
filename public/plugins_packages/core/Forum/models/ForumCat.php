@@ -14,13 +14,16 @@
 
 class ForumCat extends SimpleORMap
 {
-
+    /**
+     * Configures this model.
+     *
+     * @param array $config Configuration array
+     */
     protected static function configure($config = array())
     {
         $config['db_table'] = 'forum_categories';
         parent::configure($config);
     }
-
 
     /**
      * Return a list of all areas with their categories.
@@ -30,7 +33,7 @@ class ForumCat extends SimpleORMap
      * @param string $exclude_null  if false, empty categories are returned as well
      * @return array list of categories
      */
-    static function getListWithAreas($seminar_id, $exclude_null = true)
+    public static function getListWithAreas($seminar_id, $exclude_null = true)
     {
         $stmt = DBManager::get()->prepare("SELECT * FROM forum_categories AS fc
             LEFT JOIN forum_categories_entries AS fce USING (category_id)
@@ -44,38 +47,13 @@ class ForumCat extends SimpleORMap
     }
 
     /**
-     * return a list of all categories for the passed seminar
-     *
-     * @param string $seminar_id  the seminar_id the retrieve the categories for
-     * @return array  list of categories
-     */
-    static function getList($seminar_id)
-    {
-        $stmt = DBManager::get()->prepare("SELECT * FROM forum_categories
-            WHERE seminar_id = ? ORDER BY pos ASC");
-        $stmt->execute(array($seminar_id));
-
-        $list = array();
-
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $area) {
-            $cat = new ForumCat();
-            $cat->setData($area, true);
-            $cat->setNew(false);
-            $list[] = $cat;
-        }
-
-        return $list;
-        // return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
      * Returns the name of the associated category for an area denoted by the
      * passed topic_id
      *
      * @param string $topic_id
      * @return string  the name of the category
      */
-    static function getCategoryNameForArea($topic_id)
+    public static function getCategoryNameForArea($topic_id)
     {
         $stmt = DBManager::get()->prepare("SELECT fc.entry_name FROM forum_categories AS fc
             LEFT JOIN forum_categories_entries AS fce USING (category_id)
@@ -94,7 +72,7 @@ class ForumCat extends SimpleORMap
      * @param string $name  the name of the new category
      * @return string  the id of the newly created category
      */
-    static function add($seminar_id, $name)
+    public static function add($seminar_id, $name)
     {
         $stmt = DBManager::get()->prepare("INSERT INTO forum_categories
             (category_id, seminar_id, entry_name)
@@ -115,7 +93,7 @@ class ForumCat extends SimpleORMap
      * @param string $category_id  The ID of the category to be deleted
      * @param string $seminar_id  Seminar-ID the category belongs to
      */
-    static function remove($category_id, $seminar_id)
+    public static function remove($category_id, $seminar_id)
     {
         // delete the category itself
         $stmt = DBManager::get()->prepare("DELETE FROM
@@ -138,7 +116,7 @@ class ForumCat extends SimpleORMap
      * @param string $category_id  the ID of the category to update
      * @param int $pos             the new position
      */
-    static function setPosition($category_id, $pos)
+    public static function setPosition($category_id, $pos)
     {
         $stmt = DBManager::get()->prepare("UPDATE
             forum_categories
@@ -154,7 +132,7 @@ class ForumCat extends SimpleORMap
      * @param string $category_id  the ID of the category
      * @param string $area_id      the ID of the area to add the category to
      */
-    static function addArea($category_id, $area_id)
+    public static function addArea($category_id, $area_id)
     {
         // remove area from all other categories
         $stmt = DBManager::get()->prepare("DELETE FROM
@@ -181,7 +159,7 @@ class ForumCat extends SimpleORMap
      *
      * @param string $area_id  the ID of the area to be removed
      */
-    static function removeArea($area_id)
+    public static function removeArea($area_id)
     {
         $stmt = DBManager::get()->prepare("DELETE FROM
             forum_categories_entries
@@ -196,7 +174,7 @@ class ForumCat extends SimpleORMap
      * @param string $area_id  the ID of the area to update
      * @param int    $pos      the new position
      */
-    static function setAreaPosition($area_id, $pos)
+    public static function setAreaPosition($area_id, $pos)
     {
         $stmt = DBManager::get()->prepare("UPDATE
             forum_categories_entries
@@ -211,7 +189,7 @@ class ForumCat extends SimpleORMap
      * @param string $category_id  the ID of the category to update
      * @param string $name         the name to set
      */
-    static function setName($category_id, $name)
+    public static function setName($category_id, $name)
     {
         $stmt = DBManager::get()->prepare("UPDATE
             forum_categories
@@ -226,7 +204,7 @@ class ForumCat extends SimpleORMap
      *
      * @return array the data for the passed category_id
      */
-    static function get($category_id)
+    public static function get($category_id)
     {
         $stmt = DBManager::get()->prepare("SELECT * FROM forum_categories
             WHERE category_id = ?");
@@ -244,7 +222,7 @@ class ForumCat extends SimpleORMap
      *
      * @return array the data for the passed category_id
      */
-    static function getAreas($category_id, $start = null, $num = 20)
+    public static function getAreas($category_id, $start = null, $num = 20)
     {
         $category = self::get($category_id);
 

@@ -88,7 +88,7 @@ class Course_BasicdataController extends AuthenticatedController
             'locked' => LockRules::Check($course_id, 'ects')
         );
         $this->attributes[] = array(
-            'title' => _("max. Teilnehmerzahl"),
+            'title' => _("max. Teilnehmendenzahl"),
             'name' => "course_admission_turnout",
             'must' => false,
             'type' => 'number',
@@ -380,12 +380,20 @@ class Course_BasicdataController extends AuthenticatedController
         }
         $sidebar->addWidget($widget);
         // Entry list for admin upwards.
-        if ($perm->have_studip_perm("admin",$this->course_id)) {
+        if ($perm->have_studip_perm('admin',$this->course_id)) {
             $list = new SelectorWidget();
-            $list->setUrl("?#admin_top_links");
-            $list->setSelectParameterName("cid");
+            $list->setUrl('?#admin_top_links');
+            $list->setSelectParameterName('cid');
             foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
-                $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
+                $list->addElement(
+                    new SelectElement(
+                        $seminar['Seminar_id'],
+                        $seminar['Name'],
+                        $seminar['Seminar_id'] === Context::get()->id,
+                        $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                    ),
+                    'select-' . $seminar['Seminar_id']
+                );
             }
             $list->setSelection($this->course_id);
             $sidebar->addWidget($list);

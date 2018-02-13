@@ -53,20 +53,16 @@ a.message-tag {
     }
   }
 }
+
+#message_metadata tr {
+    vertical-align: top;
+}
+
 #adressees {
-    max-height: 60px;
+    max-height: 120px;
     overflow: auto;
-    li:after { content:"," };
-    li:last-child:after { content:"" };
-    ul, li {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-    li {
-        float: left;
-        padding-right: 2px;
-        padding-bottom: 2px;
+    li.adressee {
+        white-space: nowrap;
     }
 }
 
@@ -85,6 +81,7 @@ a.message-tag {
 .message-search-wrapper {
     .flex();
     .flex-justify-content(flex-start);
+    margin-top: 1ex;
 
     > * {
         margin-right: 1em;

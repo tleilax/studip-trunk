@@ -31,7 +31,7 @@ class Admin_AutoinsertController extends AuthenticatedController
         $perm->check('root');
 
         // set navigation
-        Navigation::activateItem('/admin/locations/auto_insert');
+        Navigation::activateItem('/admin/user/auto_insert');
 
         //pagelayout
         PageLayout::setTitle(_('Automatisiertes Eintragen verwalten'));
@@ -230,7 +230,7 @@ class Admin_AutoinsertController extends AuthenticatedController
         $filters = array_filter(Request::getArray('filter'));
 
         if (empty($filters)) {
-            $data = array('error' => utf8_encode(_('Keine Filterkriterien gewählt')));
+            $data = array('error' => _('Keine Filterkriterien gewählt'));
         } else {
             $userlookup = new UserLookup();
             foreach ($filters as $type => $values) {

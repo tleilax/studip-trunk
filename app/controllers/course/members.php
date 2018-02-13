@@ -35,26 +35,14 @@ class Course_MembersController extends AuthenticatedController
         checkObject();
         checkObjectModule("participants");
 
-        $this->course_id = Context::getId();
+        $this->course_id    = Context::getId();
         $this->course_title = Context::get()->Name;
-        $this->user_id = $GLOBALS['auth']->auth['uid'];
+        $this->user_id      = $GLOBALS['user']->id;
 
-
-        // Check dozent-perms
-        if ($perm->have_studip_perm('dozent', $this->course_id)) {
-            $this->is_dozent = true;
-        }
-
-        // Check tutor-perms
-        if ($perm->have_studip_perm('tutor', $this->course_id)) {
-            $this->is_tutor = true;
-        }
-
-        // Check autor-perms
-        if ($perm->have_studip_perm('autor', $this->course_id)) {
-            $this->is_autor = true;
-        }
-
+        // Check perms
+        $this->is_dozent = $perm->have_studip_perm('dozent', $this->course_id);
+        $this->is_tutor  = $perm->have_studip_perm('tutor', $this->course_id);
+        $this->is_autor  = $perm->have_studip_perm('autor', $this->course_id);
 
         if ($this->is_tutor) {
             PageLayout::setHelpKeyword("Basis.VeranstaltungenVerwaltenTeilnehmer");
@@ -64,9 +52,8 @@ class Course_MembersController extends AuthenticatedController
 
         // Check lock rules
         $this->dozent_is_locked = LockRules::Check($this->course_id, 'dozent');
-        $this->tutor_is_locked = LockRules::Check($this->course_id, 'tutor');
-        $this->is_locked = LockRules::Check($this->course_id, 'participants');
-
+        $this->tutor_is_locked  = LockRules::Check($this->course_id, 'tutor');
+        $this->is_locked        = LockRules::Check($this->course_id, 'participants');
 
         // Layoutsettings
         PageLayout::setTitle(sprintf('%s - %s', Course::findCurrent()->getFullname(), _("Teilnehmende")));
@@ -1047,7 +1034,7 @@ class Course_MembersController extends AuthenticatedController
 
                 PageLayout::postSuccess($message);
             } else {
-                $message = _("Es stehen keine weiteren Plätze mehr im Teilnehmerkontingent zur Verfügung.");
+                $message = _("Es stehen keine weiteren Plätze mehr im Teilnehmendenkontingent zur Verfügung.");
                 PageLayout::postError($message);
             }
         } else {
@@ -1362,20 +1349,26 @@ class Course_MembersController extends AuthenticatedController
 
     private function createSidebar($filtered_members)
     {
-        $sidebar = Sidebar::get();
         $sem = Seminar::GetInstance($this->course_id);
+        $config = CourseConfig::get($this->course_id);
 
-        if ($this->is_tutor) {
-            $widget = new ActionsWidget();
+        $sidebar = Sidebar::get();
+        $widget  = $sidebar->addWidget(new ActionsWidget());
 
-            $url = URLHelper::getLink('dispatch.php/messages/write', array(
-                'course_id' => $this->course_id,
+        if ($this->is_tutor || $config->COURSE_STUDENT_MAILING) {
+            $url = URLHelper::getLink('dispatch.php/messages/write', [
+                'course_id'       => $this->course_id,
                 'default_subject' => $this->subject,
-                'filter' => 'all',
-                'emailrequest' => 1
-            ));
-            $widget->addLink(_('Nachricht an alle (Rundmail)'), $url, Icon::create('inbox', 'clickable'), array('data-dialog' => "buttons"));
-
+                'filter'          => 'all',
+                'emailrequest'    => 1
+            ]);
+            $widget->addLink(
+                _('Nachricht an alle (Rundmail)'),
+                $url,
+                Icon::create('inbox')
+            )->asDialog();
+        }
+        if ($this->is_tutor) {
             if ($this->is_dozent) {
                 if (!$this->dozent_is_locked) {
                     $sem_institutes = $sem->getInstitutes();
@@ -1464,7 +1457,7 @@ class Course_MembersController extends AuthenticatedController
                 "OR auth_user_md5.username LIKE :input) " .
                 "AND auth_user_md5.perms IN ('autor', 'tutor', 'dozent') " .
                 " AND auth_user_md5.visible <> 'never' " .
-                "ORDER BY Vorname, Nachname", _("Teilnehmer suchen"), "username");
+                "ORDER BY Vorname, Nachname", _("Teilnehmende/n suchen"), "username");
 
                 // quickfilter: tutors of institut
                 $sql = "SELECT user_id FROM user_inst WHERE Institut_id = ? AND inst_perms = 'autor'";
@@ -1513,13 +1506,11 @@ class Course_MembersController extends AuthenticatedController
                 }
             }
 
-            $widget->addLink(_('Teilnehmerliste importieren'),
+            $widget->addLink(_('Teilnehmendenliste importieren'),
                              $this->url_for('course/members/import_autorlist'), Icon::create('community+add', 'clickable'));
 
-            $sidebar->addWidget($widget);
 
             if (Config::get()->EXPORT_ENABLE) {
-
                 $widget = new ExportWidget();
 
                 // create csv-export link
@@ -1588,6 +1579,18 @@ class Course_MembersController extends AuthenticatedController
 
                 $sidebar->addWidget($widget);
             }
+
+            if ($this->is_dozent) {
+                $options = new OptionsWidget();
+                $options->addCheckbox(
+                    _('Rundmails von Studierenden erlauben'),
+                    $config->COURSE_STUDENT_MAILING,
+                    $this->url_for('course/members/toggle_student_mailing/1'),
+                    $this->url_for('course/members/toggle_student_mailing/0'),
+                    ['title' => _('Über diese Option können Sie Studierenden das Schreiben von Nachrichten an alle anderen Teilnehmenden der Veranstaltung erlauben')]
+                );
+                $sidebar->addWidget($options);
+            }
         } else if ($this->is_autor || $this->is_user) {
             // Visibility preferences
             if (!$this->my_visibility['iam_visible']) {
@@ -1604,18 +1607,20 @@ class Course_MembersController extends AuthenticatedController
 
 
             $actions = new ActionsWidget();
-            $actions->addLink($link_text,
-                              $this->url_for('course/members/change_visibility', $modus, $this->my_visibility['visible_mode']),
-                              $icon,
-                              array('title' => $text));
+            $actions->addLink(
+                $link_text,
+                $this->url_for('course/members/change_visibility', $modus, $this->my_visibility['visible_mode']),
+                $icon,
+                ['title' => $text]
+            );
             $sidebar->addWidget($actions);
         }
     }
 
     public function export_members_csv_action()
     {
-        if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->course_id)) {
-            throw new AccessDeniedException(_('Kein Zugriff.'));
+        if (!$this->is_tutor) {
+            throw new AccessDeniedException();
         }
         $filtered_members = $this->members->getMembers($this->sort_status, $this->sort_by . ' ' . $this->order);
         $filtered_members = array_merge($filtered_members, $this->members->getAdmissionMembers($this->sort_status, $this->sort_by . ' ' . $this->order ));
@@ -1639,5 +1644,17 @@ class Course_MembersController extends AuthenticatedController
             }
         }
         $csv = array_to_csv($data);
+    }
+
+    public function toggle_student_mailing_action($state)
+    {
+        if (!$this->is_dozent) {
+            throw new AccessDeniedException();
+        }
+
+        $config = CourseConfig::get($this->course_id);
+        $config->store('COURSE_STUDENT_MAILING', $state);
+
+        $this->redirect('course/members');
     }
 }

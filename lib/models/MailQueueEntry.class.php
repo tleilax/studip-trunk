@@ -29,7 +29,7 @@ class MailQueueEntry extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'mail_queue_entries';
-        $config['serialized_fields']['mail'] = "JSONArrayObject";
+        $config['serialized_fields']['mail'] = 'JSONArrayObject';
 
         parent::configure($config);
     }
@@ -43,26 +43,26 @@ class MailQueueEntry extends SimpleORMap
      * receiver has no account in Stud.IP.
      * @return MailQueueEntry : object in the mailqueue.
      */
-    static public function add(StudipMail $mail, $message_id = null, $user_id = null)
+    public static function add(StudipMail $mail, $message_id = null, $user_id = null)
     {
-        $queue_entry = new MailQueueEntry();
+        $queue_entry = new self();
         $queue_entry['mail'] = $mail->toArray();
         $queue_entry['message_id'] = $message_id;
         $queue_entry['user_id'] = $user_id;
         $queue_entry['tries'] = 0;
         $queue_entry->store();
+
         return $queue_entry;
     }
 
     /**
      * Sends all new mails in the mailqueue (which means they haven't been sent yet).
      */
-    static public function sendNew()
+    public static function sendNew()
     {
         self::findEachBySQL(function ($m) {
-                $m->send();
-        },
-        "tries = '0' ORDER BY mkdate");
+            $m->send();
+        }, "tries = 0 ORDER BY mkdate");
     }
 
     /**
@@ -71,39 +71,65 @@ class MailQueueEntry extends SimpleORMap
      * hours) it will stay in the mailqueue table but won't be sent anymore.
      * Each mail will only be tried to deliver once per hour. So if it fails
      * Stud.IP will try again next hour.
+     *
+     * @param int $limit The maximum amount of messages to be sent.
+     * @return array An empty array if no status messages are output
+     *     or an array with status messages, one for each mail.
      */
-    static public function sendAll($limit = null)
+    public static function sendAll($limit = null)
     {
-        self::findEachBySQL(function ($m) {
-                $m->send();
-        },
-            "tries = '0' " .
-            "OR (last_try > (UNIX_TIMESTAMP() - 60 * 60) AND tries < 25) ORDER BY mkdate".
-            ($limit > 0 ? " LIMIT ". (int) $limit : "")
+        //The status messages will be returned
+        $status_messages = [];
+
+        self::findEachBySQL(function ($m) use (&$status_messages) {
+            // Reconstruct the StudipMail object
+            $mail = new StudipMail($m->mail);
+            $status_message = sprintf(
+                'sending message %1$s (sender: %2$s, %3$u recipient(s))...',
+                $m->message_id,
+                $mail->getSenderEmail(),
+                count($mail->getRecipients())
+            );
+
+            $was_sent = $m->send();
+            $status_message .= $was_sent ? 'DONE' : 'FAILURE';
+
+            if ($m->tries > 0) {
+                // If sending the message has failed at least once
+                // we add the amount of tries to the status message.
+                $status_message .= "(t={$m->tries})";
+            }
+
+            $status_messages[] = $status_message;
+        }, "tries = 0 " .
+           "OR (last_try > (UNIX_TIMESTAMP() - 60 * 60) AND tries < 25) ORDER BY mkdate".
+           ($limit > 0 ? " LIMIT ". (int) $limit : "")
         );
+
+        return $status_messages;
     }
 
     /**
      * Sends the object in the mailqueue. If this succeeds, the object will be
      * deleted immediately. Otherwise the field "tries" in the mailqueue table
      * will be incremented by one.
+     *
+     * @return bool True, if the mail in the mailqueue entry could be sent,
+     *     false otherwise.
      */
     public function send()
     {
         $mail = new StudipMail($this->mail);
 
-        if (is_a($mail, "StudipMail")) {
-            $success = $mail->send();
-            if ($success) {
-                if ($this['message_id'] && $this['user_id']) {
-                    //Noch in message_user als versendet vermerken?
-                }
-                $this->delete();
-            } else {
-                $this['tries'] = $this['tries'] + 1;
-                $this['last_try'] = time();
-                $this->store();
-            }
+        $success = $mail->send();
+        if ($success) {
+            $this->delete();
+        } else {
+            $this['tries'] = $this['tries'] + 1;
+            $this['last_try'] = time();
+            $this->store();
         }
+
+        return $success;
     }
 }

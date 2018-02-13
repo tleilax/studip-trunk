@@ -611,6 +611,10 @@ class Admin_CoursesController extends AuthenticatedController
                 $row['room_time'] = $_room ?: _('nicht angegeben');
             }
 
+            if (in_array('requests', $filter_config)) {
+                $row['requests'] = $course['requests'];
+            }
+
             if (in_array('teachers', $filter_config)) {
                 $row['teachers'] = implode(', ', array_map(function ($d) {return $d['fullname'];}, $course['dozenten']));
             }
@@ -679,7 +683,15 @@ class Admin_CoursesController extends AuthenticatedController
     {
         if (Request::option('institute')) {
             $GLOBALS['user']->cfg->store('ADMIN_COURSES_TEACHERFILTER', null);
-            $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', Request::option('institute'));
+            $inst = explode('_', Request::option('institute'));
+            $GLOBALS['user']->cfg->store('MY_INSTITUTES_DEFAULT', $inst[0]);
+
+            if ($inst[1] == 'withinst') {
+                $GLOBALS['user']->cfg->store('MY_INSTITUTES_INCLUDE_CHILDREN', 1);
+            } else {
+                $GLOBALS['user']->cfg->store('MY_INSTITUTES_INCLUDE_CHILDREN', 0);
+            }
+
             PageLayout::postMessage(MessageBox::success('Die gewünschte Einrichtung wurde ausgewählt!'));
         }
 
@@ -938,11 +950,11 @@ class Admin_CoursesController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         $course = Course::find($course_id);
-        $course->is_complete = !$course->is_complete;
+        $course->completion = ($course->completion + 1) % 3;
         $course->store();
 
         if (Request::isXhr()) {
-            $this->render_json((bool)$course->is_complete);
+            $this->render_json((int)$course->completion);
         } else {
             $this->redirect('admin/courses/index#course-' . $course_id);
         }
@@ -1116,6 +1128,7 @@ class Admin_CoursesController extends AuthenticatedController
             'type'          => _('Veranstaltungstyp'),
             'room_time'     => _('Raum/Zeit'),
             'semester'      => _('Semester'),
+            'requests'      => _('Raumanfragen'),
             'teachers'      => _('Lehrende'),
             'members'       => _('Teilnehmende'),
             'waiting'       => _('Personen auf Warteliste'),
@@ -1153,23 +1166,23 @@ class Admin_CoursesController extends AuthenticatedController
             //and all its institutes.
             //Otherwise we just display the courses of the faculty.
 
-            $instituteIdFields = explode('_', $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT);
+            $inst_id = $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT;
 
-            $institut = new Institute($instituteIdFields[0]);
+            $institut = new Institute($inst_id);
 
-            if (!$institut->isFaculty() || ($instituteIdFields[1] == 'withinst')) {
-                //The institute is not a faculty or the institute-ID had the string _i appended:
-                //Pick the institute IDs of the faculty/institute and of all sub-institutes.
-                $inst_ids[] = $instituteIdFields[0];
+            if (!$institut->isFaculty() || $GLOBALS['user']->cfg->MY_INSTITUTES_INCLUDE_CHILDREN) {
+                // If the institute is not a faculty or the child insts are included,
+                // pick the institute IDs of the faculty/institute and of all sub-institutes.
+                $inst_ids[] = $inst_id;
                 if ($institut->isFaculty()) {
                     foreach ($institut->sub_institutes->pluck("Institut_id") as $institut_id) {
                         $inst_ids[] = $institut_id;
                     }
                 }
             } else {
-                //The institute is a faculty and the string _i wasn't appended to the institute-ID:
-                //Pick only the institute ID of the faculty:
-                $inst_ids[] = $instituteIdFields[0];
+                // If the institute is a faculty and the child insts are not included,
+                // pick only the institute id of the faculty:
+                $inst_ids[] = $inst_id;
             }
         }
 
@@ -1226,14 +1239,12 @@ class Admin_CoursesController extends AuthenticatedController
         $filter->filterByInstitute($inst_ids);
         if ($params['sortby'] === "status") {
             $filter->orderBy(sprintf('sem_classes.name %s, sem_types.name %s, VeranstaltungsNummer', $params['sortFlag'], $params['sortFlag'], $params['sortFlag']), $params['sortFlag']);
-        } elseif ($params['sortby'] === 'completion') {
-            $filter->orderBy('is_complete', $params['sortFlag']);
         } elseif ($params['sortby']) {
             $filter->orderBy($params['sortby'], $params['sortFlag']);
         }
         $filter->storeSettings();
         $this->count_courses = $filter->countCourses();
-        if ($this->count_courses && $this->count_courses <= $filter->max_show_courses) {
+        if ($this->count_courses && ($this->count_courses <= $filter->max_show_courses || Request::get('display') === 'all')) {
             $courses = $filter->getCourses();
         } else {
             return array();
@@ -1360,7 +1371,7 @@ class Admin_CoursesController extends AuthenticatedController
                     new SelectElement(
                         $institut['Institut_id'] . '_withinst', //_withinst = with institutes
                         ' ' . $institut['Name'] . ' +' . _('Institute'),
-                        $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === $institut['Institut_id'] . '_withinst'
+                        ($GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === $institut['Institut_id'] && $GLOBALS['user']->cfg->MY_INSTITUTES_INCLUDE_CHILDREN)
                     ),
                     'select-' . $institut['Name'] . '-with_institutes'
                 );

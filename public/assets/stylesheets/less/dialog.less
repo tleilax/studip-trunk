@@ -71,7 +71,8 @@
             .button(); // Include button mixin
             font-weight: bold;
 
-            &.accept, &.cancel {
+            &.accept,
+            &.cancel {
                 padding-right: 23px;
             }
             &:last-child {
@@ -86,7 +87,22 @@
               .button-with-icon("decline", "clickable", "info_alt");
             }
 
-            &:before {
+            &.download {
+              .button-with-icon("download2", "clickable", "info_alt");
+            }
+
+            &.disabled,
+            &[disabled] {
+                background: @light-gray-color-20;
+                cursor: default;
+                opacity: 0.65;
+
+                &:hover {
+                    color: @base-color;
+                }
+            }
+
+            &::before {
                 margin-left: -5px;
                 margin-top: 2px;
             }
@@ -160,6 +176,7 @@
         font-weight: bold;
         padding: 15px 15px 15px 55px;
         text-align: left;
+        max-height: 60vh;
     }
 
     .ui-dialog-buttonpane {

@@ -266,13 +266,56 @@ class CourseDate extends SimpleORMap
      */
     public function cancelDate()
     {
+        //NOTE: If you modify this method make sure the changes
+        //are also inserted in SingleDateDB::storeSingleDate
+        //and CourseExDate::unCancelDate to keep the behavior consistent
+        //across Stud.IP!
+
+        //These statements are used below to update the relations
+        //of this date.
+        $db = DBManager::get();
+
+        $groups_stmt = $db->prepare(
+            "UPDATE termin_related_groups
+            SET termin_id = :ex_termin_id
+            WHERE termin_id = :termin_id;"
+        );
+
+        $persons_stmt = $db->prepare(
+            "UPDATE termin_related_persons
+            SET range_id = :ex_termin_id
+            WHERE range_id = :termin_id;"
+        );
+
         $date = $this->toArray();
 
         $ex_date = new CourseExDate();
         $ex_date->setData($date);
+        if ($room = $this->getRoom()) {
+            $ex_date['resource_id'] = $room->getId();
+        }
         $ex_date->setId($ex_date->getNewId());
 
         if ($ex_date->store()) {
+            //Update some (but not all) relations to the date so that they
+            //use the ID of the new ex-date.
+
+            $groups_stmt->execute(
+                [
+                    'ex_termin_id' => $ex_date->id,
+                    'termin_id' => $this->id
+                ]
+            );
+
+            $persons_stmt->execute(
+                [
+                    'ex_termin_id' => $ex_date->id,
+                    'termin_id' => $this->id
+                ]
+            );
+
+            //After we updated the relations so that they refer to the
+            //new ex-date we can delete this date and return the ex-date:
             $this->delete();
             return $ex_date;
         }
@@ -320,5 +363,30 @@ class CourseDate extends SimpleORMap
                 StudipLog::log('SINGLEDATE_CHANGE_TIME', $this->range_id, $this->getFullname(), $old_entry->getFullname() . ' -> ' . $this->getFullname());
             }
         }
+    }
+
+    /**
+     * Returns a list of all possible warnings that should be considered when
+     * this date is deleted.
+     *
+     * @return array of warnings
+     */
+    public function getDeletionWarnings()
+    {
+        $warnings = [];
+        if (count($this->topics) > 0) {
+            if (Config::get()->RESOURCES_ENABLE_EXPERT_SCHEDULE_VIEW) {
+                $warnings[] = _('Diesem Termin ist im Ablaufplan ein Thema zugeordnet.') . "\n"
+                            . _('Titel und Beschreibung des Themas bleiben erhalten und können in der Expertenansicht des Ablaufplans einem anderen Termin wieder zugeordnet werden.');
+            } else {
+                $warnings[] = _('Diesem Termin ist ein Thema zugeordnet.');
+            }
+        }
+
+        if (Config::get()->RESOURCES_ENABLE && $this->getRoom()) {
+            $warnings[] = _('Dieser Termin hat eine Raumbuchung, welche mit dem Termin gelöscht wird.');
+        }
+
+        return $warnings;
     }
 }

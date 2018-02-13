@@ -195,11 +195,11 @@ td.tree-elbow-line, td.tree-elbow-end {
 /* --- Styles fuer printhead und printcontent ------------------------------- */
 table {
     td.printcontent {
-        background-color: #f3f5f8;
+        background-color: @dark-gray-color-5;
         text-align: left;
     }
     td.printcontent:hover {
-        background-color: #f3f5f8;
+        background-color: @dark-gray-color-5;
     }
     td.printhead2 {
         background-image: url("@{image-path}/content_object_arr-right.png");
@@ -215,19 +215,29 @@ table {
 
 /* classes for sortable table headers --------------------------------------- */
 tr.sortable {
-    background-color: #f4f7f9;
+    background-color: @dark-gray-color-5;
 
-    th.sortasc {
-        background-repeat: no-repeat;
-        background-position: left center;
-        .retina-background-image('dreieck_up.png', 'dreieck_up@2x.png', 16px);
-        padding-left: 17px;
-    }
+    th.sortasc,
     th.sortdesc {
-        background-repeat: no-repeat;
-        background-position: left center;
+        .tablesorter-header-inner {
+            display: inline-block;
+        }
+
+        &::after {
+            .square(16px);
+            background-position: center;
+            background-repeat: no-repeat;
+            content: ' ';
+            display: inline-block;
+            vertical-align: text-bottom;
+        }
+    }
+
+    th.sortasc::after {
+        .retina-background-image('dreieck_up.png', 'dreieck_up@2x.png', 16px);
+    }
+    th.sortdesc::after {
         .retina-background-image('dreieck_down.png', 'dreieck_down@2x.png', 16px);
-        padding-left: 17px;
     }
 }
 
@@ -423,7 +433,6 @@ table.default {
                 text-align: left;
             }
             > td {
-	            padding-left: 1px;
                 border-bottom: 1px solid @table-header-color;
                 transition: background-color 0.3s;
             }
@@ -439,7 +448,6 @@ table.default {
     > tbody > tr.new > td {
         font-weight: bold;
         &:first-child {
-            padding-left: 0px;
             position: relative;
             &::before {
                 display: block;

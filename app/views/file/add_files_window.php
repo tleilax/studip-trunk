@@ -3,6 +3,9 @@ $options = [];
 if (Request::get('to_plugin')) {
     $options['to_plugin'] = Request::get('to_plugin');
 }
+if (Request::get('from_plugin')) {
+    $options['from_plugin'] = Request::get('from_plugin');
+}
 if (Request::get('to_folder_id')) {
     $options['to_folder_id'] = Request::get('to_folder_id');
 }
@@ -18,15 +21,15 @@ if ($folder_id) {
             <?= Icon::create('computer', Icon::ROLE_CLICKABLE)->asImg(50) ?>
             <?= _('Mein Computer') ?>
         </a>
-        <a href="<?= $controller->link_for('file/add_url/' . $folder_id, $options) ?>" data-dialog>
+        <a href="<?= $controller->link_for('file/add_url/' . $folder_id, array_merge($options, ['from_plugin' => ""])) ?>" data-dialog>
             <?= Icon::create('globe', Icon::ROLE_CLICKABLE)->asImg(50) ?>
             <?= _('Webadresse') ?>
         </a>
-        <a href="<?= $controller->link_for('file/choose_file/' . Folder::findTopFolder($GLOBALS['user']->id)->getId(), $options) ?>" data-dialog>
+        <a href="<?= $controller->link_for('file/choose_file/' . Folder::findTopFolder($GLOBALS['user']->id)->getId(), array_merge($options, ['from_plugin' => ""])) ?>" data-dialog>
             <?= Icon::create('files', Icon::ROLE_CLICKABLE)->asImg(50) ?>
             <?= _('Meine Dateien') ?>
         </a>
-        <a href="<?= $controller->link_for('file/choose_file_from_course/' . htmlReady($folder_id), $options) ?>" data-dialog>
+        <a href="<?= $controller->link_for('file/choose_file_from_course/' . htmlReady($folder_id), array_merge($options, ['from_plugin' => ""])) ?>" data-dialog>
             <?= Icon::create('seminar', Icon::ROLE_CLICKABLE)->asImg(50) ?>
             <?= _('Meine Veranstaltungen') ?>
         </a>
@@ -34,7 +37,7 @@ if ($folder_id) {
         <? if ($plugin->isSource()) : ?>
             <? $nav = $plugin->getFileSelectNavigation() ?>
             <? if ($nav): ?>
-                <a href="<?= $controller->link_for('file/choose_file/', array_merge($options, ['plugin' => get_class($plugin)])) ?>" data-dialog>
+                <a href="<?= $controller->link_for('file/choose_file/', array_merge($options, ['from_plugin' => get_class($plugin)])) ?>" data-dialog>
                     <?= $nav->getImage()->asImg(50) ?>
                     <?= htmlReady($nav->getTitle()) ?>
                 </a>

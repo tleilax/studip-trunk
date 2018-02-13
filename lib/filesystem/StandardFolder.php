@@ -17,6 +17,9 @@
  */
 class StandardFolder implements FolderType
 {
+
+    public static $sorter = 0;
+
     /**
      * @var Folder
      */
@@ -103,8 +106,8 @@ class StandardFolder implements FolderType
      */
     public function isVisible($user_id)
     {
-        $visible = ($this->range_type === 'user' && $this->range_id === $user_id)
-                    || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
+        $visible = $this->isVisibleNonRecursive($user_id);
+
         if ($visible && $parent_folder = $this->getParent()) {
             return $parent_folder->isVisible($user_id);
         }
@@ -116,10 +119,36 @@ class StandardFolder implements FolderType
      * @param string $user_id
      * @return bool
      */
+    private function isVisibleNonRecursive($user_id)
+    {
+        $visible = false;
+
+        if ($this->range_type === 'user') {
+            $visible = $this->range_id === $user_id;
+        }
+
+        if ($this->range_type === 'institute' ) {
+            $visible = Config::get()->ENABLE_FREE_ACCESS || Seminar_Perm::get()->have_perm('user', $user_id);
+        }
+
+        if ($this->range_type === 'course') {
+            if (($user_id === null || $user_id === 'nobody')  && Config::get()->ENABLE_FREE_ACCESS) {
+                $range = $this->getRangeObject();
+                $visible = isset($range) && $range->lesezugriff == 0;
+            } else {
+                $visible = Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
+            }
+        }
+        return $visible;
+    }
+
+    /**
+     * @param string $user_id
+     * @return bool
+     */
     public function isReadable($user_id)
     {
-        $readable = ($this->range_type === 'user' && $this->range_id === $user_id)
-                     || Seminar_Perm::get()->have_studip_perm('user', $this->range_id, $user_id);
+        $readable = $this->isVisibleNonRecursive($user_id);
         if ($readable && $parent_folder = $this->getParent()) {
             return $parent_folder->isReadable($user_id);
         }
@@ -329,14 +358,25 @@ class StandardFolder implements FolderType
 
     /**
      * @param FolderType $foldertype
-     * @return bool
+     * @return FolderType|null
      */
     public function createSubfolder(FolderType $foldertype)
     {
-        $foldertype->range_id   = $this->folderdata['range_id'];
-        $foldertype->range_type = $this->folderdata['range_type'];
-        $foldertype->parent_id  = $this->folderdata['id'];
-        return $foldertype->store();
+        $type = get_class($foldertype);
+        if (!$type::availableInRange($this->folderdata['range_type'], $GLOBALS['user']->id)) {
+            $type = get_class($this);
+        }
+        $folder = new $type();
+        $folder->name = $foldertype->name;
+        $folder->range_id = $this->folderdata['range_id'];
+        $folder->range_type = $this->folderdata['range_type'];
+        $folder->parent_id = $this->folderdata['id'];
+        if ($folder->store()) {
+            return $folder;
+        }
+
+        #In case something went wrong while storing the subfolder:
+        return null;
     }
 
     /**
@@ -384,12 +424,13 @@ class StandardFolder implements FolderType
         if (in_array($this->range_type, ['course', 'institute'])) {
             if (is_object($fileref->terms_of_use)) {
                 //terms of use are defined for this file!
-                return $fileref->terms_of_use->fileIsDownloadable($fileref, true, $user_id);
+                return $this->isReadable($user_id) && $fileref->terms_of_use->fileIsDownloadable($fileref, true, $user_id);
+            } else {
+                return $this->isReadable($user_id) && $GLOBALS['perm']->have_studip_perm('user', $this->range_id, $user_id);
             }
-            return $GLOBALS['perm']->have_studip_perm('user', $this->range_id, $user_id);
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -422,4 +463,23 @@ class StandardFolder implements FolderType
         return $fileref->user_id == $user_id
             || $GLOBALS['perm']->have_studip_perm('tutor', $this->range_id, $user_id);
     }
+
+    /**
+     * returns the object for the range_id of the folder
+     *
+     * @return Course|Institute|User
+     */
+    public function getRangeObject()
+    {
+        $range = null;
+        if ($this->range_type && $this->range_id) {
+            if (Context::getId() === $this->range_id) {
+                $range = Context::get();
+            } else {
+                $range = call_user_func([$this->range_type, 'find'], $this->range_id);
+            }
+        }
+        return $range;
+    }
+
 }

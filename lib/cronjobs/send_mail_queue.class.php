@@ -33,13 +33,38 @@ class SendMailQueueJob extends CronJob
 
     /**
      * Sends all mails in the queue.
-     * @param integer $last_result : not evaluated for execution, so any integer 
-     * will do. Usually it would be a unix-timestamp of last execution. But in 
+     * @param integer $last_result : not evaluated for execution, so any integer
+     * will do. Usually it would be a unix-timestamp of last execution. But in
      * this case we don't care at all.
      * @param array $parameters : not needed here
      */
     public function execute($last_result, $parameters = array())
     {
-        MailQueueEntry::sendAll(Config::get()->MAILQUEUE_SEND_LIMIT);
+        $status_messages = MailQueueEntry::sendAll(
+            Config::get()->MAILQUEUE_SEND_LIMIT,
+            (bool)$parameters['verbose']
+        );
+
+        //We output one status message per line:
+        echo implode("\n", $status_messages);
+    }
+
+    /**
+     * Returns a list of available parameters for this cronjob.
+     * See the description in the CronJob class for a specification
+     * for the returned array.
+     *
+     * @return array A list of available parameters for this cronjob.
+     */
+    public static function getParameters()
+    {
+        return [
+            'verbose' => [
+                'type'        => 'boolean',
+                'default'     => false,
+                'status'      => 'optional',
+                'description' => _('Sollen Ausgaben erzeugt werden? Diese sind später im Log des Cronjobs sichtbar.'),
+            ],
+        ];
     }
 }

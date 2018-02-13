@@ -114,6 +114,9 @@ class Utf8Conversion extends Migration
                     if (mb_strpos($column['Type'], 'enum') !== false) {
                         $charset = 'latin1';
                         $collation = 'latin1_bin';
+                    } elseif ($data[0] === 'plugins_activated' && $column['Field'] === 'poiid') {
+                        $charset = 'latin1';
+                        $collation = 'latin1_bin';
                     }
 
                     if (!$collation) {
@@ -154,6 +157,8 @@ class Utf8Conversion extends Migration
                 $this->write($e->getMessage());
             }
         }
+
+        $db->exec("ALTER TABLE `session_data` CHANGE COLUMN `val` `val` mediumblob NOT NULL");
 
         // drop helper-function
         $db->exec("DROP FUNCTION IF EXISTS entity_decode");

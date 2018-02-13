@@ -46,8 +46,8 @@
             $.each(filelist, function (index, file) {
                 if (file.size > 0) {
                     if (STUDIP.Files.validateUpload(file)) {
-                        data.append('file[]', file, file.name.normalize());
-                        $('<li/>').text(file.name.normalize()).appendTo('.file_upload_window .filenames');
+                        data.append('file[]', file, file.name);
+                        $('<li/>').text(file.name).appendTo('.file_upload_window .filenames');
                         files += 1;
                     } else {
                         $('.file_upload_window .errorbox').show();
@@ -271,17 +271,14 @@
 
         // workaround to wait for tables.js to be executed first
         $(function () {
-            if ($('table.documents').length > 0) {
-                $('table.documents').data('tablesorter').widgets = ['filter'];
-                $('table.documents').data('tablesorter').widgetOptions = {
-                    filter_columnFilters: false,
-                    filter_saveFilters: true,
-                    filter_reset: '.reset',
-                    filter_ignoreCase: true,
-                    filter_startsWith: false
-                };
-                $('table.documents.flat').trigger('applyWidgets');
-                $.tablesorter.filter.bindSearch($('table.documents'), $('.tablesorterfilter'));
+            if ($.fn.hasOwnProperty('filterTable')) {
+                $('table.documents.flat').filterTable({
+                    highlightClass: 'filter-match',
+                    ignoreColumns: [0, 1, 3, 5, 6],
+                    inputSelector: '.sidebar .tablesorterfilter',
+                    minChars: 1,
+                    minRows: 1
+                });
             }
         });
 

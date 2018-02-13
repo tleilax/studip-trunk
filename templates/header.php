@@ -26,8 +26,8 @@ if (isset($_COOKIE['navigation-length'])) {
     </div>
     <div id="barTopFont">
         <?= htmlReady(Config::get()->UNI_NAME_CLEAN) ?>
-    </div>  
-    
+    </div>
+
     <!-- Dynamische Links ohne Icons -->
     <div id="barBottomright">
         <ul>
@@ -56,7 +56,7 @@ if (isset($_COOKIE['navigation-length'])) {
                 <?= PageLayout::getCustomQuicksearch() ?>
             <? else: ?>
                 <li id="quicksearch_item">
-                    <form id="quicksearch" role="search" action="<?= URLHelper::getLink('dispatch.php/search/courses', array('send' => 'yes', 'group_by' => '0') + $link_params) ?>" method="post">
+                    <form id="search_sem_quick_search_frame" role="search" action="<?= URLHelper::getLink('dispatch.php/search/courses', array('send' => 'yes', 'group_by' => '0') + $link_params) ?>" method="post">
                         <?= CSRFProtection::tokenTag() ?>
                         <script>
                             var selectSem = function (seminar_id, name) {
@@ -111,6 +111,9 @@ if (isset($_COOKIE['navigation-length'])) {
                         <?= count($notifications) ?>
                     </div>
                     <div class="list below" id="notification_list">
+                        <a class="mark-all-as-read <? if (count($notifications) < 2) echo 'hidden'; ?>" href="<?= URLHelper::getLink('dispatch.php/jsupdater/mark_notification_read/all', ['return_to' => $_SERVER['REQUEST_URI']]) ?>">
+                            <?= _('Alle Benachrichtigungen als gelesen markieren') ?>
+                        </a>
                         <ul>
                         <? foreach ($notifications as $notification) : ?>
                             <?= $notification->getLiElement() ?>

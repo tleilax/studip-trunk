@@ -447,34 +447,11 @@ class Course_TimesroomsController extends AuthenticatedController
     }
 
     /**
-     * Removes a single date
-     *
-     * @param String $termin_id Id of the date
-     * @param String $sub_cmd Sub command to be executed
-     */
-    public function deleteSingle_action($termin_id, $sub_cmd = 'delete')
-    {
-        CSRFProtection::verifyUnsafeRequest();
-        $cycle_id = Request::option('cycle_id');
-        if ($cycle_id) {
-            $sub_cmd = 'cancel';
-        }
-        $this->deleteDate($termin_id, $sub_cmd, $cycle_id);
-        $this->displayMessages();
-
-        $params = array();
-        if ($cycle_id) {
-            $params['contentbox_open'] = $cycle_id;
-        }
-        $this->redirect($this->url_for('course/timesrooms/index', $params));
-    }
-
-    /**
      * Restores a previously removed date.
      *
      * @param String $termin_id Id of the previously removed date
      */
-    public function undeleteSingle_action($termin_id)
+    public function undeleteSingle_action($termin_id, $from_dates = false)
     {
         $ex_termin = CourseExDate::find($termin_id);
         $termin    = $ex_termin->unCancelDate();
@@ -483,11 +460,15 @@ class Course_TimesroomsController extends AuthenticatedController
             $this->displayMessages();
         }
 
-        $params = array();
-        if ($termin->metadate_id != '') {
-            $params['contentbox_open'] = $termin->metadate_id;
+        if ($from_dates) {
+            $this->redirect("course/dates#date_{$termin_id}");
+        } else {
+            $params = [];
+            if ($termin->metadate_id != '') {
+                $params['contentbox_open'] = $termin->metadate_id;
+            }
+            $this->redirect($this->url_for('course/timesrooms/index', $params));
         }
-        $this->redirect($this->url_for('course/timesrooms/index', $params));
     }
 
     /**
@@ -646,6 +627,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $new_ex_termin   = $termin->cancelDate();
             if ($new_ex_termin !== null) {
                 $msg .= sprintf('<li>%s</li>', $new_ex_termin->getFullname());
+                $deleted_dates[] = CourseDate::build($new_ex_termin, false);
             }
         }
         $msg .= '</ul>';
@@ -1038,8 +1020,14 @@ class Course_TimesroomsController extends AuthenticatedController
     {
         if (!$this->locked) {
             $actions = new ActionsWidget();
-            $actions->addLink(sprintf(_('Startsemester ändern (%s)'), $this->course->start_semester->name),
-                              $this->url_for('course/timesrooms/editSemester'), Icon::create('date', 'clickable'))->asDialog('size=400');
+            $actions->addLink(
+                sprintf(
+                    _('Semester ändern (%s)'),
+                    $this->course->getFullname('sem-duration-name')
+                ),
+                $this->url_for('course/timesrooms/editSemester'),
+                Icon::create('date', 'clickable')
+            )->asDialog('size=400');
             Sidebar::Get()->addWidget($actions);
         }
 
@@ -1057,8 +1045,12 @@ class Course_TimesroomsController extends AuthenticatedController
             $list->setUrl($this->url_for('/index'));
             $list->setSelectParameterName('cid');
             foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
-                $element = new SelectElement($seminar['Seminar_id'],
-                                             $seminar['Name']);
+                $element = new SelectElement(
+                    $seminar['Seminar_id'],
+                    $seminar['Name'],
+                    $seminar['Seminar_id'] === Context::get()->id,
+                    $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                );
                 $list->addElement($element, 'select-' . $seminar['Seminar_id']);
             }
             $list->setSelection($this->course->id);

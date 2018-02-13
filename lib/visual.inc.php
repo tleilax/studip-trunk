@@ -115,9 +115,13 @@ function quotes_encode($text, $author = '')
  * @return string        HTML code computed by applying markup-rules.
  */
 // TODO remove unused function arguments
-function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon') {
+function formatReady($text, $trim = true, $extern = false, $wiki = false, $show_comments = 'icon')
+{
     $formatted = Markup::apply(new StudipFormat(), $text, $trim);
-    return $formatted ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted) : '';
+
+    return $formatted
+        ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted)
+        : '';
 }
 
 /**
@@ -302,11 +306,11 @@ function idna_link($link, $mail = false){
         $out = false;
         if ($mail){
             if (preg_match('#^([^@]*)@(.*)$#i',$link, $matches)) {
-                $out = $IDN->encode(utf8_encode(decodeHTML($matches[2], ENT_NOQUOTES))); // false by error
+                $out = $IDN->encode(decodeHTML($matches[2], ENT_NOQUOTES)); // false by error
                 $out = ($out)? $matches[1].'@'.$out : $link;
             }
         }elseif (preg_match('#^([^/]*)//([^/?]*)(((/|\?).*$)|$)#i',$link, $matches)) {
-            $out = $IDN->encode(utf8_encode(decodeHTML($matches[2], ENT_NOQUOTES))); // false by error
+            $out = $IDN->encode(decodeHTML($matches[2], ENT_NOQUOTES)); // false by error
             $out = ($out)? $matches[1].'//'.$out.$matches[3] : $link;
         }
         return ($out)? $out:$link;

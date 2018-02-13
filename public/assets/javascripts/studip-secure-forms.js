@@ -14,7 +14,11 @@
  *
  * {
  *     always: Secures the element regardless of it's changed state. If a
- *             form should always be secured, use this.
+ *             form should always be secured, use this. If you want to exclude
+ *             an element from the security check, set always on that element
+ *             to false (but you should use the shorthand `data-secure="false"`
+ *             since the wording "always" is a little bit misleading in this
+ *             case).
  *     exists: Dynamically added nodes cannot be detected and thus will
  *             never be taken into account when detecting whether the
  *             element's value has changed. Specify a css selector that
@@ -58,7 +62,7 @@
      */
     function normalizeConfig(input) {
         var config = {
-            always: false,
+            always: null,
             exists: false
         };
         if ($.isPlainObject(input)) {
@@ -95,10 +99,14 @@
 
             if (config.always === true) {
                 changed = true;
-            } else {
-                items.each(function () {
+            } else if (config.always !== false) {
+                items.filter('[name]').filter(':not(:checkbox,:radio)').each(function () {
                     changed = changed
                            || (this.defaultValue !== undefined && this.value !== this.defaultValue);
+                });
+                items.filter('[name]').filter(':checkbox,:radio').each(function () {
+                    changed = changed
+                           || (this.defaultChecked !== undefined && this.checked !== this.defaultChecked);
                 });
             }
 
