@@ -530,6 +530,10 @@ table td.printhead3 {
 tr.sortable {
   background-color: #f5f6f6;
 }
+tr.sortable th.sortasc .tablesorter-header-inner,
+tr.sortable th.sortdesc .tablesorter-header-inner {
+  display: inline-block;
+}
 tr.sortable th.sortasc::after,
 tr.sortable th.sortdesc::after {
   width: 16px;
@@ -2809,6 +2813,7 @@ ul.widget-list > li {
   background-position: 0 1px;
   background-size: 16px 16px;
   padding-left: 20px;
+  word-break: break-all;
 }
 div#sidebar-navigation div.sidebar-widget-header {
   display: none;
@@ -2993,7 +2998,9 @@ div#sidebar-navigation div.sidebar-widget-content {
 .sidebar .sidebar-image > img {
   width: 270px;
 }
-.sidebar .course-avatar-medium {
+.sidebar .course-avatar-medium,
+.sidebar .stream-avatar-medium,
+.sidebar .avatar-medium {
   max-width: 75px;
   height: 75px;
 }
@@ -3649,6 +3656,9 @@ section.contentbox > article.indented > header {
 }
 .action-menu .action-menu-item a {
   padding-left: 0;
+}
+.action-menu .action-menu-item a[disabled] {
+  color: #636971;
 }
 .action-menu .action-menu-item img,
 .action-menu .action-menu-item svg,

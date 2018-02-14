@@ -625,7 +625,12 @@ class FileController extends AuthenticatedController
             if (!$plugin) {
                 throw new Trails_Exception(404, _('Plugin existiert nicht.'));
             }
-            $this->file_ref = $plugin->getPreparedFile($file_id);
+
+            if (!Request::get("isfolder")) {
+                $this->file_ref = $plugin->getPreparedFile($file_id);
+            } else {
+                $this->parent_folder = $plugin->getFolder($file_id);
+            }
         } else {
 
             if (is_array($fileref_id)) {
@@ -633,6 +638,7 @@ class FileController extends AuthenticatedController
                 $this->file_ref = FileRef::find($refs[0]);
             } else {
                 $this->file_ref = FileRef::find($fileref_id);
+
                 $this->fileref_id = array($fileref_id);
             }
         }
@@ -641,12 +647,14 @@ class FileController extends AuthenticatedController
             $this->parent_folder = $this->file_ref->foldertype;
         } elseif ($this->file_ref) {
             $this->parent_folder = Folder::find($this->file_ref->folder_id);
+            $this->parent_folder = $this->parent_folder->getTypedFolder();
         } elseif (!Request::submitted("from_plugin")) {
             $folder = Folder::find(is_array($fileref_id) ? $fileref_id[0] : $fileref_id);
             if ($folder) {
                 $this->parent_folder = Folder::find($folder->parent_id);
+                $this->parent_folder = $this->parent_folder->getTypedFolder();
             }
-        } else {
+        } elseif (!$this->parent_folder) {
             throw new AccessDeniedException();
         }
 
@@ -823,7 +831,7 @@ class FileController extends AuthenticatedController
         } else {
             $this->top_folder = new StandardFolder(new Folder($folder_id));
             if (!$this->top_folder->isReadable($GLOBALS['user']->id)) {
-                throw new AccessException();
+                throw new AccessDeniedException();
             }
         }
 
@@ -1105,7 +1113,7 @@ class FileController extends AuthenticatedController
         } else {
             $this->top_folder = new StandardFolder(new Folder($folder_id));
             if (!$this->top_folder->isReadable($GLOBALS['user']->id)) {
-                throw new AccessException();
+                throw new AccessDeniedException();
             }
         }
 

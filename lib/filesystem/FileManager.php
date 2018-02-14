@@ -666,46 +666,97 @@ class FileManager
             $destination_plugin = PluginManager::getInstance()->getPlugin($destination_folder->range_type);;
         }
 
-        if ($source->user_id === $user->id && !$destination_plugin && !$source_plugin) {
+        if (!$destination_plugin && !$source_plugin) {
+            //We copy a file from a Stud.IP file area to another
+            //Stud.IP file area. No file system plugin is involved.
+            if ($source->user_id === $user->id) {
+                //The user is the owner of the file:
+                //We can simply make a new reference to it
+                $new_reference = new FileRef();
+                $new_reference->file_id     = $source->file_id;
+                $new_reference->folder_id   = $destination_folder->getId();
+                $new_reference->name        = $source->file->name;
+                $new_reference->description = $source->description;
+                $new_reference->user_id     = $user->id;
+                $new_reference->content_terms_of_use_id = $source->content_terms_of_use_id;
 
-            // the user is the owner of the file: we can simply make a new reference to it
-             $new_reference = new FileRef();
-             $new_reference->file_id     = $source->file_id;
-             $new_reference->folder_id   = $destination_folder->getId();
-             $new_reference->name        = $source->file->name;
-             $new_reference->description = $source->description;
-             $new_reference->user_id     = $user->id;
-             $new_reference->content_terms_of_use_id = $source->content_terms_of_use_id;
+                if ($new_reference->store()) {
+                    return $new_reference;
+                }
+            } else {
+                //The user is not the owner of the file:
+                //We must also copy the data (the File object).
 
-             if ($new_reference->store()) {
-                 return $new_reference;
-             }
+                $copied_file = new File();
+                $copied_file->user_id = $user->id;
+                $copied_file->mime_type = $source->file->mime_type;
+                $copied_file->name = $source->file->name;
+                $copied_file->size = $source->file->size;
+                $copied_file->storage = $source->file->storage;
+                $copied_file->author_name = $user->getFullName('no_title');
+                $copied_file->id = $copied_file->getNewId();
+                if ($copied_file->storage == 'disk') {
+                    //We must copy the physical data.
+                    $copy_path = $GLOBALS['TMP_PATH'] . '/' . $copied_file->id;
+                    if (!copy($source->file->getPath(), $copy_path)) {
+                        return [
+                            _('Daten konnten nicht kopiert werden!')
+                        ];
+                    }
+                    if ($copied_file->connectWithDataFile($copy_path)) {
+                        @unlink($copy_path);
+                    } else {
+                        return [
+                            _('Daten konnten nicht kopiert werden!')
+                        ];
+                    }
+                } else {
+                    //We can simply copy the URL field's value.
+                    $copied_file->url = $source->file->url;
+                }
 
-             return[_('Neue Referenz kann nicht erzeugt werden!')];
+                if (!$copied_file->store()) {
+                    return [
+                        _('Daten konnten nicht kopiert werden!')
+                    ];
+                }
+
+                //We finished copying the real data.
+                //Now we must copy the FileRef:
+                $copied_reference = new FileRef();
+                $copied_reference->file_id = $copied_file->id;
+                $copied_reference->folder_id = $destination_folder->getId();
+                $copied_reference->name = $source->name;
+                $copied_reference->description = $source->description;
+                $copied_reference->user_id = $user->id;
+                $copied_reference->content_terms_of_use_id = $source->content_terms_of_use_id;
+
+                if ($copied_reference->store()) {
+                    return $copied_reference;
+                }
+            }
+
+            return[_('Neue Referenz kann nicht erzeugt werden!')];
 
         } else {
 
-            if ($source_plugin && $source_plugin->getFolder($source->id)){
+            if ($source_plugin) {
+                $prepared_file_ref = $source_plugin->getPreparedFile($source->id, true);
 
-                $source = $source_plugin->getFolder($source->id);
+                $file_meta = array(
+                    'name' => $prepared_file_ref->name,
+                    'error' => [0],
+                    'type' => $prepared_file_ref->mime_type,
+                    'tmp_name' => $prepared_file_ref->path_to_blob,
+                    'size' => $prepared_file_ref->size
+                );
+                $result = $destination_folder->createFile($file_meta);
 
-                $new_folder = new StandardFolder($source);
-                $new_folder->user_id = $user->id;
-                $new_folder->name = $source->name;
-
-                $destination_folder->createSubfolder($new_folder);
-
-                if($new_folder) {
-                    foreach ($source->getSubfolders() as $subsubfolder) {
-                        $fake_ref = $source_plugin->getPreparedFile($subsubfolder->id);
-                        $return[] = self::copyFileRef($fake_ref, $new_folder, $user);
-                    }
-                    foreach ($source->getFiles() as $subfile) {
-                        $subfile_ref = $source_plugin->getPreparedFile($subfile->id, true);
-                        $return[] = self::copyFileRef($subfile_ref, $new_folder, $user);
-                    }
+                if (is_a($result, "MessageBox")) {
+                    return [$result->message];
+                } else {
+                    return $result;
                 }
-                return $new_folder;
 
             } else {
 
@@ -821,7 +872,7 @@ class FileManager
 
         } else {
             $copy = self::copyFileRef($source, $destination_folder, $user);
-            if(!is_array($copy)) {
+            if (!is_array($copy)) {
                 $source_folder->deleteFile($source->getId());
             }
             return $copy;
@@ -1111,6 +1162,10 @@ class FileManager
 
         //now go through all files and copy them, too:
         foreach ($source_folder->getFiles() as $file_ref) {
+            if (!($file_ref instanceof FileRef)) {
+                $file_ref = FileRef::build((array) $file_ref, false);
+                $file_ref->setFolderType('foldertype', $source_folder);
+            }
             $result = self::copyFileRef($file_ref, $new_folder, $user);
             if (!$result instanceof FileRef) {
                 return $result;
@@ -1164,9 +1219,37 @@ class FileManager
             ];
         }
 
-        return $destination_folder->createSubfolder(
+        $new_folder = $destination_folder->createSubfolder(
             $source_folder
         );
+        if (!is_a($new_folder, "FolderType")) {
+            return [_('Fehler beim Verschieben des Ordners.')];
+        } else {
+            //now we go through all subfolders and move them:
+            foreach ($source_folder->getSubfolders() as $sub_folder) {
+                $result = self::moveFolder($sub_folder, $new_folder, $user);
+                if (!$result instanceof FolderType) {
+                    //error
+                    return $result;
+                }
+            }
+
+            //now go through all files and move them, too:
+            foreach ($source_folder->getFiles() as $file_ref) {
+                if (!($file_ref instanceof FileRef)) {
+                    $file_ref = FileRef::build((array) $file_ref, false);
+                    $file_ref->setFolderType('foldertype', $source_folder);
+                }
+                $result = self::moveFileRef($file_ref, $new_folder, $user);
+                if (!$result instanceof FileRef) {
+                    //error
+                    return $result;
+                }
+            }
+
+            $source_folder->delete();
+            return $new_folder;
+        }
     }
 
     /**
