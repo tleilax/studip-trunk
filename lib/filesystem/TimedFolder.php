@@ -69,7 +69,7 @@ class TimedFolder extends PermissionEnabledFolder
                     ($this->end_time == 0 || $this->end_time >= $now)
                 ||
                 $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id)) &&
-            parent::isVisible();
+            parent::isVisible($user_id);
     }
 
     /**
