@@ -68,7 +68,7 @@ echo $questionnaires;
 // display plugins
 
 if (!empty($plugins)) {
-    $layout = $GLOBALS['template_factory']->open('shared/index_box');
+    $layout = $GLOBALS['template_factory']->open('shared/content_box');
     foreach ($plugins as $plugin) {
         $template = $plugin->getInfoTemplate($course_id);
 
