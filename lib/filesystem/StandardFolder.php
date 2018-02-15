@@ -363,7 +363,11 @@ class StandardFolder implements FolderType
     public function createSubfolder(FolderType $foldertype)
     {
         $type = get_class($foldertype);
-        if (!$type::availableInRange($this->folderdata['range_type'], $GLOBALS['user']->id)) {
+        if (!$type::availableInRange($this->folderdata['range_id'], $GLOBALS['user']->id)) {
+            if (get_class($this) == 'RootFolder') {
+                //Thou shalt not create subfolders of type RootFolder!
+                return null;
+            }
             $type = get_class($this);
         }
         $folder = new $type();
