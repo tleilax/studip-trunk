@@ -33,7 +33,7 @@ class WikiController extends AuthenticatedController
 
     public function store_action($version)
     {
-        $body = Request::get('body');
+        $body = Studip\Markup::purifyHtml(Request::get('body'));
 
         submitWikiPage($this->keyword, $version, $body, $GLOBALS['user']->id, $this->range_id);
 

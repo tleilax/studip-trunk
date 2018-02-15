@@ -24,6 +24,7 @@
     if (STUDIP.editor_enabled) {
         id = $('textarea[name="body"]', form).attr('id');
         wysiwyg_editor = CKEDITOR.instances[id];
+        wysiwyg_editor.setData(STUDIP.wysiwyg.markAsHtml(wysiwyg_editor.getData()));
         wysiwyg_editor.updateElement();
     }
 
