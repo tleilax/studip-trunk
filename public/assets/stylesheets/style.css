@@ -2814,7 +2814,7 @@ ul.widget-list > li {
   background-position: 0 1px;
   background-size: 16px 16px;
   padding-left: 20px;
-  word-break: break-all;
+  word-wrap: break-word;
 }
 div#sidebar-navigation div.sidebar-widget-header {
   display: none;
