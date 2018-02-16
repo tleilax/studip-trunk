@@ -622,7 +622,9 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while copying a folder: ' . implode(' ', $result));
         }
 
-        return $result->toRawArray();
+        $folder_data = $result->toRawArray();
+        $folder_data['data_content'] = json_decode($result->data_content);
+        return $folder_data;
     }
 
 
@@ -660,7 +662,9 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while moving a folder: ' . implode(' ', $errors));
         }
 
-        return $folder->toRawArray();
+        $folder_data = $folder->toRawArray();
+        $folder_data['data_content'] = json_decode($folder->data_content);
+        return $folder_data;
     }
 
 
@@ -689,7 +693,9 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while deleting a folder: ' . implode(' ', $errors));
         }
 
-        return $folder->toRawArray();
+        $folder_data = $folder->toRawArray();
+        $folder_data['data_content'] = json_decode($folder->data_content);
+        return $folder_data;
     }
 
 
