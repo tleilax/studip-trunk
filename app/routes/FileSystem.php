@@ -514,7 +514,16 @@ class FileSystem extends \RESTAPI\RouteMap
         $result = [];
         if ($subfolders) {
             foreach ($subfolders as $subfolder) {
-                $result[] = $subfolder->toRawArray();
+                $subfolder_type = $subfolder->getTypedFolder();
+                if ($subfolder_type->isVisible($user_id)) {
+                    //Here we must also take special care of the
+                    //"data_content" field.
+                    $subfolder_data = $subfolder->toRawArray();
+                    $subfolder_data['data_content'] = json_decode(
+                        $subfolder->data_content
+                    );
+                    $result[] = $subfolder_data;
+                }
             }
         }
 
