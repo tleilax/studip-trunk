@@ -75,7 +75,8 @@ jQuery(function ($) {
     $(document).on('focus', 'table.collapsable .toggler', function () {
         $(this).blur();
     }).on('click', 'table.collapsable .toggler', function () {
-        $(this).closest('tbody').toggleClass('collapsed');
+        $(this).closest('tbody').toggleClass('collapsed')
+               .filter('.collapsed').find('.action-menu').removeClass('active');
         return false;
     });
 
