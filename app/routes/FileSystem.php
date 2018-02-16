@@ -629,8 +629,12 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while copying a folder: ' . implode(' ', $result));
         }
 
-        $folder_data = $result->toRawArray();
-        $folder_data['data_content'] = json_decode($result->data_content);
+        //We must get the result folder from the database to get updated data.
+        //Furthermore we can't use the FolderType object since it
+        //doesn't provide us with the toRawArray method.
+        $result_folder = Folder::find($result->getId());
+        $folder_data = $result_folder->toRawArray();
+        $folder_data['data_content'] = json_decode($result_folder->data_content);
         return $folder_data;
     }
 
@@ -669,8 +673,12 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while moving a folder: ' . implode(' ', $errors));
         }
 
-        $folder_data = $folder->toRawArray();
-        $folder_data['data_content'] = json_decode($folder->data_content);
+        //We must get the result folder from the database to get updated data.
+        //Furthermore we can't use the FolderType object since it
+        //doesn't provide us with the toRawArray method.
+        $result_folder = Folder::find($folder->getId());
+        $folder_data = $result_folder->toRawArray();
+        $folder_data['data_content'] = json_decode($result_folder->data_content);
         return $folder_data;
     }
 
