@@ -1,7 +1,15 @@
 <?php
 namespace RESTAPI\Routes;
-use Calendar, DbCalendarEventList, SingleCalendar, SingleDate, Seminar, Issue,
-    CalendarExportFile, CalendarWriterICalendar, SemesterData;
+
+use Calendar;
+use DbCalendarEventList;
+use SingleCalendar;
+use SingleDate;
+use Seminar;
+use Issue;
+use CalendarExportFile;
+use CalendarWriterICalendar;
+use SemesterData;
 
 /**
  * @author  André Klaßen <andre.klassen@elan-ev.de>
@@ -32,13 +40,15 @@ class Events extends \RESTAPI\RouteMap
         }
 
         $start = time();
-        $end   = strtotime('+2 weeks');
-        $list  = new DbCalendarEventList(new SingleCalendar($user_id, Calendar::PERMISSION_OWN),
-                                         $start, $end,
-                                         true, Calendar::getBindSeminare($user_id));
+        $end   = strtotime('+2 weeks', $start);
+        $list = SingleCalendar::getEventList($user_id, $start, $end, null, [], [
+            'CourseEvent',
+            'CourseCancelledEvent',
+            'CourseMarkedEvent',
+        ]);
 
         $json = array();
-        $events = array_slice($list->getAllEvents(), $this->offset, $this->limit); ;
+        $events = array_slice($list, $this->offset, $this->limit); ;
         foreach ($events as $event) {
             $singledate = new SingleDate($event->id);
 
@@ -59,7 +69,7 @@ class Events extends \RESTAPI\RouteMap
 
         $this->etag(md5(serialize($json)));
 
-        return $this->paginated($json, $list->numberOfEvents(), compact('user_id'));
+        return $this->paginated($json, count($list), compact('user_id'));
     }
 
     /**
@@ -81,7 +91,7 @@ class Events extends \RESTAPI\RouteMap
         }
 
         $filename = sprintf('%s/export/%s', $GLOBALS['TMP_PATH'], $export->getTempFileName());
-        
+
         $this->sendFile($filename, array(
                             'type' => 'text/calendar',
                             'filename' => 'studip.ics'
