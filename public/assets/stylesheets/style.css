@@ -10524,14 +10524,14 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   margin-top: auto;
   max-width: 25px;
   padding-right: 5px;
-  width: 24px;
+  width: 40px;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-expand a {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  -webkit-background-size: 24px 24px;
+  -moz-background-size: 24px 24px;
+  -o-background-size: 24px 24px;
+  background-size: 24px 24px;
   width: 24px;
   height: 24px;
   display: inline-block;
