@@ -60,6 +60,10 @@ class FileSystem extends \RESTAPI\RouteMap
         $result['is_downloadable'] = $folder_type->isFileDownloadable($file_ref->id, $user_id);
         $result['is_editable'] = $folder_type->isFileEditable($file_ref->id, $user_id);
         $result['is_writable'] = $folder_type->isFileWritable($file_ref->id, $user_id);
+        //Shortcuts:
+        $result['size'] = $file_ref->file->size;
+        $result['mime_type'] = $file_ref->file->mime_type;
+        $result['storage'] = $file_ref->file->storage;
 
         //maybe the user wants not just only the FileRef object's data
         //but also data from related objects:
@@ -148,7 +152,7 @@ class FileSystem extends \RESTAPI\RouteMap
 
         //We only update the first file:
         $uploaded_file = array_shift($this->data['_FILES']);
-        
+
         //FileManager::updateFileRef handles the whole file upload
         //and does all the necessary security checks:
         $result = \FileManager::updateFileRef(
@@ -158,9 +162,14 @@ class FileSystem extends \RESTAPI\RouteMap
             true,
             false
         );
-        
+
         if ($result instanceof \FileRef) {
-            return $result->toRawArray();
+            $file_ref_data = $result->toRawArray();
+            //Shortcuts:
+            $file_ref_data['size'] = $result->file->size;
+            $file_ref_data['mime_type'] = $result->file->mime_type;
+            $file_ref_data['storage'] = $result->file->storage;
+            return $file_ref_data;
         } else {
             $this->halt(500, 'Error while updating a file reference: ' . implode(' ', $result));
         }
@@ -193,7 +202,12 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while editing a file reference: ' . implode(' ', $errors));
         }
 
-        return $file_ref->toRawArray();
+        $file_ref_data = $file_ref->toRawArray();
+        //Shortcuts:
+        $file_ref_data['size'] = $file_ref->file->size;
+        $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+        $file_ref_data['storage'] = $file_ref->file->storage;
+        return $file_ref_data;
     }
 
     /**
@@ -227,7 +241,12 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while copying a file reference: ' . implode(' ', $errors));
         }
 
-        return $file_ref->toRawArray();
+        $file_ref_data = $file_ref->toRawArray();
+        //Shortcuts:
+        $file_ref_data['size'] = $file_ref->file->size;
+        $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+        $file_ref_data['storage'] = $file_ref->file->storage;
+        return $file_ref_data;
     }
 
     /**
@@ -261,7 +280,12 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while moving a file reference: ' . implode(' ', $errors));
         }
 
-        return $file_ref->toRawArray();
+        $file_ref_data = $file_ref->toRawArray();
+        //Shortcuts:
+        $file_ref_data['size'] = $file_ref->file->size;
+        $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+        $file_ref_data['storage'] = $file_ref->file->storage;
+        return $file_ref_data;
     }
 
     /**
@@ -352,7 +376,13 @@ class FileSystem extends \RESTAPI\RouteMap
             if ($file_refs) {
                 $result['file_refs'] = [];
                 foreach ($file_refs as $file_ref) {
-                    $result['file_refs'][] = $file_ref->toRawArray();
+                    $file_ref_data = $file_ref->toRawArray();
+                    //Shortcuts:
+                    $file_ref_data['size'] = $file_ref->file->size;
+                    $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+                    $file_ref_data['storage'] = $file_ref->file->storage;
+
+                    $result['file_refs'][] = $file_ref_data;
                 }
             }
 
@@ -432,7 +462,13 @@ class FileSystem extends \RESTAPI\RouteMap
         $result = [];
         if ($file_refs) {
             foreach ($file_refs as $file_ref) {
-                $result[] = $file_ref->toRawArray();
+                $file_ref_data = $file_ref->toRawArray();
+                //Shortcuts:
+                $file_ref_data['size'] = $file_ref->file->size;
+                $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+                $file_ref_data['storage'] = $file_ref->file->storage;
+
+                $result[] = $file_ref_data;
             }
         }
 
