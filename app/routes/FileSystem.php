@@ -323,14 +323,22 @@ class FileSystem extends \RESTAPI\RouteMap
         //If the folder isn't readable by the user (given by user_id)
         //the result parameter is_readable is set to false.
         if ($result['is_readable']) {
-            $result = $folder->toRawArray();
 
-            $subfolders = $folder_type->getSubfolders();
+            $result = array_merge($result, $folder->toRawArray());
+            //The field "data_content" must be handled differently
+            //than the other fields since it contains JSON data.
+            $data_content = json_decode($folder->data_content);
+            $result['data_content'] = $data_content;
+
+            $subfolders = $folder->subfolders;
 
             if ($subfolders) {
                 $result['subfolders'] = [];
                 foreach ($subfolders as $subfolder) {
-                    $result['subfolders'][] = $subfolder->getEditTemplate();
+                    $subfolder_type = $subfolder->getTypedFolder();
+                    if ($subfolder_type->isVisible($user_id)) {
+                        $result['subfolders'][] = $subfolder->toRawArray();
+                    }
                 }
             }
 
