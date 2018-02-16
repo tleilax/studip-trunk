@@ -423,7 +423,8 @@ td.tree-elbow-end svg {
 }
 .collapsable > .collapsed .toggle-indicator ~ *:not(.dont-hide) {
   overflow: hidden;
-  text-indent: -200%;
+  text-indent: 100%;
+  white-space: nowrap;
 }
 * + html .collapsable .collapsed .header-row {
   display: inline-block !important;
@@ -10341,7 +10342,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 }
 #globalsearch-searchbar #globalsearch-list {
   background-color: #fff;
-  box-shadow: 1px 1px 1px #8b8f95;
+  box-shadow: 1px 1px 1px #8a8e95;
   color: #000;
   font-size: 18px;
   font-weight: normal;
@@ -10366,9 +10367,9 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   color: #000;
 }
 #globalsearch-searchbar #globalsearch-list section header {
+  color: #28497c;
   margin: 5px;
   margin-bottom: 0;
-  color: #28497c;
 }
 #globalsearch-searchbar #globalsearch-list section p {
   font-size: 12px;
@@ -10379,7 +10380,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   opacity: 1;
 }
 #globalsearch-searchbar #globalsearch-searching {
-  color: #a8abb0;
+  color: #a7aaaf;
   display: none;
   text-align: center;
   background-image: url("../images/ajax-indicator-black.svg");
@@ -10462,7 +10463,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   transition: background-color 300ms;
 }
 #globalsearch-searchbar #globalsearch-results article section:hover {
-  background-color: rgba(109, 115, 123, 0.2);
+  background-color: rgba(109, 114, 122, 0.2);
 }
 #globalsearch-searchbar #globalsearch-results article section.globalsearch-extended-result {
   display: none;
@@ -10505,11 +10506,11 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   font-weight: bold;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data .globalsearch-result-details {
-  color: #646a72;
+  color: #636971;
   font-size: 12px;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-time {
-  color: #646a72;
+  color: #636971;
   font-size: 11px;
   font-weight: normal;
   text-align: right;
@@ -10523,19 +10524,19 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   margin-top: auto;
   max-width: 25px;
   padding-right: 5px;
-  width: 40px;
+  width: 24px;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-expand a {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
   width: 24px;
   height: 24px;
   display: inline-block;
 }
-#globalsearch-searchbar #globalsearch-results article section mark {
+#globalsearch-searchbar #globalsearch-results article mark {
   background-color: #d0d7e3;
 }
 #responsive-container {
