@@ -421,7 +421,14 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->data['description']
         );
 
-        return $result->getEditTemplate();
+        if (!$result instanceof FolderType) {
+            $this->halt(500, 'Error while creating a folder: ' . implode(' ', $result));
+        }
+
+        $folder = Folder::find($result->getId());
+        $folder_data = $folder->toRawArray();
+        $folder_data['data_content'] = json_decode($folder->data_content);
+        return $folder_data;
     }
 
     /**
