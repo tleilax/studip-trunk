@@ -21,8 +21,8 @@ class FileSystem extends \RESTAPI\RouteMap
      * Get a file reference object (metadata)
      * @get /file/:file_ref_id
      */
-     public function getFileRef($file_ref_id)
-     {
+    public function getFileRef($file_ref_id)
+    {
         //check if the file_id references a file reference object:
         $file_ref = \FileRef::find($file_ref_id);
         if (!$file_ref) {
@@ -337,7 +337,13 @@ class FileSystem extends \RESTAPI\RouteMap
                 foreach ($subfolders as $subfolder) {
                     $subfolder_type = $subfolder->getTypedFolder();
                     if ($subfolder_type->isVisible($user_id)) {
-                        $result['subfolders'][] = $subfolder->toRawArray();
+                        //Here we must also take special care of the
+                        //"data_content" field.
+                        $subfolder_data = $subfolder->toRawArray();
+                        $subfolder_data['data_content'] = json_decode(
+                            $subfolder->data_content
+                        );
+                        $result['subfolders'][] = $subfolder_data;
                     }
                 }
             }
@@ -650,8 +656,8 @@ class FileSystem extends \RESTAPI\RouteMap
      *
      * @get /studip/content_terms_of_use_list
      */
-     public function getContentTermsOfUseList()
-     {
+    public function getContentTermsOfUseList()
+    {
         $objects = \ContentTermsOfUse::findBySql(
             '1 ORDER BY name ASC LIMIT :limit OFFSET :offset',
             ['limit'  => $this->limit, 'offset' => $this->offset]
@@ -665,7 +671,7 @@ class FileSystem extends \RESTAPI\RouteMap
         }
 
         return $this->paginated($result, $total);
-     }
+    }
 
 
 }
