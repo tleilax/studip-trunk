@@ -74,14 +74,14 @@
     <tr>
         <td style="background:#ddffdd; border:1px solid black;" valign="top">
             <p><b>Ich möchte sichtbar sein und alle Möglichkeiten von Stud.IP nutzen können.</b></p>
-            <p>Ich akzeptiere damit, dass die in den <a href="<?= URLHelper::getLink('datenschutz.php') ?>"
+            <p>Ich akzeptiere damit, dass die in den <a href="<?= URLHelper::getURL('datenschutz.php') ?>"
                                                         class="link-intern" target="_blank">Erläuterungen
                     zum Datenschutz</a> aufgeführten Informationen
                 anderen zugänglich sind.</p>
             <p>&nbsp;</p>
             <p>&nbsp;</p>
             <p>&nbsp;</p>
-            <?= \Studip\LinkButton::create('Sichtbar werden', URLHelper::getLink('?vis_state=yes&vis_cmd=apply')) ?>
+            <?= \Studip\LinkButton::create('Sichtbar werden', URLHelper::getURL('?vis_state=yes&vis_cmd=apply')) ?>
         </td>
         <td></td>
         <td style="background:#ffdddd; border:1px solid black;" valign="top">
@@ -92,7 +92,7 @@
                 beschrieben und begründet dennoch Administrator/-innen und, in Teilen, den
                 Lehrenden meiner Veranstaltungen zugänglich sind.</p>
             <p>&nbsp;</p>
-            <?= \Studip\LinkButton::create('Unsichtbar werden', URLHelper::getLink('?vis_state=no&vis_cmd=apply')) ?>
+            <?= \Studip\LinkButton::create('Unsichtbar werden', URLHelper::getURL('?vis_state=no&vis_cmd=apply')) ?>
         </td>
     </tr>
     <tr>

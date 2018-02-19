@@ -63,12 +63,12 @@
         <td style="background:#ddffdd; border:1px solid black;" valign="top">
             <p><b>I want to be visible and want to use any opportunity given by Stud.IP.</b></p>
             <p>I accept that the information - listed in the <a
-                        href="<?= URLHelper::getLink('datenschutz.php') ?>" class="link-intern"
+                        href="<?= URLHelper::getURL('datenschutz.php') ?>" class="link-intern"
                         target="_blank">explanations of data protection</a> - are accessible for others.</p>
             <p>&nbsp;</p>
             <p>&nbsp;</p>
             <p>&nbsp;</p>
-            <?= \Studip\LinkButton::create('Become visible', URLHelper::getLink('?vis_state=yes&vis_cmd=apply')) ?>
+            <?= \Studip\LinkButton::create('Become visible', URLHelper::getURL('?vis_state=yes&vis_cmd=apply')) ?>
         </td>
         <td></td>
         <td style="background:#ffdddd; border:1px solid black;" valign="top">
@@ -77,7 +77,7 @@
                         href="<?= URLHelper::getLink('datenschutz.php') ?>" class="link-intern"
                         target="_blank">explanation of data protection</a> - is nevertheless accessible for
                 administrators and partly for lecturers of my courses.</p>
-            <?= \Studip\LinkButton::create('Become visible', URLHelper::getLink('?vis_state=no&vis_cmd=apply')) ?>
+            <?= \Studip\LinkButton::create('Become visible', URLHelper::getURL('?vis_state=no&vis_cmd=apply')) ?>
         </td>
     </tr>
     <tr>
