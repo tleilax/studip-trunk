@@ -145,10 +145,9 @@ td.tree-elbow-line, td.tree-elbow-end {
         tr:not(.header-row) {
             display: none;
         }
-        .toggle-indicator ~ *:not(.dont-hide) {
-            overflow: hidden;
-            text-indent: 100%;
-            white-space: nowrap;
+        .toggle-indicator ~ *:not(.dont-hide) > * {
+            opacity: 0;
+            pointer-events: none;
         }
     }
 }
