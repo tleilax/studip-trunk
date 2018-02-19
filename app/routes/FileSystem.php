@@ -586,12 +586,19 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Folder has an invalid folder type!');
         }
 
-        $errors = \FileManager::editFolder($folder, \User::findCurrent(), $this->data['name'], $this->data['description']);
+        $result = \FileManager::editFolder($folder, \User::findCurrent(), $this->data['name'], $this->data['description']);
 
-        if (!empty($errors)) {
+        if (!($result instanceof FolderType)) {
             $this->halt(500, 'Error while editing a folder: ' . implode(' ', $errors));
         }
 
+        //We must get the result folder from the database to get updated data.
+        //Furthermore we can't use the FolderType object since it
+        //doesn't have the toRawArray method.
+        $result_folder = Folder::find($result->getId());
+        $folder_data = $result_folder->toRawArray();
+        $folder_data['data_content'] = json_decode($result_folder->data_content);
+        return $folder_data;
     }
 
     /**
