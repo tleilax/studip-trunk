@@ -96,6 +96,8 @@ class TimedFolder extends PermissionEnabledFolder
 
         if (isset($this->folderdata['data_content']['permission'])) {
             $this->permission = $this->folderdata['data_content']['permission'];
+        } else {
+            $this->folderdata['data_content']['permission'] = $this->permission;
         }
 
         $this->start_time = intval($this->folderdata['data_content']['start_time']);
@@ -118,7 +120,7 @@ class TimedFolder extends PermissionEnabledFolder
         $template->folder = $this;
 
         if (!Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id) &&
-                $this->isWritable() && !$this->isReadable()) {
+                $this->isWritable($GLOBALS['user']->id) && !$this->isReadable($GLOBALS['user']->id)) {
             $files = new SimpleCollection($this->getFiles());
             $template->own_files = $files->findBy('user_id', $GLOBALS['user']->id)->orderBy('name');
         }
@@ -150,7 +152,6 @@ class TimedFolder extends PermissionEnabledFolder
             ($request['perm_write'] ? $this->perms['w'] : 0) +
             $this->perms['x'];
         $this->folderdata['data_content']['permission'] = $permvalue;
-
         $start = strtotime($request['start_time']);
         $end = strtotime($request['end_time']);
 
