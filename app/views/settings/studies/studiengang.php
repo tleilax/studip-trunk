@@ -52,16 +52,16 @@
                 <? if ($modulemanagement_enabled) : ?>
                     <? if ($allow_change['sg']): ?>
                         <td data-label="<?= _('Version') ?>">
-                            <? $versionen = StgteilVersion::findByFachAbschluss($usc->fach_id, $ucs->abschluss_id); ?>
+                            <? $versionen = StgteilVersion::findByFachAbschluss($usc->fach_id, $usc->abschluss_id); ?>
                             <? $versionen = array_filter($versionen, function ($ver) {
                                 return $ver->hasPublicStatus('genehmigt');
                             }); ?>
                             <? if (count($versionen)) : ?>
-                                <select name="change_version[<?= $usc->fach_id ?>][<?= $ucs->abschluss_id ?>]"
+                                <select name="change_version[<?= $usc->fach_id ?>][<?= $usc->abschluss_id ?>]"
                                         aria-labelledby="version_label">
                                     <option value=""><?= _('-- Bitte Version auswählen --') ?></option>
                                     <? foreach ($versionen as $version) : ?>
-                                        <option<?= $version->getId() == $ucs->version_id ? ' selected' : '' ?>
+                                        <option<?= $version->getId() == $usc->version_id ? ' selected' : '' ?>
                                                 value="<?= htmlReady($version->getId()) ?>">
                                             <?= htmlReady($version->getDisplayName()) ?>
                                         </option>
@@ -72,7 +72,7 @@
                             <? endif; ?>
                         </td>
                     <? else : ?>
-                        <? $version = StgteilVersion::find($ucs->version_id); ?>
+                        <? $version = StgteilVersion::find($usc->version_id); ?>
                         <td>
                             <? if ($version && $version->hasPublicStatus('genehmigt')) : ?>
                                 <?= htmlReady($version->getDisplayName()); ?>
@@ -82,20 +82,20 @@
                 <? endif; ?>
                 <? if ($allow_change['sg']): ?>
                     <td data-label="<?= _('Fachsemester') ?>">
-                        <select name="change_fachsem[<?= $usc->fach_id?>][<?= $ucs->abschluss_id ?>]"
+                        <select name="change_fachsem[<?= $usc->fach_id?>][<?= $usc->abschluss_id ?>]"
                                 aria-labelledby="fachsemester_label">
                             <? for ($i = 1; $i <= 50; $i += 1): ?>
-                                <option <? if ($i == $ucs->semester) echo 'selected'; ?>><?= $i ?></option>
+                                <option <? if ($i == $usc->semester) echo 'selected'; ?>><?= $i ?></option>
                             <? endfor; ?>
                         </select>
                     </td>
                     <td data-label="<?= _('austragen:') ?>">
                         <input type="checkbox" aria-labelledby="austragen_label"
                                name="fach_abschluss_delete[<?= $usc->fach_id ?>]"
-                               value="<?= $ucs->abschluss_id ?>">
+                               value="<?= $usc->abschluss_id ?>">
                     </td>
                 <? else: ?>
-                    <td data-label="<?= _('Fachsemester:') ?>"><?= htmlReady($ucs->semester) ?></td>
+                    <td data-label="<?= _('Fachsemester:') ?>"><?= htmlReady($usc->semester) ?></td>
                     <td data-label="<?= _('austragen:') ?>" style="text-align: right;">
                         <?= Icon::create('accept', 'inactive')->asImg(['class' => 'text-top']) ?>
                     </td>
