@@ -1370,6 +1370,7 @@ class FileController extends AuthenticatedController
             $new_folder = new $folder_type();
             $result = $new_folder->setDataFromEditTemplate($request);
             if ($result instanceof FolderType) {
+                $new_folder->user_id = User::findCurrent()->id;
                 if ($parent_folder->createSubfolder($new_folder)) {
                     PageLayout::postSuccess(_('Der Ordner wurde angelegt.'));
                     $this->response->add_header('X-Dialog-Close', '1');

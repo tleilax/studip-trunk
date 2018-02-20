@@ -1150,6 +1150,7 @@ class FileManager
             : "StandardFolder";
         $new_folder = new $destination_folder_type();
         $new_folder->name = $source_folder->name;
+        $new_folder->user_id = $user->id;
         $new_folder = $destination_folder->createSubfolder($new_folder);
 
         //now we go through all subfolders and copy them:
