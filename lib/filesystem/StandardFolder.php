@@ -375,6 +375,7 @@ class StandardFolder implements FolderType
         $folder->range_id = $this->folderdata['range_id'];
         $folder->range_type = $this->folderdata['range_type'];
         $folder->parent_id = $this->folderdata['id'];
+        $folder->user_id = $GLOBALS['user']->id;
         if ($folder->store()) {
             return $folder;
         }
