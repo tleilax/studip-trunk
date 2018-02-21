@@ -499,7 +499,7 @@ if ($evaluation = $statement->fetch(PDO::FETCH_ASSOC)) {
 
   $has_template = !empty($eval_templates);
 
-  $db_owner = User::find($evaluation['author_id'])->getFullName('no_title');
+  $db_owner = User::find($evaluation['author_id']);
 
   $global_counter = 0;
   $local_counter  = 0;
@@ -579,7 +579,7 @@ if ($evaluation = $statement->fetch(PDO::FETCH_ASSOC)) {
     echo "    <td colspan=\"2\" class=\"blank\"><font size=\"-1\">\n";
     echo "      &nbsp;&nbsp;".$number_of_votes." "._("Teilnehmende insgesamt").".&nbsp;";
     echo "      ". ($evaluation['anonymous'] == 0 ? _('Die Teilnahme war nicht anonym.') : _('Die Teilnahme war anonym.')) . ' ';
-    echo "      "._("Eigentümer").": ".$db_owner.". ".("Erzeugt am").": ".date('d.m.Y H:i:s');
+    echo "      "._("Eigentümer").": ".($db_owner ? htmlReady($db_owner->getFullName('no_title')) : _('Unbekannter Nutzer')).". ".("Erzeugt am").": ".date('d.m.Y H:i:s');
     echo "    </font></td>\n";
     echo "  </tr>\n";
   }
