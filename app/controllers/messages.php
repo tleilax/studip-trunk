@@ -16,14 +16,13 @@ require_once 'lib/statusgruppe.inc.php';
 class MessagesController extends AuthenticatedController {
 
     protected $number_of_displayed_messages = 50;
-    protected $utf8decode_xhr = true;
 
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
 
-        PageLayout::setTitle(_("Nachrichten"));
-        PageLayout::setHelpKeyword("Basis.InteraktionNachrichten");
+        PageLayout::setTitle(_('Nachrichten'));
+        PageLayout::setHelpKeyword('Basis.InteraktionNachrichten');
 
         // The default body and/or subject passed via GET url parameters
         // should not be utf8decoded and thus need to be restored in their
@@ -34,6 +33,8 @@ class MessagesController extends AuthenticatedController {
                 $request[$key] = $_GET[$key];
             }
         }
+
+        $this->setupSidebar();
     }
 
     public function overview_action($message_id = null)
@@ -167,7 +168,11 @@ class MessagesController extends AuthenticatedController {
      */
     public function write_action()
     {
-        PageLayout::setTitle(_("Neue Nachricht schreiben"));
+        if ($GLOBALS['user']->perms === 'user') {
+            throw new AccessDeniedException();
+        }
+
+        PageLayout::setTitle(_('Neue Nachricht schreiben'));
 
         //the message-ID for the new message:
         $this->message_id = Request::option("message_id") ?: md5(uniqid("neWMesSagE"));
@@ -578,7 +583,8 @@ class MessagesController extends AuthenticatedController {
         }
     }
 
-    public function tag_action($message_id) {
+    public function tag_action($message_id)
+    {
         if (Request::isPost()) {
             $message = Message::find($message_id);
             if (!$message->permissionToRead()) {
@@ -593,7 +599,7 @@ class MessagesController extends AuthenticatedController {
         $this->redirect('messages/read/' . $message_id);
     }
 
-    function print_action($message_id)
+    public function print_action($message_id)
     {
         $message = Message::find($message_id);
         if (!$message->permissionToRead()) {
@@ -837,7 +843,7 @@ class MessagesController extends AuthenticatedController {
     public function preview_action()
     {
         if (Request::isXhr()) {
-            $this->render_text(formatReady(Request::get("text")));
+            $this->render_text(formatReady(Request::get('text')));
         }
     }
 
@@ -846,6 +852,62 @@ class MessagesController extends AuthenticatedController {
         CSRFProtection::verifyUnsafeRequest();
         DbManager::get()->execute("DELETE FROM message_tags WHERE user_id=? AND tag LIKE ?", array($GLOBALS['user']->id, Request::get('tag')));
         PageLayout::postMessage(MessageBox::success(_('Schlagwort gelöscht!')));
-        $this->redirect($this->url_for('messages/overview'));
+        $this->redirect('messages/overview');
+    }
+
+    public function setupSidebar()
+    {
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/mail-sidebar.png');
+
+        $actions = new ActionsWidget();
+        if ($GLOBALS['user']->perms !== 'user') {
+            $actions->addLink(
+                _('Neue Nachricht schreiben'),
+                $this->url_for('messages/write'), Icon::create('mail+add'),
+                ['data-dialog' => 'width=650;height=600']
+            );
+        }
+        if (Navigation::getItem('/messaging/messages/inbox')->isActive() && $messages) {
+            $actions->addLink(
+                _('Alle als gelesen markieren'),
+                $this->url_for('messages/overview', array('read_all' => 1)), Icon::create('accept', 'clickable')
+            );
+        }
+        $actions->addLink(
+            _('Ausgewählte Nachrichten löschen'),
+            '#',
+            Icon::create('trash'),
+            [
+                'onclick' => "if (window.confirm('Wirklich %s Nachrichten löschen?'.toLocaleString().replace('%s', jQuery('#bulk tbody :checked').length))) { jQuery('#bulk').submit(); } return false;"
+            ]
+        );
+        $sidebar->addWidget($actions);
+
+        $search = new SearchWidget(URLHelper::getLink('?'));
+        $search->addNeedle(_('Nachrichten durchsuchen'), 'search', true);
+        $search->addFilter(_('Betreff'), 'search_subject');
+        $search->addFilter(_('Inhalt'), 'search_content');
+        $search->addFilter(_('Autor/-in'), 'search_autor');
+        $sidebar->addWidget($search);
+
+        $folderwidget = new ViewsWidget();
+        $folderwidget->forceRendering();
+        $folderwidget->title = _('Schlagworte');
+        $folderwidget->id    = 'messages-tags';
+        $folderwidget
+            ->addLink(_("Alle Nachrichten"), URLHelper::getURL("?"), null, array('class' => "tag"))
+            ->setActive(!Request::submitted("tag"));
+        if (empty($tags)) {
+            $folderwidget->style = 'display:none';
+        } else {
+            foreach ($tags as $tag) {
+                $folderwidget
+                    ->addLink(ucfirst($tag), URLHelper::getURL("?", array('tag' => $tag)), null, array('class' => "tag"))
+                    ->setActive(Request::get("tag") === $tag);
+            }
+        }
+
+        $sidebar->addWidget($folderwidget);
     }
 }
