@@ -4,15 +4,16 @@ class MyStudygroupsController extends AuthenticatedController
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-        if (!$GLOBALS['perm']->have_perm("root")) {
+
+        if (!$GLOBALS['perm']->have_perm('root')) {
             Navigation::activateItem('/browse/my_studygroups/index');
         }
     }
 
     public function index_action()
     {
-        PageLayout::setHelpKeyword("Basis.MeineStudiengruppen");
-        PageLayout::setTitle(_("Meine Studiengruppen"));
+        PageLayout::setHelpKeyword('Basis.MeineStudiengruppen');
+        PageLayout::setTitle(_('Meine Studiengruppen'));
         URLHelper::removeLinkParam('cid');
 
         $this->studygroups  = MyRealmModel::getStudygroups();
@@ -22,6 +23,10 @@ class MyStudygroupsController extends AuthenticatedController
 
     public function set_sidebar()
     {
+        if ($GLOBALS['user']->perms === 'user') {
+            return;
+        }
+
         $sidebar = Sidebar::Get();
         $sidebar->setImage('sidebar/studygroup-sidebar.png');
         $sidebar->setTitle(_('Meine Studiengruppen'));

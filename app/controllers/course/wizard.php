@@ -44,12 +44,16 @@ class Course_WizardController extends AuthenticatedController
             $this->flash['studygroup'] = true;
         }
 
+        if ($GLOBALS['user']->perms === 'user') {
+            throw new AccessDeniedException();
+        }
     }
 
     /**
      * Just some sort of placeholder for initial calling without a step number.
      */
-    public function index_action() {
+    public function index_action()
+    {
         $this->redirect('course/wizard/step/0'.(Request::int('studygroup') ? '?studygroup=1' : ''));
     }
 
