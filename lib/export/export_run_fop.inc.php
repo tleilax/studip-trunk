@@ -68,7 +68,7 @@ if (!CheckParamRUN_FOP()) {
     PageLayout::postError(
         _('Die Parameter, mit denen diese Seite aufgerufen wurde, sind fehlerhaft.')
     );
-} elseif ($FOP_ENABLE != true) {
+} elseif (!Config::get()->FOP_ENABLE) {
     PageLayout::postInfo(
         _('Die Erweiterung zum Erzeugen von PDF-Dateien ist nicht aktiviert, es konnten daher nur Formatting Objects erzeugt werden.')
     );
