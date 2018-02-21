@@ -1220,9 +1220,19 @@ class FileManager
             ];
         }
 
-        $new_folder = $destination_folder->createSubfolder(
-            $source_folder
-        );
+        $new_folder = null;
+        if ($source_folder instanceof StandardFolder) {
+            //Standard folders just have to be put below the
+            //destination folder. Their subfolders and files
+            //cannot be moved since they would stay in the
+            //same place.
+            return $destination_folder->createSubfolder($source_folder);
+        } else {
+            //It is a plugin folder which needs special treatment.
+            $new_folder = $destination_folder->createSubfolder(
+                $source_folder
+            );
+        }
         if (!is_a($new_folder, "FolderType")) {
             return [_('Fehler beim Verschieben des Ordners.')];
         } else {
