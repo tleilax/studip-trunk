@@ -135,7 +135,11 @@ if (isset($file_ref) && $file_ref->file->storage == 'disk') {
 }
 // close session, download will mostly be a parallel action
 page_close();
-ob_end_clean();
+
+// output_buffering may be explicitly or implicitly enabled
+while (ob_get_level()) {
+    ob_end_clean();
+}
 
 if (isset($file_ref) && $file_ref->file->url_access_type == 'redirect') {
     header('Location: ' . $file_ref->file->url);
@@ -215,7 +219,7 @@ header("Content-Disposition: $content_disposition; " . encode_header_parameter('
 
 Metrics::increment('core.file_download');
 
-@readfile_chunked($path_file, $start, $end);
+readfile_chunked($path_file, $start, $end);
 if (isset($file_ref) && !$start) {
     $file_ref->incrementDownloadCounter();
 }
