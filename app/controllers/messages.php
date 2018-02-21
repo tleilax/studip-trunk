@@ -168,7 +168,7 @@ class MessagesController extends AuthenticatedController {
      */
     public function write_action()
     {
-        if ($GLOBALS['user']->perms === 'user') {
+        if ($GLOBALS['user']->perms === 'user' && !Request::option('answer_to')) {
             throw new AccessDeniedException();
         }
 

@@ -182,18 +182,3 @@
     </div>
 
 </form>
-
-<br>
-
-<?php
-$sidebar = Sidebar::get();
-$sidebar->setImage('sidebar/mail-sidebar.png');
-
-if (false && count($tags)) {
-    $folderwidget = new LinksWidget();
-    $folderwidget->setTitle(_("Verwendete Tags"));
-    foreach ($tags as $tag) {
-        $folderwidget->addLink(ucfirst($tag), URLHelper::getURL("?", array('tag' => $tag)), null, array('class' => "tag"));
-    }
-    $sidebar->addWidget($folderwidget, 'folder');
-}

@@ -97,7 +97,3 @@
         ))?>
     </form>
 </div>
-
-<?php
-$sidebar = Sidebar::get();
-$sidebar->setImage('sidebar/mail-sidebar.png');
