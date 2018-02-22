@@ -66,7 +66,7 @@ if (isset($_COOKIE['navigation-length'])) {
             <? endif; ?>
         <? endif; ?>
 
-        <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor')): ?>
+        <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('user')): ?>
             <? $active = Navigation::hasItem('/profile')
                       && Navigation::getItem('/profile')->isActive();
             ?>
