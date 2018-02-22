@@ -28,7 +28,7 @@
                         <? foreach ($parent_ids as $item_id): ?>
                             <? if ($item_id != 'root'): ?>
                                 &gt;
-                                <a href=" <?= URLHelper::getURL("institut_browse.php?open_item={$item_id}") ?>">  <?= htmlReady($tree->tree_data[$item_id]['name']) ?> </a>
+                                <a href="<?= URLHelper::getURL("institut_browse.php?open_item={$item_id}") ?>">  <?= htmlReady($tree->tree_data[$item_id]['name']) ?> </a>
                             <? else: ?>
                                 <?= htmlReady($tree->tree_data[$item_id]['name']) ?>
                             <? endif ?>
