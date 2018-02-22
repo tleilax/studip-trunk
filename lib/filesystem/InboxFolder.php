@@ -52,7 +52,8 @@ class InboxFolder extends InboxOutboxFolder
                          ON folders.range_id = message_user.message_id
                       WHERE folders.range_type = 'message'
                         AND message_user.user_id = :user_id
-                        AND message_user.snd_rec = 'rec'";
+                        AND message_user.snd_rec = 'rec'
+                        AND message_user.deleted = '0'";
         $message_folders = Folder::findBySql($condition, [
             'user_id' => $this->user->id
         ]);
