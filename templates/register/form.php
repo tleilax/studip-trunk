@@ -9,13 +9,10 @@ $email_restriction = Config::get()->EMAIL_DOMAIN_RESTRICTION;
 jQuery(document).ready(function() {
     STUDIP.register.re_username = <?= $validator->username_regular_expression ?>;
     STUDIP.register.re_name = <?= $validator->name_regular_expression ?>;
-    STUDIP.register.re_email = <?= trim($email_restriction)
-        ? $validator->email_regular_expression_restricted_part
-        : $validator->email_regular_expression ?>;
 
     $('form[name=login]').submit(function () {
         return STUDIP.register.checkdata();
-    }).data('validator').destroy();
+    });
 });
 </script>
 
@@ -75,7 +72,7 @@ jQuery(document).ready(function() {
 
             <input type="text" name="title_front" id="title_front"
                    value="<?= htmlReady($title_front) ?>"
-                   maxlength="63">
+                   maxlength="63" class="no-hint">
         </section>
 
         <label for="title_rear">
@@ -92,7 +89,7 @@ jQuery(document).ready(function() {
 
             <input type="text" name="title_rear" id="title_rear"
                    value="<?= htmlReady($title_rear) ?>"
-                   maxlength="63">
+                   maxlength="63" class="no-hint">
         </section>
 
         <label for="first_name">
@@ -149,10 +146,11 @@ jQuery(document).ready(function() {
             <input type="text" name="Email" id="email"
                    onchange="STUDIP.register.checkEmail()"
                    value="<?= htmlReady(preg_replace('/@.*$/', '', trim($Email ?: ''))) ?>"
-                   required maxlength="63">
+                   required maxlength="63"
+                   class="no-hint">
             <select name="emaildomain">
             <? foreach (explode(',', $email_restriction) as $domain): ?>
-                <option value="<?= trim($email_restriction_part) ?>"
+                <option value="<?= trim($domain) ?>"
                         <? if (trim($domain) == Request::get('emaildomain')) echo 'selected'; ?>>
                     @<?= trim($domain) ?>
                 </option>
