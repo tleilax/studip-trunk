@@ -175,9 +175,10 @@ class FileController extends AuthenticatedController
                 $ref_ids = [$this->file_ref->getId()];
             }
 
-            $this->redirect($this->url_for('file/edit_license', [
-                'file_refs' => $ref_ids,
-            ]));
+            $this->flash->set('file_refs', $ref_ids);
+            $this->redirect(
+                $this->url_for('file/edit_license')
+            );
         }
     }
 
@@ -1168,7 +1169,13 @@ class FileController extends AuthenticatedController
 
     public function edit_license_action()
     {
-        $this->file_refs = FileRef::findMany(Request::getArray('file_refs'));
+        $file_ref_ids = Request::getArray('file_refs');
+        if (!$file_ref_ids) {
+            //In case the file ref IDs are not set in the request
+            //they may still be set in the flash object of the controller:
+            $file_ref_ids = $this->flash->get('file_refs');
+        }
+        $this->file_refs = FileRef::findMany($file_ref_ids);
         $this->folder = $this->file_refs[0]->folder;
         if (Request::isPost()) {
             foreach ($this->file_refs as $file_ref) {
