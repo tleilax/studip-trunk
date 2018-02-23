@@ -1208,8 +1208,9 @@ class FileController extends AuthenticatedController
 
                 $this->response->add_header(
                     'X-Dialog-Execute',
-                    studip_json_encode(['func' => 'STUDIP.Files.addFile', 'payload' => $payload])
-                );
+                    'STUDIP.Files.addFile');
+                $this->render_json($payload['html']);
+                return;
             } else {
                 PageLayout::postSuccess(_('Datei wurde bearbeitet.'));
                 //redirect:

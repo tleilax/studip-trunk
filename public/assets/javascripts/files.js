@@ -116,7 +116,7 @@
             if (delay === undefined) {
                 delay = 0;
             }
-            var redirect = true;
+            var redirect = false;
             if (html.hasOwnProperty('html') && html.html !== undefined) {
                 redirect = html.redirect;
                 html = html.html;
