@@ -79,9 +79,16 @@ class BasicDataWizardStep implements CourseWizardStep
         // Allow only current or future semesters for selection.
         foreach (Semester::getAll() as $s) {
             if ($s->ende >= $now) {
-                if ($s->id == $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE &&
+                if ($GLOBALS['perm']->have_perm("admin")) {
+                    if ($s->id == $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE &&
                         !$values['start_time'] && Request::isXhr()) {
-                    $values['start_time'] = $s->beginn;
+                        $values['start_time'] = $s->beginn;
+                    }
+                } else {
+                    if ((time() >= $s->beginn - Config::get()->SEMESTER_TIME_SWITCH * 86400 * 7)
+                        && (time() < $s->ende - Config::get()->SEMESTER_TIME_SWITCH * 86400 * 7)) {
+                        $values['start_time'] = $s->beginn;
+                    }
                 }
                 $semesters[] = $s;
             }
