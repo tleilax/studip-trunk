@@ -379,7 +379,7 @@ class Assets
     private static function content_tag($name, $content = '', $options = array())
     {
         if (!$name) return '';
-        return '<' . $name . arrayToHtmlAttributes($options) . '>' .
+        return '<' . $name . ' ' . arrayToHtmlAttributes($options) . '>' .
         $content .
         '</' . $name . '>';
     }
