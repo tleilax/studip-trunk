@@ -45,30 +45,7 @@ class LatestFilesWidget extends BaseWidget
     {
         $userId = $GLOBALS['user']->id;
 
-        extract(
-            array_reduce(
-                $this->findTopFolders($userId),
-                function ($result, $folder) use ($userId) {
-                    $typedFolder = $folder->getTypedFolder();
-                    if ($typedFolder->isReadable($userId)) {
-                        $allFiles = \FileManager::getFolderFilesRecursive(
-                            $typedFolder,
-                            $userId,
-                            true
-                        );
-                        $result['files'] = array_merge($result['files'], $allFiles['files']);
-                        $result['folders'] = array_merge($result['folders'], $allFiles['folders']);
-                    }
-
-                    return $result;
-                },
-                ['files' => [], 'folders' => []]
-            )
-        );
-
-        $files = array_slice($this->sortFilesByChdate($files), 0, 10);
-
-        return compact('files', 'folders');
+        return $this->findAllFolders($userId, 10);
     }
 
     /**
@@ -140,45 +117,24 @@ class LatestFilesWidget extends BaseWidget
 
     // ***** HELPERS *****
 
-    private function sortFilesByChdate($files)
+    private function findAllFolders($userId, $limit)
     {
-        usort($files, function ($fileA, $fileB) {
-            if ($fileA->chdate === $fileB->chdate) {
-                return 0;
+        $rangeIds = [$userId];
+        foreach ([['findMyCourses', 'id'],['findMyInstitutes', 'Institut_id']] as list($fn, $key)) {
+            foreach ($this->$fn($userId) as $range) {
+                $rangeIds[] = $range[$key];
             }
+        }
 
-            return $fileA->chdate > $fileB->chdate ? -1 : +1;
-        });
+        $folders = $this->findFoldersForRangeIds($rangeIds, $userId);
+        $files = $this->findSomeFilesInFolders($folders, $userId, $limit);
 
-        return $files;
-    }
-
-    private function findTopFolders($userId)
-    {
-        $folders = [\Folder::findTopFolder($userId)];
-        $folders = array_merge($folders, $this->findMyCoursesTopFolders($userId));
-        $folders = array_merge($folders, $this->findMyInstitutesTopFolders($userId));
-
-        return array_filter($folders);
-    }
-
-    private function findMyCoursesTopFolders($userId)
-    {
-        return array_reduce(
-            $this->findMyCourses($userId),
-            function ($folders, $course) use ($userId) {
-                if ($folder = \Folder::findTopFolder($course->id)) {
-                    $folders[] = $folder;
-                }
-
-                return $folders;
-            },
-            []
-        );
+        return compact('files', 'folders');
     }
 
     /**
      * @SuppressWarnings(PHPMD.Superglobals)
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
     private function findMyCourses($userId)
     {
@@ -207,23 +163,45 @@ class LatestFilesWidget extends BaseWidget
         return $courses;
     }
 
-    private function findMyInstitutesTopFolders($userId)
-    {
-        return array_reduce(
-            $this->findMyInstitutes($userId),
-            function ($folders, $institute) use ($userId) {
-                if ($folder = \Folder::findTopFolder($institute->id)) {
-                    $folders[] = $folder;
-                }
-
-                return $folders;
-            },
-            []
-        );
-    }
-
+    /**
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
+     */
     private function findMyInstitutes($userId)
     {
         return \Institute::getMyInstitutes($userId);
+    }
+
+    private function findFoldersForRangeIds($rangeIds, $userId)
+    {
+        return array_reduce(
+            \Folder::findBySQL('range_id IN (?)', [$rangeIds]),
+            function ($result, $folder) use ($userId) {
+                if ($folder->getTypedFolder()->isReadable($userId)) {
+                    $result[$folder->id] = $folder->getTypedFolder();
+                }
+
+                return $result;
+            },
+            []
+        );
+
+    }
+
+    private function findSomeFilesInFolders($folders, $userId, $limit)
+    {
+        $files = [];
+        foreach (\FileRef::findBySQL('folder_id IN (?) ORDER BY chdate DESC', [array_keys($folders)]) as $fileRef) {
+            if (count($files) >= $limit) {
+                break;
+            }
+
+            if (isset($folders[$fileRef->folder_id])) {
+                $folder = $folders[$fileRef->folder_id];
+                if ($folder->isFileDownloadable($fileRef->id, $userId)) {
+                    $files[$fileRef->id] = $fileRef;
+                }
+            }
+        }
+        return $files;
     }
 }
