@@ -53,32 +53,33 @@ abstract class BaseWidget extends \Widgets\Widget
      */
     public function getActions(\Range $range, $scope)
     {
+        $list = function ($element) {
+            $action = new WidgetAction(_('Listenansicht im Dialog'));
+            $action->setIcon(Icon::create('maximize-1', Icon::ROLE_CLICKABLE, ['size' => 20]));
+            $action->setCallback([$this, 'getListTemplate']);
+            $action->setAttributes(
+                [
+                    'href' => $this->url_for('list'),
+                    'data-dialog' => 'size=big',
+                ]
+            );
+
+            return $action;
+        };
+
+        $saveConfiguration = function ($element) {
+            $action = new WidgetAction(_('Speichern'));
+            $action->setCallback([$element, 'saveConfiguration']);
+            $action->hasIcon(false);
+
+            return $action;
+        };
+
         return array_filter(
             [
-                'list' => (
-                    function ($element) {
-                        $action = new WidgetAction(_('Listenansicht im Dialog'));
-                        $action->setIcon(Icon::create('maximize-1', Icon::ROLE_CLICKABLE, ['size' => 20]));
-                        $action->setCallback([$this, 'getListTemplate']);
-                        $action->setAttributes(
-                            [
-                                'href' => $this->url_for('list'),
-                                'data-dialog' => 'size=big',
-                            ]
-                        );
-
-                        return $action;
-                    })($this),
-
+                'list' => $list($this),
                 'config' => $this->createConfigurationAction(),
-                'saveConfiguration' => (
-                    function ($element) {
-                        $action = new WidgetAction(_('Speichern'));
-                        $action->setCallback([$element, 'saveConfiguration']);
-                        $action->hasIcon(false);
-
-                        return $action;
-                    })($this),
+                'saveConfiguration' => $saveConfiguration($this),
             ]
         );
     }
