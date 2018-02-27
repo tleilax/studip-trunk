@@ -5,7 +5,6 @@ namespace FilesSearch;
 use DBManager;
 use Log;
 use PDOException;
-use StudipPDO;
 
 /**
  * The FilesIndexManager is responsible for creating the fulltext
@@ -163,11 +162,11 @@ class FilesIndexManager
      */
     public static function dropIndexForFile(\FileRef $fileRef)
     {
-        StudipPDO::execute(
+        DBManager::get()->execute(
             'DELETE FROM files_search_index WHERE file_ref_id = :filerefid',
             [':filerefid' => $fileRef->id]
         );
-        StudipPDO::execute(
+        DBManager::get()->execute(
             'DELETE FROM files_search_attributes WHERE id = :filerefid',
             [':filerefid' => $fileRef->id]
         );
@@ -191,7 +190,7 @@ class FilesIndexManager
     {
         $table = isset($fileRef) ? 'files_search_index' : 'files_search_index_temp';
         $query = sprintf('INSERT INTO %s (file_ref_id, text, relevance) %s', $table, $sql);
-        StudipPDO::execute($query, $params);
+        DBManager::get()->execute($query, $params);
     }
 
     private static function relevance($base, $modifier)
@@ -277,7 +276,7 @@ class FilesIndexManager
             %s
         ', $table, $where['sql']);
 
-        StudipPDO::execute($query, $where['params']);
+        DBManager::get()->execute($query, $where['params']);
     }
 
     private static function fillIndex(\FileRef $fileRef = null)
