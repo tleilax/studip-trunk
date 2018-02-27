@@ -97,6 +97,14 @@ class FileRef extends SimpleORMap
         if (isset($this->folder) && $this->isFieldDirty('name')) {
             $this->name = $this->folder->getUniqueName($this->name);
         }
+        if ($this->isFieldDirty('folder_id')) {
+            //We have moved the file ref. $this->folder may not work directly
+            //so we have to load the folder manually:
+            $folder = Folder::find($this->folder_id);
+            if ($folder) {
+                $this->name = $folder->getUniqueName($this->name);
+            }
+        }
     }
 
     /**
