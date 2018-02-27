@@ -1,4 +1,4 @@
-<tr class="<? if ($file_ref->chdate > $last_visitdate) echo 'new'; ?>" <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>">
+<tr class="<? if ($file_ref->chdate > $last_visitdate) echo 'new'; ?>" <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>" role="row">
     <td>
     <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
         <input type="checkbox"
