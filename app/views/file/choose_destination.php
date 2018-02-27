@@ -33,7 +33,7 @@ $options['direct_parent'] = true;
 <? endif ?>
 
 <div class="file_select_possibilities">
-    <? if (isset($parent_folder) && $parent_folder->isWritable($GLOBALS['user']->id) || count($parent_folder->getSubfolders()): ?>
+    <? if (isset($parent_folder) && $parent_folder->isWritable($GLOBALS['user']->id) || count($parent_folder->getSubfolders())): ?>
         <? if ($options['from_plugin']) : ?>
         <a href="<?= $controller->link_for('/choose_folder/' . $parent_folder->getId(), array_merge($options, ['to_plugin' => $options['from_plugin'] ])) ?>" data-dialog>
         <? else: ?>
