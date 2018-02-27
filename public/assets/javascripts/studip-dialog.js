@@ -199,8 +199,7 @@
     };
     // Handler for HTTP header X-Dialog-Execute: Execute arbitrary function
     STUDIP.Dialog.handlers.header['X-Dialog-Execute'] = function (value, options, xhr) {
-        var chunks = value.trim().split('.'),
-            callback = window,
+        var callback = window,
             payload = xhr.getResponseHeader('Content-Type').match(/json/)
                 ? $.parseJSON(xhr.responseText)
                 : xhr.responseText;
@@ -225,13 +224,7 @@
         }
 
         // Find callback
-        chunks = value.func.trim().split('.');
-        $.each(chunks, function (index, chunk) {
-            if (!callback.hasOwnProperty(chunk)) {
-                throw 'Dialog: Undefined callback ' + value;
-            }
-            callback = callback[chunk];
-        });
+        callback = STUDIP.extractCallback(value.func, payload);
 
         // Check callback
         if (typeof callback !== 'function') {

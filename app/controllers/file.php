@@ -43,6 +43,11 @@ class FileController extends AuthenticatedController
         }
     }
 
+    public function upload_window_action()
+    {
+        // just send the template
+    }
+
     public function upload_action($folder_id)
     {
         if (Request::get("from_plugin")) {
@@ -659,6 +664,10 @@ class FileController extends AuthenticatedController
             throw new AccessDeniedException();
         }
 
+        if (Request::isXhr()) {
+            $this->response->add_header('X-Title', rawurlencode(_('Ziel wählen')));
+        }
+
         $this->plugin = Request::get('from_plugin');
     }
 
@@ -1068,8 +1077,9 @@ class FileController extends AuthenticatedController
                         }
                     }
                     $payload = [
-                        'html' => $this->render_template_as_string("files/_fileref_tr"),
-                        'redirect' => $redirects[0]
+                        'html'     => $this->render_template_as_string("files/_fileref_tr"),
+                        'redirect' => $redirects[0],
+                        'url'      => $this->generateFilesUrl($folder, $this->file_ref),
                     ];
 
                     $this->response->add_header(
@@ -1206,10 +1216,15 @@ class FileController extends AuthenticatedController
                     return;
                 }
 
+                $payload['url'] = $this->generateFilesUrl(
+                    $this->folder,
+                    $file_ref
+                );
+
                 $this->response->add_header(
                     'X-Dialog-Execute',
                     'STUDIP.Files.addFile');
-                $this->render_json($payload['html']);
+                $this->render_json($payload);
                 return;
             } else {
                 PageLayout::postSuccess(_('Datei wurde bearbeitet.'));
@@ -1680,5 +1695,12 @@ class FileController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         $this->redirectToFolder($folder);
+    }
+
+    private function generateFilesUrl($folder, $fileRef)
+    {
+        require_once 'app/controllers/files.php';
+
+        return \FilesController::getRangeLink($folder) . '#fileref_' . $fileRef->id;
     }
 }

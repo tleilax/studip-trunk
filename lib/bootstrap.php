@@ -101,6 +101,7 @@ namespace {
     require_once 'vendor/flexi/lib/flexi.php';
     $GLOBALS['template_factory'] =
         new Flexi_TemplateFactory($STUDIP_BASE_PATH . '/templates');
+    Renderable::setTemplateFactory($GLOBALS['template_factory']);
 
 
     // set default pdo connection
@@ -213,6 +214,7 @@ namespace {
 
     // init notification observers
     Studip\Activity\ActivityObserver::initialize();
+    FilesSearch\NotificationObserver::initialize();
 
     //Besser hier globale Variablen definieren...
     $GLOBALS['_fullname_sql'] = array();

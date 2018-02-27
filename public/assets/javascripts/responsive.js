@@ -72,11 +72,7 @@
         addMenu();
 
         if ($('#layout-sidebar > section').length > 0) {
-            $('<li id="sidebar-menu">').on('click', function () {
-                $('#responsive-toggle').prop('checked', false);
-                $('#responsive-navigation').removeClass('visible');
-                $('#layout-sidebar').toggleClass('visible-sidebar');
-            }).appendTo('#barBottomright > ul');
+            $('<li id="sidebar-menu">').on('click', STUDIP.Sidebar.open).appendTo('#barBottomright > ul');
 
             $('#responsive-toggle').on('change', function () {
                 $('#layout-sidebar').removeClass('visible-sidebar');

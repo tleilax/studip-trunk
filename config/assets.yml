@@ -117,6 +117,7 @@ javascripts:
     - javascripts/article.js
     - javascripts/copyable-links.js
 
+    - javascripts/studip-extract-callback.js
     - javascripts/studip-selection.js
     - javascripts/studip-secure-forms.js
     - javascripts/studip-css.js
@@ -161,6 +162,21 @@ javascripts:
   subcourses:
     - javascripts/subcourses.js
 
+  api: &api
+    - javascripts/studip-restapi.js
+
+  filesdashboard: &filesdashboard
+    - javascripts/files-dashboard.js
+
+  widgets:
+    - javascripts/vendor/gridstack-0.3.0.js
+    - javascripts/vendor/gridstack.jQueryUI-0.3.0.js
+    - *api
+    - javascripts/string-crc32.js
+    - javascripts/studip-widgetsystem.js
+    - javascripts/studip-widgets.js
+    - javascripts/studip-widgets-tabbable.js
+
   files:
     - *tablesorter
     - javascripts/jquery/jquery.filtertable-1.5.7.js
@@ -180,3 +196,6 @@ css:
 
   statusgroups:
     statusgroups.css: screen
+
+  widgets:
+    widgets.css: screen

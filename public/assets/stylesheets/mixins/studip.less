@@ -36,6 +36,17 @@
             transform: @transformation1 @transformation2;
 }
 
+// Disable text selection by user
+.disable-select() {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome and Opera */
+}
+
 // Retina background icons
 .retina-background-image(@image0, @image1, @width: 100%, @height: @width) {
     background-image: url("@{image-path}/@{image0}");
@@ -125,7 +136,7 @@
         /* Shadow covers */
         linear-gradient(white 30%, rgba(255,255,255,0)),
         linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
-        
+
         /* Shadows */
         radial-gradient(50% 0, farthest-side, rgba(0,0,0,.2), rgba(0,0,0,0)),
         radial-gradient(50% 100%,farthest-side, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
@@ -133,7 +144,7 @@
         /* Shadow covers */
         linear-gradient(white 30%, rgba(255,255,255,0)),
         linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
-        
+
         /* Shadows */
         radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.2), rgba(0,0,0,0)),
         radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
@@ -151,7 +162,7 @@
         /* Shadow covers */
         linear-gradient(90deg, white 30%, rgba(255,255,255,0)),
         linear-gradient(90deg, rgba(255,255,255,0), white 70%) 100% 0,
-        
+
         /* Shadows */
         radial-gradient(0 50%, farthest-side, rgba(0,0,0,.2), rgba(0,0,0,0)),
         radial-gradient(100% 50%,farthest-side, rgba(0,0,0,.2), rgba(0,0,0,0)) 100% 0;
@@ -159,13 +170,32 @@
         /* Shadow covers */
         linear-gradient(90deg, white 30%, rgba(255,255,255,0)),
         linear-gradient(90deg, rgba(255,255,255,0), white 70%) 100% 0,
-        
+
         /* Shadows */
         radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.2), rgba(0,0,0,0)),
         radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.2), rgba(0,0,0,0)) 100% 0;
     background-repeat: no-repeat;
     background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
-    
+
     /* Opera doesn't support this in the shorthand */
     background-attachment: local, local, scroll, scroll;
+}
+
+// Define action icons for widgets
+/********************
+ ** Widget actions **
+ ********************/
+.widget-action(@action, @icon: @action, @role: 'clickable', @rules: {}) {
+    .widget-action[data-action="@{action}"] {
+        .hide-text();
+        .square(16px);
+        .background-icon(@icon, @role, 16px);
+
+        background-repeat: no-repeat;
+        cursor: pointer;
+        display: block;
+        // vertical-align: middle;
+
+        @rules();
+    }
 }

@@ -33,13 +33,14 @@ test: force_update
 	$(RUN_TESTS)
 
 # recipe to compile all .less files to CSS
-less: $(STYLES)/style.css $(STYLES)/print.css  $(STYLES)/statusgroups.css $(STYLES)/studip-jquery-ui.css
+less: $(STYLES)/style.css $(STYLES)/print.css  $(STYLES)/statusgroups.css $(STYLES)/studip-jquery-ui.css $(STYLES)/widgets.css
 
 $(STYLES)/style.css: $(wildcard $(STYLES)/less/*.less)
 $(STYLES)/studip-jquery-ui.css: $(wildcard $(STYLES)/less/jquery-ui/*.less)
 $(STYLES)/statusgroups.css: $(STYLES)/vendor/jquery-nestable.css
+$(STYLES)/widgets.css: $(STYLES)/widgets.less $(STYLES)/vendor/gridstack-0.3.0.css
 
-%.css: %.less $(STYLES)/mixins.less $(wildcard $(STYLES)/mixins/*.less) 
+%.css: %.less $(STYLES)/mixins.less $(wildcard $(STYLES)/mixins/*.less)
 	$(LESSC) $< $@
 
 # dummy target to force update of "doc" target

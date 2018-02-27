@@ -24,6 +24,50 @@ class FilesController extends AuthenticatedController
         reset($args);
     }
 
+    /**
+     * Create a link to a folder's range.
+     * @param \FolderType $folder  the folder
+     * @return string the link to the folder's range
+     */
+    public static function getRangeLink($folder)
+    {
+        if (!$folder->range_type) {
+            return null;
+        }
+
+        switch ($folder->range_type) {
+            case 'course':
+                $link = URLHelper::getLink(
+                    'dispatch.php/course/files/index/'.$folder->id,
+                    ['cid' => $folder->range_id]
+                );
+                break;
+
+            case 'institute':
+                $link = URLHelper::getLink(
+                    'dispatch.php/institute/files/index/'.$folder->id,
+                    ['cid' => $folder->range_id]
+                );
+                break;
+
+            case 'message':
+                $link = URLHelper::getLink('dispatch.php/messages/overview/'.$folder->range_id);
+                break;
+
+            case 'user':
+                $link = URLHelper::getLink('dispatch.php/files/index/'.$folder->id);
+                break;
+
+            default:
+                $link = URLHelper::getLink(
+                    'dispatch.php/files/system/'.$folder->range_type.'/'.$folder->id,
+                    ['cid' => null]
+                );
+        }
+
+        return $link;
+    }
+
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);

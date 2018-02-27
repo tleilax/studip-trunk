@@ -35,6 +35,15 @@ class MessageFolder implements FolderType
     }
 
     /**
+     * @param string $attribute
+     * @return mixed
+     */
+    public function __get($attribute)
+    {
+        return $this->folder[$attribute];
+    }
+
+    /**
      * Retrieves or creates the top folder for a message.
      *
      * Creating top folders for messages is a special task since

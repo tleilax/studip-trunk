@@ -92,4 +92,42 @@ class SelectWidget extends SidebarWidget
         }
         return false;
     }
+
+    private static function isArrayAssoc(array $arr)
+    {
+        if ([] === $arr) {
+            return false;
+        }
+        return array_keys($arr) !== range(0, count($arr) - 1);
+    }
+
+    public static function arrayToHiddenInput($array, $prefix = '')
+    {
+        $string = '';
+
+        if (self::isArrayAssoc($array)) {
+            foreach ($array as $key => $value) {
+                if (empty($prefix)) {
+                    $name = $key;
+                } else {
+                    $name = $prefix.'['.$key.']';
+                }
+                if (is_array($value)) {
+                    $string .= self::arrayToHiddenInput($value, $name);
+                } else {
+                    $string .= sprintf('<input type="hidden" value="%s" name="%s">'."\n", htmlReady($value), htmlReady($name));
+                }
+            }
+        } else {
+            foreach ($array as $i => $item) {
+                if (is_array($item)) {
+                    $string .= self::arrayToHiddenInput($item, $prefix.'['.((int) $i).']');
+                } else {
+                    $string .= sprintf('<input type="hidden" name="%s[%d]" value="%s">'."\n", htmlReady($prefix), $i, htmlReady($item));
+                }
+            }
+        }
+
+        return $string;
+    }
 }

@@ -6,6 +6,12 @@
 
     STUDIP.Sidebar = {};
 
+    STUDIP.Sidebar.open = function () {
+        $('#responsive-toggle').prop('checked', false);
+        $('#responsive-navigation').removeClass('visible');
+        $('#layout-sidebar').toggleClass('visible-sidebar');
+    };
+
     // This function inits the sticky sidebar by using the StickyKit lib
     // <http://leafo.net/sticky-kit/>
     STUDIP.Sidebar.setSticky = function (is_sticky) {

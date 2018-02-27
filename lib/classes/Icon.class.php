@@ -196,8 +196,12 @@ class Icon
         if (is_array($size)) {
             list($view_attributes, $size) = [$size, null];
         }
-        return sprintf('<img %s>',
-                       $this->tag_options($this->prepareHTMLAttributes($size, $view_attributes)));
+        return sprintf(
+            '<img %s>',
+            arrayToHtmlAttributes(
+                $this->prepareHTMLAttributes($size, $view_attributes)
+            )
+        );
     }
 
     /**
@@ -214,8 +218,12 @@ class Icon
         if (is_array($size)) {
             list($view_attributes, $size) = [$size, null];
         }
-        return sprintf('<input type="image" %s>',
-                       $this->tag_options($this->prepareHTMLAttributes($size, $view_attributes)));
+        return sprintf(
+            '<input type="image" %s>',
+            arrayToHtmlAttributes(
+                $this->prepareHTMLAttributes($size, $view_attributes)
+            )
+        );
     }
 
     /**
@@ -361,22 +369,6 @@ class Icon
             unset($this->attributes['size']);
         }
         return (int)$size;
-    }
-
-    /**
-     * Renders an array of options as html attributes.
-     *
-     * @param Array $options 1-dimensional associative array of options
-     * @return String containing the representation of the options as html tag
-     *         attributes.
-     */
-    protected function tag_options($options)
-    {
-        $result = array();
-        foreach ($options as $key => $value) {
-            $result[] = sprintf('%s="%s"', $key, htmlReady($value));
-        }
-        return join(' ', $result);
     }
 
     // an icon is static if it starts with 'http'
