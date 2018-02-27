@@ -283,14 +283,6 @@
     </article>
 <? endif ?>
 
-<article class="studip">
-    <header>
-        <h1><?= _('Zeiten') ?></h1>
-    </header>
-    <section>
-        <?= $sem->getDatesHTML() ?>
-    </section>
-</article>
 
 <? if ($course['public_topics'] && count($course->topics)) : ?>
     <article class="studip">
@@ -314,7 +306,7 @@
 
 <article class="studip">
     <header>
-        <h1><?= _('Veranstaltungsort') ?></h1>
+        <h1><?= _('Veranstaltungsort') ?> / <?= _('Veranstaltungszeiten')?></h1>
     </header>
     <section>
         <?= $sem->getDatesTemplate('dates/seminar_html_location', array('ort' => $course->ort)) ?>
