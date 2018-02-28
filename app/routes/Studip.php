@@ -1,6 +1,10 @@
 <?php
 namespace RESTAPI\Routes;
 
+use Config;
+use SemClass;
+use SemType;
+
 /**
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @author  <mlunzena@uos.de>
@@ -16,18 +20,18 @@ class Studip extends \RESTAPI\RouteMap
     public function getSettings()
     {
         $sem_types = array_map(function ($item) {
-            return array(
+            return [
                 'name'  => $item['name'],
                 'class' => $item['class'],
-            );
-        }, \SemType::getTypes());
+            ];
+        }, SemType::getTypes());
 
         $sem_classes = array_map(function ($item) {
-            $item = (array)$item;
+            $item = (array) $item;
             return reset($item);
-        }, \SemClass::getClasses());
+        }, SemClass::getClasses());
 
-        return array(
+        return [
             'ALLOW_CHANGE_USERNAME' => Config::get()->ALLOW_CHANGE_USERNAME,
             'ALLOW_CHANGE_EMAIL'    => Config::get()->ALLOW_CHANGE_EMAIL,
             'ALLOW_CHANGE_NAME'     => Config::get()->ALLOW_CHANGE_NAME,
@@ -40,7 +44,7 @@ class Studip extends \RESTAPI\RouteMap
             'SUPPORT_EMAIL'         => $GLOBALS['UNI_CONTACT'],
             'TITLES'                => $GLOBALS['DEFAULT_TITLE_FOR_STATUS'],
             'UNI_NAME_CLEAN'        => Config::get()->UNI_NAME_CLEAN,
-        );
+        ];
     }
 
     /**
@@ -48,12 +52,13 @@ class Studip extends \RESTAPI\RouteMap
      *
      * @get /studip/colors
      */
-    public function getColors() {
+    public function getColors()
+    {
         // TODO: Move these definitions somewhere else (but where!?)
-        return array(
+        return [
             'background' => '#e1e4e9',
             'dark'       => '#34578c',
             'light'      => '#899ab9',
-        );
+        ];
     }
 }

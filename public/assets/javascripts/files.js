@@ -4,6 +4,29 @@
 (function ($, STUDIP) {
     'use strict';
 
+    function searchMoreFiles(button) {
+        var table = jQuery(button).closest("table"),
+            loading = jQuery('<div class="loading" style="padding: 10px">').html(
+                jQuery('<img>')
+                    .attr('src', STUDIP.ASSETS_URL + 'images/ajax-indicator-black.svg')
+                    .css('width', '24')
+                    .css('height', '24')
+            );
+
+        $(button).replaceWith(loading);
+
+        jQuery.ajax({
+            url: button.href,
+            type: 'GET',
+            success: function (output) {
+                table.find("tbody").append(jQuery('tbody tr', output));
+                table.find("tfoot").replaceWith(jQuery('tfoot', output));
+            }
+        });
+
+        return false;
+    }
+
     STUDIP.Files = {
         openAddFilesWindow: function (folder_id) {
             if ($('.files_source_selector').length > 0) {
@@ -112,14 +135,16 @@
                 $('.file_upload_window .uploadbar').hide();
             }
         },
-        addFile: function (html, delay) {
+        addFile: function (payload, delay) {
             if (delay === undefined) {
                 delay = 0;
             }
-            var redirect = true;
-            if (html.hasOwnProperty('html') && html.html !== undefined) {
-                redirect = html.redirect;
-                html = html.html;
+            var redirect = false,
+                html = [];
+
+            if (payload.hasOwnProperty('html') && payload.html !== undefined) {
+                redirect = payload.redirect;
+                html = payload.html;
             }
 
             if (!redirect) {
@@ -128,26 +153,37 @@
                 STUDIP.Dialog.fromURL(redirect);
             }
 
-            if (typeof html !== 'array' && typeof html !== 'object') {
-                html = [html];
-            }
+            if ($('table.document').length) {
+                // on files page
 
-            $.each(html, function (i, value) {
-                var tr = $(value).attr('id');
-                if ($(document.getElementById(tr)).length > 0) {
-                    $(document.getElementById(tr)).replaceWith(value);
-                } else {
-                    $(value).hide().appendTo('.documents[data-folder_id] tbody.files').delay(500 + delay + i * 200).fadeIn(300);
+                if (typeof html !== 'array' && typeof html !== 'object') {
+                    html = [html];
                 }
-            });
+                $.each(html, function (i, value) {
+                    var tr = $(value).attr('id');
+                    if ($(document.getElementById(tr)).length > 0) {
+                        $(document.getElementById(tr)).replaceWith(value);
+                    } else {
+                        $(value).hide().appendTo('.documents[data-folder_id] tbody.files').delay(500 + delay + i * 200).fadeIn(300);
+                    }
+                });
 
-            $('.subfolders .empty').hide('fade');
+                $('.subfolders .empty').hide('fade');
 
-            // update tablesorter cache
-            $('table.documents').trigger('update');
-            $('table.documents').trigger('sorton', [
-                $('table.documents').get(0).config.sortList
-            ]);
+                // update tablesorter cache
+                $('table.documents').trigger('update');
+                $('table.documents').trigger('sorton', [
+                    $('table.documents').get(0).config.sortList
+                ]);
+
+            } else {
+                //not on files page
+
+                if (payload.url) {
+                    STUDIP.Dialog.handlers.header['X-Location'](payload.url);
+                }
+                return;
+            }
         },
         removeFile: function (fileref_id) {
             $.post(STUDIP.URLHelper.getURL('dispatch.php/file/delete/' + fileref_id))
@@ -271,21 +307,23 @@
 
         // workaround to wait for tables.js to be executed first
         $(function () {
-            if ($('table.documents').length > 0) {
-                $('table.documents').data('tablesorter').widgets = ['filter'];
-                $('table.documents').data('tablesorter').widgetOptions = {
-                    filter_columnFilters: false,
-                    filter_saveFilters: true,
-                    filter_reset: '.reset',
-                    filter_ignoreCase: true,
-                    filter_startsWith: false
-                };
-                $('table.documents.flat').trigger('applyWidgets');
-                $.tablesorter.filter.bindSearch($('table.documents'), $('.tablesorterfilter'));
+            if ($.fn.hasOwnProperty('filterTable')) {
+                $('table.documents.flat').filterTable({
+                    highlightClass: 'filter-match',
+                    ignoreColumns: [0, 1, 3, 5, 6],
+                    inputSelector: '.sidebar .tablesorterfilter',
+                    minChars: 1,
+                    minRows: 1
+                });
             }
         });
 
         $(document).on('click', '#file_license_chooser_1 > input[type=radio]', STUDIP.Files.updateTermsOfUseDescription);
+
+        $(document).on('click', '.files-search-more', function (event) {
+            event.preventDefault();
+            return searchMoreFiles(this);
+        });
     });
 
 }(jQuery, STUDIP));

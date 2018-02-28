@@ -16,6 +16,8 @@
 class TimedFolder extends PermissionEnabledFolder
 {
 
+    public static $sorter = 5;
+
     /**
      * @var int start of folder visibility (0 for always)
      */
@@ -67,7 +69,7 @@ class TimedFolder extends PermissionEnabledFolder
                     ($this->end_time == 0 || $this->end_time >= $now)
                 ||
                 $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id)) &&
-            parent::isVisible();
+            parent::isVisible($user_id);
     }
 
     /**
@@ -94,6 +96,8 @@ class TimedFolder extends PermissionEnabledFolder
 
         if (isset($this->folderdata['data_content']['permission'])) {
             $this->permission = $this->folderdata['data_content']['permission'];
+        } else {
+            $this->folderdata['data_content']['permission'] = $this->permission;
         }
 
         $this->start_time = intval($this->folderdata['data_content']['start_time']);
@@ -116,7 +120,7 @@ class TimedFolder extends PermissionEnabledFolder
         $template->folder = $this;
 
         if (!Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id) &&
-                $this->isWritable() && !$this->isReadable()) {
+                $this->isWritable($GLOBALS['user']->id) && !$this->isReadable($GLOBALS['user']->id)) {
             $files = new SimpleCollection($this->getFiles());
             $template->own_files = $files->findBy('user_id', $GLOBALS['user']->id)->orderBy('name');
         }
@@ -148,24 +152,30 @@ class TimedFolder extends PermissionEnabledFolder
             ($request['perm_write'] ? $this->perms['w'] : 0) +
             $this->perms['x'];
         $this->folderdata['data_content']['permission'] = $permvalue;
-
         $start = strtotime($request['start_time']);
         $end = strtotime($request['end_time']);
 
-        if (!$end || $start < $end) {
-            $this->folderdata['data_content']['start_time'] = $start;
+        if (!$start && !$end) {
+
+            return MessageBox::error(_('Bitte geben Sie eine Start- und/oder Endzeit an.'));
+
         } else {
-            PageLayout::postError(_('Die Startzeit muss kleiner als die Endzeit sein.'));
-            $this->folderdata['data_content']['start_time'] = 0;
+
+            if (!$end || $start < $end) {
+                $this->folderdata['data_content']['start_time'] = $start;
+            } else {
+                return MessageBox::error(_('Die Startzeit muss kleiner als die Endzeit sein.'));
+            }
+
+            if (!$start || $end > $start) {
+                $this->folderdata['data_content']['end_time'] = $end;
+            } else {
+                $this->folderdata['data_content']['end_time'] = 0;
+            }
+
+            return parent::setDataFromEditTemplate($request);
         }
 
-        if (!$start || $end > $start) {
-            $this->folderdata['data_content']['end_time'] = $end;
-        } else {
-            $this->folderdata['data_content']['end_time'] = 0;
-        }
-
-        return parent::setDataFromEditTemplate($request);
     }
 
 }

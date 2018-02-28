@@ -68,7 +68,7 @@
  * @property UserInfo   info   has_one UserInfo
  * @property UserOnline online has_one UserOnline
  */
-class User extends AuthUserMd5
+class User extends AuthUserMd5 implements Range
 {
     /**
      *
@@ -1238,5 +1238,78 @@ class User extends AuthUserMd5
             $statement->bindValue(':items', $items, StudipPDO::PARAM_ARRAY);
             $statement->execute();
         }
+    }
+
+    /**
+     * Returns a descriptive text for the range type.
+     *
+     * @return string
+     */
+    public function describeRange()
+    {
+        return _('NutzerIn');
+    }
+
+    /**
+     * Returns a unique identificator for the range type.
+     *
+     * @return string
+     */
+    public function getRangeType()
+    {
+        return 'user';
+    }
+
+    /**
+     * Returns the id of the current range
+     *
+     * @return mixed (string|int)
+     */
+    public function getRangeId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Decides whether the user may access the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     */
+    public function userMayAccessRange($user_id = null)
+    {
+        // TODO: Visibility checks
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        return $user_id === $this->user_id
+            || self::find($user_id)->perms === 'root'
+            || !in_array(self::find($user_id)->visible, ['no', 'never']);
+    }
+
+    /**
+     * Decides whether the user may edit/alter the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     */
+    public function userMayEditRange($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        return $user_id === $this->user_id
+            || self::find($user_id)->perms === 'root';
+    }
+
+    /**
+     * Decides whether the user may administer the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     */
+    public function userMayAdministerRange($user_id = null)
+    {
+        return $this->userMayEditRange($user_id);
     }
 }

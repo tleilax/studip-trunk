@@ -39,7 +39,7 @@
  * @property SimpleORMapCollection courses has_and_belongs_to_many Course
  */
 
-class Institute extends SimpleORMap
+class Institute extends SimpleORMap implements Range
 {
 
     /**
@@ -222,4 +222,79 @@ class Institute extends SimpleORMap
         return trim(vsprintf($template[$format], array_map('trim', $data)));
     }
 
+    /**
+     * Returns a descriptive text for the range type.
+     *
+     * @return string
+     */
+    public function describeRange()
+    {
+        return _('Einrichtung');
+    }
+
+    /**
+     * Returns a unique identificator for the range type.
+     *
+     * @return string
+     */
+    public function getRangeType()
+    {
+        return 'institute';
+    }
+
+    /**
+     * Returns the id of the current range
+     *
+     * @return mixed (string|int)
+     */
+    public function getRangeId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Decides whether the user may access the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     * @todo Check permissions
+     */
+    public function userMayAccessRange($user_id = null)
+    {
+        return true;
+    }
+
+    /**
+     * Decides whether the user may edit/alter the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     * @todo Check permissions
+     */
+    public function userMayEditRange($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        $member = $this->members->findOneBy('user_id', $user_id);
+        return ($member && in_array($member->status, ['tutor', 'dozent', 'admin']))
+            || User::find($user_id)->perms === 'root';
+    }
+
+    /**
+     * Decides whether the user may administer the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     * @todo Check permissions
+     */
+    public function userMayAdministerRange($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        $member = $this->members->findOneBy('user_id', $user_id);
+        return ($member && $member->status === 'admin')
+            || User::find($user_id)->perms === 'root';
+    }
 }

@@ -447,29 +447,6 @@ class Course_TimesroomsController extends AuthenticatedController
     }
 
     /**
-     * Removes a single date
-     *
-     * @param String $termin_id Id of the date
-     * @param String $sub_cmd Sub command to be executed
-     */
-    public function deleteSingle_action($termin_id, $sub_cmd = 'delete')
-    {
-        CSRFProtection::verifyUnsafeRequest();
-        $cycle_id = Request::option('cycle_id');
-        if ($cycle_id) {
-            $sub_cmd = 'cancel';
-        }
-        $this->deleteDate($termin_id, $sub_cmd, $cycle_id);
-        $this->displayMessages();
-
-        $params = array();
-        if ($cycle_id) {
-            $params['contentbox_open'] = $cycle_id;
-        }
-        $this->redirect($this->url_for('course/timesrooms/index', $params));
-    }
-
-    /**
      * Restores a previously removed date.
      *
      * @param String $termin_id Id of the previously removed date
@@ -650,6 +627,7 @@ class Course_TimesroomsController extends AuthenticatedController
             $new_ex_termin   = $termin->cancelDate();
             if ($new_ex_termin !== null) {
                 $msg .= sprintf('<li>%s</li>', $new_ex_termin->getFullname());
+                $deleted_dates[] = CourseDate::build($new_ex_termin, false);
             }
         }
         $msg .= '</ul>';
@@ -1067,8 +1045,12 @@ class Course_TimesroomsController extends AuthenticatedController
             $list->setUrl($this->url_for('/index'));
             $list->setSelectParameterName('cid');
             foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
-                $element = new SelectElement($seminar['Seminar_id'],
-                                             $seminar['Name']);
+                $element = new SelectElement(
+                    $seminar['Seminar_id'],
+                    $seminar['Name'],
+                    $seminar['Seminar_id'] === Context::get()->id,
+                    $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                );
                 $list->addElement($element, 'select-' . $seminar['Seminar_id']);
             }
             $list->setSelection($this->course->id);

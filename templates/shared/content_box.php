@@ -8,6 +8,13 @@
                 <? endif ?>
                 <?= htmlReady($title) ?>
             </h1>
+        <? if (isset($admin_url)): ?>
+            <nav>
+                <a href="<?= URLHelper::getLink($admin_url) ?>" title="<?= htmlReady($admin_title) ?>">
+                    <?= Icon::create('admin')->asImg(tooltip2(htmlReady($admin_title))) ?>
+                </a>
+            </nav>
+        <? endif; ?>
         </header>
         <section>
             <?= $content_for_layout ?>

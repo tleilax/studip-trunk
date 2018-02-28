@@ -108,9 +108,13 @@
     function extractButtons(element) {
         var buttons = {};
         $('[data-dialog-button]', element).hide().find('a,button').addBack().filter('a,button').each(function () {
-            var label = $(this).text(),
-                cancel = $(this).is('.cancel'),
+            var label   = $(this).text(),
+                cancel  = $(this).is('.cancel'),
+                index   = cancel ? 'cancel' : label,
+                classes = $(this).attr('class') || '',
                 handler;
+
+            classes = classes.replace(/\bbutton\b/, '').trim();
 
             handler = function (event) {
                 // TODO: Find a convenient way to disable buttons
@@ -119,14 +123,19 @@
             handler = handler.bind(this);
 
             if ($(this).is('.accept,.cancel')) {
-                buttons[cancel ? 'cancel' : label] = {
+                buttons[index] = {
                     text: label,
-                    click: handler,
-                    'class': cancel ? 'cancel' : 'accept'
+                    click: handler
                 };
             } else {
-                buttons[label] = handler;
+                buttons[index] = handler;
             }
+
+            if ($(this).is(':disabled')) {
+                classes = classes + ' disabled';
+            }
+
+            buttons[index]['class'] = classes;
         });
 
         return buttons;
@@ -190,8 +199,7 @@
     };
     // Handler for HTTP header X-Dialog-Execute: Execute arbitrary function
     STUDIP.Dialog.handlers.header['X-Dialog-Execute'] = function (value, options, xhr) {
-        var chunks = value.trim().split('.'),
-            callback = window,
+        var callback = window,
             payload = xhr.getResponseHeader('Content-Type').match(/json/)
                 ? $.parseJSON(xhr.responseText)
                 : xhr.responseText;
@@ -216,13 +224,7 @@
         }
 
         // Find callback
-        chunks = value.func.trim().split('.');
-        $.each(chunks, function (index, chunk) {
-            if (!callback.hasOwnProperty(chunk)) {
-                throw 'Dialog: Undefined callback ' + value;
-            }
-            callback = callback[chunk];
-        });
+        callback = STUDIP.extractCallback(value.func, payload);
 
         // Check callback
         if (typeof callback !== 'function') {
@@ -471,7 +473,8 @@
                 var helpbar_element = $('.helpbar a[href*="hilfe.studip.de"]'),
                     tooltip = helpbar_element.text(),
                     link    = options.wiki_link || helpbar_element.attr('href'),
-                    element = $('<a class="ui-dialog-titlebar-wiki" target="_blank">').attr('href', link).attr('title', tooltip);
+                    element = $('<a class="ui-dialog-titlebar-wiki" target="_blank">').attr('href', link).attr('title', tooltip),
+                    buttons = $(this).parent().find('.ui-dialog-buttonset .ui-button');
 
                 if (options.wikilink === undefined || options.wikilink !== false) {
                     $(this).siblings('.ui-dialog-titlebar').addClass('with-wiki-link').find('.ui-dialog-titlebar-close').before(element);
@@ -482,6 +485,13 @@
                 $('head').append(scripts);
 
                 $(options.origin || document).trigger('dialog-open', {dialog: this, options: options});
+
+                // Transfer defined classes from options to actual displayed buttons
+                // This should work natively, but it kinda does not
+                Object.keys(dialog_options.buttons).forEach(function (label, index) {
+                    var classes = dialog_options.buttons[label]['class'];
+                    $(buttons.get(index)).addClass(classes);
+                });
             },
             close: function (event) {
                 $(options.origin || document).trigger('dialog-close', {dialog: this, options: options});

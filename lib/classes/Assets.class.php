@@ -363,7 +363,7 @@ class Assets
         if (!$name)
             return '';
         ksort($options);
-        return '<' . $name . Assets::tag_options($options) . ($open ? '>' : '>');
+        return '<' . $name . ' ' . arrayToHtmlAttributes($options) . ($open ? '>' : '>');
     }
 
 
@@ -379,27 +379,10 @@ class Assets
     private static function content_tag($name, $content = '', $options = array())
     {
         if (!$name) return '';
-        return '<' . $name . Assets::tag_options($options) . '>' .
+        return '<' . $name . ' ' . arrayToHtmlAttributes($options) . '>' .
         $content .
         '</' . $name . '>';
     }
-
-
-    /**
-     * Create a viable HTML attribute string from a key-value map. No escpaping
-     * or encoding is taken into account.
-     *
-     * @ignore
-     */
-    private static function tag_options($options)
-    {
-        $result = '';
-        foreach ($options as $key => $value) {
-            $result .= sprintf(' %s="%s"', $key, $value);
-        }
-        return $result;
-    }
-
 
     /**
      * Parse a HTML attribute string into an array.

@@ -27,7 +27,7 @@ class ProfileNavigation extends Navigation
 
         parent::__construct(_('Profil'));
     }
-    
+
     public function initItem()
     {
         global $user;
@@ -38,7 +38,7 @@ class ProfileNavigation extends Navigation
 
         $hp_txt = _('Zu Ihrer Profilseite');
         $hp_link = 'dispatch.php/profile';
-        
+
         $hp_txt .= sprintf(' (%s, %s)', $user->username, $user->perms);
         $this->setURL($hp_link);
         //$this->setImage(Icon::create('person', 'navigation', ["title" => $hp_txt]), ["class" => $hp_class]);
@@ -140,7 +140,7 @@ class ProfileNavigation extends Navigation
         }
 
         //personal file area (only visible for the owner himself)
-        if ($current_user->id === $user->id) {
+        if ($current_user->id === $user->id && $GLOBALS['perm']->have_perm('autor')) {
             $navigation = new Navigation(_('Meine Dateien'), 'dispatch.php/files');
             $this->addSubNavigation('files', $navigation);
         }

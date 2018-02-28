@@ -61,7 +61,9 @@ class OutboxFolder extends InboxOutboxFolder
             AND
             message_user.user_id = :user_id
             AND
-            message_user.snd_rec = 'snd'",
+            message_user.snd_rec = 'snd'
+            AND
+            message_user.deleted = '0'",
             [
                 'user_id' => $this->user->id
             ]

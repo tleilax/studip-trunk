@@ -28,20 +28,22 @@ class AvatarNavigation extends Navigation
         $navigation->setImage(Icon::create('person'));
         $this->addSubNavigation('profile', $navigation);
 
-        // Link to personal files
-        $navigation = new Navigation(_('Meine Dateien'), 'dispatch.php/files');
-        $navigation->setImage(Icon::create('folder-empty'));
-        $this->addSubNavigation('files', $navigation);
+        if ($GLOBALS['perm']->have_perm('autor')) {
+            // Link to personal files
+            $navigation = new Navigation(_('Meine Dateien'), 'dispatch.php/files');
+            $navigation->setImage(Icon::create('folder-empty'));
+            $this->addSubNavigation('files', $navigation);
 
-        // Link to user data
-        $navigation = new Navigation(_('Nutzerdaten'), 'dispatch.php/settings/account');
-        $navigation->setImage(Icon::create('key'));
-        $this->addSubNavigation('account', $navigation);
+            // Link to user data
+            $navigation = new Navigation(_('Nutzerdaten'), 'dispatch.php/settings/account');
+            $navigation->setImage(Icon::create('key'));
+            $this->addSubNavigation('account', $navigation);
 
-        // Link to user settings
-        $navigation = new Navigation(_('Einstellungen'), 'dispatch.php/settings/general');
-        $navigation->setImage(Icon::create('admin'));
-        $this->addSubNavigation('settings', $navigation);
+            // Link to user settings
+            $navigation = new Navigation(_('Einstellungen'), 'dispatch.php/settings/general');
+            $navigation->setImage(Icon::create('admin'));
+            $this->addSubNavigation('settings', $navigation);
+        }
 
         // Link to logout
         $navigation = new Navigation(_('Logout'), 'logout.php');

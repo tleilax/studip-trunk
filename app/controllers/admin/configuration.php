@@ -91,6 +91,7 @@ class Admin_ConfigurationController extends AuthenticatedController
 
         $field = Request::get('id');
         $value = Request::get('value');
+        $range = Request::option('range');
 
         if (Request::isPost()) {
             CSRFProtection::verifyUnsafeRequest();
@@ -103,7 +104,13 @@ class Admin_ConfigurationController extends AuthenticatedController
 
                 PageLayout::postSuccess(sprintf(_('Der Konfigurationseintrag "%s" wurde erfolgreich übernommen!'), $field));
 
-                $this->relocate('admin/configuration/configuration/' . $section);
+                if ($range === 'user') {
+                    $this->relocate('admin/configuration/user_configuration/' . $section);
+                } else if ($range === 'course') {
+                    $this->relocate('admin/configuration/course_configuration/' . $section);
+                } else {
+                    $this->relocate('admin/configuration/configuration/' . $section);
+                }
             }
         }
 
@@ -128,7 +135,7 @@ class Admin_ConfigurationController extends AuthenticatedController
                                        User::find($user_id)->getFullname());
             $this->linkchunk = 'admin/configuration/edit_user_config/' . $user_id . '?id=';
         } else {
-            $this->configs   = ConfigurationModel::searchUserConfiguration(null, true);
+            $this->configs   = ConfigurationModel::searchUserConfiguration(null);
             $this->title     = _('Globale Konfigurationsparameter für alle Personen');
             $this->linkchunk = 'admin/configuration/edit_configuration/?id=';
         }
@@ -155,7 +162,7 @@ class Admin_ConfigurationController extends AuthenticatedController
 
                 PageLayout::postSuccess(sprintf(_('Der Konfigurationseintrag: %s wurde erfolgreich geändert!'), $field));
 
-                $this->redirect('admin/configuration/user_configuration?user_id=' . $user_id);
+                $this->relocate('admin/configuration/user_configuration?user_id=' . $user_id);
             }
         }
 
@@ -181,7 +188,7 @@ class Admin_ConfigurationController extends AuthenticatedController
                                        Course::find($range_id)->getFullname());
             $this->linkchunk = 'admin/configuration/edit_course_config/' . $range_id . '?id=';
         } else {
-            $this->configs   = ConfigurationModel::searchCourseConfiguration(null, true);
+            $this->configs   = ConfigurationModel::searchCourseConfiguration(null);
             $this->title     = _('Globale Konfigurationsparameter für alle Veranstaltungen');
             $this->linkchunk = 'admin/configuration/edit_configuration/?id=';
         }
@@ -209,7 +216,7 @@ class Admin_ConfigurationController extends AuthenticatedController
 
                 PageLayout::postSuccess(sprintf(_('Der Konfigurationseintrag: %s wurde erfolgreich geändert!'), $field));
 
-                $this->redirect('admin/configuration/course_configuration?range_id=' . $range_id);
+                $this->relocate('admin/configuration/course_configuration?range_id=' . $range_id);
             }
         }
 

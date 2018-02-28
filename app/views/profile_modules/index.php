@@ -89,7 +89,7 @@
                             <? if (isset($info['descriptionshort'])) : ?>
                                 <? foreach (explode('\n', $info['descriptionshort']) as $descriptionshort) { ?>
                                     <?= htmlReady($descriptionshort) ?>
-                                <? } ?>   
+                                <? } ?>
                             <? endif ?>
                             <? if (!isset($info['descriptionshort'])) : ?>
                                 <? if (isset($info['summary'])) : ?>
@@ -99,11 +99,11 @@
                         </strong>
 
                     </div>
-                    
+
                     <!-- inhaltlöschenbutton -->
                     <? if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
                     <? if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                         
+
                 </div>
 
               <? if ($_SESSION['profile_plus']['View'] == 'openall' || !isset($_SESSION['profile_plus'])){?>
@@ -111,17 +111,17 @@
                 <div class="plus_expert">
 
                     <div class="screenshot_holder">
-                        <? if (isset($info['screenshot']) || isset($info['screenshots'])) : 
-                                if(isset($info['screenshots'])){      
+                        <? if (isset($info['screenshot']) || isset($info['screenshots'])) :
+                                if(isset($info['screenshots'])){
                                     $title = $info['screenshots']['pictures'][0]['title'];
-                                    $source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][0]['source'];                                   
+                                    $source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][0]['source'];
                                 } else {
                                     $fileext = end(explode(".", $info['screenshot']));
                                     $title = str_replace("_"," ",basename($info['screenshot'], ".".$fileext));
                                     $source = $info['screenshot'];
                                 }
                                 ?>
-                                
+
                                 <a href="<?= $URL . "/" . $source ?>"
                                    data-lightbox="<?= $pluginname ?>" data-title="<?= $title ?>">
                                     <img class="big_thumb" src="<?= $URL . "/" . $source ?>"
@@ -140,8 +140,8 @@
                                             $counter = count($info['additionalscreenshots']);
                                             $cstart = 0;
                                         } ?>
-                                        
-                                        <? for ($i = $cstart; $i < $counter; $i++) { 
+
+                                        <? for ($i = $cstart; $i < $counter; $i++) {
 
                                             if (isset($info['screenshots'])){
                                                 $title = $info['screenshots']['pictures'][$i]['title'];
@@ -151,7 +151,7 @@
                                                 $title = str_replace("_"," ",basename($info['additionalscreenshots'][$i], ".".$fileext));
                                                 $source = $info['additionalscreenshots'][$i];
                                             }
-                                                                                    
+
                                              ?>
 
                                             <a href="<?= $URL . "/" . $source ?>"
@@ -176,7 +176,7 @@
                         <!-- inhaltlöschenbutton -->
                         <?// if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
                         <?// if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                            
+
                         <!-- tags -->
                         <? if (isset($info['keywords'])) : ?>
                         <ul class="keywords">
@@ -191,7 +191,7 @@
                             <p class="longdesc">
                                 <?= htmlReady($descriptionlong) ?>
                             </p>
-                        <? } ?>   
+                        <? } ?>
                         <? endif ?>
 
                         <? if (!isset($info['descriptionlong'])) : ?>
@@ -214,7 +214,7 @@
 
                         <!-- helplink -->
                         <? if (isset($info['helplink'])) : ?>
-                        <a class="helplink" href=" <?= htmlReady($info['helplink']) ?> ">...mehr</a>
+                        <a class="helplink" href="<?= htmlReady($info['helplink']) ?>">...mehr</a>
                         <? endif ?>
 
                     </div>

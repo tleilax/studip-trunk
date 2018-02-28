@@ -21,8 +21,8 @@ class FileSystem extends \RESTAPI\RouteMap
      * Get a file reference object (metadata)
      * @get /file/:file_ref_id
      */
-     public function getFileRef($file_ref_id)
-     {
+    public function getFileRef($file_ref_id)
+    {
         //check if the file_id references a file reference object:
         $file_ref = \FileRef::find($file_ref_id);
         if (!$file_ref) {
@@ -60,6 +60,10 @@ class FileSystem extends \RESTAPI\RouteMap
         $result['is_downloadable'] = $folder_type->isFileDownloadable($file_ref->id, $user_id);
         $result['is_editable'] = $folder_type->isFileEditable($file_ref->id, $user_id);
         $result['is_writable'] = $folder_type->isFileWritable($file_ref->id, $user_id);
+        //Shortcuts:
+        $result['size'] = $file_ref->file->size;
+        $result['mime_type'] = $file_ref->file->mime_type;
+        $result['storage'] = $file_ref->file->storage;
 
         //maybe the user wants not just only the FileRef object's data
         //but also data from related objects:
@@ -148,7 +152,7 @@ class FileSystem extends \RESTAPI\RouteMap
 
         //We only update the first file:
         $uploaded_file = array_shift($this->data['_FILES']);
-        
+
         //FileManager::updateFileRef handles the whole file upload
         //and does all the necessary security checks:
         $result = \FileManager::updateFileRef(
@@ -158,9 +162,14 @@ class FileSystem extends \RESTAPI\RouteMap
             true,
             false
         );
-        
+
         if ($result instanceof \FileRef) {
-            return $result->toRawArray();
+            $file_ref_data = $result->toRawArray();
+            //Shortcuts:
+            $file_ref_data['size'] = $result->file->size;
+            $file_ref_data['mime_type'] = $result->file->mime_type;
+            $file_ref_data['storage'] = $result->file->storage;
+            return $file_ref_data;
         } else {
             $this->halt(500, 'Error while updating a file reference: ' . implode(' ', $result));
         }
@@ -193,7 +202,12 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while editing a file reference: ' . implode(' ', $errors));
         }
 
-        return $file_ref->toRawArray();
+        $file_ref_data = $file_ref->toRawArray();
+        //Shortcuts:
+        $file_ref_data['size'] = $file_ref->file->size;
+        $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+        $file_ref_data['storage'] = $file_ref->file->storage;
+        return $file_ref_data;
     }
 
     /**
@@ -227,7 +241,12 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while copying a file reference: ' . implode(' ', $errors));
         }
 
-        return $file_ref->toRawArray();
+        $file_ref_data = $file_ref->toRawArray();
+        //Shortcuts:
+        $file_ref_data['size'] = $file_ref->file->size;
+        $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+        $file_ref_data['storage'] = $file_ref->file->storage;
+        return $file_ref_data;
     }
 
     /**
@@ -261,7 +280,12 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while moving a file reference: ' . implode(' ', $errors));
         }
 
-        return $file_ref->toRawArray();
+        $file_ref_data = $file_ref->toRawArray();
+        //Shortcuts:
+        $file_ref_data['size'] = $file_ref->file->size;
+        $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+        $file_ref_data['storage'] = $file_ref->file->storage;
+        return $file_ref_data;
     }
 
     /**
@@ -323,14 +347,28 @@ class FileSystem extends \RESTAPI\RouteMap
         //If the folder isn't readable by the user (given by user_id)
         //the result parameter is_readable is set to false.
         if ($result['is_readable']) {
-            $result = $folder->toRawArray();
 
-            $subfolders = $folder_type->getSubfolders();
+            $result = array_merge($result, $folder->toRawArray());
+            //The field "data_content" must be handled differently
+            //than the other fields since it contains JSON data.
+            $data_content = json_decode($folder->data_content);
+            $result['data_content'] = $data_content;
+
+            $subfolders = $folder->subfolders;
 
             if ($subfolders) {
                 $result['subfolders'] = [];
                 foreach ($subfolders as $subfolder) {
-                    $result['subfolders'][] = $subfolder->getEditTemplate();
+                    $subfolder_type = $subfolder->getTypedFolder();
+                    if ($subfolder_type->isVisible($user_id)) {
+                        //Here we must also take special care of the
+                        //"data_content" field.
+                        $subfolder_data = $subfolder->toRawArray();
+                        $subfolder_data['data_content'] = json_decode(
+                            $subfolder->data_content
+                        );
+                        $result['subfolders'][] = $subfolder_data;
+                    }
                 }
             }
 
@@ -338,7 +376,13 @@ class FileSystem extends \RESTAPI\RouteMap
             if ($file_refs) {
                 $result['file_refs'] = [];
                 foreach ($file_refs as $file_ref) {
-                    $result['file_refs'][] = $file_ref->toRawArray();
+                    $file_ref_data = $file_ref->toRawArray();
+                    //Shortcuts:
+                    $file_ref_data['size'] = $file_ref->file->size;
+                    $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+                    $file_ref_data['storage'] = $file_ref->file->storage;
+
+                    $result['file_refs'][] = $file_ref_data;
                 }
             }
 
@@ -377,7 +421,14 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->data['description']
         );
 
-        return $result->getEditTemplate();
+        if (!$result instanceof FolderType) {
+            $this->halt(500, 'Error while creating a folder: ' . implode(' ', $result));
+        }
+
+        $folder = Folder::find($result->getId());
+        $folder_data = $folder->toRawArray();
+        $folder_data['data_content'] = json_decode($folder->data_content);
+        return $folder_data;
     }
 
     /**
@@ -418,7 +469,13 @@ class FileSystem extends \RESTAPI\RouteMap
         $result = [];
         if ($file_refs) {
             foreach ($file_refs as $file_ref) {
-                $result[] = $file_ref->toRawArray();
+                $file_ref_data = $file_ref->toRawArray();
+                //Shortcuts:
+                $file_ref_data['size'] = $file_ref->file->size;
+                $file_ref_data['mime_type'] = $file_ref->file->mime_type;
+                $file_ref_data['storage'] = $file_ref->file->storage;
+
+                $result[] = $file_ref_data;
             }
         }
 
@@ -464,7 +521,16 @@ class FileSystem extends \RESTAPI\RouteMap
         $result = [];
         if ($subfolders) {
             foreach ($subfolders as $subfolder) {
-                $result[] = $subfolder->toRawArray();
+                $subfolder_type = $subfolder->getTypedFolder();
+                if ($subfolder_type->isVisible($user_id)) {
+                    //Here we must also take special care of the
+                    //"data_content" field.
+                    $subfolder_data = $subfolder->toRawArray();
+                    $subfolder_data['data_content'] = json_decode(
+                        $subfolder->data_content
+                    );
+                    $result[] = $subfolder_data;
+                }
             }
         }
 
@@ -520,12 +586,19 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Folder has an invalid folder type!');
         }
 
-        $errors = \FileManager::editFolder($folder, \User::findCurrent(), $this->data['name'], $this->data['description']);
+        $result = \FileManager::editFolder($folder, \User::findCurrent(), $this->data['name'], $this->data['description']);
 
-        if (!empty($errors)) {
+        if (!($result instanceof FolderType)) {
             $this->halt(500, 'Error while editing a folder: ' . implode(' ', $errors));
         }
 
+        //We must get the result folder from the database to get updated data.
+        //Furthermore we can't use the FolderType object since it
+        //doesn't have the toRawArray method.
+        $result_folder = Folder::find($result->getId());
+        $folder_data = $result_folder->toRawArray();
+        $folder_data['data_content'] = json_decode($result_folder->data_content);
+        return $folder_data;
     }
 
     /**
@@ -563,7 +636,13 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while copying a folder: ' . implode(' ', $result));
         }
 
-        return $result->toRawArray();
+        //We must get the result folder from the database to get updated data.
+        //Furthermore we can't use the FolderType object since it
+        //doesn't provide us with the toRawArray method.
+        $result_folder = Folder::find($result->getId());
+        $folder_data = $result_folder->toRawArray();
+        $folder_data['data_content'] = json_decode($result_folder->data_content);
+        return $folder_data;
     }
 
 
@@ -601,7 +680,13 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while moving a folder: ' . implode(' ', $errors));
         }
 
-        return $folder->toRawArray();
+        //We must get the result folder from the database to get updated data.
+        //Furthermore we can't use the FolderType object since it
+        //doesn't provide us with the toRawArray method.
+        $result_folder = Folder::find($folder->getId());
+        $folder_data = $result_folder->toRawArray();
+        $folder_data['data_content'] = json_decode($result_folder->data_content);
+        return $folder_data;
     }
 
 
@@ -630,7 +715,9 @@ class FileSystem extends \RESTAPI\RouteMap
             $this->halt(500, 'Error while deleting a folder: ' . implode(' ', $errors));
         }
 
-        return $folder->toRawArray();
+        $folder_data = $folder->toRawArray();
+        $folder_data['data_content'] = json_decode($folder->data_content);
+        return $folder_data;
     }
 
 
@@ -642,8 +729,8 @@ class FileSystem extends \RESTAPI\RouteMap
      *
      * @get /studip/content_terms_of_use_list
      */
-     public function getContentTermsOfUseList()
-     {
+    public function getContentTermsOfUseList()
+    {
         $objects = \ContentTermsOfUse::findBySql(
             '1 ORDER BY name ASC LIMIT :limit OFFSET :offset',
             ['limit'  => $this->limit, 'offset' => $this->offset]
@@ -657,7 +744,7 @@ class FileSystem extends \RESTAPI\RouteMap
         }
 
         return $this->paginated($result, $total);
-     }
+    }
 
 
 }

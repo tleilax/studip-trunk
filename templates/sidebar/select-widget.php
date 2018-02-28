@@ -1,7 +1,5 @@
 <form action="<?= $url ?>" method="<?= $method ?>">
-<? foreach ($params as $key => $value): ?>
-    <input type="hidden" name="<?= htmlReady($key) ?>" value="<?= htmlReady($value) ?>">
-<? endforeach; ?>
+    <?= \SelectWidget::arrayToHiddenInput($params) ?>
     <select class="sidebar-selectlist <?= $class ?> <? if ($__is_nested): ?>nested-select<? endif; ?>" name="<?= htmlReady($name) ?>" <? if ($size) printf('size="%u"', $size); ?> <?= $attributes ?>>
     <? foreach ($elements as $element): ?>
         <? if ($element instanceof SelectGroupElement && count($element->getElements()) > 0): ?>

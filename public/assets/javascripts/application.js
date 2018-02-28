@@ -75,7 +75,8 @@ jQuery(function ($) {
     $(document).on('focus', 'table.collapsable .toggler', function () {
         $(this).blur();
     }).on('click', 'table.collapsable .toggler', function () {
-        $(this).closest('tbody').toggleClass('collapsed');
+        $(this).closest('tbody').toggleClass('collapsed')
+               .filter('.collapsed').find('.action-menu').removeClass('active');
         return false;
     });
 
@@ -337,6 +338,26 @@ jQuery(document).on('dialog-update', function (event, data) {
     if (MathJax !== undefined) {
         MathJax.Hub.Queue(['Typeset', MathJax.Hub, data.dialog[0]]);
     }
+});
+
+// Global handler:
+// Toggle a table element. The url of the link will be called, an ajax
+// indicator will be shown instead of the element and the whole table row
+// will be replaced with the row with the same id from the response.
+// Thus, in your controller you only have to execute the appropriate
+// action and redraw the page with the new state.
+jQuery(document).on('click', 'a[data-behaviour~="ajax-toggle"]', function (event) {
+    var $that = jQuery(this),
+        href  = $that.attr('href'),
+        id    = $that.closest('tr').attr('id');
+
+    $that.prop('disabled', true).addClass('ajaxing');
+    jQuery.get(href).done(function (response) {
+        var row = jQuery('#' + id, response);
+        $that.closest('tr').replaceWith(row);
+    });
+
+    event.preventDefault();
 });
 
 /*override window.print to allow mathjax rendering to finish before printing*/

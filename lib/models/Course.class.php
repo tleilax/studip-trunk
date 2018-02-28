@@ -71,7 +71,7 @@
  * @property SimpleORMapCollection children has_many Course
  */
 
-class Course extends SimpleORMap
+class Course extends SimpleORMap implements Range
 {
 
     /**
@@ -260,12 +260,16 @@ class Course extends SimpleORMap
     /**
      * Retrieves all members of a status
      *
-     * @param String|Array $status  the status to filter with
+     * @param String|Array $status        the status to filter with
+     * @param bool         $as_collection return collection instead of array?
      * @return Array an array of all those members.
      */
-    public function getMembersWithStatus($status)
+    public function getMembersWithStatus($status, $as_collection = false)
     {
-        return CourseMember::findByCourseAndStatus($this->id, $status);
+        $result = CourseMember::findByCourseAndStatus($this->id, $status);
+        return $as_collection
+             ? SimpleORMapCollection::createFromArray($result)
+             : $result;
     }
 
     /**
@@ -437,6 +441,81 @@ class Course extends SimpleORMap
         return $this->visible
             || $GLOBALS['perm']->have_perm(Config::get()->SEM_VISIBILITY_PERM, $user_id)
             || $GLOBALS['perm']->have_studip_perm('user', $this->id, $user_id);
+    }
+
+    /**
+     * Returns a descriptive text for the range type.
+     *
+     * @return string
+     */
+    public function describeRange()
+    {
+        return _('Veranstaltung');
+    }
+
+    /**
+     * Returns a unique identificator for the range type.
+     *
+     * @return string
+     */
+    public function getRangeType()
+    {
+        return 'course';
+    }
+
+    /**
+     * Returns the id of the current range
+     *
+     * @return string
+     */
+    public function getRangeId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Decides whether the user may access the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     * @todo Check permissions
+     */
+    public function userMayAccessRange($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        return $GLOBALS['perm']->have_studip_perm('user', $this->id, $user_id);
+    }
+
+    /**
+     * Decides whether the user may edit/alter the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     * @todo Check permissions
+     */
+    public function userMayEditRange($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        return $GLOBALS['perm']->have_studip_perm('tutor', $this->id, $user_id);
+    }
+
+    /**
+     * Decides whether the user may adminisiter the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     * @todo Check permissions
+     */
+    public function userMayAdministerRange($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        return $GLOBALS['perm']->have_studip_perm('admin', $this->id, $user_id);
     }
 
     /**

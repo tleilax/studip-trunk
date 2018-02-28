@@ -309,7 +309,7 @@ foreach ($available_modules as $category => $pluginlist) {
 
                             <!-- helplink -->
                             <? if (isset($info['helplink'])) : ?>
-                                <a class="helplink" href=" <?= htmlReady($info['helplink']) ?> ">...mehr</a>
+                                <a class="helplink" href="<?= htmlReady($info['helplink']) ?>">...mehr</a>
                             <? endif ?>
 
                         </div>

@@ -88,7 +88,7 @@ class Course_BasicdataController extends AuthenticatedController
             'locked' => LockRules::Check($course_id, 'ects')
         );
         $this->attributes[] = array(
-            'title' => _("max. Teilnehmerzahl"),
+            'title' => _("max. Teilnehmendenzahl"),
             'name' => "course_admission_turnout",
             'must' => false,
             'type' => 'number',
@@ -389,7 +389,7 @@ class Course_BasicdataController extends AuthenticatedController
                     new SelectElement(
                         $seminar['Seminar_id'],
                         $seminar['Name'],
-                        $seminar['Seminar_id'] === $_SESSION['SessionSeminar'],
+                        $seminar['Seminar_id'] === Context::get()->id,
                         $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
                     ),
                     'select-' . $seminar['Seminar_id']
@@ -465,10 +465,11 @@ class Course_BasicdataController extends AuthenticatedController
             }
             //Datenfelder:
             if (count($invalid_datafields)) {
-                $message = ngettext('%s der Veranstaltung wurde falsch angegeben',
-                                    '%s der Veranstaltung wurden falsch angegeben',
-                                    count($invalid_datafields));
-                $message .= ', ' . _('bitte korrigieren Sie dies unter "Beschreibungen"') . '.';
+                $message = ngettext(
+                    'Das folgende Datenfeld der Veranstaltung wurde falsch angegeben, bitte korrigieren Sie dies unter "Beschreibungen": %s',
+                    'Die folgenden Datenfelder der Veranstaltung wurden falsch angegeben, bitte korrigieren Sie dies unter "Beschreibungen": %s',
+                    count($invalid_datafields)
+                );
                 $message = sprintf($message, join(', ', array_map('htmlReady', $invalid_datafields)));
                 $this->msg[] = array('error',  $message);
             }

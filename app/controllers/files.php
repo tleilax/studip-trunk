@@ -24,6 +24,50 @@ class FilesController extends AuthenticatedController
         reset($args);
     }
 
+    /**
+     * Create a link to a folder's range.
+     * @param \FolderType $folder  the folder
+     * @return string the link to the folder's range
+     */
+    public static function getRangeLink($folder)
+    {
+        if (!$folder->range_type) {
+            return null;
+        }
+
+        switch ($folder->range_type) {
+            case 'course':
+                $link = URLHelper::getLink(
+                    'dispatch.php/course/files/index/'.$folder->id,
+                    ['cid' => $folder->range_id]
+                );
+                break;
+
+            case 'institute':
+                $link = URLHelper::getLink(
+                    'dispatch.php/institute/files/index/'.$folder->id,
+                    ['cid' => $folder->range_id]
+                );
+                break;
+
+            case 'message':
+                $link = URLHelper::getLink('dispatch.php/messages/overview/'.$folder->range_id);
+                break;
+
+            case 'user':
+                $link = URLHelper::getLink('dispatch.php/files/index/'.$folder->id);
+                break;
+
+            default:
+                $link = URLHelper::getLink(
+                    'dispatch.php/files/system/'.$folder->range_type.'/'.$folder->id,
+                    ['cid' => null]
+                );
+        }
+
+        return $link;
+    }
+
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
@@ -230,16 +274,24 @@ class FilesController extends AuthenticatedController
         $navigation = $this->plugin->getFileSelectNavigation();
         PageLayout::setTitle($navigation->getTitle());
 
+        URLHelper::addLinkParam('to_plugin', get_class($this->plugin));
         URLHelper::addLinkParam('from_plugin', get_class($this->plugin));
 
-        $args = func_get_args();
-        array_shift($args);
-        $folder_id = implode("/", array_map("rawurlencode", $args));
+        $folder_id = substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], "dispatch.php/files/system/".$this->plugin->getPluginId()) + strlen("dispatch.php/files/system/".$this->plugin->getPluginId()));
+        if (strpos($folder_id, "?") !== false) {
+            $folder_id = substr($folder_id, 0, strpos($folder_id, "?"));
+        }
 
         $this->topFolder      = $this->plugin->getFolder($folder_id);
         $this->controllerpath = 'files/system/' . $plugin_id;
 
-        $this->buildSidebar($this->topFolder, false);
+        if (!$this->topFolder) {
+            PageLayout::postError(
+                _('Ordner nicht gefunden!')
+            );
+        } else {
+            $this->buildSidebar($this->topFolder, false);
+        }
         $this->render_action('index');
     }
 
@@ -284,14 +336,30 @@ class FilesController extends AuthenticatedController
                     if (!$source_plugin) {
                         throw new Trails_Exception(404, _('Plugin existiert nicht.'));
                     }
-                    if ($source = $source_plugin->getPreparedFile($fileref, true)) {
-                        if ($copymode === 'move') {
-                            $result = FileManager::moveFileRef($source, $destination_folder, $user);
-                        } else {
-                            $result = FileManager::copyFileRef($source, $destination_folder, $user);
+                    if (Request::get("isfolder")) {
+                        if ($source_folder = $source_plugin->getFolder($fileref)) {
+                            if ($copymode === 'move') {
+                                $result = FileManager::moveFolder($source_folder, $destination_folder, $user);
+                            } else {
+                                $result = FileManager::copyFolder($source_folder, $destination_folder, $user);
+                            }
+                            if (!is_array($result)) {
+                                $count_folders += 1;
+                                $children = $this->countChildren($result);
+                                $count_files   += $children[0];
+                                $count_folders += $children[1];
+                            }
                         }
-                        if (!is_array($result)) {
-                            $count_files += 1;
+                    } else {
+                        if ($source = $source_plugin->getPreparedFile($fileref, true)) {
+                            if ($copymode === 'move') {
+                                $result = FileManager::moveFileRef($source, $destination_folder, $user);
+                            } else {
+                                $result = FileManager::copyFileRef($source, $destination_folder, $user);
+                            }
+                            if (!is_array($result)) {
+                                $count_files += 1;
+                            }
                         }
                     }
                 } else {

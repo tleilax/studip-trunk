@@ -1,3 +1,4 @@
+<? if ($topFolder): ?>
 <?php
 if (!$controllerpath) {
     $controllerpath = 'files/index';
@@ -51,7 +52,7 @@ if (!$controllerpath) {
 
     <tbody class="subfolders">
         <tr class="empty" data-sort-fixed <?= count($topFolder->getFiles()) + count($topFolder->getSubfolders()) > 0 ? ' style="display: none;"' : "" ?>>
-            <td colspan="8">
+            <td colspan="7">
                 <?= _('Dieser Ordner ist leer') ?>
             </td>
         </tr>
@@ -75,53 +76,58 @@ if (!$controllerpath) {
         <? endforeach; ?>
     <? endif; ?>
     </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="7">
-                <span class="multibuttons">
-                    <?= Studip\Button::create(_('Herunterladen'), 'download', [
-                        'disabled' => '',
-                    ]) ?>
-                <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-                    <?= Studip\Button::create(_('Verschieben'), 'move', [
-                        'data-dialog' => '',
-                        'disabled' => 'disabled'
-                    ]) ?>
-                <? endif; ?>
-                <? if ($topFolder->isReadable($GLOBALS['user']->id)): ?>
-                    <?= Studip\Button::create(_('Kopieren'), 'copy', [
-                        'data-dialog' => '',
-                        'disabled'    => '',
-                    ]) ?>
-                <? endif; ?>
-                <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-    	            <?= Studip\Button::create(_('Löschen'), 'delete', [
-                        'disabled'     => '',
-                        'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
-                    ]) ?>
-                <? endif; ?>
-                </span>
+    <? if ($GLOBALS['user']->id !== 'nobody') : ?>
+        <tfoot>
+            <tr>
+                <td colspan="7">
+                    <span class="multibuttons">
+                        <?= Studip\Button::create(_('Herunterladen'), 'download', [
+                            'disabled' => '',
+                        ]) ?>
+                    <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+                        <?= Studip\Button::create(_('Verschieben'), 'move', [
+                            'data-dialog' => '',
+                            'disabled' => 'disabled'
+                        ]) ?>
+                    <? endif; ?>
+                    <? if ($topFolder->isReadable($GLOBALS['user']->id)): ?>
+                        <?= Studip\Button::create(_('Kopieren'), 'copy', [
+                            'data-dialog' => '',
+                            'disabled'    => '',
+                        ]) ?>
+                    <? endif; ?>
+                    <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+                        <?= Studip\Button::create(_('Löschen'), 'delete', [
+                            'disabled'     => '',
+                            'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
+                        ]) ?>
+                    <? endif; ?>
+                    </span>
 
-            <? if ($topFolder->isSubfolderAllowed($GLOBALS['user']->id)): ?>
-                <?= Studip\LinkButton::create(
-                    _('Neuer Ordner'),
-                    $controller->url_for('file/new_folder/' . $topFolder->getId()),
-                    ['data-dialog' => '']
-                ) ?>
-            <? endif ?>
-            <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-                <?= Studip\LinkButton::create(_('Datei hinzufügen'), '#', [
-                    'onclick' => 'STUDIP.Files.openAddFilesWindow(); return false;'
-                ]) ?>
-            <? endif ?>
-            </td>
-        </tr>
-    </tfoot>
+                <? if ($topFolder->isSubfolderAllowed($GLOBALS['user']->id)): ?>
+                    <?= Studip\LinkButton::create(
+                        _('Neuer Ordner'),
+                        $controller->url_for('file/new_folder/' . $topFolder->getId()),
+                        ['data-dialog' => '']
+                    ) ?>
+                <? endif ?>
+                <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+                    <?= Studip\LinkButton::create(_('Datei hinzufügen'), '#', [
+                        'onclick' => 'STUDIP.Files.openAddFilesWindow(); return false;'
+                    ]) ?>
+                <? endif ?>
+                </td>
+            </tr>
+        </tfoot>
+    <? endif ?>
 </table>
 </form>
+<? if ($GLOBALS['user']->id !== 'nobody') : ?>
 
-<?= $this->render_partial('file/upload_window.php') ?>
-<?= $this->render_partial('file/add_files_window.php', [
-    'folder_id' => $topFolder->getId(),
-    'hidden'    => true,
-]) ?>
+    <?= $this->render_partial('file/upload_window.php') ?>
+    <?= $this->render_partial('file/add_files_window.php', [
+        'folder_id' => $topFolder->getId(),
+        'hidden'    => true,
+    ]) ?>
+<? endif ?>
+<? endif ?>

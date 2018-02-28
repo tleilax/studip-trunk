@@ -270,6 +270,9 @@ class StartNavigation extends Navigation
 
         $this->addSubNavigation('tools', $navigation);
 
+        // files dashboard
+        $navigation = new Navigation(_('Dateien'), 'dispatch.php/files_dashboard');
+        $this->addSubNavigation('files_dashboard', $navigation);
 
         // external help
         $navigation = new Navigation(_('Hilfe'), format_help_url('Basis.Allgemeines'));

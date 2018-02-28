@@ -15,12 +15,15 @@ if (Request::get('isfolder')) {
 if (Request::get('copymode')) {
     $options['copymode'] = Request::get('copymode');
 }
+
+$headings = [ 'copy' => _('Kopieren nach'), 'move' => _('Verschieben nach'), 'upload' => _('Hochladen nach')];
+$buttonLabels = [ 'copy' => _('Hierher kopieren'), 'move' => _('Hierher verschieben'), 'upload' => _('Hierher hochladen')];
 ?>
 
 <div style="text-align: center; margin-bottom: 20px;">
-    <?= $options['copymode'] === 'copy' ? _('Kopieren nach') : _('Verschieben nach') ?>
+    <?= $headings[$options['copymode']] ?>
     <?= Icon::create('folder-full', Icon::ROLE_INFO)->asImg(20, ['class' => 'text-bottom']) ?>
-    <?= htmlReady($to_folder->parent_id ? $to_folder->name : _('Hauptordner')) ?>
+    <?= htmlReady($top_folder_name) ?>
 </div>
 
 <? /*if ($filesystemplugin && $filesystemplugin->hasSearch()) : ?>
@@ -86,34 +89,50 @@ if (Request::get('copymode')) {
     </tbody>
 <? else : ?>
     <? foreach ($top_folder->getSubfolders() as $subfolder) : ?>
+        <? if ($subfolder->isWritable($GLOBALS['user']->id)): ?>
         <tr <? if ($full_access) printf('data-file="%s"', $subfolder->getId()) ?> <? if ($full_access) printf('data-folder="%s"', $subfolder->getId()); ?>>
             <td class="document-icon" data-sort-value="0">
-            <? if ($subfolder->isReadable($GLOBALS['user']->id)) : ?>
-                <a href="<?= $controller->link_for('/choose_folder/' . $subfolder->getId(), $options) ?>" data-dialog>
-            <? endif ?>
-            <? if ($is_empty): ?>
-                <?= Icon::create('folder-empty', Icon::ROLE_CLICKABLE)->asImg(24) ?>
-            <? else: ?>
-                <?= Icon::create('folder-full', Icon::ROLE_CLICKABLE)->asImg(24) ?>
-            <? endif; ?>
-            <? if ($subfolder->isReadable($GLOBALS['user']->id)) : ?>
+                <a href="<?= $controller->link_for('/choose_folder/' . $subfolder->getId(), $options) ?>"
+                   data-dialog>
+                    <? if ($is_empty): ?>
+                        <?= Icon::create('folder-empty', Icon::ROLE_CLICKABLE)->asImg(24) ?>
+                    <? else: ?>
+                        <?= Icon::create('folder-full', Icon::ROLE_CLICKABLE)->asImg(24) ?>
+                    <? endif; ?>
                 </a>
+            </td>
+            <td>
+                <a href="<?= $controller->link_for('/choose_folder/' . $subfolder->getId(), $options) ?>"
+                   data-dialog>
+                    <?= htmlReady($subfolder->name) ?>
+                </a>
+                <? if ($subfolder->description): ?>
+                    <small class="responsive-hidden">
+                        <?= htmlReady($subfolder->description) ?>
+                    </small>
+                <? endif; ?>
+            </td>
+        </tr>
+        <? else : ?>
+        <tr>
+            <td class="document-icon" data-sort-value="0">
+            <? if ($is_empty): ?>
+                <?= Icon::create('folder-empty+decline', Icon::ROLE_INFO)->asImg(24) ?>
+            <? else: ?>
+                <?= Icon::create('folder-full+decline', Icon::ROLE_INFO)->asImg(24) ?>
             <? endif ?>
             </td>
             <td>
-            <? if ($subfolder->isReadable($GLOBALS['user']->id)) : ?>
-                <a href="<?= $controller->link_for('/choose_folder/' . $subfolder->getId(), $options) ?>" data-dialog>
-                    <?= htmlReady($subfolder->name) ?>
-                </a>
-            <? else: ?>
                 <?= htmlReady($subfolder->name) ?>
-            <? endif; ?>
             <? if ($subfolder->description): ?>
-                <small class="responsive-hidden"><?= htmlReady($subfolder->description) ?></small>
+                <small class="responsive-hidden">
+                    <?= htmlReady($subfolder->description) ?>
+                </small>
             <? endif; ?>
             </td>
         </tr>
-    <? endforeach; ?>
+        <? endif ?>
+    <? endforeach ?>
     </tbody>
 <? endif; ?>
 </table>
@@ -143,14 +162,26 @@ switch ($top_folder->range_type) {
     <? endif; ?>
 <? elseif ($top_folder->isWritable($GLOBALS['user']->id) && $top_folder->getId() !== $options['fileref_id']): ?>
     <div data-dialog-button>
+        <?
+        if ($options['copymode'] === 'upload') {
+            $buttonOptions = [
+                'data-dialog' => 'size=auto',
+                'onclick' => 'STUDIP.Files.openAddFilesWindow("'.$top_folder->getId().'"); return false;',
+            ];
+        } else {
+            $buttonOptions = [];
+        }
+        ?>
         <?= Studip\LinkButton::createAccept(
-            $options['copymode'] === 'copy' ? _('Hierher kopieren') : _('Hierher verschieben'),
+            $buttonLabels[$options['copymode']] ?: _('Auswählen'),
             $controller->url_for('files/copyhandler/' . $top_folder->getId(), [
                 'from_plugin'     => $options['from_plugin'],
                 'to_plugin'  => $options['to_plugin'],
                 'fileref_id' => $options['fileref_id'],
+                'isfolder'   => $options['isfolder'],
                 'copymode'   => $options['copymode']
-            ])
+            ]),
+            $buttonOptions
         ) ?>
     </div>
 <? endif; ?>

@@ -14,6 +14,8 @@
  */
 class Course_FilesController extends AuthenticatedController
 {
+    protected $allow_nobody = true;
+
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
@@ -25,7 +27,7 @@ class Course_FilesController extends AuthenticatedController
         $this->course = Course::findCurrent();
         $this->last_visitdate = object_get_visit($this->course->id, 'documents');
 
-        PageLayout::addSqueezePackage('tablesorter');
+        PageLayout::addSqueezePackage('files');
         PageLayout::setHelpKeyword('Basis.Dateien');
         PageLayout::setTitle(Context::get()->getFullname() . ' - ' . _('Dateien'));
 
@@ -125,8 +127,9 @@ class Course_FilesController extends AuthenticatedController
             Icon::create('download', 'clickable'),
             ['cid' => $this->course->id]
         );
-
-        $sidebar->addWidget($actions);
+        if ($GLOBALS['user']->id !== 'nobody') {
+            $sidebar->addWidget($actions);
+        }
 
         $this->marked_element_ids = [];
 

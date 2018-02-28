@@ -31,15 +31,14 @@ class ConfigurationModel
      * with range=user
      *
      * @param   string $user_id
-     * @param   string $give_all
      *
      * @return array()
      */
-    public static function searchUserConfiguration($user_id = null, $give_all = false)
+    public static function searchUserConfiguration($user_id = null)
     {
         $config = Config::get();
         $allconfigs = array();
-        if (!is_null($user_id)) {
+        if (isset($user_id)) {
             $user = User::find($user_id);
 
             $uconfig = UserConfig::get($user_id);
@@ -54,9 +53,7 @@ class ConfigurationModel
                 $data['fullname'] = $user->getFullname();
                 $allconfigs[] = $data;
             }
-        }
-
-        if ($give_all) {
+        } else {
             foreach ($config->getFields('user') as $field) {
                 $metadata = $config->getMetadata($field);
                 $metadata['value'] = $config->$field;
@@ -94,15 +91,14 @@ class ConfigurationModel
      * with range=course
      *
      * @param   string $range_id
-     * @param   string $give_all
      *
      * @return array()
      */
-    public static function searchCourseConfiguration($range_id = null, $give_all = false)
+    public static function searchCourseConfiguration($range_id = null)
     {
         $config = Config::get();
         $allconfigs = array();
-        if (!is_null($range_id)) {
+        if (isset($range_id)) {
             $course = Course::find($range_id);
 
             $uconfig = CourseConfig::get($range_id);
@@ -117,9 +113,7 @@ class ConfigurationModel
                 $data['fullname'] = $course->getFullname();
                 $allconfigs[] = $data;
             }
-        }
-
-        if ($give_all) {
+        } else {
             foreach ($config->getFields('course') as $field) {
                 $metadata = $config->getMetadata($field);
                 $metadata['value'] = $config->$field;

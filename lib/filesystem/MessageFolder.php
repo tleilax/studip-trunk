@@ -35,6 +35,15 @@ class MessageFolder implements FolderType
     }
 
     /**
+     * @param string $attribute
+     * @return mixed
+     */
+    public function __get($attribute)
+    {
+        return $this->folder[$attribute];
+    }
+
+    /**
      * Retrieves or creates the top folder for a message.
      *
      * Creating top folders for messages is a special task since
@@ -166,11 +175,11 @@ class MessageFolder implements FolderType
     }
 
     /**
-     * MessageFolders are never writable.
+     * MessageFolders are only writable for their owners.
      */
     public function isWritable($user_id)
     {
-        return false;
+        return $user_id === $this->folder->user_id;
     }
 
     /**
@@ -373,6 +382,7 @@ class MessageFolder implements FolderType
      */
     public function createSubfolder(FolderType $folderdata)
     {
+        return null;
     }
 
     /**

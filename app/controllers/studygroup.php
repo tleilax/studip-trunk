@@ -77,10 +77,12 @@ class StudygroupController extends AuthenticatedController
                 }
             }
             $this->anzahl = StudygroupModel::countGroups();
-            $this->groups = StudygroupModel::getAllGroups($this->sort, $this->lower_bound, get_config('ENTRIES_PER_PAGE'), Request::get('closedGroups'));
+            $this->groups = StudygroupModel::getAllGroups($this->sort, $this->lower_bound, Config::get()->ENTRIES_PER_PAGE, Request::get('closedGroups'));
         } elseif (!$check || $this->groups) {
             unset($this->flash['info']);
-            if($this->page < 1 || $this->page > ceil($this->anzahl/get_config('ENTRIES_PER_PAGE'))) $this->page = 1;
+            if ($this->page < 1 || $this->page > ceil($this->anzahl / Config::get()->ENTRIES_PER_PAGE)) {
+                $this->page = 1;
+            }
         }
     }
 
@@ -89,12 +91,15 @@ class StudygroupController extends AuthenticatedController
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/studygroup-sidebar.png');
 
-        $actions = new ActionsWidget();
-        $actions->addLink(_('Neue Studiengruppe anlegen'),
-                          URLHelper::getLink('dispatch.php/course/wizard', ['studygroup' => 1]),
-                          Icon::create('add', 'clickable'))
-                ->asDialog();
-        $sidebar->addWidget($actions);
+        if ($GLOBALS['perm']->have_perm('autor')) {
+            $actions = new ActionsWidget();
+            $actions->addLink(
+                _('Neue Studiengruppe anlegen'),
+                URLHelper::getLink('dispatch.php/course/wizard', ['studygroup' => 1]),
+                Icon::create('add')
+            )->asDialog();
+            $sidebar->addWidget($actions);
+        }
 
         $search = new SearchWidget($this->url_for('studygroup/browse'));
         $search->addNeedle(_('Suchbegriff'), 'searchtext', true);

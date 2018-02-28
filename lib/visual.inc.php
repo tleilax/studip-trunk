@@ -115,9 +115,13 @@ function quotes_encode($text, $author = '')
  * @return string        HTML code computed by applying markup-rules.
  */
 // TODO remove unused function arguments
-function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon') {
+function formatReady($text, $trim = true, $extern = false, $wiki = false, $show_comments = 'icon')
+{
     $formatted = Markup::apply(new StudipFormat(), $text, $trim);
-    return $formatted ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted) : '';
+
+    return $formatted
+        ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted)
+        : '';
 }
 
 /**
@@ -555,11 +559,7 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
  * @return       string
  */
 function tooltip ($text, $with_alt = TRUE, $with_popup = FALSE) {
-    $result = '';
-    foreach (tooltip2($text, $with_alt, $with_popup) as $key => $value) {
-        $result .= sprintf(' %s="%s"', $key, $value);
-    }
-    return $result;
+    return arrayToHtmlAttributes(tooltip2($text, $with_alt, $with_popup));
 }
 
 /**
@@ -801,4 +801,20 @@ if (!function_exists('preg_replace_callback_array')) {
         return preg_last_error() == PREG_NO_ERROR ? $subject : null;
     }
 
+}
+
+/**
+ * Converts an array of attributes to an html attribute string.
+ *
+ * @param array $attributes Associative array of attributes
+ * @return string
+ * @since Stud.IP 4.1
+ * @todo Nested attribute definitions?
+ */
+function arrayToHtmlAttributes(array $attributes) {
+    $result = [];
+    foreach ($attributes as $key => $value) {
+        $result[] = sprintf('%s="%s"', htmlReady($key), htmlReady($value));
+    }
+    return implode(' ', $result);
 }

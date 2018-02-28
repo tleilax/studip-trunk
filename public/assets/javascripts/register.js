@@ -3,9 +3,8 @@
 
 STUDIP.register = {
     re_username : null,
-    re_email: null,
     re_name: null,
-            
+
     clearErrors: function (field) {
         jQuery('input[name=' + field + ']').parent().find('div.error').remove();
     },
@@ -14,7 +13,7 @@ STUDIP.register = {
         jQuery('input[name=' + field + ']').parent().append('<div class="error">' + error + '</div>');
         jQuery('div[class=error]').show();
     },
-    
+
     checkusername: function () {
         STUDIP.register.clearErrors('username');
 
@@ -23,7 +22,7 @@ STUDIP.register = {
             document.login.username.focus();
             return false;
         }
-        
+
         if (STUDIP.register.re_username.test(jQuery('input[name=username]').val()) === false) {
             STUDIP.register.addError('username', "Der Benutzername enthält unzulässige Zeichen, er darf keine Sonderzeichen oder Leerzeichen enthalten.".toLocaleString());
             document.login.username.focus();
@@ -71,7 +70,7 @@ STUDIP.register = {
 
     checkNachname: function () {
         STUDIP.register.clearErrors('Nachname');
-        
+
         var checked = true;
         if (STUDIP.register.re_name.test(jQuery('input[name=Nachname]').val()) === false) {
             STUDIP.register.addError('Nachname', "Bitte geben Sie Ihren tatsächlichen Nachnamen an.".toLocaleString());
@@ -84,23 +83,30 @@ STUDIP.register = {
     checkEmail: function () {
         STUDIP.register.clearErrors('Email');
 
-        var Email = jQuery('input[name=Email]').val();
-
-        var checked = true;
-        if ((STUDIP.register.re_email.test(Email)) === false || Email.length === 0) {
-            STUDIP.register.addError('Email', "Die E-Mail-Adresse ist nicht korrekt!".toLocaleString());
-            document.login.Email.focus();
+        var email   = jQuery('input[name=Email]').val()
+            domain  = jQuery('select[name=emaildomain]').val(),
             checked = false;
+
+        if (domain) {
+            email += '@' + domain;
         }
+
+        checked = $('<input type="email">').val(email)[0].checkValidity();
+
+        if (!checked) {
+            STUDIP.register.addError('Email', "Die E-Mail-Adresse ist nicht korrekt!".toLocaleString());
+            $('#Email').focus();
+        }
+
         return checked;
     },
 
     checkdata: function () {
-        return this.checkusername() && 
-                this.checkpassword() && 
-                this.checkpassword2() && 
-                this.checkVorname() && 
-                this.checkNachname() && 
+        return this.checkusername() &&
+                this.checkpassword() &&
+                this.checkpassword2() &&
+                this.checkVorname() &&
+                this.checkNachname() &&
                 this.checkEmail();
     }
 };

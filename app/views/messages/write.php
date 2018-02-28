@@ -3,14 +3,14 @@
     <input type="hidden" name="answer_to" value="<?= htmlReady($answer_to) ?>">
     <div>
         <label for="user_id_1"><h4><?= _("An") ?></h4></label>
-        <ul class="clean" id="adressees">
+        <ul class="list-csv" id="adressees">
             <li id="template_adressee" style="display: none;" class="adressee">
                 <input type="hidden" name="message_to[]" value="">
                 <span class="visual"></span>
                 <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
             </li>
             <? foreach ($default_message->getRecipients() as $user) : ?>
-            <li style="padding: 0px;" class="adressee">
+            <li class="adressee">
                 <input type="hidden" name="message_to[]" value="<?= htmlReady($user['user_id']) ?>">
                 <span class="visual">
                     <?= htmlReady($user['fullname']) ?>
@@ -161,6 +161,14 @@
                         <input type="checkbox" name="message_mail" id="message_mail" value="1"<?= $mailforwarding ? " checked" : "" ?>>
                     </td>
                 </tr>
+                <tr>
+                    <td>
+                        <label for="show_adressees"><strong><?= _("Sollen die Adressaten für die Empfänger sichtbar sein?") ?></strong></label>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="show_adressees" id="show_adressees" value="1"<?= $show_adressees ? " checked" : "" ?>>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -174,18 +182,3 @@
     </div>
 
 </form>
-
-<br>
-
-<?php
-$sidebar = Sidebar::get();
-$sidebar->setImage('sidebar/mail-sidebar.png');
-
-if (false && count($tags)) {
-    $folderwidget = new LinksWidget();
-    $folderwidget->setTitle(_("Verwendete Tags"));
-    foreach ($tags as $tag) {
-        $folderwidget->addLink(ucfirst($tag), URLHelper::getURL("?", array('tag' => $tag)), null, array('class' => "tag"));
-    }
-    $sidebar->addWidget($folderwidget, 'folder');
-}

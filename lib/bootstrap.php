@@ -16,7 +16,7 @@ namespace Studip {
 namespace {
 
     //software version - please leave it as it is!
-    $SOFTWARE_VERSION = '4.0.alpha-svn';
+    $SOFTWARE_VERSION = '4.1.alpha-svn';
 
     global $PHP_SELF, $STUDIP_BASE_PATH;
 
@@ -101,6 +101,7 @@ namespace {
     require_once 'vendor/flexi/lib/flexi.php';
     $GLOBALS['template_factory'] =
         new Flexi_TemplateFactory($STUDIP_BASE_PATH . '/templates');
+    Renderable::setTemplateFactory($GLOBALS['template_factory']);
 
 
     // set default pdo connection
@@ -213,6 +214,7 @@ namespace {
 
     // init notification observers
     Studip\Activity\ActivityObserver::initialize();
+    FilesSearch\NotificationObserver::initialize();
 
     //Besser hier globale Variablen definieren...
     $GLOBALS['_fullname_sql'] = array();
