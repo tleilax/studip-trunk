@@ -61,9 +61,7 @@ endforeach;
     <?= htmlReady($ort) ?: _("nicht angegeben") ?>
 <? else: ?>
     <table class="default">
-        <? foreach ($output
-
-        as $room => $dates) : ?>
+        <? foreach ($output as $room => $dates) : ?>
         <tr>
             <td style="vertical-align: top"><?= $room ?></td>
             <td>
