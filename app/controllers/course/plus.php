@@ -341,6 +341,11 @@ class Course_PlusController extends AuthenticatedController
                     $_SESSION['admin_modules_data']["conflicts"][$key] = true;
 
                     if ($this->sem_class) $studip_module = $this->sem_class->getModule($key);
+
+                    //skip the modules that are not changeable
+                    $mod = $this->sem_class->getSlotModule($key);
+                    if ($mod && (!$this->sem_class->isModuleAllowed($mod) || $this->sem_class->isModuleMandatory($mod))) continue;
+
                     $info = ($studip_module instanceOf StudipModule) ? $studip_module->getMetadata() : ($val['metadata'] ? $val['metadata'] : array());
                     $info ["category"] = $info ["category"] ? : 'Sonstiges';
 
