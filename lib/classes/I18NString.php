@@ -5,49 +5,130 @@
  */
 class I18NString
 {
-    // Fields we will need
+    
     /**
+     * Text in default content language.
+     * 
      * @var string
      */
+    protected $base;
+    
     /**
-     * @var array|null
+     * Text in additional languages.
+     * 
+     * @var array|null 
      */
+    protected $lang;
+    
     /**
+     * Database info for id, table, field.
+     * 
      * @var array
      */
-    private $base, $lang, $metadata;
+    protected $metadata;
+    
+    /**
+     * Holds the language the content is translated into.
+     * 
+     * @var string
+     */
+    protected static $content_language = null;
+
+    /**
+     * Holds the language the content is translated into by default.
+     * 
+     * @var string
+     */
+    protected static $default_language = null;
 
     /**
      * Initialize a new I18NString instance.
      *
-     * @param string    $base   text in default content language
-     * @param array     $lang   text in additional languages
-     * @param array     $metadata database info for id, table, field
+     * @param string    $base   Text in default content language.
+     * @param array     $lang   Text in additional languages.
+     * @param array     $metadata Database info for id, table, field.
      */
     public function __construct($base, $lang = null, $metadata = array())
     {
         $this->base = $base;
         $this->lang = $lang;
         $this->metadata = $metadata;
+        if ($this->metadata) {
+            $this->toArray();
+        }
     }
 
     /**
-     * Return the text representation of this object.
+     * Return the text representation of this i18n field in selected language.
+     * The language is selected by self::content_language (with precendence)
+     * or by $_SESSION['_language'].
+     * 
+     * @returns string 
      */
     public function __toString()
     {
-        $language = $_SESSION['_language'];
-
-        if (isset($language) && $language != key($GLOBALS['CONTENT_LANGUAGES'])) {
-            return $this->translation($language) ?: (string)$this->base;
+        if (self::$content_language) {
+            return (string) $this->localized(self::$content_language);
+        } else {
+            if (isset($_SESSION['_language'])
+                && $_SESSION['_language'] != self::getDefaultLanguage()
+                && $this->translation($_SESSION['_language'])) {
+                    return $this->translation($_SESSION['_language']);
+            }
         }
 
-        return (string)$this->base;
+        return (string) $this->base;
     }
 
     /**
-     * @param string $text
-     * @return string
+     * Sets the language the content is translated into.
+     * 
+     * @param string $language
+     */
+    public static function setContentLanguage($language)
+    {
+        self::$content_language = $language;
+    }
+    
+    /**
+     * Returns the language the contnet is translated into.
+     * 
+     * @return string The language the content is translated into.
+     */
+    public static function getContentLanguage()
+    {
+        return self::$content_language ?: self::getDefaultLanguage();
+    }
+    
+    /**
+     * Sets the default language the content is translated into. The default is
+     * normally defined by the first entry in $GLOBALS['CONTENT_LANGUAGES'] (see
+     * config_defaults.inc.php).
+     * 
+     * @param string $language
+     */
+    public static function setDefaultLanguage($language = null)
+    {
+        self::$default_language = $language ?: key($GLOBALS['CONTENT_LANGUAGES']);
+    }
+    
+    /**
+     * Returns the language all values are translated into by default. The
+     * language ist normally defined in $GLOBALS['CONTENT_LANGUAGES'] (see
+     * config_defaults.inc.php).
+     * 
+     * @return string The default language all values are translated into.
+     */
+    public static function getDefaultLanguage()
+    {
+        return self::$default_language ?: key($GLOBALS['CONTENT_LANGUAGES']);
+    }
+    
+    /**
+     * Sets the original (untranslated) value of this i18n field.
+     * 
+     * @param string $text The original value.
+     * @return string The original value.
      */
     public function setOriginal($text)
     {
@@ -55,8 +136,11 @@ class I18NString
     }
 
     /**
-     * @param array $lang
-     * @return array
+     * Sets all translations of this i18n field.
+     * 
+     * @param array $lang An array with languages as keys and translations
+     * as values.
+     * @return array The array with translations.
      */
     public function setTranslations($lang)
     {
@@ -64,7 +148,9 @@ class I18NString
     }
 
     /**
-     * @param array $metadata
+     * Sets the metadata (database info for id, table, field) of this i18n field.
+     * 
+     * @param array $metadata Database info for id, table, field.
      */
     public function setMetadata($metadata)
     {
@@ -73,7 +159,8 @@ class I18NString
 
     /**
      * Return the string in the default content language.
-     * @return string
+     * 
+     * @return string String in default content language.
      */
     public function original()
     {
@@ -83,18 +170,56 @@ class I18NString
     /**
      * Return the string in the specified additional language.
      *
-     * @param string
-     * @return string
+     * @param string The additional language. 
+     * @return string The translated value.
      */
     public function translation($lang)
     {
         return $this->toArray()[$lang];
     }
+    
+    /**
+     * Returns the string in the specified language (additional languages and
+     * default languages).
+     * 
+     * @param string $lang Additional language or default language.
+     * @return string The localized string.
+     */
+    public function localized($lang)
+    {
+        if ($lang == self::getDefaultLanguage()) {
+            return $this->base;
+        }
+        
+        return $this->translation($lang);
+    }
 
     /**
-     * Return an array containg the text in all additional languages.
+     * Sets the translation for the given language. If the given language is
+     * the default language, sets the original.
+     * 
+     * @param type $text The translated or original value.
+     * @param type $lang The additional or default language.
+     * @return string The translated or original value.
+     * @throws InvalidArgumentException
+     */
+    public function setLocalized($text, $lang)
+    {
+        if ($lang == self::getDefaultLanguage()) {
+            return $this->setOriginal($text);
+        }
+        
+        if (!Config::get()->CONTENT_LANGUAGES[$lang]) {
+            throw new InvalidArgumentException('Language not configured.');
+        }
+        
+        return $this->lang[$lang] = $text;
+    }
+    
+    /**
+     * Return an array containing the text in all additional languages.
      *
-     * @return array
+     * @return array The array with translations.
      */
     public function toArray()
     {
@@ -114,14 +239,14 @@ class I18NString
      * Trim all language strings
      *
      * @param string $symbols All symbols to trim.
-     * @return I18NString
+     * @return I18NString Returns this.
      */
     public function trim($symbols = " \t\n\r\0\x0B")
     {
         foreach ($this->lang as &$lang) {
             $lang = trim($lang, $symbols);
-            $this->base = trim($this->base, $symbols);
         }
+        $this->base = trim($this->base, $symbols);
         return $this;
     }
 
@@ -140,31 +265,35 @@ class I18NString
                 throw new RuntimeException('store not possible, metadata is missing');
             }
             /* Replace translations */
-            $deleted = $db->execute("DELETE FROM i18n WHERE object_id = ? AND `table` = ? AND field = ?", array($object_id, $table, $field));
+            $deleted = $db->execute("DELETE FROM i18n WHERE object_id = ? AND `table` = ? AND field = ?", [$object_id, $table, $field]);
             $i18nSQL = $db->prepare("INSERT INTO `i18n` (`object_id`, `table`, `field`, `lang`, `value`) VALUES (?,?,?,?,?)");
             foreach ($this->lang as $lang => $value) {
                 if (mb_strlen($value)) {
-                    $i18nSQL->execute(array($object_id, $table, $field, $lang, (string)$value));
+                    $i18nSQL->execute([$object_id, $table, $field, $lang, (string) $value]);
                 }
             }
         }
     }
 
     /**
-     *
+     * Removes all translations for this I18NString object.
+     * 
      */
     public function removeTranslations()
     {
-        $this->lang = array();
+        $this->lang = [];
         $this->storeTranslations();
     }
 
     /**
-     * @param $object_id
-     * @param $table
-     * @param $field
-     * @param null $base
-     * @return I18NString
+     * Returns an I18NString object by given object_id, table and field.
+     * 
+     * @param string $object_id The id of the object with i18n fields.
+     * @param string $table The name of the table with the original values.
+     * @param string $field The name of the i18n field.
+     * @param string $base Sets the original value or retrieve it from database
+     * if null.
+     * @return I18NString The I18NString object.
      */
     public static function load($object_id, $table, $field, $base = null)
     {
@@ -177,31 +306,66 @@ class I18NString
             } else {
                 $pk = SimpleORMap::$schemes[$table]['pk'][0];
             }
-            $base = $db->fetchColumn("SELECT `$field` FROM `$table` WHERE `$pk` = ?", array($object_id));
+            $base = $db->fetchColumn("SELECT `$field` FROM `$table` WHERE `$pk` = ?", [$object_id]);
         }
         return new self($base, self::fetchDataForField($object_id, $table, $field), compact('object_id', 'table', 'field'));
     }
 
     /**
-     * @param $object_id
-     * @param $table
-     * @param $field
-     * @return array
+     * Retrieves all translations of one field.
+     * 
+     * @param string $object_id The id of the object with i18n fields.
+     * @param string $table The name of the table with the original values.
+     * @param string $field The name of the i18n field.
+     * @return array An array with language as key and translation as value.
      */
     public static function fetchDataForField($object_id, $table, $field)
     {
         $db = DBManager::get();
-        return $db->fetchPairs("SELECT `lang`, `value` FROM `i18n` WHERE `object_id` = ? AND `table` = ? AND `field` = ?", array($object_id, $table, $field));
+        $values = $db->fetchPairs("SELECT `lang`, `value` FROM `i18n` WHERE `object_id` = ? AND `table` = ? AND `field` = ?", [$object_id, $table, $field]);
+        $data = [];
+        foreach (array_keys(Config::get()->CONTENT_LANGUAGES) as $lang) {
+            if ($lang != self::getDefaultLanguage()) {
+                $data[$lang] = mb_strlen($values[$lang]) ? $values[$lang] : null;
+            }
+        }
+        return $data;
     }
 
     /**
-     * @param $object_id
-     * @param $table
-     * @return array
+     * Retrieves all translations of all fields for given object (by id) and
+     * table.
+     * 
+     * @param string $object_id The id of the object with i18n fields.
+     * @param string $table The name of the table with the original values.
+     * @return array An array with all translations of all fields grouped by
+     * field.
      */
     public static function fetchDataForRow($object_id, $table)
     {
         $db = DBManager::get();
-        return $db->fetchGrouped("SELECT `field`, `lang`, `value` FROM `i18n` WHERE `object_id` = ? AND `table` = ?", array($object_id, $table));
+        return $db->fetchGrouped("SELECT `field`, `lang`, `value` FROM `i18n` WHERE `object_id` = ? AND `table` = ?", [$object_id, $table]);
+    }
+    
+    /**
+     * Removes all translations by given object id and table name. Accepts the
+     * language as third parameter to remove only translations to this language.
+     * 
+     * @param string $object_id The id of the sorm object.
+     * @param string $table The table name.
+     * @param string $lang Optional name of language.
+     * @return int The number of deleted translations.
+     */
+    public static function removeAllTranslations($object_id, $table, $lang = null)
+    {
+        $db = DBManager::get();
+        if ($lang) {
+            return $db->execute('DELETE FROM `i18n` '
+                    . 'WHERE `object_id` = ? AND `table` = ? AND `lang` = ?',
+                    [$object_id, $table, $lang]);
+        }
+        return $db->execute('DELETE FROM `i18n` '
+                . 'WHERE `object_id` = ? AND `table` = ?',
+                [$object_id, $table]);
     }
 }

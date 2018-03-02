@@ -377,7 +377,7 @@ if ($mvv_tree) : ?>
         </header>
         <section>
             <ul class="collapsable css-tree">
-                <?= $mvv_tmpl_factory->render('shared/mvv_tree.php', array('tree' => $mvv_tree, 'node' => 'start', 'id_sfx' => $id_sfx)) ?>
+                <?= $this->render_partial('shared/mvv_tree.php', array('tree' => $mvv_tree, 'node' => 'start', 'id_sfx' => $id_sfx)) ?>
             </ul>
         </section>
     </article>
@@ -392,7 +392,7 @@ if ($mvv_tree) : ?>
             <ul class="list-unstyled">
                 <? foreach ($mvv_pathes as $mvv_path) : ?>
                 <li>
-                    <a data-dialog href="<?= URLHelper::getScriptLink('plugins.php/mvvplugin/search/module/overview/' . reset(array_keys($mvv_path)) . '/', array('sem_select' => $mvv_end_semester_id)) ?>">
+                    <a data-dialog href="<?= URLHelper::getScriptLink('dispatch.php/search/module/overview/' . reset(array_keys($mvv_path)) . '/', array('sem_select' => $mvv_end_semester_id)) ?>">
                         <?= htmlReady(implode(' > ', reset(array_values($mvv_path)))) ?>
                     </a>
                 </li>

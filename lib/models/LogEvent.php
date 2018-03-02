@@ -327,7 +327,8 @@ class LogEvent extends SimpleORMap
                     break;
                 case 'core':
                     $class_name = $this->action->class;
-                    if ($class_name instanceof Loggable) {
+                    $interfaces = class_implements($class_name);
+                    if (isset($interfaces['Loggable'])) {
                         return $class_name::logFormat($this);
                     }
             }

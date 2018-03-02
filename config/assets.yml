@@ -131,6 +131,9 @@ javascripts:
 
     - javascripts/globalsearch.js
 
+    - javascripts/mvv.js
+    - javascripts/mvv_difflog.js
+
   raumzeit:
     - javascripts/raumzeit.js
 

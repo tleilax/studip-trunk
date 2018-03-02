@@ -428,7 +428,7 @@ class Admin_UserController extends AuthenticatedController
             }
 
             // change version of studiengang if module management is enabled
-            if (PluginEngine::getPlugin('MVVPlugin') && in_array($editPerms[0], ['autor', 'tutor', 'dozent'])) {
+            if (in_array($editPerms[0], ['autor', 'tutor', 'dozent'])) {
                 $change_versions = Request::getArray('change_version');
                 foreach ($change_versions as $fach_id => $abschluesse) {
                     foreach ($abschluesse as $abschluss_id => $version_id) {

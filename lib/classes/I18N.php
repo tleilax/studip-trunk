@@ -9,7 +9,7 @@ class I18N
 {
 
     /**
-     * Create a set of HTML input elements for this form element in text form.
+     * Creates a set of HTML input elements for this form element in text form.
      * One element will be generated for each configured content language.
      *
      * @param string $name HTML name of the Inputfild
@@ -17,61 +17,45 @@ class I18N
      * @param array $attributes Additional attributes of the input
      * @return string Crafted input
      */
-    public static function input($name, $value, $attributes = array())
+    public static function input($name, $value, $attributes = [])
     {
-        $languages = $GLOBALS['CONTENT_LANGUAGES'];
-        $base_lang = key($languages);
-        $enabled = self::isEnabled();
-        $result = '';
-
+        return self::inputTmpl('i18n/input.php', $name, $value,
+                ['input_attributes' => $attributes]);
+    }
+    
+    /**
+     * Returns a widget used in HTML forms to handle translated values in a
+     * textline (normally a input form element).
+     * The design of this widget has to be defined by the given template.
+     *
+     * @param Flexi_Template|string An template or a path to the template file.
+     * @param string $name HTML name of the Inputfild
+     * @param I18NString $value (Needs to be an i18n input string)
+     * @param array $attributes Additional attributes of the input
+     * @return string Crafted input
+     */
+    public static function inputTmpl($tmpl, $name, $value, $tmpl_attributes = [])
+    {
         if (!($value instanceof I18NString)) {
             $value = new I18NString($value);
         }
-
-        if ($enabled) {
-            $result .= '<div class="i18n_group">';
+        
+        if (!$tmpl instanceof Flexi_Template) {
+            $tmpl = $GLOBALS['template_factory']->open($tmpl);
         }
-
-        foreach ($languages as $locale => $lang) {
-            if ($locale === $base_lang) {
-                $attr = array(
-                    'name' => $name,
-                    'value' => $value->original(),
-                    'id' => $attributes['id']
-                );
-            } else {
-                $attr = array(
-                    'name' => $name . '_i18n[' . $locale . ']',
-                    'value' => $value->translation($locale),
-                    'id' => NULL
-                );
-            }
-
-            $result .= sprintf('<div class="i18n" data-lang="%s" data-icon="url(%s)">', $lang['name'], Assets::image_path('languages/' . $lang['picture']));
-
-            $attr = array_merge($attr, $attributes);
-            if (isset($attr['required']) && empty($attr['value']) && $locale !== $base_lang) {
-                unset($attr['required']);
-            }
-
-            $result .= '<input type="text"';
-            foreach ($attr as $key => $val) {
-                if ($val === true) {
-                    $result .= sprintf(' %s', $key);
-                } else if (isset($val)) {
-                    $result .= sprintf(' %s="%s"', $key, htmlReady($val));
-                }
-            }
-            $result .= "></div>\n";
-        }
-
-        if ($enabled) {
-            $result .= "</div>";
-        }
-
-        return $result;
+        
+        $tmpl->set_attributes([
+            'languages'  => $GLOBALS['CONTENT_LANGUAGES'],
+            'base_lang'  => key($GLOBALS['CONTENT_LANGUAGES']),
+            'enabled'    => self::isEnabled(),
+            'name'       => $name,
+            'value'      => $value,
+            'attributes' => (array) $tmpl_attributes
+        ]);
+        
+        return $tmpl->render();
     }
-
+    
     /**
      * Create a set of HTML textarea elements for this form element in text form.
      * One element will be generated for each configured content language.
@@ -80,68 +64,54 @@ class I18N
      * @param I18NString $value (Needs to be an i18n input string)
      * @param array $attributes Additional attributes of the input
      * @return string Crafted textarea
-     * @throws i18nException If given value was not an i18n Object
      */
-    public static function textarea($name, $value, $attributes = array())
+    public static function textarea($name, $value, $attributes = [])
     {
-        $languages = $GLOBALS['CONTENT_LANGUAGES'];
-        $base_lang = key($languages);
-        $wysiwyg = in_array('wysiwyg', words($attributes['class']));
-        $enabled = self::isEnabled();
-        $result = '';
-
-        if (!($value instanceof I18NString)) {
-            $value = new I18NString($value);
-        }
-
-        if ($enabled) {
-            $result .= '<div class="i18n_group">';
-        }
-
-        foreach ($languages as $locale => $lang) {
-            if ($locale === $base_lang) {
-                $attr = array(
-                    'name' => $name,
-                    'id' => $attributes['id']
-                );
-                $text = $value->original();
-            } else {
-                $attr = array(
-                    'name' => $name . '_i18n[' . $locale . ']',
-                    'id' => NULL
-                );
-                $text = $value->translation($locale);
-            }
-
-            $result .= sprintf('<div class="i18n" data-lang="%s" data-icon="url(%s)">', $lang['name'], Assets::image_path('languages/' . $lang['picture']));
-
-            $attr = array_merge($attr, $attributes);
-            if (isset($attr['required']) && empty($text) && $locale !== $base_lang) {
-                unset($attr['required']);
-            }
-
-            $result .= '<textarea';
-            foreach ($attr as $key => $val) {
-                if ($val === true) {
-                    $result .= sprintf(' %s', $key);
-                } else if (isset($val)) {
-                    $result .= sprintf(' %s="%s"', $key, htmlReady($val));
-                }
-            }
-            $result .= '>' . ($wysiwyg ? wysiwygReady($text) : htmlReady($text)) . "</textarea></div>\n";
-        }
-
-        if ($enabled) {
-            $result .= "</div>";
-        }
-
-        return $result;
+        
+        return self::inputTmpl('i18n/textarea.php', $name, $value,
+                ['input_attributes' => $attributes,
+                 'wysiwig' => in_array('wysiwyg', words($attributes['class']))]);
     }
 
     /**
-     * is more than the default language configured
+     * Returns a widget used in HTML forms to handle translated values in a
+     * multiline textarea (normally a textarea form element).
+     * The design of this widget has to be defined by the given template.
      *
-     * @return bool
+     * @param Flexi_Template|string $tmpl An template or a path to the template file.
+     * @param string $name HTML name of the Textarea
+     * @param I18NString $value (Needs to be an i18n input string)
+     * @param array $attributes Additional attributes of the input
+     * @return string Crafted textarea
+     */
+    public static function textareaTmpl($tmpl, $name, $value, $tmpl_attributes = [])
+    {
+        if (!($value instanceof I18NString)) {
+            $value = new I18NString($value);
+        }
+        
+        if (!$tmpl instanceof Flexi_Template) {
+            $tmpl = $GLOBALS['template_factory']->open($tmpl);
+        }
+        
+        $tmpl->set_attributes([
+            'languages'  => $GLOBALS['CONTENT_LANGUAGES'],
+            'base_lang'  => key($GLOBALS['CONTENT_LANGUAGES']),
+            'wysiwyg'    => in_array('wysiwyg', words($attributes['class'])),
+            'enabled'    => self::isEnabled(),
+            'name'       => $name,
+            'value'      => $value,
+            'attributes' => (array) $tmpl_attributes
+        ]);
+        
+        return $tmpl->render();
+    }
+    
+    /**
+     * Returns whether the i18n functionality is enabeld i.e. more than the
+     * default language is configured in config_defaults.inc.php.
+     *
+     * @return bool True if i18n is enabled.
      */
     public static function isEnabled()
     {

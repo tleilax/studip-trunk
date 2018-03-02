@@ -89,6 +89,9 @@ class Abschluss extends ModuleManagementModelTreeItem
             function($abschluss) { return $abschluss->count_objects; };        
         $config['additional_fields']['count_user']['get'] = 'countUser';
         
+        $config['i18n_fields']['name'] = true;
+        $config['i18n_fields']['name_kurz'] = true;
+        $config['i18n_fields']['beschreibung'] = true;
         
         parent::configure($config);
     }
@@ -117,20 +120,21 @@ class Abschluss extends ModuleManagementModelTreeItem
     {
         $sortby = self::createSortStatement($sortby, $order, 'chdate',
                 array('kategorie_name', 'count_faecher', 'count_studiengaenge'));
-        return parent::getEnrichedByQuery(
-                'SELECT abschluss.*, mvv_abschl_kategorie.name AS `kategorie_name`, '
-                . 'COUNT(DISTINCT mvv_stgteil.fach_id) AS `count_faecher`, '
-                . 'COUNT(DISTINCT mvv_studiengang.studiengang_id) AS `count_studiengaenge` '
-                . 'FROM abschluss '
-                . 'LEFT JOIN mvv_abschl_zuord USING(abschluss_id) '
-                . 'LEFT JOIN mvv_abschl_kategorie USING(kategorie_id) '
-                . 'LEFT JOIN mvv_studiengang USING(abschluss_id) '
-                . 'LEFT JOIN mvv_stg_stgteil USING(studiengang_id) '
-                . 'LEFT JOIN mvv_stgteil USING(stgteil_id) '
-                . 'LEFT JOIN mvv_fach_inst USING(fach_id) '
-                . self::getFilterSql($filter, true)
-                . 'GROUP BY abschluss_id '
-                . 'ORDER BY ' . $sortby, array(), $row_count, $offset);
+        return parent::getEnrichedByQuery('
+                SELECT abschluss.*, mvv_abschl_kategorie.name AS `kategorie_name`, 
+                    COUNT(DISTINCT mvv_stgteil.fach_id) AS `count_faecher`, 
+                    COUNT(DISTINCT mvv_studiengang.studiengang_id) AS `count_studiengaenge` 
+                FROM abschluss 
+                    LEFT JOIN mvv_abschl_zuord USING (abschluss_id) 
+                    LEFT JOIN mvv_abschl_kategorie USING (kategorie_id) 
+                    LEFT JOIN mvv_studiengang USING (abschluss_id) 
+                    LEFT JOIN mvv_stg_stgteil USING (studiengang_id) 
+                    LEFT JOIN mvv_stgteil USING (stgteil_id) 
+                    LEFT JOIN mvv_fach_inst USING (fach_id) 
+                ' . self::getFilterSql($filter, true) . '
+                GROUP BY abschluss_id 
+                ORDER BY ' . $sortby,
+        array(), $row_count, $offset);
     }
     
     /**
@@ -142,15 +146,16 @@ class Abschluss extends ModuleManagementModelTreeItem
      */
     public static function getCount($filter = null)
     {
-        $query = 'SELECT COUNT(DISTINCT(abschluss_id)) '
-                . 'FROM abschluss '
-                . 'LEFT JOIN mvv_abschl_zuord USING(abschluss_id) '
-                . 'LEFT JOIN mvv_abschl_kategorie USING(kategorie_id) '
-                . 'LEFT JOIN mvv_studiengang USING(abschluss_id) '
-                . 'LEFT JOIN mvv_stg_stgteil USING(studiengang_id) '
-                . 'LEFT JOIN mvv_stgteil USING(stgteil_id) '
-                . 'LEFT JOIN mvv_fach_inst USING(fach_id) '
-                . self::getFilterSql($filter, true);
+        $query = '
+            SELECT COUNT(DISTINCT(abschluss_id)) 
+            FROM abschluss 
+                LEFT JOIN mvv_abschl_zuord USING (abschluss_id) 
+                LEFT JOIN mvv_abschl_kategorie USING (kategorie_id) 
+                LEFT JOIN mvv_studiengang USING (abschluss_id) 
+                LEFT JOIN mvv_stg_stgteil USING (studiengang_id) 
+                LEFT JOIN mvv_stgteil USING (stgteil_id) 
+                LEFT JOIN mvv_fach_inst USING (fach_id) 
+                ' . self::getFilterSql($filter, true);
         $db = DBManager::get()->prepare($query);
         $db->execute();
         return $db->fetchColumn(0);
@@ -164,15 +169,18 @@ class Abschluss extends ModuleManagementModelTreeItem
      */
     public static function findByFach($fach_id)
     {
-        return parent::getEnrichedByQuery('SELECT ma.*, '
-                . 'COUNT(DISTINCT mss.studiengang_id) AS count_studiengaenge '
-                . 'FROM mvv_stgteil mst '
-                . 'INNER JOIN mvv_stg_stgteil mss USING(stgteil_id) '
-                . 'LEFT JOIN mvv_studiengang USING(studiengang_id) '
-                . 'LEFT JOIN abschluss ma USING(abschluss_id) '
-                . 'WHERE mst.fach_id = ? '
-                . 'GROUP BY ma.abschluss_id '
-                . 'ORDER BY name', array($fach_id));
+        return parent::getEnrichedByQuery('
+            SELECT ma.*, 
+                COUNT(DISTINCT mss.studiengang_id) AS count_studiengaenge 
+            FROM mvv_stgteil AS mst 
+                INNER JOIN mvv_stg_stgteil AS mss USING (stgteil_id) 
+                LEFT JOIN mvv_studiengang USING (studiengang_id) 
+                LEFT JOIN abschluss AS ma USING (abschluss_id) 
+            WHERE mst.fach_id = ? 
+            GROUP BY ma.abschluss_id 
+            ORDER BY name',
+            array($fach_id)
+        );
     }
     
     /**
@@ -182,11 +190,13 @@ class Abschluss extends ModuleManagementModelTreeItem
      */
     public static function findUsed()
     {
-        return parent::getEnrichedByQuery('SELECT a.*, maz.kategorie_id '
-                . 'FROM abschluss a '
-                . 'INNER JOIN mvv_studiengang ms USING(abschluss_id) '
-                . 'LEFT JOIN mvv_abschl_zuord maz USING(abschluss_id) '
-                . 'ORDER BY name');
+        return parent::getEnrichedByQuery('
+            SELECT a.*, maz.kategorie_id 
+            FROM abschluss AS a 
+                INNER JOIN mvv_studiengang AS ms USING(abschluss_id) 
+                LEFT JOIN mvv_abschl_zuord AS maz USING(abschluss_id) 
+            ORDER BY name
+        ');
     }
     
     /**
@@ -199,14 +209,14 @@ class Abschluss extends ModuleManagementModelTreeItem
      */
     public static function findByStudiengaenge($studiengang_ids = array())
     {
-        return parent::getEnrichedByQuery('SELECT ma.*, '
-                . 'COUNT(studiengang_id) AS count_objects '
-                . 'FROM abschluss ma '
-                . 'INNER JOIN mvv_studiengang USING(abschluss_id) '
-                . self::getFilterSql(array('mvv_studiengang.studiengang_id'
-                    => $studiengang_ids), true)
-                . 'GROUP BY ma.abschluss_id '
-                . 'ORDER BY ma.name');
+        return parent::getEnrichedByQuery('
+            SELECT ma.*, 
+                COUNT(studiengang_id) AS count_objects 
+            FROM abschluss AS ma 
+                INNER JOIN mvv_studiengang USING (abschluss_id) 
+            ' . self::getFilterSql(array('mvv_studiengang.studiengang_id' => $studiengang_ids), true) . '
+            GROUP BY ma.abschluss_id 
+            ORDER BY ma.name');
     }
     
     /**
@@ -217,16 +227,18 @@ class Abschluss extends ModuleManagementModelTreeItem
      */
     public static function findByFachbereich($fachbereich_id)
     {
-        return parent::getEnrichedByQuery('SELECT a.*, maz.kategorie_id '
-                . 'FROM abschluss a '
-                . 'INNER JOIN mvv_studiengang ms USING(abschluss_id) '
-                . 'LEFT JOIN mvv_abschl_zuord maz USING(abschluss_id) '
-                . 'INNER JOIN mvv_stg_stgteil mss '
-                . 'ON ms.studiengang_id = mss.studiengang_id '
-                . 'INNER JOIN mvv_stgteil USING(stgteil_id) '
-                . 'INNER JOIN mvv_fach_inst mfi USING(fach_id) '
-                . 'WHERE mfi.institut_id = ? '
-                . 'ORDER BY name', array($fachbereich_id));
+        return parent::getEnrichedByQuery('
+            SELECT a.*, maz.kategorie_id 
+            FROM abschluss AS a 
+                INNER JOIN mvv_studiengang AS ms USING (abschluss_id) 
+                LEFT JOIN mvv_abschl_zuord AS maz USING (abschluss_id) 
+                INNER JOIN mvv_stg_stgteil AS mss ON (ms.studiengang_id = mss.studiengang_id) 
+                INNER JOIN mvv_stgteil USING (stgteil_id) 
+                INNER JOIN mvv_fach_inst AS mfi USING (fach_id) 
+            WHERE mfi.institut_id = ? 
+            ORDER BY name',
+            array($fachbereich_id)
+        );
     }
     
     /**
@@ -237,15 +249,18 @@ class Abschluss extends ModuleManagementModelTreeItem
      */
     public static function findByModul($modul_id)
     {
-        return parent::getEnrichedByQuery('SELECT ma.* '
-                . 'FROM abschluss ma '
-                . 'INNER JOIN mvv_studiengang USING(abschluss_id) '
-                . 'INNER JOIN mvv_stg_stgteil USING(studiengang_id) '
-                . 'INNER JOIN mvv_stgteilversion USING(stgteil_id) '
-                . 'INNER JOIN mvv_stgteilabschnitt USING(version_id) '
-                . 'INNER JOIN mvv_stgteilabschnitt_modul msm USING(abschnitt_id) '
-                . 'WHERE msm.modul_id = ? '
-                . 'ORDER BY msm.position', array($modul_id));
+        return parent::getEnrichedByQuery('
+            SELECT ma.* 
+            FROM abschluss ma 
+                INNER JOIN mvv_studiengang USING (abschluss_id) 
+                INNER JOIN mvv_stg_stgteil USING (studiengang_id) 
+                INNER JOIN mvv_stgteilversion USING (stgteil_id) 
+                INNER JOIN mvv_stgteilabschnitt USING (version_id) 
+                INNER JOIN mvv_stgteilabschnitt_modul AS msm USING (abschnitt_id) 
+            WHERE msm.modul_id = ? 
+            ORDER BY msm.position',
+            array($modul_id)
+        );
     }
     
     /**
@@ -298,11 +313,12 @@ class Abschluss extends ModuleManagementModelTreeItem
     {
         $institute = array(); 
         
-        $stmt = DBManager::get()->prepare('SELECT inst.* '
-                . 'FROM mvv_studiengang ms '
-                . 'INNER JOIN Institute inst '
-                . 'ON inst.Institut_id = ms.institut_id '
-                . 'WHERE ms.abschluss_id = ? ');
+        $stmt = DBManager::get()->prepare('
+            SELECT inst.* 
+            FROM mvv_studiengang ms 
+                INNER JOIN Institute inst ON (inst.Institut_id = ms.institut_id) 
+            WHERE ms.abschluss_id = ? '
+        );
         
         $stmt->execute(array($this->getId()));
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $institut) {
@@ -354,14 +370,17 @@ class Abschluss extends ModuleManagementModelTreeItem
     {
         $_SESSION['MVV/Modul/trail_parent_id'] =  $this->getId();
         // return Modulteil::findByModul($this->getId());
-        return Modul::getEnrichedByQuery('SELECT mm.* '
-                . 'FROM mvv_modul mm '
-                . 'LEFT JOIN mvv_stgteilabschnitt_modul USING(modul_id) '
-                . 'LEFT JOIN mvv_stgteilabschnitt USING(abschnitt_id) '
-                . 'LEFT JOIN mvv_stgteilversion USING(version_id) '
-                . 'LEFT JOIN mvv_stg_stgteil USING(stgteil_id) '
-                . 'LEFT JOIN mvv_studiengang USING(studiengang_id) '
-                . 'WHERE abschluss_id = ? ', array($this->getId()));
+        return Modul::getEnrichedByQuery('
+            SELECT mm.* 
+            FROM mvv_modul mm 
+                LEFT JOIN mvv_stgteilabschnitt_modul USING (modul_id) 
+                LEFT JOIN mvv_stgteilabschnitt USING (abschnitt_id) 
+                LEFT JOIN mvv_stgteilversion USING (version_id) 
+                LEFT JOIN mvv_stg_stgteil USING (stgteil_id) 
+                LEFT JOIN mvv_studiengang USING (studiengang_id) 
+            WHERE abschluss_id = ? ',
+            array($this->getId())
+        );
     }
     
     /**
@@ -435,9 +454,12 @@ class Abschluss extends ModuleManagementModelTreeItem
     
     public function countUserByStudycourse($studycourse_id)
     {
-        $stmt = DBManager::get()->prepare('SELECT COUNT(DISTINCT user_id) '
-                . 'FROM user_studiengang '
-                . 'WHERE fach_id = ? AND abschluss_id = ?');
+        $stmt = DBManager::get()->prepare('
+            SELECT COUNT(DISTINCT user_id)
+            FROM user_studiengang 
+            WHERE fach_id = ? 
+                AND abschluss_id = ?'
+        );
         $stmt->execute(array($studycourse_id, $this->id));
         return $stmt->fetchColumn();
     }

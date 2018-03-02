@@ -1068,14 +1068,10 @@ class Admin_CoursesController extends AuthenticatedController
             19 => array(
                 'name'       => _('LV-Gruppen'),
                 'title'      => _('LV-Gruppen'),
-                'url'        => 'plugins.php/mvvplugin/lvgselector?cid=%s&from=admin/courses',
+                'url'        => 'dispatch.php/course/lvgselector?cid=%s&from=admin/courses',
                 'attributes' => ['data-dialog' => 'size=big'],
             ),
         );
-
-        if (!PluginEngine::getPlugin('MVVPlugin')) {
-            unset($actions[19]);
-        }
 
         if (!$GLOBALS['perm']->have_perm('admin')) {
             unset($actions[8]);

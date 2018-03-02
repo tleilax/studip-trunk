@@ -30,13 +30,13 @@ use Studip\Button, Studip\LinkButton;
             <? endforeach; ?>
             </select>
         </label>
-
+        <? if ($item->object_type !== 'moduldeskriptor' && $item->object_type !== 'modulteildeskriptor') : ?>
         <label>
             <?= _('Standardwert') ?>
 
             <?= str_replace('['.$datafield_id.']', '', $datafield_entry->getHTML('default_value')) ?>
         </label>
-
+        <? endif; ?>
         <label>
         <? if ($item->object_type === 'sem'): ?>
             <?= _('Veranstaltungskategorie') ?>:
@@ -64,7 +64,7 @@ use Studip\Button, Studip\LinkButton;
             <?= _('Sprache') ?>:
             
             <select multiple name="object_class[]" id="object_class" required>
-                <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle') ?></option>
+                <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle (mehrsprachige Eingabe bei Feldtyp textline, textarea, textmarkup)') ?></option>
             <? foreach ((array) $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'] as $key => $value) : ?>
                 <option value="<?= htmlReady($key) ?>" <? if (mb_strpos($item->object_class, $key) !== false) echo 'selected'; ?>>
                     <?= htmlReady($value['name']) ?>
@@ -75,7 +75,7 @@ use Studip\Button, Studip\LinkButton;
             <?= _('Sprache') ?>:
             
             <select multiple name="object_class[]" id="object_class" required>
-                <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle') ?></option>
+                <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle (mehrsprachige Eingabe)') ?></option>
             <? foreach ((array) $GLOBALS['MVV_MODULTEIL_DESKRIPTOR']['SPRACHE']['values'] as $key => $value) : ?>
                 <option value="<?= htmlReady($key) ?>" <? if (mb_strpos($item->object_class, $key) !== false) echo 'selected'; ?>>
                     <?= htmlReady($value['name']) ?>
@@ -147,7 +147,7 @@ use Studip\Button, Studip\LinkButton;
            </td>
         </label>
 
-    <? if ($item->object_type === 'sem'): ?>
+    <? if ($item->object_type === 'sem') : ?>
         <label>
             <?= _('Eintrag verpflichtend') ?>:
 

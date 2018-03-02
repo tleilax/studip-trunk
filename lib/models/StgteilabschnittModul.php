@@ -30,6 +30,8 @@ class StgteilabschnittModul extends ModuleManagementModelTreeItem
             'class_name' => 'StgteilAbschnitt',
             'foreign_key' => 'abschnitt_id'
         );
+        
+        $config['i18n_fields']['bezeichnung'] = true;
 
         parent::configure($config);
     }
@@ -87,7 +89,9 @@ class StgteilabschnittModul extends ModuleManagementModelTreeItem
     /**
      * Retrieves all Modul assignments to the given Studiengangteil-Abschnitt.
      *
-     * @param type $abschnitt_id The id of a Studiengangteil-Abschnitt.
+     * @param string $abschnitt_id The id of a Studiengangteil-Abschnitt.
+     * @param array $filter An array of filter definitions,
+     * see ModuleManagementModel::getFilterSql().
      * @return array Array of Modul assignments.
      */
     public static function findByStgteilAbschnitt($abschnitt_id, $filter)
@@ -104,13 +108,6 @@ class StgteilabschnittModul extends ModuleManagementModelTreeItem
          . 'WHERE mvv_stgteilabschnitt_modul.abschnitt_id = ? '
          . self::getFilterSql($filter)
          . ' ORDER BY position, mkdate', array($abschnitt_id));
-
-        /*
-        return parent::findBySql('abschnitt_id = '
-                . DbManager::get()->quote($abschnitt_id)
-                . ' ORDER BY position, chdate ASC');
-         *
-         */
     }
 
     /**

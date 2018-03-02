@@ -58,6 +58,8 @@ class Lvgruppe extends ModuleManagementModelTreeItem
             function($lvgruppe) { return $lvgruppe->count_semester; };
         $config['additional_fields']['count_semester']['set'] = false;
         
+        $config['i18n_fields']['alttext'] = true;
+        
         parent::configure($config);
     }
     

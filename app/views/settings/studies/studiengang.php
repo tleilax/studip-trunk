@@ -7,12 +7,11 @@
     <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
     <? endif; ?>
-    <? $modulemanagement_enabled = PluginEngine::getPlugin('MVVPlugin'); ?>
     <table class="default" id="select_fach_abschluss">
         <colgroup>
             <col>
             <col>
-            <?= $modulemanagement_enabled ? '<col>' : '' ?>
+            <col>
             <col width="100px">
             <col width="100px">
         </colgroup>
@@ -20,9 +19,7 @@
             <tr>
                 <th><?= _('Fach') ?></th>
                 <th><?= _('Abschluss') ?></th>
-                <? if ($modulemanagement_enabled) : ?>
-                    <th id="version_label"><?= _('Versionen') ?></th>
-                <? endif; ?>
+                <th id="version_label"><?= _('Versionen') ?></th>
                 <th id="fachsemester_label"><?= _('Fachsemester') ?></th>
                 <th style="text-align:center;" id="austragen_label">
                     <? if ($allow_change['sg']): ?>
@@ -36,7 +33,7 @@
         <tbody>
             <? if (count($user->studycourses) === 0 && $allow_change['sg']): ?>
             <tr>
-                <td colspan="<?= $modulemanagement_enabled ? '5' : '4' ?>" style="background: inherit;">
+                <td colspan="5" style="background: inherit;">
                     <strong><?= _('Sie haben sich noch keinem Studiengang zugeordnet.') ?></strong><br>
                     <br>
                     <?= _('Tragen Sie bitte hier die Angaben aus Ihrem Studierendenausweis ein!') ?>
@@ -48,37 +45,35 @@
             <? foreach ($user->studycourses as $usc): ?>
             <tr>
                 <td data-label="<?= _('Fach') ?>"><?= htmlReady($usc->studycourse->name) ?></td>
-                <td data-label="<?= _('Abschluss') ?>"><?= htmlReady($usc->degree->name) ?></td>
-                <? if ($modulemanagement_enabled) : ?>
-                    <? if ($allow_change['sg']): ?>
-                        <td data-label="<?= _('Version') ?>">
+                <td data-label="<?= _('Abschluss') ?>"><?= htmlReady($usc->degree->name) ?></td>            
+                <? if ($allow_change['sg']): ?>
+                    <td data-label="<?= _('Version') ?>">
                             <? $versionen = StgteilVersion::findByFachAbschluss($usc->fach_id, $usc->abschluss_id); ?>
-                            <? $versionen = array_filter($versionen, function ($ver) {
-                                return $ver->hasPublicStatus('genehmigt');
-                            }); ?>
-                            <? if (count($versionen)) : ?>
+                        <? $versionen = array_filter($versionen, function ($ver) {
+                            return $ver->hasPublicStatus('genehmigt');
+                        }); ?>
+                        <? if (count($versionen)) : ?>
                                 <select name="change_version[<?= $usc->fach_id ?>][<?= $usc->abschluss_id ?>]"
-                                        aria-labelledby="version_label">
-                                    <option value=""><?= _('-- Bitte Version auswählen --') ?></option>
-                                    <? foreach ($versionen as $version) : ?>
+                                    aria-labelledby="version_label">
+                                <option value=""><?= _('-- Bitte Version auswählen --') ?></option>
+                                <? foreach ($versionen as $version) : ?>
                                         <option<?= $version->getId() == $usc->version_id ? ' selected' : '' ?>
-                                                value="<?= htmlReady($version->getId()) ?>">
-                                            <?= htmlReady($version->getDisplayName()) ?>
-                                        </option>
-                                    <? endforeach; ?>
-                                </select>
-                            <? else : ?>
-                                <?= tooltipIcon(_('Keine Version in der gewählten Fach-Abschluss-Kombination verfügbar.'), true) ?>
-                            <? endif; ?>
-                        </td>
-                    <? else : ?>
-                        <? $version = StgteilVersion::find($usc->version_id); ?>
-                        <td>
-                            <? if ($version && $version->hasPublicStatus('genehmigt')) : ?>
-                                <?= htmlReady($version->getDisplayName()); ?>
-                            <? endif; ?>
-                        </td>
-                    <? endif; ?>
+                                            value="<?= htmlReady($version->getId()) ?>">
+                                        <?= htmlReady($version->getDisplayName()) ?>
+                                    </option>
+                                <? endforeach; ?>
+                            </select>
+                        <? else : ?>
+                            <?= tooltipIcon(_('Keine Version in der gewählten Fach-Abschluss-Kombination verfügbar.'), true) ?>
+                        <? endif; ?>
+                    </td>
+                <? else : ?>
+                    <? $version = StgteilVersion::find($usc->version_id); ?>
+                    <td>
+                        <? if ($version && $version->hasPublicStatus('genehmigt')) : ?>
+                            <?= htmlReady($version->getDisplayName()); ?>
+                        <? endif; ?>
+                    </td>
                 <? endif; ?>
                 <? if ($allow_change['sg']): ?>
                     <td data-label="<?= _('Fachsemester') ?>">
@@ -105,7 +100,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="<?= $modulemanagement_enabled ? '5' : '4' ?>">
+                <td colspan="5">
                     <? if ($allow_change['sg']): ?>
                         <p>
                             <?= _('Wählen Sie die Fächer, Abschlüsse und Fachsemester in der folgenden Liste aus:') ?>

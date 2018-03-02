@@ -350,27 +350,27 @@ use Studip\Button, Studip\LinkButton;
                         htmlReady($usc->semester),
                         _('Fachsemester')
                     ) ?>
-                    <? if (PluginEngine::getPlugin('MVVPlugin')) : ?>
-                        <? $versionen = StgteilVersion::findByFachAbschluss($usc->fach_id, $usc->abschluss_id); ?>
-                        <? $versionen = array_filter($versionen, function ($ver) {
-                            return $ver->hasPublicStatus('genehmigt');
-                        }); ?>
-                        <? if (count($versionen)): ?>
-                            <br>
-                            <select name="change_version[<?= $usc->fach_id ?>][<?= $usc->abschluss_id ?>]"
-                                    aria-labelledby="version_label">
-                                <option value=""><?= _('-- Bitte Version auswählen --') ?></option>
-                            <? foreach ($versionen as $version) : ?>
-                                <option <? if ($version->getId() == $usc->version_id) echo 'selected'; ?>
-                                        value="<?= htmlReady($version->getId()) ?>">
-                                    <?= htmlReady($version->getDisplayName()) ?>
-                                </option>
-                            <? endforeach; ?>
-                            </select>,<br>
-                        <? else : ?>
-                            <?= tooltipIcon(_('Keine Version in der gewählten Fach-Abschluss-Kombination verfügbar.'), true) ?>
-                        <? endif; ?>
-                    <? endif ?>
+                
+                    <? $versionen = StgteilVersion::findByFachAbschluss($usc->fach_id, $usc->abschluss_id); ?>
+                    <? $versionen = array_filter($versionen, function ($ver) {
+                        return $ver->hasPublicStatus('genehmigt');
+                    }); ?>
+                    <? if (count($versionen)): ?>
+                        <br>
+                        <select name="change_version[<?= $usc->fach_id ?>][<?= $usc->abschluss_id ?>]"
+                                aria-labelledby="version_label">
+                            <option value=""><?= _('-- Bitte Version auswählen --') ?></option>
+                        <? foreach ($versionen as $version) : ?>
+                            <option <? if ($version->getId() == $usc->version_id) echo 'selected'; ?>
+                                    value="<?= htmlReady($version->getId()) ?>">
+                                <?= htmlReady($version->getDisplayName()) ?>
+                            </option>
+                        <? endforeach; ?>
+                        </select>,<br>
+                    <? else : ?>
+                        <?= tooltipIcon(_('Keine Version in der gewählten Fach-Abschluss-Kombination verfügbar.'), true) ?>
+                    <? endif; ?>
+                    
                 </td>
                 <td align="right">
                     <a href="<?= $controller->url_for('admin/user/delete_studycourse/' . $user->user_id . '/' . $usc->fach_id . '/' . $usc->abschluss_id) ?>">

@@ -42,10 +42,14 @@ class ModulteilLanguage extends ModuleManagementModel
     public static function findByModulteil($modulteil_id)
     {
         $languages = array();
-        foreach (parent::getEnrichedByQuery('SELECT * '
-                . 'FROM mvv_modulteil_language '
-                . 'WHERE modulteil_id = ? '
-                . 'ORDER BY position, mkdate', array($modulteil_id)) as $language) {
+        $modulteil_languages = parent::getEnrichedByQuery('
+                SELECT * 
+                FROM mvv_modulteil_language 
+                WHERE modulteil_id = ? 
+                ORDER BY position, mkdate',
+            array($modulteil_id)
+        );
+        foreach ($modulteil_languages as $language) {
             $languages[$language->lang] = $language;
         }
         return $languages;

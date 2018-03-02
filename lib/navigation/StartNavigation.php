@@ -273,6 +273,11 @@ class StartNavigation extends Navigation
         // files dashboard
         $navigation = new Navigation(_('Dateien'), 'dispatch.php/files_dashboard');
         $this->addSubNavigation('files_dashboard', $navigation);
+        
+        //mvv pages
+        if (MVV::isVisible()) {
+            $this->addSubNavigation('mvv', new MVVNavigation());
+        }
 
         // external help
         $navigation = new Navigation(_('Hilfe'), format_help_url('Basis.Allgemeines'));

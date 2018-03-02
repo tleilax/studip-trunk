@@ -124,26 +124,24 @@ class Settings_StudiesController extends Settings_SettingsController
             }
 
             // store versions if module management is enabled
-            if (PluginEngine::getPlugin('MVVPlugin')) {
-                $change_versions = Request::getArray('change_version');
-                foreach ($change_versions as $fach_id => $abschluesse) {
-                    foreach ($abschluesse as $abschluss_id => $version_id) {
-                        $version = reset(StgteilVersion::findByFachAbschluss(
-                            $fach_id, $abschluss_id, $version_id));
-                        if ($version && $version->hasPublicStatus('genehmigt')) {
-                            $user_stc = UserStudyCourse::find([
-                                $this->user->user_id,
-                                $fach_id,
-                                $abschluss_id
-                            ]);
-                            if ($user_stc) {
-                                $user_stc->version_id = $version->getId();
-                                $any_change = $user_stc->store() !== false;
-                            }
+            $change_versions = Request::getArray('change_version');
+            foreach ($change_versions as $fach_id => $abschluesse) {
+                foreach ($abschluesse as $abschluss_id => $version_id) {
+                    $version = reset(StgteilVersion::findByFachAbschluss(
+                        $fach_id, $abschluss_id, $version_id));
+                    if ($version && $version->hasPublicStatus('genehmigt')) {
+                        $user_stc = UserStudyCourse::find([
+                            $this->user->user_id,
+                            $fach_id,
+                            $abschluss_id
+                        ]);
+                        if ($user_stc) {
+                            $user_stc->version_id = $version->getId();
+                            $any_change = $user_stc->store() !== false;
                         }
                     }
                 }
-            }
+            }            
         }
 
         if ($any_change) {

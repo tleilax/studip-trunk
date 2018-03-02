@@ -53,6 +53,10 @@ class StgteilAbschnitt extends ModuleManagementModelTreeItem
             function($fach) { return $fach->count_module; };
         $config['additional_fields']['count_module']['set'] = false;
         
+        $config['i18n_fields']['name'] = true;
+        $config['i18n_fields']['kommentar'] = true;
+        $config['i18n_fields']['ueberschrift'] = true;
+        
         parent::configure($config);
     }
     
@@ -129,7 +133,13 @@ class StgteilAbschnitt extends ModuleManagementModelTreeItem
             $modul = Modul::find($modul);
             if (!$modul) return false;
         }
-        $abschnitt_modul = new StgteilabschnittModul(array($this->id, $modul->id));
+        $abschnitt_modul = StgteilabschnittModul::findBySQL(
+                'abschnitt_id = ? AND modul_id = ?', [$this->id, $modul->id]);
+        if (!$abschnitt_id) {
+            $abschnitt_modul = new StgteilabschnittModul();
+            $abschnitt_modul->abschnitt_id = $this->id;
+            $abschnitt_modul->modul_id = $modul->id;
+        }
         if (!$this->modul_zuordnungen) {
             $this->modul_zuordnungen = SimpleORMapCollection::createFromArray(
                     array($abschnitt_modul));
@@ -159,9 +169,11 @@ class StgteilAbschnitt extends ModuleManagementModelTreeItem
         if (!$this->modul_zuordnungen) {
             return false;
         }
-        $this->modul_zuordnungen->unsetByPk(
-                join('_', array($this->id, $modul->id)));
-        return true;
+        $modul_zuordnung = StgteilabschnittModul::findOneBySQL(
+                'abschnitt_id = ? AND modul_id = ?',
+                [$this->id, $modul->id]);
+        $removed = $this->modul_zuordnungen->unsetByPk($modul_zuordnung->id);
+        return $removed !== false;
     }
     
     /**

@@ -74,6 +74,11 @@ class StudipNavigation extends Navigation
             $this->addSubNavigation('admin', new AdminNavigation());
         }
 
+        //mvv pages
+        if (MVV::isVisible()) {
+            $this->addSubNavigation('mvv', new MVVNavigation());
+        }
+
         // resource managment, if it is enabled
         if (get_config('RESOURCES_ENABLE')) {
             require_once 'lib/resources/resourcesFunc.inc.php';

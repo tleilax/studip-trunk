@@ -43,6 +43,21 @@ class SearchNavigation extends Navigation
         $navigation = new Navigation(_('Veranstaltungen'), 'dispatch.php/search/courses');
         $this->addSubNavigation('courses', $navigation);
 
+        // search modules
+        if (MVV::isVisibleSearch()) {
+            $navigation = new Navigation(_('Modulverzeichnis'));
+            $navigation->addSubNavigation('modulsuche',
+                    new Navigation(_('Module'),
+                    'dispatch.php/search/module'));
+            $navigation->addSubNavigation('angebot',
+                    new Navigation(_('Studienangebot'),
+                    'dispatch.php/search/angebot'));
+            $navigation->addSubNavigation('studiengaenge',
+                    new Navigation(_('Studiengänge'),
+                    'dispatch.php/search/studiengaenge'));
+            Navigation::addSubNavigation('module', $navigation);
+        }
+        
         // search archive
         $navigation = new Navigation(_('Archiv'), 'dispatch.php/search/archive');
         $this->addSubNavigation('archive', $navigation);
