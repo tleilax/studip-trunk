@@ -80,7 +80,6 @@ use Studip\Button, Studip\LinkButton;
                 <? if (!$prelim): ?>
                     <?= vis_chooser($user->visible, false, 'visible') ?>
                 <? endif; ?>
-                    <small>(<?= htmlReady($user->visible) ?>)</small>
                 </td>
             </tr>
             <tr>

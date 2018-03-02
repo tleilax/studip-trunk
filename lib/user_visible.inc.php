@@ -180,14 +180,12 @@ function vis_chooser($vis, $new = false, $id = false) {
     }
     $txt = array();
     $txt[] = sprintf('<select name="visible"%s>', $id ? 'id="' . htmlReady($id) . '"' : '');
-    if (!$new) {
-        $txt[] = '<option value="'.$vis.'">'._("keine Änderung").'</option>';
-    }
-    $txt[] = '<option value="always">'._("immer").'</option>';
-    /* $txt[] = '<option value="yes">'._("ja").'</option>'; */
-    $txt[] = '<option value="unknown"'.(($new)? ' selected="selected"':'').'>'._("unbekannt").'</option>';
-    /* $txt[] = '<option value="no">'._("nein").'</option>'; */
-    $txt[] = '<option value="never">'._("niemals").'</option>';
+    $txt[] = '<option value="global"'.($vis === "global" ? " selected" : "").'>'._("global").'</option>';
+    $txt[] = '<option value="always"'.($vis === "always" ? " selected" : "").'>'._("immer").'</option>';
+    $txt[] = '<option value="yes"'.($vis === "yes" ? " selected" : "").'>'._("ja").'</option>';
+    $txt[] = '<option value="unknown"'.(($new || $vis === "unknown") ? ' selected="selected"':'').'>'._("unbekannt").'</option>';
+    $txt[] = '<option value="no"'.($vis === "no" ? " selected" : "").'>'._("nein").'</option>';
+    $txt[] = '<option value="never"'.($vis === "never" ? " selected" : "").'>'._("niemals").'</option>';
     $txt[] = '</select>';
     return implode("\n", $txt);
 }
