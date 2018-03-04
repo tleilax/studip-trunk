@@ -29,7 +29,7 @@ class StreamsController extends PluginController {
     public function global_action() {
         PageLayout::setTitle(_("Globaler Blubberstream"));
 
-        if (Navigation::hasItem('/community/bluber')) {
+        if (Navigation::hasItem('/community/blubber')) {
             Navigation::activateItem("/community/blubber");
         } else {
             throw new AccessDeniedException();
