@@ -96,7 +96,7 @@ class Admin_ContentTermsOfUseController extends AuthenticatedController
         $entry->position = Request::int('position');
         $entry->description = Request::i18n('description');
         $entry->student_description = Request::i18n('student_description');
-        $entry->is_default = Request::int('is_default');
+        $entry->is_default = Request::int('is_default') ?: 0;
 
         if (($errors = $entry->validate()) || $entry->store() === false) {
             if (count($errors) === 1) {
