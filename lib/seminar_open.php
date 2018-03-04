@@ -108,7 +108,9 @@ include 'config.inc.php';
 // Try to select the course or institute given by the parameter 'cid'
 // in the current request.
 
-$course_id = Request::int('cancel_login') ? null: Request::option('cid');
+$course_id = (Request::int('cancel_login') && (!is_object($user) || $user->id === 'nobody'))
+           ? null
+           : Request::option('cid');
 
 // Select the current course or institute if we got one from 'cid' or session.
 // This also binds Context::getId()
@@ -118,7 +120,7 @@ if (isset($course_id)) {
     unset($course_id);
 }
 
-if (Request::get("sober") && ($GLOBALS['user']->id === "nobody" || $GLOBALS['perm']->have_perm("root"))) {
+if (Request::get("sober") && ($GLOBALS['user']->id === "onbody" || $GLOBALS['perm']->have_perm("root"))) {
     //deactivate non-core-plugins:
     URLHelper::bindLinkParam("sober", $sober);
     PluginManager::$sober = true;
