@@ -28,7 +28,12 @@ class StreamsController extends PluginController {
      */
     public function global_action() {
         PageLayout::setTitle(_("Globaler Blubberstream"));
-        Navigation::activateItem("/community/blubber");
+
+        if (Navigation::hasItem('/community/bluber')) {
+            Navigation::activateItem("/community/blubber");
+        } else {
+            throw new AccessDeniedException();
+        }
 
         if (Request::get("delete_stream")) {
             $stream = new BlubberStream(Request::option("delete_stream"));
@@ -515,15 +520,15 @@ class StreamsController extends PluginController {
                 || ($context_type === "course" && !$GLOBALS['perm']->have_studip_perm("autor", $context))) {
             throw new AccessDeniedException();
         }
-        
+
         $output = array();
 
         foreach ($_FILES as $file) {
-        
+
             $newfile = null; //is filled below
             $file_ref = null; //is also filled below
-            
-            
+
+
             if ($file['size']) {
                 $document['user_id'] = $GLOBALS['user']->id;
                 $document['filesize'] = $file['size'];
@@ -541,8 +546,8 @@ class StreamsController extends PluginController {
                             'parent_id' => $root_dir->getId()
                         ]
                     );
-                    
-                    
+
+
                     if ($blubber_directory) {
                         $blubber_directory = $blubber_directory->getTypedFolder();
                     } else {
@@ -558,28 +563,28 @@ class StreamsController extends PluginController {
                         if (!$blubber_directory instanceof FolderType) {
                             throw new Exception($blubber_directory[0]);
                         }
-                        
+
                         $blubber_directory->data_content = ['Blubber'];
                         $blubber_directory->store();
                     }
-                    
+
                     if ($blubber_directory) {
                         //ok, blubber directory exists: we can handle the uploaded file
-                        
+
                         $error_string = $blubber_directory->validateUpload(
                             $file,
                             $GLOBALS['user']->id
                         );
-                        
+
                         if ($error_string) {
                             throw new Exception($error_string);
                         }
-                        
-                        
+
+
                         $file['tmp_path'] = $file['tmp_name'];
-                        
+
                         $file_ref = $blubber_directory->createFile($file);
-                        
+
                         if($file_ref) {
                             //we can't use the FileRef's getDownloadURL() here,
                             //because the getDownloadURL method does not provide
@@ -597,14 +602,14 @@ class StreamsController extends PluginController {
                         } else {
                             throw new Exception('File cannot be created!');
                         }
-                        
+
                     }
                 } catch (Exception $e) {
                     $output['errors'][] = $e->getMessage();
                     $success = false;
                 }
 
-                
+
                 if ($success) {
                     $type = null;
 
