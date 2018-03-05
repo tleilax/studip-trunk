@@ -80,6 +80,12 @@ jQuery(function ($) {
             textarea = $(textarea);
         }
 
+        // In Firefox the browser's window is not set active after a Drag and Drop action. 
+        // So placeholders do not work correctly in Firefox and will be removed.
+        if (CKEDITOR.env.gecko) { 
+            textarea.removeAttr('placeholder'); 
+        } 
+
         // create ID for textarea if it doesn't have one
         if (!textarea.attr('id')) {
             textarea.attr('id', createNewId('wysiwyg'));
