@@ -32,7 +32,7 @@ jQuery(function ($) {
     <form id="folderchooser_course_search"
           action="<?= $controller->link_for('file/choose_folder_from_course/', $options) ?>"
           data-dialog>
-        <?= QuickSearch::get('course_id', new StandardSearch('Seminar_id'))
+        <?= QuickSearch::get('course_id', new StandardSearch('AnySeminar_id'))
             ->fireJSFunctionOnSelect("function () { jQuery('#folderchooser_course_search').submit(); }")
             ->setInputStyle('width: calc(100% - 40px); margin: 20px;')
             ->render() ?>
