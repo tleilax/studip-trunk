@@ -29,6 +29,7 @@ class Seminar_User
         if (!isset($this->user)) {
             $this->user = new User();
             $this->user->user_id = 'nobody';
+            $this->user->perms = null;
         }
         $this->cfg = UserConfig::get($this->user->user_id);
         $this->last_online_time = $this->get_last_action();
