@@ -75,7 +75,7 @@ abstract class GlobalSearchModule
         // Maximum length for an unshortened string.
         $maxlength = 100;
 
-        if (strpos($query, '/') !== false) {
+        if (mb_strpos($query, '/') !== false) {
             $args = explode('/', $query);
             if ($filename) {
                 return self::mark($string, trim($args[1]));
@@ -90,9 +90,9 @@ abstract class GlobalSearchModule
 
         if ($found) {
             // Check for overlength
-            if ($longtext && strlen($result) > $maxlength) {
-                $start = max(array(0, stripos($result, '<mark>') - 20));
-                return '[...]' . substr($result, $start, $maxlength) . '[...]';
+            if ($longtext && mb_strlen($result) > $maxlength) {
+                $start = max(array(0, mb_stripos($result, '<mark>') - 20));
+                return '[...]' . mb_substr($result, $start, $maxlength) . '[...]';
             }
 
             return $result;
@@ -101,33 +101,33 @@ abstract class GlobalSearchModule
         // Replace camelcase
         $i = 1;
         $replacement = "${$i}";
-        foreach (str_split(strtoupper($query)) as $letter) {
+        foreach (preg_split('//u', mb_strtoupper($query), -1, PREG_SPLIT_NO_EMPTY) as $letter) {
             $queryletter[] = "({$letter})";
             $replacement .= '<mark>$' . ++$i . '</mark>$' . ++$i;
         }
 
-        $pattern = '/([\w\W]*)' . join('([\w\W]*)', $queryletter) . '/';
+        $pattern = '/([\w\W]*)' . implode('([\w\W]*)', $queryletter) . '/';
         $result = preg_replace($pattern, $replacement, $string, -1, $found);
 
         if ($found) {
             // Check for overlength
-            if ($longtext && strlen($result) > $maxlength) {
-                $start = max(array(0, stripos($result, '<mark>') - 20));
-                $space = stripos($result, ' ', $start);
+            if ($longtext && mb_strlen($result) > $maxlength) {
+                $start = max(array(0, mb_stripos($result, '<mark>') - 20));
+                $space = mb_stripos($result, ' ', $start);
                 $start = $space < $start + 20 ? $space : $start;
-                return '[...]' . substr($result, $start, $maxlength) . '[...]';
+                return '[...]' . mb_substr($result, $start, $maxlength) . '[...]';
             }
 
             return $result;
         }
 
         // Check for overlength
-        if ($longtext && strlen($result) > $maxlength) {
-            return '[...]' . substr($string, 0, $maxlength) . '[...]';
+        if ($longtext && mb_strlen($result) > $maxlength) {
+            return '[...]' . mb_substr($string, 0, $maxlength) . '[...]';
         }
 
-        if (strlen($string) > $maxlength) {
-            return substr($string, 0, $maxlength) . '[...]';
+        if (mb_strlen($string) > $maxlength) {
+            return mb_substr($string, 0, $maxlength) . '[...]';
         }
 
         return $string;
