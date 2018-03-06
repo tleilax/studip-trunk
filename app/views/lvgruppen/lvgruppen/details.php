@@ -104,8 +104,8 @@
                     <ul>
                     <? foreach ($archived_courses as $archived_course) : ?>
                         <li>
-                            <a href="<?= URLHelper::getLink('archiv.php', array('dump_id' => $archived_course['seminar_id'])) ?>" target="_blank">
-                            <?= htmlReady($archived_course['name'] . '(' . $archived_course['semester'] . ')') ?>
+                            <a href="<?= URLHelper::getLink("dispatch.php/archive/overview/{$archived_course['seminar_id']}") ?>" target="_blank">
+                                <?= htmlReady($archived_course['name'] . '(' . $archived_course['semester'] . ')') ?>
                             </a>
                         </li>
                     <? endforeach; ?>
