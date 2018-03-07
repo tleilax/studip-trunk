@@ -306,7 +306,7 @@ class FilesIndexManager
         // beschreibung
         self::createIndex(
             sprintf(
-                'SELECT file_refs.id, file_refs.description, %s FROM file_refs %s',
+                "SELECT file_refs.id, IFNULL(file_refs.description, ''), %s FROM file_refs %s",
                 self::relevance(
                     self::RATING_FILE_REF_DESCRIPTION,
                     'file_refs.chdate'
