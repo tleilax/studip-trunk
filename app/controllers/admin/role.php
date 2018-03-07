@@ -18,7 +18,7 @@
 class Admin_RoleController extends AuthenticatedController
 {
     protected $utf8decode_xhr = true;
-    
+
     /**
      *
      */
@@ -196,6 +196,11 @@ class Admin_RoleController extends AuthenticatedController
     public function assign_role_action($userid = NULL)
     {
         $usersel = Request::option('usersel', $userid);
+
+        if (isset($usersel) && Request::isPost()) {
+            $this->redirect("admin/role/assign_role/{$usersel}");
+            return;
+        }
 
         // user search was started
         if (Request::submitted('search')) {
