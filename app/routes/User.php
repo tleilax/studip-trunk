@@ -149,6 +149,10 @@ class User extends \RESTAPI\RouteMap
      */
     public function getInstitutes($user_id)
     {
+        $user = \User::find($user_id);
+        if (!$user) {
+            $this->notFound(sprintf('User %s not found', $user_id));
+        }
 
         $query = "SELECT i0.Institut_id AS institute_id, i0.Name AS name,
                          inst_perms AS perms, sprechzeiten AS consultation,
@@ -165,10 +169,10 @@ class User extends \RESTAPI\RouteMap
         $statement->bindValue(':user_id', $user_id);
         $statement->execute();
 
-        $institutes = array(
-            'work'  => array(),
-            'study' => array(),
-        );
+        $institutes = [
+            'work'  => [],
+            'study' => [],
+        ];
 
         foreach ($statement->fetchAll(\PDO::FETCH_ASSOC) as $row) {
             if ($row['perms'] === 'user') {
@@ -181,7 +185,11 @@ class User extends \RESTAPI\RouteMap
         $this->etag(md5(serialize($institutes)));
 
         $result = array_slice($institutes, $this->offset, $this->limit);
-        return $this->paginated($result, count($institutes), compact('user_id'));
+        return $this->paginated(
+            $result,
+            count($institutes['study']) + count($institutes['work']),
+            compact('user_id')
+        );
     }
 
 
