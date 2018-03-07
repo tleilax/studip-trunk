@@ -153,7 +153,7 @@
                 STUDIP.Dialog.fromURL(redirect);
             }
 
-            if ($('table.document').length) {
+            if ($('table.documents').length > 0) {
                 // on files page
 
                 if (typeof html !== 'array' && typeof html !== 'object') {
@@ -182,7 +182,6 @@
                 if (payload.url) {
                     STUDIP.Dialog.handlers.header['X-Location'](payload.url);
                 }
-                return;
             }
         },
         removeFile: function (fileref_id) {

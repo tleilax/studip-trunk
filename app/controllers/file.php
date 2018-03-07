@@ -1321,9 +1321,9 @@ class FileController extends AuthenticatedController
 
                     $this->response->add_header(
                         'X-Dialog-Execute',
-                        studip_json_encode(['func' => 'STUDIP.Files.addFile', 'payload' => $payload])
+                        'STUDIP.Files.addFile'
                     );
-                    $this->render_nothing();
+                    $this->render_json($payload);
                 }
             } else {
                 PageLayout::postError(_('Die angegebene URL ist ungültig.'));
