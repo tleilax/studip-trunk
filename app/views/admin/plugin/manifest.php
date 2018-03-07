@@ -9,11 +9,17 @@
     <dd><?= join(', ', $plugin['type']) ?></dd>
 
     <dt><?= _('Origin') ?></dt>
-    <dd><?= htmlReady($plugin['origin']) ?></dd>
+    <dd><?= htmlReady($manifest['origin']) ?></dd>
 
     <dt><?= _('Version') ?></dt>
-    <dd><?= htmlReady($plugin['version']) ?></dd>
+    <dd><?= htmlReady($manifest['version']) ?></dd>
 
     <dt><?= _('Beschreibung') ?></dt>
-    <dd><?= htmlReady($plugin['description']) ?></dd>
+    <dd>
+    <? if ($manifest['description']): ?>
+        <?= htmlReady($manifest['description']) ?>
+    <? else: ?>
+        (<?= _('keine Beschreibung vorhanden') ?>)
+    <? endif; ?>
+    </dd>
 </dl>
