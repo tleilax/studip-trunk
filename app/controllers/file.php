@@ -1084,9 +1084,9 @@ class FileController extends AuthenticatedController
 
                     $this->response->add_header(
                         'X-Dialog-Execute',
-                        studip_json_encode(['func' => 'STUDIP.Files.addFile', 'payload' => $payload])
+                        'STUDIP.Files.addFile'
                     );
-                    $this->render_nothing();
+                    $this->render_json($payload);
                 } else {
                     PageLayout::postSuccess(_('Datei wurde hinzugefügt.'));
                     $redirect = 'files/index/' . $folder_id;
