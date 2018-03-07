@@ -632,6 +632,11 @@ class MessagesController extends AuthenticatedController {
 
     protected function delete_message($message_id)
     {
+        $message = Message::find($message_id);
+        if ($message) {
+            $message->markAsRead($GLOBALS['user']->id);
+        }
+
         $messageuser = new MessageUser(array($GLOBALS['user']->id, $message_id, "snd"));
         $success = 0;
         if (!$messageuser->isNew()) {
