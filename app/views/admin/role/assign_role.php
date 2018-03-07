@@ -67,7 +67,7 @@ use Studip\Button, Studip\LinkButton;
             </tr>
         </table>
     </form>
-    
+
     <h3>
         <?= _('Einrichtungszuordnungen') ?>
     </h3>
@@ -96,7 +96,7 @@ use Studip\Button, Studip\LinkButton;
                     <?= htmlReady(implode(",\n", $assignedroles_institutes[$assignedrole->getRoleid()]))?>
                 </td>
                 <td class="actions">
-                    <a href="<?= $controller->link_for('/assign_role_institutes/' . $assignedrole->getRoleid() . '/' . $currentuser->id) ?>" data-dialog="size=auto">
+                    <a href="<?= $controller->link_for('/assign_role_institutes/' . $assignedrole->getRoleid() . '/' . $currentuser->id) ?>" data-dialog="size=auto;reload-on-close">
                         <?= Icon::create('edit', 'clickable')->asImg(array('title' => _('Einrichtungszuordnung bearbeiten'))) ?>
                     </a>
                 </td>
@@ -116,4 +116,3 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
     <? endforeach ?>
 <? endif ?>
-
