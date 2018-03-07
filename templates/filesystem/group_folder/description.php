@@ -1,4 +1,9 @@
-<label>
+<div>
     <div><?= sprintf(_('Ein Ordner für die Mitglieder der Gruppe %s.'), htmlReady($groupname)) ?></div>
     <div><?= _('Der Inhalt ist nur für die eingetragenen Mitglieder sichtbar.') ?></div>
-</label>
+</div>
+<? if ($folderdata['description']) : ?>
+    <div>
+        <?= htmlReady($folderdata['description']) ?>
+    </div>
+<? endif ?>

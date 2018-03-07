@@ -150,9 +150,10 @@ class CourseGroupFolder extends StandardFolder
         $group = new Statusgruppen($this->folderdata['data_content']['group']);
 
         $template = $GLOBALS['template_factory']->open('filesystem/group_folder/description.php');
-        $template->type      = self::getTypeName();
-        $template->folder    = $this;
-        $template->groupname = $group->name;
+        $template->type       = self::getTypeName();
+        $template->folder     = $this;
+        $template->groupname  = $group->name;
+        $template->folderdata = $this->folderdata;
 
         return $template;
     }

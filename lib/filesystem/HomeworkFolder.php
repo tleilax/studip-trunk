@@ -79,7 +79,8 @@ class HomeworkFolder extends PermissionEnabledFolder
     {
 
         $template = $GLOBALS['template_factory']->open('filesystem/homework_folder/description.php');
-        $template->folder    = $this;
+        $template->folder     = $this;
+        $template->folderdata = $this->folderdata;
         if (!Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id)) {
             $files = new SimpleCollection($this->getFiles());
             $template->own_files = $files->findBy('user_id', $GLOBALS['user']->id)->orderBy('name');
