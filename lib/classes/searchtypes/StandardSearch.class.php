@@ -96,7 +96,7 @@ class StandardSearch extends SQLSearch
                 $semester = "CONCAT(' (', 
                     IF(seminare.`duration_time` = -1, CONCAT_WS(' - ', sem1.`name`, '" . _('unbegrenzt') . "'),
                         IF(seminare.`duration_time` != 0, CONCAT_WS(' - ', sem1.`name`, sem2.`name`), sem1.`name`)), ')')";
-                return "SELECT DISTINCT seminare.Seminar_id, CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.Name,  ".$semester.") " .
+                return "SELECT DISTINCT seminare.Seminar_id, CONCAT_WS(' ', seminare.VeranstaltungsNummer, seminare.Name,  ".$semester.") " .
                     "FROM seminare " .
                     "JOIN `semester_data` sem1 ON (seminare.`start_time` = sem1.`beginn`) " .
                     "LEFT JOIN `semester_data` sem2 ON (seminare.`start_time` + seminare.`duration_time` = sem2.`beginn`) " .
@@ -118,7 +118,7 @@ class StandardSearch extends SQLSearch
                 $semester = "CONCAT(' (', 
                     IF(seminare.`duration_time` = -1, CONCAT_WS(' - ', sem1.`name`, '" . _('unbegrenzt') . "'),
                         IF(seminare.`duration_time` != 0, CONCAT_WS(' - ', sem1.`name`, sem2.`name`), sem1.`name`)), ')')";
-                return "SELECT DISTINCT seminare.Seminar_id, CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.Name,  ".$semester.") " .
+                return "SELECT DISTINCT seminare.Seminar_id, CONCAT_WS(' ', seminare.VeranstaltungsNummer, seminare.Name,  ".$semester.") " .
                     "FROM seminare " .
                     "JOIN `semester_data` sem1 ON (seminare.`start_time` = sem1.`beginn`) " .
                     "LEFT JOIN `semester_data` sem2 ON (seminare.`start_time` + seminare.`duration_time` = sem2.`beginn`) " .
