@@ -141,7 +141,7 @@
     }).on('focus', 'select.submit-upon-select', function () {
         $(this).data('currentValue', $(this).val());
     }).on('click', 'select.submit-upon-select', function (event) {
-        $(this).data('shouldSubmit', true);
+        $(this).closest('form').submit();
     }).on('change', 'select.submit-upon-select', function (event) {
         if ($(this).data('shouldSubmit')) {
             $(this).blur();
