@@ -336,7 +336,7 @@
     </article>
 <? endif ?>
 
-<? if ($studyAreaTree) : ?>
+<? if ($studyAreaTree && $studyAreaTree->required_children) : ?>
     <article class="studip">
         <header>
             <h1><?= _('Studienbereiche') ?></h1>
@@ -402,7 +402,7 @@ if ($mvv_tree) : ?>
     </article>
 <? endif; ?>
 
-<? if ($course->beschreibung) : ?>
+<? if (trim($course->beschreibung)) : ?>
     <article class="studip">
         <header>
             <h1><?= _("Kommentar/Beschreibung") ?></h1>
