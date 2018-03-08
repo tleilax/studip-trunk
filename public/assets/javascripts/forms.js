@@ -138,19 +138,25 @@
     // This might lead to unexpected behaviour.
     $(document).on('focus', 'select[onchange*="submit()"]', function () {
         $(this).removeAttr('onchange').addClass('submit-upon-select');
-    }).on('focus', 'select.submit-upon-select', function () {
-        $(this).data('currentValue', $(this).val());
-    }).on('click', 'select.submit-upon-select', function (event) {
-        $(this).closest('form').submit();
-    }).on('change', 'select.submit-upon-select', function (event) {
-        if ($(this).data('shouldSubmit')) {
-            $(this).blur();
-        }
-    }).on('blur keyup', 'select.submit-upon-select', function (event) {
-        var shouldSubmit = event.type === 'keyup' ? event.which === 13 : $(this).data('shouldSubmit'),
-            changed      = $(this).val() !== $(this).data('currentValue');
+    }).on('click mousedown', 'select.submit-upon-select', function (event) {
+        // Firefox and Chrome handle click events on selects differently,
+        // thus we need the mousedown event and the click event is needed for
+        // select2 elements. Please do not change!
 
-        if (shouldSubmit && changed) {
+        $(this).data('wasClicked', true);
+    }).on('change', 'select.submit-upon-select', function (event) {
+        // Trigger blur event if element was clicked in the beginning
+
+        if ($(this).data('wasClicked')) {
+            $(this).trigger('blur');
+        }
+    }).on('focusout keyup keypress keydown select', 'select.submit-upon-select', function (event) {
+        var shouldSubmit = event.type === 'keyup' ? event.which === 13 : $(this).data('wasClicked'),
+            is_default   = $('option:selected', this).prop('defaultSelected');
+
+        // Submit only if value has changed and either enter was pressed or
+        // select was opened by click
+        if (!is_default && shouldSubmit) {
             $(this).closest('form').submit();
             return false;
         }
