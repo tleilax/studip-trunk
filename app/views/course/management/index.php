@@ -17,17 +17,20 @@ if (Course::findCurrent()) {
     $sidebar->addWidget($links);
     // Entry list for admin upwards.
     if ($GLOBALS['perm']->have_studip_perm("admin", $GLOBALS['SessionSeminar'])) {
+        $courses = AdminCourseFilter::get()->getCoursesForAdminWidget();
+
         $list = new SelectorWidget();
-        $list->setUrl("?#admin_top_links");
-        $list->setSelectParameterName("cid");
-        foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
+        $list->setSize(min(8, count($courses)));
+        $list->setUrl('?#admin_top_links');
+        $list->setSelectParameterName('cid');
+        foreach ($courses as $course) {
             $list->addElement(new SelectElement(
-                    $seminar['Seminar_id'],
-                    $seminar['Name'],
-                    $seminar['Seminar_id'] === Context::get()->id,
-                    $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                    $course['Seminar_id'],
+                    $course['Name'],
+                    $course['Seminar_id'] === Context::get()->id,
+                    $course['VeranstaltungsNummer'] . ' ' . $course['Name']
                 ),
-                'select-' . $seminar['Seminar_id']
+                'select-' . $course['Seminar_id']
             );
         }
         $list->setSelection($this->course_id);

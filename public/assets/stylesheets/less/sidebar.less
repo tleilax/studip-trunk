@@ -239,9 +239,20 @@ div#sidebar-navigation {
     }
 }
 
+// TODO: These two should be combined into one widget
 select.sidebar-selectlist {
+    overflow-y: auto;
     width: 100%;
 }
+.selector-widget select {
+    cursor: pointer;
+    padding: 0;
+
+    option {
+        padding: 0 0.5em;
+    }
+}
+
 .sidebar-search {
     .needles input[type=text] {
         .box-sizing(border-box);
