@@ -1189,6 +1189,11 @@ class FileManager
      */
     public static function moveFolder(FolderType $source_folder, FolderType $destination_folder, User $user)
     {
+        // Leave early, if folder was not actually moved
+        if ($source_folder->parent_id === $destination_folder->id) {
+            return $source_folder;
+        }
+
         if (!$destination_folder->isWritable($user->id)) {
             return [sprintf(
                 _('Unzureichende Berechtigungen zum Verschieben von Ordner %s in Ordner %s!'),
