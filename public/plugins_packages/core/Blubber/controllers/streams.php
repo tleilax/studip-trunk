@@ -101,10 +101,14 @@ class StreamsController extends PluginController {
      * Displays the profile-stream with all threads by the given user.
      */
     public function profile_action() {
-        if (Request::get("extern")) {
-            $this->user = BlubberExternalContact::find(Request::option("user_id"));
+        if (Request::get('extern')) {
+            $this->user = BlubberExternalContact::find(Request::option('user_id'));
+        } elseif (Request::option('user_id')) {
+            $this->user = new BlubberUser(Request::option('user_id'));
+        } elseif (Request::username('username')) {
+            $this->user = BlubberUser::findByUsername(Request::username('username'));
         } else {
-            $this->user = new BlubberUser(Request::option("user_id"));
+            $this->user = BlubberUser::find(User::findCurrent()->id);
         }
         PageLayout::setTitle($this->user->getName()." - Blubber");
 
@@ -116,11 +120,11 @@ class StreamsController extends PluginController {
         if ($this->more_threads) {
             $this->threads = array_slice($this->threads, 0, $this->max_threads);
         }
-        if (Request::get("user_id") !== $GLOBALS['user']->id) {
+        if ($this->user->id !== $GLOBALS['user']->id) {
             $this->isBuddy = is_a($this->user, "BlubberExternalContact") ? $this->user->isFollowed() : User::findCurrent()->isFriendOf($this->user);
         }
-        if (count($this->threads) === 0 && Request::get("user_id") !== $GLOBALS['user']->id) {
-            PageLayout::postMessage(MessageBox::info(_("Dieser Nutzer hat noch nicht öffentlich bzw. auf sein Profil geblubbert.")));
+        if (count($this->threads) === 0 && $this->user->id !== $GLOBALS['user']->id) {
+            PageLayout::postInfo(_('Dieser Nutzer hat noch nicht öffentlich bzw. auf sein Profil geblubbert.'));
         }
     }
 
