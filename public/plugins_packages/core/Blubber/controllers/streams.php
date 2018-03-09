@@ -121,7 +121,9 @@ class StreamsController extends PluginController {
             $this->threads = array_slice($this->threads, 0, $this->max_threads);
         }
         if ($this->user->id !== $GLOBALS['user']->id) {
-            $this->isBuddy = is_a($this->user, "BlubberExternalContact") ? $this->user->isFollowed() : User::findCurrent()->isFriendOf($this->user);
+            $this->isBuddy = is_a($this->user, "BlubberExternalContact")
+                           ? $this->user->isFollowed()
+                           : (User::findCurrent() && User::findCurrent()->isFriendOf($this->user));
         }
         if (count($this->threads) === 0 && $this->user->id !== $GLOBALS['user']->id) {
             PageLayout::postInfo(_('Dieser Nutzer hat noch nicht öffentlich bzw. auf sein Profil geblubbert.'));
