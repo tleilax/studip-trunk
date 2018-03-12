@@ -318,7 +318,7 @@ function get_my_obj_values (&$my_obj, $user_id)
     $threshold = object_get_visit_threshold();
 
     $db2 = new DB_seminar;
-    $db2->query("CREATE TEMPORARY TABLE IF NOT EXISTS myobj_".$user_id." ( object_id char(32) NOT NULL, PRIMARY KEY (object_id)) ENGINE = MEMORY");
+    $db2->query("CREATE TEMPORARY TABLE IF NOT EXISTS myobj_".$user_id." ( object_id char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL) ENGINE = MEMORY");
     $db2->query("REPLACE INTO  myobj_" . $user_id . " (object_id) VALUES ('" . join("'),('", array_keys($my_obj)) . "')");
 
     //dokumente
