@@ -34,17 +34,18 @@ class MessagesController extends AuthenticatedController {
             }
         }
 
-        $this->setupSidebar();
+        $this->setupSidebar($action);
     }
 
     public function overview_action($message_id = null)
     {
         Navigation::activateItem('/messaging/messages/inbox');
 
-
         if (Request::get("read_all")) {
             Message::markAllAs($GLOBALS['user']->id, 1);
-            PageLayout::postMessage(MessageBox::success(_("Alle Nachrichten wurden als gelesen markiert.")));
+            PageLayout::postSuccess(_("Alle Nachrichten wurden als gelesen markiert."));
+            $this->redirect('messages/overview');
+            return;
         }
 
         if (Request::isPost()) {
@@ -860,7 +861,7 @@ class MessagesController extends AuthenticatedController {
         $this->redirect('messages/overview');
     }
 
-    public function setupSidebar()
+    public function setupSidebar($action)
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/mail-sidebar.png');
@@ -869,14 +870,16 @@ class MessagesController extends AuthenticatedController {
         if ($GLOBALS['user']->perms !== 'user') {
             $actions->addLink(
                 _('Neue Nachricht schreiben'),
-                $this->url_for('messages/write'), Icon::create('mail+add'),
+                $this->url_for('messages/write'),
+                Icon::create('mail+add'),
                 ['data-dialog' => 'width=650;height=600']
             );
         }
-        if (Navigation::getItem('/messaging/messages/inbox')->isActive() && $messages) {
+        if ($action !== 'sent' && MessageUser::hasUnreadByUserId($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Alle als gelesen markieren'),
-                $this->url_for('messages/overview', array('read_all' => 1)), Icon::create('accept', 'clickable')
+                $this->url_for('messages/overview', ['read_all' => 1]),
+                Icon::create('accept', 'clickable')
             );
         }
         $actions->addLink(

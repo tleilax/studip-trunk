@@ -43,6 +43,11 @@ class MessageUser extends SimpleORMap
         parent::configure($config);
     }
 
+    public static function hasUnreadByUserId($user_id)
+    {
+        return self::countBySql("snd_rec = 'rec' AND readed = 0 AND user_id = ? AND deleted = 0", [$user_id]) > 0;
+    }
+
     static function findSentByMessageId($message_id)
     {
         return self::findOneBySQL("message_id=? AND snd_rec='snd'", array($message_id));
