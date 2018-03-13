@@ -23,7 +23,7 @@ class I18N
      */
     public static function input($name, $value, array $attributes = [])
     {
-        return new self('i18n/input.php', $name, $value, $attributes);
+        return new static('i18n/input.php', $name, $value, $attributes);
     }
 
     /**
@@ -37,7 +37,7 @@ class I18N
      */
     public static function textarea($name, $value, array $attributes = [])
     {
-        return new self('i18n/textarea.php', $name, $value, $attributes);
+        return new static('i18n/textarea.php', $name, $value, $attributes);
     }
 
     /**
