@@ -5,7 +5,7 @@
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @license GPL2 or any later version
  */
-class MvvI18N
+class MvvI18N extends I18N
 {
     /**
      * MVV: Check user's permissions for an object and set the readonly state
