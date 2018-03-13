@@ -706,7 +706,8 @@ class FileController extends AuthenticatedController
                 true,
                 true,
                 false,
-                $use_dos_encoding ? 'CP850' : 'UTF-8'
+                $use_dos_encoding ? 'CP850' : 'UTF-8',
+                true
             );
 
             if ($result) {
@@ -1604,8 +1605,8 @@ class FileController extends AuthenticatedController
                 true,
                 true,
                 false,
-                $use_dos_encoding ? 'CP850' : 'UTF-8'
-
+                $use_dos_encoding ? 'CP850' : 'UTF-8',
+                true
             );
 
             if ($result) {

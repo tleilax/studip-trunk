@@ -49,7 +49,8 @@ class FileArchiveManager
         $user_id = null,
         $archive_fs_path = '',
         $do_user_permission_checks = true,
-        $ignore_user = false
+        $ignore_user = false,
+        &$file_list = null
     )
     {
         $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1024 * 1024; //1048576 bytes = 1 Mebibyte
@@ -63,7 +64,7 @@ class FileArchiveManager
             if (!$folder) {
                 return false;
             }
-            
+
             if ($folder->isReadable($user_id) && $folder->isFileDownloadable($file_ref->id, $user_id)) {
                 //FileRef is readable and downloadable for the user (identified by $user_id).
                 $adding_allowed = true;
@@ -103,14 +104,14 @@ class FileArchiveManager
                     }
                 } else {
                     //The FileRef references a file:
-                    $file_path = $file->getPath();                    
+                    $file_path = $file->getPath();
                 }
             } else {
 
                 if ($file_ref->path_to_blob) {
                     //The FileRef references a pluginfile:
-                    $file_path = $file_ref->path_to_blob;                    
-                }                
+                    $file_path = $file_ref->path_to_blob;
+                }
             }
             if ($file_path && file_exists($file_path)) {
                 $archive->addFile($file_path, $archive_fs_path . $file_ref->name);
@@ -123,6 +124,17 @@ class FileArchiveManager
                             $archive_max_size
                         )
                     );
+                }
+
+                //Add the file to the file list (if available):
+                if (is_array($file_list)) {
+                    $file_list[] = [
+                        'name' => $file_ref->name,
+                        'size' => $file_ref->file->size,
+                        'author' => $file_ref->owner->getFullName(),
+                        'mkdate' => date('d.m.Y H:i', $file_ref->mkdate),
+                        'path' => ($archive_fs_path . $file_ref->name)
+                    ];
                 }
 
                 return true;
@@ -160,7 +172,8 @@ class FileArchiveManager
         $archive_fs_path = '',
         $do_user_permission_checks = true,
         $keep_hierarchy = true,
-        $ignore_user = false
+        $ignore_user = false,
+        &$file_list = null
     ) {
         $archive_max_size = Config::get()->ZIP_DOWNLOAD_MAX_SIZE * 1024 * 1024; //1048576 bytes = 1 Mebibyte
 
@@ -171,8 +184,8 @@ class FileArchiveManager
                 return false;
             }
         } elseif ($ignore_user
-            && !($folder instanceof StandardFolder)
-            && in_array($folder->range_type, ['course', 'institute']))
+                  && !($folder instanceof StandardFolder)
+                  && in_array($folder->range_type, ['course', 'institute']))
         {
             //If user permissions shall be skipped the folder must be
             //an instance of StandardFolder and the folder's range type
@@ -188,7 +201,7 @@ class FileArchiveManager
             $archive->addEmptyDir($folder_zip_path);
         }
         foreach ($folder->getFiles() as $file_ref) {
-            
+
             if (!$file_ref instanceof FileRef) {
                 $plugin = PluginManager::getInstance()->getPlugin($folder->range_id);
                 if (!$plugin) {
@@ -198,7 +211,7 @@ class FileArchiveManager
                     $file_ref = $plugin->getPreparedFile($file_ref->id, true);
                 }
             }
-            
+
             self::addFileRefToArchive(
                 $archive,
                 $file_ref,
@@ -206,7 +219,8 @@ class FileArchiveManager
                 //keep hierarchy in zip file (files and subdirectories)
                 $keep_hierarchy ? $folder_zip_path . '/' : '',
                 $do_user_permission_checks,
-                $ignore_user
+                $ignore_user,
+                $file_list
             );
         }
 
@@ -219,7 +233,8 @@ class FileArchiveManager
                 $keep_hierarchy ? $folder_zip_path . '/' : '',
                 $do_user_permission_checks,
                 $keep_hierarchy,
-                $ignore_user
+                $ignore_user,
+                $file_list
             );
         }
 
@@ -262,6 +277,10 @@ class FileArchiveManager
      *     If this parameter is set to true, the user_id parameter is irrelevant.
      *     The default for this parameter is false.
      * @param string $zip_encoding encoding for filenames in zip
+     * @param bool $add_filelist_to_archive If this is set to true a file list
+     *     in the CSV format will be added to the archive. Its name is hardcoded
+     *     to archive_filelist.csv. The default value of $add_filelist_to_archive
+     *     is false which means no file list is added.
      *
      * @return bool True, if the archive file was created and saved successfully
      *     at $archive_file_path, false otherwise.
@@ -276,7 +295,8 @@ class FileArchiveManager
         $do_user_permission_checks = true,
         $keep_hierarchy = true,
         $ignore_user = false,
-        $zip_encoding = 'UTF-8'
+        $zip_encoding = 'UTF-8',
+        $add_filelist_to_archive = false
     )
     {
         $archive_max_num_files = Config::get()->ZIP_DOWNLOAD_MAX_FILES;
@@ -313,6 +333,13 @@ class FileArchiveManager
             );
         }
 
+        //If $file_list is not an array
+        //then no files are added to the file list.
+        $file_list = null;
+        if ($add_filelist_to_archive) {
+            $file_list = [];
+        }
+
         foreach ($file_area_objects as $file_area_object) {
             if ($file_area_object instanceof FileRef) {
                 self::addFileRefToArchive(
@@ -321,7 +348,8 @@ class FileArchiveManager
                     $user_id,
                     '',
                     $do_user_permission_checks,
-                    $ignore_user
+                    $ignore_user,
+                    $file_list
                 );
             } elseif ($file_area_object instanceof Folder || $file_area_object instanceof FolderType) {
                 $folder = $file_area_object;
@@ -337,12 +365,40 @@ class FileArchiveManager
                     '',
                     $do_user_permission_checks,
                     $keep_hierarchy,
-                    $ignore_user
+                    $ignore_user,
+                    $file_list
                 );
             }
         }
 
         if ($archive->numFiles > 0) {
+            //At least one file is in the archive.
+
+            if ($add_filelist_to_archive) {
+                //If a file list shall be included in the ZIP archive
+                //we must now make a CSV file out of file_list:
+
+                $csv_data = array_merge(
+                    [
+                        [
+                            _('Name'),
+                            _('Größe'),
+                            _('Autor/-in'),
+                            _('Datum'),
+                            _('Pfad')
+                        ]
+                    ],
+                    $file_list
+                );
+
+                //Add an UTF-8 BOM at the beginning of the CSV data:
+                $csv_string = "\xEF\xBB\xBF" . array_to_csv($csv_data);
+                //The CSV file has been generated.
+                //Now we must add it to the archive:
+                $archive->addFromString('archive_filelist.csv', $csv_string);
+            }
+
+            //Now the ZIP file is really finished:
             return $archive->close();
         }
 
@@ -825,7 +881,7 @@ class FileArchiveManager
                     if ($last_folder_path_element
                         && $last_folder_path_element->name === basename($entry_path))
                     {
-                            $extracted_entry_destination_folder = $last_folder_path_element;
+                        $extracted_entry_destination_folder = $last_folder_path_element;
                     }
                 }
             }
