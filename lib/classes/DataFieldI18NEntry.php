@@ -13,12 +13,11 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @since       4.1
- * 
+ *
  */
-
 abstract class DataFieldI18NEntry extends DataFieldEntry
 {
-    
+
     /**
      * Constructs this datafield
      *
@@ -30,21 +29,21 @@ abstract class DataFieldI18NEntry extends DataFieldEntry
     public function __construct(DataField $datafield = null, $rangeID = '', $value = null)
     {
         $this->model = $datafield;
-        
+
         if (is_array($rangeID)) {
             $object_id = [$datafield->id, $rangeID[0], $rangeID[1]];
         } else {
             $object_id = [$datafield->id, $rangeID, ''];
         }
         $value = I18NStringDatafield::load($object_id, null, null);
-        
+
         $this->rangeID = $rangeID;
         $this->value   = isset($value) ? $value : $datafield->default_value;
     }
-    
+
     /**
      * Sets the prefered content language if this is an i18n datafield.
-     * 
+     *
      * @param string $language The prefered display language
      */
     public function setContentLanguage($language)
@@ -55,10 +54,10 @@ abstract class DataFieldI18NEntry extends DataFieldEntry
         if ($language && !Config::get()->CONTENT_LANGUAGES[$language]) {
             throw new InvalidArgumentException('Language not configured.');
         }
-        
+
         $this->language = $language;
     }
-    
+
     /**
      * Returns the display/rendered value of this datafield
      *
@@ -73,7 +72,12 @@ abstract class DataFieldI18NEntry extends DataFieldEntry
 
         return (string) $this->getValue();
     }
-    
+
+    /**
+     * Sets the value from a post request
+     *
+     * @param mixed $submitted_value The value from request
+     */
     public function setValueFromSubmit($submitted_value)
     {
         $metadata = [
@@ -94,7 +98,7 @@ abstract class DataFieldI18NEntry extends DataFieldEntry
         $i18n_entry->setOriginal($base);
         parent::setValueFromSubmit($i18n_entry);
     }
-    
+
     /**
      * Stores this datafield entry
      *
@@ -109,7 +113,7 @@ abstract class DataFieldI18NEntry extends DataFieldEntry
             ''
         ];
         $entry = new DatafieldEntryModelI18N($id);
-        
+
         $old_value = I18NStringDatafield::load([$entry->datafield_id,
             $entry->range_id, $entry->sec_range_id], null, null);
         $entry->content = $this->getValue();
@@ -129,5 +133,24 @@ abstract class DataFieldI18NEntry extends DataFieldEntry
 
         return $result;
     }
+
+    /**
+     * Returns an array containing the names for the html element by locale.
+     *
+     * @param string $name Base name of the element
+     * @return array
+     */
+    protected function getLocaleNames($name)
+    {
+        $locale_names = [];
+        foreach (array_keys($GLOBALS['CONTENT_LANGUAGES']) as $index => $locale) {
+            $locale_names[$locale] = sprintf(
+                '%s[%s][%s]',
+                $name,
+                $this->model->id,
+                $index ? $locale : 'base'
+            );
+        }
+        return $locale_names;
+    }
 }
- 

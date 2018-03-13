@@ -15,26 +15,24 @@
     <? endif; ?>
 </h1>
 <? $perm = MvvPerm::get($dokument) ?>
-<? $i18n_input = $controller->get_template_factory()->open('shared/i18n/input_grouped.php'); ?>
-<? $i18n_textarea = $controller->get_template_factory()->open('shared/i18n/textarea_grouped.php'); ?>
 <form class="default" action="<?= $controller->url_for('/dokument', $dokument->id) ?>" method="post"<?= Request::isXhr() ? ' data-dialog' : '' ?>>
     <?= CSRFProtection::tokenTag() ?>
     <fieldset>
         <legend><?= _('Grunddaten') ?></legend>
         <label>
             <?= _('Name:') ?>
-            <?= I18N::inputTmpl($i18n_input, 'name', $dokument->name, ['perm' => $perm, 'input_attributes' => ['maxlength' => '255', 'required' => '']]); ?>
+            <?= MvvI18N::input('name', $dokument->name, ['maxlength' => '255', 'required' => ''])->checkPermission($dokument) ?>
         </label>
         <label>
             <?= _('Linktext') ?>
-            <?= I18N::inputTmpl($i18n_input, 'linktext', $dokument->linktext, ['perm' => $perm, 'input_attributes' => ['maxlength' => '255', 'required' => '']]); ?>
+            <?= MvvI18N::input('linktext', $dokument->linktext, ['maxlength' => '255', 'required' => ''])->checkPermission($dokument) ?>
         <label>
         <label>
             <?= _('URL des Dokuments') ?>
             <input <?= $perm->disable('url') ?> type="text" id="dokument_url" name="url" maxlength="4000" value="<?= htmlReady($dokument->url) ?>" required>
         <label>
             <?= _('Beschreibung') ?>
-            <?= I18N::textareaTmpl($i18n_textarea, 'beschreibung', $dokument->beschreibung, ['perm' => $perm, 'input_attributes' => ['class' => 'add_toolbar ui-resizable wysiwyg']]); ?>
+            <?= MvvI18N::textarea('beschreibung', $dokument->beschreibung, ['class' => 'add_toolbar ui-resizable wysiwyg'])->checkPermission($dokument) ?>
         </label>
     </fieldset>
     <footer data-dialog-button>

@@ -814,7 +814,11 @@ if (!function_exists('preg_replace_callback_array')) {
 function arrayToHtmlAttributes(array $attributes) {
     $result = [];
     foreach ($attributes as $key => $value) {
-        $result[] = sprintf('%s="%s"', htmlReady($key), htmlReady($value));
+        if ($value === true) {
+            $result[] = htmlReady($key);
+        } else {
+            $result[] = sprintf('%s="%s"', htmlReady($key), htmlReady($value));
+        }
     }
     return implode(' ', $result);
 }

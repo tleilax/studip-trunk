@@ -1,6 +1,5 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <? $perm = MvvPerm::get($stgteilbezeichnung) ?>
-<? $i18n_input = $controller->get_template_factory()->open('shared/i18n/input_grouped.php'); ?>
 <h3>
     <? if ($stgteilbezeichnung->isNew()) : ?>
     <?= _('Neue Studiengangteil-Bezeichnung') ?>
@@ -15,10 +14,10 @@
     <fieldset>
         <legend><?= _('Grunddaten') ?></legend>
         <label><?= _('Studiengangteil-Bezeichnung') ?>
-            <?= I18N::inputTmpl($i18n_input, 'name', $stgteilbezeichnung->name, ['perm' => $perm, 'input_attributes' => ['maxlength' => '100', 'required' => '']]); ?>
+            <?= MvvI18N::input('name', $stgteilbezeichnung->name, ['maxlength' => '100', 'required' => ''])->checkPermission($stgteilbezeichnung) ?>
         </label>
         <label><?= _('Kurzname') ?>
-            <?= I18N::inputTmpl($i18n_input, 'name_kurz', $stgteilbezeichnung->name_kurz, ['perm' => $perm, 'input_attributes' => ['maxlength' => '20']]); ?>
+            <?= MvvI18N::input('name_kurz', $stgteilbezeichnung->name_kurz, ['maxlength' => '20'])->checkPermission($stgteilbezeichnung) ?>
         </label>
     </fieldset>
     <footer data-dialog-button>

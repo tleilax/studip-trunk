@@ -1,7 +1,6 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <?= $controller->jsUrl() ?>
 <? $perm = MvvPerm::get($stgteil)?>
-<? $i18n_input = $controller->get_template_factory()->open('shared/i18n/input_grouped.php'); ?>
 <h3>
     <? if ($stgteil->isNew()) : ?>
     <?= _('Neuer Studiengangteil') ?>
@@ -71,7 +70,7 @@
     </fieldset>
     <fieldset>
         <legend><?= _('Titelzusatz') ?></legend>
-        <?= I18N::inputTmpl($i18n_input, 'zusatz', $stgteil->zusatz, ['perm' => $perm, 'input_attributes' => ['id' => 'stgteil_zusatz', 'maxlength' => '200']]); ?>
+        <?= MvvI18N::input('zusatz', $stgteil->zusatz, ['id' => 'stgteil_zusatz', 'maxlength' => '200'])->checkPermission($stgteil) ?>
     </fieldset>
     <fieldset>
         <legend><?= _('Studienfachberater') ?></legend>

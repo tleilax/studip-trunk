@@ -1,7 +1,6 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <?= $controller->jsUrl() ?>
 <? $perm = MvvPerm::get($lvgruppe) ?>
-<? $i18n_textarea = $controller->get_template_factory()->open('shared/i18n/textarea_grouped.php'); ?>
 <form data-dialog="size=auto" class="default" action="<?= $submit_url ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <fieldset>
@@ -12,7 +11,7 @@
         </label>
         <label>
             <?= _('Alternativtext') ?>
-            <?= I18N::textareaTmpl($i18n_textarea, 'alttext', $lvgruppe->alttext, ['perm' => $perm, 'input_attributes' => ['class' => 'add_toolbar ui-resizable wysiwyg']]); ?>
+            <?= MvvI18N::textarea('alttext', $lvgruppe->alttext, ['class' => 'add_toolbar ui-resizable wysiwyg'])->checkPermission($lvgruppe) ?>
         </label>
     </fieldset>
     <footer data-dialog-button>

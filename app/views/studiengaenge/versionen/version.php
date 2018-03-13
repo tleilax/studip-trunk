@@ -1,7 +1,6 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <?= $controller->jsUrl() ?>
 <? $perm = MvvPerm::get($version) ?>
-<? $i18n_textarea = $controller->get_template_factory()->open('shared/i18n/textarea_grouped.php'); ?>
 <h3>
     <? if ($version->isNew()) : ?>
     <?= sprintf(_('Neue Version für Studiengangteil: %s'), htmlReady($stgteil->getDisplayName())) ?>
@@ -15,7 +14,7 @@
         <legend><?= _('Gültigkeit') ?></legend>
         <label>
             <?= _('von Semester:') ?>
-            <? if ($perm->haveFieldPerm('start_sem')) : ?> 
+            <? if ($perm->haveFieldPerm('start_sem')) : ?>
             <select name="start_sem" size="1">
                 <option value=""><?= _('-- Semester wählen --') ?></option>
             <? foreach ($semester as $sem) : ?>
@@ -32,7 +31,7 @@
         </label>
         <label>
             <?= _('bis Semester:') ?>
-            <? if ($perm->haveFieldPerm('end_sem')) : ?> 
+            <? if ($perm->haveFieldPerm('end_sem')) : ?>
             <select name="end_sem" size="1">
                 <option value=""><?= _('unbegrenzt gültig') ?></option>
             <? foreach ($semester as $sem) : ?>
@@ -78,7 +77,7 @@
                 <option value="<?= $key ?>"<?= $key == $version->fassung_typ ? ' selected' : '' ?>><?= htmlReady($entry['name']) ?></option>
             <? endforeach; ?>
             </select>
-            <? if (!$perm->haveFieldPerm('fassung_typ')) : ?>           
+            <? if (!$perm->haveFieldPerm('fassung_typ')) : ?>
             <input type="hidden" name="fassung_typ" value="<?= $version->fassung_typ ?>">
             <? endif; ?>
         </section>
@@ -89,7 +88,7 @@
     </fieldset>
     <fieldset>
         <legend><?= _('Beschreibung') ?></legend>
-        <?= I18N::textareaTmpl($i18n_textarea, 'beschreibung', $version->beschreibung, ['perm' => $perm, 'input_attributes' => ['class' => 'add_toolbar ui-resizable wysiwyg', 'id' => 'beschreibung']]); ?>
+        <?= MvvI18N::textarea('beschreibung', $version->beschreibung, ['class' => 'add_toolbar ui-resizable wysiwyg', 'id' => 'beschreibung'])->checkPermission($version) ?>
     </fieldset>
     <? $url = $controller->url_for('/dokumente_properties'); ?>
     <? $perm_dokumente = $perm->haveFieldPerm('document_assignments', MvvPerm::PERM_CREATE) ?>

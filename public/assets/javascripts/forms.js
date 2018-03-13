@@ -79,7 +79,7 @@
     // input if the element has a maxlength restriction.
 
     $(document).on('focus', 'form.default [maxlength]:not(.no-hint)', function () {
-        if (!$(this).is('textarea,input') || $(this).data('length-hint')) {
+        if (!$(this).is('textarea,input') || $(this).data('length-hint') || $(this).is('[readonly],[disabled]')) {
             return;
         }
 

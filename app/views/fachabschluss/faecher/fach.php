@@ -8,23 +8,21 @@
     <? endif; ?>
 </h1>
 <? $perm = MvvPerm::get($fach) ?>
-<? $i18n_input = $controller->get_template_factory()->open('shared/i18n/input_grouped.php'); ?>
-<? $i18n_textarea = $controller->get_template_factory()->open('shared/i18n/textarea_grouped.php'); ?>
 <form class="default" action="<?= $controller->url_for('/fach/', $fach->id) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <fieldset>
         <legend><?= _('Grunddaten') ?></legend>
         <label>
             <?= _('Name') ?>
-            <?= I18N::inputTmpl($i18n_input, 'name', $fach->name, ['perm' => $perm, 'input_attributes' => ['maxlength' => '255'], 'required' => '']); ?>
+            <?= MvvI18N::input('name', $fach->name, ['maxlength' => '255', 'required' => ''])->checkPermission($fach) ?>
         </label>
         <label>
             <?= _('Kurzname') ?>
-            <?= I18N::inputTmpl($i18n_input, 'name_kurz', $fach->name_kurz, ['perm' => $perm, 'input_attributes' => ['maxlength' => '50']]); ?>
+            <?= MvvI18N::input('name_kurz', $fach->name_kurz, ['maxlength' => '50'])->checkPermission($fach) ?>
         </label>
         <label>
             <?= _('Beschreibung') ?>
-            <?= I18N::textareaTmpl($i18n_textarea, 'beschreibung', $fach->beschreibung, ['perm' => $perm, 'input_attributes' => ['class' => 'add_toolbar ui-resizable wysiwyg']]); ?>
+            <?= MvvI18N::textarea('beschreibung', $fach->beschreibung, ['class' => 'add_toolbar ui-resizable wysiwyg'])->checkPermission($fach) ?>
         </label>
     </fieldset>
     <fieldset>

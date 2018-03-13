@@ -1,7 +1,5 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <? $perm = MvvPerm::get($abschnitt) ?>
-<? $i18n_input = $controller->get_template_factory()->open('shared/i18n/input_grouped.php'); ?>
-<? $i18n_textarea = $controller->get_template_factory()->open('shared/i18n/textarea_grouped.php'); ?>
 <h3>
     <? if ($abschnitt->isNew()) : ?>
     <?= sprintf(_('Einen neuen Studiengangteil-Abschnitt für die Version "%s" anlegen.'),
@@ -17,16 +15,16 @@
     <fieldset>
         <legend><?= _('Grunddaten') ?></legend>
         <label><?= _('Name') ?>
-            <?= I18N::inputTmpl($i18n_input, 'name', $abschnitt->name, ['perm' => $perm, 'input_attributes' => ['maxlength' => '254']]); ?>
+            <?= MvvI18N::input('name', $abschnitt->name, ['maxlength' => '254'])->checkPermission($abschnitt) ?>
         </label>
         <label>
             <?= _('Kommentar') ?>
-            <?= I18N::textareaTmpl($i18n_textarea, 'kommentar', $abschnitt->kommentar, ['perm' => $perm, 'input_attributes' => ['class' => 'add_toolbar resizable ui-resizable']]); ?>
+            <?= MvvI18N::textarea('kommentar', $abschnitt->kommentar, ['class' => 'add_toolbar resizable ui-resizable'])->checkPermission($abschnitt) ?>
         <label><?= _('Kreditpunkte') ?>
             <input <?= $perm->disable('kp') ?> type="text" name="kp" id="kp" value="<?= htmlReady($abschnitt->kp) ?>" size="3" maxlength="2">
         </label>
         <label><?= _('Zwischenüberschrift') ?>
-            <?= I18N::inputTmpl($i18n_input, 'ueberschrift', $abschnitt->ueberschrift, ['perm' => $perm, 'input_attributes' => ['maxlength' => '254']]); ?>
+            <?= MvvI18N::input('ueberschrift', $abschnitt->ueberschrift, ['maxlength' => '254'])->checkPermission($abschnitt) ?>
         </label>
     </fieldset>
     <input type="hidden" name="version_id" value="<?= $this->version->id ?>">

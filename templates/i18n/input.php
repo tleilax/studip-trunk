@@ -1,33 +1,30 @@
-<? if ($enabled) : ?>
-    <div class="i18n_group">
-<? endif; ?>
-<? foreach ($languages as $locale => $lang) : ?>
-    <? if ($locale === $base_lang) : ?>
-        <? $attr = [
-                'name' => $name,
-                'value' => $value->original(),
-                'id' => $attributes['input_attributes']['id']
-            ]; ?>
-    <? else : ?>
-        <? $attr = [
-                'name' => $name . '_i18n[' . $locale . ']',
-                'value' => $value->translation($locale),
-                'id' => null
-            ]; ?>
-    <? endif; ?>
-        <div class="i18n" data-lang="<?= $lang['name'] ?>" data-icon="url(<?= Assets::image_path('languages/' . $lang['picture']); ?>)">
-    <? $attr = array_merge($attr, $attributes['input_attributes']); ?>
-    <? if (isset($attr['required']) && empty($attr['value']) && $locale !== $base_lang) : ?>
-        <? unset($attr['required']); ?>
-    <? endif; ?>
-            <input type="text"<?
-    foreach ($attr as $key => $val) :
-        if (isset($val)) :
-            ?> <?= ($val === true ? $key : $key . '="' . htmlReady($val) . '"') ?> <?
-        endif;
-    endforeach;
-            ?>></div>
-<? endforeach; ?>
-<? if ($enabled) : ?>
+<? foreach ($languages as $locale => $lang): ?>
+    <?
+        $attr = $attributes;
+        if ($locale === $base_lang) {
+            $attr['name']  = $name;
+            $attr['value'] = $value->original();
+        } else {
+            $attr['name']  = "{$name}_i18n[{$locale}]";
+            $attr['value'] = $value->translation($locale);
+
+            if (isset($attr['id'])) {
+                unset($attr['id']);
+            }
+
+            // Remove required attribute if no text has been set
+            if (isset($attr['required']) && !$attr['value']) {
+                unset($attr['required']);
+            }
+        }
+
+        // If special attribute locale_names is defined, use name from that
+        if (isset($attr['locale_names']) && is_array($attr['locale_names'])) {
+            $attr['name'] = $attr['locale_names'][$locale];
+            unset($attr['locale_names']);
+        }
+    ?>
+    <div class="i18n" data-lang="<?= $lang['name'] ?>" data-icon="url(<?= Assets::image_path("languages/{$lang['picture']}") ?>)">
+        <input type="text" <?= arrayToHtmlAttributes($attr) ?>>
     </div>
-<? endif; ?>
+<? endforeach; ?>
