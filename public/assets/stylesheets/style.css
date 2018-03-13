@@ -953,6 +953,13 @@ table.default.has-form textarea {
 table.default.has-form textarea {
   min-height: 100px;
 }
+table.default tfoot select {
+  vertical-align: middle;
+}
+table.default tfoot .button {
+  margin-bottom: 0;
+  margin-top: 0;
+}
 table.withdetails > tbody > tr:not(.details) > td:first-child {
   background-image: url("../images/icons/blue/arr_1right.svg");
   -webkit-background-size: 16px 16px;
@@ -1254,6 +1261,10 @@ form.default footer {
   padding: 10px;
   padding-top: 5px;
   padding-bottom: 5px;
+}
+form.default footer .button {
+  margin-bottom: 0;
+  margin-top: 0;
 }
 form.default label.file-upload {
   background-image: url("../images/icons/blue/upload.svg");
