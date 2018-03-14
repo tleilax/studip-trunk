@@ -130,8 +130,9 @@ class FileArchiveManager
                 if (is_array($file_list)) {
                     $file_list[] = [
                         'name' => $file_ref->name,
-                        'size' => $file_ref->file->size,
-                        'author' => $file_ref->owner->getFullName(),
+                        'size' => $file_ref->size,
+                        'author' => $file_ref->author_name,
+                        'downloads' => $file_ref->downloads,
                         'mkdate' => date('d.m.Y H:i', $file_ref->mkdate),
                         'path' => ($archive_fs_path . $file_ref->name)
                     ];
@@ -384,6 +385,7 @@ class FileArchiveManager
                             _('Name'),
                             _('Größe'),
                             _('Autor/-in'),
+                            _('Downloads'),
                             _('Datum'),
                             _('Pfad')
                         ]
