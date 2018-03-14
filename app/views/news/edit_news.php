@@ -105,14 +105,13 @@
                     <? if ($anker == 'news_comments') : ?>
                         <a name='anker'></a>
                     <? endif ?>
-                    <? if ($news['allow_comments']): ?>
-                        <input type="hidden" name="news_allow_comments" value="1">
-                        <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Kommentare sperren')])->asInput(array('name'=>'comments_status_deny',)) ?>
-                        <?= _('Kommentare zulassen') ?>
-                    <? else : ?>
-                        <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Kommentare zulassen')])->asInput(array('name'=>'comments_status_allow',)) ?>
-                        <?= _('Kommentare zulassen') ?>
-                    <? endif ?>
+                        <input type="checkbox" class="studip-checkbox"
+                               id="news_allow_comments"
+                               name="news_allow_comments" value="1"
+                               <? if ($news['allow_comments']) echo 'checked'; ?>>
+                        <label for="news_allow_comments">
+                            <?= _('Kommentare zulassen') ?>
+                        </label>
                     </td>
                 </tr>
             </tbody>
