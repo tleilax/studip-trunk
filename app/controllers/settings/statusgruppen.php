@@ -88,14 +88,14 @@ class Settings_StatusgruppenController extends Settings_SettingsController
 
             $admin_insts = [];
             foreach ($institutes as $institute) {
-                $institute['groups'] = GetAllStatusgruppen($institute['Institut_id']) ?: [];
+                $institute['groups'] = GetAllStatusgruppen($institute['Institut_id'], $this->user->id) ?: [];
 
                 if ($institute['is_fak']) {
                     $stmt = DBManager::get()->prepare("SELECT Institut_id, Name FROM Institute WHERE fakultaets_id = ? AND Institut_id != fakultaets_id ORDER BY Name");
                     $stmt->execute([$institute['Institut_id']]);
                     $institute['sub'] = $stmt->fetchGrouped(PDO::FETCH_ASSOC);
                     foreach ($institute['sub'] as $id => $sub) {
-                        $sub['groups']         = GetAllStatusgruppen($id) ?: [];
+                        $sub['groups']         = GetAllStatusgruppen($id, $this->user->id) ?: [];
                         $institute['sub'][$id] = $sub;
                     }
                 }
@@ -197,30 +197,44 @@ class Settings_StatusgruppenController extends Settings_SettingsController
 
         $role_id = Request::option('role_id');
         if ($role_id) {
-            $group  = Statusgruppen::find($role_id);
+            $group = Statusgruppen::find($role_id);
 
-            if ($group->addUser($this->user->user_id)) {
-                $member  = new InstituteMember([$this->user->user_id, $range_id]);
-                $was_new = $member->isNew();
+            // Get institute from group
+            $temp = $group;
+            while ($temp->parent) {
+                $temp = $temp->parent;
+            }
+            $range_id = $temp->range_id;
+            if (!Institute::find($range_id)) {
+                throw new RuntimeException('Selected group does not belong to an institute');
+            }
 
+            // Try to add group member
+            if ($group->isMember($this->user->id)) {
+                PageLayout::postInfo(_('Die Person ist bereits in der Gruppe eingetragen.'));
+            } elseif (!$group->addUser($this->user->id)) {
+                PageLayout::postError(_('Fehler beim Eintragen in die Gruppe!'));
+            } else {
+                $member  = new InstituteMember([$this->user->id, $range_id]);
                 $member->inst_perms = $this->user->perms;
+
+                $was_new   = $member->isNew();
+                $was_dirty = $member->isDirty();
+
                 $member->store();
 
                 if ($was_new) {
-                    StudipLog::log('INST_USER_ADD', $range_id, $this->user->user_id, $member->inst_perms);
-                    NotificationCenter::postNotification('UserInstitutionDidCreate', $range_id, $this->user->user_id);
-                } else if ($statement->rowCount() == 2) {
-                    StudipLog::log('INST_USER_STATUS', $range_id, $this->user->user_id, $member->inst_perms);
-                    NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $id, $this->user->user_id);
-
+                    StudipLog::log('INST_USER_ADD', $range_id, $this->user->id, $member->inst_perms);
+                    NotificationCenter::postNotification('UserInstitutionDidCreate', $range_id, $this->user->id);
+                } elseif ($was_dirty) {
+                    StudipLog::log('INST_USER_STATUS', $range_id, $this->user->id, $member->inst_perms);
+                    NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $range_id, $this->user->id);
                 }
 
-                InstituteMember::ensureDefaultInstituteForUser($this->user->user_id);
+                InstituteMember::ensureDefaultInstituteForUser($this->user->id);
 
                 $_SESSION['edit_about_data']['open'] = $role_id;
                 PageLayout::postSuccess(_('Die Person wurde in die ausgewählte Gruppe eingetragen!'));
-            } else {
-                PageLayout::postError(_('Fehler beim Eintragen in die Gruppe!'));
             }
         }
 

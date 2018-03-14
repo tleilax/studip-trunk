@@ -265,20 +265,3 @@ function getFlattenedRoles($roles, $level = 0, $parent_name = false) {
 
     return $ret;
 }
-
-/**
- * @deprecated
- * @param $roles
- * @param bool $omit_role
- * @param int $level
- */
-function displayOptionsForRoles($roles, $omit_role = false, $level = 0) {
-    if (is_array($roles)) foreach ($roles as $role_id => $role) {
-        if ($omit_role != $role_id) {
-            echo '<option value="'. $role_id .'">';
-            for ($i = 1; $i <= $level; $i++) echo '&nbsp; &nbsp;';
-            echo substr($role['role']->getName(), 0, 70).'</option>';
-        }
-        if ($role['child']) displayOptionsForRoles($role['child'], $omit_role, $level+1);
-    }
-}
