@@ -98,7 +98,7 @@ trait Helpers
             $text = mb_substr($text, max([0, $this->findWordPosition($phrase, $text) - $lim * 0.5]), $lim);
         }
 
-        $words = str_replace(' ', '|', preg_quote($phrase));
+        $words = str_replace(' ', '|', preg_quote(htmlReady($phrase), '/'));
 
         return preg_replace("/($words)/i", '<mark>\\1</mark>', htmlReady($text));
     }
