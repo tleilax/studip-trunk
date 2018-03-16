@@ -812,6 +812,12 @@ if (!function_exists('preg_replace_callback_array')) {
  * @todo Nested attribute definitions?
  */
 function arrayToHtmlAttributes(array $attributes) {
+    // Filter empty attributes
+    $attributes = array_filter($attributes, function ($value) {
+        return isset($value) && $value !== false;
+    });
+
+    // Actual conversion
     $result = [];
     foreach ($attributes as $key => $value) {
         if ($value === true) {

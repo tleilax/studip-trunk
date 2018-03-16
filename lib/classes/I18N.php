@@ -67,11 +67,8 @@ class I18N
      */
     protected function __construct($template, $name, $value, array $attributes)
     {
-        $this->template = $template instanceof Flexi_Template
-                        ? $template
-                        : $GLOBALS['template_factory']->open($template);
-
-        $this->name = $name;
+        $this->template = $GLOBALS['template_factory']->open($template);
+        $this->name     = $name;
 
         $this->value = $value instanceof I18NString
                      ? $value
@@ -88,7 +85,7 @@ class I18N
      */
     public function setReadonly($state = true)
     {
-        $this->attributes['readonly'] = $state ?: null;
+        $this->attributes['readonly'] = (bool) $state;
 
         return $this;
     }
@@ -123,11 +120,6 @@ class I18N
 
         // Merge initially set attributes with current attributes
         $attributes = array_merge($this->attributes, $attributes);
-
-        // Filter empty attributes
-        $attributes = array_filter($attributes, function ($value) {
-            return isset($value);
-        });
 
         return $template->render([
             'languages'  => $GLOBALS['CONTENT_LANGUAGES'],
