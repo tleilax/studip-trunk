@@ -267,10 +267,11 @@ class SeminarCycleDate extends SimpleORMap
             if ($result) {
                 $course = Course::find($this->seminar_id);
                 //create start timestamp
-                $date = new DateTime();
-                $date->setTimestamp($course->start_semester->vorles_beginn);
-                $date->modify(sprintf('+%s week', $this->week_offset));
-                $new_dates = $this->createTerminSlots($date->getTimestamp());
+                $new_dates = $this->createTerminSlots($this->calculateTimestamp(
+                    $course->start_semester->vorles_beginn,
+                    $this->week_offset*7
+                ));
+
                 if (!empty($new_dates)) {
                     foreach ($new_dates as $semester_dates) {
                         foreach ($semester_dates['dates'] as $date) {
@@ -392,10 +393,12 @@ class SeminarCycleDate extends SimpleORMap
                     $end_time_offset = $course->end_semester->vorles_ende;
                 }
             } else {
-                $end_time_offset = $course->start_semester->vorles_beginn + ($this->end_offset + 1) * 7 * 24 * 60 * 60;
+                $end_time_offset = $this->calculateTimestamp($course->start_semester->vorles_beginn,
+                    ($this->end_offset + 1) * 7
+                );
             }
 
-            if ($date->date < $course->start_semester->vorles_beginn + $this->week_offset * 7 * 24 * 60 * 60 ||
+            if ($date->date < $this->calculateTimestamp($course->start_semester->vorles_beginn, $this->week_offset * 7) ||
                 $date->date > $end_time_offset
             ) {
                 $date->delete();
@@ -405,10 +408,10 @@ class SeminarCycleDate extends SimpleORMap
         $this->restore();
 
         //create start timestamp
-        $date = new DateTime();
-        $date->setTimestamp($course->start_semester->vorles_beginn);
-        $date->modify(sprintf('+%s week', $this->week_offset));
-        $new_dates = $this->createTerminSlots($date->getTimestamp());
+        $new_dates = $this->createTerminSlots($this->calculateTimestamp(
+            $course->start_semester->vorles_beginn,
+            $this->week_offset*7
+        ));
 
         $update_count = 0;
 
@@ -457,7 +460,7 @@ class SeminarCycleDate extends SimpleORMap
                 $sem_end = $course->end_semester->vorles_ende;
             }
         } else {
-            $sem_end = $course->start_semester->vorles_beginn + ($this->end_offset + 1) * 7 * 24 * 60 * 60;
+            $sem_end = $this->calculateTimestamp($course->start_semester->vorles_beginn, ($this->end_offset + 1) * 7);
         }
 
         $semester = Semester::findBySQL('beginn <= :ende AND ende >= :start',
@@ -533,7 +536,7 @@ class SeminarCycleDate extends SimpleORMap
                 $end_time_offset = $course->end_semester->vorles_ende;
             }
         } else {
-            $end_time_offset = $course->start_semester->vorles_beginn + ($this->end_offset + 1) * 7 * 24 * 60 * 60;
+            $end_time_offset = $this->calculateTimestamp($course->start_semester->vorles_beginn, ($this->end_offset + 1) * 7);
         }
 
         // loop through all possible singledates for this regular time-entry
@@ -677,5 +680,21 @@ class SeminarCycleDate extends SimpleORMap
                     AND NOT (metadate_id IS NULL OR metadate_id = '')";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($seminar_id, $start, $end));
+    }
+
+    /**
+     * returns a new timestamp for an given start-timestamp and
+     * an amount of days calculated with DateTime-Class
+     *
+     * @param  int  starttime as timestamp
+     * @param  int  amount of days
+     * @return int  new timestamp
+     */
+    private static function calculateTimestamp($base, $days = 0)
+    {
+        $date = new DateTime();
+        $date->setTimestamp($base);
+        $date->modify(sprintf('%s days', $days));
+        return $date->getTimestamp();
     }
 }
