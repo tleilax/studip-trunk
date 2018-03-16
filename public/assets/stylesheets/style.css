@@ -10564,6 +10564,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   opacity: 1;
 }
 #globalsearch-searchbar #globalsearch-input {
+  padding-left: 5px;
   width: 215px;
   -webkit-transition: width 300ms;
   -moz-transition: width 300ms;
