@@ -13,22 +13,19 @@
  * @since       3.5
  */
 
-
-require_once dirname(__FILE__) . '/BreadCrumb.class.php';
-
 class Search_AngebotController extends MVVController
 {
-    
+
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-        
+
         // set navigation
         Navigation::activateItem('/search/module/angebot');
         $this->breadcrumb = new BreadCrumb();
         $this->action = $action;
     }
-    
+
     protected function isVisible()
     {
         return MVV::isVisibleSearch();
@@ -44,14 +41,14 @@ class Search_AngebotController extends MVVController
         }
         $filter = ['mvv_studiengang.stat' => $status_filter];
         $faecher = Fach::getAllEnriched('name', 'ASC', null, null, $filter);
-        
+
         // sort by display name
         $faecher_sort = [];
         foreach ($faecher as $key => $fach) {
             $faecher_sort[$fach->getDisplayName() . $key] = $fach;
         }
         ksort($faecher_sort, SORT_LOCALE_STRING);
-        
+
         $result = array();
         $chars = array();
         foreach ($faecher_sort as $fach) {
@@ -170,7 +167,7 @@ class Search_AngebotController extends MVVController
             $studiengang_id = null)
     {
         ModuleManagementModel::setLanguage($_SESSION['_language']);
-        
+
         $response = $this->relay('search/studiengaenge/verlauf', $stgteil_id,
                 $stgteil_bez_id, $studiengang_id);
         $this->content = $response->body;

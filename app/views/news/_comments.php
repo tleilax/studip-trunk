@@ -13,11 +13,9 @@
                     <form action="<?= ContentBoxHelper::href($new->id, array('comments' => 1)) ?>" method="POST">
                         <?= CSRFProtection::tokenTag() ?>
                         <input type="hidden" name="comsubmit" value="<?= $new['news_id'] ?>">
-                        <div align="center">
-                            <textarea class="add_toolbar wysiwyg" name="comment_content" style="width:70%" rows="8"
-                                      cols="38" wrap="virtual"
-                                      placeholder="<?= _('Geben Sie hier Ihren Kommentar ein!') ?>"></textarea>
-                            <br>
+                        <textarea class="add_toolbar wysiwyg" name="comment_content" style="width:100%" rows="8"
+                                  placeholder="<?= _('Geben Sie hier Ihren Kommentar ein!') ?>"></textarea>
+                        <div style="text-align: center;">
                             <?= Studip\Button::createAccept(_('Absenden')) ?>
                         </div>
                     </form>

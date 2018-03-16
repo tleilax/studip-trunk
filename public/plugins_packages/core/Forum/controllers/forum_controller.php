@@ -62,6 +62,8 @@ class ForumController extends StudipController {
 
         //$this->check_token();
 
+        //$this->getId() depends on Context::get()
+        checkObject();
         ForumVisit::setVisit($this->getId());
         if (Request::int('page')) {
             ForumHelpers::setPage(Request::int('page'));

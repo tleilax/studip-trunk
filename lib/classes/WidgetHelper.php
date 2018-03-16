@@ -222,7 +222,7 @@ class WidgetHelper
      */
     static function removeWidget($id, $pluginName, $range_id)
     {
-        $query = "DELETE FROM user_config WHERE field = ?";
+        $query = "DELETE FROM config_values WHERE field = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($pluginName));
 

@@ -36,19 +36,16 @@ if ($dates['regular']['turnus_data'] || sizeof($dates['irregular'])) :
 
   echo implode(", \n", $output);
 
-  $presence_types = getPresenceTypes();
   $freetext_rooms = array();
 
   if (is_array($dates['irregular'])):
     foreach ($dates['irregular'] as $date) :
-        if (in_array($date['typ'], $presence_types) !== false) :
-            $irregular[] = $date;
-            $irregular_strings[] = $date['tostring'];
-            if ($date['resource_id']) :
-                $irregular_rooms[$date['resource_id']]++;
-            elseif ($date['raum']) :
-                $freetext_rooms['('. $date['raum'] .')']++;
-            endif;
+        $irregular[] = $date;
+        $irregular_strings[] = $date['tostring'];
+        if ($date['resource_id']) :
+            $irregular_rooms[$date['resource_id']]++;
+        elseif ($date['raum']) :
+            $freetext_rooms['('. $date['raum'] .')']++;
         endif;
     endforeach;
     unset($irregular_rooms['']);

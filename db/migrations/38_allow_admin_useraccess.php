@@ -11,7 +11,7 @@ class AllowAdminUseraccess extends Migration
         $db = DBManager::get();
 
         $name = 'ALLOW_ADMIN_USERACCESS';
-        $description = 'Wenn eingeschaltet, dürfen Administratoren sensible Nutzerdaten wie z.B. Passwörter ändern.';
+        $description = 'Wenn eingeschaltet, dürfen Administratoren sensible persönliche Angaben wie z.B. Passwörter ändern.';
         $time = time();
 
         $db->exec("

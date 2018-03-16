@@ -13,16 +13,13 @@
  * @since       3.5
  */
 
-
-require_once dirname(__FILE__) . '/BreadCrumb.class.php';
-
 class Search_StudiengaengeController extends MVVController
 {
 
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-        
+
         // set navigation
         Navigation::activateItem('/search/module/studiengaenge');
         $this->breadcrumb = new BreadCrumb();
@@ -213,13 +210,13 @@ class Search_StudiengaengeController extends MVVController
                 $this->cur_version_id = $this->findCurrentVersion($versionen);
             }
             $this->sessSet('selected_version', $this->cur_version_id);
-            
+
             $this->semesters = $this->getSemester($versionen->findOneBy('id', $this->cur_version_id));
 
             $semester_time_switch = (int) Config::get()->getValue('SEMESTER_TIME_SWITCH');
             $cur_semester = Semester::findByTimestamp(time()
                     + $semester_time_switch * 7 * 24 * 60 * 60);
-            
+
             $active_semester = $this->sessGet('selected_semester');
             if ($active_semester) {
                 $this->active_sem = $this->semesters[$active_semester];
@@ -247,15 +244,15 @@ class Search_StudiengaengeController extends MVVController
                     'rowspan' => 0,
                     'kommentar' => $abschnitt->kommentar
                 );
-                
+
                 foreach ($abschnitt->modul_zuordnungen as $abschnitt_modul) {
-                    
+
                     // module is not public visible or section has no module
                     // if no modules show only subheading
                     if (!$abschnitt_modul->modul || !$abschnitt_modul->modul->hasPublicStatus()) {
                         continue;
                     }
-                    
+
                     $start_sem = Semester::find($abschnitt_modul->modul->start);
                     $end_sem = Semester::find($abschnitt_modul->modul->end);
                     if ($start_sem->beginn > $this->active_sem->beginn || ($this->active_sem->ende > $end_sem->ende && $end_sem != null)) {
@@ -340,7 +337,7 @@ class Search_StudiengaengeController extends MVVController
                 INNER JOIN mvv_stgteilabschnitt_modul USING(abschnitt_id)
                 INNER JOIN mvv_modul mm USING(modul_id)
                 INNER JOIN mvv_modulteil USING(modul_id)
-                LEFT JOIN semester_data mm_start_sem ON mm.start = mm_start_sem.semester_id 
+                LEFT JOIN semester_data mm_start_sem ON mm.start = mm_start_sem.semester_id
                 LEFT JOIN semester_data mm_end_sem ON mm.end = mm_end_sem.semester_id
                 WHERE mvv_stgteilabschnitt.version_id = :version
                 AND ((mm_start_sem.beginn IS NULL AND mm_end_sem.ende IS NULL)
@@ -360,7 +357,7 @@ class Search_StudiengaengeController extends MVVController
         }
         return array_reverse($semester);
     }
-    
+
     private function findCurrentVersion($versions)
     {
         $semester_data = Semester::getAll();
@@ -395,7 +392,7 @@ class Search_StudiengaengeController extends MVVController
         $semester_time_switch = (int) Config::get()->getValue('SEMESTER_TIME_SWITCH');
         $cur_semester = Semester::findByTimestamp(time()
             + $semester_time_switch * 7 * 24 * 60 * 60);
-        
+
         $sidebar = Sidebar::get();
 
         if (count($versions) > 1) {
@@ -406,9 +403,9 @@ class Search_StudiengaengeController extends MVVController
                 $options[$version->id] = $version->getDisplayName(0);
                 // fallback: show name of Studiengangteil if version or
                 // semester is unknown
-                $options[$version->id] = 
+                $options[$version->id] =
                         trim($options[$version->id])
-                        ?: $version->getDisplayName(ModuleManagementModel::DISPLAY_STGTEIL); 
+                        ?: $version->getDisplayName(ModuleManagementModel::DISPLAY_STGTEIL);
             }
             $widget->setOptions($options, $this->cur_version_id);
             $widget->setMaxLength(100);

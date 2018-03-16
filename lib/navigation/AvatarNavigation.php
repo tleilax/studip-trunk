@@ -35,7 +35,7 @@ class AvatarNavigation extends Navigation
             $this->addSubNavigation('files', $navigation);
 
             // Link to user data
-            $navigation = new Navigation(_('Nutzerdaten'), 'dispatch.php/settings/account');
+            $navigation = new Navigation(_('Persönliche Angaben'), 'dispatch.php/settings/account');
             $navigation->setImage(Icon::create('key'));
             $this->addSubNavigation('account', $navigation);
 

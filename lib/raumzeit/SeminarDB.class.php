@@ -176,24 +176,21 @@ class SeminarDB
     {
         $termine = array();
 
-        $presence_types = getPresenceTypes();
-        if (count($presence_types) > 0) {
-            $query = "SELECT termin_id, date, end_time
-                      FROM termine
-                      WHERE range_id = ? AND date_typ IN (?)
-                      ORDER BY date";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($seminar_id, $presence_types));
+        $query = "SELECT termin_id, date, end_time
+                    FROM termine
+                    WHERE range_id = ?
+                    ORDER BY date";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($seminar_id));
 
-            $start = 0;
-            $end = 0;
+        $start = 0;
+        $end = 0;
 
-            while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-                if (($start == 0 && $end == 0) || ($start == $row['date'] && $end == $row['end_time'])) {
-                    $termine[] = $row['termin_id'];
-                    $start     = $row['date'];
-                    $end       = $row['end_time'];
-                }
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            if (($start == 0 && $end == 0) || ($start == $row['date'] && $end == $row['end_time'])) {
+                $termine[] = $row['termin_id'];
+                $start     = $row['date'];
+                $end       = $row['end_time'];
             }
         }
 
@@ -205,7 +202,7 @@ class SeminarDB
         $termin = array();
 
         $query = "SELECT termin_id, date, end_time
-                  FROM termine 
+                  FROM termine
                   WHERE range_id = ? AND date > UNIX_TIMESTAMP(NOW() - INTERVAL 1 HOUR)
                   ORDER BY date, end_time";
         $stmt = DBManager::get()->prepare($query);
@@ -222,7 +219,7 @@ class SeminarDB
         $ex_termin = array();
 
         $query = "SELECT termin_id
-                  FROM ex_termine 
+                  FROM ex_termine
                   WHERE range_id = ? AND date > UNIX_TIMESTAMP(NOW() - INTERVAL 1 HOUR)
                     AND content != '' AND content IS NOT NULL
                   ORDER BY date
