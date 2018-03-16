@@ -306,7 +306,7 @@ class Institute_MembersController extends AuthenticatedController
                 // der Admin hat Tomaten auf den Augen, der Mitarbeiter sitzt schon im Institut
                 PageLayout::postError(
                     _('Die Person ist bereits in der Einrichtung eingetragen.') . ' ' .
-                    _('Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!')
+                    _('Um Rechte etc. zu ändern folgen Sie dem Link zu den persöhnlichen Angaben der Person!')
                 );
             } else {
                 // mal nach dem globalen Status sehen
@@ -394,7 +394,7 @@ class Institute_MembersController extends AuthenticatedController
 
                         PageLayout::postInfo(
                             sprintf(_('%s wurde als "%s" in die Einrichtung aufgenommen.'), htmlReady($Fullname), $perms) . ' ' .
-                            _('Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!')
+                            _('Um Rechte etc. zu ändern folgen Sie dem Link zu den persönlichen Angaben der Person!')
                         );
                     } else {
                         PageLayout::postError(sprintf(_('%s konnte nicht in die Einrichtung aufgenommen werden!'), htmlReady($Fullname)));

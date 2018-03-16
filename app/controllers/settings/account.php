@@ -29,9 +29,9 @@ class Settings_AccountController extends Settings_SettingsController
         parent::before_filter($action, $args);
 
         PageLayout::setHelpKeyword('Basis.HomepagePersönlicheDaten');
-        PageLayout::setTitle(_('Benutzerkonto bearbeiten'));
+        PageLayout::setTitle(_('Persönliche Angaben bearbeiten'));
         Navigation::activateItem('/profile/edit/profile');
-        SkipLinks::addIndex(_('Benutzerkonto bearbeiten'), 'layout_content');
+        SkipLinks::addIndex(_('Persönliche Angaben bearbeiten'), 'layout_content');
 
         Sidebar::get()->setImage('sidebar/person-sidebar.png');
     }
@@ -149,7 +149,7 @@ class Settings_AccountController extends Settings_SettingsController
         if (count($errors) > 0) {
             PageLayout::postError(_('Bitte überprüfen Sie Ihre Eingaben:'), $errors);
         } else if ($this->user->store()) {
-            PageLayout::postSuccess(_('Ihre Nutzerdaten wurden geändert.'), $success);
+            PageLayout::postSuccess(_('Ihre persönlichen Angaben wurden geändert.'), $success);
             if (count($info) > 0) {
                 PageLayout::postInfo(_('Bitte beachten Sie:'), $info);
             }

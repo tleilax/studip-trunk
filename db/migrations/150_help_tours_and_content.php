@@ -14,14 +14,14 @@ class HelpToursAndContent extends Migration
         $this->addHelpTours();
         $this->addHelpContent();
         $this->addHelpContentEN();
-        
+
         // set version in config
         $version = '3.1';
         // see migrate_help_content.php
         if (!Config::get()->getValue('HELP_CONTENT_CURRENT_VERSION')) {
             Config::get()->create('HELP_CONTENT_CURRENT_VERSION', array(
-                'value' => $version, 
-                'is_default' => 0, 
+                'value' => $version,
+                'is_default' => 0,
                 'type' => 'string',
                 'range' => 'global',
                 'section' => 'global',
@@ -39,7 +39,7 @@ class HelpToursAndContent extends Migration
         DBManager::get()->exec("TRUNCATE TABLE `help_tour_settings`");
         DBManager::get()->exec("TRUNCATE TABLE `help_tour_steps`");
     }
-    
+
     function addHelpTours() {
         // add tour data
         $query = "INSERT IGNORE INTO `help_tours` (`tour_id`, `name`, `description`, `type`, `roles`, `version`, `language`, `studip_version`, `installation_id`, `mkdate`) VALUES
@@ -60,13 +60,13 @@ class HelpToursAndContent extends Migration
 ('7cccbe3b22dfa745c17cb776fb04537c', 'Meine Veranstaltungen (Lehrende)', 'In dieser Tour werden die wichtigsten Funktionen der Seite \"Meine Veranstaltungen\" vorgestellt.', 'tour', 'tutor,dozent,admin,root', 1, 'de', '3.1', '', 1406125685);
 ";
         DBManager::get()->exec($query);
-        
+
         // add steps
         $query = "INSERT IGNORE INTO `help_tour_steps` (`tour_id`, `step`, `title`, `tip`, `orientation`, `interactive`, `css_selector`, `route`, `author_id`, `mkdate`) VALUES
 ('96ea422f286fb5bbf9e41beadb484a9a', 3, 'Stud.IP-Score', 'Der Stud.IP-Score wächst mit den Aktivitäten in Stud.IP und repräsentiert so die Erfahrung mit Stud.IP.', 'BL', 0, '#layout_content TABLE:eq(0) TBODY:eq(0) TR:eq(0) TD:eq(0) A:eq(0)', 'dispatch.php/profile', '', 1406722657),
 ('96ea422f286fb5bbf9e41beadb484a9a', 5, 'Neue Ankündigung', 'Klicken Sie auf das Plus-Zeichen, wenn Sie eine Ankündigung erstellen möchten.', 'BR', 0, '.contentbox:eq(0) header img:eq(1)', 'dispatch.php/profile', '', 1406722657),
 ('96ea422f286fb5bbf9e41beadb484a9a', 1, 'Profil-Tour', 'Diese Tour gibt Ihnen einen Überblick über die wichtigsten Funktionen des \"Profils\".\r\n\r\nUm auf den nächsten Schritt zu kommen, klicken Sie bitte rechts unten auf \"Weiter\".', 'T', 0, '', 'dispatch.php/profile', '', 1406722657),
-('96ea422f286fb5bbf9e41beadb484a9a', 6, 'Persönliche Daten', 'Das Bild sowie weitere Nutzerdaten können über diese Seiten geändert werden.', 'BL', 0, '#tabs li:eq(2)', 'dispatch.php/profile', '', 1406722657),
+('96ea422f286fb5bbf9e41beadb484a9a', 6, 'Persönliche Daten', 'Das Bild sowie weitere persönliche Angaben können über diese Seiten geändert werden.', 'BL', 0, '#tabs li:eq(2)', 'dispatch.php/profile', '', 1406722657),
 ('96ea422f286fb5bbf9e41beadb484a9a', 2, 'Persönliches Bild', 'Wenn ein Bild hochgeladen wurde, wird es hier angezeigt. Dieses kann jederzeit geändert werden.', 'RT', 0, '.avatar-normal', 'dispatch.php/profile', '', 1406722657),
 ('25e7421f286fc5bdf9e41beadb484ffa', 1, 'Profil', 'Diese Tour gibt Ihnen einen Überblick über die wichtigsten Funktionen des \"Profils\".\r\n\r\nUm auf den nächsten Schritt zu kommen, klicken Sie bitte rechts unten auf \"Weiter\".', 'B', 0, '', 'dispatch.php/profile', '', 1406722657),
 ('25e7421f286fc5bdf9e41beadb484ffa', 2, 'Bild hochladen', 'Auf dieser Seite lässt sich ein Profilbild hochladen.', 'BL', 0, '#nav_profile_avatar A SPAN', 'dispatch.php/settings/avatar', '', 1406722657),
@@ -180,7 +180,7 @@ class HelpToursAndContent extends Migration
 ('3629493a16bf2680de64361f07cab096', 4, 'Personen erwähnen', 'Andere können über einen Beitrag informiert werden, indem sie per @benutzername oder @\"Vorname Nachname\" im Beitrag erwähnt werden.', 'BL', 0, 'TEXTAREA#new_posting.autoresize', 'plugins.php/blubber/streams/forum', '', 1405672301);
 ";
         DBManager::get()->exec($query);
-        
+
         // add settings
         $query = "INSERT IGNORE INTO `help_tour_settings` (`tour_id`, `active`, `access`) VALUES
 ('96ea422f286fb5bbf9e41beadb484a9a', 1, 'standard'),
@@ -201,7 +201,7 @@ class HelpToursAndContent extends Migration
 ";
         DBManager::get()->exec($query);
     }
-    
+
     function addHelpContent() {
         $query = "INSERT IGNORE INTO `help_content` (`content_id`, `language`, `label`, `icon`, `content`, `route`, `studip_version`, `position`, `custom`, `visible`, `author_id`, `installation_id`, `mkdate`) VALUES
 ('5a90d1219dbeb07c124156592fb5d877', 'de', '', '', 'In den allgemeinen Einstellungen können verschiedene Anzeigeoptionen und Benachrichtigungsfunktionen ausgewählt und verändert werden.', 'dispatch.php/settings/general', '3.1', 0, 0, 1, '', '', 1406641688),
@@ -260,9 +260,9 @@ class HelpToursAndContent extends Migration
 ('752d441cd321b05c55c8a5d9aa48ddce', 'de', '', '', 'Auf dieser Seite können Kontakte aus dem Adressbuch in selbstdefinierte Gruppen sortiert werden.', 'contact_statusgruppen.php', '3.1', 0, 0, 1, '', '', 1406641688),
 ('94a193baa212abbc9004280a1498e724', 'de', '', '', 'Hier können Kontaktgruppen oder das gesamte Adressbuch exportiert werden, um sie in einem externen Programm importieren zu können.', 'contact_export.php', '3.1', 0, 0, 1, '', '', 1406641688),
 ('7ebdd278d06f9fc1d2659a54bb3171c1', 'de', '', '', 'Die Rangliste sortiert die Stud.IP-Nutzenden absteigend anhand ihrer Punktzahl. Die Punktzahl wächst mit den Aktivitäten in Stud.IP und repräsentiert so die Erfahrung der Nutzenden mit dem System. Indem das Kästchen links mit einem Haken versehen wird, wird der eigene Wert für andere NutzerInnen in der Rangliste sichtbar gemacht. In der Grundeinstellung ist der eigene Wert nicht öffentlich sichtbar.', 'dispatch.php/score', '3.1', 0, 0, 1, '', '', 1406641688),
-('82537b14dd3714ec9636124ed5af3272', 'de', '', '', 'Die Profilseite ermöglicht die Änderung der eigenen Nutzerdaten inkl. Profilbild und Kategorien. Ähnlich wie in Facebook können Kommentare hinterlassen werden. Das Profil von Lehrenden enthält Sprechstunden und Raumangaben. Daneben bietet die Seite die Verwaltung eigener Dateien.', 'dispatch.php/profile', '3.1', 0, 0, 1, '', '', 1406641688),
+('82537b14dd3714ec9636124ed5af3272', 'de', '', '', 'Die Profilseite ermöglicht die Änderung der eigenen perönlichen Angaben inkl. Profilbild und Kategorien. Ähnlich wie in Facebook können Kommentare hinterlassen werden. Das Profil von Lehrenden enthält Sprechstunden und Raumangaben. Daneben bietet die Seite die Verwaltung eigener Dateien.', 'dispatch.php/profile', '3.1', 0, 0, 1, '', '', 1406641688),
 ('ebb5bc1d831d460c06e3c6662236c159', 'de', '', '', 'Hier kann ein Profilbild hochgeladen werden.', 'dispatch.php/settings/avatar', '3.1', 0, 0, 1, '', '', 1406641688),
-('25255dc15fd0d6260bc1abd1f10aecc5', 'de', '', '', 'Individuelle Nutzerdaten, wie bspw. E-Mail-Adresse, können auf dieser Seite verändert und angepasst werden. ', 'dispatch.php/settings/account', '3.1', 0, 0, 1, '', '', 1406641688),
+('25255dc15fd0d6260bc1abd1f10aecc5', 'de', '', '', 'Individuelle persönliche Angaben, wie bspw. E-Mail-Adresse, können auf dieser Seite verändert und angepasst werden. ', 'dispatch.php/settings/account', '3.1', 0, 0, 1, '', '', 1406641688),
 ('d704267767d4c559aa9e552be60c49b5', 'de', '', '', 'Hier kann das Passwort für den Stud.IP-Account geändert werden.', 'dispatch.php/settings/password', '3.1', 0, 0, 1, '', '', 1406641688),
 ('cbd9b2b22fc00bc92df3589018644b70', 'de', '', '', 'Hier können vordefinierte Informationen über die eigene Person eingegeben werden, die auf der Profilseite erscheinen sollen. ', 'dispatch.php/settings/details', '3.1', 0, 0, 1, '', '', 1406641688),
 ('4e60dd9635f3d3fddecc78e0d1f646c7', 'de', '', '', 'Unter \"Studiendaten\" können manuell zusätzliche Studiengänge und Einrichtungen hinzugefügt werden, wenn sie nicht automatisch aus einem externen System (z.B. LSF/ UniVZ) übernommen wurden.', 'dispatch.php/settings/studies', '3.1', 0, 0, 1, '', '', 1406641688),
@@ -290,7 +290,7 @@ class HelpToursAndContent extends Migration
 ";
         DBManager::get()->exec($query);
     }
-    
+
     function addHelpContentEN() {
         $query = "
 INSERT INTO `help_content` (`content_id`, `language`, `label`, `icon`, `content`, `route`, `studip_version`, `position`, `custom`, `visible`, `author_id`, `installation_id`, `mkdate`) VALUES
