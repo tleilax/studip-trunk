@@ -6,6 +6,7 @@
     ]) ?>
     <?= Icon::create('search', Icon::ROLE_INFO_ALT)->asInput(20, [
         'id' => 'globalsearch-icon',
+        'class' => 'hidden-small-down'
     ]) ?>
     <div id="globalsearch-list">
         <a href="#" id="globalsearch-togglehints" data-toggle-text="<?= _('Tipps ausblenden') ?>">
