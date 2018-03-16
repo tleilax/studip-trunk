@@ -1,8 +1,6 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <?= $controller->jsUrl() ?>
 <? $perm = MvvPerm::get($studiengang) ?>
-<? $i18n_input = $controller->get_template_factory()->open('shared/i18n/input_grouped.php'); ?>
-<? $i18n_textarea = $controller->get_template_factory()->open('shared/i18n/textarea_grouped.php'); ?>
 <h3>
     <? if ($studiengang->isNew()) : ?>
     <?= _('Neuer Studiengang') ?>
@@ -26,17 +24,17 @@
         <legend><?= _('Bezeichnung') ?></legend>
         <label>
             <?= _('Name:') ?>
-            <?= I18N::inputTmpl($i18n_input, 'name', $studiengang->name, ['perm' => $perm, 'input_attributes' => ['maxlength' => '255']]); ?>
+            <?= MvvI18N::input('name', $studiengang->name, ['maxlength' => '255'])->checkPermission($studiengang) ?>
         </label>
         <label><?= _('Kurzbezeichnung:') ?>
-            <?= I18N::inputTmpl($i18n_input, 'name_kurz', $studiengang->name_kurz, ['perm' => $perm, 'input_attributes' => ['maxlength' => '50']]) ?>
+            <?= MvvI18N::input('name_kurz', $studiengang->name_kurz, ['maxlength' => '50'])->checkPermission($studiengang) ?>
         </label>
     </fieldset>
     <fieldset>
         <legend><?= _('Gültigkeit') ?></legend>
         <label>
             <?= _('von Semester:') ?>
-            <? if ($perm->haveFieldPerm('start')) : ?> 
+            <? if ($perm->haveFieldPerm('start')) : ?>
             <select name="start" size="1">
                 <option value=""><?= _('-- Semester wählen --') ?></option>
             <? foreach ($semester as $sem) : ?>
@@ -53,7 +51,7 @@
         </label>
         <label>
             <?= _('bis Semester:') ?>
-            <? if ($perm->haveFieldPerm('end')) : ?> 
+            <? if ($perm->haveFieldPerm('end')) : ?>
             <select name="end" size="1">
                 <option value=""><?= _('unbegrenzt gültig') ?></option>
             <? foreach ($semester as $sem) : ?>
@@ -68,7 +66,7 @@
                     <?= htmlReady($sem->name) ?>
                 <? else : ?>
                     <?= _('unbegrenzt gültig') ?>
-                <? endif; ?>                    
+                <? endif; ?>
                 <input type="hidden" name="end" value="<?= $studiengang->end ?>">
             <? endif; ?>
         </label>
@@ -96,14 +94,16 @@
             <option value="<?= $key ?>"<?= $key == $studiengang->fassung_typ ? ' selected' : '' ?>><?= htmlReady($entry['name']) ?></option>
         <? endforeach; ?>
         </select>
-        <? else: ?>            
+        <? else: ?>
         <?= ($studiengang->fassung_typ == '0' ? '--' : $GLOBALS['MVV_STUDIENGANG']['FASSUNG_TYP'][$studiengang->fassung_typ]['name']) ?>
         <input type="hidden" name="fassung_typ" value="<?= $studiengang->fassung_typ ?>">
         <? endif; ?>
     </fieldset>
     <fieldset>
         <legend><?= _('Beschreibung') ?></legend>
-        <?= I18N::textareaTmpl($i18n_textarea, 'beschreibung', $studiengang->beschreibung, ['perm' => $perm, 'input_attributes' => ['class' => 'add_toolbar ui-resizable wysiwyg']]); ?>
+        <label>
+            <?= MvvI18N::textarea('beschreibung', $studiengang->beschreibung, ['class' => 'add_toolbar ui-resizable wysiwyg'])->checkPermission($studiengang) ?>
+        </label>
     </fieldset>
     <fieldset>
         <legend><?= _('Studiengangteile') ?></legend>

@@ -13,12 +13,11 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @since       4.1
- * 
+ *
  */
-
 class DataFieldTextmarkupi18nEntry extends DataFieldTextareai18nEntry
 {
-    
+
     /**
      * Returns the input elements as html for this datafield
      *
@@ -26,18 +25,18 @@ class DataFieldTextmarkupi18nEntry extends DataFieldTextareai18nEntry
      * @param Array  $variables Additional variables
      * @return String containing the required html
      */
-    public function getHTML($name = '', $variables = array())
+    public function getHTML($name = '', $variables = [])
     {
-        $attributes['input_attributes']['id'] = $name . '_' . $this->model->id;
-        if ($this->isRequired()) {
-            $attributes['input_attributes']['required'] = '';
-        }
-        $attributes['input_attributes']['class'] = 'wysiwyg';
-        $attributes['datafield_id'] = $this->model->id;
-        return I18N::inputTmpl('datafields/textarea_i18n.php', $name,
-                $this->getValue(), $attributes);
+        $variables['class'] = 'wysiwyg add_toolbar';
+
+        return parent::getHTML($name, $variables);
     }
 
+    /**
+     * Sets the value from a post request
+     *
+     * @param mixed $submitted_value The value from request
+     */
     public function setValueFromSubmit($submitted_value)
     {
         array_walk($submitted_value, 'Studip\Markup::purifyHtml');

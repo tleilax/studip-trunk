@@ -1172,6 +1172,18 @@ form.default textarea.size-l,
 form.default select.size-l {
   max-width: 100%;
 }
+form.default input[type=date][readonly],
+form.default input[type=email][readonly],
+form.default input[type=number][readonly],
+form.default input[type=password][readonly],
+form.default input[type=text][readonly],
+form.default input[type=time][readonly],
+form.default input[type=url][readonly],
+form.default input[type=tel][readonly],
+form.default textarea[readonly],
+form.default select[readonly] {
+  background-color: #e2e3e4;
+}
 form.default input[type=date],
 form.default input[type=number],
 form.default input[type=time],

@@ -1,7 +1,6 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <?= $controller->jsUrl() ?>
 <? $perm = MvvPerm::get($lvgruppe) ?>
-<? $i18n_textarea = $controller->get_template_factory()->open('shared/i18n/textarea_grouped.php'); ?>
 <h1>
     <?= $headline ?>
 </h1>
@@ -13,7 +12,7 @@
             <input <?= $perm->disable('name') ?> id="name" type="text" name="name" value="<?= htmlReady($lvgruppe->name) ?>" size="50">
         </label>
         <label><?= _('Alternativtext') ?>
-            <?= I18N::textareaTmpl($i18n_textarea, 'alttext', $lvgruppe->alttext, ['perm' => $perm, 'input_attributes' => ['class' => 'add_toolbar resizable']]); ?>
+            <?= MvvI18N::textarea('alttext', $lvgruppe->alttext, ['class' => 'add_toolbar resizable'])->checkPermission($lvgruppe) ?>
     </fieldset>
     <footer data-dialog-button>
         <? if ($lvgruppe->isNew()) : ?>

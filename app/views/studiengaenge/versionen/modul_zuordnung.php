@@ -1,7 +1,5 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <? $perm = new MvvPerm($zuordnung) ?>
-<? $i18n_input = $controller->get_template_factory()->open('shared/i18n/input_grouped.php'); ?>
-<? $i18n_textarea = $controller->get_template_factory()->open('shared/i18n/textarea_grouped.php'); ?>
 <h3>
     <?= _('Modulzuordnung bearbeiten') ?>
 </h3>
@@ -10,7 +8,7 @@
     <fieldset>
         <legend><?= _('Grunddaten') ?></legend>
         <label><?= _('Bezeichnung der Modulzuordnung') ?>
-            <?= I18N::inputTmpl($i18n_input, 'bezeichnung', $zuordnung->bezeichnung, ['perm' => $perm, 'input_attributes' => ['maxlength' => '250']]); ?>
+            <?= MvvI18N::input('bezeichnung', $zuordnung->bezeichnung, ['maxlength' => '250'])->checkPermission($zuordnung) ?>
         </label>
     </fieldset>
     <fieldset>

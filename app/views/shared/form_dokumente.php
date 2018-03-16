@@ -1,5 +1,4 @@
 <? $perm_dokumente = isset($perm_dokumente) ? $perm_dokumente : true; ?>
-<? $i18n_textarea = $controller->get_template_factory()->open('shared/i18n/textarea_grouped.php'); ?>
 <fieldset>
     <legend><?= _('Referenzierte Dokumente und Materialien') ?></legend>
     <? if ($perm_dokumente) : ?>
@@ -29,13 +28,12 @@
                 <?= htmlReady($dokument->document->name->original()) ?>
             </div>
             <div style="flex: 1; text-align: right;" class="mvv-item-list-buttons">
-                <a href="#" class="mvv-item-remove"><?= Icon::create('trash', 'clickable', array('title' => _('Dokument entfernen')))->asImg(); ?></a>                
+                <a href="#" class="mvv-item-remove"><?= Icon::create('trash', 'clickable', array('title' => _('Dokument entfernen')))->asImg(); ?></a>
                 <a href="#" class="mvv-item-edit-properties"><?= Icon::create('edit', 'clickable', array('title' => _('Kommentar bearbeiten')))->asImg(); ?></a>
             </div>
             <fieldset class="mvv-item-document-comments" style="display: none;">
                 <label><?= _('Anmerkungen/Kommentare') ?>
-                
-                    <?= I18N::textareaTmpl($i18n_textarea, 'beschreibung', $dokument->kommentar, ['perm' => $perm_dokumente, 'input_attributes' => ['class' => 'add_toolbar ui-resizable wysiwyg']]); ?>
+                    <?= MvvI18N::textarea('beschreibung', $dokument->kommentar, ['class' => 'add_toolbar ui-resizable wysiwyg']) ?>
                 </label>
                 <?= _('Die Änderungen werden erst gespeichert, wenn das Hauptformular gespeichert wurde!') ?>
             </fieldset>

@@ -13,21 +13,29 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @since       4.1
- * 
+ *
  */
-
 class DataFieldTextareai18nEntry extends DataFieldI18NEntry
 {
-    
+
+    /**
+     * Returns the input elements as html for this datafield
+     *
+     * @param String $name      Name prefix of the associated input
+     * @param Array  $variables Additional variables
+     * @return String containing the required html
+     */
     public function getHTML($name = '', $variables = array())
     {
-        $attributes['input_attributes']['id'] = $name . '_' . $this->model->id;
+        $variables['id'] = $name . '_' . $this->model->id;
+
         if ($this->isRequired()) {
-            $attributes['input_attributes']['required'] = '';
+            $variables['required'] = true;
         }
-        $attributes['datafield_id'] = $this->model->id;
-        return I18N::inputTmpl('datafields/textarea_i18n.php', $name,
-                $this->getValue(), $attributes);
+
+        $variables['locale_names'] = $this->getLocaleNames($name);
+
+        return I18N::textarea($name, $this->getValue(), $variables);
     }
-    
+
 }
