@@ -1,6 +1,6 @@
 <? $is_new = ($evaluation->chdate >= object_get_visit($evaluation->id, 'eval', false, false)) && ($evaluation->author_id != $GLOBALS['user']->id);
 ?>
-<article class="studip toggle" id="<?= $evaluation->id ?>" data-visiturl="<?=URLHelper::getScriptLink('dispatch.php/vote/visit')?>">
+<article class="studip toggle <?=($is_new ? 'new' : '')?>" id="<?= $evaluation->id ?>" data-visiturl="<?=URLHelper::getScriptLink('dispatch.php/vote/visit')?>">
     <header>
         <h1>
             <a href="<?= ContentBoxHelper::switchhref($evaluation->id, array('contentbox_type' => 'eval')) ?>">
