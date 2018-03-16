@@ -40,12 +40,14 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
         $query = DBManager::get()->quote('%' . trim($search) . '%');
 
         // Check if a path to a course was given.
-        if (strpos($search, '/') !== FALSE) {
+        if (mb_strpos($search, '/') !== FALSE) {
 
             $args = explode('/', $search);
             $prequery = DBManager::get()->quote("%" . trim($args[0]) . "%");
             $query = DBManager::get()->quote("%" . trim($args[1]) . "%");
-            $binary = DBManager::get()->quote('%' . join('%', str_split(strtoupper(trim($args[0])))) . '%');
+            $binary = DBManager::get()->quote('%' .
+                join('%', preg_split('//u',
+                        mb_strtoupper(trim($args[0])), null, PREG_SPLIT_NO_EMPTY)) . '%');
             $comp = "AND";
 
             switch ($GLOBALS['perm']->get_perm()) {
@@ -198,8 +200,6 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
      */
     public static function filter($fileref, $search)
     {
-        $log = fopen($GLOBALS['TMP_PATH'] . '/search.log', 'w');
-        fwrite($log, print_r($fileref, 1));
         /*
          * If folder wasn't already checked, get typed folder and add it to
          * cache. This way, we don't need to query the database for folders
@@ -230,6 +230,8 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                 $range_path = '/institute';
             }
 
+            $user = User::find($fileref['user_id']);
+
             return array(
                 'id'         => $fileref['id'],
                 'name'       => self::mark($fileref['name'], $search, true),
@@ -244,7 +246,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                     ['cid' => $fileref['range_id']]
                 ),
                 'expandtext'  => _('In diesem Dateibereich suchen'),
-                'user'       => User::find($fileref['user_id'])->getFullname()
+                'user'       => $user ? $user->getFullname() : _('unbekannt')
             );
         }
 
@@ -256,7 +258,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
      */
     public static function enable()
     {
-        DBManager::get()->exec("ALTER TABLE dokumente ADD FULLTEXT INDEX podium (name)");
+        DBManager::get()->exec("ALTER TABLE file_refs ADD FULLTEXT INDEX globalsearch (name)");
     }
 
     /**
@@ -264,7 +266,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
      */
     public static function disable()
     {
-        DBManager::get()->exec("DROP INDEX podium ON dokumente");
+        DBManager::get()->exec("DROP INDEX globalsearch ON file_refs");
     }
 
     /**
@@ -282,11 +284,12 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
         }
 
         // Now check if we got a seminar
-        if (strpos($search, '/') !== FALSE) {
+        if (mb_strpos($search, '/') !== FALSE) {
             $args = explode('/', $search);
             $prequery = DBManager::get()->quote("%" . trim($args[0]) . "%");
             $query = DBManager::get()->quote("%" . trim($args[1]) . "%");
-            $binary = DBManager::get()->quote('%' . join('%', str_split(strtoupper(trim($args[0])))) . '%');
+            $binary = DBManager::get()->quote('%' . join('%', preg_split('//u',
+                        mb_strtoupper(trim($args[0])), null, PREG_SPLIT_NO_EMPTY)) . '%');
             $comp = "AND";
             return "SELECT dokumente.*
                     FROM dokumente

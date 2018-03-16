@@ -153,7 +153,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
     {
         $search = str_replace(' ', '% ', $search);
         $query = DBManager::get()->quote(preg_replace("/(\w+)[*]*\s?/", "+$1* ", $search));
-        $words = substr(preg_replace("/\W*(\w+)\W*/", "$1|", $search), 0, -1);
+        $words = mb_substr(preg_replace("/\W*(\w+)\W*/", "$1|", $search), 0, -1);
         $quoteRegex = '`content` REGEXP "[[]quote=.*['.$words.'].*[]]|[<]admin_msg autor=.*[.'.$words.'.].*[>]" ASC, ';
 
         // visibility
