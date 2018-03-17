@@ -14,7 +14,7 @@ if ($input['type'] === "text") : ?>
 
 if ($input['type'] === "number") : ?>
     <input <?=$is_locked ?> type="number" name="<?= $input['name'] ?>" value="<?= htmlReady($input['value']) ?>" min="<?= $input['min'] ?>" <? if ($input['must']) echo 'required'; ?>>
-<? endif; 
+<? endif;
 
 if ($input['type'] === "textarea") : ?>
     <? if ($input['i18n']) : ?>
@@ -79,14 +79,11 @@ if ($input['type'] === 'nested-select'): ?>
     <? endforeach; ?>
   <? endforeach; ?>
     </select>
-<? endif; 
-endif; 
+<? endif;
+endif;
 
 if ($input['type'] === 'datafield'): ?>
     <div style="padding-right:0.5em;">
         <?= $input['locked'] ? $input['display_value'] : $input['html_value'] ?>
     </div>
-    <?if ($input['description']): ?>
-        <?=tooltipIcon($input['description'])?>
-    <? endif; ?>
 <? endif;

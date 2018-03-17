@@ -299,9 +299,12 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
     <? foreach ($descriptions as $description): ?>
         <label>
             <?= $description['title'] ?>
-        <? if ($description['must']): ?>
-            <em class="required"></em>
-        <? endif; ?>
+            <? if ($description['must']): ?>
+                <em class="required"></em>
+            <? endif; ?>
+            <? if ($description['type'] === 'datafield' && $description['description']) : ?>
+                <?= tooltipIcon($description['description'])?>
+            <? endif?>
             <?= $this->render_partial('course/basicdata/_input', array('input' => $description)) ?>
         </label>
     <? endforeach; ?>

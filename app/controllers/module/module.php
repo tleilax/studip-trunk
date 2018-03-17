@@ -131,7 +131,7 @@ class Module_ModuleController extends MVVController
             $this->display_language = Request::option('display_language',
                     $this->modul->getDefaultLanguage());
             $this->deskriptor = $this->modul->getDeskriptor($this->display_language, true);
-            
+
             // language selector as sidebar widget
             $template_factory = $this->get_template_factory();
             $sidebar_template =  $template_factory->render('shared/deskriptor_language', array(
@@ -482,7 +482,7 @@ class Module_ModuleController extends MVVController
                 $copy->version = $copy->version + 1;
                 // don't show the new Modul
                 $copy->stat = 'planung';
-                
+
                 $store = false;
                 try {
                     $copy->verifyPermission();
@@ -771,7 +771,7 @@ class Module_ModuleController extends MVVController
         }
         $this->redirect($this->url_for('/details', Request::option('modul_id')));
     }
-    
+
     public function copy_modulteil_action($modulteil_id)
     {
         $modulteil = Modulteil::find($modulteil_id);
@@ -1085,7 +1085,7 @@ class Module_ModuleController extends MVVController
                 // only institutes the user has an assigned MVV role
                 $this->filter['mvv_modul_inst.institut_id'] = MvvPerm::getOwnInstitutes();
             }
-            
+
             // set default semester filter
             if (!isset($this->filter['start_sem.beginn'])
                     || !isset($this->filter['end_sem.ende'])) {
@@ -1099,7 +1099,7 @@ class Module_ModuleController extends MVVController
                     $this->filter['end_sem.ende'] = $current_sem->beginn;
                 }
             }
-            
+
             $this->do_search('Modul',
                     trim(Request::get('modul_suche_parameter')),
                     Request::get('modul_suche'), $this->filter);
@@ -1213,7 +1213,7 @@ class Module_ModuleController extends MVVController
             // only institutes the user has an assigned MVV role
             $this->filter['mvv_modul_inst.institut_id'] = MvvPerm::getOwnInstitutes();
         }
-        
+
         // store filter
         $this->reset_page();
         $this->sessSet('filter', $this->filter);
@@ -1282,7 +1282,7 @@ class Module_ModuleController extends MVVController
                 ['mvv_modul_inst.gruppe' => 'hauptverantwortlich',
                     'mvv_modul_inst.institut_id' => MvvPerm::getOwnInstitutes()],
                 $this->filter);
-        
+
         $modul_ids = Modul::findByFilter($modul_filter);
 
         $template_factory = $this->get_template_factory();
@@ -1302,7 +1302,7 @@ class Module_ModuleController extends MVVController
         $template->set_attribute('institute_count', 'count_objects');
         $template->set_attribute('selected_institut',
                 $this->filter['mvv_modul_inst.institut_id']);
-        
+
         // Semesters
         $semesters = new SimpleCollection(Semester::getAll());
         $semesters = $semesters->orderBy('beginn desc');
@@ -1336,7 +1336,7 @@ class Module_ModuleController extends MVVController
         $query = "
             SELECT DISTINCT `mvv_modul`.`modul_id`,
                     CONCAT(`mvv_modul_deskriptor`.`bezeichnung`, ' (', `code`, ')')
-                        AS `name` FROM `mvv_modul` 
+                        AS `name` FROM `mvv_modul`
                 LEFT JOIN `mvv_modul_deskriptor`
                     ON `mvv_modul`.`modul_id` = `mvv_modul_deskriptor`.`modul_id`
                 LEFT JOIN `mvv_modul_inst`
