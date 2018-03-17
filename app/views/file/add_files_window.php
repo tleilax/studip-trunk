@@ -45,15 +45,21 @@ if ($folder_id) {
         <? endif; ?>
     <? endforeach; ?>
     </div>
-
+    <div>
+        <?=sprintf(_('Sie dürfen Dateien bis zu einer Größe von %s in diesem Bereich einstellen.'), '<b>' . relsize($upload_type['file_size']) . '</b>')?>
+    </div>
+    <? if (count($upload_type['file_types']) && $upload_type['type'] == 'allow') : ?>
+        <div>
+            <?=sprintf(_('Sie dürfen die Dateitypen %s nicht hochladen!'), '<b>' . join($upload_type['file_types'],',') . '</b>')?>
+        </div>
+    <? endif ?>
+    <? if (count($upload_type['file_types']) && $upload_type['type'] == 'deny') : ?>
+        <div>
+            <?=sprintf(_('Sie dürfen nur die Dateitypen %s hochladen!'), '<b>' . join($upload_type['file_types'],',') . '</b>')?>
+        </div>
+    <? endif ?>
     <form style="display: none;" class="file_selector">
-        <script>
-            STUDIP.Files.uploadConstraints = {
-                filesize: <?= (int) $GLOBALS['UPLOAD_TYPES']['default']['file_sizes'][$GLOBALS['perm']->get_perm()] ?>,
-                type: '<?= $GLOBALS['UPLOAD_TYPES']['default']['type'] ?>',
-                file_types: <?= studip_json_encode($GLOBALS['UPLOAD_TYPES']['default']['file_types']) ?>
-            };
-        </script>
+
         <input type="file" name="files[]" multiple onchange="STUDIP.Files.upload(this.files);">
     </form>
 </div>

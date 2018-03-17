@@ -66,6 +66,7 @@
             //Open upload-dialog
             $('.file_upload_window .filenames').html('');
             $('.file_upload_window .errorbox').hide();
+            $('.file_upload_window .messagebox').hide();
             $.each(filelist, function (index, file) {
                 if (file.size > 0) {
                     if (STUDIP.Files.validateUpload(file)) {
@@ -123,7 +124,7 @@
                                 || (json.new_html.length > 1 ? 'Lizenz auswählen: %s Dateien'.toLocaleString().replace('%s', json.new_html.length) : 'Lizenz auswählen'.toLocaleString())
                         });
                     } else if (json.message) {
-                        $('.file_uploader .uploadbar').hide().parent().append(json.message);
+                        $('.file_upload_window .uploadbar').hide().parent().append(json.message);
                     } else {
                         $.each(json.new_html, function (index, tr) {
                             STUDIP.Files.addFile(tr, index * 200);
