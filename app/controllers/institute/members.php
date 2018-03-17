@@ -30,6 +30,12 @@ class Institute_MembersController extends AuthenticatedController
 
         parent::before_filter($action, $args);
 
+        if (Navigation::hasItem('/admin/institute/faculty')) {
+            Navigation::activateItem('/admin/institute/faculty');
+        } elseif (Navigation::hasItem('/course/faculty/view')) {
+            Navigation::activateItem('/course/faculty/view');
+        }
+
         if (!Institute::findCurrent()) {
             require_once 'lib/admin_search.inc.php';
 
@@ -49,17 +55,11 @@ class Institute_MembersController extends AuthenticatedController
 
         if ($this->admin_view) {
             PageLayout::setTitle(_('Verwaltung von Mitarbeiter/-innen'));
-            if (Navigation::hasItem('/admin/institute/faculty')) {
-                Navigation::activateItem('/admin/institute/faculty');
-            }
             $GLOBALS['perm']->check('admin');
         } else {
             checkObject();
             checkObjectModule('personal');
 
-            if (Navigation::hasItem('/course/faculty/view')) {
-                Navigation::activateItem('/course/faculty/view');
-            }
             $GLOBALS['perm']->check('autor');
         }
 
