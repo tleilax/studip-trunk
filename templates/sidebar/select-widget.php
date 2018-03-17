@@ -8,7 +8,9 @@
             <optgroup label="<?= htmlReady($element->getLabel() ) ?>">
             <? foreach ($element->getElements() as $option): ?>
                 <option value="<?= htmlReady($option->getId()) ?>" <? if ($option->isActive()) echo 'selected'; ?>
-                    class="<? if ($element->getIndentLevel()): ?>nested-item nested-item-level-<?= $element->getIndentLevel() + 1 ?><? endif; ?>  <? if ($element->isHeader()): ?>nested-item-header<? endif; ?>">
+                    class="<? if ($element->getIndentLevel()): ?>nested-item nested-item-level-<?= $element->getIndentLevel() + 1 ?><? endif; ?>  <? if ($element->isHeader()): ?>nested-item-header<? endif; ?>"
+                    title="<?= htmlReady($option->getTooltip()  !== null ? $option->getTooltip() : '') ?>">
+
                     <?= htmlReady(my_substr($option->getLabel(), 0, $max_length)) ?>
                 </option>
             <? endforeach; ?>
@@ -16,7 +18,7 @@
         <? elseif (!($element instanceof SelectGroupElement)): ?>
             <option value="<?= htmlReady($element->getId()) ?>" <? if ($element->isActive()) echo 'selected'; ?>
                 class="<? if ($element->getIndentLevel()): ?>nested-item nested-item-level-<?= $element->getIndentLevel() + 1 ?><? endif; ?> <? if ($element->isHeader()): ?>nested-item-header<? endif; ?>"
-                title="<?= htmlReady($element->getTooltip()  !== null ? $element->getTooltip() : $element->getLabel()) ?>">
+                title="<?= htmlReady($element->getTooltip()  !== null ? $element->getTooltip() : '') ?>">
 
                 <?= htmlReady(my_substr($element->getLabel(), 0, $max_length)) ?>
             </option>
