@@ -271,7 +271,8 @@ class ProfileController extends AuthenticatedController
                 'kings' => $this->kings,
                 'views' => object_return_views($this->current_user->user_id),
                 'score' => $this->score,
-                'score_title' => $this->score_title
+                'score_title' => $this->score_title,
+                'current_user' => $this->current_user->user_id
             ]
         );
 

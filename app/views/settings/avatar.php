@@ -25,7 +25,7 @@
 
     </fieldset>
 
-    <footer>
+    <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Absenden'), 'upload') ?>
         <? if ($customized): ?>
             <?= Studip\Button::create(_('Aktuelles Bild löschen'), 'reset') ?>

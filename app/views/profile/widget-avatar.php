@@ -1,8 +1,14 @@
 <div class="text-center">
-    <?= $avatar->getImageTag(Avatar::NORMAL, [
-        'class' => 'profile-avatar',
-        'style' => ''
-    ]) ?>
+    <?php if ($GLOBALS['perm']->have_profile_perm('user', $current_user)) : ?>
+        <a href="<?= URLHelper::getURL('dispatch.php/settings/avatar') ?>" data-dialog>
+    <?php endif ?>
+        <?= $avatar->getImageTag(Avatar::NORMAL, [
+            'class' => 'profile-avatar',
+            'style' => ''
+        ]) ?>
+    <?php if ($GLOBALS['perm']->have_profile_perm('user', $current_user)) : ?>
+        </a>
+    <?php endif ?>
 </div>
 <div class="profile-sidebar-details">
     <? if ($kings): ?>

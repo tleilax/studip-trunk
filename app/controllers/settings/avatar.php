@@ -30,7 +30,6 @@ class Settings_AvatarController extends Settings_SettingsController
 
         PageLayout::setHelpKeyword('Basis.HomepageBild');
         PageLayout::setTitle(_('Hochladen eines persönlichen Bildes'));
-        Navigation::activateItem('/profile/avatar');
         SkipLinks::addIndex(_('Hochladen eines persönlichen Bildes'), 'edit_avatar');
 
         $this->customized = Avatar::getAvatar($this->user->user_id)->is_customized();
