@@ -23,7 +23,6 @@
 class Course_EnrolmentController extends AuthenticatedController
 {
     protected $allow_nobody = true;
-    protected $utf8decode_xhr = true;
 
     /**
      * common tasks for all actions

@@ -17,9 +17,7 @@
 
 class FilesController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
-    function validate_args(&$args, $types = NULL)
+    public function validate_args(&$args, $types = NULL)
     {
         reset($args);
     }

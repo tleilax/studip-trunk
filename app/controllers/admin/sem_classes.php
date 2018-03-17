@@ -10,8 +10,6 @@
 
 class Admin_SemClassesController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     function before_filter (&$action, &$args)
     {
         parent::before_filter($action, $args);

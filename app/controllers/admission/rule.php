@@ -16,8 +16,6 @@
 
 class Admission_RuleController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * @see AuthenticatedController::before_filter
      */

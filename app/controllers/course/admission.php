@@ -15,8 +15,6 @@
 
 class Course_AdmissionController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * common tasks for all actions
      */
@@ -74,7 +72,6 @@ class Course_AdmissionController extends AuthenticatedController
                     $seminar['Seminar_id'] === Context::getId(),
                     $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
                 ));
-
             }
             $list->size = 8;
             $this->sidebar->addWidget($list);

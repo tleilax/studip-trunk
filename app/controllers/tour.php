@@ -22,12 +22,10 @@
 
 class TourController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * Callback function being called before an action is executed.
      */
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
 

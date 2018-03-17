@@ -7,8 +7,6 @@
  */
 class Course_TimesroomsController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * Common actions before any other action
      *

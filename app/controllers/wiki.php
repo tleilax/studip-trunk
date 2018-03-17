@@ -10,8 +10,6 @@ require_once 'lib/wiki.inc.php';
 
 class WikiController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);

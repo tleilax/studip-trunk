@@ -15,9 +15,6 @@
  */
 class Course_RoomRequestsController extends AuthenticatedController
 {
-
-    protected $utf8decode_xhr = true;
-
     /**
      * Common tasks for all actions
      *
