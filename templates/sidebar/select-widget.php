@@ -1,6 +1,8 @@
 <form action="<?= $url ?>" method="<?= $method ?>">
     <?= \SelectWidget::arrayToHiddenInput($params) ?>
-    <select class="sidebar-selectlist <?= $class ?> <? if ($__is_nested): ?>nested-select<? endif; ?>" name="<?= htmlReady($name) ?>" <? if ($size) printf('size="%u"', $size); ?> <?= $attributes ?>>
+    <select class="sidebar-selectlist <?= $class ?> <? if ($__is_nested): ?>nested-select<? endif; ?>" <? if ($size) printf('size="%u"', $size); ?> <?= $attributes ?>
+        name="<?= sprintf('%s%s',htmlReady($name), $multiple ? '[]' : '') ?>" <? if ($multiple) : ?>multiple<? endif; ?>>
+
     <? foreach ($elements as $element): ?>
         <? if ($element instanceof SelectGroupElement && count($element->getElements()) > 0): ?>
             <optgroup label="<?= htmlReady($element->getLabel() ) ?>">
@@ -17,7 +19,12 @@
         <? endif; ?>
     <? endforeach; ?>
     </select>
-    <noscript>
+
+    <? if(!$multiple) : ?>
+        <noscript>
+            <?= Studip\Button::create(_('Zuweisen')) ?>
+        </noscript>
+    <? elseif ($multiple) : ?>
         <?= Studip\Button::create(_('Zuweisen')) ?>
-    </noscript>
+    <? endif; ?>
 </form>
