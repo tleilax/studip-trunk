@@ -77,6 +77,6 @@ class Settings_AvatarController extends Settings_SettingsController
                 PageLayout::postError($e->getMessage());
             }
         }
-        $this->redirect('settings/avatar');
+        $this->redirect('profile');
     }
 }
