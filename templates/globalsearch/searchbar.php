@@ -4,7 +4,7 @@
     <?= Icon::create('decline', Icon::ROLE_INACTIVE)->asImg([
         'id' => 'globalsearch-clear',
     ]) ?>
-    <?= Icon::create('search', Icon::ROLE_INFO_ALT)->asInput(20, [
+    <?= Icon::create('search', Icon::ROLE_INFO_ALT)->asInput(16, [
         'id' => 'globalsearch-icon',
         'class' => 'hidden-small-down'
     ]) ?>

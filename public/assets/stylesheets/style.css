@@ -10564,6 +10564,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   opacity: 1;
 }
 #globalsearch-searchbar #globalsearch-input {
+  height: 29px;
   padding-left: 5px;
   width: 215px;
   -webkit-transition: width 300ms;
@@ -10577,7 +10578,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 #globalsearch-searchbar #globalsearch-icon {
   margin-left: 5px;
   position: relative;
-  top: 6px;
+  top: 3px;
 }
 #globalsearch-searchbar #globalsearch-togglehints {
   font-size: 12px;
