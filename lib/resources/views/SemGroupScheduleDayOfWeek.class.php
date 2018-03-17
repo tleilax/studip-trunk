@@ -93,9 +93,14 @@ class SemGroupScheduleDayOfWeek extends ScheduleView
         return sprintf ("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s%s\">%s</a></td>",
                         $this->add_link,
                         $add_link_timestamp,
-                        Assets::img('calplus.gif',
-                                    tooltip2(sprintf(_('Eine neue Belegung von %s bis %s Uhr anlegen'),
-                                                     date('H:i', $add_link_timestamp),
-                                                     date('H:i', $add_link_timestamp + 2 * 60 * 60)))));
+                        Icon::create(
+                            'add',
+                            Icon::ROLE_INACTIVE,
+                            tooltip2(sprintf(_('Eine neue Belegung von %s bis %s Uhr anlegen'),
+                                        date('H:i', $add_link_timestamp),
+                                        date('H:i', $add_link_timestamp + 2 * 60 * 60))
+                            )
+                        )->asImg(8)
+                    );
     }
 }
