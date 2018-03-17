@@ -109,7 +109,7 @@ class StartNavigation extends Navigation
 
         // my courses
         if ($perm->have_perm('root')) {
-            $navigation = new Navigation(_('Veranstaltungsübersicht'), 'dispatch.php/search/courses');
+            $navigation = new Navigation(_('Veranstaltungsübersicht'), 'dispatch.php/admin/courses');
         } else if ($perm->have_perm('admin')) {
             $navigation = new Navigation(_('Veranstaltungen an meinen Einrichtungen'), 'dispatch.php/my_courses');
         } else {
@@ -273,7 +273,7 @@ class StartNavigation extends Navigation
         // files dashboard
         $navigation = new Navigation(_('Dateien'), 'dispatch.php/files_dashboard');
         $this->addSubNavigation('files_dashboard', $navigation);
-        
+
         //mvv pages
         if (MVV::isVisible()) {
             $this->addSubNavigation('mvv', new MVVNavigation());
