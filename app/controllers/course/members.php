@@ -1245,32 +1245,60 @@ class Course_MembersController extends AuthenticatedController
      */
     public function additional_action($format = null)
     {
-
         // Users get forwarded to aux_input
         if (!($this->is_dozent || $this->is_tutor)) {
             $this->redirect('course/members/additional_input');
             return 0;
         }
+        
         Navigation::activateItem('/course/members/additional');
+
         // fetch course and aux data
+        $course    = Course::findCurrent();
+        $this->aux = $course->aux->getCourseData($course);
+
+        $export_widget = new ExportWidget();
+        $export_widget->addLink(
+            _('Zusatzangaben exportieren'),
+            $this->url_for('course/members/export_additional'),
+            Icon::create('file-excel')
+        );
+
+        Sidebar::Get()->addWidget($export_widget);
+    }
+
+    /**
+     * Stora all members of the course and their aux data
+     */
+    public function store_additional_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+
         $course = Course::findCurrent();
-        if (Request::submitted('save')) {
-            foreach ($course->members->findBy('status', 'autor') as $member) {
-                $course->aux->updateMember($member, Request::getArray($member->user_id));
-            }
+
+        foreach ($course->members->findBy('status', 'autor') as $member) {
+            $course->aux->updateMember($member, Request::getArray($member->user_id));
         }
-        if (Request::submitted('export')) {
-            $aux = $course->aux->getCourseData($course, true);
-            $tmp_name = uniqid();
-            array_to_csv($aux['rows'], $GLOBALS['TMP_PATH'] . '/' . $tmp_name, $aux['head']);
+
+        $this->redirect('course/members/additional');
+    }
+
+    /**
+     * Export all members of the course and their aux data to CSV
+     */
+    public function export_additional_action()
+    {
+        $course  = Course::findCurrent();
+        $aux     = $course->aux->getCourseData($course, true);
+        $tmpname = md5(uniqid('Zusatzangaben'));
+
+        if(array_to_csv($aux['rows'], $GLOBALS['TMP_PATH'] . '/' . $tmpname, $aux['head'])) {
             $this->redirect(
                 FileManager::getDownloadURLForTemporaryFile(
                     $tmpname,
                     _('Zusatzangaben') . '.csv'
                 )
             );
-        } else {
-            $this->aux = $course->aux->getCourseData($course);
         }
     }
 
