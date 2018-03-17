@@ -25,8 +25,6 @@ require_once 'lib/export/export_linking_func.inc.php';
  */
 class Course_GroupingController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * common tasks for all actions
      */

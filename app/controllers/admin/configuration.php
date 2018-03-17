@@ -17,8 +17,6 @@ require_once 'lib/user_visible.inc.php';
 
 class Admin_ConfigurationController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * Common before filter for all actions.
      *

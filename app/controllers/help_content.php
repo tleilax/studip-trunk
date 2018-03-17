@@ -21,8 +21,6 @@
 
 class HelpContentController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * Callback function being called before an action is executed.
      */

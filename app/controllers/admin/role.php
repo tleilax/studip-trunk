@@ -17,8 +17,6 @@
 
 class Admin_RoleController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      *
      */

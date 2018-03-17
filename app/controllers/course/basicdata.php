@@ -17,7 +17,6 @@
 class Course_BasicdataController extends AuthenticatedController
 {
     public $msg = array();
-    protected $utf8decode_xhr = true;
 
     /**
      * Set up the list of input fields. Some fields may be locked for

@@ -17,8 +17,6 @@
 
 class Admission_UserListController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * @see AuthenticatedController::before_filter
      */
@@ -48,7 +46,7 @@ class Admission_UserListController extends AuthenticatedController
 
     /**
      * Show a configuration form for the given user list.
-     * 
+     *
      * @param String $userlistId user list to load settings from (or empty
      * if it is a new user list)
      */
@@ -99,7 +97,7 @@ class Admission_UserListController extends AuthenticatedController
 
     /**
      * Saves the given user list to database.
-     * 
+     *
      * @param String $userlistId user list to save
      */
     public function save_action($userlistId='') {
@@ -119,7 +117,7 @@ class Admission_UserListController extends AuthenticatedController
 
     /**
      * Deletes the given user list.
-     * 
+     *
      * @param String $userlistId the user list to delete
      */
     public function delete_action($userlistId) {
