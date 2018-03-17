@@ -63,21 +63,22 @@ class Settings_AccountController extends Settings_SettingsController
         $geschlecht = Request::int('geschlecht');
         if ($this->shallChange('user_info.geschlecht', 'gender', $geschlecht)) {
             $this->user->geschlecht = $geschlecht;
+            $success[] = _('Ihr Geschlecht wurde geändert');
         }
 
         $title_front = Request::get('title_front') ?: Request::get('title_front_chooser');
         if ($this->shallChange('user_info.title_front', 'title', $title_front)) {
             $this->user->title_front = $title_front;
+            $success[] = _('Ihr Titel wurde geändert');
         }
 
         $title_rear = Request::get('title_rear') ?: Request::get('title_rear_chooser');
         if ($this->shallChange('user_info.title_rear', 'title', $title_rear)) {
             $this->user->title_rear = $title_rear;
+            $success[] = _('Ihr nachgestellter Titel wurde geändert');
         }
 
         if ($this->user->store()) {
-            $success[] = _('Ihre persönlichen Daten wurden geändert.');
-
             // Inform the user about this change
             setTempLanguage($this->user->user_id);
             $this->postPrivateMessage(_("Ihre persönlichen Daten wurden geändert.\n"));
@@ -144,11 +145,14 @@ class Settings_AccountController extends Settings_SettingsController
                     }
                 }
             }
+
+            $this->user->store();
         }
+
 
         if (count($errors) > 0) {
             PageLayout::postError(_('Bitte überprüfen Sie Ihre Eingaben:'), $errors);
-        } else if ($this->user->store()) {
+        } else if (count($success) > 0) {
             PageLayout::postSuccess(_('Ihre persönlichen Angaben wurden geändert.'), $success);
             if (count($info) > 0) {
                 PageLayout::postInfo(_('Bitte beachten Sie:'), $info);
