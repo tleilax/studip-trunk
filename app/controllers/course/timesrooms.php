@@ -1041,19 +1041,17 @@ class Course_TimesroomsController extends AuthenticatedController
         Sidebar::Get()->addWidget($widget);
 
         if ($GLOBALS['perm']->have_perm('admin')) {
-            $list = new SelectorWidget();
-            $list->setUrl($this->url_for('/index'));
-            $list->setSelectParameterName('cid');
-            foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
-                $element = new SelectElement(
+            $list = new SelectWidget(_('Veranstaltungen'), $this->url_for('course/timesrooms/index'), 'cid');
+
+            foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
+                $list->addElement(new SelectElement(
                     $seminar['Seminar_id'],
                     $seminar['Name'],
-                    $seminar['Seminar_id'] === Context::get()->id,
+                    $seminar['Seminar_id'] === Context::getId(),
                     $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
-                );
-                $list->addElement($element, 'select-' . $seminar['Seminar_id']);
+                ));
             }
-            $list->setSelection($this->course->id);
+            $list->size = 8;
             Sidebar::Get()->addWidget($list);
         }
     }

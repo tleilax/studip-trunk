@@ -17,12 +17,12 @@
  */
 class Course_AvatarController extends AuthenticatedController
 {
-    
+
     public function before_filter(&$action, &$args)
     {
-        
+
         parent::before_filter($action, $args);
-        
+
         $this->course_id = Request::get('cid', current($args));
         if ($this->course_id === '' || get_object_type($this->course_id) !== 'sem'
             || !$GLOBALS['perm']->have_studip_perm("tutor", $this->course_id)
@@ -30,22 +30,22 @@ class Course_AvatarController extends AuthenticatedController
             $this->set_status(403);
             return false;
         }
-        
+
         $this->body_id = 'custom_avatar';
         PageLayout::setTitle(Course::findCurrent()->getFullname() . ' - ' . _('Veranstaltungsbild ändern'));
-        
+
         $sem                   = Seminar::getInstance($this->course_id);
         $this->studygroup_mode = $sem->getSemClass()->offsetget('studygroup_mode');
-        
+
         if ($this->studygroup_mode) {
             $this->avatar = StudygroupAvatar::getAvatar($this->course_id);
         } else {
             $this->avatar = CourseAvatar::getAvatar($this->course_id);
         }
-        
+
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/admin-sidebar.png');
-        
+
         if ($this->avatar->is_customized()) {
             $actions = new ActionsWidget();
             $actions->addLink(_('Bild löschen'),
@@ -53,29 +53,25 @@ class Course_AvatarController extends AuthenticatedController
                 ['data-confirm' => _('Wirklich löschen?')])->asDialog(false);
             $sidebar->addWidget($actions);
         }
-        
+
         if ($GLOBALS['perm']->have_studip_perm('admin', $this->course_id)) {
-            $list = new SelectorWidget();
-            $list->setUrl("?#admin_top_links");
-            $list->setSelectParameterName("cid");
+            $list = new SelectWidget(_('Veranstaltungen'), '?#admin_top_links', 'cid');
+
             foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
-                $list->addElement(
-                    new SelectElement(
-                        $seminar['Seminar_id'],
-                        $seminar['Name'],
-                        $seminar['Seminar_id'] === Context::get()->id,
-                        $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
-                    ),
-                    'select-' . $seminar['Seminar_id']
-                );
+                $list->addElement(new SelectElement(
+                    $seminar['Seminar_id'],
+                    $seminar['Name'],
+                    $seminar['Seminar_id'] === Context::getId(),
+                    $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                ));
             }
-            $list->setSelection($this->course_id);
+            $list->size = 8;
             $sidebar->addWidget($list);
         }
-        
+
         Navigation::activateItem('/course/admin/avatar');
     }
-    
+
     /**
      * This method is called to show the form to upload a new avatar for a
      * course.
@@ -86,7 +82,7 @@ class Course_AvatarController extends AuthenticatedController
     {
         // nothing to do
     }
-    
+
     /**
      * This method is called to upload a new avatar for a course.
      *
@@ -108,7 +104,7 @@ class Course_AvatarController extends AuthenticatedController
         }
         $this->render_action("update");
     }
-    
+
     /**
      * This method is called to remove an avatar for a course.
      *

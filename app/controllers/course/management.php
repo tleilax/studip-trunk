@@ -54,6 +54,34 @@ class Course_ManagementController extends AuthenticatedController
         } else {
             Helpbar::get()->addPlainText(_('Information'), _('Sie können hier Ihre Veranstaltung in mehreren Kategorien anpassen. Informationen wie Grunddaten oder Termine und Einstellungen, Zugangsbeschränkungen und Funktionen können Sie hier administrieren.'));
         }
+
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/admin-sidebar.png');
+
+        if (Course::findCurrent()) {
+            $links = new ActionsWidget();
+            foreach (Navigation::getItem('/course/admin/main') as $nav) {
+                if ($nav->isVisible(true)) {
+                    $links->addLink($nav->getTitle(), URLHelper::getLink($nav->getURL(), array('studip_ticket' => Seminar_Session::get_ticket())), $nav->getImage(), $nav->getLinkAttributes());
+                }
+            }
+            $sidebar->addWidget($links);
+            // Entry list for admin upwards.
+            if ($GLOBALS['perm']->have_studip_perm('admin', $GLOBALS['SessionSeminar'])) {
+                $list = new SelectWidget(_('Veranstaltungen'), '?#admin_top_links', 'cid');
+                $seminars = AdminCourseFilter::get()->getCoursesForAdminWidget();
+                foreach ($seminars as $seminar) {
+                    $list->addElement(new SelectElement(
+                        $seminar['Seminar_id'],
+                        $seminar['Name'],
+                        $seminar['Seminar_id'] === Context::getId(),
+                        $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                    ));
+                }
+                $list->size = min(8, count($seminars));
+                $sidebar->addWidget($list);
+            }
+        }
     }
 
     /**
