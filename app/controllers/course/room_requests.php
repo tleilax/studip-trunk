@@ -68,23 +68,20 @@ class Course_RoomRequestsController extends AuthenticatedController
         Sidebar::get()->addWidget($actions);
 
         if ($GLOBALS['perm']->have_perm('admin')) {
-            $list = new SelectorWidget();
-            $list->setUrl('?#admin_top_links');
-            $list->setSelectParameterName('cid');
+            $list = new SelectWidget(_('Veranstaltungen'), '?#admin_top_links', 'cid');
+
             foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
-                $list->addElement(
-                    new SelectElement(
-                        $seminar['Seminar_id'],
-                        $seminar['Name'],
-                        $seminar['Seminar_id'] === Context::getId(),
-                        $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
-                    ),
-                    'select-' . $seminar['Seminar_id']
-                );
+                $list->addElement(new SelectElement(
+                    $seminar['Seminar_id'],
+                    $seminar['Name'],
+                    $seminar['Seminar_id'] === Context::getId(),
+                    $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                ));
             }
-            $list->setSelection($this->course_id);
+            $list->size = 8;
             Sidebar::get()->addWidget($list);
         }
+
     }
 
     /**
