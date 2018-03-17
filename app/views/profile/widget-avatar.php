@@ -1,13 +1,16 @@
-<div class="text-center">
+<div class="text-center avatar-widget">
+    <?= $avatar->getImageTag(Avatar::NORMAL, [
+        'class' => 'profile-avatar',
+        'style' => ''
+    ]) ?>
     <?php if ($GLOBALS['perm']->have_profile_perm('user', $current_user)) : ?>
-        <a href="<?= URLHelper::getURL('dispatch.php/settings/avatar') ?>" data-dialog>
-    <?php endif ?>
-        <?= $avatar->getImageTag(Avatar::NORMAL, [
-            'class' => 'profile-avatar',
-            'style' => ''
-        ]) ?>
-    <?php if ($GLOBALS['perm']->have_profile_perm('user', $current_user)) : ?>
-        </a>
+        <div class="avatar-overlay">
+            <p>
+                <a href="<?= URLHelper::getURL('dispatch.php/settings/avatar') ?>" data-dialog>
+                    <?= _('Klicken Sie hier, um ein neues Bild hochzuladen oder das aktuelle zu löschen.') ?>
+                </a>
+            </p>
+        </div>
     <?php endif ?>
 </div>
 <div class="profile-sidebar-details">

@@ -26,9 +26,46 @@
     width: 250px;
 }
 
-.profile-avatar {
-    vertical-align: middle;
-    margin: 5px 0px;
+div.avatar-widget {
+    position: relative;
+
+    .profile-avatar {
+        vertical-align: middle;
+        margin: 5px 0px;
+    }
+
+    div.avatar-overlay {
+        .transition(opacity .5s ease-in-out);
+        background-color: ~"@{base-color}aa";
+        opacity: 0;
+        height: 250px;
+        left: 0;
+        margin: 5px 0;
+        padding-left: 10px;
+        padding-right: 10px;
+        position: absolute;
+        top: 0;
+        vertical-align: middle;
+        width: calc(100% - 20px);
+
+        &:hover {
+            display: table;
+            opacity: 1;
+        }
+
+        p {
+            display: table-cell;
+
+            a {
+                color: @white;
+                display: block;
+                font-size: @font-size-large;
+                height: 100%;
+                padding-top: calc(50% - 2em);
+                width: 100%;
+            }
+        }
+    }
 }
 
 #custom_avatar label {
