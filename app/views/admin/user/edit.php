@@ -350,7 +350,7 @@ use Studip\Button, Studip\LinkButton;
                         htmlReady($usc->semester),
                         _('Fachsemester')
                     ) ?>
-                
+
                     <? $versionen = StgteilVersion::findByFachAbschluss($usc->fach_id, $usc->abschluss_id); ?>
                     <? $versionen = array_filter($versionen, function ($ver) {
                         return $ver->hasPublicStatus('genehmigt');
@@ -370,7 +370,7 @@ use Studip\Button, Studip\LinkButton;
                     <? else : ?>
                         <?= tooltipIcon(_('Keine Version in der gewählten Fach-Abschluss-Kombination verfügbar.'), true) ?>
                     <? endif; ?>
-                    
+
                 </td>
                 <td align="right">
                     <a href="<?= $controller->url_for('admin/user/delete_studycourse/' . $user->user_id . '/' . $usc->fach_id . '/' . $usc->abschluss_id) ?>">

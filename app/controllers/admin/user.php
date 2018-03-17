@@ -1376,7 +1376,7 @@ class Admin_UserController extends AuthenticatedController
                   WHERE (file_refs.user_id = ?)
                   AND (files.storage <> 'url')
                   AND (
-                    (folders.range_type = 'course') 
+                    (folders.range_type = 'course')
                     OR (folders.range_type = 'institute')
                   )
                   GROUP BY file_refs.user_id",
@@ -1390,7 +1390,7 @@ class Admin_UserController extends AuthenticatedController
                   WHERE (file_refs.user_id = ?)
                   AND (files.storage <> 'url')
                   AND (
-                    (folders.range_type = 'course') 
+                    (folders.range_type = 'course')
                     OR (folders.range_type = 'institute')
                   )
                   GROUP BY file_refs.user_id",
@@ -1580,13 +1580,21 @@ class Admin_UserController extends AuthenticatedController
 
             // Create link to role administration for this user
             $extra = '';
-            if ($count = count($this->user->getRoles())) {
-                $extra = ' (' . $count . ')';
+            $title = '';
+            $roles = $this->user->getRoles();
+
+            if ($roles) {
+                $extra = ' (' . count($roles) . ')';
+                $title = '• ' . implode("\n• ", array_map(function ($role) {
+                    return $role->rolename;
+                }, $roles));
             }
+
             $views->addLink(
                 _('Zur Rollenverwaltung') . $extra,
                 $this->url_for('admin/role/assign_role/' . $this->user->id),
-                Icon::create('roles2', 'clickable')
+                Icon::create('roles2', 'clickable'),
+                ['data-tooltip' => $title]
             );
         }
         $sidebar->insertWidget($views, 'user_actions', 'views');
