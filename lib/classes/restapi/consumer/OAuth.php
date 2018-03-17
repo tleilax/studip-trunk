@@ -103,7 +103,9 @@ class OAuth extends Base
     {
         static $server = null;
         if ($server === null) {
-            $server = new OAuthServer();
+            $server = new OAuthServer(null, null, null, 'SESSION', [], [
+                'allowed_uri_schemes' => []
+            ]);
         }
         return $server;
     }
