@@ -26,7 +26,7 @@ class Course_DetailsController extends AuthenticatedController
 
         $course_id = Request::option('sem_id', $args[0]);
         if (empty($course_id)) {
-            checkObject(); //wirft Exception, wenn $SessionSeminar leer ist
+            checkObject(); //wirft Exception, wenn Context::get() leer ist
             $course_id = $GLOBALS['SessionSeminar'];
         }
 
