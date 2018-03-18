@@ -584,6 +584,15 @@ table.default {
     }
 }
 
+// Remove trailing border and margin in content boxes if table is last element
+article.studip > section > table.default:last-child {
+    margin-bottom: 0;
+
+    > tbody:last-child > tr:last-child > td {
+        border-bottom: 0;
+    }
+}
+
 table.withdetails {
     > tbody > tr:not(.details) > td:first-child {
         .background-icon('arr_1right', 'clickable');
