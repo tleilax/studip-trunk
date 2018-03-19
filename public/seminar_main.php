@@ -66,6 +66,14 @@ if (Request::get('redirect_to')) {
     list( , $where_to) = explode('=', array_shift($query_parts));
     $new_query = $where_to . '?' . join('&', $query_parts);
     $new_query = preg_replace('/[^:0-9a-z+_\-.#?&=\/]/i', '', $new_query);
+
+    if (preg_match('~^(\w+:)?//~', $new_query)) {
+        $host = parse_url($new_query, PHP_URL_HOST);
+        if (mb_strtolower($host) !== mb_strtolower($_SERVER['HTTP_HOST'])) {
+            throw new Exception('Invalid redirection');
+        }
+    }
+
     header('Location: '.URLHelper::getURL($new_query, array('cid' => $course_id)));
     die;
 }
