@@ -17,7 +17,7 @@
 
         <h3><?= _('Beschreibung') ?></h3>
         <article>
-            <?= htmlReady($file_ref->description ?: _('Keine Beschreibung vorhanden.')) ?>
+            <?= htmlReady($file_ref->description ?: _('Keine Beschreibung vorhanden.'), true, true) ?>
         </article>
     </div>
 </div>
