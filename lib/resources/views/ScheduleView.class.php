@@ -356,7 +356,7 @@ class ScheduleView
                        $add_link_timestamp,
                        Icon::create(
                            'add',
-                           Icon::INACTIVE,
+                           Icon::ROLE_INACTIVE,
                            tooltip2(
                                sprintf(_('Eine neue Belegung von %s bis %s Uhr anlegen'),
                                     date('H:i', $add_link_timestamp),
