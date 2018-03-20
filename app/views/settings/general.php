@@ -33,7 +33,7 @@ $start_pages = array(
         <? if (!$GLOBALS['perm']->have_perm('root')): ?>
         <label>
             <?= _('Persönliche Startseite') ?>
-            <?= tooltipIcon(_('Sie können hier einstellen, welche Seite standardmäßig nach dem Einloggen '
+            <?= tooltipHtmlIcon(_('Sie können hier einstellen, welche Seite standardmäßig nach dem Einloggen '
                 .'angezeigt wird. Wenn Sie zum Beispiel regelmäßig die Seite &raquo;Meine '
                 .'Veranstaltungen&laquo; nach dem Login aufrufen, so können Sie dies hier '
                 .'direkt einstellen.')) ?>
