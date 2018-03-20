@@ -18,7 +18,7 @@
     <fieldset>
         <legend><?= _('Themen') ?></legend>
 
-        <ul class="themen_list">
+        <ul class="themen-list">
         <? foreach ($date->topics as $topic) : ?>
             <?= $this->render_partial('course/dates/_topic_li', compact('topic')) ?>
         <? endforeach ?>
