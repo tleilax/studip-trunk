@@ -10780,8 +10780,14 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   flex-wrap: nowrap;
   flex: auto;
   margin: 0;
+  max-width: 100%;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-img {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0;
+  -ms-flex: 0;
+  -moz-box-flex: 0;
+  flex: 0;
   margin-left: 6px;
   margin-right: 6px;
 }
@@ -10790,10 +10796,15 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   height: 36px;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data {
-  flex: auto;
-  max-width: calc(100% - 120px);
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  -moz-box-flex: 1;
+  flex: 1;
+  max-width: calc(100% - 100px);
   overflow: hidden;
   padding-right: 6px;
+  word-wrap: break-word;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data .globalsearch-result-title {
   font-size: 14px;
@@ -10804,6 +10815,11 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   font-size: 12px;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-time {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0;
+  -ms-flex: 0;
+  -moz-box-flex: 0;
+  flex: 0;
   color: #636971;
   font-size: 11px;
   font-weight: normal;

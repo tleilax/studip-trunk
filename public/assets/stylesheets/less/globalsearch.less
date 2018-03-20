@@ -200,11 +200,12 @@
                     .flex();
                     .flex-direction-row();
                     .flex-wrap(nowrap);
-                    flex: auto;
                     margin: 0;
+                    max-width: 100%;
                 }
 
                 .globalsearch-result-img {
+                    .flex-item(0);
                     margin-left: 6px;
                     margin-right: 6px;
 
@@ -214,8 +215,8 @@
                 }
 
                 .globalsearch-result-data {
-                    flex: auto;
-                    max-width: calc(100% - 120px);
+                    .flex-item(1);
+                    max-width: calc(100% - 100px);
                     overflow: hidden;
                     padding-right: 6px;
 
@@ -232,6 +233,7 @@
 
                 .globalsearch-result-time {
                     color: @dark-gray-color-80;
+                    .flex-item(0);
                     font-size: ceil((@font-size-small * 0.85));
                     font-weight: normal;
                     text-align: right;
