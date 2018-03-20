@@ -23,6 +23,8 @@
                 $('#globalsearch-input').blur().val('');
             }
 
+            $('html.responsive-display').toggleClass('globalsearch-visible', visible);
+
             return false;
         },
 
@@ -221,7 +223,13 @@
     $(function () {
         // Clear search term
         $('#globalsearch-clear').on('click', function () {
+            var before = $('#globalsearch-input').val();
             STUDIP.GlobalSearch.resetSearch();
+
+            if ($('html').is('.responsive-display') && before.length === 0) {
+                STUDIP.GlobalSearch.toggleSearchBar(false);
+            }
+
             return false;
         });
 

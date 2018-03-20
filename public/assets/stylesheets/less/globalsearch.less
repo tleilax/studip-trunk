@@ -9,6 +9,8 @@
     position: relative;
     top: 4px;
 
+    white-space: nowrap;
+
     // Reset alignments among browsers
     > * {
         .box-sizing(border-box);
@@ -260,6 +262,77 @@
 
             mark {
                 background-color: @content-color-40;
+            }
+        }
+    }
+}
+
+html.responsive-display {
+    #quicksearch_item {
+        .flex-align-self(center);
+    }
+    #globalsearch-searchbar {
+        position: static;
+        top: 0;
+
+        #globalsearch-input {
+            width: 100%;
+        }
+        #globalsearch-icon {
+            left: calc(100% - 16px);
+            margin-left: 0;
+        }
+        #globalsearch-list {
+            @padding: 5px;
+
+            position: absolute;
+            left: @padding;
+            top: calc(@bar-bottom-container-height + @padding);
+            width: calc(100vw - (2 * @padding));
+        }
+
+        #globalsearch-clear {
+            opacity: 1;
+        }
+    }
+
+    &:not(.globalsearch-visible) {
+        #globalsearch-list,
+        #globalsearch-clear {
+            display: none;
+        }
+    }
+
+    &.globalsearch-visible {
+        #barBottomright ul {
+            li {
+                display: none;
+            }
+            li:first-child,
+            #quicksearch_item,
+            #sidebar-menu {
+                display: initial;
+            }
+        }
+
+        .helpbar {
+            z-index: 0;
+        }
+
+        #layout_page {
+            position: relative;
+            filter: blur(1px);
+
+            &::before {
+                content: ' ';
+                display: block;
+                position: absolute;
+                top: -1px;
+                right: -1px;
+                bottom: -1px;
+                left: -1px;
+                background: fadeout(@base-color, 50%);
+                z-index: 1;
             }
         }
     }
