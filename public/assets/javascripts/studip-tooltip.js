@@ -191,6 +191,8 @@
 // the obvious accessibility issues.
 (function ($, STUDIP) {
 
+    var timeout = null;
+
     STUDIP.Tooltip.threshold = 6;
 
     jQuery(document).on('mouseenter mouseleave', '[data-tooltip]', function (event) {
@@ -223,6 +225,17 @@
             data.tooltipObject.position(x, y);
         }
 
-        data.tooltipObject.toggle(visible);
+        if (visible) {
+            $('.studip-tooltip').not(data.tooltipObject).hide();
+            data.tooltipObject.show();
+        } else {
+            timeout = setTimeout(function () {
+                data.tooltipObject.hide();
+            }, 300);
+        }
+    }).on('mouseenter', '.studip-tooltip', function () {
+        clearTimeout(timeout);
+    }).on('mouseleave', '.studip-tooltip', function () {
+        $(this).hide();
     });
 }(jQuery, STUDIP));
