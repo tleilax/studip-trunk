@@ -14,6 +14,8 @@
          */
         toggleSearchBar: function (visible, cleanup) {
             $('#globalsearch-searchbar').toggleClass('is-visible', visible);
+            $('#globalsearch-input').toggleClass('hidden-small-down', !visible);
+            $('#globalsearch-icon').toggleClass('hidden-small-down', visible);
 
             if (!visible && cleanup) {
                 $('#globalsearch-searchbar').removeClass('has-value');
@@ -34,9 +36,11 @@
                 resultsPerType  = resultsDiv.data('results-per-type'),
                 moreResultsText = resultsDiv.data('more-results'),
                 wrapper         = $('#globalsearch-searchbar');
+
             if (searchterm === '') {
                 return;
             }
+
 
             wrapper.toggleClass('has-value', hasValue);
 
@@ -224,6 +228,13 @@
         // Bind icon click to performing search.
         $('#globalsearch-icon').on('click', function () {
             STUDIP.GlobalSearch.doSearch();
+
+            if ($('html').hasClass('responsified')) {
+                var input = $('#globalsearch-input');
+                input.toggleClass('hidden-small-down', false);
+                input.focus();
+            }
+
             return false;
         });
 

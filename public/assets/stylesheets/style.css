@@ -10571,6 +10571,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   -moz-transition: opacity 300ms;
   -o-transition: opacity 300ms;
   transition: opacity 300ms;
+  z-index: 100;
 }
 #globalsearch-searchbar.has-value #globalsearch-clear {
   opacity: 1;
@@ -11269,11 +11270,19 @@ label[for="responsive-toggle"]::before {
   width: 100% !important;
 }
 .responsive-display #globalsearch-searchbar #globalsearch-input {
-  max-width: 215px;
+  max-width: 50%;
+  position: fixed;
+  left: 50px;
+  top: 5px;
+}
+.responsive-display #globalsearch-searchbar #globalsearch-icon {
+  left: calc(100% - 15px);
+  top: 7px;
 }
 .responsive-display #globalsearch-searchbar #globalsearch-list {
   width: 100vw;
-  left: -46px;
+  left: -181px;
+  top: 28px;
 }
 .responsive-display #barBottomright ul li:first-child {
   -webkit-box-flex: 1;
