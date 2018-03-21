@@ -633,8 +633,8 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if (Request::int('cancel_send_message') && count($deleted_dates) > 0) {
             $snd_messages = raumzeit_send_cancel_message(Request::get('cancel_comment'), $deleted_dates);
-            if ($snd_messages) {
-                $this->course->createMessage(sprintf(_('Es wurden %u Benachrichtigungen gesendet.'), $snd_messages));
+            if ($snd_messages > 0) {
+                $this->course->createMessage(_('Alle Teilnehmenden wurden benachrichtigt.'));
             }
         }
     }
@@ -1003,8 +1003,8 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         if (Request::int('cancel_send_message')) {
             $snd_messages = raumzeit_send_cancel_message(Request::get('cancel_comment'), $termin);
-            if ($snd_messages) {
-                $this->course->createInfo(sprintf(_('Es wurden %s Benachrichtigungen gesendet.'), $snd_messages));
+            if ($snd_messages > 0) {
+                $this->course->createInfo(_('Alle Teilnehmenden wurden benachrichtigt.'));
             }
         }
         $this->displayMessages();
