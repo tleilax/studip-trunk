@@ -29,6 +29,8 @@ class Fachbereich extends ModuleManagementModelTreeItem
         $config['additional_fields']['count_module']['get'] =
             function($fb) { return $fb->count_module; };
 
+        $config['i18n_fields']['name'] = true;
+        
         parent::configure($config);
     }
 

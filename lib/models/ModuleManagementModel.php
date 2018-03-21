@@ -14,6 +14,8 @@
  * @since       3.5
  */
 
+require_once 'config/mvv_config.php';
+
 abstract class ModuleManagementModel extends SimpleORMap
 {
     /**
@@ -51,7 +53,19 @@ abstract class ModuleManagementModel extends SimpleORMap
      * Displays the name of the Studiengangteil if available for this object.
      */
     const DISPLAY_STGTEIL = 32;
+    
+    /**
+     * Usable as option ModuleManagementModel::getDisplayName().
+     * Displays the name of the Abschluss if available for this object.
+     */
+    const DISPLAY_ABSCHLUSS = 64;
 
+    /**
+     * Usable as option ModuleManagementModel::getDisplayName().
+     * Displays the name of the Abschluss-Kategorie
+     * if available for this object.
+     */
+    const DISPLAY_KATEGORIE = 128;
 
 
     protected static $filter_params = array();
@@ -489,8 +503,12 @@ abstract class ModuleManagementModel extends SimpleORMap
                 }
                 $data_object = clone $model_object;
                 foreach ($data as $key => $value) {
-                    $data_object->content[mb_strtolower($key)] = $value;
-                    $data_object->content_db[mb_strtolower($key)] = $value;
+                    if (isset($data_object->db_fields[$key])) {
+                        $data_object->setValue($key, $value);
+                    } else {
+                        $data_object->content[mb_strtolower($key)] = $value;
+                        $data_object->content_db[mb_strtolower($key)] = $value;
+                    }
                 }
                 $data_object->setId($pkey);
                 $data_object->setNew(false);
@@ -513,10 +531,10 @@ abstract class ModuleManagementModel extends SimpleORMap
     public function getDisplayName($options = self::DISPLAY_DEFAULT)
     {
         if ($this->isField('name')) {
-            return $this->getValue('name');
+            return (string) $this->getValue('name');
         }
         if ($this->isField('bezeichnung')) {
-            return $this->getValue('bezeichnung');
+            return (string) $this->getValue('bezeichnung');
         }
         return '';
     }
@@ -668,7 +686,7 @@ abstract class ModuleManagementModel extends SimpleORMap
      * @param bool $to_utf8 If true (default), the data will be utf8 transformed.
      * @return array The array with all content fields from object.
      */
-    public static function getContentArray( $sorm, $to_utf8 = true)
+    public static function getContentArray(SimpleORMap $sorm, $to_utf8 = true)
     {
         return $sorm->contentToArray($to_utf8);
     }
@@ -711,8 +729,9 @@ abstract class ModuleManagementModel extends SimpleORMap
     }
 
     /**
-     * Sets the language for localized fields. Possible values are configured in
-     * mvv_config.php.
+     * Sets the language for localized fields and the locale environment
+     * globally.
+     * Possible values are configured in mvv_config.php.
      *
      * @see mvv_config.php
      * @param string $language The language.
@@ -721,13 +740,47 @@ abstract class ModuleManagementModel extends SimpleORMap
     {
         $language = mb_strtoupper(mb_strstr($language . '_', '_', true));
         if (isset($GLOBALS['MVV_LANGUAGES']['values'][$language])) {
-            setLocaleEnv($GLOBALS['MVV_LANGUAGES']['values'][$language]['locale']);
-            self::$language = $language;
+            $locale = $GLOBALS['MVV_LANGUAGES']['values'][$language]['locale'];
+            setLocaleEnv($locale);
+            self::setContentLanguage($language);
             // load config file again
-            $mvv_plugin = PluginEngine::getPlugin('MVVPlugin');
-            require $mvv_plugin->getPluginPath() . '/mvv_config.php';
+            require $GLOBALS['STUDIP_BASE_PATH'] . '/config/mvv_config.php';
         }
     }
+    
+    /**
+     * Switches the content to the given language.
+     * Compared to ModuleManagementModel::setLanguage() strings translated with
+     * gettext are always in the prefered language selected by the user.
+     * 
+     * @param string $language The language code (see mvv_config.php)
+     */
+    public static function setContentLanguage($language)
+    {
+        if (!is_array($GLOBALS['MVV_LANGUAGES']['values'][$language])) {
+            throw new InvalidArgumentException();
+        }
+        $locale = $GLOBALS['MVV_LANGUAGES']['values'][$language]['locale'];
+        I18NString::setContentLanguage($locale);
+        self::$language = $language;
+    }
+    
+    public function getAvailableTranslations()
+    {
+        $translations[] = $GLOBALS['MVV_LANGUAGES']['default'];
+        $stmt = DBManager::get()->prepare('SELECT DISTINCT `lang` '
+                . 'FROM i18n '
+                . 'WHERE `object_id` = ? AND `table` = ?');
+        $stmt->execute([$this->id, $this->db_table]);
+        foreach ($stmt->fetchAll() as $locale) {
+            $language = mb_strtoupper(mb_strstr($locale['lang'], '_', true));
+            if (is_array($GLOBALS['MVV_LANGUAGES']['values'][$language])) {
+                $translations[] = $language;
+            }
+        }
+        return $translations;
+    }
+    
 
     /**
      * Returns the currently selected language.
@@ -735,8 +788,9 @@ abstract class ModuleManagementModel extends SimpleORMap
      * @return string The currently selected language.
      */
     public static final function getLanguage()
-    {
-        return self::$language;
+    { return 'DE';
+        $language = self::$language ?: $GLOBALS['MVV_LANGUAGES']['default'];
+        return $language;
     }
 
     /**
@@ -759,30 +813,6 @@ abstract class ModuleManagementModel extends SimpleORMap
             return 'th';
         }
         return '.';
-    }
-
-    /**
-     * Returns value of a column. Checks for localized fields and return the
-     * value of the configured language.
-     *
-     * @see mvv_config.php
-     * @param string $field
-     * @return null|string
-     */
-    function getValue($field)
-    {
-        if ($this->isField($field) && self::$language) {
-            if ($GLOBALS['MVV_LANGUAGES']['values'][self::$language]['visible']) {
-                $localized_field = $field . '_'
-                        . $GLOBALS['MVV_LANGUAGES']['values'][self::$language]['db_suffix'];
-                if (isset($this->content_db[$localized_field])) {
-                    if (parent::getValue($localized_field) !== '') {
-                        return parent::getValue($localized_field);
-                    }
-                }
-            }
-        }
-        return parent::getValue($field);
     }
 
     /**
@@ -845,8 +875,8 @@ abstract class ModuleManagementModel extends SimpleORMap
     }
 
     /**
-     * Returns a string that identify a variant of this object. returns null if
-     * no possible variants exists for this object.
+     * Returns a string that identify a variant of this object. Returns an empty
+     * string if no variant exists for this object.
      *
      * @return string String to identify a variant.
      */

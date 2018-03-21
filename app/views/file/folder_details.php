@@ -16,7 +16,7 @@
 
     <? if ($folder->description): ?>
         <h3><?= _('Beschreibung') ?></h3>
-        <article><?= htmlReady($folder->description); ?></article>
+        <article><?= htmlReady($folder->description, true, true); ?></article>
     <? endif; ?>
     </div>
 </div>

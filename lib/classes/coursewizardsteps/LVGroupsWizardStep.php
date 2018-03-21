@@ -28,9 +28,6 @@ class LVGroupsWizardStep implements CourseWizardStep
      */
     public function getStepTemplate($values, $stepnumber, $temp_id)
     {
-        $mvv_plugin = PluginEngine::getPlugin('MVVPlugin');
-        $mvv_basepath = $mvv_plugin->getPluginPath();
-
         // retrieve class of step 1 from step registry
         $step_one_class = CourseWizardStepRegistry::findOneBySQL('number = 1 AND enabled = 1')
                 ->classname;
@@ -42,8 +39,8 @@ class LVGroupsWizardStep implements CourseWizardStep
         $values = $values[__CLASS__];
 
         // Load template from step template directory.
-        $factory = new Flexi_TemplateFactory($mvv_basepath.'/views');
-        $tpl = $factory->open('coursewizard/lvgroups/index');
+        $factory = new Flexi_TemplateFactory($GLOBALS['STUDIP_BASE_PATH'] . '/app/views/course/wizard/steps');
+        $tpl = $factory->open('lvgroups/index');
         $tpl->set_attribute('values', $values);
 
         $lvgtree = new StudipLvgruppeSelection();
@@ -132,12 +129,11 @@ class LVGroupsWizardStep implements CourseWizardStep
             $course_end = $semester->ende;
         }
 
-        $lvgtree = new StudipLvgruppeSelection();
-
         $mvvid = explode('-', $parentId);
         $mvvobj = $parentClass::find($mvvid[0]);
         $children = $mvvobj->getChildren();
 
+        $i = 1;
         foreach ($children as $c) {
 
             if (isset($c->stat)) {
@@ -158,15 +154,16 @@ class LVGroupsWizardStep implements CourseWizardStep
             // name of module maybe differs from original module title if it
             // is assigned to a Studiengangteilabschnitt
             if (is_a($c, 'Modul')) {
-                $stgteilabschnitt_modul = StgteilabschnittModul::find([$mvvid[0], $c->id]);
+                $stgteilabschnitt_modul = StgteilabschnittModul::findOneBySql(
+                        '`abschnitt_id` = ? AND `modul_id` = ?', [$mvvid[0], $c->id]);
                 $name = $stgteilabschnitt_modul->getDisplayName();
             } else {
                 $name = $c->getDisplayName();
             }
             
             $level[] = array(
-                'id' => $c->id . '-' . $mvvid[0],
-                'name' => studip_utf8encode($name),
+                'id' => $c->id . '-' . $mvvid[1] . $i++,
+                'name' => $name,
                 'has_children' => $c->hasChildren(),
                 'parent' => $c->getTrailParentId(),
                 'assignable' => $c->isAssignable(),
@@ -184,12 +181,6 @@ class LVGroupsWizardStep implements CourseWizardStep
     public function searchLVGroupTree($searchterm)
     {
         $result = array();
-        $mvv_plugin = PluginEngine::getPlugin('MVVPlugin');
-        $mvv_basepath = $mvv_plugin->getPluginPath();
-
-        $factory = new Flexi_TemplateFactory($mvv_basepath.'/views');
-        $tpl = new Flexi_PhpTemplate('lvgselector/entry_trails', $factory);
-
         $selection = self::get_selection(Request::get('cid'));
         $selectedlvg = array();
         if (!empty($selection)) {
@@ -232,10 +223,11 @@ class LVGroupsWizardStep implements CourseWizardStep
                 continue;
             }
 
-            $renderd = $tpl->render_partial('coursewizard/lvgroups/lvgroup_searchentry', compact('area', 'inlist'));
+            $factory = new Flexi_TemplateFactory($GLOBALS['STUDIP_BASE_PATH'] . '/app/views');
+            $html = $factory->render('course/wizard/steps/lvgroups/lvgroup_searchentry', compact('area', 'inlist'));
             $data = array(
                 'id' => $area->id,
-                'html_string' => $renderd
+                'html_string' => $html
             );
             $result[] = $data;
         }
@@ -245,8 +237,6 @@ class LVGroupsWizardStep implements CourseWizardStep
     public function getLVGroupDetails($id) {
         $mvvid = explode('-', $id);
         $area = Lvgruppe::find($mvvid[0]);
-        $mvv_plugin = PluginEngine::getPlugin('MVVPlugin');
-        $mvv_basepath = $mvv_plugin->getPluginPath();
 
         $course = Course::findCurrent();
         if ($course) {
@@ -295,14 +285,13 @@ class LVGroupsWizardStep implements CourseWizardStep
             'Studiengang']);
         $pathes = ModuleManagementModelTreeItem::getPathes($trails);
         
-        $factory = new Flexi_TemplateFactory($mvv_basepath.'/views');
-        $tpl = new Flexi_PhpTemplate('lvgselector/entry_trails', $factory);
-        $rendered = $tpl->render_partial('lvgselector/entry_trails',
+        $factory = new Flexi_TemplateFactory($GLOBALS['STUDIP_BASE_PATH'] . '/app/views');
+        $html = $factory->render('course/lvgselector/entry_trails',
                 compact('area', 'pathes'));
 
         $data = array(
             'id' => $area->id,
-            'html_string' => $rendered
+            'html_string' => $html
         );
         if (Request::isXhr()) {
             return json_encode($data);
@@ -315,16 +304,13 @@ class LVGroupsWizardStep implements CourseWizardStep
     {
         $mvvid = explode('-', $id);
         $area = Lvgruppe::find($mvvid[0]);
-        $mvv_plugin = PluginEngine::getPlugin('MVVPlugin');
-        $mvv_basepath = $mvv_plugin->getPluginPath();
 
-        $factory = new Flexi_TemplateFactory($mvv_basepath.'/views');
-        $tpl = new Flexi_PhpTemplate('coursewizard/lvgroups/lvgroup_entry', $factory);
-        $renderd = $tpl->render_partial('coursewizard/lvgroups/lvgroup_entry', compact('area'));
+        $factory = new Flexi_TemplateFactory($GLOBALS['STUDIP_BASE_PATH'] . '/app/views');
+        $html = $factory->render('course/wizard/steps/lvgroups/lvgroup_entry', compact('area'));
 
         $data = array(
             'id' => $area->id,
-            'html_string' => $renderd
+            'html_string' => $html
         );
         return json_encode($data);
     }

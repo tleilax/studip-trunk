@@ -47,12 +47,12 @@ class AbschlussKategorie extends ModuleManagementModelTreeItem
         $config['db_table'] = 'mvv_abschl_kategorie';
         
         $config['has_many']['documents'] = array(
-            'class_name' => 'Dokument',
+            'class_name' => 'MvvDokument',
             'assoc_func' => 'findByObject',
             'assoc_func_params_func' => function ($ak) { return $ak; }
         );
         $config['has_many']['document_assignments'] = array(
-            'class_name' => 'DokumentZuord',
+            'class_name' => 'MvvDokumentZuord',
             'assoc_foreign_key' => 'range_id',
             'order_by' => 'ORDER BY position',
             'on_delete' => 'delete',
@@ -80,7 +80,10 @@ class AbschlussKategorie extends ModuleManagementModelTreeItem
         $config['additional_fields']['count_objects']['get'] =
             function($ak) { return $ak->count_objects; };
         
-        
+        $config['i18n_fields']['name'] = true;
+        $config['i18n_fields']['name_kurz'] = true;
+        $config['i18n_fields']['beschreibung'] = true;
+            
         parent::configure($config);
     }
     
@@ -121,24 +124,29 @@ class AbschlussKategorie extends ModuleManagementModelTreeItem
     public static function getAllEnriched($sortby = 'position', $order = 'ASC',
             $row_count = null, $offset = null, $filter = null)
     {
-        $sortby = self::createSortStatement($sortby, $order, 'position',
-                array('count_abschluesse', 'count_dokumente',
-                    'count_studiengaenge'));
-        return parent::getEnrichedByQuery('SELECT mvv_abschl_kategorie.*, '
-                . 'COUNT(DISTINCT mvv_abschl_zuord.abschluss_id) AS `count_abschluesse`, '
-                . 'COUNT(DISTINCT mvv_dokument_zuord.dokument_id) AS `count_dokumente`, '
-                . 'COUNT(DISTINCT mvv_studiengang.studiengang_id) AS `count_studiengaenge` '
-                . 'FROM mvv_abschl_kategorie '
-                . 'LEFT JOIN mvv_abschl_zuord USING(kategorie_id) '
-                . 'LEFT JOIN mvv_dokument_zuord '
-                . 'ON mvv_dokument_zuord.range_id = mvv_abschl_kategorie.kategorie_id '
-                . "AND mvv_dokument_zuord.object_type = '"
-                . get_class() . "' "
-                . 'LEFT JOIN mvv_studiengang '
-                . 'ON mvv_studiengang.abschluss_id = mvv_abschl_zuord.abschluss_id '
-                . self::getFilterSql($filter, true)
-                . "GROUP BY kategorie_id "
-                . 'ORDER BY ' . $sortby, array(), $row_count, $offset);
+        $sortby = self::createSortStatement(
+            $sortby,
+            $order,
+            'position',
+            array('count_abschluesse', 'count_dokumente', 'count_studiengaenge')
+        );
+        return parent::getEnrichedByQuery("
+            SELECT mvv_abschl_kategorie.*, 
+                COUNT(DISTINCT mvv_abschl_zuord.abschluss_id) AS `count_abschluesse`, 
+                COUNT(DISTINCT mvv_dokument_zuord.dokument_id) AS `count_dokumente`, 
+                COUNT(DISTINCT mvv_studiengang.studiengang_id) AS `count_studiengaenge` 
+            FROM mvv_abschl_kategorie 
+                LEFT JOIN mvv_abschl_zuord USING (kategorie_id) 
+                LEFT JOIN mvv_dokument_zuord ON (mvv_dokument_zuord.range_id = mvv_abschl_kategorie.kategorie_id 
+                    AND mvv_dokument_zuord.object_type = '" . get_class() . "') 
+                LEFT JOIN mvv_studiengang ON mvv_studiengang.abschluss_id = mvv_abschl_zuord.abschluss_id 
+            " . self::getFilterSql($filter, true) . "
+            GROUP BY kategorie_id 
+            ORDER BY " . $sortby,
+            array(), 
+            $row_count, 
+            $offset
+        );
     }
     
     /**
@@ -148,11 +156,13 @@ class AbschlussKategorie extends ModuleManagementModelTreeItem
      */
     public static function findUsed()
     {
-        return parent::getEnrichedByQuery('SELECT mak.* '
-                . 'FROM mvv_abschl_kategorie mak '
-                . 'INNER JOIN mvv_abschl_zuord USING(kategorie_id) '
-                . 'INNER JOIN mvv_studiengang USING(abschluss_id) '
-                . 'ORDER BY name');
+        return parent::getEnrichedByQuery('
+            SELECT mak.* 
+            FROM mvv_abschl_kategorie AS mak 
+                INNER JOIN mvv_abschl_zuord USING (kategorie_id) 
+                INNER JOIN mvv_studiengang USING (abschluss_id) 
+            ORDER BY name
+        ');
     }
 
     /**
@@ -164,15 +174,18 @@ class AbschlussKategorie extends ModuleManagementModelTreeItem
      */
     public static function findByFachbereich($fachbereich_id)
     {
-        return parent::getEnrichedByQuery('SELECT mak.* '
-                . 'FROM mvv_abschl_kategorie mak '
-                . 'INNER JOIN mvv_abschl_zuord USING(kategorie_id) '
-                . 'INNER JOIN mvv_studiengang USING(abschluss_id) '
-                . 'INNER JOIN mvv_stg_stgteil USING(studiengang_id) '
-                . 'INNER JOIN mvv_stgteil USING(stgteil_id) '
-                . 'INNER JOIN mvv_fach_inst mfi USING(fach_id) '
-                . 'WHERE mfi.institut_id = ? '
-                . 'ORDER BY mak.position', array($fachbereich_id));
+        return parent::getEnrichedByQuery('
+            SELECT mak.* 
+            FROM mvv_abschl_kategorie mak 
+                INNER JOIN mvv_abschl_zuord USING (kategorie_id) 
+                INNER JOIN mvv_studiengang USING (abschluss_id) 
+                INNER JOIN mvv_stg_stgteil USING (studiengang_id) 
+                INNER JOIN mvv_stgteil USING (stgteil_id) 
+                INNER JOIN mvv_fach_inst mfi USING (fach_id) 
+            WHERE mfi.institut_id = ? 
+            ORDER BY mak.position',
+            array($fachbereich_id)
+        );
     }
     
     /**
@@ -184,15 +197,16 @@ class AbschlussKategorie extends ModuleManagementModelTreeItem
      */
     public static function findByStudiengaenge($studiengang_ids = array())
     {
-        return parent::getEnrichedByQuery('SELECT mak.*, '
-                . 'COUNT(studiengang_id) AS count_objects '
-                . 'FROM mvv_abschl_kategorie mak '
-                . 'INNER JOIN mvv_abschl_zuord USING(kategorie_id) '
-                . 'INNER JOIN mvv_studiengang USING(abschluss_id) '
-                . self::getFilterSql(array('mvv_studiengang.studiengang_id'
-                    => $studiengang_ids), true)
-                . 'GROUP BY mak.kategorie_id '
-                . 'ORDER BY mak.name ASC');
+        return parent::getEnrichedByQuery('
+            SELECT mak.*, 
+                COUNT(studiengang_id) AS count_objects 
+            FROM mvv_abschl_kategorie AS mak 
+                INNER JOIN mvv_abschl_zuord USING (kategorie_id) 
+                INNER JOIN mvv_studiengang USING (abschluss_id) 
+                ' . self::getFilterSql(array('mvv_studiengang.studiengang_id' => $studiengang_ids), true) . '
+            GROUP BY mak.kategorie_id 
+            ORDER BY mak.name ASC
+        ');
     }
     
     /**
@@ -211,9 +225,11 @@ class AbschlussKategorie extends ModuleManagementModelTreeItem
     public function assign($abschluss_id)
     {
         if (!$this->isNew()) {
-            $stmt = DBManager::get()->prepare('INSERT INTO mvv_abschl_zuord '
-                . '(abschluss_id, kategorie_id) values(?, ?) '
-                . 'ON DUPLICATE KEY UPDATE kategorie_id = ?');
+            $stmt = DBManager::get()->prepare('
+                INSERT INTO mvv_abschl_zuord (abschluss_id, kategorie_id) 
+                VALUES (?, ?) 
+                ON DUPLICATE KEY UPDATE kategorie_id = ?
+            ');
             $stmt->execute(array($abschluss_id, $this->getId(), $this->getId()));
         }
     }
@@ -291,20 +307,24 @@ class AbschlussKategorie extends ModuleManagementModelTreeItem
         
         $start_sem = self::$object_filter['StgteilVersion']['start_semester'];
         $end_sem = self::$object_filter['StgteilVersion']['end_semester'];
-        return StgteilVersion::getEnrichedByQuery('SELECT msv.* '
-            . 'FROM mvv_abschl_zuord maz '
-            . 'INNER JOIN mvv_studiengang ms ON maz.abschluss_id = ms.abschluss_id '
-            . 'AND maz.kategorie_id = :kategorie_id '
-            . 'INNER JOIN Institute AS `ins` ON ms.institut_id = `ins`.Institut_id '
-            . 'INNER JOIN mvv_stg_stgteil USING(studiengang_id) '
-            . 'INNER JOIN mvv_stgteilversion msv USING(stgteil_id)'
-            . 'LEFT JOIN semester_data startsem ON msv.start_sem = startsem.semester_id '
-            . 'LEFT JOIN semester_data endsem ON msv.end_sem = endsem.semester_id '
-            . 'WHERE (`ins`.Institut_id = :parent_id OR `ins`.fakultaets_id = :parent_id) '
-            . "AND ((ISNULL(NULLIF(msv.end_sem, '')) AND (startsem.beginn <= :sem_end)) "
-            . 'OR (:sem_begin BETWEEN startsem.beginn AND endsem.ende) '
-            . 'OR (startsem.beginn BETWEEN :sem_begin AND :sem_end)) '
-            . 'ORDER BY ms.name, startsem.beginn',
+        return StgteilVersion::getEnrichedByQuery("
+            SELECT msv.* 
+            FROM mvv_abschl_zuord maz 
+                INNER JOIN mvv_studiengang ms ON (
+                    maz.abschluss_id = ms.abschluss_id 
+                    AND maz.kategorie_id = :kategorie_id ) 
+                INNER JOIN Institute AS `ins` ON ms.institut_id = `ins`.Institut_id 
+                INNER JOIN mvv_stg_stgteil USING(studiengang_id) 
+                INNER JOIN mvv_stgteilversion AS msv USING(stgteil_id)
+                LEFT JOIN semester_data AS startsem ON msv.start_sem = startsem.semester_id 
+                LEFT JOIN semester_data AS endsem ON msv.end_sem = endsem.semester_id 
+            WHERE (`ins`.Institut_id = :parent_id OR `ins`.fakultaets_id = :parent_id) 
+                AND (
+                    (ISNULL(NULLIF(msv.end_sem, '')) AND (startsem.beginn <= :sem_end)) 
+                    OR (:sem_begin BETWEEN startsem.beginn AND endsem.ende) 
+                    OR (startsem.beginn BETWEEN :sem_begin AND :sem_end)
+                ) 
+            ORDER BY ms.name, startsem.beginn",
             array(':kategorie_id' => $this->getId(),
                 ':parent_id' => $trail_parent_id,
                 ':sem_begin' => ($start_sem ? $start_sem->beginn : 0),

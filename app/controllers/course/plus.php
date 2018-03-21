@@ -340,7 +340,16 @@ class Course_PlusController extends AuthenticatedController
                     //after sending, set all "conflicts" to TRUE (we check them later)
                     $_SESSION['admin_modules_data']["conflicts"][$key] = true;
 
-                    if ($this->sem_class) $studip_module = $this->sem_class->getModule($key);
+                    if ($this->sem_class) {
+                        $studip_module = $this->sem_class->getModule($key);
+                        $mod = $this->sem_class->getSlotModule($key);
+
+                        //skip the modules that are not changeable
+                        if ($mod && (!$this->sem_class->isModuleAllowed($mod) || $this->sem_class->isModuleMandatory($mod))) {
+                            continue;
+                        }
+                    }
+
                     $info = ($studip_module instanceOf StudipModule) ? $studip_module->getMetadata() : ($val['metadata'] ? $val['metadata'] : array());
                     $info ["category"] = $info ["category"] ? : 'Sonstiges';
 
@@ -447,7 +456,7 @@ class Course_PlusController extends AuthenticatedController
             // Inhaltselemente speichern
             if ($_SESSION['admin_modules_data']["orig_bin"] != $_SESSION['admin_modules_data']["changed_bin"]) {
                 $modules->writeBin($_SESSION['admin_modules_data']["range_id"], $_SESSION['admin_modules_data']["changed_bin"]);
-                
+
                 $old_mods = $modules->generateModulesArrayFromModulesInteger($_SESSION['admin_modules_data']["orig_bin"]);
                 $new_mods = $modules->generateModulesArrayFromModulesInteger($_SESSION['admin_modules_data']["changed_bin"]);
                 foreach (array_diff_assoc($old_mods, $new_mods) as $changed_mod => $value) {
@@ -459,7 +468,7 @@ class Course_PlusController extends AuthenticatedController
                     }
                     $anchor = '#m_' . $mod['id'];
                 }
-                
+
                 $_SESSION['admin_modules_data']["orig_bin"] = $_SESSION['admin_modules_data']["changed_bin"];
                 $_SESSION['admin_modules_data']["modules_list"] = $modules->getLocalModules($_SESSION['admin_modules_data']["range_id"]);
                 $changes = true;

@@ -66,6 +66,7 @@
             //Open upload-dialog
             $('.file_upload_window .filenames').html('');
             $('.file_upload_window .errorbox').hide();
+            $('.file_upload_window .messagebox').hide();
             $.each(filelist, function (index, file) {
                 if (file.size > 0) {
                     if (STUDIP.Files.validateUpload(file)) {
@@ -89,7 +90,7 @@
             }
 
             //start upload
-            $('.documents[data-folder_id] tbody > tr.dragover').removeClass('dragover');
+            $('form.drag-and-drop.files').removeClass('hovered');
             if (files > 0) {
                 $('.file_upload_window .uploadbar').show().css('background-size', '0% 100%');
                 $.ajax({
@@ -123,7 +124,7 @@
                                 || (json.new_html.length > 1 ? 'Lizenz auswählen: %s Dateien'.toLocaleString().replace('%s', json.new_html.length) : 'Lizenz auswählen'.toLocaleString())
                         });
                     } else if (json.message) {
-                        $('.file_uploader .uploadbar').hide().parent().append(json.message);
+                        $('.file_upload_window .uploadbar').hide().parent().append(json.message);
                     } else {
                         $.each(json.new_html, function (index, tr) {
                             STUDIP.Files.addFile(tr, index * 200);
@@ -153,7 +154,7 @@
                 STUDIP.Dialog.fromURL(redirect);
             }
 
-            if ($('table.document').length) {
+            if ($('table.documents').length > 0) {
                 // on files page
 
                 if (typeof html !== 'array' && typeof html !== 'object') {
@@ -182,7 +183,6 @@
                 if (payload.url) {
                     STUDIP.Dialog.handlers.header['X-Location'](payload.url);
                 }
-                return;
             }
         },
         removeFile: function (fileref_id) {
@@ -291,12 +291,12 @@
     };
 
     $(function () {
-        $('.documents[data-folder_id] tbody > tr')
+        $('form.drag-and-drop.files')
             .on('dragover dragleave', function (event) {
-                $(this).toggleClass('dragover', event.type === 'dragover');
+                $(this).toggleClass('hovered', event.type === 'dragover');
                 return false;
             });
-        $('.documents[data-folder_id]').on('drop', function (event) {
+        $('form.drag-and-drop.files').on('drop', function (event) {
             event.preventDefault();
 
             var filelist = event.originalEvent.dataTransfer.files || {};

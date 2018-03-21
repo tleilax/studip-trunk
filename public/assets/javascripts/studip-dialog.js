@@ -571,8 +571,9 @@
             }
         }
 
-        if (options['reload-on-close']) {
+        if (options['reload-on-close'] && !options.hasOwnProperty('is-reloading')) {
             window.location.reload();
+            options['is-reloading'] = true;
         }
     };
 

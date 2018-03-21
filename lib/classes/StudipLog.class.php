@@ -352,7 +352,8 @@ class StudipLog
                     break;
                 case 'core':
                     $class_name = $action->class;
-                    if ($class_name instanceof Loggable) {
+                    $interfaces = class_implements($class_name);
+                    if (isset($interfaces['Loggable'])) {
                         return $class_name::logSearch($needle, $action->name);
                     }
             }

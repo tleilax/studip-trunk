@@ -23,13 +23,18 @@
 <p>
     <? switch ($thread['context_type']) {
         case "course":
-            $overview_url = URLHelper::getURL("plugins.php/blubber/streams/forum", array('cid' => $thread['Seminar_id']));
+            $overview_url = $controller->link_for('streams/forum', ['cid' => $thread['Seminar_id']]);
             break;
-        case "public":
-            $overview_url = URLHelper::getURL("plugins.php/blubber/streams/profile", array('user_id' => $thread['user_id'], 'username' =>  get_username($thread['user_id']), 'extern' => $thread['external_contact'] ? $thread['external_contact'] : null));
+        case 'public':
+            $overview_url = $controller->link_for(
+                'streams/profile',
+                $thread['external_contact']
+                    ? ['user_id' => $thread['user_id'], 'extern' => 1]
+                    : ['username' =>  get_username($thread['user_id'])]
+            );
             break;
         default:
-            $overview_url = URLHelper::getURL("plugins.php/blubber/streams/global");
+            $overview_url = $controller->link_for('streams/global');
     } ?>
     <a href="<?= URLHelper::getLink($overview_url) ?>">
         <?= Icon::create('arr_1left', 'clickable')->asImg(['class' => 'text-top']) ?>

@@ -174,8 +174,14 @@ if (Config::get()->PLUGINS_UPLOAD_ENABLE) {
         $controller->url_for('admin/plugin/edit_automaticupdate'),
         Icon::create('download', 'clickable')
     )->asDialog();
-    $actions->addElement(new WidgetElement($this->render_partial('admin/plugin/upload-drag-and-drop')));
+    //$actions->addElement(new WidgetElement($this->render_partial('admin/plugin/upload-drag-and-drop')));
     $sidebar->addWidget($actions);
+    $uploadArea = new LinksWidget();
+    $uploadArea->setTitle(_("Plugin hochladen"));
+    $uploadArea->addElement(new WidgetElement(
+        $this->render_partial('admin/plugin/upload-drag-and-drop'))
+    );
+    $sidebar->addWidget($uploadArea);
 }
 
 $widget = new OptionsWidget();

@@ -331,7 +331,7 @@
                                            value="<?= $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["search_limit_high"] ?>">
                                     <a href="<?= URLHelper::getLink('?inc_limit_high=1') ?>">+</a>
 
-                                    <?= Icon::create('arr_2up', 'sort', ['title' => 'ausgewählten Bereich anzeigen'])->asInput(['name' => 'matching_rooms_limit_submit',]) ?>
+                                    <?= Icon::create('arr_2up', 'sort', ['title' => _('ausgewählten Bereich anzeigen')])->asInput(['name' => 'matching_rooms_limit_submit']) ?>
                                 </td>
                             </tr>
                             <?

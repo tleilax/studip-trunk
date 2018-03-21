@@ -1676,8 +1676,9 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $where_query = null;
         $pk_not_set = array();
         foreach ($this->pk as $key) {
-            if (isset($this->content[$key])) {
-                $where_query[] = "`{$this->db_table}`.`{$key}` = "  . DBManager::get()->quote($this->content[$key]);
+            $pk = $this->content_db[$key] ?: $this->content[$key];
+            if (isset($pk)) {
+                $where_query[] = "`{$this->db_table}`.`{$key}` = "  . DBManager::get()->quote($pk);
             } else {
                 $pk_not_set[] = $key;
             }

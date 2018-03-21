@@ -30,6 +30,10 @@ form.default {
         &.size-l {
             max-width: @max-width-l;
         }
+
+        &[readonly] {
+            background-color: @light-gray-color-20;
+        }
     }
 
     input[type=date], input[type=number], input[type=time], input[type=tel]  {
@@ -125,6 +129,11 @@ form.default {
         padding: 10px;
         padding-top: 5px;
         padding-bottom: 5px;
+
+        .button {
+            margin-bottom: 0;
+            margin-top: 0;
+        }
     }
 
     //Special inputs

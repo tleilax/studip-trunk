@@ -1,10 +1,10 @@
 <?php
 $options = [];
+if (Request::get('from_plugin')) {
+    $options['from_plugin'] = Request::get('from_plugin');
+}
 if (Request::get('to_plugin')) {
     $options['to_plugin'] = Request::get('to_plugin');
-}
-if (Request::get('plugin')) {
-    $options['plugin'] = Request::get('plugin');
 }
 if (Request::get('to_folder_id')) {
     $options['to_folder_id'] = Request::get('to_folder_id');

@@ -157,7 +157,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
             $semtypes[] = $type['id'];
             // Get up some order criteria with the semtypes
             // Remove semtypes form query
-                $replace = "/".$type['name'][0].chunk_split(substr($type['name'], 1), 1, '?')."\*\s?/i";
+                $replace = "/".$type['name'][0].chunk_split(mb_substr($type['name'], 1), 1, '?')."\*\s?/i";
                 $query = preg_replace($replace, "", $query);
         }
 

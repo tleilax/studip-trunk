@@ -70,8 +70,9 @@ class MaterialFolder extends PermissionEnabledFolder
     {
         $template = $GLOBALS['template_factory']->open('filesystem/material_folder/description.php');
 
-        $template->type   = self::getTypeName();
-        $template->folder = $this;
+        $template->type       = self::getTypeName();
+        $template->folder     = $this;
+        $template->folderdata = $this->folderdata;
 
         return $template;
     }

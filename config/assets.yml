@@ -73,6 +73,8 @@ javascripts:
     - *toolbar
     - *dialog
 
+    - javascripts/responsive.js
+
     - javascripts/ajax_notifications.js
     - javascripts/url_helper.js
     - javascripts/updater.js
@@ -107,7 +109,6 @@ javascripts:
     - javascripts/qrcode.js
     - javascripts/tables.js
     - javascripts/start.js
-    - javascripts/responsive.js
     - javascripts/wiki.js
     - javascripts/coursewizard.js
     - javascripts/smiley.js
@@ -130,6 +131,9 @@ javascripts:
     - javascripts/course_archive.js
 
     - javascripts/globalsearch.js
+
+    - javascripts/mvv.js
+    - javascripts/mvv_difflog.js
 
   raumzeit:
     - javascripts/raumzeit.js

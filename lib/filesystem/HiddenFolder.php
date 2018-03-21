@@ -68,8 +68,9 @@ class HiddenFolder extends PermissionEnabledFolder
     {
         $template = $GLOBALS['template_factory']->open('filesystem/hidden_folder/description.php');
 
-        $template->type   = self::getTypeName();
-        $template->folder = $this;
+        $template->type       = self::getTypeName();
+        $template->folder     = $this;
+        $template->folderdata = $this->folderdata;
 
         return $template;
     }

@@ -213,13 +213,6 @@ class NewsController extends StudipController
             $date = $this->getTimeStamp(Request::get('news_startdate'), 'start');
             $expire = $this->getTimeStamp(Request::get('news_enddate'), 'end') ? $this->getTimeStamp(Request::get('news_enddate'), 'end') - $this->getTimeStamp(Request::get('news_startdate'), 'start') : '';
             $allow_comments = Request::get('news_allow_comments') ? 1 : 0;
-            if (Request::submitted('comments_status_deny')) {
-                $this->anker = 'news_comments';
-                $allow_comments = 0;
-            } elseif (Request::submitted('comments_status_allow')) {
-                $this->anker = 'news_comments';
-                $allow_comments = 1;
-            }
             $news->topic          = $topic;
             $news->body           = $body;
             $news->date           = $date;

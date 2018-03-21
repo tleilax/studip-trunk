@@ -16,7 +16,7 @@
 
 class ModulteilDeskriptor extends ModuleManagementModel
 {
-
+    
     protected static function configure($config = array())
     {
         $config['db_table'] = 'mvv_modulteil_deskriptor';
@@ -41,6 +41,18 @@ class ModulteilDeskriptor extends ModuleManagementModel
                 }
         );
         
+        $config['i18n_fields']['bezeichnung'] = true;
+        $config['i18n_fields']['voraussetzung'] = true;
+        $config['i18n_fields']['kommentar'] = true;
+        $config['i18n_fields']['kommentar_kapazitaet'] = true;
+        $config['i18n_fields']['kommentar_wl_praesenz'] = true;
+        $config['i18n_fields']['kommentar_wl_bereitung'] = true;
+        $config['i18n_fields']['kommentar_wl_selbst'] = true;
+        $config['i18n_fields']['kommentar_wl_pruef'] = true;
+        $config['i18n_fields']['pruef_vorleistung'] = true;
+        $config['i18n_fields']['pruef_leistung'] = true;
+        $config['i18n_fields']['kommentar_pflicht'] = true;
+        
         parent::configure($config);
     }
     
@@ -56,29 +68,6 @@ class ModulteilDeskriptor extends ModuleManagementModel
     public static function getClassDisplayName($long = false)
     {
         return _('Modulteil-Deskriptor');
-    }
-    
-    /**
-     * Retrieves all descriptors of the given Modulteil. Optional restricted to
-     * a language.
-     * 
-     * @see mvv_config.php for defined languages.
-     * @param type $modulteil_id The id of a Modulteil.
-     * @param type $language The key of a language.
-     * @return SimpleORMapCollection A collection of descriptors.
-     */
-    public static function findByModulteil($modulteil_id, $language = null)
-    {
-        if ($language) {
-            $params = array($modulteil_id, $language);
-        } else {
-            $params = array($modulteil_id);
-        }
-        return parent::getEnrichedByQuery('SELECT mtd.* '
-                . 'FROM mvv_modulteil_deskriptor mtd '
-                . 'WHERE mtd.modulteil_id = ? '
-                . ($language ? 'AND sprache = ? ' : '')
-                . 'ORDER BY sprache', $params);
     }
     
     /**
@@ -106,9 +95,21 @@ class ModulteilDeskriptor extends ModuleManagementModel
      */
     public function getVariant()
     {
-        if ($this->sprache == $GLOBALS['MVV_MODULTEIL_DESKRIPTOR']['SPRACHE']['default']) {
+        if (self::getLanguage() == $GLOBALS['MVV_MODULTEIL_DESKRIPTOR']['SPRACHE']['default']) {
             return '';
         }
-        return $this->sprache;
+        return self::getLanguage();
+    }
+    
+    /**
+     * Deletes the translation in the given language of this descriptor.
+     * 
+     * @param string $language The language of the translation to delete.
+     * @return int The number of deleted translated fields.
+     */
+    public function deleteTranslation($language)
+    {
+        $locale = $GLOBALS['MVV_LANGUAGES']['values'][$language]['locale'];
+        return I18NString::removeAllTranslations($this->id, 'mvv_modulteil_deskriptor', $locale);
     }
 }

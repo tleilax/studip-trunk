@@ -80,7 +80,7 @@ if (!CheckParamRUN_FOP()) {
     escapeshellcmd($TMP_PATH);
     $pdf_file = md5(uniqid(rand())) . ".pdf";
 
-    $str = "$FOP_SH_CALL $TMP_PATH/export/$result_file $TMP_PATH/$pdf_file ";
+    $str = "$FOP_SH_CALL $TMP_PATH/$result_file $TMP_PATH/$pdf_file ";
 
     $out = exec($str);
     if ($out == '') {

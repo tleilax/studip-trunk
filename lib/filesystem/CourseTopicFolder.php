@@ -79,9 +79,10 @@ class CourseTopicFolder extends StandardFolder implements FolderType
         $topic = CourseTopic::find($this->folderdata['data_content']['topic_id']);
 
         $template = $GLOBALS['template_factory']->open('filesystem/topic_folder/description.php');
-        $template->type      = self::getTypeName();
-        $template->folder    = $this;
-        $template->topic = $topic;
+        $template->type       = self::getTypeName();
+        $template->folder     = $this;
+        $template->topic      = $topic;
+        $template->folderdata = $this->folderdata;
 
         return $template;
     }

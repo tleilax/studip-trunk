@@ -67,9 +67,9 @@ class GlobalSearchMessages extends GlobalSearchModule
     {
         $message = Message::buildExisting($message_id);
 
-        $additional = $message->autor_id === '____%system%____'
+        $additional = ($message->autor_id === '____%system%____'
                     ? _('Systemnachricht')
-                    : $message->author->getFullname();
+                    : ($message->author ? $message->author->getFullname() : _('unbekannt')));
 
         $result = [
             'name'        => self::mark($message->subject, $search),

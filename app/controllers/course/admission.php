@@ -15,8 +15,6 @@
 
 class Course_AdmissionController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * common tasks for all actions
      */
@@ -63,24 +61,22 @@ class Course_AdmissionController extends AuthenticatedController
         URLHelper::addLinkParam('return_to_dialog', Request::isDialog());
         $this->sidebar = Sidebar::get();
         $this->sidebar->setImage('sidebar/seminar-sidebar.png');
+
         if ($GLOBALS['perm']->have_perm('admin')) {
-            $list = new SelectorWidget();
-            $list->setUrl('?#admin_top_links');
-            $list->setSelectParameterName('cid');
+            $list = new SelectWidget(_('Veranstaltungen'), '?#admin_top_links', 'cid');
+
             foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
-                $list->addElement(
-                    new SelectElement(
-                        $seminar['Seminar_id'],
-                        $seminar['Name'],
-                        $seminar['Seminar_id'] === $_SESSION['SessionSeminar'],
-                        $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
-                    ),
-                    'select-' . $seminar['Seminar_id']
-                );
+                $list->addElement(new SelectElement(
+                    $seminar['Seminar_id'],
+                    $seminar['Name'],
+                    $seminar['Seminar_id'] === Context::getId(),
+                    $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                ));
             }
-            $list->setSelection($this->course_id);
+            $list->size = 8;
             $this->sidebar->addWidget($list);
         }
+
         $this->all_domains = UserDomain::getUserDomains();
         $this->seminar_domains = array_map(function($d) {return $d->getId();}, UserDomain::getUserDomainsForSeminar($this->course_id));
         $this->current_courseset = CourseSet::getSetForCourse($this->course_id);

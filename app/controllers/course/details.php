@@ -26,7 +26,7 @@ class Course_DetailsController extends AuthenticatedController
 
         $course_id = Request::option('sem_id', $args[0]);
         if (empty($course_id)) {
-            checkObject(); //wirft Exception, wenn $SessionSeminar leer ist
+            checkObject(); //wirft Exception, wenn Context::get() leer ist
             $course_id = $GLOBALS['SessionSeminar'];
         }
 
@@ -95,83 +95,80 @@ class Course_DetailsController extends AuthenticatedController
         }
 
         // Ausgabe der Modulzuordnung MVV
-        $mvv_plugin = PluginEngine::getPlugin('MVVPlugin');
-        if ($mvv_plugin) {
-            ModuleManagementModel::setLanguage($_SESSION['_language']);
-            if ($this->course->getSemClass()->offsetGet('module')) {
-                $course_start = $this->course->start_time;
-                $course_end = ($this->course->end_time < 0 || is_null($this->course->end_time))
-                        ? PHP_INT_MAX
-                        : $this->course->end_time;
-                // set filter to show only pathes with valid semester data
-                ModuleManagementModelTreeItem::setObjectFilter('Modul',
-                    function ($modul) use ($course_start, $course_end) {
-                        // check for public status
-                        if (!$GLOBALS['MVV_MODUL']['STATUS']['values'][$modul->stat]['public']) {
-                            return false;
-                        }
-                        $modul_start = Semester::find($modul->start)->beginn ?: 0;
-                        $modul_end = Semester::find($modul->end)->ende ?: PHP_INT_MAX;
-                        return ($modul_start <= $course_end && $modul_end >= $course_start);
-                    });
+        if ($this->course->getSemClass()->offsetGet('module')) {
+            $course_start = $this->course->start_time;
+            $course_end = ($this->course->end_time < 0 || is_null($this->course->end_time))
+                    ? PHP_INT_MAX
+                    : $this->course->end_time;
+            // set filter to show only pathes with valid semester data
+            ModuleManagementModelTreeItem::setObjectFilter('Modul',
+                function ($modul) use ($course_start, $course_end) {
+                    // check for public status
+                    if (!$GLOBALS['MVV_MODUL']['STATUS']['values'][$modul->stat]['public']) {
+                        return false;
+                    }
+                    $modul_start = Semester::find($modul->start)->beginn ?: 0;
+                    $modul_end = Semester::find($modul->end)->ende ?: PHP_INT_MAX;
+                    return ($modul_start <= $course_end && $modul_end >= $course_start);
+                });
 
-                ModuleManagementModelTreeItem::setObjectFilter('StgteilVersion',
-                    function ($version) {
-                        return (bool) $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
-                    });
+            ModuleManagementModelTreeItem::setObjectFilter('StgteilVersion',
+                function ($version) {
+                    return (bool) $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
+                });
 
-                $trail_classes = array('Modulteil', 'StgteilabschnittModul', 'StgteilAbschnitt', 'StgteilVersion');
-                $mvv_object_pathes = MvvCourse::get($this->course->getId())->getTrails($trail_classes);
-                if ($mvv_object_pathes) {
-                    if (Config::get()->COURSE_SEM_TREE_DISPLAY) {
-                        $this->mvv_tree = array();
-                        foreach ($mvv_object_pathes as $mvv_object_path) {
-                            // show only complete pathes
-                            if (count($mvv_object_path) == 4) {
-                                // flatten the pathes to a linked list
-                                $stg = reset($mvv_object_path);
-                                $parent_id = 'root';
-                                foreach ($mvv_object_path as $mvv_object) {
-                                    $this->mvv_tree[$parent_id][$mvv_object->id] =
-                                            ['id'    => $mvv_object->id,
-                                             'name'  => $mvv_object->getDisplayName(),
-                                             'class' => get_class($mvv_object)];
-                                    $parent_id = $mvv_object->id;
-                                }
-                            }
-                        }
-                        if (count($this->mvv_tree)) {
-                            // add the root node
-                            $this->mvv_tree['start'][] = [
-                                'id'    => 'root',
-                                'name'  => $GLOBALS['UNI_NAME_CLEAN'],
-                                'class' => ''
-                            ];
-                        }
-                        // get templates from Modulverwaltung-Plugin
-                        $this->mvv_tmpl_factory = new Flexi_TemplateFactory($mvv_plugin->getPluginPath() . '/views');
-                    } else {
-                        foreach ($mvv_object_pathes as $mvv_object_path) {
-                            // show only complete pathes
-                            if (count($mvv_object_path) == 4) {
-                                $mvv_object_names = array();
-                                $modul_id = '';
-                                foreach ($mvv_object_path as $mvv_object) {
-                                    if ($mvv_object instanceof StgteilabschnittModul) {
-                                        $modul_id = $mvv_object->modul_id;
-                                    }
-                                    $mvv_object_names[] = $mvv_object->getDisplayName();
-                                }
-                                $this->mvv_pathes[] = array($modul_id => $mvv_object_names);
+            $trail_classes = array('Modulteil', 'StgteilabschnittModul', 'StgteilAbschnitt', 'StgteilVersion');
+            $mvv_object_pathes = MvvCourse::get($this->course->getId())->getTrails($trail_classes);
+            if ($mvv_object_pathes) {
+                if (Config::get()->COURSE_SEM_TREE_DISPLAY) {
+                    $this->mvv_tree = array();
+                    foreach ($mvv_object_pathes as $mvv_object_path) {
+                        // show only complete pathes
+                        if (count($mvv_object_path) == 4) {
+                            // flatten the pathes to a linked list
+                            $stg = reset($mvv_object_path);
+                            $parent_id = 'root';
+                            foreach ($mvv_object_path as $mvv_object) {
+                                $mvv_object_id = $mvv_object instanceof StgteilabschnittModul
+                                        ? $mvv_object->modul_id
+                                        : $mvv_object->id;
+                                $this->mvv_tree[$parent_id][$mvv_object_id] =
+                                        ['id'    => $mvv_object_id,
+                                         'name'  => $mvv_object->getDisplayName(),
+                                         'class' => get_class($mvv_object)];
+                                $parent_id = $mvv_object_id;
                             }
                         }
                     }
-                    // to prevent collisions of object ids in the tree
-                    // in the case of same objects listed in more than one part
-                    // of the tree
-                    $this->id_sfx = new stdClass();
-                    $this->id_sfx->c = 1;
+                    if (count($this->mvv_tree)) {
+                        // add the root node
+                        $this->mvv_tree['start'][] = [
+                            'id'    => 'root',
+                            'name'  => Config::get()->UNI_NAME_CLEAN,
+                            'class' => ''
+                        ];
+                    }
+                } else {
+                    foreach ($mvv_object_pathes as $mvv_object_path) {
+                        // show only complete pathes
+                        if (count($mvv_object_path) == 4) {
+                            $mvv_object_names = array();
+                            $modul_id = '';
+                            foreach ($mvv_object_path as $mvv_object) {
+                                if ($mvv_object instanceof StgteilabschnittModul) {
+                                    $modul_id = $mvv_object->modul_id;
+                                }
+                                $mvv_object_names[] = $mvv_object->getDisplayName();
+                            }
+                            $this->mvv_pathes[] = array($modul_id => $mvv_object_names);
+                        }
+                    }
                 }
+                // to prevent collisions of object ids in the tree
+                // in the case of same objects listed in more than one part
+                // of the tree
+                $this->id_sfx = new stdClass();
+                $this->id_sfx->c = 1;
             }
         }
 
@@ -264,6 +261,17 @@ class Course_DetailsController extends AuthenticatedController
                     _('Zurück zur letzten Auswahl'),
                     URLHelper::getLink($this->send_from_search_page),
                     Icon::create('link-intern')
+                );
+            }
+
+            if (!$this->course->admission_binding
+                && in_array($GLOBALS['perm']->get_studip_perm($this->course->id), ['user','autor'])
+                && !$this->course->getSemClass()->isGroup())
+            {
+                $links->addLink(
+                    _('Austragen aus der Veranstaltung'),
+                    $this->url_for("my_courses/decline/{$this->course->id}", ['cmd' => 'suppose_to_kill']),
+                    Icon::create('door-leave')
                 );
             }
 

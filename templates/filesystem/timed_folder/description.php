@@ -32,6 +32,11 @@
         <?= _('Alle anderen Teilnehmenden der Veranstaltung können diese Materialien nur herunterladen.') ?>
     </div>
 <? endif ?>
+<? if ($folderdata['description']) : ?>
+    <div>
+        <?= htmlReady($folderdata['description']) ?>
+    </div>
+<? endif ?>
 <? if (count($own_files) > 0) : ?>
     <div>
         <?= _('Sie selbst haben folgende Dateien in diesen Ordner eingestellt:') ?>

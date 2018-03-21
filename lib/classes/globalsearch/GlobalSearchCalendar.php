@@ -49,7 +49,7 @@ class GlobalSearchCalendar extends GlobalSearchModule
         $user_id = DBManager::get()->quote($GLOBALS['user']->id);
 
         if ($time) {
-            return "SELECT `name`, `date`, `end_time`, `seminar_id`
+            return "SELECT `date`, `end_time`, `seminar_id`
                     FROM `termine`
                     JOIN `seminar_user` ON (`range_id` = `seminar_id`)
                     WHERE user_id = {$user_id}
@@ -82,12 +82,12 @@ class GlobalSearchCalendar extends GlobalSearchModule
         $additional .= strftime('%x', $termin['date']);
 
         return [
-            'name'       => htmlReady($termin['name']),
+            'name'       => $additional,
             'url'        => URLHelper::getURL('dispatch.php/course/details', [
                 'cid' => $termin['seminar_id'],
             ]),
             'img'        => Icon::create('schedule', 'clickable')->asImagePath(),
-            'additional' => $additional,
+            'additional' => '',
             'expand'     => self::getSearchURL($search),
         ];
     }

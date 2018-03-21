@@ -128,6 +128,7 @@ if (!$controllerpath) {
     <?= $this->render_partial('file/add_files_window.php', [
         'folder_id' => $topFolder->getId(),
         'hidden'    => true,
+        'upload_type' => FileManager::getUploadTypeConfig($topFolder->range_id, $GLOBALS['user']->id)
     ]) ?>
 <? endif ?>
 <? endif ?>

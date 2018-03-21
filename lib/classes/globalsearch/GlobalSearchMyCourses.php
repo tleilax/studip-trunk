@@ -71,7 +71,7 @@ class GlobalSearchMyCourses extends GlobalSearchModule
         $result = [
             'id'     => $course->id,
             'name'   => self::mark($course->getFullname(), $search),
-            'url'    => URLHelper::getURL('dispatch.php/course/details/index/' . $course->id),
+            'url'    => URLHelper::getURL('dispatch.php/course/overview/', ['cid' => $course->id]),
             'date'   => $course->start_semester->name,
             'expand' => self::getSearchURL($search),
         ];

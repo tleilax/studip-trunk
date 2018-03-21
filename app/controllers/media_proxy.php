@@ -1,5 +1,4 @@
 <?php
-# Lifter010: TODO
 /**
  * media_proxy.php - media proxy controller
  *
@@ -15,7 +14,15 @@
 
 class MediaProxyController extends StudipController
 {
-    protected $encoding = null;
+    /**
+     * Empty before filter to avoid any unwanted output changes.
+     *
+     * @param string $action
+     * @param array  $args
+     */
+    public function before_filter(&$action, &$args)
+    {
+    }
 
     /**
      * default action of this controller: proxy media data

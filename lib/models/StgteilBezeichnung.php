@@ -31,6 +31,9 @@ class StgteilBezeichnung extends ModuleManagementModel
             function($stg_bez) { return $stg_bez->count_studiengaenge; };
         $config['additional_fields']['count_studiengaenge']['set'] = false;
         
+        $config['i18n_fields']['name'] = true;
+        $config['i18n_fields']['name_kurz'] = true;
+        
         parent::configure($config);
     }
     
@@ -58,14 +61,19 @@ class StgteilBezeichnung extends ModuleManagementModel
     {
         $sortby = self::createSortStatement($sortby, $order, 'position',
                 array('count_studiengaenge', 'count_stgteile'));
-        return parent::getEnrichedByQuery('SELECT msb.*, '
-                . 'COUNT(DISTINCT studiengang_id) as `count_studiengaenge`, '
-                . 'COUNT(DISTINCT stgteil_id) as `count_stgteile` '
-                . 'FROM mvv_stgteil_bez msb '
-                . 'LEFT JOIN mvv_stg_stgteil USING(stgteil_bez_id) '
-                . 'LEFT JOIN mvv_studiengang USING(studiengang_id) '
-                . 'GROUP BY stgteil_bez_id '
-                . 'ORDER BY ' . $sortby, array(), $row_count, $offset);
+        return parent::getEnrichedByQuery('
+            SELECT msb.*, 
+                COUNT(DISTINCT studiengang_id) AS `count_studiengaenge`, 
+                COUNT(DISTINCT stgteil_id) AS `count_stgteile` 
+            FROM mvv_stgteil_bez AS msb 
+                LEFT JOIN mvv_stg_stgteil USING (stgteil_bez_id) 
+                LEFT JOIN mvv_studiengang USING (studiengang_id) 
+            GROUP BY stgteil_bez_id 
+            ORDER BY ' . $sortby,
+            array(),
+            $row_count,
+            $offset
+        );
     }
     
     /**
@@ -76,8 +84,10 @@ class StgteilBezeichnung extends ModuleManagementModel
      */
     public static function getAllSorted()
     {
-        return parent::getEnrichedByQuery('SELECT * FROM mvv_stgteil_bez '
-                . 'ORDER BY position');
+        return parent::getEnrichedByQuery('
+            SELECT * FROM mvv_stgteil_bez 
+            ORDER BY position
+        ');
     }
     
     /**
@@ -89,13 +99,16 @@ class StgteilBezeichnung extends ModuleManagementModel
      */
     public static function findByStudiengang($studiengang_id)
     {
-        return parent::getEnrichedByQuery('SELECT msb.*, '
-                . 'COUNT(DISTINCT stgteil_id) AS `count_stgteile` '
-                . 'FROM mvv_stgteil_bez msb '
-                . 'LEFT JOIN mvv_stg_stgteil mss USING(stgteil_bez_id) '
-                . 'WHERE mss.studiengang_id = ? '
-                . 'GROUP BY stgteil_bez_id '
-                . 'ORDER BY position, mkdate', array($studiengang_id));
+        return parent::getEnrichedByQuery('
+            SELECT msb.*, 
+                COUNT(DISTINCT stgteil_id) AS `count_stgteile` 
+            FROM mvv_stgteil_bez msb 
+                LEFT JOIN mvv_stg_stgteil mss USING(stgteil_bez_id) 
+            WHERE mss.studiengang_id = ? 
+            GROUP BY stgteil_bez_id 
+            ORDER BY position, mkdate',
+            array($studiengang_id)
+        );
     }
     
     /**
@@ -123,8 +136,10 @@ class StgteilBezeichnung extends ModuleManagementModel
                 $existing = $this->findBySql('name = ' . DBManager::get()->quote($this->name));
                 if (sizeof($existing)) {
                     $ret['name'] = true;
-                    $messages[] = sprintf(_('Es existiert bereits eine Studiengangteil-Bezeichnung mit dem Namen "%s"!'),
-                            $this->name);
+                    $messages[] = sprintf(
+                        _('Es existiert bereits eine Studiengangteil-Bezeichnung mit dem Namen "%s"!'),
+                        $this->name
+                    );
                     $rejected = true;
                 }
             }

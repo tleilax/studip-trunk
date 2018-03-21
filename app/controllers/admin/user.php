@@ -428,7 +428,7 @@ class Admin_UserController extends AuthenticatedController
             }
 
             // change version of studiengang if module management is enabled
-            if (PluginEngine::getPlugin('MVVPlugin') && in_array($editPerms[0], ['autor', 'tutor', 'dozent'])) {
+            if (in_array($editPerms[0], ['autor', 'tutor', 'dozent'])) {
                 $change_versions = Request::getArray('change_version');
                 foreach ($change_versions as $fach_id => $abschluesse) {
                     foreach ($abschluesse as $abschluss_id => $version_id) {
@@ -1013,14 +1013,6 @@ class Admin_UserController extends AuthenticatedController
 
         $inst_membership = InstituteMember::findOneBySQL('user_id = ? AND institut_id = ?', [$user_id, $institute_id]);
 
-        $values = [];
-        foreach (['inst_perms', 'visible', 'raum', 'sprechzeiten', 'Telefon', 'Fax'] as $param) {
-            $values[$param] = Request::get(mb_strtolower($param), '');
-        }
-        foreach (['externdefault', 'visible'] as $param) {
-            $values[$param] = Request::int($param, 0);
-        }
-
         //change datafields
         $datafields = Request::getArray('datafields');
         foreach ($datafields as $id => $data) {
@@ -1032,18 +1024,18 @@ class Admin_UserController extends AuthenticatedController
             }
         }
 
-        $old_membership = $inst_membership;
-        if ($old_membership->inst_perms != Request::get('inst_perms')) {
-            StudipLog::log('INST_USER_STATUS', $institute_id, $user_id, $old_membership->inst_perms . ' -> ' . Request::get('inst_perms'));
+        if ($inst_membership->inst_perms != Request::get('inst_perms')) {
+            StudipLog::log('INST_USER_STATUS', $institute_id, $user_id, $inst_membership->inst_perms . ' -> ' . Request::get('inst_perms'));
             NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $institute_id, $user_id);
         }
 
-        $inst_membership->inst_perms    = mb_strtolower(Request::get('inst_perm', ''));
+        $inst_membership->inst_perms    = Request::get('inst_perms', '');
         $inst_membership->visible       = Request::int('visible', 0);
         $inst_membership->sprechzeiten  = Request::get('sprechzeiten', '');
         $inst_membership->telefon       = Request::get('telefon', '');
         $inst_membership->fax           = Request::get('fax', '');
         $inst_membership->externdefault = Request::int('externdefault', 0);
+        $inst_membership->raum          = Request::get('raum', '');
         $inst_membership->store();
 
         //output

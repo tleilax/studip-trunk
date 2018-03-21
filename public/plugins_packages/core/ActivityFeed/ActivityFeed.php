@@ -169,7 +169,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $template->context_translations = array(
             \Context::COURSE    => _('Veranstaltungen'),
             \Context::INSTITUTE => _('Einrichtungen'),
-            \Context::USER      => _('Nutzer'),
+            \Context::USER      => _('Persönlich'),
             'system'            => _('Global')
         );
 

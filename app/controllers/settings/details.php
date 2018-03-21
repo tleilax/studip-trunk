@@ -113,6 +113,10 @@ class Settings_DetailsController extends Settings_SettingsController
         );
 
         foreach ($mapping as $key => $column) {
+            if (!Request::submitted($key)) {
+                continue;
+            }
+
             $value = Request::get($key);
             if (in_array($key, array('hobby', 'lebenslauf', 'schwerp', 'publi'))) {
                 // purify HTML input for these fields if wysiwyg is used

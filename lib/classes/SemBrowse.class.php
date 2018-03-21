@@ -363,7 +363,7 @@ class SemBrowse {
             list($group_by_data, $sem_data) = $this->get_result();
 
             $visibles = $sem_data;
-            if (!$GLOBALS['perm']->have_perm('root')) {
+            if (!$GLOBALS['perm']->have_perm(Config::get()->SEM_VISIBILITY_PERM)) {
                 $visibles = array_filter($visibles, function ($c) {
                     return key($c['visible']) == 1;
                 });
@@ -742,7 +742,8 @@ class SemBrowse {
      * @param bool $child call in "child mode" -> force output because here children are listed
      * @return string A HTML table row.
      */
-    private function printCourseRow($seminar_id, &$sem_data, $child = false) {
+    private function printCourseRow($seminar_id, &$sem_data, $child = false)
+    {
         global $_fullname_sql,$SEM_TYPE,$SEM_CLASS;
 
         $row = '';
@@ -752,7 +753,7 @@ class SemBrowse {
          * Child courses are not shown extra, but summarized under their parent if
          * the parent is part of the search result.
          */
-        if (($GLOBALS['perm']->have_perm('root') || key($sem_data[$seminar_id]['visible']) == 1) && (!$sem_data[key($sem_data[$seminar_id]['parent_course'])] || $child)) {
+        if (($GLOBALS['perm']->have_perm(Config::get()->SEM_VISIBILITY_PERM) || key($sem_data[$seminar_id]['visible']) == 1) && (!$sem_data[key($sem_data[$seminar_id]['parent_course'])] || $child)) {
             // create instance of seminar-object
             $seminar_obj = new Seminar($seminar_id);
             // is this sem a studygroup?
@@ -802,9 +803,12 @@ class SemBrowse {
             if (count($seminar_obj->children) > 0) {
 
                 // If you are not root, perhaps not all available subcourses are visible.
-                $visibleChildren = $GLOBALS['perm']->have_perm('root') ?
-                    $seminar_obj->children :
-                    $seminar_obj->children->filter(function($c) { return $c->visible == 1; });
+                $visibleChildren = $seminar_obj->children;
+                if (!$GLOBALS['perm']->have_perm(Config::get()->SEM_VISIBILITY_PERM)) {
+                    $visibleChildren = $visibleChildren->filter(function($c) {
+                        return $c->visible;
+                    });
+                }
                 if (count($visibleChildren) > 0) {
                     $row .= Icon::create('add', 'clickable',[
                             'id' => 'show-subcourses-' . $seminar_id,

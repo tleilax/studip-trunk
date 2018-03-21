@@ -116,8 +116,9 @@ class TimedFolder extends PermissionEnabledFolder
 
         $template = $GLOBALS['template_factory']->open('filesystem/timed_folder/description');
 
-        $template->type   = self::getTypeName();
-        $template->folder = $this;
+        $template->type       = self::getTypeName();
+        $template->folder     = $this;
+        $template->folderdata = $this->folderdata;
 
         if (!Seminar_Perm::get()->have_studip_perm('tutor', $this->range_id) &&
                 $this->isWritable($GLOBALS['user']->id) && !$this->isReadable($GLOBALS['user']->id)) {

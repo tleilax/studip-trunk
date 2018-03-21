@@ -162,7 +162,7 @@ class Admin_PluginController extends AuthenticatedController
      */
     private function compare_score($plugin1, $plugin2)
     {
-        return $plugin2['score'] - $plugin1['score'];
+        return ($plugin2['score'] ?: 0) - ($plugin1['score'] ?: 0);
     }
 
     /**

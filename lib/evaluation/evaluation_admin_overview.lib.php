@@ -908,7 +908,7 @@ class EvalOverview {
                 } else {
                     $report = EvalCommon::createReportMessage(_("Die Daten wurden erfolgreich exportiert. Sie können die Ausgabedatei jetzt herunterladen."), EVAL_PIC_SUCCESS, EVAL_CSS_SUCCESS);
                     $report = $report->createContent();
-                    $report .= sprintf(_("Bitte klicken Sie %s um die Datei herunter zu laden.") . "<br><br>", $link->createContent());
+                    $report .= sprintf(_("Bitte klicken Sie %s um die Datei herunter zu laden.") . "<br><br>", '<a href="' .FileManager::getDownloadLinkForTemporaryFile($exportManager->getTempFilename(), $exportManager->getFilename()) . '">' . _("auf diese Verknüpfung") . '</a>');
                 }
                 $safeguard .= $report;
                 /* ------------------------------------------ end: create report */

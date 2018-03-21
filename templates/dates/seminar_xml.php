@@ -31,7 +31,6 @@ if (is_array($cycle['assigned_rooms'])){
     </raum>
 </raumzeit>
 <? endforeach ?>
-<? $presence_types = getPresenceTypes(); ?>
 <? if (is_array($dates['irregular'])) foreach ($dates['irregular'] as $date) : ?>
 <raumzeit>
     <datum><?= date('d.m.Y', $date['start_time']) ?></datum>

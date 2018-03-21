@@ -68,16 +68,12 @@ class Admin_DatafieldsController extends AuthenticatedController
                 'usersemdata'  => DataField::getDataFields('usersemdata'),
                 'roleinstdata' => DataField::getDataFields('roleinstdata')
             );
-            
-            // is the module administration enabled?
-            if (PluginEngine::getPlugin('MVVPlugin')) {
-                $this->datafields_list['moduldeskriptor'] =
-                        DataField::getDataFields('moduldeskriptor');
-                $this->datafields_list['modulteildeskriptor'] =
-                        DataField::getDataFields('modulteildeskriptor');
-            }
-            
-            
+                       
+            $this->datafields_list['moduldeskriptor'] =
+                    DataField::getDataFields('moduldeskriptor');
+            $this->datafields_list['modulteildeskriptor'] =
+                    DataField::getDataFields('modulteildeskriptor');
+                    
         }
 
         // set variables for view

@@ -17,9 +17,7 @@
 
 class FilesController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
-    function validate_args(&$args, $types = NULL)
+    public function validate_args(&$args, $types = NULL)
     {
         reset($args);
     }
@@ -78,7 +76,12 @@ class FilesController extends AuthenticatedController
 
         $this->user = User::findCurrent();
         $this->last_visitdate = time();
-        Navigation::activateItem('/profile/files');
+
+        if (Navigation::hasItem('/profile/files')) {
+            Navigation::activateItem('/profile/files');
+        } else {
+            throw new AccessDeniedException();
+        }
     }
 
     /**
@@ -167,6 +170,15 @@ class FilesController extends AuthenticatedController
             }
         }
         $sidebar->addWidget($actions);
+
+        if ($folder->isWritable($GLOBALS['user']->id)) {
+            $uploadArea = new LinksWidget();
+            $uploadArea->setTitle(_("Dateien hochladen"));
+            $uploadArea->addElement(new WidgetElement(
+                    $this->render_template_as_string('files/upload-drag-and-drop'))
+            );
+            $sidebar->addWidget($uploadArea);
+        }
 
         if ($view) {
             $views = new ViewsWidget();

@@ -45,6 +45,14 @@ class CoreAdmin implements StudipModule {
                 $item->setDescription(_('Zuordnung dieser Veranstaltung zu Studienbereichen für die Darstellung im Verzeichnis aller Veranstaltungen.'));
                 $navigation->addSubNavigation('study_areas', $item);
 
+                $current_course = Course::find($course_id);
+                if ($current_course && $current_course->getSemClass()->offsetGet('module')) {
+                    $item = new Navigation(_('LV-Gruppen'), 'dispatch.php/course/lvgselector/index/' . $course_id, array('list' => 'TRUE'));
+                    $item->setImage(Icon::create('learnmodule', 'clickable'));
+                    $item->setDescription(_('Zuordnung der Veranstaltung zu Lehrveranstaltungsgruppen um die Einordnung innerhalb des Modulverzeichnisses festzulegen.'));
+                    $navigation->addSubNavigation('lvgruppen', $item);
+                }
+
                 $item = new Navigation(_('Zeiten/Räume'), 'dispatch.php/course/timesrooms');
                 $item->setImage(Icon::create('date', 'clickable'));
                 $item->setDescription(_('Regelmäßige Veranstaltungszeiten, Einzeltermine und Ortsangaben ändern.'));

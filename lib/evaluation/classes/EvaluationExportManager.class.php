@@ -49,7 +49,7 @@ define ("EVALEXPORT_PREFIX", "evaluation");
  * @const EVALEXPORT_PATH_TEMP The path for temporary files
  * @access public
  */
-define ("EVALEXPORT_PATH_TEMP", $GLOBALS['TMP_PATH'].'/export');
+define ("EVALEXPORT_PATH_TEMP", $GLOBALS['TMP_PATH']);
 
 /**
  * @const EVALEXPORT_LIFETIME The lifetime in seconds for temporary files
@@ -256,7 +256,7 @@ class EvaluationExportManager extends AuthorObject {
     */
    function createNewFile () {
       $randomID       = StudipObject::createNewID ();
-      $this->filename = EVALEXPORT_PREFIX.$randomID.".".$this->extension;
+      $this->filename = $randomID.".".$this->extension;
       export_tmp_gc();
       if (!is_dir (EVALEXPORT_PATH_TEMP))
          return $this->throwError (1, sprintf (_("ExportManager::Das Verzeichnis %s existiert nicht."), EVALEXPORT_PATH_TEMP));

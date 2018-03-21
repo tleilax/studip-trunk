@@ -41,10 +41,6 @@ class CoreOverview implements StudipModule {
             if (!$sem_class['studygroup_mode']) {
                 $navigation->addSubNavigation('details', new Navigation(_('Details'), 'dispatch.php/course/details/'));
             }
-
-            if (!$course->admission_binding && in_array($GLOBALS['perm']->get_studip_perm($course_id), array('user','autor')) && !$course->getSemClass()->isGroup()) {
-                $navigation->addSubNavigation('leave', new Navigation(_('Austragen aus der Veranstaltung'), 'dispatch.php/my_courses/decline/'.$course_id.'?cmd=suppose_to_kill'));
-            }
         }
         return array('main' => $navigation);
     }

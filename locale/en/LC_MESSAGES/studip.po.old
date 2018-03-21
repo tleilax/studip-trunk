@@ -2,7 +2,7 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
@@ -24699,7 +24699,7 @@ msgstr "My documents"
 
 #: ../lib/navigation/AvatarNavigation.php:37
 #: ../lib/navigation/ProfileNavigation.php:84
-msgid "Nutzerdaten"
+msgid "Persönliche Angaben"
 msgstr "User details"
 
 #: ../lib/navigation/AvatarNavigation.php:47
@@ -35608,7 +35608,7 @@ msgstr "The person is already assigned to the institute."
 #: ../app/controllers/institute/members.php:309
 #: ../app/controllers/institute/members.php:397
 msgid ""
-"Um Rechte etc. zu ändern folgen Sie dem Link zu den Nutzerdaten der Person!"
+"Um Rechte etc. zu ändern folgen Sie dem Link zu den persönliche Angaben der Person!"
 msgstr ""
 "To change permissions etc. follow the link to the user data of the person!"
 
@@ -36585,7 +36585,7 @@ msgstr "Search for courses"
 #: ../app/controllers/settings/account.php:32
 #: ../app/controllers/settings/account.php:34
 #: ../app/views/settings/account/index.php:28
-msgid "Benutzerkonto bearbeiten"
+msgid "Persönliche Angaben bearbeiten"
 msgstr "Edit user profile"
 
 #: ../app/controllers/settings/account.php:79
@@ -36628,7 +36628,7 @@ msgid "Bitte überprüfen Sie Ihre Eingaben:"
 msgstr "Please check your input:"
 
 #: ../app/controllers/settings/account.php:152
-msgid "Ihre Nutzerdaten wurden geändert."
+msgid "Ihre persönliche Angaben wurden geändert."
 msgstr "Your user details have been changed."
 
 #: ../app/controllers/settings/account.php:154
@@ -44648,7 +44648,7 @@ msgstr "Do you really want to sign off the \"%s\"?"
 #, php-format
 msgid ""
 "Sie haben sich noch keinen Einrichtungen zugeordnet.\n"
-"           Um sich Einrichtungen zuzuordnen, nutzen Sie bitte die entsprechende %sOption%s unter \"Nutzerdaten - Studiendaten\"\n"
+"           Um sich Einrichtungen zuzuordnen, nutzen Sie bitte die entsprechende %sOption%s unter \"Persönliche Angaben - Studiendaten\"\n"
 "           auf Ihrer persönlichen Einstellungsseite."
 msgstr ""
 "You have not allocated yourself to an institute. In order to allocate "

@@ -63,9 +63,9 @@ class StudipLitClipBoard {
             }
         }
         if ($inserted == 1){
-            PageLayout::postMessage(MessageBox::success('Es wurde ein Literaturverweis in Ihre Merkliste aufgenommen'));
+            PageLayout::postSuccess('Es wurde ein Literaturverweis in Ihre Merkliste aufgenommen');
         } else if ($inserted){
-            PageLayout::postMessage(sprintf(_('Es wurden %s Literaturverweise in Ihre Merkliste aufgenommen.'), $inserted));
+            PageLayout::postSuccess(sprintf(_('Es wurden %s Literaturverweise in Ihre Merkliste aufgenommen.'), $inserted));
         }
         $this->setDefaultValue();
         return $inserted;
@@ -83,9 +83,9 @@ class StudipLitClipBoard {
             }
         }
         if ($deleted == 1){
-            PageLayout::postMessage(MessageBox::success(_('Es wurde ein Literaturverweis aus Ihrer Merkliste gelöscht')));
+            PageLayout::postSuccess(_('Es wurde ein Literaturverweis aus Ihrer Merkliste gelöscht'));
         } else if ($deleted){
-            PageLayout::postMessage(sprintf(_('Es wurden %s Literaturverweise aus Ihrer Merkliste gelöscht.'), $deleted));
+            PageLayout::postSuccess(sprintf(_('Es wurden %s Literaturverweise aus Ihrer Merkliste gelöscht.'), $deleted));
         }
         $this->setDefaultValue();
         return $deleted;
@@ -166,7 +166,7 @@ class StudipLitClipBoard {
                     $this->deleteElement($selected);
                     $this->form_obj->doFormReset();
                 } else {
-                    PageLayout::postMessage(MessageBox::info(_('Sie haben keinen Eintrag in Ihrer Merkliste ausgewählt!')));
+                    PageLayout::postInfo(_('Sie haben keinen Eintrag in Ihrer Merkliste ausgewählt!'));
                 }
                 break;
         }

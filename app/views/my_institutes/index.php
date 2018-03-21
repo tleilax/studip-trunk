@@ -15,7 +15,7 @@
     <? else : ?>
         <?=
         MessageBox::info(sprintf(_('Sie haben sich noch keinen Einrichtungen zugeordnet.
-           Um sich Einrichtungen zuzuordnen, nutzen Sie bitte die entsprechende %sOption%s unter "Nutzerdaten - Studiendaten"
+           Um sich Einrichtungen zuzuordnen, nutzen Sie bitte die entsprechende %sOption%s unter "Persönliche Angaben - Studiendaten"
            auf Ihrer persönlichen Einstellungsseite.'), '<a href="' . URLHelper::getLink('dispatch.php/settings/studies#einrichtungen') . '">', '</a>'))?>
     <? endif ?>
 <? else : ?>

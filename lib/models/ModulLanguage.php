@@ -41,10 +41,14 @@ class ModulLanguage extends ModuleManagementModel
     public static function findByModul($modul_id)
     {
         $languages = array();
-        foreach (parent::getEnrichedByQuery('SELECT * '
-                . 'FROM mvv_modul_language '
-                . 'WHERE modul_id = ? '
-                . 'ORDER BY position, mkdate', array($modul_id)) as $language) {
+        $module_languages = parent::getEnrichedByQuery('
+            SELECT * 
+            FROM mvv_modul_language 
+            WHERE modul_id = ? 
+            ORDER BY position, mkdate ',
+            array($modul_id)
+        );
+        foreach ($module_languages as $language) {
             $languages[$language->lang] = $language;
         }
         return $languages;

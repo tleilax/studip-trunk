@@ -118,38 +118,35 @@
                 <small><?= sprintf(_("(%s freie Plätze)"), $course->getFreeSeats()) ?></small>
             </label>
             <br>
-            <fieldset>
-                <legend><?= _('Warteliste') ?></legend>
-                <label for="admission_disable_waitlist">
-                    <input <?= $is_locked['admission_disable_waitlist'] ?>
-                            type="checkbox" id="admission_disable_waitlist"
-                            name="admission_disable_waitlist"
-                            value="1" <?= ($course->admission_disable_waitlist == 0 ? "checked" : ""); ?>>
-                    <?= _('Warteliste aktivieren') ?>
-                    <? if ($num_waitlist = $course->admission_applicants->findBy('status', 'awaiting')->count()) : ?>
-                        &nbsp;<?= sprintf(_("(%s Wartende)"), $num_waitlist) ?>
-                    <? endif ?>
-                </label>
-                <label for="admission_disable_waitlist_move">
-                    <input <?= $is_locked['admission_disable_waitlist_move'] ?>
-                            type="checkbox"
-                            id="admission_disable_waitlist_move"
-                            name="admission_disable_waitlist_move"
-                            value="1" <?= ($course->admission_disable_waitlist_move == 0 ? "checked" : ""); ?>>
-                    <?= _('automatisches Nachrücken aus der Warteliste aktivieren') ?></label>
-                <label for="admission_waitlist_max">
-                    <?= _('max. Anzahl an Wartenden (optional)') ?>
-                    <input <?= $is_locked['admission_waitlist_max'] ?>
-                            type="text"
-                            id="admission_waitlist_max"
-                            name="admission_waitlist_max"
-                            value="<?= ($course->admission_waitlist_max ?: '') ?>">
-
-                </label>
-            </fieldset>
+            <?= _('Einstellungen für die Warteliste:') ?>
+            <label for="admission_disable_waitlist">
+                <input <?= $is_locked['admission_disable_waitlist'] ?>
+                        type="checkbox" id="admission_disable_waitlist"
+                        name="admission_disable_waitlist"
+                        value="1" <?= ($course->admission_disable_waitlist == 0 ? "checked" : ""); ?>>
+                <?= _('Warteliste aktivieren') ?>
+                <? if ($num_waitlist = $course->admission_applicants->findBy('status', 'awaiting')->count()) : ?>
+                    &nbsp;<?= sprintf(_("(%s Wartende)"), $num_waitlist) ?>
+                <? endif ?>
+            </label>
+            <label for="admission_disable_waitlist_move">
+                <input <?= $is_locked['admission_disable_waitlist_move'] ?>
+                        type="checkbox"
+                        id="admission_disable_waitlist_move"
+                        name="admission_disable_waitlist_move"
+                        value="1" <?= ($course->admission_disable_waitlist_move == 0 ? "checked" : ""); ?>>
+                <?= _('automatisches Nachrücken aus der Warteliste aktivieren') ?></label>
+            <label for="admission_waitlist_max">
+                <?= _('max. Anzahl an Wartenden (optional)') ?>
+                <input <?= $is_locked['admission_waitlist_max'] ?>
+                        type="text"
+                        id="admission_waitlist_max"
+                        name="admission_waitlist_max"
+                        value="<?= ($course->admission_waitlist_max ?: '') ?>">
+            </label>
         </fieldset>
         <footer>
-            <?= Studip\Button::create(_('Teilnehmendenanzahl ändern'), 'change_admission_turnout', ['data-dialog' => '']) ?>
+            <?= Studip\Button::create(_('Teilnehmendenanzahl und Warteliste ändern'), 'change_admission_turnout', ['data-dialog' => '']) ?>
         </footer>
     </form>
     <br>

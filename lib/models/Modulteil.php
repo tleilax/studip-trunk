@@ -43,7 +43,7 @@ class Modulteil extends ModuleManagementModelTreeItem
             'on_delete'  => 'delete',
             'on_store'   => 'store'
         ];
-        $config['has_many']['deskriptoren'] = [
+        $config['has_one']['deskriptoren'] = [
             'class_name'        => 'ModulteilDeskriptor',
             'assoc_foreign_key' => 'modulteil_id',
             'on_delete'         => 'delete',
@@ -103,14 +103,16 @@ class Modulteil extends ModuleManagementModelTreeItem
      */
     public static function findByModul($modul_id)
     {
-        return parent::getEnrichedByQuery('SELECT mmt.*, '
-                . 'COUNT(lvgruppe_id) AS count_lvgruppen '
-                . 'FROM mvv_modulteil mmt '
-                . 'LEFT JOIN mvv_lvgruppe_modulteil USING(modulteil_id) '
-                . 'WHERE mmt.modul_id = ? '
-                . 'GROUP BY modulteil_id '
-                . 'ORDER BY position, mmt.mkdate'
-                , array($modul_id));
+        return parent::getEnrichedByQuery('
+                SELECT mmt.*,
+                COUNT(lvgruppe_id) AS count_lvgruppen 
+                FROM mvv_modulteil AS mmt 
+                LEFT JOIN mvv_lvgruppe_modulteil USING(modulteil_id) 
+                WHERE mmt.modul_id = ? 
+                GROUP BY modulteil_id 
+                ORDER BY position, mmt.mkdate',
+            array($modul_id)
+        );
     }
 
     /**
@@ -121,12 +123,14 @@ class Modulteil extends ModuleManagementModelTreeItem
      */
     public static function findByLvgruppe($lvgruppe_id)
     {
-        return parent::getEnrichedByQuery('SELECT mmt.* '
-                . 'FROM mvv_modulteil mmt '
-                . 'LEFT JOIN mvv_lvgruppe_modulteil mlm USING(modulteil_id) '
-                . 'WHERE mlm.lvgruppe_id = ? '
-                . 'ORDER BY position'
-                , array($lvgruppe_id));
+        return parent::getEnrichedByQuery('
+                SELECT mmt.* 
+                FROM mvv_modulteil mmt 
+                    LEFT JOIN mvv_lvgruppe_modulteil mlm USING(modulteil_id) 
+                WHERE mlm.lvgruppe_id = ? 
+                ORDER BY position',
+            array($lvgruppe_id)
+        );
     }
 
     public function getDisplayName($options = self::DISPLAY_DEFAULT) {
@@ -175,24 +179,17 @@ class Modulteil extends ModuleManagementModelTreeItem
             $language = $this->default_language;
         }
 
-        $deskriptor = $this->deskriptoren->findOneBy('sprache', $language);
-        if (!$deskriptor) {
-            if (!$force_new) {
-                // no descriptor in the given language
-                // switch to default language
-                $language = $GLOBALS['MVV_MODULTEIL_DESKRIPTOR']['SPRACHE']['default'];
-            }
+        if (!$this->deskriptoren) {
             // the module is new and has no descriptor
             // return a new descriptor in the default language
             $deskriptor = new ModulteilDeskriptor();
             $deskriptor->setNewId();
-            $deskriptor->sprache = $language;
             $deskriptor->modulteil_id = $this->getId();
-            $this->deskriptoren->append($deskriptor);
+            $this->deskriptoren = $deskriptor;
         }
-        return $deskriptor;
-    }
-
+        return $this->deskriptoren;
+    }    
+    
     /**
      * Returns a copy of this object.
      * If $deep is true, copy the connection to the Lvgruppen also.
@@ -338,6 +335,29 @@ class Modulteil extends ModuleManagementModelTreeItem
             }
         }
         return $institutes;
+    }
+    
+    /**
+     * Retrieves all courses this Modulteil is assigned by its LV-Gruppen.
+     * Filtered by a given semester considering the global visibility or the
+     * the visibility for a given user.
+     * 
+     * @param string $semester_id The id of a semester.
+     * @param mixed $only_visible Boolean true retrieves only visible courses, false
+     * retrieves all courses. If $only_visible is an user id it depends on the users
+     * status which courses will be retrieved.
+     * @return array An array of course data.
+     */
+    public function getAssignedCoursesBySemester($semester_id, $only_visible = true)
+    {
+        $courses = array();
+        foreach ($this->lvgruppen as $lvgruppe) {
+            $lvg_courses = $lvgruppe->getAssignedCoursesBySemester($semester_id, $only_visible);
+            foreach ($lvg_courses as $course) {
+                $courses[$course->id] = $course;
+            }
+        }
+        return $courses;
     }
 
 }

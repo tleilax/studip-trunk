@@ -49,14 +49,21 @@ class GlobalSearchModules extends GlobalSearchModule
             $status_cond = "`m`.`stat` = " . DBManager::get()->quote('genehmigt');
         }
 
-        $query = "SELECT `m`.`modul_id`, `m`.`code`, `md`.`bezeichnung`,
+        $query = "SELECT `m`.`modul_id`, `m`.`code`,
+                         IFNULL(`i18n`.`value`, `md`.`bezeichnung`) AS `bezeichnung`,
                          `m`.`stat`, `m`.`kp`,
                          `sd0`.`name` AS `sem_start`, `sd1`.`name` AS `sem_end`,
                          `sd0`.`semester_token` AS `token_start`,
                          `sd1`.`semester_token` AS `token_end`,
                          COUNT(`mt`.`modulteil_id`) AS `parts`
                   FROM `mvv_modul` AS `m`
+                  -- Module descriptor
                   JOIN `mvv_modul_deskriptor` AS `md` USING (`modul_id`)
+                  LEFT JOIN `i18n`
+                    ON `md`.`deskriptor_id` = `i18n`.`object_id`
+                      AND `i18n`.`table` = 'mvv_modul_deskriptor'
+                      AND `i18n`.`field` = `bezeichnung`
+                      AND `i18n`.`lang` = {$language}
                   -- Get semester durations
                   LEFT JOIN `semester_data` AS `sd0`
                     ON (`m`.`start` = `sd0`.`semester_id`)
@@ -65,15 +72,14 @@ class GlobalSearchModules extends GlobalSearchModule
                   -- Get module parts (for counting)
                   LEFT JOIN `mvv_modulteil` AS `mt` USING (`modul_id`)
                   WHERE {$status_cond}
-                    AND `md`.`sprache` = {$language}
                     AND (`sd0`.`semester_id` IS NULL OR `sd0`.`beginn` <= UNIX_TIMESTAMP())
                     AND (`sd1`.`semester_id` IS NULL OR `sd1`.`ende` >= UNIX_TIMESTAMP())
                     AND (
                       `m`.`code` LIKE {$needle}
-                      OR `md`.`bezeichnung` LIKE {$needle}
+                      OR IFNULL(`i18n`.`value`, `md`.`bezeichnung`) LIKE {$needle}
                     )
                   GROUP BY `m`.`modul_id`
-                  ORDER BY `m`.`code`, `md`.`bezeichnung`
+                  ORDER BY `m`.`code`, IFNULL(`i18n`.`value`, `md`.`bezeichnung`)
                   LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
         return $query;
     }
@@ -132,7 +138,7 @@ class GlobalSearchModules extends GlobalSearchModule
         return [
             'name'       => self::mark($code . ' ' . $bezeichnung, $search),
             // TODO: The following will unfortunately NOT open the details
-            'url'        => URLHelper::getURL("plugins.php/mvvplugin/search/module/details/{$modul_id}?sterm={$code}"),
+            'url'        => URLHelper::getURL("dispatch.php/search/module/details/{$modul_id}?sterm={$code}"),
             'img'        => Icon::create('learnmodule', $icon_role)->asImagePath(),
             'date'       => $duration,
             'expand'     => self::getSearchURL($search),

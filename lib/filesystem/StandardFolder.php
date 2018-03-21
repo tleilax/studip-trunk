@@ -231,26 +231,13 @@ class StandardFolder implements FolderType
      */
     public function validateUpload($uploadedfile, $user_id)
     {
-        if ($this->range_type === 'course') {
-            $status = $GLOBALS['perm']->get_studip_perm($this->range_id, $user_id);
-            $active_upload_type = Course::find($this->range_id)->status;
-        } elseif ($this->range_type === 'institute') {
-            $status = $GLOBALS['perm']->get_studip_perm($this->range_id, $user_id);
-            $active_upload_type = 'institute';
-        } else {
-            $status = $GLOBALS['perm']->get_perm($user_id);
-            $active_upload_type = "personalfiles";
-        }
 
-        if (!isset($GLOBALS['UPLOAD_TYPES'][$active_upload_type])) {
-            $active_upload_type = 'default';
-        }
+        $upload_type = FileManager::getUploadTypeConfig($this->range_id, $user_id);
 
-        $upload_type = $GLOBALS['UPLOAD_TYPES'][$active_upload_type];
-        if ($upload_type['file_sizes'][$status] < $uploadedfile['size']) {
+        if ($upload_type['file_size'] < $uploadedfile['size']) {
             return sprintf(
                 _('Die maximale Größe für einen Upload (%s) wurde überschritten.'),
-                relsize($upload_type['file_sizes'][$status])
+                relsize($upload_type['file_size'])
             );
         }
 

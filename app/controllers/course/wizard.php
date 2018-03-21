@@ -17,8 +17,6 @@
 
 class Course_WizardController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * @var Array steps the wizard has to execute in order to create a new course.
      */

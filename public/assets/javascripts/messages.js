@@ -89,8 +89,7 @@ STUDIP.Messages = {
         }
     },
     upload_file: function (formdata, statusbar) {
-        var extraData = {}; //Extra Data.
-        var jqXHR = $.ajax({
+        $.ajax({
             xhr: function() {
                 var xhrobj = $.ajaxSettings.xhr();
                 if (xhrobj.upload) {
@@ -116,35 +115,35 @@ STUDIP.Messages = {
             processData: false,
             cache: false,
             data: formdata,
-            dataType: "json",
-            success: function(data) {
-                statusbar.find(".progress").css({"min-width": "100%", "max-width": "100%"});
-                var file = jQuery("#attachments .files > .file").first().clone();
-                file.find(".name").text(data.name);
-                if (data.size < 1024) {
-                    file.find(".size").text(data.size + "B");
-                }
-                if (data.size > 1024 && data.size < 1024 * 1024) {
-                    file.find(".size").text(Math.floor(data.size / 1024) + "KB");
-                }
-                if (data.size > 1024 * 1024 && data.size < 1024 * 1024 * 1024) {
-                    file.find(".size").text(Math.floor(data.size / 1024 / 1024) + "MB");
-                }
-                if (data.size > 1024 * 1024 * 1024) {
-                    file.find(".size").text(Math.floor(data.size / 1024 / 1024 / 1024) + "GB");
-                }
-                file.find(".icon").html(data.icon);
-                file.data('document_id', data.document_id);
-                file.appendTo("#attachments .files");
-                file.fadeIn(300);
-                statusbar.find(".progresstext").text(jQuery("#upload_received_data").text());
-                statusbar.delay(1000).fadeOut(300, function () { jQuery(this).remove(); });
-            },
-            error: function(jqxhr, status, errorThrown) {
-                statusbar.find(".progress").addClass("progress-error").attr("title", errorThrown);
-                statusbar.find(".progresstext").html(errorThrown);
-                statusbar.on("click", function() { jQuery(this).fadeOut(300, function () { jQuery(this).remove(); })});
+            dataType: "json"
+        }).done(function(data) {
+            statusbar.find(".progress").css({"min-width": "100%", "max-width": "100%"});
+            var file = jQuery("#attachments .files > .file").first().clone();
+            file.find(".name").text(data.name);
+            if (data.size < 1024) {
+                file.find(".size").text(data.size + "B");
             }
+            if (data.size > 1024 && data.size < 1024 * 1024) {
+                file.find(".size").text(Math.floor(data.size / 1024) + "KB");
+            }
+            if (data.size > 1024 * 1024 && data.size < 1024 * 1024 * 1024) {
+                file.find(".size").text(Math.floor(data.size / 1024 / 1024) + "MB");
+            }
+            if (data.size > 1024 * 1024 * 1024) {
+                file.find(".size").text(Math.floor(data.size / 1024 / 1024 / 1024) + "GB");
+            }
+            file.find(".icon").html(data.icon);
+            file.data('document_id', data.document_id);
+            file.appendTo("#attachments .files");
+            file.fadeIn(300);
+            statusbar.find(".progresstext").text(jQuery("#upload_received_data").text());
+            statusbar.delay(1000).fadeOut(300, function () { jQuery(this).remove(); });
+        }).fail(function(jqxhr, status, errorThrown) {
+            var error = jqxhr.responseJSON.error;
+
+            statusbar.find(".progress").addClass("progress-error").attr("title", error);
+            statusbar.find(".progresstext").html(error);
+            statusbar.on("click", function() { jQuery(this).fadeOut(300, function () { jQuery(this).remove(); })});
         });
     },
     checkAdressee: function () {

@@ -19,7 +19,7 @@ class DataFieldSelectboxEntry extends DataFieldEntry
      * @param String    $rangeID   Range id
      * @param mixed     $value     Value
      */
-    public function __construct(DataField $struct, $range_id, $value)
+    public function __construct(DataField $struct = null, $range_id = '', $value = null)
     {
         parent::__construct($struct, $range_id, $value);
 

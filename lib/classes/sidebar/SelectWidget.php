@@ -11,7 +11,7 @@ class SelectWidget extends SidebarWidget
     /**
      * Constructs the widget by defining a special template.
      */
-    public function __construct($title, $url, $name, $method = 'get')
+    public function __construct($title, $url, $name, $method = 'get', $multiple = false)
     {
         $this->template = 'sidebar/select-widget';
 
@@ -19,6 +19,7 @@ class SelectWidget extends SidebarWidget
         $this->setUrl($url);
         $this->setSelectParameterName($name);
         $this->setRequestMethod($method);
+        $this->setMultiple($multiple);
 
         $this->template_variables['max_length'] = 30;
     }
@@ -57,11 +58,21 @@ class SelectWidget extends SidebarWidget
         $this->template_variables['method'] = $method;
     }
 
+    public function setMultiple($multiple)
+    {
+        $this->template_variables['multiple'] = $multiple;
+    }
+
     public function setOptions(Array $options, $selected = false)
     {
-        $selected = $selected ?: Request::get($this->template_variables['name']);
+        $selected = $selected ?: Request::getArray($this->template_variables['name']);
+        //if selected is one single value
+        if (!is_array($selected)) {
+            $selected = [$selected];
+        }
+
         foreach ($options as $key => $label) {
-            $element = new SelectElement($key, $label, $selected === $key);
+            $element = new SelectElement($key, $label, in_array($key, $selected));
             $this->addElement($element);
         }
     }
@@ -76,7 +87,10 @@ class SelectWidget extends SidebarWidget
 
         $variables['__is_nested'] = $this->hasNestedElements();
 
-        $this->template_variables['class'] .= ' submit-upon-select';
+        //submit-upon-select is not helpful if we have the multiple version
+        if (!$this->template_variables['multiple']) {
+            $this->template_variables['class'] .= ' submit-upon-select';
+        }
 
         return parent::render($variables);
     }
@@ -90,7 +104,9 @@ class SelectWidget extends SidebarWidget
                 return true;
             }
         }
-        return false;
+
+        // use nested if multiple
+        return $this->template_variables['multiple'];
     }
 
     private static function isArrayAssoc(array $arr)

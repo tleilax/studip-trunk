@@ -60,6 +60,7 @@ StudipAutoloader::addClassLookups([
     'DBSchemaVersion'        => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/migrations/db_schema_version.php',
     'PluginAdministration'   => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/plugin_administration.php',
     'CalendarScheduleModel'  => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/calendar/schedule.php',
+    'MVVController'          => $GLOBALS['STUDIP_BASE_PATH'] . '/app/controllers/module/mvv_controller.php'
 ]);
 
 // Trails

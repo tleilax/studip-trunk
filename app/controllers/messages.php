@@ -34,17 +34,18 @@ class MessagesController extends AuthenticatedController {
             }
         }
 
-        $this->setupSidebar();
+        $this->setupSidebar($action);
     }
 
     public function overview_action($message_id = null)
     {
         Navigation::activateItem('/messaging/messages/inbox');
 
-
         if (Request::get("read_all")) {
             Message::markAllAs($GLOBALS['user']->id, 1);
-            PageLayout::postMessage(MessageBox::success(_("Alle Nachrichten wurden als gelesen markiert.")));
+            PageLayout::postSuccess(_("Alle Nachrichten wurden als gelesen markiert."));
+            $this->redirect('messages/overview');
+            return;
         }
 
         if (Request::isPost()) {
@@ -632,6 +633,11 @@ class MessagesController extends AuthenticatedController {
 
     protected function delete_message($message_id)
     {
+        $message = Message::find($message_id);
+        if ($message) {
+            $message->markAsRead($GLOBALS['user']->id);
+        }
+
         $messageuser = new MessageUser(array($GLOBALS['user']->id, $message_id, "snd"));
         $success = 0;
         if (!$messageuser->isNew()) {
@@ -794,7 +800,9 @@ class MessagesController extends AuthenticatedController {
 
         $error = $message_top_folder->validateUpload($file, $GLOBALS['user']->id);
         if ($error != null) {
-            throw new RuntimeException($error);
+            $this->response->set_status(400);
+            $this->render_json(compact('error'));
+            return;
         }
 
         $user = User::findCurrent();
@@ -855,7 +863,7 @@ class MessagesController extends AuthenticatedController {
         $this->redirect('messages/overview');
     }
 
-    public function setupSidebar()
+    public function setupSidebar($action)
     {
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/mail-sidebar.png');
@@ -864,14 +872,16 @@ class MessagesController extends AuthenticatedController {
         if ($GLOBALS['user']->perms !== 'user') {
             $actions->addLink(
                 _('Neue Nachricht schreiben'),
-                $this->url_for('messages/write'), Icon::create('mail+add'),
+                $this->url_for('messages/write'),
+                Icon::create('mail+add'),
                 ['data-dialog' => 'width=650;height=600']
             );
         }
-        if (Navigation::getItem('/messaging/messages/inbox')->isActive() && $messages) {
+        if ($action !== 'sent' && MessageUser::hasUnreadByUserId($GLOBALS['user']->id)) {
             $actions->addLink(
                 _('Alle als gelesen markieren'),
-                $this->url_for('messages/overview', array('read_all' => 1)), Icon::create('accept', 'clickable')
+                $this->url_for('messages/overview', ['read_all' => 1]),
+                Icon::create('accept', 'clickable')
             );
         }
         $actions->addLink(

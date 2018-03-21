@@ -25,7 +25,7 @@ $genders = [
     <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
     <fieldset>
         <legend>
-            <?= _('Benutzerkonto bearbeiten') ?>
+            <?= _('Persönliche Angaben bearbeiten') ?>
         </legend>
         <label for="new_username">
                <span class="required">
@@ -130,7 +130,7 @@ $genders = [
 
         <? if (!$is_sso && !$restricted && $controller->shallChange('auth_user_md5.Email')): ?>
             <label class="divider email-change-confirm">
-                    
+
                         <span id="email-change-confirm">
                             <?= _('Falls Sie Ihre E-Mail-Adresse ändern, muss diese Änderung durch die Eingabe '
                                   . 'Ihres Passworts bestätigt werden:') ?>

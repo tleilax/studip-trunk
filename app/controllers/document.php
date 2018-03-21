@@ -15,7 +15,7 @@
 */
 class DocumentController extends StudipController
 {
-    function download_action($file_ref_id, $disposition)
+    function download_action($file_ref_id, $disposition = 'attachment')
     {
         $file_ref = FileRef::find($file_ref_id);
         if ($file_ref) {

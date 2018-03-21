@@ -69,51 +69,58 @@ class FileController extends AuthenticatedController
         if (!$folder || !$folder->isWritable($GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
-        if (Request::isPost() && is_array($_FILES['file'])) {
-            //CSRFProtection::verifyUnsafeRequest();
-            $validatedFiles = FileManager::handleFileUpload(
-                $_FILES['file'],
-                $folder,
-                $GLOBALS['user']->id
-            );
-
-            if (count($validatedFiles['error']) > 0) {
-                 // error during upload: display error message:
-                $this->render_json(['message' => MessageBox::error(
-                    _('Beim Hochladen ist ein Fehler aufgetreten '),
-                    array_map('htmlready', $validatedFiles['error'])
-                )]);
-
-                return;
-            }
-
-            //all files were uploaded successfully:
-            $storedFiles = [];
-            $default_license = ContentTermsOfUse::find(
-                'UNDEF_LICENSE'
-            );
-
-            foreach ($validatedFiles['files'] as $fileref) {
-                //If no terms of use is set for the file ref
-                //we must set it to a default terms of use
-                //and update the fileref.
-                if (!$fileref->content_terms_of_use_id
-                    and $default_license) {
-                    $fileref->content_terms_of_use_id = $default_license->id;
-                    if ($fileref->isDirty()) {
-                        $fileref->store();
-                    }
-                }
-                $storedFiles[] = $fileref;
-            }
-            if (count($storedFiles) > 0 && !Request::isXhr()) {
-                PageLayout::postSuccess(
-                    sprintf(
-                        _('Es wurden %s Dateien hochgeladen'),
-                        count($storedFiles)
-                    ),
-                    array_map('htmlready', $storedFiles)
+        if (Request::isPost()) {
+            if (is_array($_FILES['file'])) {
+                $validatedFiles = FileManager::handleFileUpload(
+                    $_FILES['file'],
+                    $folder,
+                    $GLOBALS['user']->id
                 );
+
+                if (count($validatedFiles['error']) > 0) {
+                    // error during upload: display error message:
+                    $this->render_json(['message' => (string)MessageBox::error(
+                        _('Beim Hochladen ist ein Fehler aufgetreten '),
+                        array_map('htmlready', $validatedFiles['error'])
+                    )]);
+
+                    return;
+                }
+
+                //all files were uploaded successfully:
+                $storedFiles = [];
+                $default_license = ContentTermsOfUse::find(
+                    'UNDEF_LICENSE'
+                );
+
+                foreach ($validatedFiles['files'] as $fileref) {
+                    //If no terms of use is set for the file ref
+                    //we must set it to a default terms of use
+                    //and update the fileref.
+                    if (!$fileref->content_terms_of_use_id
+                        and $default_license) {
+                        $fileref->content_terms_of_use_id = $default_license->id;
+                        if ($fileref->isDirty()) {
+                            $fileref->store();
+                        }
+                    }
+                    $storedFiles[] = $fileref;
+                }
+                if (count($storedFiles) > 0 && !Request::isXhr()) {
+                    PageLayout::postSuccess(
+                        sprintf(
+                            _('Es wurden %s Dateien hochgeladen'),
+                            count($storedFiles)
+                        ),
+                        array_map('htmlready', $storedFiles)
+                    );
+                }
+            } else {
+                $this->render_json(['message' => (string)MessageBox::error(
+                    _('Ein Systemfehler ist beim Upload aufgetreten.')
+
+                )]);
+                return;
             }
 
             if (Request::isXhr()) {
@@ -706,7 +713,8 @@ class FileController extends AuthenticatedController
                 true,
                 true,
                 false,
-                $use_dos_encoding ? 'CP850' : 'UTF-8'
+                $use_dos_encoding ? 'CP850' : 'UTF-8',
+                true
             );
 
             if ($result) {
@@ -1084,9 +1092,9 @@ class FileController extends AuthenticatedController
 
                     $this->response->add_header(
                         'X-Dialog-Execute',
-                        studip_json_encode(['func' => 'STUDIP.Files.addFile', 'payload' => $payload])
+                        'STUDIP.Files.addFile'
                     );
-                    $this->render_nothing();
+                    $this->render_json($payload);
                 } else {
                     PageLayout::postSuccess(_('Datei wurde hinzugefügt.'));
                     $redirect = 'files/index/' . $folder_id;
@@ -1321,9 +1329,9 @@ class FileController extends AuthenticatedController
 
                     $this->response->add_header(
                         'X-Dialog-Execute',
-                        studip_json_encode(['func' => 'STUDIP.Files.addFile', 'payload' => $payload])
+                        'STUDIP.Files.addFile'
                     );
-                    $this->render_nothing();
+                    $this->render_json($payload);
                 }
             } else {
                 PageLayout::postError(_('Die angegebene URL ist ungültig.'));
@@ -1604,8 +1612,8 @@ class FileController extends AuthenticatedController
                 true,
                 true,
                 false,
-                $use_dos_encoding ? 'CP850' : 'UTF-8'
-
+                $use_dos_encoding ? 'CP850' : 'UTF-8',
+                true
             );
 
             if ($result) {

@@ -94,7 +94,7 @@
             <tr>
                 <td colspan="<?= count($modules) + 3 ?>">
                     <?= Button::create(_('Übernehmen'), 'store', ['title' => _('Änderungen übernehmen')]) ?>
-                    <?= LinkButton::create(_('Zurücksetzen'), $controller->url_for('settings/notification')) ?>
+                    <?= LinkButton::create(_('Abbrechen'), $controller->url_for('settings/notification')) ?>
                 </td>
             </tr>
         </tfoot>

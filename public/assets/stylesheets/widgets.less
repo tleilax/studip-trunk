@@ -3,7 +3,8 @@
 // @import (reference) "assets/stylesheets/less/jquery-ui/studip.less";
 @import (reference) "less/start.less";
 
-@import "vendor/gridstack-0.3.0.css";
+@import (inline) "vendor/gridstack-0.3.0.css";
+
 .grid-stack-item-content a {
     color: @base-color;
 
@@ -175,9 +176,9 @@
     border: 1px solid @base-color-20;
     .transition(border 300ms);
 
-    &:hover {
-        border-color: @base-color;
-    }
+    // &:hover {
+    //     border-color: @base-color;
+    // }
 
 //    .transition(all 300ms);
 

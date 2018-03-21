@@ -85,8 +85,8 @@ class ResourcesBrowse {
         $this->searchArray = $array;
     }
 
-    //private
-    function searchForm() {
+    private function searchFormHeader()
+    {
         ?>
         <fieldset>
             <label>
@@ -107,6 +107,12 @@ class ResourcesBrowse {
             </label>
         </fieldset>
 
+        <?
+    }
+
+    private function searchFormFooter()
+    {
+        ?>
         <footer>
             <?= Button::create(_('Suchen'), 'start_search') ?>
             <?= LinkButton::create(_('Zurücksetzen'), URLHelper::getURL('?view=search&quick_view_mode=' . $GLOBALS['view_mode'] . '&reset=TRUE')) ?>
@@ -174,108 +180,174 @@ class ResourcesBrowse {
     }
 
     //private
-    function showTimeRange() {
-        $colspan = $this->mode == 'browse' ? ' colspan="2" ' : '';
+    function showTimeRange()
+    {
+        $weekday_options = [
+            '-1'        => _('--'),
+            'Monday'    => _('Montag'),
+            'Tuesday'   => _('Dienstag'),
+            'Wednesday' => _('Mittwoch'),
+            'Thursday'  => _('Donnerstag'),
+            'Friday'    => _('Freitag'),
+            'Saturday'  => _('Samstag'),
+            'Sunday'    => _('Sonntag'),
+        ];
+
+        $semesterData = new SemesterData();
+        $all_semester = $semesterData->getAllSemesterData();
+        if (!$this->searchArray['search_semester']) {
+            $current_semester = $semesterData->getCurrentSemesterData();
+            $selected_semester = $semesterData->getSemesterDataByDate(strtotime('+1 day',$current_semester['ende']));
+        } else {
+            $selected_semester['semester_id'] = $this->searchArray['search_semester'];
+        }
+
+        $semesters = [];
+        foreach (array_reverse($all_semester) as $semester) {
+            $semesters[$semester['semester_id']] = [
+                'label'    => $semester['name'],
+                'selected' => $selected_semester['semester_id'] == $semester['semester_id'],
+            ];
+
+        }
         ?>
-        <tr>
-            <td>
-                <?=_("gefundene Ressourcen sollen zu folgender Zeit <u>nicht</u> belegt sein:")?>
-            <br>
-            </td>
-        </tr>
-        <tr>
-            <td>
-            &nbsp;<br>
-                <table cellspacing="0" cellpadding="0" border="0" width="100%">
+        <fieldset>
+            <legend>
+                <?= _('gefundene Ressourcen sollen zu folgender Zeit <u>nicht</u> belegt sein:') ?>
+            </legend>
+
+            <table class="default nohover">
+                <colgroup>
+                    <col width="20%">
+                    <col width="20%">
+                    <col width="20%">
+                    <col width="20%">
+                </colgroup>
+                <tbody>
                     <tr>
-                        <td width="120">
-                            <b><?= _('Einzeltermin:') ?></b>
+                        <th colspan="4"><?= _('Einzeltermin:') ?></th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <?= _('Beginn') ?>:
+                            <input type="text" name="search_begin_hour"
+                                   size="2" maxlength="2"
+                                   placeholder="<?= _('HH') ?>"
+                                   value="<?= $this->searchArray['search_assign_begin'] ? date('H', $this->searchArray['search_assign_begin']) : '' ?>"
+                                   class="no-hint" style="width:5ex">
+                            :
+                            <input type="text" name="search_begin_minute"
+                                   size="2" maxlength="2"
+                                   placeholder="<?= _('mm') ?>"
+                                   value="<?= $this->searchArray['search_assign_begin'] ? date('i', $this->searchArray['search_assign_begin']) : '' ?>"
+                                   class="no-hint" style="width:5ex">
+
+                            <?= _('Uhr') ?>
                         </td>
                         <td>
-                            <?=_("Beginn")?>:
-                            &nbsp;<input type="text"  name="search_begin_hour" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_begin"]) ? date("H", $this->searchArray["search_assign_begin"]) : _("ss")?>">
-                            <input type="text"  name="search_begin_minute" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_begin"]) ? date("i", $this->searchArray["search_assign_begin"]) : _("mm")?>">&nbsp;<?=_("Uhr")?>
-                            &nbsp;&nbsp;<?=_("Ende")?>:
-                            &nbsp;<input type="text"  name="search_end_hour" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_end"]) ? date("H", $this->searchArray["search_assign_end"]) : _("ss")?>">
-                            <input type="text"  name="search_end_minute" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_end"]) ? date("i", $this->searchArray["search_assign_end"]) : _("mm")?>">&nbsp;<?=_("Uhr")?>
-                <br>
-                            <?=_("Datum")?>: &nbsp;
-                            <input name="searchDate" id="searchDate" size="10" value="<?= $this->searchArray['search_assign_begin'] ? date('j.m.Y', $this->searchArray['search_assign_begin']) : '' ?>">
-                            <script>
-                                jQuery('#searchDate').datepicker();
-                            </script>
-                            &nbsp;&nbsp;&nbsp;&nbsp;    <input type="checkbox" name="search_repeating" value="1" <?=($this->searchArray["search_repeating"]==1) ? "checked=checked" : ""?>> <?= _('für restliches Semester prüfen') ?>
-                            <br>
+                            <?= _('Ende') ?>:
+                            <input type="text" name="search_end_hour"
+                                   size="2" maxlength="2"
+                                   placeholder="<?= _('HH') ?>"
+                                   value="<?= $this->searchArray['search_assign_end'] ? date('H', $this->searchArray['search_assign_end']) : '' ?>"
+                                   class="no-hint" style="width:5ex">
+                            :
+                            <input type="text" name="search_end_minute"
+                                   size="2" maxlength="2"
+                                   placeholder="<?= _('mm') ?>"
+                                   value="<?= $this->searchArray['search_assign_end'] ? date('i', $this->searchArray['search_assign_end']) : '' ?>"
+                                   class="no-hint" style="width:5ex">
+
+                            <?= _('Uhr') ?>
+                        </td>
+                        <td>
+                            <?= _('Datum') ?>:
+                            <input name="searchDate" size="10"
+                                   value="<?= $this->searchArray['search_assign_begin'] ? date('j.m.Y', $this->searchArray['search_assign_begin']) : '' ?>"
+                                   data-date-picker>
+                        </td>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="search_repeating"
+                                       value="1"
+                                       <? if ($this->searchArray['search_repeating']) echo 'checked'; ?>>
+                                <?= _('für restliches Semester prüfen') ?>
+                            </label>
                         </td>
                     </tr>
-                </table>
-                </td>
-                </tr>
-                <tr>
-                <td>
-                    <table cellspacing="0" cellpadding="0" border="0" width="100%">
-                        <tr>
-                            <td width="120">
-                                <b><?= _('Semestertermin:') ?></b>
-                            </td>
-                            <td>
-                    <br>
-                <?=_("Beginn")?>:
-                    &nbsp;<input type="text" name="search_begin_hour_2" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_begin"]) ? date("H", $this->searchArray["search_assign_begin"]) : _("ss")?>">
-                    <input type="text"  name="search_begin_minute_2" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_begin"]) ? date("i", $this->searchArray["search_assign_begin"]) : _("mm")?>">&nbsp;<?=_("Uhr")?>
-                &nbsp;&nbsp;<?=_("Ende")?>:
-                    &nbsp;<input type="text"  name="search_end_hour_2" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_end"]) ? date("H", $this->searchArray["search_assign_end"]) : _("ss")?>">
-                    <input type="text"  name="search_end_minute_2" size="2" maxlength="2" value="<?=($this->searchArray["search_assign_end"]) ? date("i", $this->searchArray["search_assign_end"]) : _("mm")?>">&nbsp;<?=_("Uhr")?>
-                <br>
-                <?=_("Tag der Woche")?>:
-                <select name = 'search_day_of_week'>
-                <option value=-1 <?=$this->searchArray["search_day_of_week"]==-1? "selected=selected":""?>><?=_("--")?> </option>
-                <option value='Monday' <?=$this->searchArray["search_day_of_week"]=='Monday'? "selected=selected":""?>><?=_("Montag")?> </option>
-                <option value='Tuesday' <?=$this->searchArray["search_day_of_week"]=='Tuesday'? "selected=selected":""?>><?=_("Dienstag")?> </option>
-                <option value='Wednesday' <?=$this->searchArray["search_day_of_week"]=='Wednesday'?  "selected=selected":""?>><?=_("Mittwoch")?> </option>
-                <option value='Thursday' <?=$this->searchArray["search_day_of_week"]=='Thursday'?  "selected=selected":""?>><?=_("Donnerstag")?> </option>
-                <option value='Friday' <?=$this->searchArray["search_day_of_week"]=='Friday'?  "selected=selected":""?>><?=_("Freitag")?> </option>
-                <option value='Saturday' <?=$this->searchArray["search_day_of_week"]=='Saturday'?  "selected=selected":""?>><?=_("Samstag")?> </option>
-                <option value='Sunday' <?=$this->searchArray["search_day_of_week"]=='Sunday'?  "selected=selected":""?>><?=_("Sonntag")?> </option>
-                </select> &nbsp;
-                <?=_("Semester")?>:
-                <select name = 'search_semester'>
-                <?
-                    $semesterData = new SemesterData();
-                    $all_semester = $semesterData->getAllSemesterData();
-                if (!$this->searchArray["search_semester"])
-                {
-                    $current_semester = $semesterData->getCurrentSemesterData();
-                    $selected_semester = $semesterData->getSemesterDataByDate(strtotime("+1 Day",$current_semester["ende"]));
-                } else
-                {
-                    $selected_semester["semester_id"] = $this->searchArray["search_semester"];
-                }
-                    $this_sem = false;
-                    foreach(array_reverse($all_semester) as $semester)
-                    {
-                        $this_sem = $selected_semester["semester_id"] == $semester["semester_id"];
+                    <tr>
+                        <th colspan="4"><?= _('Semestertermin:') ?></th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <?= _('Beginn') ?>:
+                            <input type="text" name="search_begin_hour_2"
+                                   size="2" maxlength="2"
+                                   placeholder="<?= _('HH') ?>"
+                                   value="<?= $this->searchArray['search_assign_begin'] ? date('H', $this->searchArray['search_assign_begin']) : '' ?>"
+                                   class="no-hint" style="width:5ex">
+                            :
+                            <input type="text" name="search_begin_minute_2"
+                                   size="2" maxlength="2"
+                                   placeholder="<?= _('mm') ?>"
+                                   value="<?= $this->searchArray['search_assign_begin'] ? date('i', $this->searchArray['search_assign_begin']) : '' ?>"
+                                   class="no-hint" style="width:5ex">
 
-                        echo "<option value='".$semester["semester_id"]."' ".($this_sem?" selected=selected ":"").">".$semester["name"]."</option>";
+                             <?= _('Uhr') ?>
+                        </td>
+                        <td>
+                            <?= _('Ende') ?>:
+                            <input type="text" name="search_end_hour_2"
+                                   size="2" maxlength="2"
+                                   placeholder="<?= _('HH') ?>"
+                                   value="<?= $this->searchArray['search_assign_end'] ? date('H', $this->searchArray['search_assign_end']) : '' ?>"
+                                   class="no-hint" style="width:5ex">
+                            :
+                            <input type="text" name="search_end_minute_2"
+                                   size="2" maxlength="2"
+                                   placeholder="<?= _('mm') ?>"
+                                   value="<?= $this->searchArray['search_assign_end'] ? date('i', $this->searchArray['search_assign_end']) : '' ?>"
+                                   class="no-hint" style="width:5ex">
 
-                    }
-                ?>
-                </select> &nbsp;
-                    </td>
-                </tr>
+                             <?= _('Uhr') ?>
+                        </td>
+                        <td>
+                            <label>
+                                <?= _('Tag der Woche') ?>:
+                                <select name="search_day_of_week">
+                                <? foreach ($weekday_options as $key => $label): ?>
+                                    <option value="<?= $key ?>" <? if ($this->searchArray['search_day_of_week'] == $key) echo 'selected'; ?>>
+                                        <?= $label ?>
+                                    </option>
+                                <? endforeach; ?>
+                                </select>
+                            </label>
+                        </td>
+                        <td>
+                            <label>
+                                <?=_('Semester')?>:
+                                <select name="search_semester">
+                                <? foreach ($semesters as $id => $semester): ?>
+                                    <option value="<?= htmlReady($di) ?>" <? if ($semester['selected']) echo 'selected'; ?>>
+                                        <?= htmlReady($semester['label']) ?>
+                                    </option>
+                                <? endforeach; ?>
+                                </select>
+                            </label>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
-                <br>
-            </td>
-        </tr>
-
-
+        </fieldset>
         <?
     }
 
     //private
     function showProperties()
     {
-        $query = "SELECT category_id, name FROM resources_categories ORDER BY name";
+        $query = "SELECT category_id, name
+                  FROM resources_categories
+                  ORDER BY name";
         $statement = DBManager::get()->query($query);
         $categories = $statement->fetchGrouped(PDO::FETCH_ASSOC);
 
@@ -283,7 +355,7 @@ class ResourcesBrowse {
                   FROM resources_categories_properties
                   LEFT JOIN resources_properties USING (property_id)
                   WHERE category_id = ?";
-        if (get_config('RESOURCES_SEARCH_ONLY_REQUESTABLE_PROPERTY')) {
+        if (Config::get()->RESOURCES_SEARCH_ONLY_REQUESTABLE_PROPERTY) {
             $query .= " AND requestable = 1";
         }
         $query .= " ORDER BY name";
@@ -291,78 +363,84 @@ class ResourcesBrowse {
         $statement = DBManager::get()->prepare($query);
 
         foreach (array_keys($categories) as $id) {
-            $statement->execute(array($id));
+            $statement->execute([$id]);
             $categories[$id]['properties'] = $statement->fetchAll(PDO::FETCH_ASSOC);
             $statement->closeCursor();
         }
+        $categories = array_filter($categories, function ($category) {
+            return count($category['properties']) > 0;
+        });
         ?>
-        <tr>
-            <td>
-                <?=_("folgende Eigenschaften soll die Ressource besitzen (leer bedeutet egal):")?>
-            <br>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <table width="90%" cellpadding=5 cellspacing=0 border=0 align="center">
-                    <?
-                    foreach ($categories as $id => $category) {
-                        if (count($category['properties']) > 0) {
+        <fieldset>
+            <legend>
+                <?= _('folgende Eigenschaften soll die Ressource besitzen (leer bedeutet egal):') ?>
+            </legend>
 
-                            print "<tr>\n";
-                            print "<td colspan=\"2\"> \n";
-                            if ($k)
-                                print "<hr><br>";
-                            printf ("<b>%s:</b>", htmlReady($category['name']));
-                            print "</td>\n";
-                            print "</tr> \n";
-                            print "<tr>\n";
-                            print "<td width=\"50%\" valign=\"top\">";
-                            if (count($category['properties']) % 2 == 1)
-                                $i=0;
-                            else
-                                $i=1;
-                            $switched = FALSE;
-                            foreach ($category['properties'] as $property) {
-                                $value = $this->searchArray['properties'][$property['property_id']] ?: false;
-                                if (!$switched && $i > count($category['properties']) / 2) {
-                                    print "</td><td width=\"50%\" valign=\"top\">";
-                                    $switched = TRUE;
-                                }
-                                print "<table width=\"100%\" border=\"0\"><tr>";
-                                printf ("<td width=\"50%%\">%s</td>", htmlReady($property['name']));
-                                print "<td width=\"50%\">";
-                                printf ("<input type=\"HIDDEN\" name=\"search_property_val[]\" value=\"%s\">", "_id_".$property['property_id']);
-                                switch ($property['type']) {
-                                    case "bool":
-                                        printf ("<input type=\"CHECKBOX\" name=\"search_property_val[]\" %s>&nbsp;%s", ($value) ? "checked":"", htmlReady($property['options']));
-                                    break;
-                                    case "num":
-                                        printf ("<input type=\"TEXT\" name=\"search_property_val[]\" value=\"%s\" size=20 maxlength=255>", htmlReady($value));
-                                    break;
-                                    case "text";
-                                        printf ("<textarea name=\"search_property_val[]\" cols=20 rows=2 >%s</textarea>", htmlReady($value));
-                                    break;
-                                    case "select";
-                                        $options=explode (";",$property['options']);
-                                        print "<select name=\"search_property_val[]\">";
-                                        print   "<option value=\"\">--</option>";
-                                        foreach ($options as $a) {
-                                            printf ("<option %s value=\"%s\">%s</option>", ($value == $a) ? "selected":"", $a, htmlReady($a));
-                                        }
-                                        printf ("</select>");
-                                    break;
-                                }
-                                print "</td></tr></table>";
-                                $i++;
-                            }
-                        $k++;
-                        }
-                    }
+            <table class="default nohover">
+                <colgroup>
+                    <col width="15%">
+                    <col width="35%">
+                    <col width="15%">
+                    <col width="35%">
+                </colgroup>
+            <? foreach ($categories as $id => $category): ?>
+                <tbody style="vertical-align: top;">
+                    <tr>
+                        <th colspan="4"><?= htmlReady($category['name']) ?></th>
+                    </tr>
+                    <tr>
+                    <?  $i = 0;
+                        foreach ($category['properties'] as $property):
+                        $value = $this->searchArray['properties'][$property['property_id']] ?: false;
                     ?>
-                </table>
-            </td>
-        </tr>
+                    <? if ($i++ && ($i % 2 === 1)): ?>
+                        </tr><tr>
+                    <? endif; ?>
+                        <td>
+                            <input type="hidden" name="search_property_val[]" value="_id_<?= htmlReady($property['property_id']) ?>">
+                            <label for="item-<?= htmlReady($id) ?>-<?= $i ?>">
+                                <?= htmlReady($property['name']) ?>
+                            </label>
+                        </td>
+                        <td>
+                        <? if ($property['type'] === 'bool') :?>
+                            <label>
+                                <input type="checkbox" name="search_property_val[]"
+                                       id="item-<?= htmlReady($id) ?>-<?= $i ?>"
+                                       <? if ($value) echo 'checked'; ?>>
+                                <?= htmlReady($property['options']) ?>
+                            </label>
+                        <? elseif ($property['type'] === 'num'): ?>
+                            <input type="text" name="search_property_val[]"
+                                   id="item-<?= htmlReady($id) ?>-<?= $i ?>"
+                                   value="<?= htmlReady($value) ?>"
+                                   size="20" maxlength="255"
+                                   class="no-hint">
+                        <? elseif ($property['type'] === 'text'): ?>
+                            <textarea name="search_property_val[]" cols="20" rows="2" id="item-<?= htmlReady($id) ?>-<?= $i ?>"
+                            ><?= htmlReady($value) ?></textarea>
+                        <? elseif ($property['type'] === 'select'):
+                            $options = explode(';', $property['options']);
+                        ?>
+                            <select name="search_property_val[]" id="item-<?= htmlReady($id) ?>-<?= $i ?>">
+                            <option value="">--</option>
+                            <? foreach ($options as $a): ?>
+                                <option value="<?= htmlReady($a) ?>" <? if ($value == $a) echo 'selected'; ?>>
+                                    <?= htmlReady($a) ?>
+                                </option>
+                            <? endforeach; ?>
+                            </select>
+                        <? endif; ?>
+                        </td>
+                    <? endforeach; ?>
+                    <? if ($i % 2 !== 0): ?>
+                        <td colspan="2"></td>
+                    <? endif; ?>
+                    </tr>
+                </tbody>
+            <? endforeach; ?>
+            </table>
+        </fieldset>
         <?
     }
 
@@ -500,30 +578,26 @@ class ResourcesBrowse {
         ?>
         <form class="default" method="post" action="<?= URLHelper::getLink('?search_send=yes&quick_view=search&quick_view_mode='. $GLOBALS['view_mode']) ?>">
             <?= CSRFProtection::tokenTag() ?>
-            <table border=0 celpadding=2 cellspacing=0 width="99%" align="center">
-                <?
-                $this->searchForm();
-                if (!$this->searchArray) {
-                    if ($this->mode == "browse")
-                        $this->browseLevels();
-                    if ($this->check_assigns)
-                        $this->showTimeRange();
-                    if ($this->mode == "properties")
-                        $this->showProperties();
-                    if ($this->mode == "browse")
-                        $this->showList();
-                } else {
-                    if ($this->check_assigns)
-                        $this->showTimeRange();
-                    if ($this->mode == "properties")
-                        $this->showProperties();
-                    $this->showSearchList($this->check_assigns);
-
-                }
-                ?>
-            </table>
+            <? $this->searchFormHeader() ?>
+        <? if ($this->check_assigns): ?>
+            <? $this->showTimeRange() ?>
+        <? endif; ?>
+        <? if ($this->mode == 'properties'): ?>
+            <? $this->showProperties() ?>
+        <? endif; ?>
+            <? $this->searchFormFooter() ?>
         </form>
-            <br>
+
+        <br>
+
+        <table border=0 celpadding=2 cellspacing=0 width="99%" align="center">
+        <? if ($this->searchArray): ?>
+            <? $this->showSearchList($this->check_assigns) ?>
+        <? elseif ($this->mode == 'browse'): ?>
+            <? $this->browseLevels() ?>
+            <? $this->showList() ?>
+        <? endif; ?>
+        </table>
         <?
     }
 }

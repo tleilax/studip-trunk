@@ -17,7 +17,6 @@
 class Course_BasicdataController extends AuthenticatedController
 {
     public $msg = array();
-    protected $utf8decode_xhr = true;
 
     /**
      * Set up the list of input fields. Some fields may be locked for
@@ -380,22 +379,18 @@ class Course_BasicdataController extends AuthenticatedController
         }
         $sidebar->addWidget($widget);
         // Entry list for admin upwards.
-        if ($perm->have_studip_perm('admin',$this->course_id)) {
-            $list = new SelectorWidget();
-            $list->setUrl('?#admin_top_links');
-            $list->setSelectParameterName('cid');
+        if ($perm->have_studip_perm('admin', $this->course_id)) {
+            $list = new SelectWidget(_('Veranstaltungen'), '?#admin_top_links', 'cid');
+
             foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
-                $list->addElement(
-                    new SelectElement(
-                        $seminar['Seminar_id'],
-                        $seminar['Name'],
-                        $seminar['Seminar_id'] === Context::get()->id,
-                        $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
-                    ),
-                    'select-' . $seminar['Seminar_id']
-                );
+                $list->addElement(new SelectElement(
+                    $seminar['Seminar_id'],
+                    $seminar['Name'],
+                    $seminar['Seminar_id'] === Context::getId(),
+                    $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                ));
             }
-            $list->setSelection($this->course_id);
+            $list->size = 8;
             $sidebar->addWidget($list);
         }
     }
