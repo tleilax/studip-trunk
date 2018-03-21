@@ -23,7 +23,7 @@
 
         // TODO: Templating?
         _.forEach(navigation, function (nav, node) {
-            nav.url = STUDIP.URLHelper.getURL(nav.url);
+            nav.url = STUDIP.URLHelper.getURL(nav.url, {}, true);
             var subpath = path + '_' + node,
                 li      = $('<li class="navigation-item">'),
                 title   = $('<div class="nav-title">').appendTo(li),
