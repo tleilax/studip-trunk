@@ -55,7 +55,7 @@ STUDIP.URLHelper = {
     getURL: function (url, param_object, ignore_params) {
 
         var url_params = jQuery.isArray(STUDIP.URLHelper.parameters) ? {} : STUDIP.URLHelper.parameters,
-            params = _.defaults(param_object || {}, ignore_params ? {} : url_params),
+            params = _.defaults(param_object || {}, ignore_params ? {} : url_params),
             tmp, fragment, query;
 
         tmp = url.split("#");
