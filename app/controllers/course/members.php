@@ -1250,7 +1250,7 @@ class Course_MembersController extends AuthenticatedController
             $this->redirect('course/members/additional_input');
             return 0;
         }
-        
+
         Navigation::activateItem('/course/members/additional');
 
         // fetch course and aux data
@@ -1425,10 +1425,10 @@ class Course_MembersController extends AuthenticatedController
 
                     // add "add dozent" to infobox
                     $mp = MultiPersonSearch::get('add_dozent' . $this->course_id)
-                        ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']))
+                        ->setLinkText(sprintf(_('%s eintragen'), get_title_for_status('dozent', 1)))
                         ->setDefaultSelectedUser($filtered_members['dozent']->pluck('user_id'))
                         ->setLinkIconPath("")
-                        ->setTitle(sprintf(_('Neue/n %s eintragen'), $this->status_groups['dozent']))
+                        ->setTitle(sprintf(_('%s eintragen'), get_title_for_status('dozent', 1)))
                         ->setExecuteURL(URLHelper::getLink('dispatch.php/course/members/execute_multipersonsearch_dozent'))
                         ->setSearchObject($searchtype)
                         ->addQuickfilter(sprintf(_('%s der Einrichtung'), $this->status_groups['dozent']), $membersOfInstitute)
@@ -1462,10 +1462,10 @@ class Course_MembersController extends AuthenticatedController
 
                     // add "add tutor" to infobox
                     $mp = MultiPersonSearch::get("add_tutor" . $this->course_id)
-                        ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']))
+                        ->setLinkText(sprintf(_('%s eintragen'), get_title_for_status('tutor', 1)))
                         ->setDefaultSelectedUser($filtered_members['tutor']->pluck('user_id'))
                         ->setLinkIconPath("")
-                        ->setTitle(sprintf(_('Neue/n %s eintragen'), $this->status_groups['tutor']))
+                        ->setTitle(sprintf(_('%s eintragen'), get_title_for_status('tutor', 1)))
                         ->setExecuteURL(URLHelper::getLink('dispatch.php/course/members/execute_multipersonsearch_tutor'))
                         ->setSearchObject($searchType)
                         ->addQuickfilter(sprintf(_('%s der Einrichtung'), $this->status_groups['tutor']), $membersOfInstitute)
@@ -1497,10 +1497,10 @@ class Course_MembersController extends AuthenticatedController
 
                 // add "add autor" to infobox
                 $mp = MultiPersonSearch::get("add_autor" . $this->course_id)
-                    ->setLinkText(sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']))
+                    ->setLinkText(sprintf(_('%s eintragen'), get_title_for_status('autor', 1)))
                     ->setDefaultSelectedUser($filtered_members['autor']->pluck('user_id'))
                     ->setLinkIconPath("")
-                    ->setTitle(sprintf(_('Neue/n %s eintragen'), $this->status_groups['autor']))
+                    ->setTitle(sprintf(_('%s eintragen'), get_title_for_status('autor', 1)))
                     ->setExecuteURL(URLHelper::getLink('dispatch.php/course/members/execute_multipersonsearch_autor'))
                     ->setSearchObject($searchType)
                     ->addQuickfilter(sprintf(_('%s der Einrichtung'), $this->status_groups['autor']), $membersOfInstitute)
@@ -1522,10 +1522,10 @@ class Course_MembersController extends AuthenticatedController
                         $filtered_members['awaiting']->pluck('user_id')
                     );
                     $mp = MultiPersonSearch::get('add_waitlist' . $this->course_id)
-                        ->setLinkText(_('Neue Person(en) auf Warteliste eintragen'))
+                        ->setLinkText(_('Person(en) auf Warteliste eintragen'))
                         ->setDefaultSelectedUser($ignore)
                         ->setLinkIconPath('')
-                        ->setTitle(_('Neue Person(en) auf Warteliste eintragen'))
+                        ->setTitle(_('Person(en) auf Warteliste eintragen'))
                         ->setExecuteURL(URLHelper::getLink('dispatch.php/course/members/execute_multipersonsearch_waitlist'))
                         ->setSearchObject($searchType)
                         ->addQuickfilter(_('Mitglieder der Einrichtung'), $membersOfInstitute)
@@ -1551,7 +1551,7 @@ class Course_MembersController extends AuthenticatedController
                     'csv',
                     'csv-teiln',
                     '',
-                    _('Teilnehmendenliste als csv-Dokument exportieren'),
+                    _('Liste als csv-Dokument exportieren'),
                     'passthrough'
                 );
                 $widget->addLinkFromHTML(
@@ -1567,7 +1567,7 @@ class Course_MembersController extends AuthenticatedController
                     'rtf',
                     'rtf-teiln',
                     '',
-                    _('Teilnehmendenliste als rtf-Dokument exportieren'),
+                    _('Liste als rtf-Dokument exportieren'),
                     'passthrough'
                 );
                 $widget->addLinkFromHTML(
