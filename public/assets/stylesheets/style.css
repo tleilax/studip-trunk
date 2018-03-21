@@ -5680,13 +5680,25 @@ html.cssanimations .copyable-link-animation div {
   display: none;
 }
 .js .drag-and-drop {
-  border: 1px dotted #888;
   display: block;
-  margin: 0 20px 0 0;
+  margin: 5px;
+  margin-left: -15px;
   overflow: hidden;
-  padding: 1em;
+  padding: 10px;
+  padding-left: 0px;
   position: relative;
   text-align: center;
+  background-color: #e7ebf1;
+  background-image: url("../images/icons/blue/upload.svg");
+  -webkit-background-size: 50px 50px;
+  -moz-background-size: 50px 50px;
+  -o-background-size: 50px 50px;
+  background-size: 50px 50px;
+  background-repeat: no-repeat;
+  background-position: center 10px;
+  padding-top: 70px;
+  color: #28497c;
+  cursor: pointer;
 }
 .js .drag-and-drop input[type=file] {
   border: 0;
@@ -5699,18 +5711,13 @@ html.cssanimations .copyable-link-animation div {
   top: 0;
 }
 .js .drag-and-drop.hovered {
-  background-color: #fff8e0;
-  background-image: -moz-linear-gradient(top, #ffe, #fec);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffe), to(#fec));
-  background-image: -webkit-linear-gradient(top, #ffe, #fec);
-  background-image: -o-linear-gradient(top, #ffe, #fec);
-  background-image: linear-gradient(to bottom, #ffe, #fec);
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffee', endColorstr='#ffffeecc', GradientType=0);
-  border-radius: 1em;
-  border-style: solid;
-  box-shadow: 0 0 5px #888;
-  text-shadow: 1px 1px 3px #fc8;
+  background-color: #28497c;
+  background-image: url("../images/icons/white/upload.svg");
+  -webkit-background-size: 60px 60px;
+  -moz-background-size: 60px 60px;
+  -o-background-size: 60px 60px;
+  background-size: 60px 60px;
+  color: white;
 }
 table.attribute_table {
   border-collapse: collapse;

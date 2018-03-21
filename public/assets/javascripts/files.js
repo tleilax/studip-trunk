@@ -90,7 +90,7 @@
             }
 
             //start upload
-            $('.documents[data-folder_id] tbody > tr.dragover').removeClass('dragover');
+            $('form.drag-and-drop.files').removeClass('hovered');
             if (files > 0) {
                 $('.file_upload_window .uploadbar').show().css('background-size', '0% 100%');
                 $.ajax({
@@ -291,12 +291,12 @@
     };
 
     $(function () {
-        $('.documents[data-folder_id] tbody > tr')
+        $('form.drag-and-drop.files')
             .on('dragover dragleave', function (event) {
-                $(this).toggleClass('dragover', event.type === 'dragover');
+                $(this).toggleClass('hovered', event.type === 'dragover');
                 return false;
             });
-        $('.documents[data-folder_id]').on('drop', function (event) {
+        $('form.drag-and-drop.files').on('drop', function (event) {
             event.preventDefault();
 
             var filelist = event.originalEvent.dataTransfer.files || {};
