@@ -302,6 +302,9 @@
             var filelist = event.originalEvent.dataTransfer.files || {};
             STUDIP.Files.upload(filelist);
         });
+        $('form.drag-and-drop.files').on('click', function () {
+            jQuery('.file_selector input[type=file]').first().click();
+        });
 
         $(document).on('change', 'table.documents :checkbox', STUDIP.Files.toggleBulkButtons);
 

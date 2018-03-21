@@ -173,7 +173,7 @@ class FilesController extends AuthenticatedController
 
         if ($folder->isWritable($GLOBALS['user']->id)) {
             $uploadArea = new LinksWidget();
-            $uploadArea->setTitle(_("Dateien hochladen"));
+            $uploadArea->setTitle(_("Dateien hinzufügen"));
             $uploadArea->addElement(new WidgetElement(
                     $this->render_template_as_string('files/upload-drag-and-drop'))
             );

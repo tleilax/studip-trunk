@@ -5713,10 +5713,10 @@ html.cssanimations .copyable-link-animation div {
 .js .drag-and-drop.hovered {
   background-color: #28497c;
   background-image: url("../images/icons/white/upload.svg");
-  -webkit-background-size: 60px 60px;
-  -moz-background-size: 60px 60px;
-  -o-background-size: 60px 60px;
-  background-size: 60px 60px;
+  -webkit-background-size: 50px 50px;
+  -moz-background-size: 50px 50px;
+  -o-background-size: 50px 50px;
+  background-size: 50px 50px;
   color: white;
 }
 table.attribute_table {
