@@ -8242,16 +8242,9 @@ div.at_least_one_teacher {
 .contentbox.timesrooms form.default tfoot select {
   max-width: 30em;
 }
-.flex-row {
-  display: -ms-flexbox;
-  display: -webkit-box;
-  display: -webkit-box-flex;
-  display: -webkit-flex;
-  display: -moz-box;
-  display: flex;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  width: 100%;
+.times-rooms-grid .selectbox input[type="radio"]:checked + label {
+  font-weight: bold;
+  text-decoration: underline;
 }
 .opengraph-area {
   margin: 10px auto 5px;

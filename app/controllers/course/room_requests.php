@@ -346,7 +346,9 @@ class Course_RoomRequestsController extends AuthenticatedController
                     if (count($events)) {
                         $checker = new CheckMultipleOverlaps();
                         $checker->setTimeRange(min($timestamps), max($timestamps));
-                        foreach (array_keys($tmp_search_result) as $room) $checker->addResource($room);
+                        foreach (array_keys($tmp_search_result) as $room) {
+                            $checker->addResource($room);
+                        }
                         $checker->checkOverlap($events, $check_result, "assign_id");
                     }
                     foreach ($tmp_search_result as $room_id => $name) {
@@ -357,19 +359,26 @@ class Course_RoomRequestsController extends AuthenticatedController
                             continue;
                         }
 
-                        if (isset($check_result[$room_id])) {
+                        if (isset($check_result[$room_id]) && count($check_result[$room_id]) > 0) {
                             $details = $check_result[$room_id];
                             if (count($details) >= round(count($events) * Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE / 100)) {
-                                $overlap_status = 'status-red';
-                            } elseif (count($details)) {
-                                $overlap_status = 'status-yellow';
+                                $icon = Icon::create('decline', 'status-red', [
+                                    'title' => sprintf(
+                                        _('Es existieren Überschneidungen oder Belegungssperren zu mehr als %s%% aller gewünschten Belegungszeiten.'),
+                                        Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE
+                                    ),
+                                ]);
+                            } else {
+                                $icon = Icon::create('question', 'status-yellow', [
+                                    'title' => _('Es existieren Überschneidungen zur gewünschten Belegungszeit.'),
+                                ]);
                             }
                         } else {
-                            $overlap_status = 'status-green';
+                            $icon = Icon::create('accept', 'status-green', [
+                                'title' => _('Es existieren keine Überschneidungen'),
+                            ]);
                         }
-                        $search_result[$room_id] = array('name'           => $name,
-                                                         'overlap_status' => $overlap_status
-                        );
+                        $search_result[$room_id] = compact('name', 'icon');
                     }
                 }
             }

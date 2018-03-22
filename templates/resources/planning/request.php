@@ -131,7 +131,7 @@
                                     <td nowrap>
                                         <? if ($request_resource_id) : ?>
                                             <? if ($request_resource_id == $val["resource_id"]) : ?>
-                                                <?= Icon::create('accept', 'accept', ['title' => _('Dieser Raum ist augenblicklich gebucht"'),
+                                                <?= Icon::create('check-circle', 'accept', ['title' => _('Dieser Raum ist augenblicklich gebucht"'),
                                                                                       true])->asImg(); ?>
                                                 <input style="vertical-align: top; margin: 1px 5px" type="radio"
                                                        name="selected_resource_id[<?= $i ?>]"
@@ -214,7 +214,7 @@
                                             foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"] as $key2 => $val2) {
                                                 print "<td width=\"1%\" nowrap>";
                                                 if ($key == $val2["resource_id"]) {
-                                                    print Icon::create('accept', 'accept', ['title' => _("Dieser Raum ist augenblicklich gebucht"),
+                                                    print Icon::create('check-circle', 'accept', ['title' => _("Dieser Raum ist augenblicklich gebucht"),
                                                                                             true])->asImg();
                                                     echo '<input style="vertical-align: top; margin: 1px 5px" type="radio" name="selected_resource_id[' . $i . ']" value="' . $key . '" checked="checked">';
                                                 } else {
@@ -286,7 +286,7 @@
                                         foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"] as $key2 => $val2) {
                                             print "<td nowrap>";
                                             if ($key == $val2["resource_id"]) {
-                                                print Icon::create('accept', 'accept', ['title' => _('Dieser Raum ist augenblicklich gebucht'),
+                                                print Icon::create('check-circle', 'accept', ['title' => _('Dieser Raum ist augenblicklich gebucht'),
                                                                                         true])->asImg();
                                                 echo '<input style="vertical-align: top; margin: 1px 5px" type="radio" name="selected_resource_id[' . $i . ']" value="' . $key . '" checked="checked">';
                                             } else {
@@ -369,7 +369,7 @@
                                         foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["groups"] as $key2 => $val2) {
                                             print "<td width=\"1%\" nowrap>";
                                             if ($key == $val2["resource_id"]) {
-                                                print Icon::create('accept', 'clickable', ['title' => _('Dieser Raum ist augenblicklich gebucht'),
+                                                print Icon::create('check-circle', 'clickable', ['title' => _('Dieser Raum ist augenblicklich gebucht'),
                                                                                            true])->asImg();
                                             } else {
                                                 $overlap_status = ShowToolsRequests::showGroupOverlapStatus($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["detected_overlaps"][$key], $val2["events_count"], $val2["overlap_events_count"][$resObj->getId()], $val2["termin_ids"]);
