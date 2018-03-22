@@ -1,4 +1,4 @@
-<form action="<?= $controller->link_for('terms/answer', compact('return_to')) ?>" method="post">
+<form action="<?= $controller->link_for('terms', compact('return_to')) ?>" method="post">
     <section class="contentbox">
         <header>
             <h1><?= _('Was ist Stud.IP?') ?></h1>

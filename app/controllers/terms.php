@@ -13,7 +13,7 @@ class TermsController extends AuthenticatedController
         parent::before_filter($action, $args);
 
         if ($GLOBALS['user']->cfg->TERMS_ACCEPTED) {
-            $this->returnUser();
+            $this->redirectUser();
         }
     }
 
@@ -22,19 +22,15 @@ class TermsController extends AuthenticatedController
         PageLayout::setTitle(_('Nutzungsbedingungen'));
 
         $this->return_to = Request::get('return_to');
-    }
 
-    public function answer_action()
-    {
-        if (!Request::isPost()) {
-            throw new MethodNotAllowedException();
-        }
-
-        if (Request::submitted('accept')) {
-            $GLOBALS['user']->cfg->store('TERMS_ACCEPTED', 1);
-            $this->returnUser();
-        } else {
-            $this->redirectUser('logout.php');
+        if (Request::isPost()) {
+            if (Request::submitted('accept')) {
+                $GLOBALS['user']->cfg->store('TERMS_ACCEPTED', 1);
+                $this->redirectUser();
+            } else {
+                $this->redirectUser('logout.php');
+            }
+            return;
         }
     }
 
