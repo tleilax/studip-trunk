@@ -86,20 +86,6 @@
             <td colspan="2"><h3><?= _("Voreinstellungen beim Anlegen einer Veranstaltung") ?></h3></td>
         </tr>
         <tr class="sub">
-            <td><label for="compact_mode"><?= _("Kompaktmodus für den Veranstaltungsassistenten") ?></label></td>
-            <td><input type="checkbox" id="compact_mode" value="1"<?= $sem_class['compact_mode'] ? " checked" : "" ?>></td>
-        </tr>
-        <tr class="sub">
-            <td><label for="turnus_default"><?= _("Turnus") ?></label></td>
-            <td>
-                <select id="turnus_default">
-                    <option value="0"<?= $sem_class['turnus_default'] == 0 ? " selected" : "" ?>><?= _("Regelmäßige Termine") ?></option>
-                    <option value="1"<?= $sem_class['turnus_default'] == 1 ? " selected" : "" ?>><?= _("Unregelmäßige Termine") ?></option>
-                    <option value="-1"<?= $sem_class['turnus_default'] == -1 ? " selected" : "" ?>><?= _("Keine Termine") ?></option>
-                </select>
-            </td>
-        </tr>
-        <tr class="sub">
             <td><label for="default_read_level"><?= _("Lesbar für Nutzer") ?></label></td>
             <td>
                 <select id="default_read_level">
