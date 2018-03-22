@@ -304,27 +304,6 @@ function my_substr($what, $start, $end)
 }
 
 /**
- * Returns permission for given range_id and user_id
- *
- * Function works for Veranstaltungen, Einrichtungen, Fakultaeten.
- * admins get status 'admin' if range_id is a seminar
- *
- * @deprecated  use $GLOBALS['perm']->get_studip_perm($range_id, $user_id)
- *
- * @param string $range_id an id a Veranstaltung, Einrichtung or Fakultaet
- * @param string $user_id  if omitted,current user_id is used
- *
- * @return string  the perm level
- */
-function get_perm($range_id, $user_id = "")
-{
-    global $perm;
-    $status = $perm->get_studip_perm($range_id,$user_id);
-    return (!$status) ? _("Fehler!") : $status;
-}
-
-
-/**
  * Retrieves the fullname for a given user_id
  *
  * @param string $user_id   if omitted, current user_id is used
@@ -386,52 +365,6 @@ function get_fullname_from_uname($uname = "", $format = "full", $htmlready = fal
     }
 
     return $htmlready ? htmlReady($cache[$hash]) : $cache[$hash];
-}
-
-/**
- * Retrieves the Vorname for a given user_id
- *
- * @param string $user_id if omitted, current user_id is used
- *
- * @return string
- */
-function get_vorname($user_id = "")
-{
-    global $user;
-
-    if (!$user_id) {
-        $user_id = $user->id;
-    }
-
-    $query = "SELECT Vorname FROM auth_user_md5 WHERE user_id = ?";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($user_id));
-    $author = $statement->fetchColumn() ?: _('unbekannt');
-
-    return $author;
-}
-
-/**
- * Retrieves the Nachname for a given user_id
- *
- * @param string $user_id if omitted, current user_id is used
- *
- * @return string
- */
-function get_nachname($user_id = "")
-{
-    global $user;
-
-    if (!$user_id) {
-        $user_id = $user->id;
-    }
-
-    $query = "SELECT Nachname FROM auth_user_md5 WHERE user_id = ?";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($user_id));
-    $author = $statement->fetchColumn() ?: _('unbekannt');
-
-    return $author;
 }
 
 /**
@@ -520,29 +453,6 @@ function get_sem_tree_path($seminar_id, $depth = false, $delimeter = ">")
 }
 
 /**
- * Return an array containing the nodes of the range-tree-path
- *
- * @param string $institut_id the institute to get the path for
- * @param int    $depth       the depth
- * @param string $delimeter   a string to separate the path parts
- *
- * @return array
- */
-function get_range_tree_path($institut_id, $depth = false, $delimeter = ">")
-{
-    $the_tree = TreeAbstract::GetInstance("StudipRangeTree");
-    $view = DbView::getView('sem_tree');
-    $ret = null;
-    $view->params[0] = $institut_id;
-    $rs = $view->get_query("view:TREE_ITEMS_OBJECT");
-    while ($rs->next_record()){
-        $ret[$rs->f('item_id')] = $the_tree->getShortPath($rs->f('item_id'), NULL, $delimeter, $depth ? $depth - 1 : 0);
-    }
-    return $ret;
-}
-
-
-/**
  * check_and_set_date
  *
  * Checks if given date is valid and sets field in array accordingly.
@@ -616,41 +526,6 @@ function get_config($key)
 }
 
 /**
- * get the lecturers and their order-positions in the passed seminar
- *
- * folgende Funktion ist nur notwendig, wenn die zu kopierende Veranstaltung nicht
- * vom Dozenten selbst, sondern vom Admin oder vom root kopiert wird (sonst wird
- * das Dozentenfeld leer gelassen, was ja keiner will...)
- *
- * @param string $seminar_id the seminar to get the lecturers from
- *
- * @return array  an array containing user_ids as key and positions as value
- */
-function get_seminar_dozent($seminar_id)
-{
-    $query = "SELECT user_id, position
-              FROM seminar_user
-              WHERE Seminar_id = ? AND status = 'dozent'
-              ORDER BY position";
-    $statement = DBManager::get()->prepare($query);
-    $result = $statement->execute(array($seminar_id));
-
-    if (!$result) {
-        echo 'Fehler bei DB-Abfrage in get_seminar_user!';
-        return 0;
-    }
-
-    $dozenten = $statement->fetchGrouped(PDO::FETCH_COLUMN);
-
-    if (empty($dozenten)) {
-        echo 'Fehler in get_seminar_dozent: Kein Dozent gefunden';
-        return 0;
-    }
-
-    return $dozenten;
-}
-
-/**
  * reset the order-positions for the lecturers in the passed seminar,
  * starting at the passed position
  *
@@ -704,72 +579,6 @@ function get_next_position($status, $seminar_id)
     $statement->execute(array($seminar_id, $status));
 
    return $statement->fetchColumn() ?: 0;
-}
-
-/**
- * get the tutors and their order-positions in the passed seminar
- *
- * @param string $seminar_id the seminar to get the tutors from
- *
- * @return array  an array containing user_ids as key and positions as value
- */
-function get_seminar_tutor($seminar_id)
-{
-    $query = "SELECT user_id, position
-              FROM seminar_user
-              WHERE Seminar_id = ? AND status = 'tutor'
-              ORDER BY position";
-    $statement = DBManager::get()->prepare($query);
-    $result = $statement->execute(array($seminar_id));
-
-    if (!$result) {
-        echo 'Fehler bei DB-Abfrage in get_seminar_user!';
-        return 0;
-    }
-
-    $tutoren = $statement->fetchGrouped(PDO::FETCH_COLUMN);
-
-    return empty($tutoren) ? null : $tutoren;
-}
-
-/**
- * return all sem_tree-entries for the passed seminar
- *
- * @param string $seminar_id the seminar
- *
- * @return array  a list of sem_tree_id's
- */
-function get_seminar_sem_tree_entries($seminar_id)
-{
-    $view = DbView::getView('sem_tree');
-    $ret = null;
-    $view->params[0] = $seminar_id;
-    $rs = $view->get_query("view:SEMINAR_SEM_TREE_GET_IDS");
-    while ($rs->next_record()){
-        $ret[] = $rs->f('sem_tree_id');
-    }
-    return $ret;
-}
-
-/**
- * return an array of all seminars for the passed user, containing
- * the name, id, makedate and sem-number.
- *
- * @param string $user_id the user's id
- *
- * @return array the user seminars as an array of four fields
- */
-function get_seminars_user($user_id)
-{
-    $query = "SELECT Seminar_id, Name, sem.mkdate, VeranstaltungsNummer AS va_nummer
-              FROM seminare AS sem
-              JOIN seminar_user USING (Seminar_id)
-              WHERE user_id = ?";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($user_id));
-    $seminars = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-    return $seminars;
 }
 
 /**
@@ -1240,71 +1049,6 @@ function format_help_url($keyword)
     $help_query = sprintf('https://hilfe.studip.de/help/%s/%s/%s%s',
                           $version, $lang, $loc, $helppage);
     return $help_query;
-}
-
-/**
- * Remove slashes if magic quotes are enabled
- *
- * @param mixed $mixed string or array to strip slashes from
- *
- * @return mixed cleaned string or array
- */
-function remove_magic_quotes($mixed)
-{
-    if (get_magic_quotes_gpc()) {
-        if (is_array($mixed)) {
-            foreach ($mixed as $k => $v) {
-                $mixed[$k] = remove_magic_quotes($v);
-            }
-        }
-        else {
-            $mixed = stripslashes($mixed);
-        }
-    }
-    return $mixed;
-}
-
-/**
-  * Extracts an excerpt from the 'text' surrounding the 'phrase' with a number
-  * of characters on each side determined by 'radius'. If the phrase isn't
-  * found, null is returned.
-  * Ex: text_excerpt("hello my world", "my", 3) => "...lo my wo..."
-  *
-  * @param string  $text           the text to excerpt
-  * @param string  $phrase         the search phrase
-  * @param integer $radius         the radius around the phrase
-  * @param integer $length         the maximum length of the excerpt string
-  * @param string  $excerpt_string the excerpt string
-  *
-  * @return string
-*/
-function text_excerpt($text, $phrase, $radius = 100, $length = 200,
-                      $excerpt_string = '...')
-{
-  if ($text == '' || $phrase == '') {
-    return '';
-  }
-
-  $found_pos = mb_strpos(mb_strtolower($text), mb_strtolower($phrase));
-
-  if ($found_pos === FALSE) {
-    $start_pos = 0;
-  }
-  else {
-    $start_pos = max($found_pos - $radius, 0);
-  }
-
-  $end_pos = $start_pos + $length - mb_strlen($excerpt_string);
-  if ($start_pos !== 0) {
-    $end_pos -= mb_strlen($excerpt_string);
-  }
-
-  $end_pos = min($end_pos, mb_strlen($text));
-
-  $prefix = $start_pos > 0 ? $excerpt_string : '';
-  $postfix = $end_pos < mb_strlen($text) ? $excerpt_string : '';
-
-  return $prefix.mb_substr($text, $start_pos, $end_pos - $start_pos).$postfix;
 }
 
 /**
