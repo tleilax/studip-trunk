@@ -1572,6 +1572,17 @@ form.default label.packed button {
   border: 1px solid rgba(0, 0, 0, 0.5);
   padding: 0 0.5ex;
 }
+.formatted-content ul,
+.formatted-content ol {
+  margin: 0.5em 0;
+}
+.formatted-content ul ul,
+.formatted-content ol ul,
+.formatted-content ul ol,
+.formatted-content ol ol {
+  margin-top: 0;
+  margin-bottom: 0;
+}
 .css-tree,
 .css-tree ul {
   list-style: none;
@@ -2730,7 +2741,8 @@ body.fixed #barTopMenu {
   background-color: #28497c;
   list-style: none;
   margin: 0px 0px 0px -15px;
-  padding: 0px 0px 0px 0px;
+  padding: 0px;
+  position: absolute;
   width: -moz-fit-content;
   width: -webkit-fit-content;
   width: fit-content;
