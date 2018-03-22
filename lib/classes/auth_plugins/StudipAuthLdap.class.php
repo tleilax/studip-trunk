@@ -139,7 +139,7 @@ class StudipAuthLdap extends StudipAuthAbstract {
             if(ldap_errno($this->conn) == 49) {
                 $this->error_msg = _("Bitte überprüfen Sie ihre Zugangsdaten.");
             }
-            $this->error_msg = _("Anmeldung von %s fehlgeschlagen.") . $this->getLdapError();
+            $this->error_msg = _("Anmeldung fehlgeschlagen.") . $this->getLdapError();
             return false;
         }
         if (!($result = @ldap_search($this->conn, $user_dn, "objectclass=*"))){
