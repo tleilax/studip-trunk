@@ -3,10 +3,10 @@
 # Lifter010: TODO
 /**
 * ScheduleWeek.class.php
-* 
+*
 * creates a grafical schedule view for different purposes, ie. a personal timetable
 * or a timetable for a ressource like a room, a device or a building
-* 
+*
 *
 * @author       Cornelis Kater <ckater@gwdg.de>
 * @access       public
@@ -38,10 +38,10 @@
 require_once "lib/resources/views/ScheduleWeek.class.php";
 
 class ScheduleWeekRequests extends ScheduleWeek {
-    
+
     //Kontruktor
     function __construct($start_hour = '', $end_hour = '', $show_days = '', $start_date = '', $show_dates = true) {
-        
+
         parent::__construct($start_hour, $end_hour, $show_days, $start_date);
         $this->categories[5] = array(
                                 "bg-picture"   => Assets::image_path('calendar/category12_small.jpg'),
@@ -53,12 +53,12 @@ class ScheduleWeekRequests extends ScheduleWeek {
     }
 
 
-    
-    function getColumnName($id){
+
+    function getColumnName($id, $print_view = false) {
         $ts = mktime (0,0,0,date("n",$this->start_date), date("j",$this->start_date)+$id-1, date("Y",$this->start_date));
         $out = strftime("%A", $ts);
         if ($this->show_dates) $out .= "<br><font size=\"-1\">" . date("d.m.y", $ts) . "</font>\n";;
         return $out;
     }
-    
+
 }
