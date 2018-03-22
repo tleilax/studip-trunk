@@ -1674,7 +1674,7 @@ class FileController extends AuthenticatedController
             }
 
             if (empty($errors) || $count_files > 0 || $count_folders > 0) {
-                if ($count_files == 1) {
+                if ($count_files == 1 || $count_folders == 1) {
                     if ($count_folders) {
                         PageLayout::postSuccess(_('Der Ordner wurde gelöscht!'));
                     } else {
