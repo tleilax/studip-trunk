@@ -247,11 +247,12 @@ class StreamsController extends PluginController {
         $thread['seminar_id'] = $context_type === "course" ? $context : $GLOBALS['user']->id;
         $thread['context_type'] = $context_type;
         $thread['parent_id'] = 0;
-        $thread['author_host'] = $_SERVER['REMOTE_ADDR'];
 
         if ($GLOBALS['user']->id !== "nobody") {
-            $thread['user_id'] = $GLOBALS['user']->id;
+            $thread['user_id']     = $GLOBALS['user']->id;
         } else {
+            $thread['author_host'] = $_SERVER['REMOTE_ADDR'];
+
             if (Request::get("anonymous_security") === $_SESSION['blubber_anonymous_security']) {
                 $contact_user = BlubberExternalContact::findByEmail(Request::get("anonymous_email"));
                 $_SESSION['anonymous_email'] = Request::get("anonymous_email");
@@ -448,6 +449,8 @@ class StreamsController extends PluginController {
             if ($GLOBALS['user']->id !== "nobody") {
                 $posting['user_id'] = $GLOBALS['user']->id;
             } else {
+                $posting['author_host'] = $_SERVER['REMOTE_ADDR'];
+
                 if (Request::get("anonymous_security") === $_SESSION['blubber_anonymous_security']) {
                     $contact_user = BlubberExternalContact::findByEmail(Request::get("anonymous_email"));
                     $_SESSION['anonymous_email'] = Request::get("anonymous_email");
@@ -459,7 +462,6 @@ class StreamsController extends PluginController {
                     throw new AccessDeniedException("No permission to write posting.");
                 }
             }
-            $posting['author_host'] = $_SERVER['REMOTE_ADDR'];
             $posting['description'] = Request::get("content");
             $posting->store();
 
