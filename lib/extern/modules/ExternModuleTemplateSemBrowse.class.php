@@ -1237,7 +1237,53 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
         return in_array($this->sem_browse_data['show_class'], $this->classes_show_class);
     }
 
-    function create_result_xls($headline = '') {
+    function get_sem_class()
+    {
+        $query = "SELECT `Seminar_id`
+                  FROM `seminare`
+                  WHERE `status` IN (?)
+                    AND visible = 1";
+
+        $sem_ids = DBManager::get()->fetchAll(PDO::FETCH_COLUMN);
+        if (is_array($sem_ids)) {
+            $this->sem_browse_data['search_result'] = array_flip($sem_ids);
+        }
+        $this->show_result = true;
+    }
+
+    function printout ($args) {
+            if (!$language = $this->config->getValue("Main", "language"))
+                    $language = "de_DE";
+        init_i18n($language);
+
+        echo $this->elements['TemplateMain']->toString(array('content' => $this->getContent(), 'subpart' => 'LECTURES'));
+
+    }
+
+    function printoutPreview () {
+            if (!$language = $this->config->getValue("Main", "language"))
+                    $language = "de_DE";
+        init_i18n($language);
+
+        echo $this->elements['TemplateMain']->toString(array('content' => $this->getContent(), 'subpart' => 'LECTURES', 'hide_markers' => FALSE));
+
+    }
+
+    function getRootStartItemId () {
+        if ($this->config->getValue('Main', 'startitem') == 'root') {
+            return 'root';
+        }
+        $db = DBManager::get();
+        if ($this->config->getValue('Main', 'mode') == 'show_sem_range') {
+                    $stmt = $db->prepare("SELECT sem_tree_id AS item_id FROM sem_tree WHERE studip_object_id = ? AND parent_id = 'root'");
+                } else {
+                    $stmt = $db->prepare("SELECT item_id FROM range_tree WHERE studip_object_id = ? AND parent_id = 'root'");
+                }
+        $stmt->execute(array($this->config->range_id));
+        return $stmt->fetchColumn() ?: false;
+    }
+
+    function createResultXls () {
         require_once "vendor/write_excel/OLEwriter.php";
         require_once "vendor/write_excel/BIFFwriter.php";
         require_once "vendor/write_excel/Worksheet.php";
@@ -1245,7 +1291,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
         global $_fullname_sql, $SEM_TYPE, $SEM_CLASS, $TMP_PATH;
 
-        if(!$headline) $headline = _("Stud.IP Veranstaltungen") . ' - ' . Config::get()->UNI_NAME_CLEAN;
+        $headline = _("Stud.IP Veranstaltungen") . ' - ' . Config::get()->UNI_NAME_CLEAN;
         if (is_array($this->sem_browse_data['search_result']) && count($this->sem_browse_data['search_result'])) {
             if (!is_object($this->sem_tree)){
                 $the_tree = TreeAbstract::GetInstance("StudipSemTree", false);
