@@ -414,10 +414,10 @@ class SeminarCycleDate extends SimpleORMap
         ));
 
         $update_count = 0;
+
         foreach ($new_dates as $semester_dates) {
             //update or create singeldate entries
             foreach ($semester_dates['dates'] as $date) {
-                $date->chdate = time();
                 if ($date instanceof CourseDate && $date->date >= time() && count($topics) > 0) {
                     $date->topics = array_shift($topics);
                 }
@@ -425,6 +425,7 @@ class SeminarCycleDate extends SimpleORMap
                     $update_count++;
                 }
             }
+
             //delete unnecessary singeldate entries
             foreach ($semester_dates['dates_to_delete'] as $date) {
                 $date->delete();
