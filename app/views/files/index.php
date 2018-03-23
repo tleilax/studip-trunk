@@ -44,8 +44,10 @@ if (!$controllerpath) {
             </div>
         </div>
         <? if (is_object($last_crumb) && ($description_template = $last_crumb->getDescriptionTemplate())) : ?>
-        <small><?= $description_template instanceof Flexi_Template ? $description_template->render() : (string)$description_template ?></small>
+        <div style="font-size: small">
+        <?= $description_template instanceof Flexi_Template ? $description_template->render() : (string)$description_template ?>
         <? endif; ?>
+        </div>
     </caption>
     <?= $this->render_partial('files/_files_thead.php') ?>
 

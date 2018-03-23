@@ -13,7 +13,7 @@
 <? elseif ($folder->start_time && $folder->end_time) : ?>
     <strong>
         <?= sprintf(_('Sichtbar von %s bis %s'),
-            strftime('%X %x', $folder->start_time),
+            strftime('%x %X', $folder->start_time),
             strftime('%x %X', $folder->end_time)) ?>
     </strong>
     <br>
@@ -34,7 +34,7 @@
 <? endif ?>
 <? if ($folderdata['description']) : ?>
     <div>
-        <?= htmlReady($folderdata['description']) ?>
+        <?= formatReady($folderdata['description']) ?>
     </div>
 <? endif ?>
 <? if (count($own_files) > 0) : ?>
