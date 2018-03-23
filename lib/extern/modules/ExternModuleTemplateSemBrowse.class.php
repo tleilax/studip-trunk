@@ -1237,53 +1237,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
         return in_array($this->sem_browse_data['show_class'], $this->classes_show_class);
     }
 
-    function get_sem_class()
-    {
-        $query = "SELECT `Seminar_id`
-                  FROM `seminare`
-                  WHERE `status` IN (?)
-                    AND visible = 1";
-
-        $sem_ids = DBManager::get()->fetchAll(PDO::FETCH_COLUMN);
-        if (is_array($sem_ids)) {
-            $this->sem_browse_data['search_result'] = array_flip($sem_ids);
-        }
-        $this->show_result = true;
-    }
-
-    function printout ($args) {
-        if (!$language = $this->config->getValue("Main", "language"))
-            $language = "de_DE";
-        init_i18n($language);
-
-        echo $this->elements['TemplateMain']->toString(array('content' => $this->getContent(), 'subpart' => 'LECTURES'));
-
-    }
-
-    function printoutPreview () {
-        if (!$language = $this->config->getValue("Main", "language"))
-            $language = "de_DE";
-        init_i18n($language);
-
-        echo $this->elements['TemplateMain']->toString(array('content' => $this->getContent(), 'subpart' => 'LECTURES', 'hide_markers' => FALSE));
-
-    }
-
-    function getRootStartItemId () {
-        if ($this->config->getValue('Main', 'startitem') == 'root') {
-            return 'root';
-        }
-        $db = DBManager::get();
-        if ($this->config->getValue('Main', 'mode') == 'show_sem_range') {
-            $stmt = $db->prepare("SELECT sem_tree_id AS item_id FROM sem_tree WHERE studip_object_id = ? AND parent_id = 'root'");
-        } else {
-            $stmt = $db->prepare("SELECT item_id FROM range_tree WHERE studip_object_id = ? AND parent_id = 'root'");
-        }
-        $stmt->execute(array($this->config->range_id));
-        return $stmt->fetchColumn() ?: false;
-    }
-
-    function createResultXls () {
+    function create_result_xls($headline = '') {
         require_once "vendor/write_excel/OLEwriter.php";
         require_once "vendor/write_excel/BIFFwriter.php";
         require_once "vendor/write_excel/Worksheet.php";
@@ -1291,11 +1245,12 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
         global $_fullname_sql, $SEM_TYPE, $SEM_CLASS, $TMP_PATH;
 
+        if(!$headline) $headline = _("Stud.IP Veranstaltungen") . ' - ' . Config::get()->UNI_NAME_CLEAN;
         if (is_array($this->sem_browse_data['search_result']) && count($this->sem_browse_data['search_result'])) {
             if (!is_object($this->sem_tree)){
-                $the_tree = TreeAbstract::GetInstance("StudipSemTree");
+                $the_tree = TreeAbstract::GetInstance("StudipSemTree", false);
             } else {
-                $the_tree =& $this->sem_tree;
+                $the_tree = $this->sem_tree;
             }
             list($group_by_data, $sem_data) = $this->getResult();
             $tmpfile = $TMP_PATH . '/' . md5(uniqid('write_excel',1));
@@ -1336,13 +1291,13 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
 
             // Creating the first worksheet
-            $worksheet1 =& $workbook->addworksheet(_("Veranstaltungen"));
+            $worksheet1 = $workbook->addworksheet(_("Veranstaltungen"));
             $worksheet1->set_row(0, 20);
-            $worksheet1->write_string(0, 0, _("Stud.IP Veranstaltungen") . ' - ' . Config::get()->UNI_NAME_CLEAN ,$head_format);
+            $worksheet1->write_string(0, 0, mb_convert_encoding($headline, 'WINDOWS-1252') ,$head_format);
             $worksheet1->set_row(1, 20);
-            $worksheet1->write_string(1, 0, sprintf(_(" %s Veranstaltungen gefunden %s, Gruppierung: %s"),count($sem_data),
-                (($this->sem_browse_data['do_search']) ? _("(Suchergebnis)") : ''),
-                $this->group_by_fields[$this->sem_browse_data['group_by']]['name']), $caption_format);
+            $worksheet1->write_string(1, 0, mb_convert_encoding(sprintf(_(" %s Veranstaltungen gefunden %s, Gruppierung: %s"),count($sem_data),
+                (($this->sem_browse_data['sset']) ? _("(Suchergebnis)") : ""),
+                $this->group_by_fields[$this->sem_browse_data['group_by']]['name']), 'WINDOWS-1252'), $caption_format);
 
             $worksheet1->write_blank(0,1,$head_format);
             $worksheet1->write_blank(0,2,$head_format);
@@ -1384,7 +1339,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
                 }
                 ++$row;
-                $worksheet1->write_string($row, 0 , $headline, $caption_format);
+                $worksheet1->write_string($row, 0 , mb_convert_encoding($headline, 'WINDOWS-1252') , $caption_format);
                 $worksheet1->write_blank($row,1, $caption_format);
                 $worksheet1->write_blank($row,2, $caption_format);
                 $worksheet1->write_blank($row,3, $caption_format);
@@ -1402,23 +1357,41 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
                         } elseif ($this->sem_browse_data['group_by']) {
                             $sem_name .= ' (' . $semester[$sem_number_start]['name'] . ")";
                         }
-                        $worksheet1->write_string($row, 0, $sem_name, $data_format);
                         //create Turnus field
-                        $temp_turnus_string = Seminar::GetInstance($seminar_id)->getFormattedTurnus(true);
+                        $seminar_obj = new Seminar($seminar_id);
+                        // is this sem a studygroup?
+                        $studygroup_mode = SeminarCategories::GetByTypeId($seminar_obj->getStatus())->studygroup_mode;
+                        if ($studygroup_mode) {
+                            $sem_name = $seminar_obj->getName() . ' ('. _("Studiengruppe");
+                            if ($seminar_obj->admission_prelim) $sem_name .= ', '. _("Zutritt auf Anfrage");
+                            $sem_name .= ')';
+                        }
+                        $worksheet1->write_string($row, 0, mb_convert_encoding($sem_name, 'WINDOWS-1252'), $data_format);
+                        $temp_turnus_string = $seminar_obj->getFormattedTurnus(true);
                         //Shorten, if string too long (add link for details.php)
                         if (mb_strlen($temp_turnus_string) > 245) {
                             $temp_turnus_string = mb_substr($temp_turnus_string, 0, mb_strpos(mb_substr($temp_turnus_string, 245, mb_strlen($temp_turnus_string)), ",") + 246);
-                            $temp_turnus_string .= "...(mehr)";
+                            $temp_turnus_string .= " ... ("._("mehr").")";
                         }
-                        $worksheet1->write_string($row, 1, $seminar_number, $data_format);
-                        $worksheet1->write_string($row, 2, $temp_turnus_string, $data_format);
+                        $worksheet1->write_string($row, 1, mb_convert_encoding($seminar_number, 'WINDOWS-1252'), $data_format);
+                        $worksheet1->write_string($row, 2, mb_convert_encoding($temp_turnus_string, 'WINDOWS-1252'), $data_format);
 
-                        $doz_name = array_keys($sem_data[$seminar_id]['fullname']);
+                        $doz_name = array();
+                        $c = 0;
+                        reset($sem_data[$seminar_id]['fullname']);
+                        foreach($sem_data[$seminar_id]['username'] as $anzahl1){
+                            if($c == 0){
+                                list($d_name, $anzahl2) = each($sem_data[$seminar_id]['fullname']);
+                                $c = $anzahl2/$anzahl1;
+                                $doz_name = array_merge($doz_name, array_fill(0, $c, $d_name));
+                            }
+                            --$c;
+                        }
                         $doz_position = array_keys($sem_data[$seminar_id]['position']);
                         if (is_array($doz_name)){
                             if(count($doz_position) != count($doz_name)) $doz_position = range(1, count($doz_name));
                             array_multisort($doz_position, $doz_name);
-                            $worksheet1->write_string($row, 3, join(', ', $doz_name), $data_format);
+                            $worksheet1->write_string($row, 3, mb_convert_encoding(join(', ', $doz_name), 'WINDOWS-1252'), $data_format);
                         }
                         ++$row;
                     }
