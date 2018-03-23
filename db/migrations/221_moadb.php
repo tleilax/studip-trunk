@@ -31,8 +31,8 @@ class Moadb extends Migration
     {
         //We must convert the old IDs from the document_licenses table
         //to the new IDs from the content_terms_of_use_entries table:
-        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = '3RD_PARTY_TRUE' WHERE content_terms_of_use_id = '0'");
-        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = '3RD_PARTY_FALSE' WHERE content_terms_of_use_id = '1'");
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = '3RD_PARTY_FALSE' WHERE content_terms_of_use_id = '0'");
+        $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = '3RD_PARTY_TRUE' WHERE content_terms_of_use_id = '1'");
         $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'UNDEF_LICENSE' WHERE content_terms_of_use_id = '2'");
         $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'SELFMADE_NONPUB' WHERE content_terms_of_use_id = '3'");
         $db->exec("UPDATE `file_refs` SET content_terms_of_use_id = 'FREE_LICENSE' WHERE content_terms_of_use_id = '4'");
