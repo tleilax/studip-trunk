@@ -12,7 +12,7 @@
         </label>
     <? endif ?>
     </td>
-    <td class="document-icon" data-sort-value="1">
+    <td class="document-icon" data-sort-value="<?=crc32($file_ref->mime_type)?>">
     <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
         <a href="<?= htmlReady($file_ref->download_url) ?>" target="_blank">
             <?= Icon::create(FileManager::getIconNameForMimeType($file_ref->mime_type), Icon::ROLE_CLICKABLE)->asImg(24) ?>

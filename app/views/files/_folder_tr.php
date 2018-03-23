@@ -22,7 +22,7 @@ $owner = User::find($folder->user_id) ?: new User();
         </label>
     <? endif?>
     </td>
-    <td class="document-icon" data-sort-value="0">
+    <td class="document-icon" data-sort-value="<?=crc32(get_class($folder))?>">
     <a href="<?= $controller->link_for($controllerpath . '/' . $folder->getId())  ?>">
             <?= $folder->getIcon('clickable')->asImg(26) ?>
         </a>
