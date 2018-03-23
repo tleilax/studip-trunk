@@ -47,6 +47,8 @@ class CourseTopicFolder extends StandardFolder implements FolderType
     public function getEditTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/topic_folder/edit.php');
+        $topic = CourseTopic::find($this->folderdata['data_content']['topic_id']);
+        $template->set_attribute('topic', $topic);
         $template->set_attribute('folder', $this);
         return $template;
     }

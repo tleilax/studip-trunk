@@ -9,9 +9,9 @@ $groups = Statusgruppen::findBySeminar_id(Request::get('cid'));
             <?= _('Es existiert keine Gruppe in dieser Veranstaltung') ?>
         </option>
     <? endif; ?>
-    <? foreach ($groups as $group): ?>
-        <option value="<?= htmlReady($group->id) ?>">
-            <?= htmlReady($group->name) ?>
+    <? foreach ($groups as $one_group): ?>
+        <option <?=(@$group->id === $one_group->id ? 'selected' : '')?> value="<?= htmlReady($one_group->id) ?>">
+            <?= htmlReady($one_group->name) ?>
         </option>
     <? endforeach; ?>
     </select>
