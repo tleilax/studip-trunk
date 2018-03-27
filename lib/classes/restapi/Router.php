@@ -303,7 +303,7 @@ class Router
     public function getRoutes($describe = false, $check_access = true)
     {
         $this->setupRoutes();
-        
+
         $result = array();
         foreach ($this->routes as $method => $routes) {
             foreach ($routes as $uri => $route) {
@@ -353,7 +353,7 @@ class Router
     public function dispatch($uri = null, $method = null, $request_body = null)
     {
         $this->setupRoutes();
-        
+
         $uri = $this->normalizeDispatchURI($uri);
         $method = $this->normalizeRequestMethod($method);
 
@@ -361,7 +361,13 @@ class Router
 
         list($route, $parameters) = $this->matchRoute($uri, $method, $content_renderer);
         if (!$route) {
-            throw new RouterException(404);
+            $methods = $this->getMethodsForUri($uri);
+            if (count($methods) > 0) {
+                header('Allow: ' . implode(', ', $methods));
+                throw new RouterException(405);
+            } else {
+                throw new RouterException(404);
+            }
         }
 
         try {
@@ -374,7 +380,7 @@ class Router
 
         return $response;
     }
-    
+
     /**
      * Searches and registers available routes.
      */
@@ -548,6 +554,34 @@ class Router
             }
         }
         return array($matched, $parameters);
+    }
+
+    /**
+     * Returns all methods the given uri responds to.
+     *
+     * @param String $uri the URI to match
+     *
+     * @return array of all of responding methods
+     */
+    protected function getMethodsForUri($uri)
+    {
+        $methods = [];
+
+        foreach ($this->routes as $method => $templates) {
+            foreach ($templates as $uri_template => $route) {
+                if (!isset($route['uri_template'])) {
+                    $route['uri_template'] = new UriTemplate($uri_template, $route['conditions']);
+                }
+
+                if ($route['uri_template']->match($uri)
+                    && $this->permissions->check($uri_template, $method))
+                {
+                    $methods[] = $method;
+                }
+            }
+        }
+
+        return array_map('strtoupper', $methods);
     }
 
     /**
