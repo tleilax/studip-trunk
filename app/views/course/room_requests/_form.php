@@ -167,27 +167,27 @@ if ($request_resource_id = $request->getResourceId()) :
                 </p>
             <? endif ?>
             <div class="selectbox">
-                <fieldset>
-                    <? foreach ($search_result as $key => $val)  : ?>
-                        <? $resObject = ResourceObject::Factory($key); ?>
-                        <div class="flex-row">
-                            <label class="horizontal" for="select_room_<?= $key ?>">
-                                <? if ($val['overlap_status'] === "status-green") : ?>
-                                    <?= Icon::create('accept', $val['overlap_status'])->asImg("20px", array('class' => "text-bottom")) ?>
-                                <? elseif($val['overlap_status'] === "status-red") : ?>
-                                    <?= Icon::create('decline', $val['overlap_status'])->asImg("20px", array('class' => "text-bottom")) ?>
-                                <? else : ?>
-                                    <?= Icon::create('question', $val['overlap_status'])->asImg("20px", array('class' => "text-bottom")) ?>
-                                <? endif ?>
-                                <?= htmlReady(my_substr($val['name'], 0, 50)); ?>
-                                <? if($resObject->getPlainProperties(false, true)): ?>
-                                <?= tooltipIcon(_('Der gefundene Raum bietet folgende Eigenschaften:') . " \n" . $resObject->getPlainProperties(false, true)) ?>
-                                <? endif; ?>
-                            </label>
-                            <input type="radio" name="select_room" id="select_room_<?= $key ?>" value="<?= $key ?>">
-                        </div>
-                    <? endforeach ?>
-                </fieldset>
+            <?  $match_found = false;
+                foreach ($search_result as $key => $val)  : ?>
+                <? $resObject = ResourceObject::Factory($key);
+                    $selected = $val['icon']->getRole() === 'status-green';
+                ?>
+
+                <div>
+                    <input type="radio" name="select_room" value="<?= $key ?>"
+                           id="select_room_<?= $key ?>"
+                           <? if (!$match_found && $selected) echo 'checked'; ?>>
+
+                    <label class="undecorated" for="select_room_<?= $key ?>">
+                        <?= $val['icon']->asImg(['class' => 'text-bottom']) ?>
+                        <?= htmlReady(my_substr($val['name'], 0, 50)); ?>
+                    <? if ($resObject->getPlainProperties(false, true)): ?>
+                        <?= tooltipIcon(_('Der gefundene Raum bietet folgende Eigenschaften:') . " \n" . $resObject->getPlainProperties(false, true)) ?>
+                    <? endif; ?>
+                    </label>
+                </div>
+            <? $match_found = $match_found || $selected;
+                endforeach ?>
             </div>
             <?= Studip\Button::create(_("Raum als Wunschraum auswählen"), 'send_room') ?>
             <?= Studip\Button::create(_("neue Suche starten"), 'reset_room_search') ?>

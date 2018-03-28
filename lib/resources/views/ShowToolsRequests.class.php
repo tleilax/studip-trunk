@@ -73,31 +73,31 @@ class ShowToolsRequests
             $this->regular = $regular;
         }
     }
-    
+
     public function getMyOpenSemRequests()
     {
         $this->restoreOpenRequests();
         return (int)$this->requests_stats_open['my_sem'];
     }
-    
+
     public function getMyOpenNoTimeRequests()
     {
         $this->restoreOpenRequests();
         return (int)$this->requests_stats_open['no_time'];
     }
-    
+
     public function getMyOpenResRequests()
     {
         $this->restoreOpenRequests();
         return (int)$this->requests_stats_open['my_res'];
     }
-    
+
     public function getMyOpenRequests()
     {
         $this->restoreOpenRequests();
         return (int)$this->requests_stats_open['sum'];
     }
-    
+
     public function restoreOpenRequests()
     {
         if (is_null($this->requests)) {
@@ -110,14 +110,14 @@ class ShowToolsRequests
             }
         }
     }
-    
+
     public function getMyRequestedRooms()
     {
         $no_time      = (int)$this->show_requests_no_time;
         $res_requests = array_filter($this->requests, function ($val) use ($no_time) {
             return !$val['closed'] && $val['my_res'] && ($val['have_times'] || $no_time);
         });
-        
+
         if (count($res_requests) > 0) {
             $query     = "SELECT ro.resource_id, ro.name, COUNT(ro.resource_id) as anzahl
                       FROM resources_requests rr
@@ -131,7 +131,7 @@ class ShowToolsRequests
         }
         return [];
     }
-    
+
     public function showToolStart()
     {
         $template                    = $GLOBALS['template_factory']->open('resources/planning/start');
@@ -148,7 +148,7 @@ class ShowToolsRequests
         $template->rooms             = $this->getMyRequestedRooms();
         echo $template->render();
     }
-    
+
     public function showRequestList()
     {
         if (!isset($_SESSION['resources_data']['requests_working_on'])) {
@@ -156,13 +156,13 @@ class ShowToolsRequests
                                                                       'view'                  => 'requests_start']));
             return;
         }
-        
+
         $template                  = $GLOBALS['template_factory']->open('resources/planning/request_list.php');
         $template->license_to_kill = (Config::get()->RESOURCES_ALLOW_DELETE_REQUESTS && getGlobalPerms($GLOBALS['user']->id) == 'admin');
-        
+
         echo $template->render();
     }
-    
+
     /**
      *
      * @param $request_id
@@ -171,7 +171,7 @@ class ShowToolsRequests
     {
         $reqObj = new RoomRequest($request_id);
         $semObj = new Seminar($reqObj->getSeminarId());
-        
+
         $template           = $GLOBALS['template_factory']->open('resources/planning/request.php');
         $template->reqObj   = $reqObj;
         $template->semObj   = $semObj;
@@ -179,7 +179,7 @@ class ShowToolsRequests
         $template->sem_link = $GLOBALS['perm']->have_studip_perm('tutor', $semObj->getId()) ? "seminar_main.php?auswahl=" . $semObj->getId() : "dispatch.php/course/details/?sem_id=" . $semObj->getId() . "&send_from_search=1&send_from_search_page=" . URLHelper::getLink("resources.php?working_on_request=$request_id");
         echo $template->render();
     }
-    
+
     /**
      *
      * @param $overlaps
@@ -205,7 +205,7 @@ class ShowToolsRequests
                 if ($overlap_events_count == 1) if ($lock_desc) $desc .= sprintf(_("Es besteht eine Belegungssperre zur gewünschten Belegungszeit.") . "\n" . $lock_desc); else
                     $desc .= sprintf(_("Es existieren Überschneidungen zur gewünschten Belegungszeit.") . "\n"); else
                     $desc .= sprintf(_("Es existieren Überschneidungen oder Belegungssperren zu mehr als %s%% aller gewünschten Belegungszeiten.") . "\n" . $lock_desc, Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE);
-                $html   = Icon::create('radiobutton-checked', 'attention', ['title' => $desc] + $style)->asImg();
+                $html   = Icon::create('decline-circle', 'status-red', ['title' => $desc] + $style)->asImg();
                 $status = 2;
             } else {
                 $desc .= sprintf(_("Einige der gewünschten Belegungszeiten überschneiden sich mit eingetragenen Belegungen bzw. Sperrzeiten:\n"));
@@ -213,17 +213,17 @@ class ShowToolsRequests
                     if ($overlaps[$key]) foreach ($overlaps[$key] as $key2 => $val2) if ($val2["lock"]) $desc .= sprintf(_("%s, %s Uhr bis %s, %s Uhr (Sperrzeit)") . "\n", date("d.m.Y", $val2["begin"]), date("H:i", $val2["begin"]), date("d.m.Y", $val2["end"]), date("H:i", $val2["end"])); else
                         $desc .= sprintf(_("%s von %s bis %s Uhr") . "\n", date("d.m.Y", $val2["begin"]), date("H:i", $val2["begin"]), date("H:i", $val2["end"]));
                 }
-                $html   = Icon::create('radiobutton-checked', 'sort', ['title' => $desc] + $style)->asImg();
+                $html   = Icon::create('exclaim-circle', 'status-yellow', ['title' => $desc] + $style)->asImg();
                 $status = 1;
             }
         } else {
-            $html   = Icon::create('radiobutton-checked', 'accept', ['title' => _('Es existieren keine Überschneidungen')] + $style)->asImg();
+            $html   = Icon::create('check-circle', 'status-green', ['title' => _('Es existieren keine Überschneidungen')] + $style)->asImg();
             $status = 0;
         }
         return ["html" => $html, "status" => $status];
     }
-    
-    
+
+
     public static function showOverlapStatus($overlaps, $events_count, $overlap_events_count)
     {
         if (is_array($overlaps)) {
@@ -241,7 +241,7 @@ class ShowToolsRequests
                 if ($overlap_events_count == 1) if ($overlaps[0]["lock"]) $desc .= sprintf(_("Es besteht eine Belegungssperre zur gewünschten Belegungszeit.") . "\n" . $lock_desc); else
                     $desc .= sprintf(_("Es existieren Überschneidungen zur gewünschten Belegungszeit.") . "\n"); else
                     $desc .= sprintf(_("Es existieren Überschneidungen oder Belegungssperren zu mehr als %s%% aller gewünschten Belegungszeiten.") . "\n" . $lock_desc, Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE);
-                $html   = Icon::create('decline', 'attention', ['title' => $desc])->asImg();
+                $html   = Icon::create('decline-circle', 'status-red', ['title' => $desc])->asImg();
                 $status = 2;
             } else {
                 $desc .= sprintf(_("Einige der gewünschten Belegungszeiten überschneiden sich mit eingetragenen Belegungen bzw. Sperrzeiten:\n"));
@@ -249,11 +249,11 @@ class ShowToolsRequests
                     if ($val["lock"]) $desc .= sprintf(_("%s, %s Uhr bis %s, %s Uhr (Sperrzeit)") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("d.m.Y", $val["end"]), date("H:i", $val["end"])); else
                         $desc .= sprintf(_("%s von %s bis %s Uhr") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("H:i", $val["end"]));
                 }
-                $html   = Icon::create('exclaim-circle', 'inactive', ['title' => $desc])->asImg();
+                $html   = Icon::create('exclaim-circle', 'status-yellow', ['title' => $desc])->asImg();
                 $status = 1;
             }
         } else {
-            $html   = Icon::create('accept', 'accept', ['title' => _('Es existieren keine Überschneidungen')])->asImg();
+            $html   = Icon::create('check-circle', 'status-green', ['title' => _('Es existieren keine Überschneidungen')])->asImg();
             $status = 0;
         }
         return ["html" => $html, "status" => $status];
