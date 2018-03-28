@@ -1312,7 +1312,7 @@ class ForumEntry {
         $content = '<h1>'. _('Forum') .': '  . $seminar_name['name'] .'</h1>';
         $data = ForumEntry::getList('dump', $parent_id ?: $seminar_id);
 
-        foreach ($data['list'] as $entry) {
+        foreach ($data as $entry) {
             if ($entry['depth'] == 1) {
                 $content .= '<h2>'. _('Bereich') .': '. $entry['name'] .'</h2>';
                 $content .= $entry['content'] .'<br><br>';
