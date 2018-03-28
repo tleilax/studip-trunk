@@ -2,7 +2,7 @@
 /*global window, $, jQuery, _ */
 
 STUDIP.CalendarDialog = {
-    
+
     closeMps: function (form) {
         var added_users = [];
         jQuery("#calendar-manage_access_selectbox option:selected").each(function () {
@@ -19,7 +19,7 @@ STUDIP.CalendarDialog = {
         STUDIP.Dialog.fromURL(jQuery("#calendar-open-manageaccess").attr("href"));
         return false;
     },
-    
+
     removeUser: function (element) {
         var url = jQuery(element).attr('href');
         jQuery(element).removeAttr('href');
@@ -29,14 +29,14 @@ STUDIP.CalendarDialog = {
             'success': function () {
                 var head_tr = jQuery(element).closest('tr').prev('.calendar-user-head');
                 jQuery(element).closest('tr').remove();
-                if (head_tr.nextUntil(".calendar-user-head").size() === 0) {
+                if (head_tr.nextUntil(".calendar-user-head").length === 0) {
                     head_tr.remove();
                 }
             }
         });
         return false;
     },
-    
+
     addException: function () {
         var exc_date = jQuery('#exc-date').val();
         var exists = jQuery("#exc-dates input").is("input[value='" + exc_date + "']");

@@ -393,11 +393,9 @@ class FileArchiveManager
                     $file_list
                 );
 
-                //Add an UTF-8 BOM at the beginning of the CSV data:
-                $csv_string = "\xEF\xBB\xBF" . array_to_csv($csv_data);
                 //The CSV file has been generated.
                 //Now we must add it to the archive:
-                $archive->addFromString('archive_filelist.csv', $csv_string);
+                $archive->addFromString('archive_filelist.csv', array_to_csv($csv_data));
             }
 
             //Now the ZIP file is really finished:

@@ -191,7 +191,7 @@ class StandardFolder implements FolderType
      */
     public function getDescriptionTemplate()
     {
-        return htmlReady($this->folderdata['description']);
+        return formatReady($this->folderdata['description']);
     }
 
     /**

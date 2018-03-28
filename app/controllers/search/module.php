@@ -212,7 +212,7 @@ class Search_ModuleController extends MVVController
                         $this->search_result['Modul'], $this->drill_down_type, $this->drill_down_id);
                 $this->count = count($this->search_result['Modul']);
             }
-            $this->module = Modul::getAllEnriched('bezeichnung', 'ASC',
+            $this->module = Modul::getAllEnriched('code, bezeichnung', 'ASC',
                     self::$items_per_page,
                     self::$items_per_page * (($this->page ?: 1) - 1),
                     array('mvv_modul.modul_id' => $this->search_result['Modul']));

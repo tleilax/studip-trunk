@@ -39,6 +39,11 @@ class Admin_StatusgroupsController extends AuthenticatedController
         PageLayout::setTitle(_("Verwaltung von Funktionen und Gruppen"));
         Navigation::activateItem('/admin/institute/groups');
 
+        // Change header_line if open object
+        if ($header_line = Context::getHeaderLine()) {
+            PageLayout::setTitle($header_line." - ".PageLayout::getTitle());
+        }
+
         // Include url for ajax moving of members in group to page header
         PageLayout::addHeadElement('meta', array(
             'name'    => 'statusgroups-ajax-movable-endpoint',

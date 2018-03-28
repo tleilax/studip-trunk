@@ -1646,10 +1646,13 @@ function count_table_rows($table) {
  * @param string $eol sets the end of line format
  * @return mixed if $filename is given the number of written bytes, else the csv content as string
  */
-function array_to_csv($data, $filename = null, $caption = null, $delimiter = ';' , $enclosure = '"', $eol = "\r\n" )
+function array_to_csv($data, $filename = null, $caption = null, $delimiter = ';' , $enclosure = '"', $eol = "\r\n", $add_bom = true )
 {
     $fp = fopen('php://temp', 'r+');
     $fp2 = fopen('php://temp', 'r+');
+    if ($add_bom) {
+        fwrite($fp2, "\xEF\xBB\xBF");
+    }
     if (is_array($caption)) {
         fputcsv($fp, array_values($caption), $delimiter, $enclosure);
         rewind($fp);

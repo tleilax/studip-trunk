@@ -4,6 +4,6 @@
 </div>
 <? if ($folderdata['description']) : ?>
     <div>
-        <?= htmlReady($folderdata['description']) ?>
+        <?= formatReady($folderdata['description']) ?>
     </div>
 <? endif ?>
