@@ -362,19 +362,19 @@ class Course_RoomRequestsController extends AuthenticatedController
                         if (isset($check_result[$room_id]) && count($check_result[$room_id]) > 0) {
                             $details = $check_result[$room_id];
                             if (count($details) >= round(count($events) * Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE / 100)) {
-                                $icon = Icon::create('decline', 'status-red', [
+                                $icon = Icon::create('decline-circle', 'status-red', [
                                     'title' => sprintf(
                                         _('Es existieren Überschneidungen oder Belegungssperren zu mehr als %s%% aller gewünschten Belegungszeiten.'),
                                         Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE
                                     ),
                                 ]);
                             } else {
-                                $icon = Icon::create('question', 'status-yellow', [
+                                $icon = Icon::create('exclaim-circle', 'status-yellow', [
                                     'title' => _('Es existieren Überschneidungen zur gewünschten Belegungszeit.'),
                                 ]);
                             }
                         } else {
-                            $icon = Icon::create('accept', 'status-green', [
+                            $icon = Icon::create('check-circle', 'status-green', [
                                 'title' => _('Es existieren keine Überschneidungen'),
                             ]);
                         }

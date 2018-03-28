@@ -1268,9 +1268,6 @@ form.default .required:after {
   content: "*";
   color: red;
 }
-form.default input[type=radio] {
-  margin-right: 10px;
-}
 form.default footer {
   background-color: #e7ebf1;
   border-top: 1px solid #1f3f70;

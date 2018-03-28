@@ -205,7 +205,7 @@ class ShowToolsRequests
                 if ($overlap_events_count == 1) if ($lock_desc) $desc .= sprintf(_("Es besteht eine Belegungssperre zur gewünschten Belegungszeit.") . "\n" . $lock_desc); else
                     $desc .= sprintf(_("Es existieren Überschneidungen zur gewünschten Belegungszeit.") . "\n"); else
                     $desc .= sprintf(_("Es existieren Überschneidungen oder Belegungssperren zu mehr als %s%% aller gewünschten Belegungszeiten.") . "\n" . $lock_desc, Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE);
-                $html   = Icon::create('decline', 'status-red', ['title' => $desc] + $style)->asImg();
+                $html   = Icon::create('decline-circle', 'status-red', ['title' => $desc] + $style)->asImg();
                 $status = 2;
             } else {
                 $desc .= sprintf(_("Einige der gewünschten Belegungszeiten überschneiden sich mit eingetragenen Belegungen bzw. Sperrzeiten:\n"));
@@ -213,11 +213,11 @@ class ShowToolsRequests
                     if ($overlaps[$key]) foreach ($overlaps[$key] as $key2 => $val2) if ($val2["lock"]) $desc .= sprintf(_("%s, %s Uhr bis %s, %s Uhr (Sperrzeit)") . "\n", date("d.m.Y", $val2["begin"]), date("H:i", $val2["begin"]), date("d.m.Y", $val2["end"]), date("H:i", $val2["end"])); else
                         $desc .= sprintf(_("%s von %s bis %s Uhr") . "\n", date("d.m.Y", $val2["begin"]), date("H:i", $val2["begin"]), date("H:i", $val2["end"]));
                 }
-                $html   = Icon::create('question', 'status-yellow', ['title' => $desc] + $style)->asImg();
+                $html   = Icon::create('exclaim-circle', 'status-yellow', ['title' => $desc] + $style)->asImg();
                 $status = 1;
             }
         } else {
-            $html   = Icon::create('accept', 'status-green', ['title' => _('Es existieren keine Überschneidungen')] + $style)->asImg();
+            $html   = Icon::create('check-circle', 'status-green', ['title' => _('Es existieren keine Überschneidungen')] + $style)->asImg();
             $status = 0;
         }
         return ["html" => $html, "status" => $status];
@@ -241,7 +241,7 @@ class ShowToolsRequests
                 if ($overlap_events_count == 1) if ($overlaps[0]["lock"]) $desc .= sprintf(_("Es besteht eine Belegungssperre zur gewünschten Belegungszeit.") . "\n" . $lock_desc); else
                     $desc .= sprintf(_("Es existieren Überschneidungen zur gewünschten Belegungszeit.") . "\n"); else
                     $desc .= sprintf(_("Es existieren Überschneidungen oder Belegungssperren zu mehr als %s%% aller gewünschten Belegungszeiten.") . "\n" . $lock_desc, Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE);
-                $html   = Icon::create('decline', 'status-red', ['title' => $desc])->asImg();
+                $html   = Icon::create('decline-circle', 'status-red', ['title' => $desc])->asImg();
                 $status = 2;
             } else {
                 $desc .= sprintf(_("Einige der gewünschten Belegungszeiten überschneiden sich mit eingetragenen Belegungen bzw. Sperrzeiten:\n"));
@@ -249,11 +249,11 @@ class ShowToolsRequests
                     if ($val["lock"]) $desc .= sprintf(_("%s, %s Uhr bis %s, %s Uhr (Sperrzeit)") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("d.m.Y", $val["end"]), date("H:i", $val["end"])); else
                         $desc .= sprintf(_("%s von %s bis %s Uhr") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("H:i", $val["end"]));
                 }
-                $html   = Icon::create('question', 'status-yellow', ['title' => $desc])->asImg();
+                $html   = Icon::create('exclaim-circle', 'status-yellow', ['title' => $desc])->asImg();
                 $status = 1;
             }
         } else {
-            $html   = Icon::create('accept', 'status-green', ['title' => _('Es existieren keine Überschneidungen')])->asImg();
+            $html   = Icon::create('check-circle', 'status-green', ['title' => _('Es existieren keine Überschneidungen')])->asImg();
             $status = 0;
         }
         return ["html" => $html, "status" => $status];
