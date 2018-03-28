@@ -121,7 +121,11 @@ class Course_ArchiveController extends AuthenticatedController
                     throw new AccessDeniedException();
                 }
             }
-            $this->courses = Course::findMany($courseIds);
+            $this->courses = Course::findAndMapMany(function($c) {
+                $result = $c->toArray(['id', 'name', 'untertitel', 'ort', 'veranstaltungsnummer']);
+                $result['start_semester'] = $c->start_semester->name;
+                return $result;
+            }, $courseIds, "ORDER BY name");
             //TODO: enable navigation items, depending whether the user
             // is in the admin role or not.
         } else {
@@ -129,7 +133,8 @@ class Course_ArchiveController extends AuthenticatedController
 
             $currentCourse = Course::findCurrent();
             if ($currentCourse) {
-                $this->courses[] = $currentCourse;
+                $this->courses[0] = $currentCourse->toArray(['id', 'name', 'untertitel', 'ort', 'veranstaltungsnummer']);
+                $this->courses[0]['start_semester'] = $currentCourse->start_semester->name;
             }
         }
 
@@ -160,10 +165,8 @@ class Course_ArchiveController extends AuthenticatedController
         $this->lastActivities = [];
 
         foreach ($this->courses as $course) {
-            $this->dozenten[$course->id] = $course->members->filter(function ($member) {
-                return $member['status'] === 'dozent';
-            });
-            $this->lastActivities[$course->id] = date('d.m.Y, G:i', lastActivity($course->id));
+            $this->dozenten[$course['id']] = SimpleCollection::createFromArray(CourseMember::findByCourseAndStatus($course['id'], 'dozent'))->toArray(['username', 'vorname', 'nachname']);
+            $this->lastActivities[$course['id']] = date('d.m.Y, G:i', lastActivity($course['id']));
         }
     }
 
