@@ -187,13 +187,15 @@
                     buttons = {};
                 buttons['Neu laden'.toLocaleString()] = function () {
                     location.reload();
-                }
+                };
+                buttons['Schließen'.toLocaleString()] = function () {
+                    $(this).dialog('close');
+                };
 
                 $('<div>').html(message).css({
                     textAlign: 'center',
                     padding: '2em 0'
                 }).dialog({
-                    dialogClass: 'no-close',
                     width: '50%',
                     modal: true,
                     buttons: buttons,
