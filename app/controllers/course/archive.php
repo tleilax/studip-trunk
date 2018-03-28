@@ -196,7 +196,8 @@ class Course_ArchiveController extends AuthenticatedController
 
             $course = Course::find($courseId);
             if ($course) {
-                $course->delete();
+                $seminar = new Seminar($course);
+                $seminar->delete();
                 $archivedCourse = ArchivedCourse::find($courseId);
                 if ($archivedCourse) {
                     $this->archivedCourses[] = $archivedCourse;
