@@ -87,57 +87,28 @@ class Course_ArchiveController extends AuthenticatedController
     {
         PageLayout::setHelpKeyword('Veranstaltungen.Archivieren');
 
-        /*
-            NOTE: confirm_action will be called from admin/courses
-            with an array in HTTP POST that is called archiv_sem,
-            having the following form:
-            [ "_id_courseID", "_id_courseID", "on", "_id_courseID", ...]
-
-            Every courseID followed by "on" is an ID of a course
-            that was selected for archiving.
-        */
-
         //check the archiv_sem array and extract the relevant course IDs:
-        $courseIds = [];
-
-        $archiv_sem = Request::getArray('archiv_sem');
-
-        /*
-            $archiv_sem may be empty. If this controller is called
-            out of a course the POST parameter archiv_sem won't be set.
-            So we can skip a lot of code if we check for its existence first.
-        */
-        if ($archiv_sem) {
-            for ($i = 0; $i < count($archiv_sem); $i += 1) {
-                if (($i > 0) && $archiv_sem[$i] === 'on') {
-                    //the previous array item is a relevant course ID:
-                    $id = explode('_', $archiv_sem[$i - 1])[2];
-                    $courseIds[] = $id;
-                }
-                //check if the user has the required permission
-                //to archive the selected course:
-                if (!$this->userHasPermission($id)) {
-                    //no permission: access denied!
-                    throw new AccessDeniedException();
-                }
-            }
-            $this->courses = Course::findAndMapMany(function($c) {
-                $result = $c->toArray(['id', 'name', 'untertitel', 'ort', 'veranstaltungsnummer']);
-                $result['start_semester'] = $c->start_semester->name;
-                return $result;
-            }, $courseIds, "ORDER BY name");
-            //TODO: enable navigation items, depending whether the user
-            // is in the admin role or not.
+        if (Request::submitted('archiv_sem')) {
+            $courseIds = Request::optionArray('archiv_sem');
         } else {
-            // $archiv_sem is empty: We check the current course now.
-
-            $currentCourse = Course::findCurrent();
-            if ($currentCourse) {
-                $this->courses[0] = $currentCourse->toArray(['id', 'name', 'untertitel', 'ort', 'veranstaltungsnummer']);
-                $this->courses[0]['start_semester'] = $currentCourse->start_semester->name;
-            }
+            $courseIds = [Course::findCurrent()->id];
         }
 
+        foreach ($courseIds as $id) {
+            //check if the user has the required permission
+            //to archive the selected course:
+            if (!$this->userHasPermission($id)) {
+                //no permission: access denied!
+                throw new AccessDeniedException();
+            }
+        }
+        $this->courses = Course::findAndMapMany(function($c) {
+            $result = $c->toArray(['id', 'name', 'untertitel', 'ort', 'veranstaltungsnummer']);
+            $result['start_semester'] = $c->start_semester->name;
+            return $result;
+        }, $courseIds, "ORDER BY name");
+        //TODO: enable navigation items, depending whether the user
+        // is in the admin role or not.
 
         //check if at least one course was selected:
         if (!$this->courses) {
@@ -179,7 +150,7 @@ class Course_ArchiveController extends AuthenticatedController
     public function archive_action()
     {
         //now pick the courses IDs:
-        $courseIds = Request::getArray('courseIds');
+        $courseIds = Request::optionArray('courseIds');
 
         //check if the user has the required permission
         //to archive all selected courses:
