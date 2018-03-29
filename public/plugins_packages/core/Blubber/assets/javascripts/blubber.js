@@ -228,12 +228,12 @@ STUDIP.Blubber = {
             topic_id: id,
             cid: jQuery('#seminar_id').val()
         }).done(function (source) {
-            jQuery("#posting_" + id).find(".content_column .content").first().html(
+            element.find('.content_column .content').first().html(
                 jQuery('<textarea class="corrector"/>').val(source).focus()
             );
-            jQuery("#posting_" + id).find(".corrector").focus();
+            element.find(".corrector").focus();
             STUDIP.Blubber.makeTextareasAutoresizable();
-            jQuery("#posting_" + id).find(".corrector").trigger("keydown");
+            element.find(".corrector").trigger("keydown");
 
             element.data('edit-mode', true);
         });
@@ -262,7 +262,7 @@ STUDIP.Blubber = {
             }).done(function (formatted_new_content) {
                 if (new_content) {
                     element.children('.content_column').find('.content').html(formatted_new_content);
-                    STUDIP.Markup.element("#posting_" + id);
+                    STUDIP.Markup.element(element);
                 } else {
                     element.fadeOut(function () {
                         jQuery(this).remove();
@@ -275,7 +275,7 @@ STUDIP.Blubber = {
                 cid: jQuery("#seminar_id").val()
             }).done(function (new_content) {
                 element.children('.content_column').find('.content').html(new_content);
-                STUDIP.Markup.element("#posting_" + id);
+                STUDIP.Markup.element(element);
             });
         }
     },
