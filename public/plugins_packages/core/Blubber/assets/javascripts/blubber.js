@@ -222,70 +222,60 @@ STUDIP.Blubber = {
      * displays the textarea so the user can start editing it.
      */
     startEditingComment: function () {
-        var id = jQuery(this).closest("li").attr("id");
-        id = id.substr(id.lastIndexOf("_") + 1);
-        jQuery.ajax({
-            'url': STUDIP.ABSOLUTE_URI_STUDIP + jQuery("#base_url").val() + "/get_source",
-            'data': {
-                'topic_id': id,
-                'cid': jQuery("#seminar_id").val()
-            },
-            'success': function (source) {
-                jQuery("#posting_" + id).find(".content_column .content").first().html(
-                    jQuery('<textarea class="corrector"/>').val(source).focus()
-                );
-                jQuery("#posting_" + id).find(".corrector").focus();
-                STUDIP.Blubber.makeTextareasAutoresizable();
-                jQuery("#posting_" + id).find(".corrector").trigger("keydown");
-            }
+        var element = jQuery(this).closest('li'),
+            id      = element.attr('id').split('_')[1];
+        jQuery.get(STUDIP.ABSOLUTE_URI_STUDIP + jQuery('#base_url').val() + '/get_source', {
+            topic_id: id,
+            cid: jQuery('#seminar_id').val()
+        }).done(function (source) {
+            jQuery("#posting_" + id).find(".content_column .content").first().html(
+                jQuery('<textarea class="corrector"/>').val(source).focus()
+            );
+            jQuery("#posting_" + id).find(".corrector").focus();
+            STUDIP.Blubber.makeTextareasAutoresizable();
+            jQuery("#posting_" + id).find(".corrector").trigger("keydown");
+
+            element.data('edit-mode', true);
         });
 
     },
-    //variable to prevent multiple clicks
-    submittingEditedPostingStarted: false,
     /**
      * Submits an edited posting and displays its new content on success
      */
     submitEditedPosting: function (textarea) {
-        var id = jQuery(textarea).closest("li").attr("id");
-        id = id.substr(id.lastIndexOf("_") + 1);
-        if (STUDIP.Blubber.submittingEditedPostingStarted) {
+        var element = jQuery(textarea).closest('li'),
+            id      = element.attr('id').split('_')[1];
+        if (!element.data('edit-mode')) {
             return;
         }
-        STUDIP.Blubber.submittingEditedPostingStarted = true;
-        if (jQuery("#posting_" + id).data("autor") === jQuery("#user_id").val()
-                || window.confirm(jQuery("#editing_question").text())) {
-            STUDIP.Blubber.submittingEditedPostingStarted = false;
+
+        element.data('edit-mode', false);
+
+        if (element.data('autor') === jQuery('#user_id').val()
+            || window.confirm(jQuery('#editing_question').text()))
+        {
             new_content = jQuery(textarea).val();
-            jQuery.ajax({
-                'url': STUDIP.ABSOLUTE_URI_STUDIP + jQuery("#base_url").val() + "/edit_posting",
-                'data': {
-                    'topic_id': id,
-                    'content': new_content,
-                    'cid': jQuery("#seminar_id").val()
-                },
-                'type': "post",
-                'success': function (formatted_new_content) {
-                    if (new_content) {
-                        jQuery("#posting_" + id + " > .content_column .content").html(formatted_new_content);
-                        STUDIP.Markup.element("#posting_" + id);
-                    } else {
-                        jQuery("#posting_" + id).fadeOut(function () {jQuery("#posting_" + id).remove();});
-                    }
+            jQuery.post(STUDIP.ABSOLUTE_URI_STUDIP + jQuery('#base_url').val() + '/edit_posting', {
+                topic_id: id,
+                content: new_content,
+                cid: jQuery('#seminar_id').val()
+            }).done(function (formatted_new_content) {
+                if (new_content) {
+                    element.children('.content_column').find('.content').html(formatted_new_content);
+                    STUDIP.Markup.element("#posting_" + id);
+                } else {
+                    element.fadeOut(function () {
+                        jQuery(this).remove();
+                    });
                 }
             });
         } else {
-            STUDIP.Blubber.submittingEditedPostingStarted = false;
-            jQuery.ajax({
-                'url': STUDIP.ABSOLUTE_URI_STUDIP + jQuery("#base_url").val() + "/refresh_posting",
-                'data': {
-                    'topic_id': id,
-                    'cid': jQuery("#seminar_id").val()
-                },
-                'success': function (new_content) {
-                    jQuery("#posting_" + id + " > .content_column .content").html(new_content);
-                    STUDIP.Markup.element("#posting_" + id);
-                }
+            jQuery.get(STUDIP.ABSOLUTE_URI_STUDIP + jQuery('#base_url').val() + '/refresh_posting', {
+                topic_id: id,
+                cid: jQuery("#seminar_id").val()
+            }).done(function (new_content) {
+                element.children('.content_column').find('.content').html(new_content);
+                STUDIP.Markup.element("#posting_" + id);
             });
         }
     },
@@ -302,11 +292,11 @@ STUDIP.Blubber = {
         }).autoResize({
             // On resize:
             onResize : function() {
-                $(this).css({opacity: 0.8});
+                jQuery(this).css({opacity: 0.8});
             },
             // After resize:
             animateCallback : function() {
-                $(this).css({opacity:1});
+                jQuery(this).css({opacity:1});
             },
             // Quite slow animation:
             animateDuration: 300,
@@ -469,7 +459,7 @@ STUDIP.Blubber = {
     prepareSubmitGlobalPosting: function () {
         if (jQuery('#context_type').val()) {
             STUDIP.Blubber.newPosting();
-            if ($("#context_selector").hasClass("ui-dialog-content")
+            if (jQuery("#context_selector").hasClass("ui-dialog-content")
                     && jQuery("#context_selector").dialog("isOpen")) {
                 jQuery("#context_type").val("");
                 jQuery("#context_selector table > tbody > tr").removeClass("selected");
@@ -666,7 +656,9 @@ jQuery(document).on("click", "#blubber_threads > li > ul.comments > li.more", fu
     });
 });
 jQuery(document).on("click", "#blubber_threads a.edit", STUDIP.Blubber.startEditingComment);
-jQuery(document).on("blur", "#blubber_threads textarea.corrector", function () {STUDIP.Blubber.submitEditedPosting(this);});
+jQuery(document).on("blur", "#blubber_threads textarea.corrector", function () {
+    STUDIP.Blubber.submitEditedPosting(this);
+});
 jQuery(document).on("click", "#blubber_threads .reshare_blubber, .blubber_contacts .want_to_share", STUDIP.Blubber.reshareBlubber);
 jQuery(document).on("click", "#blubber_threads .thread.public .contextinfo, #blubber_threads .thread.public .open_reshare_context", STUDIP.Blubber.showPublicPanel);
 jQuery(document).on("click", "#blubber_threads .thread.private .contextinfo", STUDIP.Blubber.showPrivatePanel);
@@ -704,7 +696,7 @@ jQuery(function () {
             jQuery(this).closest("td").addClass("selected").find("input[type=checkbox]").prop("checked", true);
         }
     });
-    
+
 });
 
 
@@ -740,4 +732,3 @@ jQuery(document).on('scroll', _.throttle(function (event) {
         });
     }
 }, 30));
-
