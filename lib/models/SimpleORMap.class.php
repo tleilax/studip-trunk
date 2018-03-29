@@ -433,7 +433,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     {
         $class = get_called_class();
         $record = new $class();
-        $record->setData($data, true);
+        $record->setData($data, !$is_new);
         $record->setNew($is_new);
         return $record;
     }
