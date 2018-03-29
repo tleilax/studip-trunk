@@ -45,7 +45,7 @@ class Course_StatusgroupsController extends AuthenticatedController
         $this->is_participants_locked = LockRules::Check($this->course_id, 'participants');
 
         PageLayout::setTitle(sprintf('%s - %s', Course::findCurrent()->getFullname(), _('Gruppen')));
-
+        PageLayout::addSqueezePackage('statusgroups');
     }
 
     /**
@@ -53,7 +53,6 @@ class Course_StatusgroupsController extends AuthenticatedController
      */
     public function index_action()
     {
-        PageLayout::addSqueezePackage('statusgroups');
         Navigation::activateItem('/course/members/statusgroups');
 
         if ($this->is_locked && $this->is_tutor) {
@@ -657,11 +656,15 @@ class Course_StatusgroupsController extends AuthenticatedController
 
             // Create a number of groups, sequentially named.
             if (Request::option('mode') == 'numbering') {
-
                 $counter = 0;
+                if (Request::get('numbering_type') == 2) {
+                    $numbering = 'A';
+                } else {
+                    $numbering = Request::int('startnumber', 1);
+                }
                 for ($i = 0 ; $i < Request::int('number') ; $i++) {
                     $group = StatusgroupsModel::updateGroup('', Request::get('prefix').' '.
-                        (Request::int('startnumber', 1) + $i),
+                        $numbering++,
                         $counter + 1, $this->course_id, Request::int('size', 0),
                         Request::int('selfassign', 0) + Request::int('exclusive', 0),
                         strtotime(Request::get('selfassign_start', 'now')),

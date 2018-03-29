@@ -24,6 +24,16 @@
         </section>
         <section class="numbering-data">
             <label>
+                <input type="radio" name="numbering_type" value="1" checked>
+                <?= _('Nummerische Nummerierung')?>
+            </label>
+            <label>
+                <input type="radio" name="numbering_type" value="2">
+                <?= _('Alphabetische Nummerierung')?>
+            </label>
+        </section>
+        <section class="numbering-data">
+            <label>
                 <?= _('Beginne Nummerierung bei') ?>
             </label>
             <input type="number" name="startnumber" value="1" min="0">
