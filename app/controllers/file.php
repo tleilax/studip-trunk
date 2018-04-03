@@ -1655,7 +1655,7 @@ class FileController extends AuthenticatedController
 
                 if ($file_ref) {
                     $result = $parent_folder->deleteFile($element);
-                    if (!is_array($result)) {
+                    if ($result && !is_array($result)) {
                         $count_files += 1;
                     }
                 } elseif ($foldertype) {
@@ -1688,7 +1688,7 @@ class FileController extends AuthenticatedController
                     PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner gelöscht!'), $count_folders));
                 }
             } else {
-                PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), $errors);
+                PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), array_map('htmlReady', $errors));
             }
 
             $this->redirectToFolder($parent_folder);

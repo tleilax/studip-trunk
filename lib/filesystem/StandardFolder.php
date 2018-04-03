@@ -337,6 +337,14 @@ class StandardFolder implements FolderType
     {
         $file_ref = $this->folderdata->file_refs->find($file_ref_id);
 
+        if (!$this->isFileWritable($file_ref->id, $GLOBALS['user']->id)) {
+            return [sprintf(
+                _('Ungenügende Berechtigungen zum Löschen der Datei %s in Ordner %s!'),
+                $file_ref->name,
+                $this->name
+            )];
+        }
+
         if ($file_ref) {
             return $file_ref->delete();
         }
