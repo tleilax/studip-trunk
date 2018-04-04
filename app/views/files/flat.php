@@ -23,17 +23,25 @@
         <tr>
             <td colspan="7">
                 <span class="multibuttons">
-                    <?= Studip\Button::create(_('Herunterladen'), 'download', ['disabled' => '']) ?>
+                    <?= Studip\Button::create(_('Herunterladen'), 'download', [
+                        'data-activates-condition' => 'table.documents tr[data-permissions*=d] :checkbox:checked'
+                    ]) ?>
 
-                    <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-                        <?= Studip\Button::create(_('Verschieben'), 'move', ['data-dialog' => '', 'disabled' => '']) ?>
-                    <? endif ?>
+                <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+                    <?= Studip\Button::create(_('Verschieben'), 'move', [
+                        'data-dialog'              => '',
+                        'data-activates-condition' => 'table.documents tr[data-permissions*=w] :checkbox:checked'
+                    ]) ?>
+                <? endif ?>
 
-                    <?= Studip\Button::create(_('Kopieren'), 'copy', ['data-dialog' => '', 'disabled' => '']) ?>
+                    <?= Studip\Button::create(_('Kopieren'), 'copy', ['data-dialog' => '']) ?>
 
-                    <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
-                        <?= Studip\Button::create(_('Löschen'), 'delete', ['data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?'), 'disabled' => '']) ?>
-                    <? endif ?>
+                <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
+                    <?= Studip\Button::create(_('Löschen'), 'delete', [
+                        'data-confirm'             => _('Soll die Auswahl wirklich gelöscht werden?'),
+                        'data-activates-condition' => 'table.documents tr[data-permissions*=w] :checkbox:checked'
+                    ]) ?>
+                <? endif ?>
                  </span>
            </td>
         </tr>

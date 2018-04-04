@@ -84,24 +84,24 @@ if (!$controllerpath) {
                 <td colspan="7">
                     <span class="multibuttons">
                         <?= Studip\Button::create(_('Herunterladen'), 'download', [
-                            'disabled' => '',
+                            'data-activates-condition' => 'table.documents tr[data-permissions*=d] :checkbox:checked'
                         ]) ?>
                     <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
                         <?= Studip\Button::create(_('Verschieben'), 'move', [
-                            'data-dialog' => '',
-                            'disabled' => 'disabled'
+                            'data-dialog'              => '',
+                            'data-activates-condition' => 'table.documents tr[data-permissions*=w] :checkbox:checked'
                         ]) ?>
                     <? endif; ?>
                     <? if ($topFolder->isReadable($GLOBALS['user']->id)): ?>
                         <?= Studip\Button::create(_('Kopieren'), 'copy', [
-                            'data-dialog' => '',
-                            'disabled'    => '',
+                            'data-dialog'              => '',
+                            'data-activates-condition' => 'table.documents tr[data-permissions*=r] :checkbox:checked'
                         ]) ?>
                     <? endif; ?>
                     <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
                         <?= Studip\Button::create(_('Löschen'), 'delete', [
-                            'disabled'     => '',
-                            'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
+                            'data-confirm'             => _('Soll die Auswahl wirklich gelöscht werden?'),
+                            'data-activates-condition' => 'table.documents tr[data-permissions*=w] :checkbox:checked'
                         ]) ?>
                     <? endif; ?>
                     </span>

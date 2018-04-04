@@ -1,15 +1,22 @@
-<tr class="<? if ($file_ref->chdate > $last_visitdate) echo 'new'; ?>" <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>" role="row">
+<?php
+$permissions = [];
+if ($current_folder->isFileEditable($file_ref->id, $GLOBALS['user']->id)) {
+    $permissions[] = 'w';
+}
+if ($current_folder->isFileDownloadable($file_ref->id, $GLOBALS['user']->id)) {
+    $permissions[] = 'dr';
+}
+?>
+<tr class="<? if ($file_ref->chdate > $last_visitdate) echo 'new'; ?>" <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>" role="row" data-permissions="<?= implode($permissions) ?>">
     <td>
     <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
         <input type="checkbox"
-               class="document-checkbox"
+               class="studip-checkbox"
                name="ids[]"
                id="file_checkbox_<?= $file_ref->id ?>"
                value="<?= $file_ref->id ?>"
                <? if (in_array($file_ref->id, (array)$marked_element_ids)) echo 'checked'; ?>>
-        <label for="file_checkbox_<?=$file_ref->id?>" class="text-bottom">
-            <span></span>
-        </label>
+        <label for="file_checkbox_<?= $file_ref->id ?>"></label>
     <? endif ?>
     </td>
     <td class="document-icon" data-sort-value="<?=crc32($file_ref->mime_type)?>">

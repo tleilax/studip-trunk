@@ -5,9 +5,9 @@
     'use strict';
 
     function searchMoreFiles(button) {
-        var table = jQuery(button).closest("table"),
-            loading = jQuery('<div class="loading" style="padding: 10px">').html(
-                jQuery('<img>')
+        var table = $(button).closest("table"),
+            loading = $('<div class="loading" style="padding: 10px">').html(
+                $('<img>')
                     .attr('src', STUDIP.ASSETS_URL + 'images/ajax-indicator-black.svg')
                     .css('width', '24')
                     .css('height', '24')
@@ -15,13 +15,9 @@
 
         $(button).replaceWith(loading);
 
-        jQuery.ajax({
-            url: button.href,
-            type: 'GET',
-            success: function (output) {
-                table.find("tbody").append(jQuery('tbody tr', output));
-                table.find("tfoot").replaceWith(jQuery('tfoot', output));
-            }
+        $.get(button.href).done(function (output) {
+            table.find('tbody').append($('tbody tr', output));
+            table.find('tfoot').replaceWith($('tfoot', output));
         });
 
         return false;
@@ -184,6 +180,8 @@
                     STUDIP.Dialog.handlers.header['X-Location'](payload.url);
                 }
             }
+
+            $(document).trigger('refresh-handlers');
         },
         removeFile: function (fileref_id) {
             $.post(STUDIP.URLHelper.getURL('dispatch.php/file/delete/' + fileref_id))
@@ -193,6 +191,8 @@
                         if ($('.subfolders > *').length + $('.files > *').length < 2) {
                             $('.subfolders .empty').show('fade');
                         }
+
+                        $(document).trigger('refresh-handlers');
                     });
                 });
         },
@@ -248,38 +248,6 @@
             }
         },
 
-        toggleBulkButtons: function () {
-            //At the bottom of each file list there are buttons for bulk actions.
-            //These have to be activated when at least one element is checked.
-            var buttons = $('table.documents tfoot .multibuttons .button'),
-                //The bulk checkbox wasn't clicked: check each of the elements:
-                total_elements = $('table.documents tbody tr[role=row] td input'),
-                checked_elements = $('table.documents tbody tr[role=row] td input:checked');
-
-            if (checked_elements.length > 0) {
-                //at least one element is checked: activate buttons
-                $(buttons).removeAttr('disabled');
-                //...and set the "select-all-checkbox" in the third state (undefined),
-                //if not all elements are checked:
-
-
-                if (checked_elements.length < total_elements.length) {
-                    //not all elements checked
-                    $('table.documents thead th input[data-proxyfor]').prop('indeterminate', true);
-                } else {
-                    //all elements checked
-                    $('table.documents thead th input[data-proxyfor]').prop('indeterminate', null);
-                    $('table.documents thead th input[data-proxyfor]').prop('checked', true);
-                }
-
-            } else {
-                //no element is checked: deactivate buttons
-                $(buttons).attr('disabled', 'disabled');
-                //... and uncheck "select-all-checkbox"
-                $('table.documents thead th input[data-proxyfor]').prop('indeterminate', null);
-                $('table.documents thead th input[data-proxyfor]').prop('checked', false);
-            }
-        },
         updateTermsOfUseDescription: function (e) {
             //make all descriptions invisible:
             $('div.terms_of_use_description_container > section').addClass('invisible');
@@ -303,10 +271,8 @@
             STUDIP.Files.upload(filelist);
         });
         $('form.drag-and-drop.files').on('click', function () {
-            jQuery('.file_selector input[type=file]').first().click();
+            $('.file_selector input[type=file]').first().click();
         });
-
-        $(document).on('change', 'table.documents :checkbox', STUDIP.Files.toggleBulkButtons);
 
         // workaround to wait for tables.js to be executed first
         $(function () {
@@ -319,6 +285,8 @@
                     minRows: 1
                 });
             }
+
+            $(document).trigger('refresh-handlers');
         });
 
         $(document).on('click', '#file_license_chooser_1 > input[type=radio]', STUDIP.Files.updateTermsOfUseDescription);

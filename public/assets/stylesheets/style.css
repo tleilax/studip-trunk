@@ -1523,6 +1523,20 @@ form.default label.packed button {
   vertical-align: text-top;
   width: 16px;
 }
+.studip-checkbox:indeterminate + label::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 5px;
+  background-image: url("../images/icons/blue/checkbox-indeterminate.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
 .content_title {
   background-color: #e3eaf6;
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#cdd9ed), color-stop(40%, #e3eaf6), to(#e3eaf6));
@@ -7265,60 +7279,6 @@ div.file_select_possibilities input[name=folder_type]:checked + label img,
 div.file_select_possibilities.content_terms_of_use_icons {
   justify-content: left;
 }
-input.document-checkbox[type="checkbox"] {
-  display: none;
-}
-input.document-checkbox[type="checkbox"] + label span {
-  display: inline-block;
-  width: 30px;
-  height: 20px;
-  margin: 0px 0px 0 0;
-  vertical-align: bottom;
-  text-align: center;
-  cursor: pointer;
-}
-input.document-checkbox[type="checkbox"] + label span::after {
-  background-repeat: no-repeat;
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  margin-left: 4;
-  background-image: url("../images/icons/blue/checkbox-unchecked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  vertical-align: text-top;
-  width: 16px;
-}
-input.document-checkbox[type="checkbox"]:checked + label span::after {
-  background-repeat: no-repeat;
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  margin-left: 4;
-  background-image: url("../images/icons/blue/checkbox-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  vertical-align: text-top;
-  width: 16px;
-}
-input.document-checkbox[type="checkbox"]:indeterminate + label span::after {
-  background-repeat: no-repeat;
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  margin-left: 4;
-  background-image: url("../images/icons/blue/checkbox-indeterminate.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  vertical-align: text-top;
-  width: 16px;
-}
 #file_edit_window,
 #file_details_window {
   display: flex;
@@ -7475,6 +7435,10 @@ form.default fieldset.select_terms_of_use > input[type=radio]:checked + label + 
 table.documents td,
 table.documents th {
   vertical-align: top;
+}
+table.documents td:first-child,
+table.documents th:first-child {
+  padding-left: 8px;
 }
 table.documents.flat td.filter-match {
   background-color: #fce2cc;
