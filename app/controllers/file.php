@@ -718,10 +718,12 @@ class FileController extends AuthenticatedController
             );
 
             if ($result) {
+                $filename = $folder ? $folder->name : basename($tmp_file);
+
                 //ZIP file was created successfully
                 $this->redirect(FileManager::getDownloadURLForTemporaryFile(
                     basename($tmp_file),
-                    basename($tmp_file) . '.zip'
+                    FileManager::cleanFileName("{$filename}.zip")
                 ));
             } else {
                 throw new Exception('Error while creating ZIP archive!');
