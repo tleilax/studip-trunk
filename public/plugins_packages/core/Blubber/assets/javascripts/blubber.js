@@ -238,6 +238,7 @@ STUDIP.Blubber = {
             element.data('edit-mode', true);
         });
 
+        return false;
     },
     /**
      * Submits an edited posting and displays its new content on success
@@ -589,6 +590,26 @@ STUDIP.Blubber = {
             }
         });
         return false;
+    },
+    deleteBlubber: function () {
+        var element = jQuery(this).closest('li'),
+            id      = element.attr('id').split('_')[1],
+            route   = jQuery(element).closest('.comments').length > 0
+                    ? 'comment'
+                    : 'posting';
+
+        STUDIP.api.DELETE('blubber/' + route + '/' + id).done(function () {
+            element.delay(100).fadeOut(function () {
+                jQuery(this).remove();
+            });
+        }).fail(function () {
+            STUDIP.Dialog.show('Der Beitrag konnte nicht gelöscht werden.'.toLocaleString(), {
+                title: 'Es ist ein Fehler aufgetreten'.toLocaleString(),
+                size: 'auto'
+            });
+        });
+
+        return false;
     }
 };
 
@@ -660,6 +681,7 @@ jQuery(document).on("blur", "#blubber_threads textarea.corrector", function () {
     STUDIP.Blubber.submitEditedPosting(this);
 });
 jQuery(document).on("click", "#blubber_threads .reshare_blubber, .blubber_contacts .want_to_share", STUDIP.Blubber.reshareBlubber);
+jQuery(document).on("click", "#blubber_threads a.delete", STUDIP.Blubber.deleteBlubber);
 jQuery(document).on("click", "#blubber_threads .thread.public .contextinfo, #blubber_threads .thread.public .open_reshare_context", STUDIP.Blubber.showPublicPanel);
 jQuery(document).on("click", "#blubber_threads .thread.private .contextinfo", STUDIP.Blubber.showPrivatePanel);
 jQuery(document).on("change", "#blubber_threads .uploader, #threadwriter .uploader", STUDIP.Blubber.uploadFilesBySelecting)

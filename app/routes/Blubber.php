@@ -441,7 +441,7 @@ class Blubber extends \RESTAPI\RouteMap
             $this->sendEditMail(
                 $blubber,
                 sprintf(
-                    _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum GELÖSCHT.\n\nDer alte Beitrag lautete:\n\n%s\n"),
+                    _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum gelöscht.\n\nDer alte Beitrag lautete:\n\n%s\n"),
                     get_fullname(), $blubber['description']
                 ),
                 _("Ihr Posting wurde gelöscht.")
@@ -484,7 +484,7 @@ class Blubber extends \RESTAPI\RouteMap
                 'reshares'       => $sharer_ids,
                 'tags'           => $posting->getTags()
             ));
-            
+
             if($posting['context_type'] == 'course') {
                 $result['course_id'] = $posting->seminar_id;
             }
@@ -523,9 +523,14 @@ class Blubber extends \RESTAPI\RouteMap
             $this->notFound();
         }
 
-        if (($posting['context_type'] === "course" && !$GLOBALS['perm']->have_studip_perm("tutor", $posting['seminar_id']))
-        or $posting['user_id'] !== $GLOBALS['user']->id
-        or $posting['external_contact']) {
+        if ($GLOBALS['user']->perms === 'root') {
+            return true;
+        }
+
+        if (($posting['context_type'] === 'course' && !$GLOBALS['perm']->have_studip_perm('tutor', $posting['seminar_id']))
+            || ($posting['user_id'] !== $GLOBALS['user']->id)
+            || $posting['external_contact'])
+        {
             $this->error(401);
         }
     }
