@@ -733,8 +733,15 @@ class StreamsController extends PluginController {
         ));
     }
 
-    public function custom_action($stream_id) {
+    public function custom_action($stream_id)
+    {
         $this->stream = new BlubberStream($stream_id);
+
+        if (Request::get('hash')) {
+            $this->search = Request::get('hash');
+            $this->stream->filter_hashtags = [$this->search];
+        }
+
         $this->tags = $this->stream->fetchTags();
         if ($this->stream['user_id'] !== $GLOBALS['user']->id) {
             throw new AccessDeniedException("Not your stream.");
