@@ -64,6 +64,9 @@ class FileSystem extends \RESTAPI\RouteMap
         $result['size'] = $file_ref->file->size;
         $result['mime_type'] = $file_ref->file->mime_type;
         $result['storage'] = $file_ref->file->storage;
+        if ($result['storage'] === "url") {
+            $result['url'] = $file_ref->file->url;
+        }
 
         //maybe the user wants not just only the FileRef object's data
         //but also data from related objects:
@@ -169,6 +172,9 @@ class FileSystem extends \RESTAPI\RouteMap
             $file_ref_data['size'] = $result->file->size;
             $file_ref_data['mime_type'] = $result->file->mime_type;
             $file_ref_data['storage'] = $result->file->storage;
+            if ($file_ref_data['storage'] === "url") {
+                $file_ref_data['url'] = $file_ref->file->url;
+            }
             return $file_ref_data;
         } else {
             $this->halt(500, 'Error while updating a file reference: ' . implode(' ', $result));
@@ -207,6 +213,9 @@ class FileSystem extends \RESTAPI\RouteMap
         $file_ref_data['size'] = $file_ref->file->size;
         $file_ref_data['mime_type'] = $file_ref->file->mime_type;
         $file_ref_data['storage'] = $file_ref->file->storage;
+        if ($file_ref_data['storage'] === "url") {
+            $file_ref_data['url'] = $file_ref->file->url;
+        }
         return $file_ref_data;
     }
 
@@ -246,6 +255,9 @@ class FileSystem extends \RESTAPI\RouteMap
         $file_ref_data['size'] = $file_ref->file->size;
         $file_ref_data['mime_type'] = $file_ref->file->mime_type;
         $file_ref_data['storage'] = $file_ref->file->storage;
+        if ($file_ref_data['storage'] === "url") {
+            $file_ref_data['url'] = $file_ref->file->url;
+        }
         return $file_ref_data;
     }
 
@@ -285,6 +297,9 @@ class FileSystem extends \RESTAPI\RouteMap
         $file_ref_data['size'] = $file_ref->file->size;
         $file_ref_data['mime_type'] = $file_ref->file->mime_type;
         $file_ref_data['storage'] = $file_ref->file->storage;
+        if ($file_ref_data['storage'] === "url") {
+            $file_ref_data['url'] = $file_ref->file->url;
+        }
         return $file_ref_data;
     }
 
@@ -381,6 +396,9 @@ class FileSystem extends \RESTAPI\RouteMap
                     $file_ref_data['size'] = $file_ref->file->size;
                     $file_ref_data['mime_type'] = $file_ref->file->mime_type;
                     $file_ref_data['storage'] = $file_ref->file->storage;
+                    if ($file_ref_data['storage'] === "url") {
+                        $file_ref_data['url'] = $file_ref->file->url;
+                    }
 
                     $result['file_refs'][] = $file_ref_data;
                 }
@@ -474,6 +492,9 @@ class FileSystem extends \RESTAPI\RouteMap
                 $file_ref_data['size'] = $file_ref->file->size;
                 $file_ref_data['mime_type'] = $file_ref->file->mime_type;
                 $file_ref_data['storage'] = $file_ref->file->storage;
+                if ($file_ref_data['storage'] === "url") {
+                    $file_ref_data['url'] = $file_ref->file->url;
+                }
 
                 $result[] = $file_ref_data;
             }
