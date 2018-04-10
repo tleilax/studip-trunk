@@ -24,16 +24,6 @@ class MessagesController extends AuthenticatedController {
         PageLayout::setTitle(_('Nachrichten'));
         PageLayout::setHelpKeyword('Basis.InteraktionNachrichten');
 
-        // The default body and/or subject passed via GET url parameters
-        // should not be utf8decoded and thus need to be restored in their
-        // pristine values
-        if (Request::isXhr() && Request::isGet()) {
-            $request = Request::getInstance();
-            foreach (words('default_body default_subject') as $key) {
-                $request[$key] = $_GET[$key];
-            }
-        }
-
         $this->setupSidebar($action);
     }
 
@@ -441,7 +431,11 @@ class MessagesController extends AuthenticatedController {
             }
         }
         if (Request::get("default_body")) {
-            $this->default_message['message'] = Request::get("default_body");
+            if (Studip\Markup::editorEnabled()) {
+                $this->default_message['message'] = Studip\Markup::markupToHtml(Request::get("default_body"));
+            } else {
+                $this->default_message['message'] = Studip\Markup::removeHtml(Request::get("default_body"));
+            }
         }
         if (Request::get("default_subject")) {
             $this->default_message['subject'] = Request::get("default_subject");
