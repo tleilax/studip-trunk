@@ -23,9 +23,11 @@
         </a>
     </td>
 <? if ($is_tutor) : ?>
-    <td>
-        <?= strftime('%x %X', $m->mkdate) ?>
-    </td>
+    <? if ($group->id !== 'nogroup'): ?>
+        <td>
+            <?= $m->mkdate ? strftime('%x %X', $m->mkdate) : '' ?>
+        </td>
+    <? endif; ?>
     <td>
     <?= $this->render_partial('course/members/_studycourse.php',
                 array('studycourses' => new SimpleCollection(UserStudyCourse::findByUser($m->user_id)))) ?>
