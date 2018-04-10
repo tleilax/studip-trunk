@@ -134,6 +134,19 @@ class Course_OverviewController extends AuthenticatedController
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/seminar-sidebar.png');
 
+        if (!$this->course->admission_binding
+            && in_array($GLOBALS['perm']->get_studip_perm($this->course->id), ['user','autor'])
+            && !$this->course->getSemClass()->isGroup())
+        {
+            $actions = new ActionsWidget();
+            $actions->addLink(
+                _('Austragen aus der Veranstaltung'),
+                $this->url_for("my_courses/decline/{$this->course->id}", ['cmd' => 'suppose_to_kill']),
+                Icon::create('door-leave')
+            );
+            Sidebar::get()->addWidget($actions);
+        }
+
         $share = new ShareWidget();
         if ($this->studygroup_mode) {
             $share->addCopyableLink(

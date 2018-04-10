@@ -1,5 +1,6 @@
 <?php
 /**
+ * @deprecated sinde 4.2 use SelectWidget instead
  * A special sidebar widget for lists of selectable items.
  *
  * @author  Rasmus Fuhse <fuhse@data-quest.de>

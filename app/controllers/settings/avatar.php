@@ -43,6 +43,10 @@ class Settings_AvatarController extends Settings_SettingsController
      */
     public function index_action()
     {
+        $avatar = Avatar::getAvatar($this->user->user_id);
+        if ($avatar->is_customized()) {
+            $this->avatar = $avatar->getURL(Avatar::NORMAL);
+        }
     }
 
     /**

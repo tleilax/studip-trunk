@@ -58,7 +58,7 @@ class Settings_UserdomainsController extends Settings_SettingsController
         
         $any_change = false;
         
-        $userdomain_delete = Request::optionArray('userdomain_delete');
+        $userdomain_delete = Request::getArray('userdomain_delete');
         if (count($userdomain_delete) > 0) {
             foreach ($userdomain_delete as $id) {
                 $domain = new UserDomain($id);
@@ -68,7 +68,7 @@ class Settings_UserdomainsController extends Settings_SettingsController
             $any_change = true;
         }
         
-        $new_userdomain = Request::option('new_userdomain');
+        $new_userdomain = Request::get('new_userdomain');
         if ($new_userdomain && $new_userdomain != 'none') {
             $domain = new UserDomain($new_userdomain);
             $domain->addUser($this->user->user_id);

@@ -78,7 +78,11 @@
         }
     };
 
-    $(document).ready(STUDIP.startpage.init);
+    $(document).ready(function () {
+        if ($('html').is(':not(.responsive-display)')) {
+            STUDIP.startpage.init();
+        }
+    });
 
     // Add handler for "read all" on news widget
     $(document).on('click', '#start-index a[href*="newswidget/read_all"]', function (event) {

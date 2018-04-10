@@ -16,8 +16,6 @@
  */
 class Course_BlockAppointmentsController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * Common tasks for all actions
      *

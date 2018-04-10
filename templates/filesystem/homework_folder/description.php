@@ -1,11 +1,6 @@
 <div>
     <?=_("Dieser Ordner ist ein Hausaufgabenordner. Es können nur Dateien eingestellt werden.")?>
 </div>
-<? if ($folderdata['description']) : ?>
-    <div>
-        <?= htmlReady($folderdata['description']) ?>
-    </div>
-<? endif ?>
 <? if (count($own_files)) : ?>
 <?= _("Sie selbst haben folgende Dateien in diesen Ordner eingestellt:") ?>
     <ul>
@@ -14,4 +9,8 @@
         <? endforeach ?>
     </ul>
 <? endif ?>
-
+<? if ($folderdata['description']) : ?>
+    <div>
+        <?= formatReady($folderdata['description']) ?>
+    </div>
+<? endif ?>

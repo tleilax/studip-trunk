@@ -8,7 +8,7 @@
     </label>
     <label>
         <?= _('Beschreibung') ?>
-        <textarea name="description" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($description); ?></textarea>
+        <textarea name="description" class="wysiwyg" placeholder="<?= _('Optionale Beschreibung') ?>"><?= htmlReady($description); ?></textarea>
     </label>
 </fieldset>
 

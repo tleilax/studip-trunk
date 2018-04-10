@@ -220,8 +220,12 @@ class Course_DatesController extends AuthenticatedController
         $this->checkAccess();
 
         if (!Request::get('title')) {
-            throw new Exception(_('Geben Sie einen Titel an.'));
+            $this->set_status(400);
+            $this->render_json(['message' => _('Geben Sie einen Titel an.')]);
+            return;
         }
+
+        $output = ['topic_id' => $topic->id];
 
         $date = new CourseDate(Request::option('termin_id'));
         $seminar_id = $date->range_id;
@@ -235,16 +239,16 @@ class Course_DatesController extends AuthenticatedController
             $topic->description = '';
             $topic->store();
         }
-        $date->addTopic($topic);
 
-        $factory = $this->get_template_factory();
-        $output = ['topic_id' => $topic->id];
-
-        $template = $factory->open($this->get_default_template('_topic_li'));
-        $template->topic      = $topic;
-        $template->date       = $date;
-        $template->has_access = $this->hasAccess();
-        $output['li'] = $template->render();
+        if ($date->addTopic($topic)) {
+            $factory = $this->get_template_factory();
+            $template = $factory->open($this->get_default_template('_topic_li'));
+            $template->topic      = $topic;
+            $template->date       = $date;
+            $template->has_access = $this->hasAccess();
+            $template->controller = $this;
+            $output['li'] = $template->render();
+        }
 
         $this->render_json($output);
     }

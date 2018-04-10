@@ -118,36 +118,6 @@ function sort_groups($group_field, &$groups)
     return true;
 }
 
-/**
- *
- * @param unknown_type $group_members
- * @param unknown_type $my_obj
- */
-function check_group_new($group_members, $my_obj)
-{
-    $group_last_modified = false;
-    foreach ($group_members as $member){
-        $seminar_content = $my_obj[$member['seminar_id']];
-        if ($seminar_content['visitdate'] <= $seminar_content["chdate"]
-            || $seminar_content['last_modified'] > 0){
-            $last_modified = ($seminar_content['visitdate'] <= $seminar_content["chdate"] && $seminar_content["chdate"] > $seminar_content['last_modified'] ? $seminar_content["chdate"] : $seminar_content['last_modified']);
-            if ($last_modified > $group_last_modified){
-                $group_last_modified = $last_modified;
-            }
-        }
-
-        foreach (getPluginNavigationForSeminar($member['seminar_id'], $seminar_content['visitdate']) as $navigation) {
-            if ($navigation && $navigation->isVisible(true) && $navigation->hasBadgeNumber()) {
-                if (!$group_last_modified) {
-                    $group_last_modified = time();
-                }
-            }
-        }
-    }
-
-    return $group_last_modified;
-}
-
 function getPluginNavigationForSeminar($seminar_id, $visitdate)
 {
     static $plugin_navigation;
@@ -521,15 +491,15 @@ function get_my_obj_values (&$my_obj, $user_id)
                    COUNT(IF(
                         questionnaires.startdate < UNIX_TIMESTAMP()
                         AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
-                        AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold), 
-                        questionnaires.questionnaire_id, 
+                        AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold),
+                        questionnaires.questionnaire_id,
                         NULL
                    )) AS neue,
                    MAX(IF(
                        questionnaires.startdate < UNIX_TIMESTAMP()
                        AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
-                       AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold), 
-                       questionnaires.chdate, 
+                       AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold),
+                       questionnaires.chdate,
                        0
                    )) AS last_modified
             FROM questionnaires
@@ -537,8 +507,8 @@ function get_my_obj_values (&$my_obj, $user_id)
                 INNER JOIN `myobj_".$user_id."` AS my ON (my.object_id = questionnaire_assignments.range_id AND questionnaire_assignments.range_type = 'course')
                 LEFT JOIN object_user_visits b ON (b.object_id = questionnaires.questionnaire_id AND b.user_id = :user_id AND b.type = 'vote')
             WHERE questionnaires.startdate IS NOT NULL AND questionnaires.startdate < UNIX_TIMESTAMP()
-                AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP()) 
-               
+                AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
+
             GROUP BY my.object_id ORDER BY NULL
         ");
         $statement->execute(array(

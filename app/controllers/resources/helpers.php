@@ -14,9 +14,7 @@
  */
 class Resources_HelpersController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
-    function bookable_rooms_action()
+    public function bookable_rooms_action()
     {
         if (!getGlobalPerms($GLOBALS['user']->id) == 'admin') {
             $resList = new ResourcesUserRoomsList($GLOBALS['user']->id, false, false, false);

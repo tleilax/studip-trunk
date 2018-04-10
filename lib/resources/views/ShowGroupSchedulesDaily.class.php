@@ -97,7 +97,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                 <td valign="middle">&nbsp;</td>
             </tr>
         </table>
-    <? endif; 
+    <? endif;
     }
 
     public function showScheduleGraphical($print_view = false)
@@ -116,7 +116,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
 
 
          //select view to jump from the schedule
-         if ($view_mode == "oobj") {
+         if ($view_mode == "oobj" && Context::get()) {
             $view = "openobject_assign";
          } else {
             $view = "edit_object_assign";
@@ -225,9 +225,9 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                         <?= Icon::create('arr_2left', 'clickable', ['title' => _("Vorherigen Tag anzeigen")])->asImg(16, ["alt" => _("Vorherigen Tag anzeigen"), "border" => 0]) ?>
                     </a>
                 </td>
-                
+
                 <td align="center" style="font-weight:bold;">
-                    <? echo htmlReady(strftime('%A, %x (KW %V)', $start_time));                    
+                    <? echo htmlReady(strftime('%A, %x (KW %V)', $start_time));
                         if (!empty($holiday)) echo " - ".htmlReady($holiday['name']);
                     ?>
                     <br>
@@ -274,7 +274,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                 <td align="center" valign="bottom">
                 <? if ((!$_SESSION['resources_data']['schedule_time_range']) || ($_SESSION['resources_data']['schedule_time_range'] == -1)): ?>
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
-                                                              'quick_view_mode' => $view_mode, 
+                                                              'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : 1)) ?>">
                         <?= Icon::create('arr_2down', 'clickable', ['title' => _('Spätere Belegungen anzeigen')])->asImg() ?>
                     </a>

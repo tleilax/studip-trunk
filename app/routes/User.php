@@ -224,4 +224,54 @@ class User extends \RESTAPI\RouteMap
         return $top_folder->toRawArray();
     }
 
+    /**
+     * Patches the course member data of a user and course. Pass data to be
+     * patched via a valid json object in the body. Fields that my be patched:
+     *
+     * - group - the associated group in the overview of the users's courses
+     * - visibility - visible state of the course
+     *
+     * @patch /user/:user_id/courses/:course_id
+     *
+     * @todo more patchable fields?
+     */
+    public function patchCourseGroup($user_id, $course_id)
+    {
+        $user = User::find($user_id);
+        if (!$user) {
+            $this->notFound('User not found');
+        }
+
+        if ($user->id !== $GLOBALS['user']->id) {
+            $this->halt(403, "You may not alter this user's data");
+        }
+
+        $member = CourseMember::find([$course_id, $user->id]);
+        if (!$member) {
+            $this->notFound('You are not a member of the course');
+        }
+
+        if (isset($this->data['group'])) {
+            if (!is_numeric($this->data['group']) || $this->data['group'] < 0 || $this->data['group'] > 8) {
+                $this->halt(400, 'Given group is not inside the valid range 0..8');
+            }
+            $member->gruppe = $this->data['group'];
+        }
+
+        if (isset($this->data['visibility'])) {
+            if (in_array($member->status, ['tutor', 'dozent'])) {
+                $this->halt(400, 'You may not change the visibility status for this course since you are a teacher.');
+            }
+            if (!in_array($this->data['visibility'], ['yes', 'no'])) {
+                $this->halt(400, 'Visibility may only be "yes" or "no".');
+            }
+            $member->visible = $this->data['visibility'];
+        }
+
+        if ($member->isDirty()) {
+            $member->store();
+        }
+
+        $this->halt(204);
+    }
 }

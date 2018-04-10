@@ -78,9 +78,9 @@ if (!is_array($stat)) {
     $stat['num_registered_users'] = User::countBySQL();
     $cache->write('LOGINFORM_STATISTICS', $stat, 3600);
 }
-$index_nobody_template->set_attributes(array_merge($stat,
-    ['num_online_users'     => get_users_online_count(10)] // Should be the same value as in lib/navigation/CommunityNavigation.php
-));
+$index_nobody_template->set_attributes(array_merge($stat, [
+    'num_online_users' => get_users_online_count(),
+]));
 
 if (Request::get('logout'))
 {

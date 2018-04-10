@@ -960,6 +960,12 @@ table.default tfoot .button {
   margin-bottom: 0;
   margin-top: 0;
 }
+article.studip > section > table.default:last-child {
+  margin-bottom: 0;
+}
+article.studip > section > table.default:last-child > tbody:last-child > tr:last-child > td {
+  border-bottom: 0;
+}
 table.withdetails > tbody > tr:not(.details) > td:first-child {
   background-image: url("../images/icons/blue/arr_1right.svg");
   -webkit-background-size: 16px 16px;
@@ -1262,9 +1268,6 @@ form.default .required:after {
   content: "*";
   color: red;
 }
-form.default input[type=radio] {
-  margin-right: 10px;
-}
 form.default footer {
   background-color: #e7ebf1;
   border-top: 1px solid #1f3f70;
@@ -1520,6 +1523,20 @@ form.default label.packed button {
   vertical-align: text-top;
   width: 16px;
 }
+.studip-checkbox:indeterminate + label::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 5px;
+  background-image: url("../images/icons/blue/checkbox-indeterminate.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
 .content_title {
   background-color: #e3eaf6;
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#cdd9ed), color-stop(40%, #e3eaf6), to(#e3eaf6));
@@ -1565,6 +1582,17 @@ form.default label.packed button {
   background-color: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(0, 0, 0, 0.5);
   padding: 0 0.5ex;
+}
+.formatted-content ul,
+.formatted-content ol {
+  margin: 0.5em 0;
+}
+.formatted-content ul ul,
+.formatted-content ol ul,
+.formatted-content ul ol,
+.formatted-content ol ol {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .css-tree,
 .css-tree ul {
@@ -2042,8 +2070,8 @@ form.default label.packed button {
   -webkit-flex-wrap: nowrap;
   -ms-flex-wrap: nowrap;
   flex-wrap: nowrap;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
   -webkit-transform: translate(0, 0) !important;
   -moz-transform: translate(0, 0) !important;
   -ms-transform: translate(0, 0) !important;
@@ -2053,8 +2081,13 @@ form.default label.packed button {
   top: 0px;
   z-index: 10000;
 }
-#barBottomContainer #barBottomLeft,
-#barBottomContainer #barTopFont {
+#barBottomLeft,
+#barTopFont {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 auto;
+  -ms-flex: 0 0 auto;
+  -moz-box-flex: 0;
+  flex: 0 0 auto;
   padding: 0px 15px;
   z-index: 2;
 }
@@ -2078,6 +2111,14 @@ form.default label.packed button {
 }
 #layout_footer > ul > li {
   margin: 2px;
+}
+#barBottomright {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 1 auto;
+  -ms-flex: 0 1 auto;
+  -moz-box-flex: 0;
+  flex: 0 1 auto;
+  justify-self: flex-end;
 }
 #barBottomright > ul {
   display: flex;
@@ -2149,13 +2190,16 @@ form.default label.packed button {
   align-items: center;
 }
 #barTopFont {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  -moz-box-flex: 1;
+  flex: 1;
   color: #fff;
   margin-left: 0px;
   z-index: 1002;
-  position: absolute;
-  left: 88px;
-  top: 0px;
   line-height: 40px;
+  white-space: nowrap;
 }
 .studip-logo {
   font: 0/0 a;
@@ -2708,7 +2752,8 @@ body.fixed #barTopMenu {
   background-color: #28497c;
   list-style: none;
   margin: 0px 0px 0px -15px;
-  padding: 0px 0px 0px 0px;
+  padding: 0px;
+  position: absolute;
   width: -moz-fit-content;
   width: -webkit-fit-content;
   width: fit-content;
@@ -4313,6 +4358,9 @@ div.avatar-widget div.avatar-overlay p a {
   display: block;
   font-weight: bold;
 }
+div#avatar img {
+  max-width: 100%;
+}
 a.button,
 button.button {
   background: white;
@@ -5693,13 +5741,25 @@ html.cssanimations .copyable-link-animation div {
   display: none;
 }
 .js .drag-and-drop {
-  border: 1px dotted #888;
   display: block;
-  margin: 0 20px 0 0;
+  margin: 5px;
+  margin-left: -15px;
   overflow: hidden;
-  padding: 1em;
+  padding: 10px;
+  padding-left: 0px;
   position: relative;
   text-align: center;
+  background-color: #e7ebf1;
+  background-image: url("../images/icons/blue/upload.svg");
+  -webkit-background-size: 50px 50px;
+  -moz-background-size: 50px 50px;
+  -o-background-size: 50px 50px;
+  background-size: 50px 50px;
+  background-repeat: no-repeat;
+  background-position: center 10px;
+  padding-top: 70px;
+  color: #28497c;
+  cursor: pointer;
 }
 .js .drag-and-drop input[type=file] {
   border: 0;
@@ -5712,18 +5772,13 @@ html.cssanimations .copyable-link-animation div {
   top: 0;
 }
 .js .drag-and-drop.hovered {
-  background-color: #fff8e0;
-  background-image: -moz-linear-gradient(top, #ffe, #fec);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffe), to(#fec));
-  background-image: -webkit-linear-gradient(top, #ffe, #fec);
-  background-image: -o-linear-gradient(top, #ffe, #fec);
-  background-image: linear-gradient(to bottom, #ffe, #fec);
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffee', endColorstr='#ffffeecc', GradientType=0);
-  border-radius: 1em;
-  border-style: solid;
-  box-shadow: 0 0 5px #888;
-  text-shadow: 1px 1px 3px #fc8;
+  background-color: #28497c;
+  background-image: url("../images/icons/white/upload.svg");
+  -webkit-background-size: 50px 50px;
+  -moz-background-size: 50px 50px;
+  -o-background-size: 50px 50px;
+  background-size: 50px 50px;
+  color: white;
 }
 table.attribute_table {
   border-collapse: collapse;
@@ -7262,60 +7317,6 @@ div.file_select_possibilities input[name=folder_type]:checked + label img,
 div.file_select_possibilities.content_terms_of_use_icons {
   justify-content: left;
 }
-input.document-checkbox[type="checkbox"] {
-  display: none;
-}
-input.document-checkbox[type="checkbox"] + label span {
-  display: inline-block;
-  width: 30px;
-  height: 20px;
-  margin: 0px 0px 0 0;
-  vertical-align: bottom;
-  text-align: center;
-  cursor: pointer;
-}
-input.document-checkbox[type="checkbox"] + label span::after {
-  background-repeat: no-repeat;
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  margin-left: 4;
-  background-image: url("../images/icons/blue/checkbox-unchecked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  vertical-align: text-top;
-  width: 16px;
-}
-input.document-checkbox[type="checkbox"]:checked + label span::after {
-  background-repeat: no-repeat;
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  margin-left: 4;
-  background-image: url("../images/icons/blue/checkbox-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  vertical-align: text-top;
-  width: 16px;
-}
-input.document-checkbox[type="checkbox"]:indeterminate + label span::after {
-  background-repeat: no-repeat;
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  margin-left: 4;
-  background-image: url("../images/icons/blue/checkbox-indeterminate.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  vertical-align: text-top;
-  width: 16px;
-}
 #file_edit_window,
 #file_details_window {
   display: flex;
@@ -7472,6 +7473,10 @@ form.default fieldset.select_terms_of_use > input[type=radio]:checked + label + 
 table.documents td,
 table.documents th {
   vertical-align: top;
+}
+table.documents td:first-child,
+table.documents th:first-child {
+  padding-left: 8px;
 }
 table.documents.flat td.filter-match {
   background-color: #fce2cc;
@@ -8236,16 +8241,9 @@ div.at_least_one_teacher {
 .contentbox.timesrooms form.default tfoot select {
   max-width: 30em;
 }
-.flex-row {
-  display: -ms-flexbox;
-  display: -webkit-box;
-  display: -webkit-box-flex;
-  display: -webkit-flex;
-  display: -moz-box;
-  display: flex;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  width: 100%;
+.times-rooms-grid .selectbox input[type="radio"]:checked + label {
+  font-weight: bold;
+  text-decoration: underline;
 }
 .opengraph-area {
   margin: 10px auto 5px;
@@ -10584,6 +10582,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 #globalsearch-searchbar {
   position: relative;
   top: 4px;
+  white-space: nowrap;
 }
 #globalsearch-searchbar > * {
   -webkit-box-sizing: border-box;
@@ -10806,10 +10805,15 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   -webkit-flex-wrap: nowrap;
   -ms-flex-wrap: nowrap;
   flex-wrap: nowrap;
-  flex: auto;
   margin: 0;
+  max-width: 100%;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-img {
+  -webkit-box-flex: 0;
+  -webkit-flex: 0;
+  -ms-flex: 0;
+  -moz-box-flex: 0;
+  flex: 0;
   margin-left: 6px;
   margin-right: 6px;
 }
@@ -10818,8 +10822,12 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   height: 36px;
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-data {
-  flex: auto;
-  max-width: calc(100% - 120px);
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  -moz-box-flex: 1;
+  flex: 1;
+  max-width: calc(100% - 100px);
   overflow: hidden;
   padding-right: 6px;
 }
@@ -10833,6 +10841,11 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-time {
   color: #636971;
+  -webkit-box-flex: 0;
+  -webkit-flex: 0;
+  -ms-flex: 0;
+  -moz-box-flex: 0;
+  flex: 0;
   font-size: 11px;
   font-weight: normal;
   text-align: right;
@@ -10860,6 +10873,61 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 }
 #globalsearch-searchbar #globalsearch-results article mark {
   background-color: #d0d7e3;
+}
+html.responsive-display #quicksearch_item {
+  -webkit-align-self: center;
+  -ms-align-self: center;
+  align-self: center;
+}
+html.responsive-display #globalsearch-searchbar {
+  position: static;
+  top: 0;
+}
+html.responsive-display #globalsearch-searchbar #globalsearch-input {
+  width: 100%;
+}
+html.responsive-display #globalsearch-searchbar #globalsearch-icon {
+  left: calc(100% - 16px);
+  margin-left: 0;
+}
+html.responsive-display #globalsearch-searchbar #globalsearch-list {
+  position: absolute;
+  left: 5px;
+  top: calc(40px + 5px);
+  width: calc(100vw - (2 * 5px));
+}
+html.responsive-display #globalsearch-searchbar #globalsearch-clear {
+  opacity: 1;
+}
+html.responsive-display:not(.globalsearch-visible) #globalsearch-list,
+html.responsive-display:not(.globalsearch-visible) #globalsearch-clear {
+  display: none;
+}
+html.responsive-display.globalsearch-visible #barBottomright ul li {
+  display: none;
+}
+html.responsive-display.globalsearch-visible #barBottomright ul li:first-child,
+html.responsive-display.globalsearch-visible #barBottomright ul #quicksearch_item,
+html.responsive-display.globalsearch-visible #barBottomright ul #sidebar-menu {
+  display: initial;
+}
+html.responsive-display.globalsearch-visible .helpbar {
+  z-index: 0;
+}
+html.responsive-display.globalsearch-visible #layout_page {
+  position: relative;
+  filter: blur(1px);
+}
+html.responsive-display.globalsearch-visible #layout_page::before {
+  content: ' ';
+  display: block;
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
+  background: rgba(40, 73, 124, 0.5);
+  z-index: 1;
 }
 #responsive-container {
   display: none;
@@ -11052,7 +11120,7 @@ label[for="responsive-toggle"]::before {
 #barBottomright #sidebar-menu {
   cursor: pointer;
   display: none;
-  margin: 0 5px;
+  margin: 0 2px;
   vertical-align: top;
 }
 #barBottomright #sidebar-menu::before {
@@ -11296,13 +11364,6 @@ label[for="responsive-toggle"]::before {
   opacity: 1;
   max-width: 1000px;
   width: 100% !important;
-}
-.responsive-display #globalsearch-searchbar #globalsearch-input {
-  max-width: 215px;
-}
-.responsive-display #globalsearch-searchbar #globalsearch-list {
-  width: 100vw;
-  left: -46px;
 }
 .responsive-display #barBottomright ul li:first-child {
   -webkit-box-flex: 1;

@@ -184,9 +184,7 @@ class ForumAbo
             if ($force_email) {
                 $title = implode(' >> ', ForumEntry::getFlatPathToPosting($topic_id));
 
-                $subject = addslashes(
-                    _('[Forum]') . ' ' . ($title ?: _('Neuer Beitrag'))
-                );
+                $subject = _('[Forum]') . ' ' . ($title ?: _('Neuer Beitrag'));
 
                 $htmlMessage = $template->render(
                     compact('user_id', 'topic', 'path')
@@ -194,13 +192,12 @@ class ForumAbo
 
                 $textMessage = trim(kill_format($htmlMessage));
 
-                $userWantsHtml = UserConfig::get($user_id)
-                    ->getValue('MAIL_AS_HTML');
+                $userWantsHtml = UserConfig::get($user_id)->MAIL_AS_HTML;
 
                 StudipMail::sendMessage(
                     $user->email,
                     $subject,
-                    addslashes($textMessage),
+                    $textMessage,
                     $userWantsHtml ? $htmlMessage : null
                 );
             }

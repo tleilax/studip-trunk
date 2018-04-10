@@ -26,7 +26,7 @@ class Course_DetailsController extends AuthenticatedController
 
         $course_id = Request::option('sem_id', $args[0]);
         if (empty($course_id)) {
-            checkObject(); //wirft Exception, wenn $SessionSeminar leer ist
+            checkObject(); //wirft Exception, wenn Context::get() leer ist
             $course_id = $GLOBALS['SessionSeminar'];
         }
 
@@ -261,6 +261,17 @@ class Course_DetailsController extends AuthenticatedController
                     _('Zurück zur letzten Auswahl'),
                     URLHelper::getLink($this->send_from_search_page),
                     Icon::create('link-intern')
+                );
+            }
+
+            if (!$this->course->admission_binding
+                && in_array($GLOBALS['perm']->get_studip_perm($this->course->id), ['user','autor'])
+                && !$this->course->getSemClass()->isGroup())
+            {
+                $links->addLink(
+                    _('Austragen aus der Veranstaltung'),
+                    $this->url_for("my_courses/decline/{$this->course->id}", ['cmd' => 'suppose_to_kill']),
+                    Icon::create('door-leave')
                 );
             }
 

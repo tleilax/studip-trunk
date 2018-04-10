@@ -134,36 +134,4 @@ class SemesterData
         $ret = Semester::findNext($timestamp);
         return $ret ? $ret->toArray() : false;
     }
-
-    function insertNewSemester($semesterdata)
-    {
-        $semester = new Semester();
-        $semester->setData(remove_magic_quotes($semesterdata));
-        if ($semester->store()) {
-            Semester::getall(true);
-            return $semester->getId();
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * update an existing semester
-     *
-     * @param array() $semesterdata
-     * @return boolean
-     */
-    function updateExistingSemester($semesterdata)
-    {
-        $semester = Semester::find($semesterdata['semester_id']);
-        if ($semester) {
-            $semester->setData(remove_magic_quotes($semesterdata));
-            if ($semester->store()) {
-                Semester::getall(true);
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
 }

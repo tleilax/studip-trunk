@@ -12,10 +12,8 @@
  * @category    Stud.IP
  */
 
-class MultipersonsearchController extends AuthenticatedController {
-
-    protected $utf8decode_xhr = true;
-
+class MultipersonsearchController extends AuthenticatedController
+{
     /**
      * Ajax action used for searching persons.
      *

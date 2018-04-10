@@ -19,8 +19,6 @@ require_once 'lib/admission.inc.php';
 
 class Admission_CoursesetController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * Things to do before every page load.
      */

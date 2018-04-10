@@ -418,7 +418,6 @@ class SeminarCycleDate extends SimpleORMap
         foreach ($new_dates as $semester_dates) {
             //update or create singeldate entries
             foreach ($semester_dates['dates'] as $date) {
-                $date->termin_id = $date->getNewId();
                 if ($date instanceof CourseDate && $date->date >= time() && count($topics) > 0) {
                     $date->topics = array_shift($topics);
                 }

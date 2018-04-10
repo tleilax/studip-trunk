@@ -17,8 +17,6 @@
 
 class Admission_RuleAdministrationController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * @see AuthenticatedController::before_filter
      */
@@ -72,7 +70,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController
     /**
      * Shows where the given admission rule is activated (system wide or
      * only at specific institutes).
-     * 
+     *
      * @param String $ruleType Class name of the rule type to check.
      */
     public function check_activation_action($ruleType)
@@ -100,7 +98,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController
 
     /**
      * (De-)Activates the given rule type for system wide usage.
-     * 
+     *
      * @param  String $ruleType the class name of the rule type to activate.
      */
     public function activate_action($ruleType)
@@ -197,14 +195,14 @@ class Admission_RuleAdministrationController extends AuthenticatedController
 
     /**
      * Downloads an admission rule as ZIP file.
-     * @param String $ruleName Class name of the admission rule, is used for file name. 
-     *   
+     * @param String $ruleName Class name of the admission rule, is used for file name.
+     *
      */
     public function download_action($ruleName)
     {
         $dirname = $GLOBALS['STUDIP_BASE_PATH'] . '/lib/admissionrules/'.
             mb_strtolower($ruleName) . '/';
-        
+
         $filename = $ruleName.'.zip';
         $filepath = get_config('TMP_PATH').'/'.$filename;
 

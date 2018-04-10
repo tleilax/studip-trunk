@@ -145,28 +145,6 @@ div.file_select_possibilities.content_terms_of_use_icons {
 }
 
 
-input.document-checkbox[type="checkbox"] {
-    display:none;
-}
-input.document-checkbox[type="checkbox"] + label span {
-    display:inline-block;
-    width:30px;
-    height:20px;
-    margin:0px 0px 0 0;
-    vertical-align:bottom;
-    text-align: center;
-    .icon('after', "checkbox-unchecked", 'clickable', 16, 4);
-    cursor:pointer;
-}
-input.document-checkbox[type="checkbox"]:checked + label span {
-    .icon('after', "checkbox-checked", 'clickable', 16, 4);
-}
-
-input.document-checkbox[type="checkbox"]:indeterminate + label span {
-    .icon('after', "checkbox-indeterminate", 'clickable', 16, 4);
-}
-
-
 #file_edit_window, #file_details_window {
     display: flex;
     justify-content: space-between;
@@ -334,13 +312,17 @@ form.default fieldset.select_terms_of_use {
 table.documents {
     td, th {
         vertical-align: top;
+
+        &:first-child {
+            padding-left: 8px;
+        }
     }
 
     &.flat td.filter-match {
         background-color: @yellow-20;
     }
 
-    tr:target { 
+    tr:target {
         background-color: @activity-color-20;
     }
 }

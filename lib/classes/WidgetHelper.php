@@ -222,9 +222,7 @@ class WidgetHelper
      */
     static function removeWidget($id, $pluginName, $range_id)
     {
-        $query = "DELETE FROM config_values WHERE field = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($pluginName));
+        UserConfig::get($range_id)->delete($pluginName);
 
         $query = "DELETE FROM widget_user WHERE id = ? AND range_id = ?";
         $statement = DBManager::get()->prepare($query);

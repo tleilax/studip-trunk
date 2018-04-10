@@ -77,11 +77,19 @@
     }
 
     .ms-selection li {
+        &[style*="background-image"] {
+            padding-left: (@element-padding + @icon-size + @element-padding + @avatar-size + 2 * @avatar-border)
+        }
+
+        position: relative;
+
         .icon('before', 'arr_1left', 'info_alt', @icon-size);
         &::before {
             .flex-item(0, 1);
-            margin-left: (-@avatar-size - 2 * @avatar-border);
-            margin-right: (@avatar-size + 2 * @avatar-border);
+            position: absolute;
+            left: @element-padding;
+            top: 50%;
+            .translate(0, -50%);
             visibility: hidden;
         }
         &:hover {

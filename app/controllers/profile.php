@@ -57,6 +57,10 @@ class ProfileController extends AuthenticatedController
      */
     public function index_action()
     {
+        if ($GLOBALS['perm']->have_profile_perm('user', $this->current_user->user_id)) {
+            PageLayout::addSqueezePackage('avatar');
+        }
+
         // Template Index_Box for render-partials
         $layout           = $GLOBALS['template_factory']->open('shared/content_box');
         $this->shared_box = $layout;
@@ -119,17 +123,6 @@ class ProfileController extends AuthenticatedController
 
         if ($this->current_user->user_id === $this->user->user_id && $GLOBALS['has_denoted_fields']) {
             $this->has_denoted_fields = true;
-        }
-
-        // get kings informations
-        if (Config::Get()->SCORE_ENABLE) {
-            if ($this->current_user->user_id === $GLOBALS['user']->id || $this->current_user->score) {
-                $kings = $this->current_user->getStudipKingIcon();
-
-                if ($kings != null) {
-                    $this->kings = $kings;
-                }
-            }
         }
 
         $show_admin = ($this->perm->have_perm('autor') && $this->user->user_id == $this->current_user->user_id)
@@ -263,14 +256,20 @@ class ProfileController extends AuthenticatedController
         //shall be visible in the sidebar. Therefore we must construct
         //a generic WidgetElement object and its HTML in here.
 
+        if (Config::Get()->SCORE_ENABLE) {
+            if ($this->current_user->user_id === $GLOBALS['user']->id || $this->current_user->score) {
+                $kings = $this->current_user->getStudipKingIcon();
+            }
+        }
+
         $avatar_widget = new TemplateWidget(
             $this->current_user->getFullName(),
             $this->get_template_factory()->open('profile/widget-avatar.php'),
             [
-                'avatar' => Avatar::getAvatar($this->current_user->user_id),
-                'kings' => $this->kings,
-                'views' => object_return_views($this->current_user->user_id),
-                'score' => $this->score,
+                'avatar'      => Avatar::getAvatar($this->current_user->user_id),
+                'kings'       => $kings,
+                'views'       => object_return_views($this->current_user->user_id),
+                'score'       => $this->score,
                 'score_title' => $this->score_title,
                 'current_user' => $this->current_user->user_id
             ]

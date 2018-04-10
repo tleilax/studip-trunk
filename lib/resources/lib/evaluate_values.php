@@ -1624,7 +1624,7 @@ if (Request::submitted('save_state')) {
 
     // check if request has been closed by another process in the meantime
     if ($reqObj->closed == null || $reqObj->closed == 2) {
-        throw new Exception(_('Sie haben versucht eine bereits geschlossen Raumanfrage zu bearbeiten!'));
+        throw new Exception(_('Sie haben versucht, eine bereits geschlossene Raumanfrage zu bearbeiten!'));
     } else {
         //if not single date-mode, we have to load all termin_ids from other requests of this seminar, because these dates don't have to be touched (they have an own request!)
         if (!$reqObj->getTerminId()) {

@@ -1,12 +1,20 @@
 .drag-and-drop { display: none; }
 .js .drag-and-drop {
-    border: 1px dotted #888;
     display: block;
-    margin: 0 20px 0 0;
+    margin: 5px;
+    margin-left: -15px;
     overflow: hidden;
-    padding: 1em;
+    padding: 10px;
+    padding-left: 0px;
     position: relative;
     text-align: center;
+    background-color: @content-color-20;
+    .background-icon('upload', 'clickable', 50);
+    background-repeat: no-repeat;
+    background-position: center 10px;
+    padding-top: 70px;
+    color: @base-color;
+    cursor: pointer;
 
     input[type=file] {
         border: 0;
@@ -20,11 +28,9 @@
     }
 
     &.hovered {
-        #gradient > .vertical(#ffe, #fec);
-        border-radius: 1em;
-        border-style: solid;
-        box-shadow: 0 0 5px #888;
-        text-shadow: 1px 1px 3px #fc8;
+        background-color: @base-color;
+        .background-icon('upload', 'info_alt', 50);
+        color: white;
     }
 }
 

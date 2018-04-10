@@ -1,13 +1,13 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 
 <form id="edit_help_content_form" class="default"
-      action="<?= $controller->url_for('help_content/edit/' . $help_content_id) ?>"
+      action="<?= $controller->url_for('help_content/store' . ($help_content_id ? '/' . $help_content_id : ''), $parameters) ?>"
       method="POST">
     <?= CSRFProtection::tokenTag(); ?>
     <fieldset>
-        <? if ($help_content->route) : ?>
-            <legend><?= sprintf(_('Seite %s'), $help_content->route) ?></legend>
-            <input type="hidden" name="help_content_route" value="<?= $help_content->route ?>">
+        <? if ($help_content_route) : ?>
+            <legend><?= sprintf(_('Seite %s'), $help_content_route) ?></legend>
+            <input type="hidden" name="help_content_route" value="<?= $help_content_route ?>">
         <? else : ?>
             <legend><?= _('Neuer Hilfe-Text') ?></legend>
             <label for="help_content_route">
@@ -22,7 +22,9 @@
                 <span class="required"><?= _('Sprache des Textes:') ?></span>
                 <select name="help_content_language">
                     <? foreach ($GLOBALS['INSTALLED_LANGUAGES'] as $key => $language) : ?>
-                        <option value="<?= mb_substr($key, 0, 2) ?>"<?= ($help_content->language == mb_substr($key, 0, 2)) ? ' selected' : '' ?>><?= $language['name'] ?></option>
+                        <option value="<?= mb_substr($key, 0, 2) ?>"<?= ($help_content->language == mb_substr($key, 0, 2)) ? ' selected' : '' ?>>
+                            <?= $language['name'] ?>
+                        </option>
                     <? endforeach ?>
                 </select>
             </label>
@@ -34,12 +36,9 @@
         </label>
 
         <footer data-dialog-button="1">
-            <? if ($via_ajax): ?>
-                <?= Button::create(_('Speichern'), 'save_help_content', ['data-dialog' => '']) ?>
-            <? else: ?>
-                <?= Button::createAccept(_('Speichern'), 'save_help_content') ?>
-                <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('help_content/admin_overview'), []) ?>
-            <? endif; ?>
+            <?= Button::create(_('Speichern'), 'save_help_content', ['data-dialog' => '']) ?>
+            <?= Button::createAccept(_('Speichern'), 'save_help_content') ?>
+            <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('help_content/admin_overview'), []) ?>
         </footer>
     </fieldset>
 </form>

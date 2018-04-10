@@ -7,22 +7,32 @@ if (!$controllerpath) {
 }
 $is_readable = $folder->isReadable($GLOBALS['user']->id);
 $owner = User::find($folder->user_id) ?: new User();
- ?>
 
-<tr id="row_folder_<?= $folder->id ?>">
+$permissions = [];
+if ($is_readable) {
+    $permissions[] = 'r';
+}
+if ($folder->isEditable($GLOBALS['user']->id)) {
+    $permissions[] = 'w';
+}
+if ($folder->isReadable($GLOBALS['user']->id)) {
+    $permissions[] = 'd';
+}
+?>
+
+<tr id="row_folder_<?= $folder->id ?>" data-permissions="<?= implode($permissions) ?>">
     <td>
     <? if ($is_readable) : ?>
-        <input type="checkbox" name="ids[]" class="document-checkbox"
-               id="file_checkbox_<?= $folder->getId() ?>"
-               value="<?= $folder->getId() ?>"
-               onchange="STUDIP.Files.toggleBulkButtons();"
+        <input type="checkbox"
+               name="ids[]"
+               class="studip-checkbox"
+               id="file_checkbox_<?= $folder->id ?>"
+               value="<?= $folder->id ?>"
                <? if (in_array($folder->getId(), (array)$marked_element_ids)) echo 'checked'; ?>>
-        <label for="file_checkbox_<?= $folder->getId() ?>" class="text-bottom">
-            <span></span>
-        </label>
+        <label for="file_checkbox_<?= $folder->id ?>"></label>
     <? endif?>
     </td>
-    <td class="document-icon" data-sort-value="0">
+    <td class="document-icon" data-sort-value="<?=crc32(get_class($folder))?>">
     <a href="<?= $controller->link_for($controllerpath . '/' . $folder->getId())  ?>">
             <?= $folder->getIcon('clickable')->asImg(26) ?>
         </a>

@@ -245,10 +245,20 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             }
         }
         if ($config['db_fields'][$config['pk'][0]]['extra'] == 'auto_increment') {
-            $config['registered_callbacks']['before_store'][] = 'cbAutoIncrementColumn';
-            $config['registered_callbacks']['after_create'][] = 'cbAutoIncrementColumn';
+            if (!isset($config['registered_callbacks']['before_store'])) {
+                $config['registered_callbacks']['before_store'] = [];
+            }
+            array_unshift($config['registered_callbacks']['before_store'], 'cbAutoIncrementColumn');
+
+            if (!isset($config['registered_callbacks']['after_create'])) {
+                $config['registered_callbacks']['after_create'] = [];
+            }
+            array_unshift($config['registered_callbacks']['after_create'], 'cbAutoIncrementColumn');
         } elseif (count($config['pk']) === 1) {
-            $config['registered_callbacks']['before_store'][] = 'cbAutoKeyCreation';
+            if (!isset($config['registered_callbacks']['before_store'])) {
+                $config['registered_callbacks']['before_store'] = [];
+            }
+            array_unshift($config['registered_callbacks']['before_store'], 'cbAutoKeyCreation');
         }
 
         $auto_notification_map['after_create'] = $class . 'DidCreate';
@@ -284,8 +294,18 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         } else {
             $config['i18n_fields'] = array();
         }
-        $config['registered_callbacks']['after_initialize'][] = 'cbAfterInitialize';
-        $config['known_slots'] = array_merge(array_keys($config['db_fields']), array_keys($config['alias_fields'] ?: []), array_keys($config['additional_fields'] ?: []), array_keys($config['relations'] ?: []));
+
+        if (!isset($config['registered_callbacks']['after_initialize'])) {
+            $config['registered_callbacks']['after_initialize'] = [];
+        }
+        array_unshift($config['registered_callbacks']['after_initialize'], 'cbAfterInitialize');
+
+        $config['known_slots'] = array_merge(
+            array_keys($config['db_fields']),
+            array_keys($config['alias_fields'] ?: []),
+            array_keys($config['additional_fields'] ?: []),
+            array_keys($config['relations'] ?: [])
+        );
 
         foreach (array_map('mb_strtolower', get_class_methods($class)) as $method) {
             if (in_array(mb_substr($method, 0, 3), ['get', 'set'])) {
@@ -433,7 +453,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     {
         $class = get_called_class();
         $record = new $class();
-        $record->setData($data, true);
+        $record->setData($data, !$is_new);
         $record->setNew($is_new);
         return $record;
     }

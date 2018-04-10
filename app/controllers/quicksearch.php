@@ -18,8 +18,6 @@
  */
 class QuicksearchController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * the one action which is called by the QuickSearch-form when typed in
      * by user.

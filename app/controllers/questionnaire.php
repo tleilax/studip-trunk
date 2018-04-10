@@ -5,11 +5,9 @@ require_once 'lib/classes/QuestionType.interface.php';
 
 class QuestionnaireController extends AuthenticatedController
 {
-
     protected $allow_nobody = true; //nobody is allowed
-    protected $utf8decode_xhr = true; //uf8decode request parameters from XHR ?
 
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
         if ($action != 'courseoverview' && Navigation::hasItem("/tools/questionnaire")) {
@@ -269,7 +267,7 @@ class QuestionnaireController extends AuthenticatedController
                     }
                     $answer->store();
                 }
-                if ($this->questionnaire['anonymous']) {
+                if ($this->questionnaire['anonymous'] && ($GLOBALS['user']->id !== "nobody")) {
                     $anonymous_answer = new QuestionnaireAnonymousAnswer();
                     $anonymous_answer['questionnaire_id'] = $this->questionnaire->getId();
                     $anonymous_answer['user_id'] = $GLOBALS['user']->id;

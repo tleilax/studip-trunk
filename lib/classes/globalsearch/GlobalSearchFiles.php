@@ -68,7 +68,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                     $mycourses = "SELECT DISTINCT i.`seminar_id`
                                   FROM `seminar_inst` i
                                   JOIN `seminare` s ON (s.`Seminar_id` = i.`seminar_id`)
-                                  WHERE i.`institute_id` IN ('" . implode(',', $institutes) . "')
+                                  WHERE i.`institut_id` IN ('" . implode(',', $institutes) . "')
                                     AND (s.`Name` LIKE {$prequery} OR s.`VeranstaltungsNummer` LIKE {$prequery})";
                     break;
                 /*
@@ -140,7 +140,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                             WHERE (fo.`range_id` IN (
                                     SELECT `Seminar_id`
                                     FROM `seminar_inst`
-                                    WHERE `institute_id` IN ('" . implode("','", $institutes) . "')
+                                    WHERE `institut_id` IN ('" . implode("','", $institutes) . "')
                                   )
                                   OR fo.`range_id` = '{$GLOBALS['user']->id}'
                                   OR fo.`range_id` IN ('" . implode("','", $institutes) . "')

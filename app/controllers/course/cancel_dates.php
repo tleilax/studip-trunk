@@ -15,8 +15,6 @@
  */
 class Course_CancelDatesController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * common tasks for all actions
      */
@@ -54,17 +52,17 @@ class Course_CancelDatesController extends AuthenticatedController
     public function store_action()
     {
         CSRFProtection::verifyUnsafeRequest();
-        $sem     = Seminar::getInstance($this->course_id);
+        $sem = Seminar::getInstance($this->course_id);
         foreach ($this->dates as $date) {
             $sem->cancelSingleDate($date->getTerminId(), $date->getMetadateId());
             $date->setComment(Request::get('cancel_dates_comment'));
             $date->setExTermin(true);
             $date->store();
         }
-        if (Request::int('cancel_dates_snd_message') && count($this->dates)) {
+        if (Request::int('cancel_dates_snd_message') && count($this->dates) > 0) {
             $snd_messages = raumzeit_send_cancel_message(Request::get('cancel_dates_comment'), $this->dates);
-            if ($snd_messages) {
-                $msg = sprintf(_('Es wurden %s Benachrichtigungen gesendet.'), $snd_messages);
+            if ($snd_messages > 0) {
+                $msg = _('Alle Teilnehmenden wurden benachrichtigt.');
             }
         }
         PageLayout::postSuccess(_('Folgende Termine wurden abgesagt') . ($msg ? ' (' . $msg . '):' : ':'), array_map(function ($d) {

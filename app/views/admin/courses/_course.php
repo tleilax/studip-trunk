@@ -72,7 +72,8 @@ if (!$values['parent_course'] || !in_array($values['parent_course'], array_keys(
         <? endif ?>
         <? if (in_array('type', $view_filter)) : ?>
             <td>
-                <strong><?= $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$values["status"]]["class"]]['name'] ?></strong>: <?= $GLOBALS['SEM_TYPE'][$values["status"]]["name"] ?>
+                <?= htmlReady($GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$values["status"]]["class"]]['name']) ?>:
+                <strong><?= htmlReady($GLOBALS['SEM_TYPE'][$values["status"]]["name"]) ?></strong>
             </td>
         <? endif ?>
         <? if (in_array('room_time', $view_filter)) : ?>

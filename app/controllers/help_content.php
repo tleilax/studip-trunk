@@ -21,8 +21,6 @@
 
 class HelpContentController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * Callback function being called before an action is executed.
      */
@@ -31,12 +29,14 @@ class HelpContentController extends AuthenticatedController
         parent::before_filter($action, $args);
 
         $this->help_admin = $GLOBALS['perm']->have_perm('root') || RolePersistence::isAssignedRole($GLOBALS['user']->id, 'Hilfe-Administrator(in)');
+
+        $this->buildSidebar($action);
     }
 
     /**
      * Administration page for help content
      */
-    function admin_overview_action()
+    public function admin_overview_action()
     {
         // check permission
         if (!$GLOBALS['auth']->is_authenticated() || $GLOBALS['user']->id === 'nobody') {
@@ -58,35 +58,21 @@ class HelpContentController extends AuthenticatedController
         }
         if (Request::submitted('apply_help_content_filter')) {
             if (Request::get('help_content_searchterm') AND (mb_strlen(trim(Request::get('help_content_searchterm'))) < 3))
-                PageLayout::postMessage(MessageBox::error(_('Der Suchbegriff muss mindestens 3 Zeichen lang sein.')));
+                PageLayout::postError(_('Der Suchbegriff muss mindestens 3 Zeichen lang sein.'));
             if (mb_strlen(trim(Request::get('help_content_searchterm'))) >= 3) {
                 $this->help_content_searchterm = htmlReady(Request::get('help_content_searchterm'));
-                $this->filter_text = sprintf(_('Angezeigt werden Hilfe-Texte zum Suchbegriff "%s".'), $this->help_content_searchterm);
+                $this->filter_text             = sprintf(_('Angezeigt werden Hilfe-Texte zum Suchbegriff "%s".'), $this->help_content_searchterm);
             }
         }
 
         // load help content
         $this->help_contents = HelpContent::GetContentByFilter($this->help_content_searchterm);
-
-        // save settings
-        if (Request::submitted('save_help_content_settings')) {
-            foreach($this->help_contents as $help_content_id => $help_content) {
-                // set status as chosen
-                if ((Request::get('help_content_status_'.$help_content_id) == '1') AND (!$this->help_contents[$help_content_id]->visible)) {
-                    $this->help_contents[$help_content_id]->visible = 1;
-                    $this->help_contents[$help_content_id]->store();
-                } elseif ((Request::get('help_content_status_'.$help_content_id) != '1') AND ($this->help_contents[$help_content_id]->visible)) {
-                    $this->help_contents[$help_content_id]->visible = 0;
-                    $this->help_contents[$help_content_id]->store();
-                }
-            }
-        }
     }
 
     /**
      * Administration page for help content conflicts
      */
-    function admin_conflicts_action()
+    public function admin_conflicts_action()
     {
         // check permission
         if (!$GLOBALS['auth']->is_authenticated() || $GLOBALS['user']->id === 'nobody') {
@@ -107,9 +93,9 @@ class HelpContentController extends AuthenticatedController
     /**
      * resolves help content conflict
      *
-     * @param String $id         id of help content
+     * @param String $id id of help content
      */
-    function resolve_conflict_action($id, $mode)
+    public function resolve_conflict_action($id, $mode)
     {
         // check permission
         if (!$GLOBALS['auth']->is_authenticated() || $GLOBALS['user']->id === 'nobody') {
@@ -119,80 +105,152 @@ class HelpContentController extends AuthenticatedController
 
         $this->help_content = HelpContent::GetContentByID($id);
         if ($mode == 'accept') {
-            $this->help_content->studip_version    = $GLOBALS['SOFTWARE_VERSION'];
+            $this->help_content->studip_version = $GLOBALS['SOFTWARE_VERSION'];
             $this->help_content->store();
-        }
-        elseif ($mode == 'delete') {
+        } elseif ($mode == 'delete') {
             $this->help_content->delete();
         }
+
         $this->redirect('help_content/admin_conflicts');
+    }
+
+    /**
+     * add new help content
+     */
+    public function add_action()
+    {
+        if (!$this->help_admin) {
+            return $this->render_nothing();
+        }
+        PageLayout::setTitle(_('Hilfe-Text erstellen'));
+
+        $parameters = [];
+        if (Request::get('from')) {
+            $parameters['from'] = Request::get('from');
+        }
+        $this->parameters         = $parameters;
+        $this->help_content_route = Request::get('help_content_route');
+
+        $this->render_template('help_content/edit');
     }
 
     /**
      * edit help content
      *
-     * @param String $id         id of help content
+     * @param String $id id of help content
      */
-    function edit_action($id)
+    public function edit_action($id)
     {
         if (!$this->help_admin) {
             return $this->render_nothing();
         }
-        CSRFProtection::verifySecurityToken();
-        if ($id == 'new') {
-            PageLayout::setTitle(_('Hilfe-Text erstellen'));
 
-            $this->help_content = new HelpContent();
-            $this->help_content->global_content_id = $this->content_id = md5(uniqid('help_content',1));
-            $this->help_content->studip_version    = $GLOBALS['SOFTWARE_VERSION'];
-            $this->help_content->position          = 1;
-            $this->help_content->custom            = 1;
-            $this->help_content->language          = Request::get('help_content_language') ?: mb_substr($GLOBALS['user']->preferred_language, 0, 2);
-            $this->help_content->route             = Request::get('help_content_route');
-        } else {
-            PageLayout::setTitle(_('Hilfe-Text bearbeiten'));
+        PageLayout::setTitle(_('Hilfe-Text bearbeiten'));
 
-            $this->help_content = HelpContent::GetContentByID($id);
+        $parameters = [];
+        if (Request::get('from')) {
+            $parameters['from'] = Request::get('from');
         }
+        $this->parameters = $parameters;
 
-        if (is_object($this->help_content)) {
-            if (Request::submitted('save_help_content')) {
-                if ($id != 'new' AND $this->help_content->isNew())
-                    throw new AccessDeniedException(_('Der Hilfe-Text mit der angegebenen Route existiert nicht.'));
-                $this->help_content->content         = trim(Request::get('help_content_content'));
-                $this->help_content->route           = trim(Request::get('help_content_route'));
-                $this->help_content->author_email    = $GLOBALS['user']->Email;
-                $this->help_content->chdate          = time();
-                if (Request::option('help_content_language'))
-                    $this->help_content->language    = Request::option('help_content_language');
-                /*if ($this->help_content->installation_id != $GLOBALS['STUDIP_INSTALLATION_ID']) {
-                    $old_id = $this->help_content->getId();
-                    $this->help_content->setNew(true);
-                    $this->help_content->setId($this->help_content->getNewId());
-                    $this->help_content->content_id = $this->help_content->getId();
-                    if ($this->help_content->store()) {
-                        $delete_help_content = HelpContent::GetContentByID($old_id);
-                        //$delete_help_content->delete();
-                    } else
-                        PageLayout::postMessage(MessageBox::error(_('Eintrag konnte nicht gespeichert werden')));
-                }*/
-                $this->help_content->installation_id = $GLOBALS['STUDIP_INSTALLATION_ID'];
-                $this->help_content->store();
+        $this->help_content       = HelpContent::GetContentByID($id);
+        $this->help_content_route = $this->help_content->route;
+        $this->help_content_id    = $id;
+    }
 
-                $this->response->add_header('X-Dialog-Close', '1');
+    /**
+     * Store changes
+     *
+     * @param string $id
+     *
+     * @throws InvalidSecurityTokenException
+     */
+    public function store_action($id = '')
+    {
+        CSRFProtection::verifySecurityToken();
+
+        $content_id         = md5(uniqid('help_content', 1));
+        $create_new_content = false;
+        if ($id == '') {
+            $create_new_content = true;
+        } else {
+            // load content by id
+            $help_content = HelpContent::GetContentByID($id);
+            // check if the language has been changed
+            if (Request::option('help_content_language') && $help_content != Request::option('help_content_language') && Request::get('from')) {
+                // check if a content exists for the given route and the language
+                $help_content = HelpContent::findOneBySQL('`language` = ? AND `route` = ?', [Request::option('help_content_language'), Request::get('from')]);
+                if (is_null($help_content)) {
+                    $create_new_content = true;
+                }
             }
         }
 
-        // prepare edit dialog
-        $this->help_content_id = $id;
+        // create new content
+        if ($create_new_content) {
+            $help_content = new HelpContent();
+            $help_content->setNew(true);
+        }
+
+        if ($help_content->isNew()) {
+            $help_content->global_content_id = $content_id;
+            $help_content->content_id        = $content_id;
+            $help_content->studip_version    = $GLOBALS['SOFTWARE_VERSION'];
+            $help_content->position          = 1;
+            $help_content->custom            = 1;
+            $help_content->language          = Request::get('help_content_language') ?: mb_substr($GLOBALS['user']->preferred_language, 0, 2);
+        }
+
+        $help_content->content         = Request::get('help_content_content');
+        $help_content->route           = Request::get('help_content_route');
+        $help_content->author_email    = $GLOBALS['user']->Email;
+        $help_content->installation_id = $GLOBALS['STUDIP_INSTALLATION_ID'];
+
+        if ($help_content->store()) {
+            PageLayout::postSuccess(_('Der Hilfe-Text wurde erfolgreich gespeichert!'));
+        }
+
+        if (Request::isXhr() && Request::get('from')) {
+            $this->response->add_header('X-Location', URLHelper::getURL(Request::get('from')));
+            $this->render_nothing();
+        } else {
+            $this->relocate('help_content/admin_overview');
+        }
+    }
+
+    /**
+     * save settings
+     */
+    public function store_settings_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+
+        $this->help_contents = HelpContent::GetContentByFilter(Request::get('help_content_searchterm'));
+        $count               = 0;
+        foreach ($this->help_contents as $help_content_id => $help_content_id) {
+            // set status as chosen
+            if ((Request::get('help_content_status_' . $help_content_id) == '1') && (!$this->help_contents[$help_content_id]->visible)) {
+                $this->help_contents[$help_content_id]->visible = 1;
+            } elseif ((Request::get('help_content_status_' . $help_content_id) != '1') && ($this->help_contents[$help_content_id]->visible)) {
+                $this->help_contents[$help_content_id]->visible = 0;
+            }
+            if ($this->help_contents[$help_content_id]->store()) {
+                $count++;
+            }
+        }
+
+        if($count) {
+            PageLayout::postSuccess(sprintf(ngettext('%u Änderung wurde durchgeführt', '%u Änderungen wurden durchgeführt', $count), $count));
+        }
+        $this->redirect('help_content/admin_overview');
     }
 
     /**
      * delete help content
      *
-     * @param String $id         id of help content
+     * @param String $id id of help content
      */
-    function delete_action($id)
+    public function delete_action($id)
     {
         if (!$this->help_admin) {
             return $this->render_nothing();
@@ -206,12 +264,46 @@ class HelpContentController extends AuthenticatedController
             if (Request::submitted('delete_help_content')) {
                 PageLayout::postMessage(MessageBox::success(sprintf(_('Der Hilfe-Text zur Route "%s" wurde gelöscht.'), $this->help_content->route)));
                 $this->help_content->delete();
-                header('X-Dialog-Close: 1');
+                $this->response->add_header('X-Dialog-Close', 1);
                 return $this->render_nothing();
             }
         }
 
         // prepare delete dialog
         $this->help_content_id = $id;
+    }
+
+    /**
+     * Build local sidebar
+     */
+    private function buildSidebar($action)
+    {
+        $sidebar = Sidebar::get();
+        $widget  = new ViewsWidget();
+
+        $widget->addLink(
+            _('Übersicht'),
+            $this->url_for('help_content/admin_overview')
+        )->setActive($action == 'admin_overview');
+
+        $widget->addLink(
+            _('Konflikte'),
+            $this->url_for('help_content/admin_conflicts')
+        )->setActive($action == 'admin_conflicts');
+
+        $sidebar->addWidget($widget);
+
+        if ($action == 'admin_overview') {
+            $widget = new ActionsWidget();
+            $widget->addLink(
+                _('Hilfe-Text erstellen'),
+                $this->url_for('help_content/add'),
+                Icon::create('add', 'clickable'), ['data-dialog' => 'size=auto;reload-on-close', 'target' => '_blank']
+            );
+            $sidebar->addWidget($widget);
+            $search = new SearchWidget('?apply_help_content_filter=1');
+            $search->addNeedle(_('Suchbegriff'), 'help_content_searchterm');
+            $sidebar->addWidget($search);
+        }
     }
 }

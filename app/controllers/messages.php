@@ -800,7 +800,9 @@ class MessagesController extends AuthenticatedController {
 
         $error = $message_top_folder->validateUpload($file, $GLOBALS['user']->id);
         if ($error != null) {
-            throw new RuntimeException($error);
+            $this->response->set_status(400);
+            $this->render_json(compact('error'));
+            return;
         }
 
         $user = User::findCurrent();

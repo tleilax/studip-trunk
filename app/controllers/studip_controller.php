@@ -1,6 +1,4 @@
 <?php
-
-# Lifter010: TODO
 /*
  * studip_controller.php - studip controller base class
  * Copyright (c) 2009  Elmar Ludwig
@@ -15,10 +13,8 @@ abstract class StudipController extends Trails_Controller
 {
     protected $with_session = false; //do we need to have a session for this controller
     protected $allow_nobody = true; //should 'nobody' allowed for this controller or redirected to login?
-    protected $encoding = "utf-8";
-    protected $utf8decode_xhr = false; //uf8decode request parameters from XHR ?
 
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         $this->current_action = $action;
         // allow only "word" characters in arguments
@@ -70,15 +66,8 @@ abstract class StudipController extends Trails_Controller
                      : 'layouts/base.php';
         $layout = $GLOBALS['template_factory']->open($layout_file);
         $this->set_layout($layout);
-        if ($this->encoding) {
-            $this->set_content_type('text/html;charset=' . $this->encoding);
-        }
-        if (Request::isXhr() && $this->utf8decode_xhr) {
-            $request = Request::getInstance();
-            foreach ($request as $key => $value) {
-                $request[$key] = $value;
-            }
-        }
+
+        $this->set_content_type('text/html;charset=utf-8');
     }
 
     /**
@@ -135,7 +124,7 @@ abstract class StudipController extends Trails_Controller
      *
      * @return void
      */
-    function after_filter($action, $args)
+    public function after_filter($action, $args)
     {
         parent::after_filter($action, $args);
 
@@ -159,7 +148,7 @@ abstract class StudipController extends Trails_Controller
      * @param array   an array of arguments to the action
      * @param array   list of argument types (optional)
      */
-    function validate_args(&$args, $types = NULL)
+    public function validate_args(&$args, $types = NULL)
     {
         foreach ($args as $i => &$arg) {
             $type = isset($types[$i]) ? $types[$i] : 'option';
@@ -208,7 +197,7 @@ abstract class StudipController extends Trails_Controller
             $to = '/' . ($this->parent_controller ? $this->parent_controller->current_action : $this->current_action);
         }
         if ($to[0] === '/') {
-            $prefix = str_replace('_', '/', mb_strtolower(mb_strstr(get_class($this->parent_controller ? $this->parent_controller : $this), 'Controller', true)));
+            $prefix = str_replace('_', '/', mb_strtolower(mb_strstr(get_class($this->parent_controller ?: $this), 'Controller', true)));
             $to = $prefix . $to;
         }
         $args[0] = $to;
@@ -230,7 +219,7 @@ abstract class StudipController extends Trails_Controller
      *
      * @return string  a URL to this route
      */
-    function link_for($to = ''/* , ... */)
+    public function link_for($to = ''/* , ... */)
     {
         return htmlReady(call_user_func_array(array($this, 'url_for'), func_get_args()));
     }
@@ -268,7 +257,7 @@ abstract class StudipController extends Trails_Controller
      *
      * @param  object     the thrown exception
      */
-    function rescue($exception)
+    public function rescue($exception)
     {
         throw $exception;
     }
@@ -278,7 +267,7 @@ abstract class StudipController extends Trails_Controller
      *
      * @param unknown $data
      */
-    function render_json($data)
+    public function render_json($data)
     {
         $this->set_content_type('application/json;charset=utf-8');
         return $this->render_text(json_encode($data));
@@ -292,7 +281,7 @@ abstract class StudipController extends Trails_Controller
      * @param string $to_uri a trails route
      * @return Trails_Response
      */
-    function relay($to_uri/* , ... */)
+    public function relay($to_uri/* , ... */)
     {
         $args = func_get_args();
         $uri = array_shift($args);
@@ -318,7 +307,7 @@ abstract class StudipController extends Trails_Controller
      * @param string $unconsumed
      * @return Trails_Response
      */
-    function perform_relayed($unconsumed/* , ... */)
+    public function perform_relayed($unconsumed/* , ... */)
     {
         $args = func_get_args();
         $unconsumed = array_shift($args);
@@ -348,7 +337,7 @@ abstract class StudipController extends Trails_Controller
      * @param mixed  $layout   Optional layout
      * @return string
      */
-    function render_template_as_string($template, $layout = null)
+    public function render_template_as_string($template, $layout = null)
     {
         $template = $this->get_template_factory()->open($template);
         $template->set_layout($layout);

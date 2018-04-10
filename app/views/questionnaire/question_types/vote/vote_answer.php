@@ -2,7 +2,7 @@
 $etask = $vote->etask;
 
 $taskAnswers = $etask->task['answers'];
-$indexMap = range(0, count($taskAnswers) - 1);
+$indexMap = count($taskAnswers) ? range(0, count($taskAnswers) - 1) : array();
 if ($etask->options['randomize']) {
     shuffle($indexMap);
 }
