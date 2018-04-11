@@ -296,7 +296,6 @@ class Avatar {
             // set permissions for uploaded file
             @chmod($filename, 0666 & ~umask());
 
-            $this->sanitizeOrientation($filename);
             $this->createFrom($filename);
 
             @unlink($filename);
@@ -323,8 +322,8 @@ class Avatar {
         }
 
         set_error_handler(array(__CLASS__, 'error_handler'));
-
-        NotificationCenter::postNotification('AvatarWillCreate', $this->user_id);
+        
+        NotificationCenter::postNotification('AvatarWillCreate', $this->user_id); 
         copy($filename, $this->getCustomAvatarPath(Avatar::ORIGINAL));
         $this->resize(Avatar::NORMAL, $filename);
         $this->resize(Avatar::NORMAL, $filename, true);
@@ -332,8 +331,8 @@ class Avatar {
         $this->resize(Avatar::MEDIUM, $filename, true);
         $this->resize(Avatar::SMALL,  $filename);
         $this->resize(Avatar::SMALL,  $filename, true);
-        NotificationCenter::postNotification('AvatarDidCreate', $this->user_id);
-
+        NotificationCenter::postNotification('AvatarDidCreate', $this->user_id); 
+        
         restore_error_handler();
     }
 
@@ -344,7 +343,7 @@ class Avatar {
      */
     function reset() {
         if ($this->is_customized()) {
-            NotificationCenter::postNotification('AvatarWillDelete', $this->user_id);
+            NotificationCenter::postNotification('AvatarWillDelete', $this->user_id); 
             @unlink($this->getCustomAvatarPath(Avatar::ORIGINAL));
             @unlink($this->getCustomAvatarPath(Avatar::NORMAL));
             @unlink($this->getCustomAvatarPath(Avatar::SMALL));
@@ -471,7 +470,7 @@ class Avatar {
         require_once 'lib/functions.php';
         return get_fullname($this->user_id);
     }
-
+    
     /**
      * Return if avatar is visible to the current user.
      * Also set the user_id of avatar to nobody if not visible to current user.
@@ -483,49 +482,5 @@ class Avatar {
             $this->user_id = 'nobody';
         }
         return $visible;
-    }
-
-    /**
-     * Corrects the
-     */
-    protected function sanitizeOrientation($filename)
-    {
-        if (!function_exists('exif_read_data')) {
-            return;
-        }
-
-        $exif = exif_read_data($filename);
-        if (!$exif || !$exif['Orientation'] || $exif['Orientation'] == 1) {
-            return;
-        }
-
-        $degree = 0;
-        switch ($exif['Orientation']) {
-            case 3:
-                $degree = 180;
-                break;
-            case 6:
-                $degree = -90;
-                break;
-            case 8:
-                $degree = 90;
-                break;
-        }
-
-        if ($degree) {
-            $img = imagecreatefromstring(file_get_contents($filename));
-            $img = imagerotate($img, $degree, 0);
-
-            $extension = pathinfo($filename, PATHINFO_EXTENSION);
-            if ($extension === 'jpg' || $extension === 'jpg') {
-                imagejpeg($img, $filename, 95);
-            } elseif ($extension === 'gif') {
-                imagegif($img, $filename);
-            } else {
-                imagepng($img, $filename, 9);
-            }
-
-            imagedestroy($img);
-        }
     }
 }
