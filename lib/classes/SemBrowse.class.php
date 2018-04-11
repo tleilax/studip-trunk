@@ -321,11 +321,11 @@ class SemBrowse {
 
                 ?>
                 <nav class="hidden-large-up button-group">
-                    <?= Studip\LinkButton::create(_("Suche in Einrichtungen"), URLHelper::getLink('?level=ev&cmd=qs&sset=0')) ?>
+                    <?= Studip\LinkButton::create(_("Suche in Einrichtungen"), URLHelper::getURL('?level=ev&cmd=qs&sset=0')) ?>
 
-                    <? if ($this->show_class()) { ?>
-                        <?= Studip\LinkButton::create(_("Suche im Vorlesungsverzeichnis"), URLHelper::getLink('?level=vv&cmd=qs&sset=0')) ?>
-                    <? } ?>
+                    <? if ($this->show_class()) : ?>
+                        <?= Studip\LinkButton::create(_("Suche im Vorlesungsverzeichnis"), URLHelper::getURL('?level=vv&cmd=qs&sset=0')) ?>
+                    <? endif ?>
                 </nav>
                 <?
             }
