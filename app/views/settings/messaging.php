@@ -71,7 +71,7 @@
 
             <label>
                 <?= _('E-Mail in folgendem Format versenden') ?>
-                <select name="">
+                <select name="mail_format">
                     <? foreach ($mail_formats as $key => $label): ?>
                         <option value="<?= htmlReady($key) ?>" <? if ($config->getValue('MAIL_AS_HTML') == $key) echo 'selected' ?>>
                             <?= htmlReady($label) ?>
