@@ -44,6 +44,7 @@ class NotificationCenter
     /**
      * Register an object to be notified. The same object may be
      * registered several times (e.g. for different notifications).
+     * The event name may contain shell-style wildcards (like '*').
      *
      * @param object $observer  object to be notified
      * @param string $method    method that will be called
@@ -116,7 +117,7 @@ class NotificationCenter
     {
         $current_observers = [];
         foreach (self::$observers as $e => $l) {
-            if ($e === '' || $e === $event || strpos($event, $e) !== false) {
+            if ($e === '' || fnmatch($e, $event)) {
                 $current_observers = array_merge($current_observers, $l);
             }
         }
