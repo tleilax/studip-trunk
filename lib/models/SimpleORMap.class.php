@@ -1184,6 +1184,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if (count($this->pk) == 1) {
             return $this->content[$this->pk[0]];
         } else {
+            $id = [];
             foreach ($this->pk as $key) {
                 if ($this->content[$key] !== null) {
                     $id[] = $this->content[$key];
