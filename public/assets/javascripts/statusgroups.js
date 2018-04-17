@@ -55,6 +55,20 @@
                 $('input[name="selfassign_start"]').closest($('section')).toggle();
                 $('input[name="selfassign_end"]').closest($('section')).toggle();
             });
+
+            $('input[name="numbering_type"]').on('click', function() {
+                var type = $('input[name="numbering_type"]:checked').val();
+
+                if (type == 2) {
+                    $('input[name="startnumber"]')
+                        .prop('disabled', true)
+                        .hide();
+                } else {
+                    $('input[name="startnumber"]')
+                        .prop('disabled', false)
+                        .show();
+                }
+            })
         }
 
     };
