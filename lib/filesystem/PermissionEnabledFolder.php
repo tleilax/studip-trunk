@@ -88,7 +88,7 @@ class PermissionEnabledFolder extends StandardFolder
             && parent::isWritable($user_id);
     }
 
-    public function isSubfolderAllowed($user_id = null)
+    public function isSubfolderAllowed($user_id)
     {
         return $this->checkPermission('f', $user_id);
     }
