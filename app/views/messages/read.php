@@ -1,5 +1,5 @@
 <? if (!Request::isXhr()) : ?>
-    <h1><?= _("Betreff").": ".htmlReady($message["subject"]) ?></h1>
+    <h1 class="responsive-hidden"><?= _("Betreff").": ".htmlReady($message["subject"]) ?></h1>
 <? endif ?>
 
 <? if ($message["autor_id"] !== "____%system%____") : ?>
