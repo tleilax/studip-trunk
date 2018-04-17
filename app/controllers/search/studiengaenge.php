@@ -370,7 +370,7 @@ class Search_StudiengaengeController extends MVVController
                             && !$version->end_sem)
                     || ($semester_data[$version->start_sem]->beginn <= $current_semester->beginn
                             && $semester_data[$version->end_sem]->beginn >= $current_semester->beginn)) {
-                    $cur_version_id = $version->getId();
+                    return $version->getId();
                 }
             }
             // no start or end semester for versions, take the last one
