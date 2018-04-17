@@ -25,7 +25,7 @@
         <section class="numbering-data">
             <label>
                 <input type="radio" name="numbering_type" value="1" checked>
-                <?= _('Nummerische Nummerierung')?>
+                <?= _('Numerische Nummerierung')?>
             </label>
             <label>
                 <input type="radio" name="numbering_type" value="2">

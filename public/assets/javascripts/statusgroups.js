@@ -57,17 +57,12 @@
             });
 
             $('input[name="numbering_type"]').on('click', function() {
-                var type = $('input[name="numbering_type"]:checked').val();
+                var type     = $('input[name="numbering_type"]:checked').val(),
+                    disabled = type == 2;
 
-                if (type == 2) {
-                    $('input[name="startnumber"]')
-                        .prop('disabled', true)
-                        .hide();
-                } else {
-                    $('input[name="startnumber"]')
-                        .prop('disabled', false)
-                        .show();
-                }
+                $('input[name="startnumber"]')
+                    .prop('disabled', disabled)
+                    .toggle(!disabled);
             })
         }
 
@@ -118,4 +113,3 @@
     });
 
 }(jQuery, STUDIP));
-
