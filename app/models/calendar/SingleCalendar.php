@@ -1268,8 +1268,8 @@ class SingleCalendar
             }
             $size = 0;
             for ($j = $row_min; $j <= $row; $j++) {
-                if (sizeof($term[$j]) > $size) {
-                    $size = sizeof($term[$j]);
+                if (isset($term[$j]) && count($term[$j]) > $size) {
+                    $size = count($term[$j]);
                 }
             }
             for ($j = $row_min; $j <= $row; $j++) {
@@ -1339,7 +1339,7 @@ class SingleCalendar
                 }
             }
         }
-        if ($max_cols < 1 && sizeof($em['day_events'])) {
+        if ($max_cols < 1 && isset($em['day_events']) && count($em['day_events'])) {
             $max_cols = 1;
         }
         $em['cspan'] = $cspan;
@@ -1361,18 +1361,22 @@ class SingleCalendar
     private function maxValue($term, $st)
     {
         $max_value = 0;
-        for ($i = 0; $i < sizeof($term); $i++) {
-            if (is_object($term[$i])) {
-                $max = ceil($term[$i]->getDuration() / $st);
-            } elseif ($term[$i] == '#') {
-                continue;
-            } elseif ($term[$i] > $max_value) {
-                $max = $term[$i];
-            }
-            if ($max > $max_value) {
-                $max_value = $max;
+
+        if (is_array($term)) {
+            for ($i = 0; $i < count($term); $i++) {
+                if (is_object($term[$i])) {
+                    $max = ceil($term[$i]->getDuration() / $st);
+                } elseif ($term[$i] == '#') {
+                    continue;
+                } elseif ($term[$i] > $max_value) {
+                    $max = $term[$i];
+                }
+                if ($max > $max_value) {
+                    $max_value = $max;
+                }
             }
         }
+
         return $max_value;
     }
 

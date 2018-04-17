@@ -54,7 +54,10 @@ class SemBrowse {
             $this->sem_browse_data['default_sem'] = Request::option($this->search_obj->form_name . "_sem");
         }
 
-        if (Request::get('keep_result_set') || $this->sem_browse_data['sset'] || (count($this->sem_browse_data['search_result']) && $this->sem_browse_data['show_entries'])){
+        if (Request::get('keep_result_set')
+            || $this->sem_browse_data['sset']
+            || (!empty($this->sem_browse_data['search_result']) && $this->sem_browse_data['show_entries']))
+        {
             $this->show_result = true;
         }
 

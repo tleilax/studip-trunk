@@ -37,7 +37,7 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
 
         <!-- form zur wahl der seminare -->
-        <? if (count($courses)): ?>
+        <? if ($courses && count($courses)): ?>
             <label>
                 <?= _('Veranstaltungen:') ?>
                 <select name="sem_id" style="min-width: 400px;">

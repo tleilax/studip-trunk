@@ -490,7 +490,7 @@ class Institute_MembersController extends AuthenticatedController
             unset($table_structure['statusgruppe']);
         }
 
-        $table_structure = array_merge($table_structure, $additional_structure);
+        $table_structure = array_merge($table_structure, (array)$additional_structure);
 
         if ($this->admin_view || $GLOBALS['perm']->have_studip_perm('autor', $this->institute->id)) {
             $table_structure['actions'] = array(

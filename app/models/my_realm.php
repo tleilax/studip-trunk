@@ -1244,8 +1244,7 @@ class MyRealmModel
                 if (strcmp($key, 'participants') === 0) {
                     array_push($params, false);
                 }
-                $nav = call_user_func_array(array(self,
-                                                  $function), $params);
+                $nav = call_user_func_array(['self', $function], $params);
 
             }
 

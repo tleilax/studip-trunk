@@ -1477,7 +1477,11 @@ switch (Request::option('skip_closed_requests')) {
 
 //cancel an edit request session
 if (Request::int('cancel_edit_request_x') || Request::submitted('cancel_edit_request') ) {
-    if (sizeof($_SESSION['resources_data']["requests_open"]) < sizeof ($_SESSION['resources_data']["requests_working_on"])) {
+    if (isset($_SESSION['resources_data']["requests_open"])
+        && isset($_SESSION['resources_data']["requests_working_on"])
+        && sizeof($_SESSION['resources_data']["requests_open"]) < sizeof($_SESSION['resources_data']["requests_working_on"]))
+    {
+        $request_ids = [];
         foreach ($_SESSION['resources_data']["requests_working_on"] as $val) {
             $request_ids[] = $val["request_id"];
             $request_data[$val["request_id"]] = $val;
