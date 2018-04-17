@@ -287,6 +287,11 @@
 
         // Key bindings.
         $(document).keydown(function (e) {
+            // Don't do anything if a dialog is open
+            if (STUDIP.Dialog.stack.length > 0) {
+                return;
+            }
+
             // ctrl + space
             if (e.which === 32 && e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
                 e.preventDefault();
