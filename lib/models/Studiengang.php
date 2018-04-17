@@ -484,7 +484,7 @@ class Studiengang extends ModuleManagementModelTreeItem
                 OR abschluss.name LIKE ' . $quoted_term . ' 
                 OR mvv_abschl_kategorie.name LIKE ' . $quoted_term . '
                 OR mvv_stgteil.zusatz LIKE ' . $quoted_term . ') 
-                . self::getFilterSql($filter)
+                ' . self::getFilterSql($filter) . '
             GROUP BY studiengang_id 
             ORDER BY `name`
         ');
