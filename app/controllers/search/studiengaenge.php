@@ -132,10 +132,14 @@ class Search_StudiengaengeController extends MVVController
 
                 $schnittpunkte = StudiengangTeil::findByStudiengangStgteilBez(
                         $studiengang->getId(), $studiengangTeilBezeichnung->getId());
-                $teilNamen[$studiengangTeilBezeichnung->id] = $studiengangTeilBezeichnung->getDisplayName();
 
                 foreach ($schnittpunkte as $schnittpunkt) {
-                    if ($schnittpunkt->fach_id === $fach->getId()) {
+                    $versionen = StgteilVersion::findByStgteil($schnittpunkt->id)->filter(
+                        function ($version) {
+                            return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
+                        });
+                    if ($schnittpunkt->fach_id === $fach->getId() && count($versionen) > 0) {
+                        $teilNamen[$studiengangTeilBezeichnung->id] = $studiengangTeilBezeichnung->getDisplayName();
                         $punkte[$fach->id][$studiengangTeilBezeichnung->id] = $schnittpunkt->getId();
                     }
                 }

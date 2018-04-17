@@ -114,16 +114,18 @@ class Studiengang extends ModuleManagementModelTreeItem
      *
      * @param string $fach_id The id of a Fach.
      * @param string $abschluss_id The id of an Abschluss.
+     * @param array $filter Key-value pairs of names and values to filter the result set.
      * @return SimpleORMapCollection A collection of Studiengaenge.
      */
-    public static function findByFachAbschluss($fach_id, $abschluss_id)
+    public static function findByFachAbschluss($fach_id, $abschluss_id, $filter = null)
     {
         return parent::getEnrichedByQuery('
-            SELECT ms.* 
-            FROM mvv_studiengang ms 
-                LEFT JOIN mvv_stg_stgteil mss USING(studiengang_id) 
-                LEFT JOIN mvv_stgteil mst USING(stgteil_id) 
-            WHERE ms.abschluss_id = ? AND mst.fach_id = ?',
+            SELECT mvv_studiengang.*
+            FROM mvv_studiengang
+                LEFT JOIN mvv_stg_stgteil USING(studiengang_id)
+                LEFT JOIN mvv_stgteil USING(stgteil_id)
+            WHERE mvv_studiengang.abschluss_id = ? AND mvv_stgteil.fach_id = ?
+            ' . self::getFilterSql($filter),
             array($abschluss_id, $fach_id)
         );
     }
