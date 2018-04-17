@@ -53,7 +53,7 @@ class Settings_AvatarController extends Settings_SettingsController
      */
     public function upload_action()
     {
-        $this->check_ticket();
+       $this->check_ticket();
 
         if (Request::submitted('reset')) {
             Avatar::getAvatar($this->user->user_id)->reset();

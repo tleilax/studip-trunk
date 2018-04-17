@@ -91,6 +91,15 @@ STUDIP.Questionnaire = {
         }
 
     },
+    Test: {
+        updateCheckboxValues: function () {
+            jQuery(".questionnaire_edit .question.test").each(function () {
+                jQuery(this).find(".options > li").each(function (index, li) {
+                    jQuery(li).find("input[type=checkbox]").val(index + 1);
+                });
+            });
+        }
+    },
     addQuestion: function (questiontype) {
         jQuery.ajax({
             "url": STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/questionnaire/add_question",
@@ -117,7 +126,7 @@ jQuery(function () {
             for (var i in text) {
                 if (text[i].trim()) {
                     var li = jQuery(jQuery(this).closest(".options").data("optiontemplate"));
-                    li.find("input").val(text[i].trim());
+                    li.find("input:text").val(text[i].trim());
                     li.insertAfter(current);
                     current = li;
                 }
@@ -131,18 +140,21 @@ jQuery(function () {
             jQuery(this).closest(".options").append(jQuery(this).closest(".options").data("optiontemplate"));
             jQuery(this).closest(".options").find("li:last-child input").focus();
         }
+        STUDIP.Questionnaire.Test.updateCheckboxValues();
     });
     jQuery(document).on("click", ".questionnaire_edit .options .delete", function () {
         var icon = this;
         STUDIP.Dialog.confirm(jQuery(this).closest(".questionnaire_edit").find(".delete_question").text(), function () {
             jQuery(icon).closest("li").fadeOut(function() {
                 jQuery(this).remove();
+                STUDIP.Questionnaire.Test.updateCheckboxValues();
             });
         });
     });
     jQuery(document).on("click", ".questionnaire_edit .options .add", function () {
         jQuery(this).closest(".options").append(jQuery(this).closest(".options").data("optiontemplate"));
         jQuery(this).closest(".options").find("li:last-child input:text").focus();
+        STUDIP.Questionnaire.Test.updateCheckboxValues();
     });
 
     /*

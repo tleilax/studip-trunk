@@ -159,7 +159,11 @@ jQuery(function ($) {
                 li: {},
                 ol: {},
                 p: {
-                    styles: ['text-align']
+                    // - margin-left should only be settable in multiples of
+                    //   40 pixels
+                    // - text-align should only be either "center", "right" or
+                    //   "justify"
+                    styles: ['margin-left', 'text-align']
                 },
                 pre: {
                     classes: ['usercode']

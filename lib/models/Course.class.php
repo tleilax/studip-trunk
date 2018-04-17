@@ -219,6 +219,8 @@ class Course extends SimpleORMap implements Range
         $config['i18n_fields']['lernorga'] = true;
         $config['i18n_fields']['leistungsnachweis'] = true;
         $config['i18n_fields']['ort'] = true;
+    
+        $config['registered_callbacks']['before_update'][] = 'logStore';
         parent::configure($config);
     }
 
@@ -540,54 +542,44 @@ class Course extends SimpleORMap implements Range
     }
     
     /**
-     * Store course informations
-     * @return number|boolean
-     */
-    public function store()
-    {
-        $this->log_store();
-        parent::store();
-    }
-    
-    /**
      * Generates a general log entry if the course were changed.
      */
-    private function log_store()
+    protected function logStore()
     {
         $log = [];
-        if($this->isFieldDirty('admission_prelim')) {
-            $log[] = $this->admission_prelim == 1 ?  _('Neuer Anmeldemodus: Vorläufiger Eintrag') : _('Neuer Anmeldemodus: Direkter Eintrag');
+        if ($this->isFieldDirty('admission_prelim')) {
+            $log[] = $this->admission_prelim ?  _('Neuer Anmeldemodus: Vorläufiger Eintrag') : _('Neuer Anmeldemodus: Direkter Eintrag');
         }
     
-        if($this->isFieldDirty('admission_binding')) {
-            $log[] = $this->admission_binding == 1 ? _('Anmeldung verbindlich') : _('Anmeldung unverbindlich');
+        if ($this->isFieldDirty('admission_binding')) {
+            $log[] = $this->admission_binding? _('Anmeldung verbindlich') : _('Anmeldung unverbindlich');
         }
     
-        if($this->isFieldDirty('admission_turnout')) {
+        if ($this->isFieldDirty('admission_turnout')) {
             $log[] = sprintf(_('Neue Teilnehmerzahl: %s'), (int)$this->admission_turnout);
         }
     
-        if($this->isFieldDirty('admission_disable_waitlist')) {
-            $log[] = $this->admission_disable_waitlist == 1 ? _('Warteliste aktiviert') : _('Warteliste deaktiviert');
+        if ($this->isFieldDirty('admission_disable_waitlist')) {
+            $log[] = $this->admission_disable_waitlist ? _('Warteliste aktiviert') : _('Warteliste deaktiviert');
         }
     
-        if($this->isFieldDirty('admission_waitlist_max')) {
+        if ($this->isFieldDirty('admission_waitlist_max')) {
             $log[] = sprintf(_('Plätze auf der Warteliste geändert: %u'), (int)$this->admission_waitlist_max);
         }
     
-        if($this->isFieldDirty('admission_disable_waitlist_move')) {
-            $log[] = $this->admission_disable_waitlist == 1 ? _('Nachrücken aktiviert') : _('Nachrücken deaktiviert');
+        if ($this->isFieldDirty('admission_disable_waitlist_move')) {
+            $log[] = $this->admission_disable_waitlist ? _('Nachrücken aktiviert') : _('Nachrücken deaktiviert');
         }
         
-        if($this->isFieldDirty('admission_prelim_txt')) {
-            if($this->admission_prelim_txt == '') {
-                $log[] = _('Hinweistext bei vorläufigen Eintragungen wurde entfert');
-            } else {
+        if ($this->isFieldDirty('admission_prelim_txt')) {
+            if ($this->admission_prelim_txt) {
                 $log[] = sprintf(_('Neuer Hinweistext bei vorläufigen Eintragungen: %s'), strip_tags(kill_format($this->admission_prelim_txt)));
+            } else {
+                $log[] = _('Hinweistext bei vorläufigen Eintragungen wurde entfert');
             }
         }
         
-        if(!empty($log)) {
+        if (!empty($log)) {
             StudipLog::log(
                 'SEM_CHANGED_ACCESS',
                 $this->id,
@@ -597,7 +589,7 @@ class Course extends SimpleORMap implements Range
             );
         }
     
-        if($this->isFieldDirty('visible')) {
+        if ($this->isFieldDirty('visible')) {
             StudipLog::log($this->visible ? 'SEM_VISIBLE' : 'SEM_INVISIBLE', $this->id);
         }
     }

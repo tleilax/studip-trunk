@@ -375,11 +375,22 @@ class StreamsController extends PluginController {
             }
             $posting->store();
             if ($posting['user_id'] !== $GLOBALS['user']->id) {
+                $message = sprintf(
+                    _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum editiert.\n\nDie alte Version des Beitrags lautete:\n\n%s\n\nDie neue lautet:\n\n%s\n"),
+                    get_fullname(), $old_content, $posting['description']
+                );
+
+                $message .= "\n\n";
+
+                $message .= '[' . _('Link zu diesem Beitrag') . ']';
+                $message .= URLHelper::getURL(
+                    "{$GLOBALS['ABSOLUTE_URI_STUDIP']}plugins.php/blubber/streams/thread/{$posting->root_id}",
+                    array_filter(['cid' => $posting->seminar_id]),
+                    true
+                );
+
                 $messaging->insert_message(
-                    sprintf(
-                        _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum editiert.\n\nDie alte Version des Beitrags lautete:\n\n%s\n\nDie neue lautet:\n\n%s\n"),
-                        get_fullname(), $old_content, $posting['description']
-                    ),
+                    $message,
                     get_username($posting['user_id']),
                     $GLOBALS['user']->id,
                     null, null, null, null,
@@ -391,7 +402,7 @@ class StreamsController extends PluginController {
                 setTempLanguage($posting['user_id']);
                 $messaging->insert_message(
                     sprintf(
-                        _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum GELÖSCHT.\n\nDer alte Beitrag lautete:\n\n%s\n"),
+                        _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum gelöscht.\n\nDer alte Beitrag lautete:\n\n%s\n"),
                         get_fullname(), $old_content
                     ),
                     get_username($posting['user_id']),
@@ -722,8 +733,15 @@ class StreamsController extends PluginController {
         ));
     }
 
-    public function custom_action($stream_id) {
+    public function custom_action($stream_id)
+    {
         $this->stream = new BlubberStream($stream_id);
+
+        if (Request::get('hash')) {
+            $this->search = Request::get('hash');
+            $this->stream->filter_hashtags = [$this->search];
+        }
+
         $this->tags = $this->stream->fetchTags();
         if ($this->stream['user_id'] !== $GLOBALS['user']->id) {
             throw new AccessDeniedException("Not your stream.");

@@ -108,14 +108,14 @@ class Course_StatusgroupsController extends AuthenticatedController
              * explicitly, as this group will be loaded at once and not via AJAX.
              */
             if ($g->id == $this->sort_group) {
-                $groupmembers = $g->members->pluck('user_id');
                 if ($this->sort_group == $g->id) {
                     $sorted = StatusgroupsModel::sortGroupMembers(
-                        $this->allmembers->findBy('user_id', $groupmembers),
+                        $g->members,
                         $this->sort_by, $this->order);
                 } else {
                     $sorted = StatusgroupsModel::sortGroupMembers(
-                        $this->allmembers->findBy('user_id', $groupmembers));
+                        $g->members
+                    );
                 }
 
                 $groupdata['members'] = $sorted;
@@ -261,18 +261,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             $this->group = Statusgruppen::find($group_id);
             if (count($this->group->members) > 0) {
                 $this->members = StatusgroupsModel::sortGroupMembers(
-                    SimpleCollection::createFromArray(
-                        DBManager::get()->fetchAll("SELECT seminar_user.*,
-                    aum.vorname,aum.nachname,aum.email,
-                    aum.username,ui.title_front,ui.title_rear
-                    FROM seminar_user
-                    LEFT JOIN auth_user_md5 aum USING (user_id)
-                    LEFT JOIN user_info ui USING (user_id)
-                    WHERE
-                            `Seminar_id` = ? AND `user_id` IN (?)",
-                        [$this->course_id, $this->group->members->pluck('user_id')],
-                        'CourseMember::buildExisting')
-                    )
+                    $this->group->members
                 );
             } else {
                 $this->members = [];

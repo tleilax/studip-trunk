@@ -1279,7 +1279,7 @@ class FileManager
      */
     public static function deleteFolder(FolderType $folder, User $user)
     {
-        if (!$folder->isWritable($user->id)) {
+        if (!$folder->isEditable($user->id)) {
             return [sprintf(
                     _('Unzureichende Berechtigungen zum Löschen von Ordner %s!'),
                     $folder->name

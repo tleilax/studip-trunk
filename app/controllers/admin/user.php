@@ -1420,26 +1420,19 @@ class Admin_UserController extends AuthenticatedController
 
     /**
      * Download documents
-     * @param        $user_id
-     * @param string $course_id
+     * @param string $user_id
+     * @param string $range_id
      */
-    public function download_user_files_action($user_id, $course_id = '')
+    public function download_user_files_action($user_id, $range_id = null)
     {
         global $TMP_PATH;
 
+        Seminar_Perm::get()->check('root');
 
-        $top_folder = Folder::findTopFolder($course_id);
-        $top_folder = $top_folder->getTypedFolder();
-
-        $element_lists = FileManager::getFolderFilesRecursive($top_folder, $user_id);
-
-        //We want only those FileRefs which belong to the user identified by $user_id:
-        $file_refs = [];
-
-        foreach($element_lists['files'] as $file_ref) {
-            if($file_ref->user_id == $user_id) {
-                $file_refs[] = $file_ref;
-            }
+        if ($range_id === null) {
+            $file_refs = FileRef::findBySQL("INNER JOIN folders ON folders.id = file_refs.folder_id WHERE folders.range_type IN ('course','institute') AND file_refs.user_id = ? GROUP BY file_id ORDER BY NULL", [$user_id]);
+        } else {
+            $file_refs = FileRef::findBySQL("INNER JOIN folders ON folders.id = file_refs.folder_id WHERE folders.range_id = ? AND file_refs.user_id = ? GROUP BY file_id ORDER BY NULL", [$range_id, $user_id]);
         }
 
         $user = User::find($user_id);

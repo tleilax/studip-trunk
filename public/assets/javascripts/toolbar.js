@@ -49,7 +49,7 @@
 
             // if WYSIWYG is globally enabled then add a button so
             // the user can activate it
-            if (STUDIP.wysiwyg_enabled) {
+            if (STUDIP.wysiwyg_enabled && $element.hasClass('wysiwyg')) {
                 button_set.right.wysiwyg = {
                     label: 'WYSIWYG',
                     evaluate: function () {

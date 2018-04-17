@@ -93,6 +93,13 @@ CKEDITOR.plugins.add('studip-upload', {
                 });
         });
 
+        // avoid multiple uploads of the same file via drag and drop
+        editor.on('beforeDestroy', function(event){
+            if ($.fn.fileupload) {
+                $('#' + inputId).fileupload('destroy');
+            }
+        });
+
         // ckeditor
         editor.addCommand('upload', {    // command handler
             exec: function(editor){

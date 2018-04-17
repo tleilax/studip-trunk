@@ -580,25 +580,31 @@
     // Specialized confirmation dialog
     STUDIP.Dialog.confirm = function (question, yes_callback, no_callback) {
         return $.Deferred(function (defer) {
-            STUDIP.Dialog.show(question, {
-                id: 'confirmation-dialog',
-                title: 'Bitte bestätigen Sie die Aktion'.toLocaleString(),
-                size: 'fit',
-                wikilink: false,
-                dialogClass: 'studip-confirmation',
-                buttons: {
-                    accept: {
-                        text: 'Ja'.toLocaleString(),
-                        click: defer.resolve,
-                        'class': 'accept'
-                    },
-                    cancel: {
-                        text: 'Nein'.toLocaleString(),
-                        click: defer.reject,
-                        'class': 'cancel'
+            if (question === true) {
+                defer.resolve();
+            } else if (question === false) {
+                defer.reject();
+            } else {
+                STUDIP.Dialog.show(question, {
+                    id: 'confirmation-dialog',
+                    title: 'Bitte bestätigen Sie die Aktion'.toLocaleString(),
+                    size: 'fit',
+                    wikilink: false,
+                    dialogClass: 'studip-confirmation',
+                    buttons: {
+                        accept: {
+                            text: 'Ja'.toLocaleString(),
+                            click: defer.resolve,
+                            'class': 'accept'
+                        },
+                        cancel: {
+                            text: 'Nein'.toLocaleString(),
+                            click: defer.reject,
+                            'class': 'cancel'
+                        }
                     }
-                }
-            });
+                });
+            }
             $(document).one('dialog-close', function () {
                 if (defer.state() === 'pending') {
                     defer.reject();

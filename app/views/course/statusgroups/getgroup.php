@@ -3,13 +3,15 @@
         <colgroup>
             <col width="20">
             <?php if($is_tutor) : ?>
-                <?php $cols = 5 ?>
+                <?php $cols = $group->id !== 'nogroup' ? 5 : 4 ?>
                 <?php if (!$is_locked) : ?>
                     <col width="20">
                     <?php $cols = 6 ?>
                 <?php endif ?>
                 <col>
-                <col width="15%">
+                <?php if ($group->id !== 'nogroup'): ?>
+                    <col width="15%">
+                <?php endif; ?>
                 <col width="35%">
             <?php else : ?>
                 <col>
@@ -43,18 +45,20 @@
                     </a>
                 </th>
                 <?php if ($is_tutor) :?>
-                    <th <?= ($sort_by == 'mkdate' && $sort_group == $group->id) ? sprintf('class="sort%s"', $order) : '' ?>>
-                        <a href="<?= URLHelper::getLink('#' . $group->id,
-                            array(
-                                'sortby' => 'mkdate',
-                                'sort_group' => $group->id,
-                                'order' => $group->id && $sort_by == 'mkdate' ?
-                                    ($order == 'desc' ? 'asc' : 'desc') : 'desc',
-                                'contentbox_open' => $group->id
-                            )) ?>">
-                            <?= _('Anmeldedatum') ?>
-                        </a>
-                    </th>
+                    <?php if ($group->id !== 'nogroup'): ?>
+                        <th <?= ($sort_by == 'mkdate' && $sort_group == $group->id) ? sprintf('class="sort%s"', $order) : '' ?>>
+                            <a href="<?= URLHelper::getLink('#' . $group->id,
+                                array(
+                                    'sortby' => 'mkdate',
+                                    'sort_group' => $group->id,
+                                    'order' => $group->id && $sort_by == 'mkdate' ?
+                                        ($order == 'desc' ? 'asc' : 'desc') : 'desc',
+                                    'contentbox_open' => $group->id
+                                )) ?>">
+                                <?= _('Anmeldedatum') ?>
+                            </a>
+                        </th>
+                    <?php endif; ?>
                     <th>
                         <?= _('Studiengang') ?>
                     </th>
