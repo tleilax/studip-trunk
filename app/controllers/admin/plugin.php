@@ -137,6 +137,8 @@ class Admin_PluginController extends AuthenticatedController
         $this->check_ticket();
 
         // update enabled/disabled status and position if set
+        $messages = [];
+        $errors   = [];
         foreach ($plugins as $plugin){
             // Skip plugins that are currently not visible due to filter settings
             if (!Request::submittedSome('position_' . $plugin['id'], 'enabled_' . $plugin['id'])) {
@@ -146,14 +148,43 @@ class Admin_PluginController extends AuthenticatedController
             $enabled = Request::int('enabled_' . $plugin['id'], 0);
             $navpos = Request::int('position_' . $plugin['id']);
 
-            $plugin_manager->setPluginEnabled($plugin['id'], $enabled);
+            $result = $plugin_manager->setPluginEnabled($plugin['id'], $enabled);
+            if ($result === false) {
+                $error = $enabled
+                       ? _('Plugin "%s" konnte nicht aktiviert werden')
+                       : _('Plugin "%s" konnte nicht deaktiviert werden');
+                $errors[] = sprintf($error, $plugin['name']);
+            } elseif ($result === true) {
+                $message = $enabled
+                         ? _('Plugin "%s" wurde aktiviert')
+                         : _('Plugin "%s" wurde deaktiviert');
+                $messages[] = sprintf($message, $plugin['name']);
+            }
 
             if (isset($navpos)) {
-                $plugin_manager->setPluginPosition($plugin['id'], max($navpos, 1));
+                $result = $plugin_manager->setPluginPosition($plugin['id'], max($navpos, 1));
+                if ($result) {
+                    $messages[] = sprintf(
+                        _('Die Position von Plugin "%s" wurde verändert.'),
+                        $plugin['name']
+                    );
+                    $changed = true;
+                }
             }
         }
 
-        $this->flash['message'] = _('Die Änderungen wurden gespeichert.');
+        if (count($errors) > 0) {
+            PageLayout::postError(
+                _('Die folgenden Fehler sind aufgetreten:'),
+                array_map('htmlReady', $errors)
+            );
+        }
+        if (count($messages) > 0) {
+            PageLayout::postSuccess(
+                _('Die folgenden Änderungen wurden durchgeführt:'),
+                array_map('htmlReady', $messages)
+            );
+        }
         $this->redirect('admin/plugin?plugin_filter=' . $plugin_filter);
     }
 
