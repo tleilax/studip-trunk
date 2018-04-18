@@ -393,8 +393,8 @@ class ProfileController extends AuthenticatedController
 
 
     /**
-     * Adds the user identified by the variable username to the current user's
-     * contacts.
+     * Removes the user identified by the variable username from the current
+     * user's contacts.
      */
     public function remove_buddy_action()
     {
