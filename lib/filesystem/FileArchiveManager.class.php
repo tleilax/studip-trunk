@@ -496,6 +496,7 @@ class FileArchiveManager
     {
         return self::createArchive(
             self::getFolderChildren($folder),
+            $user_id,
             $archive_file_path,
             $do_user_permission_checks,
             $keep_hierarchy
