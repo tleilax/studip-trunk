@@ -55,9 +55,19 @@ use Studip\Button, Studip\LinkButton;
                 <? else: ?>
                     <strong><?= htmlReady($name) ?></strong>
                 <? endif ?>
+                <? if (mb_strlen($plugin['description']) > 500) : ?>
+                    <div class="plugin_description">
+                        <?= nl2br(htmlReady($plugin['description'])) ?>
+
+                        <p class="read_more">
+                            <a href="#" onClick="$(this).parent().hide().parent().css('max-height', 'none').css('overflow', 'auto');return false;" class="button"><?= _('Weiterlesen') ?></a>
+                        </p>
+                    </div>
+                <? else: ?>
                     <p>
-                        <?= htmlReady($plugin['description']) ?>
+                        <?= nl2br(htmlReady($plugin['description'])) ?>
                     </p>
+                <? endif ?>
                 </td>
                 <td>
                     <?= htmlReady($plugin['version']) ?>
