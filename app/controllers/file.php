@@ -967,7 +967,12 @@ class FileController extends AuthenticatedController
 
     public function add_files_window_action($folder_id)
     {
-        $this->folder_id = $folder_id;
+        $this->folder_id   = $folder_id;
+
+        $this->upload_type = FileManager::getUploadTypeConfig(
+            Context::getId(), $GLOBALS['user']->id
+        );
+
         $this->plugin = Request::get('to_plugin');
     }
 
