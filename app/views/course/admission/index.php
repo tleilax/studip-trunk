@@ -47,54 +47,42 @@
                 <? endif ?>
             </div>
             <? if (!$is_locked['admission_type'] && count($available_coursesets)) : ?>
-                <table class="default nohover collapsable">
-                    <tbody class="collapsed">
-                        <tr class="header-row">
-                            <td>
-                                <label class="caption toggler">
-                                <span style="cursor:pointer"
-                                      title="<?= _("Klicken um Zuordnungsmöglichkeiten zu öffnen") ?>">
-                                    <?= _("Zuordnung zu einem bestehenden Anmeldeset"); ?>
-                                    <?= tooltipIcon(_("Wenn die Veranstaltung die Anmelderegeln eines Anmeldesets übernehmen soll, klicken Sie hier und wählen das entsprechende Anmeldeset aus.")); ?>
-                                </span>
-                                </label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <select name="course_set_assign" style="display: inline-block;"
-                                        onChange="$('#course_set_assign_explain').load('<?= $controller->link_for('/explain_course_set') ?>&set_id=' + $(this).val());">
-                                    <option></option>
-                                    <? $my_own_sets = $available_coursesets->findBy('my_own', true); ?>
-                                    <? $other_sets = $available_coursesets->findBy('my_own', false); ?>
-                                    <? if ($my_own_sets->count()) : ?>
-                                        <optgroup label="<?= _("Meine Anmeldesets") ?>">
-                                            <? foreach ($my_own_sets as $cs) : ?>
-                                                <option
-                                                        value="<?= $cs['id'] ?>"><?= htmlReady(my_substr($cs['name'], 0, 100)) ?></option>
-                                            <? endforeach ?>
-                                        </optgroup>
-                                    <? endif ?>
-                                    <? if ($other_sets->count()) : ?>
-                                        <optgroup label="<?= _("Verfügbare Anmeldesets meiner Einrichtungen") ?>">
-                                            <? foreach ($available_coursesets->findBy('my_own', false) as $cs) : ?>
-                                                <option
-                                                        value="<?= $cs['id'] ?>"><?= htmlReady(my_substr($cs['name'], 0, 100)) ?></option>
+                <details class="studip">
+                    <summary title="<?= _("Klicken um Zuordnungsmöglichkeiten zu öffnen") ?>">
+                        <?= _("Zuordnung zu einem bestehenden Anmeldeset"); ?>
+                        <?= tooltipIcon(_("Wenn die Veranstaltung die Anmelderegeln eines Anmeldesets übernehmen soll, klicken Sie hier und wählen das entsprechende Anmeldeset aus.")); ?>
+                    </summary>
 
-                                            <? endforeach ?>
-                                        </optgroup>
-                                    <? endif ?>
-                                </select>
+                    <select name="course_set_assign" style="display: inline-block;"
+                            onChange="$('#course_set_assign_explain').load('<?= $controller->link_for('/explain_course_set') ?>&set_id=' + $(this).val());">
+                        <option></option>
+                        <? $my_own_sets = $available_coursesets->findBy('my_own', true); ?>
+                        <? $other_sets = $available_coursesets->findBy('my_own', false); ?>
+                        <? if ($my_own_sets->count()) : ?>
+                            <optgroup label="<?= _("Meine Anmeldesets") ?>">
+                                <? foreach ($my_own_sets as $cs) : ?>
+                                    <option
+                                            value="<?= $cs['id'] ?>"><?= htmlReady(my_substr($cs['name'], 0, 100)) ?></option>
+                                <? endforeach ?>
+                            </optgroup>
+                        <? endif ?>
+                        <? if ($other_sets->count()) : ?>
+                            <optgroup label="<?= _("Verfügbare Anmeldesets meiner Einrichtungen") ?>">
+                                <? foreach ($available_coursesets->findBy('my_own', false) as $cs) : ?>
+                                    <option
+                                            value="<?= $cs['id'] ?>"><?= htmlReady(my_substr($cs['name'], 0, 100)) ?></option>
 
-                                <div id="course_set_assign_explain" style="display: inline-block;padding:1ex;">
-                                </div>
-                                <div style="display: inline-block;padding:1ex;">
-                                    <?= Studip\Button::create(_("Zuordnen"), 'change_course_set_assign', ['data-dialog' => '']) ?>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                <? endforeach ?>
+                            </optgroup>
+                        <? endif ?>
+                    </select>
+
+                    <div id="course_set_assign_explain" style="display: inline-block;padding:1ex;">
+                    </div>
+                    <div style="display: inline-block;padding:1ex;">
+                        <?= Studip\Button::create(_("Zuordnen"), 'change_course_set_assign', ['data-dialog' => '']) ?>
+                    </div>
+                </details>
             <? endif ?>
         <? endif ?>
     </fieldset>
