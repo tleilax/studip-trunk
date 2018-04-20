@@ -177,6 +177,6 @@ use Studip\Button, Studip\LinkButton;
     </footer>
 </form>
 
-<? if (count($users) > 0 && $users != 0): ?>
+<? if (!empty($users) && is_array($users)): ?>
     <?= $this->render_partial('admin/user/_results') ?>
 <? endif; ?>

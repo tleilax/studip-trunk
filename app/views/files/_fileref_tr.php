@@ -7,7 +7,11 @@ if ($current_folder->isFileDownloadable($file_ref->id, $GLOBALS['user']->id)) {
     $permissions[] = 'dr';
 }
 ?>
-<tr class="<? if ($file_ref->chdate > $last_visitdate) echo 'new'; ?>" <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?> id="fileref_<?= htmlReady($file_ref->id) ?>" role="row" data-permissions="<?= implode($permissions) ?>">
+<tr class="<? if ($file_ref->chdate > $last_visitdate && ($file_ref->user_id !== $GLOBALS['user']->id)) echo 'new'; ?>"
+    <? if ($full_access) printf('data-file="%s"', $file_ref->id) ?>
+    id="fileref_<?= htmlReady($file_ref->id) ?>"
+    role="row"
+    data-permissions="<?= implode($permissions) ?>">
     <td>
     <? if ($current_folder->isFileDownloadable($file_ref, $GLOBALS['user']->id)) : ?>
         <input type="checkbox"

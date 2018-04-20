@@ -201,7 +201,9 @@ abstract class StudipController extends Trails_Controller
             $to = $prefix . $to;
         }
         $args[0] = $to;
-        $url = call_user_func_array("parent::url_for", $args);
+        $url = preg_match('#^(/|\w+://)#', $to)
+             ? $to
+             : call_user_func_array('parent::url_for', $args);
         if ($fragment) {
             $url .= '#' . $fragment;
         }

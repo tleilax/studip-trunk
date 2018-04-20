@@ -57,7 +57,7 @@ endforeach;
 ?>
 
 
-<? if (sizeof($output) == 0) : ?>
+<? if (!is_array($output) || count($output) === 0) : ?>
     <?= htmlReady($ort) ?: _("nicht angegeben") ?>
 <? else: ?>
     <table class="default">

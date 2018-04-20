@@ -71,9 +71,22 @@ class Course_EnrolmentController extends AuthenticatedController
      */
     function apply_action()
     {
+        if (Request::submitted('decline')) {
+            $this->relocate(URLHelper::getLink('dispatch.php/course/details', ['sem_id' => $this->course_id]));
+            return;
+        }
+
+        $this->course = Course::find($this->course_id);
+
+        try {
+            CSRFProtection::verifyUnsafeRequest();
+            $this->confirmed = Request::submittedSome('apply', 'claim');
+        } catch (Exception $e) {
+            $this->confirmed = false;
+        }
+
         $user_id = $GLOBALS['user']->id;
         $courseset = CourseSet::getSetForCourse($this->course_id);
-        $this->course_name = PageLayout::getTitle();
         if ($courseset) {
             $errors = $courseset->checkAdmission($user_id, $this->course_id);
             if (count($errors)) {
@@ -95,20 +108,16 @@ class Course_EnrolmentController extends AuthenticatedController
                             $course = Course::find($this->course_id);
                             if ($course->getFreeSeats() && !$course->getNumWaiting()) {
                                 $enrol_user = true;
-                            } else {
-                                if ($course->isWaitlistAvailable()) {
-                                    $seminar = new Seminar($course);
-                                    if ($maxpos = $seminar->addToWaitlist($user_id, 'last')) {
-                                        $msg = _("Diese Veranstaltung ist teilnahmebeschränkt.");
-                                        $msg_details[] = sprintf(_("Alle Plätze sind belegt, Sie wurden daher auf Platz %s der Warteliste gesetzt."), $maxpos);
-                                    }
-                                } else {
-                                    if ($course->admission_disable_waitlist) {
-                                        $this->admission_error = MessageBox::error(_("Die Anmeldung war nicht erfolgreich. Alle Plätze sind belegt und es steht keine Warteliste zur Verfügung."));
-                                    } else {
-                                        $this->admission_error = MessageBox::error(_("Die Anmeldung war nicht erfolgreich. Alle Plätze sind belegt und es stehen keine Wartelistenplätze zur Verfügung, da die Warteliste voll ist."));
-                                    }
+                            } elseif ($course->isWaitlistAvailable()) {
+                                $seminar = new Seminar($course);
+                                if ($maxpos = $seminar->addToWaitlist($user_id, 'last')) {
+                                    $msg = _("Diese Veranstaltung ist teilnahmebeschränkt.");
+                                    $msg_details[] = sprintf(_("Alle Plätze sind belegt, Sie wurden daher auf Platz %s der Warteliste gesetzt."), $maxpos);
                                 }
+                            } elseif ($course->admission_disable_waitlist) {
+                                $this->admission_error = MessageBox::error(_("Die Anmeldung war nicht erfolgreich. Alle Plätze sind belegt und es steht keine Warteliste zur Verfügung."));
+                            } else {
+                                $this->admission_error = MessageBox::error(_("Die Anmeldung war nicht erfolgreich. Alle Plätze sind belegt und es stehen keine Wartelistenplätze zur Verfügung, da die Warteliste voll ist."));
                             }
                         } else {
                             $this->admission_error = MessageBox::error(_("Die Anmeldung war wegen technischer Probleme nicht erfolgreich. Bitte versuchen Sie es später noch einmal."));
@@ -149,7 +158,7 @@ class Course_EnrolmentController extends AuthenticatedController
             $enrol_user = true;
         }
 
-        if ($enrol_user) {
+        if ($enrol_user && $this->confirmed) {
             $course = Seminar::GetInstance($this->course_id);
             if ($course->admission_prelim) {
                 if (!$course->isStudygroup() && $course->admission_prelim_txt && !Request::submitted('apply')) {
@@ -170,14 +179,14 @@ class Course_EnrolmentController extends AuthenticatedController
                                 StudygroupModel::accept_user(get_username($user_id), $this->course_id);
                                 StudygroupModel::cancelInvitation(get_username($user_id), $this->course_id);
                                 $success = sprintf(_("Sie wurden in die Veranstaltung %s als %s eingetragen."), htmlReady($course->getName()), get_title_for_status($status, 1, $course->status));
-                                PageLayout::postMessage(MessageBox::success($success));
+                                PageLayout::postSuccess($success);
                             } else {
                                 $success = sprintf(_("Sie wurden auf die Anmeldeliste der Studiengruppe %s eingetragen. Die Moderatoren der Studiengruppe können Sie jetzt freischalten."), htmlReady($course->getName()));
-                                PageLayout::postMessage(MessageBox::success($success));
+                                PageLayout::postSuccess($success);
                             }
                         } else {
                             $success = sprintf(_("Sie wurden in die Veranstaltung %s vorläufig eingetragen."), htmlReady($course->getName()));
-                            PageLayout::postMessage(MessageBox::success($success));
+                            PageLayout::postSuccess($success);
                         }
                     }
                 }
@@ -185,8 +194,7 @@ class Course_EnrolmentController extends AuthenticatedController
                 $status = 'autor';
                 if ($course->addMember($user_id, $status)) {
                     $success = sprintf(_("Sie wurden in die Veranstaltung %s als %s eingetragen."), htmlReady($course->getName()), get_title_for_status($status, 1, $course->status));
-                    PageLayout::postMessage(MessageBox::success($success));
-                    $this->enrol_user = true;
+                    PageLayout::postSuccess($success);
 
                     if (StudygroupModel::isInvited($user_id, $this->course_id)) {
                         // delete an existing invitation
@@ -196,7 +204,28 @@ class Course_EnrolmentController extends AuthenticatedController
             }
             unset($this->courseset_message);
         }
+
+        $this->enrol_user = $enrol_user ?: false;
+
         StudipLock::release();
+
+        if ($enrol_user && $this->confirmed) {
+            $this->relocate(URLHelper::getLink('seminar_main.php', ['auswahl' => $this->course_id]));
+        } elseif ($enrol_user) {
+            // TODO: This needs to abstracted in PageLayout::postQuestion() or
+            // something alike. This is NOT how the messages entry in SESSION
+            // should be filled and is only here as a dirty workaround.
+            $_SESSION['messages'][] = createQuestion2(
+                sprintf(
+                    _('Wollen Sie sich zu der Veranstaltung "%s" wirklich anmelden?'),
+                    Course::find($this->course_id)->name
+                ),
+                ['apply' => 1],
+                ['decline' => 1],
+                $this->link_for("/apply/{$this->course_id}")
+            );
+            $this->relocate(URLHelper::getLink('dispatch.php/course/details', ['sem_id' => $this->course_id]));
+        }
     }
 
     /**

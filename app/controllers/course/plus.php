@@ -199,7 +199,7 @@ class Course_PlusController extends AuthenticatedController
 
         unset($_SESSION['plus']['Kategorielist']);
         $plusconfig['course_plus'] = $_SESSION['plus'];
-        UserConfig::get($GLOBALS['user']->id)->store(PLUS_SETTINGS,$plusconfig);
+        UserConfig::get($GLOBALS['user']->id)->store('PLUS_SETTINGS', $plusconfig);
     }
 
 
@@ -450,7 +450,7 @@ class Course_PlusController extends AuthenticatedController
 
             }
         }
-        if (!count($_SESSION['admin_modules_data']["conflicts"])) {
+        if (empty($_SESSION['admin_modules_data']["conflicts"])) {
             $changes = false;
             $anchor = "";
             // Inhaltselemente speichern
@@ -474,7 +474,7 @@ class Course_PlusController extends AuthenticatedController
                 $changes = true;
             }
             // Plugins speichern
-            if (count($_SESSION['plugin_toggle']) > 0) {
+            if (!empty($_SESSION['plugin_toggle'])) {
                 $plugin_manager = PluginManager::getInstance();
 
                 foreach ($plugins as $plugin) {

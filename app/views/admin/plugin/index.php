@@ -3,15 +3,7 @@
 use Studip\Button, Studip\LinkButton;
 
 ?>
-<? if (isset($error)): ?>
-    <?= MessageBox::error($error, $error_detail) ?>
-<? endif ?>
-
-<? if (isset($flash['error'])): ?>
-    <?= MessageBox::error($flash['error'], $flash['error_detail']) ?>
-<? elseif (isset($flash['message'])): ?>
-    <?= MessageBox::success($flash['message']) ?>
-<? elseif ($num_updates): ?>
+<? if ($num_updates): ?>
     <?= MessageBox::info($this->render_partial('admin/plugin/update_info')) ?>
 <? endif ?>
 

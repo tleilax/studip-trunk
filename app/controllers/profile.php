@@ -292,10 +292,18 @@ class ProfileController extends AuthenticatedController
 
             if (!$this->user->isFriendOf($this->current_user)) {
                 $actions->addLink(
-                    _('zu den Kontakten hinzufügen'),
+                    _('Zu den Kontakten hinzufügen'),
                     $this->url_for('profile/add_buddy?username=' . $this->current_user->username),
-                    Icon::create('person', 'clickable', tooltip2(_('Zu den Kontakten hinzufügen')))
-                );
+                    Icon::create('person+add', 'clickable', tooltip2(_('Zu den Kontakten hinzufügen'))),
+                    ['data-confirm' => _('Wollen Sie die Person wirklich als Kontakt hinzufügen?')]
+                )->asButton();
+            } else {
+                $actions->addLink(
+                    _('Von den Kontakten entfernen'),
+                    $this->url_for('profile/remove_buddy', ['username' => $this->current_user->username]),
+                    Icon::create('person+remove', 'clickable', tooltip2(_('Zu den Kontakten hinzufügen'))),
+                    ['data-confirm' => _('Wollen Sie die Person wirklich von den Kontakten entfernen?')]
+                )->asButton();
             }
 
             $actions->addLink(
@@ -374,6 +382,10 @@ class ProfileController extends AuthenticatedController
      */
     public function add_buddy_action()
     {
+        if (!Request::isPost()) {
+            throw new MethodNotAllowedException();
+        }
+
         $username            = Request::username('username');
         $user                = User::findByUsername($username);
         $current             = User::findCurrent();
@@ -384,6 +396,29 @@ class ProfileController extends AuthenticatedController
         $this->redirect('profile/index?username=' . $username);
     }
 
+
+    /**
+     * Removes the user identified by the variable username from the current
+     * user's contacts.
+     */
+    public function remove_buddy_action()
+    {
+        if (!Request::isPost()) {
+            throw new MethodNotAllowedException();
+        }
+
+        $username = Request::username('username');
+        $current  = User::findCurrent();
+
+        $current->contacts = $current->contacts->filter(function ($contact) use ($username) {
+            return $contact->username !== $username;
+        });
+
+        $current->store();
+
+        PageLayout::postSuccess(_('Der Kontakt wurde entfernt.'));
+        $this->redirect('profile/index?username=' . $username);
+    }
     /**
      * Returns user-institutes
      * @return mixed

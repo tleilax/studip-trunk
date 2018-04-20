@@ -79,8 +79,10 @@ class Admin_PluginController extends AuthenticatedController
         try {
             return $this->plugin_admin->getUpdateInfo($plugins);
         } catch (Exception $ex) {
-            $this->error = _('Informationen über Plugin-Updates sind nicht verfügbar.');
-            $this->error_detail = array($ex->getMessage());
+            PageLayout::postError(
+                _('Informationen über Plugin-Updates sind nicht verfügbar.'),
+                [$ex->getMessage()]
+            );
 
             // Read current information from local files
             $update_info = array();
@@ -137,6 +139,8 @@ class Admin_PluginController extends AuthenticatedController
         $this->check_ticket();
 
         // update enabled/disabled status and position if set
+        $messages = [];
+        $errors   = [];
         foreach ($plugins as $plugin){
             // Skip plugins that are currently not visible due to filter settings
             if (!Request::submittedSome('position_' . $plugin['id'], 'enabled_' . $plugin['id'])) {
@@ -146,14 +150,43 @@ class Admin_PluginController extends AuthenticatedController
             $enabled = Request::int('enabled_' . $plugin['id'], 0);
             $navpos = Request::int('position_' . $plugin['id']);
 
-            $plugin_manager->setPluginEnabled($plugin['id'], $enabled);
+            $result = $plugin_manager->setPluginEnabled($plugin['id'], $enabled);
+            if ($result === false) {
+                $error = $enabled
+                       ? _('Plugin "%s" konnte nicht aktiviert werden')
+                       : _('Plugin "%s" konnte nicht deaktiviert werden');
+                $errors[] = sprintf($error, $plugin['name']);
+            } elseif ($result === true) {
+                $message = $enabled
+                         ? _('Plugin "%s" wurde aktiviert')
+                         : _('Plugin "%s" wurde deaktiviert');
+                $messages[] = sprintf($message, $plugin['name']);
+            }
 
             if (isset($navpos)) {
-                $plugin_manager->setPluginPosition($plugin['id'], max($navpos, 1));
+                $result = $plugin_manager->setPluginPosition($plugin['id'], max($navpos, 1));
+                if ($result) {
+                    $messages[] = sprintf(
+                        _('Die Position von Plugin "%s" wurde verändert.'),
+                        $plugin['name']
+                    );
+                    $changed = true;
+                }
             }
         }
 
-        $this->flash['message'] = _('Die Änderungen wurden gespeichert.');
+        if (count($errors) > 0) {
+            PageLayout::postError(
+                _('Die folgenden Fehler sind aufgetreten:'),
+                array_map('htmlReady', $errors)
+            );
+        }
+        if (count($messages) > 0) {
+            PageLayout::postSuccess(
+                _('Die folgenden Änderungen wurden durchgeführt:'),
+                array_map('htmlReady', $messages)
+            );
+        }
         $this->redirect('admin/plugin?plugin_filter=' . $plugin_filter);
     }
 
@@ -232,9 +265,9 @@ class Admin_PluginController extends AuthenticatedController
                 $this->plugin_admin->installPlugin($upload_file);
             }
 
-            $this->flash['message'] = _('Das Plugin wurde erfolgreich installiert.');
+            PageLayout::postSuccess(_('Das Plugin wurde erfolgreich installiert.'));
         } catch (PluginInstallationException $ex) {
-            $this->flash['error'] = $ex->getMessage();
+            PageLayout::postError($ex->getMessage());
         }
 
         if (isset($upload_file)) {
@@ -346,12 +379,14 @@ class Admin_PluginController extends AuthenticatedController
 
         // collect and report errors
         if (isset($update_errors)) {
-            $this->flash['error'] = ngettext(
+            $error = ngettext(
                 'Beim Update ist ein Fehler aufgetreten:',
-                'Beim Update sind Fehler aufgetreten:', count($update_errors));
-            $this->flash['error_detail'] = $update_errors;
+                'Beim Update sind Fehler aufgetreten:',
+                count($update_errors)
+            );
+            PageLayout::postError($error, $update_errors);
         } else {
-            $this->flash['message'] = _('Update erfolgreich installiert.');
+            PageLayout::postSuccess(_('Update erfolgreich installiert.'));
         }
 
         $this->redirect('admin/plugin?plugin_filter=' . $plugin_filter);
@@ -407,13 +442,15 @@ class Admin_PluginController extends AuthenticatedController
         // save selected institutes (if any)
         $plugin_manager->setDefaultActivations($plugin_id, $selected_inst);
 
-        if (count($selected_inst) == 0) {
-            $this->flash['message'] = _('Die Default-Aktivierung wurde ausgeschaltet.');
+        if (count($selected_inst) === 0) {
+            PageLayout::postSuccess(_('Die Default-Aktivierung wurde ausgeschaltet.'));
         } else {
-            $this->flash['message'] = ngettext(
+            $message = ngettext(
                 'Für die ausgewählte Einrichtung wurde das Plugin standardmäßig aktiviert.',
                 'Für die ausgewählten Einrichtungen wurde das Plugin standardmäßig aktiviert.',
-                count($selected_inst));
+                count($selected_inst)
+            );
+            PageLayout::postSuccess($message);
         }
 
         $this->redirect('admin/plugin/default_activation/' . $plugin_id);
@@ -452,9 +489,9 @@ class Admin_PluginController extends AuthenticatedController
 
         try {
             $this->plugin_admin->registerPlugin($plugin['path']);
-            $this->flash['message'] = _('Das Plugin wurde erfolgreich installiert.');
+            PageLayout::postSuccess(_('Das Plugin wurde erfolgreich installiert.'));
         } catch (PluginInstallationException $ex) {
-            $this->flash['error'] = $ex->getMessage();
+            PageLayout::postError($ex->getMessage());
         }
         $this->redirect('admin/plugin');
     }

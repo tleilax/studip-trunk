@@ -119,30 +119,60 @@ class PluginManager
      * notification. The plugin's ID is transmitted as subject of the
      * notification.
      *
-     * @param $id        id of the plugin
-     * @param $enabled   plugin status (true or false)
+     * If the plugin implements the method "onEnable" or "onDisable", this
+     * method will be called accordingly. If the method returns false or
+     * throws and exception, the plugin's activation state is not updated.
+     *
+     * @param string $id        id of the plugin
+     * @param bool   $enabled   plugin status (true or false)
+     * @return bool  indicating whether the plugin was updated or null if the
+     *               passed state equals the current state or if the plugin is
+     *               missing.
      */
     public function setPluginEnabled ($id, $enabled)
     {
-        $db = DBManager::get();
         $info = $this->getPluginInfoById($id);
-        $state = $enabled ? 'yes' : 'no';
 
-        if ($info && $info['enabled'] != $enabled) {
-            $db->exec("UPDATE plugins SET enabled = '$state' WHERE pluginid = '$id'");
-            $this->plugins[$id]['enabled'] = (boolean) $enabled;
-
-            // call #onEnable or #onDisable
-            $plugin_class = $this->loadPluginById($id);
-            if ($plugin_class) {
-                $plugin_class->getMethod("on" .  ($enabled ? "En" : "Dis") . "able")->invoke(NULL, $id);
-            }
-
-            NotificationCenter::postNotification(
-                $enabled ? 'PluginDidEnable' : 'PluginDidDisable',
-                $id);
+        // Plugin is not present or no changes
+        if (!$info || $info['enabled'] == $enabled) {
+            return;
         }
 
+        $abort = false;
+
+        // call #onEnable or #onDisable
+        $plugin_class = $this->loadPluginById($id);
+        if ($plugin_class) {
+            // If onenable/-disable returns false or throws an exception,
+            // don't enable or disable the plugin
+            try {
+                $method = $enabled ? 'onEnable' : 'onDisable';
+                $result = $plugin_class->getMethod($method)->invoke(null, $id);
+                $abort  = $result === false;
+            } catch (Exception $e) {
+                $abort = true;
+            }
+        }
+
+        // Plugin shall not be updated
+        if ($abort) {
+            return false;
+        }
+
+        // Update plugin
+        $state = $enabled ? 'yes' : 'no';
+
+        $query = "UPDATE plugins SET enabled = ? WHERE pluginid = ?";
+        DBManager::get()->execute($query, [$state, $id]);
+
+        $this->plugins[$id]['enabled'] = (boolean) $enabled;
+
+        NotificationCenter::postNotification(
+            $enabled ? 'PluginDidEnable' : 'PluginDidDisable',
+            $id
+        );
+
+        return true;
     }
 
     /**
@@ -150,18 +180,24 @@ class PluginManager
      *
      * @param $id        id of the plugin
      * @param $position  plugin navigation position
+     * @return bool indicating whether any change occured
      */
     public function setPluginPosition ($id, $position)
     {
-        $db = DBManager::get();
         $info = $this->getPluginInfoById($id);
         $position = (int) $position;
 
-        if ($info && $info['position'] != $position) {
-            $db->exec("UPDATE plugins SET navigationpos = $position WHERE pluginid = '$id'");
-            $this->plugins[$id]['position'] = $position;
-            $this->readPluginInfos();
+        if (!$info || $info['position'] == $position) {
+            return false;
         }
+
+        $query = "UPDATE plugins SET navigationpos = ? WHERE pluginid = ?";
+        DBManager::get()->execute($query, [$position, $id]);
+
+        $this->plugins[$id]['position'] = $position;
+        $this->readPluginInfos();
+
+        return true;
     }
 
     /**
@@ -639,7 +675,7 @@ class PluginManager
 
         return $plugins;
     }
-    
+
     /**
      * Read the manifest of the plugin in the given directory.
      * Returns NULL if the manifest cannot be found.
@@ -664,7 +700,7 @@ class PluginManager
             if ($key === '' || $key[0] === '#') {
                 continue;
             }
-            
+
             $key_array = explode('.',$key,2);
             if(count($key_array) > 1){
                 if($key_array[0] === 'screenshots'){

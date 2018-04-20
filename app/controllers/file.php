@@ -126,7 +126,9 @@ class FileController extends AuthenticatedController
             if (Request::isXhr()) {
                 $output = ['new_html' => []];
 
-                if (count($storedFiles) === 1 && $storedFiles[0]['mime_type'] === 'application/zip' && Seminar_Perm::get()->have_studip_perm('tutor', $folder->range_id)) {
+                if (count($storedFiles) === 1
+                        && (strtolower(substr($storedFiles[0]['name'], -4)) === ".zip")
+                        && ($folder->range_id === $GLOBALS['user']->id || Seminar_Perm::get()->have_studip_perm('tutor', $folder->range_id))) {
                     $ref_ids = [];
                     foreach ($storedFiles as $file_ref) {
                         $ref_ids[] = $file_ref->getId();
@@ -965,7 +967,12 @@ class FileController extends AuthenticatedController
 
     public function add_files_window_action($folder_id)
     {
-        $this->folder_id = $folder_id;
+        $this->folder_id   = $folder_id;
+
+        $this->upload_type = FileManager::getUploadTypeConfig(
+            Context::getId(), $GLOBALS['user']->id
+        );
+
         $this->plugin = Request::get('to_plugin');
     }
 

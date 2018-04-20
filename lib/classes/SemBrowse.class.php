@@ -54,7 +54,10 @@ class SemBrowse {
             $this->sem_browse_data['default_sem'] = Request::option($this->search_obj->form_name . "_sem");
         }
 
-        if (Request::get('keep_result_set') || $this->sem_browse_data['sset'] || (count($this->sem_browse_data['search_result']) && $this->sem_browse_data['show_entries'])){
+        if (Request::get('keep_result_set')
+            || $this->sem_browse_data['sset']
+            || (!empty($this->sem_browse_data['search_result']) && $this->sem_browse_data['show_entries']))
+        {
             $this->show_result = true;
         }
 
@@ -321,11 +324,11 @@ class SemBrowse {
 
                 ?>
                 <nav class="hidden-large-up button-group">
-                    <?= Studip\LinkButton::create(_("Suche in Einrichtungen"), URLHelper::getLink('?level=ev&cmd=qs&sset=0')) ?>
+                    <?= Studip\LinkButton::create(_("Suche in Einrichtungen"), URLHelper::getURL('?level=ev&cmd=qs&sset=0')) ?>
 
-                    <? if ($this->show_class()) { ?>
-                        <?= Studip\LinkButton::create(_("Suche im Vorlesungsverzeichnis"), URLHelper::getLink('?level=vv&cmd=qs&sset=0')) ?>
-                    <? } ?>
+                    <? if ($this->show_class()) : ?>
+                        <?= Studip\LinkButton::create(_("Suche im Vorlesungsverzeichnis"), URLHelper::getURL('?level=vv&cmd=qs&sset=0')) ?>
+                    <? endif ?>
                 </nav>
                 <?
             }

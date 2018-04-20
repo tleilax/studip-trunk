@@ -45,7 +45,7 @@ class Course_StatusgroupsController extends AuthenticatedController
         $this->is_participants_locked = LockRules::Check($this->course_id, 'participants');
 
         PageLayout::setTitle(sprintf('%s - %s', Course::findCurrent()->getFullname(), _('Gruppen')));
-
+        PageLayout::addSqueezePackage('statusgroups');
     }
 
     /**
@@ -53,7 +53,6 @@ class Course_StatusgroupsController extends AuthenticatedController
      */
     public function index_action()
     {
-        PageLayout::addSqueezePackage('statusgroups');
         Navigation::activateItem('/course/members/statusgroups');
 
         if ($this->is_locked && $this->is_tutor) {
@@ -109,14 +108,14 @@ class Course_StatusgroupsController extends AuthenticatedController
              * explicitly, as this group will be loaded at once and not via AJAX.
              */
             if ($g->id == $this->sort_group) {
-                $groupmembers = $g->members->pluck('user_id');
                 if ($this->sort_group == $g->id) {
                     $sorted = StatusgroupsModel::sortGroupMembers(
-                        $this->allmembers->findBy('user_id', $groupmembers),
+                        $g->members,
                         $this->sort_by, $this->order);
                 } else {
                     $sorted = StatusgroupsModel::sortGroupMembers(
-                        $this->allmembers->findBy('user_id', $groupmembers));
+                        $g->members
+                    );
                 }
 
                 $groupdata['members'] = $sorted;
@@ -262,18 +261,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             $this->group = Statusgruppen::find($group_id);
             if (count($this->group->members) > 0) {
                 $this->members = StatusgroupsModel::sortGroupMembers(
-                    SimpleCollection::createFromArray(
-                        DBManager::get()->fetchAll("SELECT seminar_user.*,
-                    aum.vorname,aum.nachname,aum.email,
-                    aum.username,ui.title_front,ui.title_rear
-                    FROM seminar_user
-                    LEFT JOIN auth_user_md5 aum USING (user_id)
-                    LEFT JOIN user_info ui USING (user_id)
-                    WHERE
-                            `Seminar_id` = ? AND `user_id` IN (?)",
-                        [$this->course_id, $this->group->members->pluck('user_id')],
-                        'CourseMember::buildExisting')
-                    )
+                    $this->group->members
                 );
             } else {
                 $this->members = [];
@@ -657,11 +645,15 @@ class Course_StatusgroupsController extends AuthenticatedController
 
             // Create a number of groups, sequentially named.
             if (Request::option('mode') == 'numbering') {
-
                 $counter = 0;
+                if (Request::get('numbering_type') == 2) {
+                    $numbering = 'A';
+                } else {
+                    $numbering = Request::int('startnumber', 1);
+                }
                 for ($i = 0 ; $i < Request::int('number') ; $i++) {
                     $group = StatusgroupsModel::updateGroup('', Request::get('prefix').' '.
-                        (Request::int('startnumber', 1) + $i),
+                        $numbering++,
                         $counter + 1, $this->course_id, Request::int('size', 0),
                         Request::int('selfassign', 0) + Request::int('exclusive', 0),
                         strtotime(Request::get('selfassign_start', 'now')),

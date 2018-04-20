@@ -3001,6 +3001,20 @@ div#sidebar-navigation div.sidebar-widget-content {
 .widget-links.sidebar-views > li.active:after {
   border-left-width: 8px;
 }
+.widget-links .link-form {
+  display: inline-block;
+}
+.widget-links .link-form button {
+  background: transparent;
+  border: 0;
+  color: #28497c;
+  margin: 0;
+  padding: 0;
+}
+.widget-links .link-form button:hover {
+  color: #d60000;
+  cursor: pointer;
+}
 .sidebar-widget-cloud {
   margin: 0px;
   padding: 0px;
@@ -12467,12 +12481,28 @@ div.overdiv div.content {
 .plugin_image {
   text-align: center;
   width: 88px;
+  vertical-align: top;
 }
 .plugin_score {
   white-space: nowrap;
 }
 .plugin_install {
   text-align: center;
+}
+.plugin_description {
+  max-height: 15em;
+  overflow: hidden;
+  position: relative;
+}
+.plugin_description p.read_more {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  margin: 0;
+  padding: 10px 0;
+  background-image: linear-gradient(to bottom, transparent, white);
 }
 img.plugin_preview {
   height: 60px;

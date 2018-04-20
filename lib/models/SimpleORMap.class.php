@@ -287,7 +287,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         }
 
         if (I18N::isEnabled()) {
-            if (count($config['i18n_fields'])) {
+            if (isset($config['i18n_fields']) && count($config['i18n_fields']) > 0) {
                 $config['registered_callbacks']['before_store'][] = 'cbI18N';
                 $config['registered_callbacks']['after_delete'][] = 'cbI18N';
             }
@@ -1184,6 +1184,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if (count($this->pk) == 1) {
             return $this->content[$this->pk[0]];
         } else {
+            $id = [];
             foreach ($this->pk as $key) {
                 if ($this->content[$key] !== null) {
                     $id[] = $this->content[$key];
