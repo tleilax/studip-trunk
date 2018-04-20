@@ -291,7 +291,7 @@ class ProfileController extends AuthenticatedController
                     $this->url_for('profile/add_buddy?username=' . $this->current_user->username),
                     Icon::create('person+add', 'clickable', tooltip2(_('Zu den Kontakten hinzufügen'))),
                     ['data-confirm' => _('Wollen Sie die Person wirklich als Kontakt hinzufügen?')]
-                )->asButton();
+                )->asButton([]);
             } else {
                 $actions->addLink(
                     _('Von den Kontakten entfernen'),
@@ -377,9 +377,7 @@ class ProfileController extends AuthenticatedController
      */
     public function add_buddy_action()
     {
-        if (!Request::isPost()) {
-            throw new MethodNotAllowedException();
-        }
+        CSRFProtection::verifyUnsafeRequest();
 
         $username            = Request::username('username');
         $user                = User::findByUsername($username);
@@ -398,9 +396,7 @@ class ProfileController extends AuthenticatedController
      */
     public function remove_buddy_action()
     {
-        if (!Request::isPost()) {
-            throw new MethodNotAllowedException();
-        }
+        CSRFProtection::verifyUnsafeRequest();
 
         $username = Request::username('username');
         $current  = User::findCurrent();
