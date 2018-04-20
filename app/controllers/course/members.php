@@ -1478,15 +1478,15 @@ class Course_MembersController extends AuthenticatedController
             if (!$this->is_locked) {
                 // create new search for members
                 $searchType = new SQLSearch("SELECT auth_user_md5.user_id, CONCAT(" . $GLOBALS['_fullname_sql']['full'] .
-                ", \" (\", auth_user_md5.username, \")\") as fullname " .
-                "FROM auth_user_md5 " .
-                "LEFT JOIN user_info ON (user_info.user_id = auth_user_md5.user_id) " .
-                "WHERE (CONCAT(auth_user_md5.Vorname, \" \", auth_user_md5.Nachname) LIKE :input " .
-                "OR CONCAT(auth_user_md5.Nachname, \" \", auth_user_md5.Vorname) LIKE :input " .
-                "OR auth_user_md5.username LIKE :input) " .
-                "AND auth_user_md5.perms IN ('autor', 'tutor', 'dozent') " .
-                " AND auth_user_md5.visible <> 'never' " .
-                "ORDER BY Vorname, Nachname", _("Teilnehmende/n suchen"), "username");
+                    ", \" (\", auth_user_md5.username, \")\") as fullname " .
+                    "FROM auth_user_md5 " .
+                    "LEFT JOIN user_info ON (user_info.user_id = auth_user_md5.user_id) " .
+                    "WHERE (CONCAT(auth_user_md5.Vorname, \" \", auth_user_md5.Nachname) LIKE :input " .
+                    "OR CONCAT(auth_user_md5.Nachname, \" \", auth_user_md5.Vorname) LIKE :input " .
+                    "OR auth_user_md5.username LIKE :input) " .
+                    "AND auth_user_md5.perms IN ('autor', 'tutor', 'dozent') " .
+                    " AND auth_user_md5.visible <> 'never' " .
+                    "ORDER BY Vorname, Nachname", _("Teilnehmende/n suchen"), "username");
 
                 // quickfilter: tutors of institut
                 $sql = "SELECT user_id FROM user_inst WHERE Institut_id = ? AND inst_perms = 'autor'";
@@ -1512,8 +1512,7 @@ class Course_MembersController extends AuthenticatedController
                 // add "add person to waitlist" to sidebar
                 if ($sem->isAdmissionEnabled() && $sem->getCourseSet()->hasAlgorithmRun()
                     && !$sem->admission_disable_waitlist &&
-                    (!$sem->getFreeSeats() || $sem->admission_disable_waitlist_move))
-                {
+                    (!$sem->getFreeSeats() || $sem->admission_disable_waitlist_move)) {
                     $ignore = array_merge(
                         $filtered_members['dozent']->pluck('user_id'),
                         $filtered_members['tutor']->pluck('user_id'),
@@ -1534,11 +1533,9 @@ class Course_MembersController extends AuthenticatedController
                     $element = LinkElement::fromHTML($mp, Icon::create('community+add', 'clickable'));
                     $widget->addElement($element);
                 }
+                $widget->addLink(_('Teilnehmendenliste importieren'),
+                    $this->url_for('course/members/import_autorlist'), Icon::create('community+add', 'clickable'));
             }
-
-            $widget->addLink(_('Teilnehmendenliste importieren'),
-                             $this->url_for('course/members/import_autorlist'), Icon::create('community+add', 'clickable'));
-
 
             if (Config::get()->EXPORT_ENABLE) {
                 $widget = new ExportWidget();
