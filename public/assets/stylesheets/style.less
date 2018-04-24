@@ -618,3 +618,30 @@ a.new-member {
 .recolor {
     .recolor();
 }
+
+/**
+ * Style the details tag according to stud.ip
+ */
+details.studip {
+    summary {
+        .icon('before', 'arr_1right', 'clickable');
+        cursor: pointer;
+
+        &::before {
+            vertical-align: text-bottom;
+        }
+
+        // Hide default icon
+        list-style: none;
+        &::-webkit-details-marker {
+            display: none;
+        }
+    }
+
+    &[open] {
+        summary {
+            .icon('before', 'arr_1down', 'clickable');
+        }
+    }
+
+}

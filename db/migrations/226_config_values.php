@@ -69,8 +69,8 @@ class ConfigValues extends Migration
             'value'       => '0'
         ));
 
-        $db->exec("INSERT INTO config_values (field, range_id, value, mkdate, chdate)
-                   SELECT 'COURSE_STUDENT_MAILING', Seminar_id, student_mailing, mkdate, chdate
+        $db->exec("INSERT INTO config_values (field, range_id, value, mkdate, chdate, comment)
+                   SELECT 'COURSE_STUDENT_MAILING', Seminar_id, student_mailing, mkdate, chdate, ''
                    FROM seminare WHERE student_mailing = 1");
 
         $db->exec('ALTER TABLE seminare DROP student_mailing');

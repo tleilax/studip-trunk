@@ -318,6 +318,7 @@ all uppercase each item of the configuration array will become a member of your 
 //$STUDIP_AUTH_PLUGIN[] = "StandardExtern";
 $STUDIP_AUTH_PLUGIN[] = "Standard";
 // $STUDIP_AUTH_PLUGIN[] = "CAS";
+// $STUDIP_AUTH_PLUGIN[] = "LTI";
 // $STUDIP_AUTH_PLUGIN[] = "Shib";
 // $STUDIP_AUTH_PLUGIN[] = "IP";
 
@@ -379,6 +380,21 @@ $STUDIP_AUTH_CONFIG_CAS = array("host" => "cas.studip.de",
                                                         "auth_user_md5.Nachname" => array("callback" => "getUserData", "map_args" => "surname"),
                                                         "auth_user_md5.Email" => array("callback" => "getUserData", "map_args" => "email"),
                                                         "auth_user_md5.perms" => array("callback" => "getUserData", "map_args" => "status")));
+
+$STUDIP_AUTH_CONFIG_LTI = [
+    'consumer_keys' => [
+        // 'domain' is optional, default is value of consumer_key
+        'studip.de' => ['consumer_secret' => 'secret', 'domain' => 'studip.de']
+    ],
+    'user_data_mapping' => [
+        // see http://www.imsglobal.org/specs/ltiv1p1/implementation-guide for lauch data item names
+        'auth_user_md5.username' => ['callback' => 'dummy', 'map_args' => ''],
+        'auth_user_md5.password' => ['callback' => 'dummy', 'map_args' => ''],
+        'auth_user_md5.Vorname'  => ['callback' => 'getUserData', 'map_args' => 'lis_person_name_given'],
+        'auth_user_md5.Nachname' => ['callback' => 'getUserData', 'map_args' => 'lis_person_name_family'],
+        'auth_user_md5.Email'    => ['callback' => 'getUserData', 'map_args' => 'lis_person_contact_email_primary']
+    ]
+];
 
 $STUDIP_AUTH_CONFIG_SHIB = array("session_initiator" => "https://sp.studip.de/Shibboleth.sso/WAYF/DEMO",
                                         "validate_url" => "https://sp.studip.de/auth/studip-sp.php",

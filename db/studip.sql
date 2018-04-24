@@ -48,8 +48,8 @@ CREATE TABLE `abschluss` (
   `name_kurz_en` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `beschreibung` text COLLATE utf8mb4_unicode_ci,
   `beschreibung_en` text COLLATE utf8mb4_unicode_ci,
-  `author_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
-  `editor_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+  `author_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NULL,
+  `editor_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NULL,
   `mkdate` int(20) DEFAULT NULL,
   `chdate` int(20) DEFAULT NULL,
   PRIMARY KEY (`abschluss_id`)

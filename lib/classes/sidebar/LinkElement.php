@@ -66,8 +66,8 @@ class LinkElement extends WidgetElement implements ArrayAccess
     /**
      * create a link for a widget
      *
-     * @param String $label      Label/content of the link
-     * @param String $url        URL/Location of the link
+     * @param String $label    Label/content of the link
+     * @param String $url      URL/Location of the link (raw url, no entities)
      * @param Icon $icon       Icon for the link
      * @param array  $attributes HTML-attributes for the a-tag in an associative array.
      */
@@ -161,6 +161,10 @@ class LinkElement extends WidgetElement implements ArrayAccess
      */
     public function render()
     {
+        if ($this->url !== html_entity_decode($this->url)) {
+            $this->url = html_entity_decode($this->url);
+        }
+
         $disabled = isset($this->attributes['disabled'])
                  && $this->attributes['disabled'] !== false;
 

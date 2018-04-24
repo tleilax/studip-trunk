@@ -13145,3 +13145,44 @@ div#layout-sidebar div.sidebar-image img {
 .recolor {
   filter: hue-rotate(0deg) saturate(100%) brightness(100%);
 }
+/**
+ * Style the details tag according to stud.ip
+ */
+details.studip summary {
+  cursor: pointer;
+  list-style: none;
+}
+details.studip summary::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 0;
+  background-image: url("../images/icons/blue/arr_1right.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
+details.studip summary::before {
+  vertical-align: text-bottom;
+}
+details.studip summary::-webkit-details-marker {
+  display: none;
+}
+details.studip[open] summary::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 0;
+  background-image: url("../images/icons/blue/arr_1down.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
