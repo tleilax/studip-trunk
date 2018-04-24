@@ -186,7 +186,7 @@ javascripts:
     - javascripts/jquery/jquery.filtertable-1.5.7.js
 
   avatar:
-    - javascripts/vendor/croppie.js
+    - javascripts/vendor/cropper.js
     - javascripts/avatar.js
 
 css:

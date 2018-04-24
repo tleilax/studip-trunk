@@ -64,7 +64,23 @@ class Settings_AvatarController extends Settings_SettingsController
             PageLayout::postSuccess(_('Bild gelöscht.'));
         } elseif (Request::submitted('upload')) {
             try {
-                Avatar::getAvatar($this->user->user_id)->createFromUpload('imgfile');
+
+                // Get the Base64-encoded data from cropper.
+                $imgdata = Request::get('cropped-image');
+
+                // Extract actual image data (prepended by mime type and meta data)
+                list($type, $imgdata) = explode(';', $imgdata);
+                list(, $imgdata) = explode(',', $imgdata);
+                $imgdata = base64_decode($imgdata);
+                // Write data to file.
+                $filename = $GLOBALS['TMP_PATH'] . '/avatar-' . $this->user->username . '.png';
+                file_put_contents(
+                    $filename,
+                    $imgdata
+                );
+
+                // Use new image file for avatar creation.
+                Avatar::getAvatar($this->user->user_id)->createFrom($filename);
 
                 NotificationCenter::postNotification('AvatarDidUpload', $this->user->user_id);
 
@@ -77,6 +93,9 @@ class Settings_AvatarController extends Settings_SettingsController
                 $this->postPrivateMessage(_("Ein neues Bild wurde hochgeladen.\n"));
                 restoreLanguage();
                 Visibility::addPrivacySetting(_('Eigenes Bild'), 'picture', 'commondata', 1, $this->user->user_id);
+
+                unlink($filename);
+
             } catch (Exception $e) {
                 PageLayout::postError($e->getMessage());
             }
