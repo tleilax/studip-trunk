@@ -662,16 +662,15 @@ function TransformInternalLinks($str){
 * @param   string $baseUrl           if set, this url is used, PHP_SELF otherwise
 *
 * @return  string $dialog            text which contains the dialog
+*
+* @deprecated since Stud.IP 4.2, use QuestionBox oder PageLayout::postQuestion()
 */
 
 function createQuestion($question, $approveParams, $disapproveParams = array(), $baseUrl = '?') {
-    $template = $GLOBALS['template_factory']->open('shared/question');
-
-    $template->set_attribute('approvalLink', URLHelper::getURL($baseUrl, (array)$approveParams));
-    $template->set_attribute('disapprovalLink', URLHelper::getURL($baseUrl, (array)$disapproveParams));
-    $template->set_attribute('question', $question);
-
-    return $template->render();
+    $question_box = QuestionBox::create($question, $approveParams, $disapproveParams);
+    $question_box->setApproveURL($baseUrl);
+    $question_box->setDisapproveURL($baseUrl);
+    return (string) $question_box;
 }
 
 /**
@@ -683,16 +682,14 @@ function createQuestion($question, $approveParams, $disapproveParams = array(), 
 * @param   string $baseUrl           if set, this url is used, PHP_SELF otherwise
 *
 * @return  string $dialog            text which contains the dialog
+*
+* @deprecated since Stud.IP 4.2, use QuestionBox oder PageLayout::postQuestion()
 */
 function createQuestion2($question, $approveParams, $disapproveParams = array(), $baseUrl = '?') {
-    $template = $GLOBALS['template_factory']->open('shared/question2');
-
-    $template->set_attribute('approvalLink', $baseUrl);
-    $template->set_attribute('approvParams', (array)$approveParams);
-    $template->set_attribute('disapproveParams', (array)$disapproveParams);
-    $template->set_attribute('question', $question);
-
-    return $template->render();
+    $question_box = QuestionBox::createForm($question, $approveParams, $disapproveParams);
+    $question_box->setApproveURL($baseUrl);
+    $question_box->setDisapproveURL($baseUrl);
+    return (string) $question_box;
 }
 
 /**

@@ -219,9 +219,10 @@ class StartController extends AuthenticatedController
                 }
             }
         } else {
-            $message = sprintf(_('Sind Sie sicher, dass Sie das Widget "%s" von der Startseite entfernen möchten?'),
-                               WidgetHelper::getWidgetName($id));
-            $this->flash['question'] = createQuestion2($message, [], [], $this->url_for('start/delete/' . $id));
+            PageLayout::postQuestion(sprintf(
+                _('Sind Sie sicher, dass Sie das Widget "%s" von der Startseite entfernen möchten?'),
+                WidgetHelper::getWidgetName($id)
+            ))->setApproveURL($this->url_for('start/delete/' . $id));
         }
         $this->redirect('start');
     }
