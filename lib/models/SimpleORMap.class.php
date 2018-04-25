@@ -804,8 +804,8 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
-     * interceptor for static findByColumn / findEachByColumn / countByColumn
-     * magic
+     * interceptor for static findByColumn / findEachByColumn / countByColumn /
+     * deleteByColumn magic
      * @param string $name
      * @param array $arguments
      * @throws BadMethodCallException
@@ -844,9 +844,10 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 $method = 'findeachbysql';
                 break;
             case 'count':
+            case 'delete':
                 $param_arr[0] =& $where;
                 $param_arr[1] = array($where_param);
-                $method = 'countbysql';
+                $method = "{$prefix}bysql";
                 break;
             default:
                 throw new BadMethodCallException("Method $class::$name not found");
