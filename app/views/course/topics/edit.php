@@ -78,6 +78,16 @@
                 </td>
             </tr>
             <? endif ?>
+            <tr>
+                <td><strong><?= _('Hausarbeit/Referat') ?></strong></td>
+                <td>
+                    <label>
+                        <input type="checkbox" name="paper_related" value="1"
+                               <? if ($topic->paper_related) echo 'checked'; ?>>
+                        <?= _('Thema behandelt eine Hausarbeit oder ein Referat') ?>
+                    </label>
+                </td>
+            </tr>
         </tbody>
     </table>
     <div align="center" data-dialog-button>

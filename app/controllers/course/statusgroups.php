@@ -564,7 +564,13 @@ class Course_StatusgroupsController extends AuthenticatedController
         })) > 0;
 
         // Check if course has topics.
-        $this->has_topics = count(CourseTopic::findBySeminar_id($this->course_id)) > 0;
+        $topics = CourseTopic::findBySeminar_id($this->course_id);
+        $paper_topics = array_filter($topics, function ($topic) {
+            return $topic->paper_related;
+        });
+
+        $this->has_topics = count($topics) > 0;
+        $this->has_paper_related_topics = count($paper_topics) > 0;
     }
 
     /**
@@ -644,9 +650,10 @@ class Course_StatusgroupsController extends AuthenticatedController
 
         CSRFProtection::verifyUnsafeRequest();
 
+        $counter = 0;
+
         // Create a number of groups, sequentially named.
         if (Request::option('mode') == 'numbering') {
-            $counter = 0;
             if (Request::get('numbering_type') == 2) {
                 $numbering = 'A';
             } else {
@@ -662,28 +669,30 @@ class Course_StatusgroupsController extends AuthenticatedController
                     Request::int('makefolder', 0));
                 $counter++;
             }
-            PageLayout::postSuccess(sprintf(
-                ngettext('Eine Gruppe wurde angelegt.', '%u Gruppen wurden angelegt.', $counter),
-                $counter));
 
         // Create groups by course metadata, like topics, dates or lecturers.
         } else if (Request::option('mode') == 'coursedata') {
-
-            switch (Request::option('createmode')) {
+            $mode = Request::option('createmode');
+            switch ($mode) {
 
                 // Create groups per topic.
                 case 'topics':
+                case 'paper_related':
                     $topics = SimpleCollection::createFromArray(
-                        CourseTopic::findBySeminar_id($this->course_id))->orderBy('priority');
-                    $counter = 0;
+                        CourseTopic::findBySeminar_id($this->course_id)
+                    )->filter(function ($topic) use ($mode) {
+                        return $mode !== 'paper_related'
+                            || $topic->paper_related;
+                    })->orderBy('priority');
 
                     foreach ($topics as $t) {
-                        $group = StatusgroupsModel::updateGroup('', _('Thema:').' '.$t->title,
+                        $group = StatusgroupsModel::updateGroup('', _('Thema:') . ' ' . $t->title,
                             $t->priority, $this->course_id, Request::int('size', 0),
                             Request::int('selfassign', 0) + Request::int('exclusive', 0),
                             strtotime(Request::get('selfassign_start', 'now')),
                             strtotime(Request::get('selfassign_end', 0)),
-                            Request::int('makefolder', 0));
+                            Request::int('makefolder', 0)
+                        );
 
                         // Connect group to dates that are assigned to the given topic.
                         $dates = CourseDate::findByIssue_id($t->id);
@@ -695,9 +704,6 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $counter++;
                     }
 
-                    PageLayout::postSuccess(sprintf(
-                        ngettext('Eine Gruppe wurde angelegt.', '%u Gruppen wurden angelegt.', count($topics)),
-                        $counter));
                     break;
 
                 // Create groups per (regular and irregular) dates.
@@ -707,7 +713,6 @@ class Course_StatusgroupsController extends AuthenticatedController
                     $cycles = SimpleCollection::createFromArray(
                         SeminarCycleDate::findBySeminar_id($this->course_id));
 
-                    $counter = 0;
                     foreach ($cycles as $c) {
                         $cd = new CycleData($c);
 
@@ -776,9 +781,6 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $counter++;
                     }
 
-                    PageLayout::postSuccess(sprintf(
-                        ngettext('Eine Gruppe wurde angelegt.', '%u Gruppen wurden angelegt.', $counter),
-                        $counter));
                     break;
 
 
@@ -786,7 +788,6 @@ class Course_StatusgroupsController extends AuthenticatedController
                 case 'lecturers':
                     $lecturers = SimpleCollection::createFromArray(
                         CourseMember::findByCourseAndStatus($this->course_id, 'dozent'))->orderBy('position');
-                    $counter = 0;
 
                     foreach ($lecturers as $l) {
                         StatusgroupsModel::updateGroup('', $l->getUserFullname('full'),
@@ -798,12 +799,16 @@ class Course_StatusgroupsController extends AuthenticatedController
                         $counter++;
                     }
 
-                    PageLayout::postSuccess(sprintf(
-                        ngettext('Eine Gruppe wurde angelegt.', '%u Gruppen wurden angelegt.', count($lecturers)),
-                        $counter));
                     break;
             }
 
+        }
+
+        if ($counter > 0) {
+            PageLayout::postSuccess(sprintf(
+                ngettext('Eine Gruppe wurde angelegt.', '%u Gruppen wurden angelegt.', $counter),
+                $counter)
+            );
         }
 
         $this->relocate('course/statusgroups');
