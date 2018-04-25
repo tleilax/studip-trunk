@@ -74,6 +74,12 @@ class Course_DatesController extends AuthenticatedController
             Icon::create('file-word', 'clickable')
         );
 
+        $actions->addLink(
+            _('Als CSV-Datei exportieren'),
+            $this->url_for('course/dates/export_csv'),
+            Icon::create('file-excel', 'clickable')
+        );
+
         Sidebar::get()->addWidget($actions);
     }
 
@@ -360,6 +366,85 @@ class Course_DatesController extends AuthenticatedController
         $this->response->add_header('Cache-Control', 'private');
         $this->response->add_header('Pragma', 'cache');
         $this->render_text($content);
+    }
+
+    /**
+     * Export list of course dates into CSV format.
+     */
+    public function export_csv_action()
+    {
+        $sem = new Seminar($this->course);
+        $dates = getAllSortedSingleDates($sem);
+        $issues = $sem->getIssues();
+        $data = array();
+
+        $columns = array(
+            _('Wochentag'),
+            _('Termin'),
+            _('Beginn'),
+            _('Ende'),
+            _('Typ'),
+            _('Thema'),
+            _('Beschreibung'),
+            _('Raum'),
+            _('Raumbeschreibung'),
+            _('Sitzplätze')
+        );
+
+        foreach ($dates as $date) {
+            // FIXME this should not be necessary, see https://develop.studip.de/trac/ticket/8101
+            if ($date->isExTermin() && $date->getComment() == '') {
+                continue;
+            }
+
+            $row = array();
+            $row[] = strftime('%A', $date->date);
+            $row[] = strftime('%x', $date->date);
+            $row[] = strftime('%H:%M', $date->date);
+            $row[] = strftime('%H:%M', $date->end_time);
+            $row[] = $date->getTypeName();
+
+            if ($date->isExTermin()) {
+                $row[] = $date->getComment();
+                $row[] = '';
+            } else {
+                $issue = $descr = '';
+
+                foreach ((array) $date->getIssueIDs() as $id) {
+                    $issue .= $issues[$id]->getTitle() . "\n";
+                    $descr .= kill_format($issues[$id]->getDescription()) . "\n";
+                }
+
+                $row[] = trim($issue);
+                $row[] = trim($descr);
+            }
+
+            if ($date->resource_id) {
+                $resource_object = ResourceObject::Factory($date->resource_id);
+                $row[] = $resource_object->getName();
+                $row[] = $resource_object->getDescription();
+                $row[] = $resource_object->getSeats();
+            } else {
+                $row[] = $date->raum;
+                $row[] = '';
+                $row[] = '';
+            }
+
+            $data[] = $row;
+        }
+
+        $filename = $sem->name . '-' . _('Ablaufplan') . '.csv';
+        $this->set_content_type('text/csv; charset=UTF-8');
+        $this->response->add_header('Content-Disposition', 'attachment; ' . encode_header_parameter('filename', $filename));
+        $this->render_nothing();
+
+        $output = fopen('php://output', 'w');
+        fputs($output, "\xEF\xBB\xBF");
+        fputcsv($output, $columns, ';');
+
+        foreach ($data as $row) {
+            fputcsv($output, $row, ';');
+        }
     }
 
     private function hasAccess()
