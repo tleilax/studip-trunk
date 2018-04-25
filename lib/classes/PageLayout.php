@@ -580,6 +580,7 @@ class PageLayout
      * @param Array  $disapprove_params Parameters to send when disapproving
      * @return QuestionBox to allow further settings like urls and such
      * @see QuestionBox
+     * @since Stud.IP 4.2
      */
     public static function postQuestion($question, array $approve_params = [], array $disapprove_params = [])
     {
