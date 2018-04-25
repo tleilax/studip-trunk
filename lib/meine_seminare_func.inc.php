@@ -301,7 +301,7 @@ function get_my_obj_values (&$my_obj, $user_id)
             }
         }
     }
-    $db2->query(get_obj_clause('folders a {ON_CLAUSE} INNER JOIN file_refs fr ON (fr.folder_id=a.id)','range_id','fr.id',"(fr.chdate > IFNULL(b.visitdate, $threshold) AND fr.user_id !='$user_id')", 'documents', false, (count($unreadable_folders) ? "AND f.id NOT IN('".join("','", array_keys($unreadable_folders))."')" : ""), false, $user_id, 'fr.chdate'));
+    $db2->query(get_obj_clause('folders a {ON_CLAUSE} INNER JOIN file_refs fr ON (fr.folder_id=a.id)','range_id','fr.id',"(fr.chdate > IFNULL(b.visitdate, $threshold) AND fr.user_id !='$user_id')", 'documents', false, (count($unreadable_folders) ? "AND a.id NOT IN('".join("','", array_keys($unreadable_folders))."')" : ""), false, $user_id, 'fr.chdate'));
     while($db2->next_record()) {
         $object_id = $db2->f('object_id');
         if ($my_obj[$object_id]["modules"]["documents"]) {
