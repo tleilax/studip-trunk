@@ -276,6 +276,32 @@ abstract class StudipController extends Trails_Controller
     }
 
     /**
+     * Render given data as csv, data is assumed to be utf-8.
+     * The first row of data may contain column titles.
+     *
+     * @param array $data       data as two dimensional array
+     * @param string $delimiter field delimiter char (optional)
+     * @param string $enclosure field enclosure char (optional)
+     */
+    public function render_csv($data, $delimiter = ';', $enclosure = '"')
+    {
+        $this->set_content_type('text/csv; charset=UTF-8');
+
+        $output = fopen('php://temp', 'rw');
+        fputs($output, "\xEF\xBB\xBF");
+
+        foreach ($data as $row) {
+            fputcsv($output, $row, $delimiter, $enclosure);
+        }
+
+        rewind($output);
+        $csv_data = stream_get_contents($output);
+        fclose($output);
+
+        return $this->render_text($csv_data);
+    }
+
+    /**
      * relays current request to another controller and returns the response
      * the other controller is given all assigned properties, additional parameters are passed
      * through

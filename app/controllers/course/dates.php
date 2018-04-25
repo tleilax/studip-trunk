@@ -376,7 +376,6 @@ class Course_DatesController extends AuthenticatedController
         $sem = new Seminar($this->course);
         $dates = getAllSortedSingleDates($sem);
         $issues = $sem->getIssues();
-        $data = array();
 
         $columns = array(
             _('Wochentag'),
@@ -390,6 +389,8 @@ class Course_DatesController extends AuthenticatedController
             _('Raumbeschreibung'),
             _('Sitzplätze')
         );
+
+        $data[] = array($columns);
 
         foreach ($dates as $date) {
             // FIXME this should not be necessary, see https://develop.studip.de/trac/ticket/8101
@@ -434,17 +435,8 @@ class Course_DatesController extends AuthenticatedController
         }
 
         $filename = $sem->name . '-' . _('Ablaufplan') . '.csv';
-        $this->set_content_type('text/csv; charset=UTF-8');
         $this->response->add_header('Content-Disposition', 'attachment; ' . encode_header_parameter('filename', $filename));
-        $this->render_nothing();
-
-        $output = fopen('php://output', 'w');
-        fputs($output, "\xEF\xBB\xBF");
-        fputcsv($output, $columns, ';');
-
-        foreach ($data as $row) {
-            fputcsv($output, $row, ';');
-        }
+        $this->render_csv($data);
     }
 
     private function hasAccess()
