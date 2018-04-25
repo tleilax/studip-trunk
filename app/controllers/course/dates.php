@@ -390,7 +390,7 @@ class Course_DatesController extends AuthenticatedController
             _('Sitzplätze')
         );
 
-        $data[] = array($columns);
+        $data = array($columns);
 
         foreach ($dates as $date) {
             // FIXME this should not be necessary, see https://develop.studip.de/trac/ticket/8101
@@ -435,8 +435,7 @@ class Course_DatesController extends AuthenticatedController
         }
 
         $filename = $sem->name . '-' . _('Ablaufplan') . '.csv';
-        $this->response->add_header('Content-Disposition', 'attachment; ' . encode_header_parameter('filename', $filename));
-        $this->render_csv($data);
+        $this->render_csv($data, $filename);
     }
 
     private function hasAccess()

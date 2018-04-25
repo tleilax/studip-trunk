@@ -280,10 +280,11 @@ abstract class StudipController extends Trails_Controller
      * The first row of data may contain column titles.
      *
      * @param array $data       data as two dimensional array
+     * @param string $filename  download file name (optional)
      * @param string $delimiter field delimiter char (optional)
      * @param string $enclosure field enclosure char (optional)
      */
-    public function render_csv($data, $delimiter = ';', $enclosure = '"')
+    public function render_csv($data, $filename = null, $delimiter = ';', $enclosure = '"')
     {
         $this->set_content_type('text/csv; charset=UTF-8');
 
@@ -297,6 +298,12 @@ abstract class StudipController extends Trails_Controller
         rewind($output);
         $csv_data = stream_get_contents($output);
         fclose($output);
+
+        if (isset($filename)) {
+            $this->response->add_header('Content-Disposition', 'attachment; ' . encode_header_parameter('filename', $filename));
+        }
+
+        $this->response->add_header('Content-Length', strlen($csv_data));
 
         return $this->render_text($csv_data);
     }
