@@ -1,35 +1,35 @@
-<?php if (count($members)) : ?>
+<? if (count($members)) : ?>
     <table class="default">
         <colgroup>
             <col width="20">
-            <?php if($is_tutor) : ?>
-                <?php $cols = $group->id !== 'nogroup' ? 5 : 4 ?>
-                <?php if (!$is_locked) : ?>
+            <? if($is_tutor) : ?>
+                <? $cols = $group->id !== 'nogroup' ? 5 : 4 ?>
+                <? if (!$is_locked) : ?>
                     <col width="20">
-                    <?php $cols = 6 ?>
-                <?php endif ?>
+                    <? $cols = 6 ?>
+                <? endif ?>
                 <col>
-                <?php if ($group->id !== 'nogroup'): ?>
+                <? if ($group->id !== 'nogroup'): ?>
                     <col width="15%">
-                <?php endif; ?>
+                <? endif; ?>
                 <col width="35%">
-            <?php else : ?>
+            <? else : ?>
                 <col>
-                <?php $cols = 3 ?>
-            <?php endif ?>
+                <? $cols = 3 ?>
+            <? endif ?>
 
             <col width="80">
         </colgroup>
         <thead>
             <tr class="sortable">
-                <?php if ($is_tutor && !$is_locked) : ?>
+                <? if ($is_tutor && !$is_locked) : ?>
                     <th>
                         <input aria-label="<?= sprintf(_('Alle Mitglieder dieser Gruppe auswählen')) ?>"
                                type="checkbox" name="all" value="1"
                                data-proxyfor=":checkbox.groupmembers-<?= $group->id ?>"
                                data-activates="select#members-action-<?= $group->id ?>">
                     </th>
-                <?php endif ?>
+                <? endif ?>
                 <th></th>
                 <th <?= ($sort_by == 'nachname' && $sort_group == $group->id) ?
                     sprintf('class="sort%s"', $order) : '' ?>>
@@ -44,8 +44,8 @@
                         <?=_('Nachname, Vorname')?>
                     </a>
                 </th>
-                <?php if ($is_tutor) :?>
-                    <?php if ($group->id !== 'nogroup'): ?>
+                <? if ($is_tutor) :?>
+                    <? if ($group->id !== 'nogroup'): ?>
                         <th <?= ($sort_by == 'mkdate' && $sort_group == $group->id) ? sprintf('class="sort%s"', $order) : '' ?>>
                             <a href="<?= URLHelper::getLink('#' . $group->id,
                                 array(
@@ -58,27 +58,27 @@
                                 <?= _('Anmeldedatum') ?>
                             </a>
                         </th>
-                    <?php endif; ?>
+                    <? endif; ?>
                     <th>
                         <?= _('Studiengang') ?>
                     </th>
-                <?php endif ?>
+                <? endif ?>
                 <th><?= _('Aktion') ?></th>
             </tr>
         </thead>
         <tbody>
-            <?php $i = 1; $invisible = 0; foreach ($members as $m) : ?>
-                <?php if ($is_tutor || $m->user_id == $GLOBALS['user']->id || $m->visible != 'no') : ?>
+            <? $i = 1; $invisible = 0; foreach ($members as $m) : ?>
+                <? if ($is_tutor || $m->user_id == $GLOBALS['user']->id || $m->visible != 'no') : ?>
                     <?= $this->render_partial('course/statusgroups/_member',
                         array('m' => $m, 'i' => $i++, 'is_tutor' => $is_tutor, 'is_locked' => $is_locked)); ?>
-                <?php else : $invisible++; endif ?>
-            <?php endforeach ?>
+                <? else : $invisible++; endif ?>
+            <? endforeach ?>
         </tbody>
         <tfoot>
         <tr>
-            <?php if ($is_tutor) : ?>
+            <? if ($is_tutor) : ?>
                 <td colspan="<?= $cols ?>">
-                    <?php if (!$is_locked) : ?>
+                    <? if (!$is_locked) : ?>
                         <div class="memberselect">
                             <label>
                                 <input aria-label="<?= sprintf(_('Alle Mitglieder dieser Gruppe auswählen')) ?>"
@@ -93,27 +93,28 @@
                                 <select name="members_action[<?= $group->id ?>]"
                                         id="members-action-<?= $group->id ?>" disabled>
                                     <option value="move"><?= _('In andere Gruppe verschieben') ?></option>
-                                    <?php if ($group->id != 'nogroup') : ?>
-                                        <option value="delete"><?= _('Aus dieser Gruppe entfernen') ?></option>
-                                    <?php endif ?>
+                                <? if ($group->id != 'nogroup') : ?>
+                                    <option value="delete"><?= _('Aus dieser Gruppe entfernen') ?></option>
+                                <? endif ?>
+                                    <option value="cancel"><?= _('Austragen aus der Veranstaltung') ?></option>
                                 </select>
                             </label>
                             <input type="hidden" name="source" value="<?= $group->id ?>">
                             <?= Studip\Button::create(_('Ausführen'), 'batch_members['.$group->id.']',
                                 array('data-dialog' => 'size=auto')) ?>
                         </div>
-                    <?php endif ?>
+                    <? endif ?>
                 </td>
-            <?php elseif (!$is_tutor) : ?>
+            <? elseif (!$is_tutor) : ?>
                 <td colspan="<?= $cols ?>">
                     <?= sprintf(_('+ %u unsichtbare Personen'), $invisible) ?>
                 </td>
-            <?php endif ?>
+            <? endif ?>
         </tr>
         </tfoot>
     </table>
-<?php else : ?>
+<? else : ?>
     <div class="statusgroup-no-members">
         <?= _('Diese Gruppe hat keine Mitglieder.') ?>
     </div>
-<?php endif;
+<? endif;
