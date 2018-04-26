@@ -32,10 +32,6 @@ class Settings_CategoriesController extends Settings_SettingsController
         PageLayout::setHelpKeyword('Basis.HomepageSonstiges');
         PageLayout::setTitle(_('Eigene Kategorien bearbeiten'));
         SkipLinks::addIndex(_('Eigene Kategorien bearbeiten'), 'layout_content', 100);
-
-        if ($action === 'verify') {
-            $action = 'index';
-        }
     }
 
     /**
@@ -184,6 +180,21 @@ class Settings_CategoriesController extends Settings_SettingsController
             PageLayout::postSuccess(_('Kategorien wurden neu geordnet'));
         } else {
             PageLayout::postError(_('Kategorien konnten nicht neu geordnet werden.'));
+        }
+
+        $this->redirect('settings/categories');
+    }
+
+    public function verify_action($action, $id = null)
+    {
+        if ($action === 'delete' && $id) {
+            $question = sprintf(
+                _('Möchten Sie wirklich die Kategorie "%s" löschen?'),
+                Kategorie::find($id)->name
+            );
+            PageLayout::postQuestion($question)
+                      ->setApproveURL($this->url_for("settings/categories/delete/{$id}/1"))
+                      ->includeTicket();
         }
 
         $this->redirect('settings/categories');

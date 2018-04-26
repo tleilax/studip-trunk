@@ -1,11 +1,3 @@
-<? if ($verify_action === 'delete' && $verify_id): ?>
-    <?= $controller->verifyDialog(
-            _('Wollen Sie die Zuordnung zu der Funktion wirklich löschen?'),
-            ['settings/statusgruppen/delete', $verify_id, true],
-            ['settings/statusgruppen#' . $verify_id]
-    ) ?>
-<? endif; ?>
-
 <? if (count($institutes) === 0): ?>
     <?= MessageBox::info(_('Sie sind keinem Institut / keiner Einrichtung zugeordnet!')); ?>
 <? else: ?>
