@@ -112,6 +112,19 @@ class QuestionBox implements LayoutMessage
     }
 
     /**
+     * Sets boths url for approval and disapproval to the same url.
+     *
+     * @param string $url
+     * @return QuestionBox instance to allow chaining
+     */
+    public function setBaseURL($url)
+    {
+        $this->setApproveURL($url);
+        $this->setDisapproveURL($url);
+        return $this;
+    }
+
+    /**
      * Set the request method for the approval request.
      *
      * @param string $method

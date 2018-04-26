@@ -212,18 +212,14 @@ class Course_EnrolmentController extends AuthenticatedController
         if ($enrol_user && $this->confirmed) {
             $this->relocate(URLHelper::getLink('seminar_main.php', ['auswahl' => $this->course_id]));
         } elseif ($enrol_user) {
-            // TODO: This needs to abstracted in PageLayout::postQuestion() or
-            // something alike. This is NOT how the messages entry in SESSION
-            // should be filled and is only here as a dirty workaround.
-            $_SESSION['messages'][] = createQuestion2(
-                sprintf(
-                    _('Wollen Sie sich zu der Veranstaltung "%s" wirklich anmelden?'),
-                    Course::find($this->course_id)->name
-                ),
-                ['apply' => 1],
-                ['decline' => 1],
-                $this->link_for("/apply/{$this->course_id}")
+            $question = sprintf(
+                _('Wollen Sie sich zu der Veranstaltung "%s" wirklich anmelden?'),
+                Course::find($this->course_id)->name
             );
+
+            $qbox = PageLayout::postQuestion($question, ['apply' => 1], ['decline' => 1]);
+            $qbox->setBaseURL($this->url_for("/apply/{$this->course_id}"));
+
             $this->relocate(URLHelper::getLink('dispatch.php/course/details', ['sem_id' => $this->course_id]));
         }
     }
