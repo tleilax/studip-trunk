@@ -51,6 +51,7 @@ class QuestionBox implements LayoutMessage
     protected $disapprove_parameters = [];
     protected $approve_url = '?';
     protected $disapprove_url = '?';
+    protected $include_ticket = false;
 
     /**
      * Constructs the object. Protected to enforce the use of our static helper
@@ -143,12 +144,27 @@ class QuestionBox implements LayoutMessage
     }
 
     /**
+     * Defines whether a stud.ip ticket should be included in the question.
+     *
+     * @param bool $state
+     */
+    public function includeTicket($name = 'studip_ticket')
+    {
+        $this->include_ticket = $name;
+    }
+
+    /**
      * Renders the question box as html.
      *
      * @return string
      */
     public function __toString()
     {
+        // Include fresh ticket
+        if ($this->include_ticket) {
+            $this->approve_parameters[$this->include_ticket] = get_ticket();
+        }
+
         return $GLOBALS['template_factory']->render('shared/question-box', [
             'question' => $this->question,
             'method'   => $this->method,

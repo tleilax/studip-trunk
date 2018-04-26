@@ -284,19 +284,19 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function ask_delete_action($plugin_id)
     {
-        $plugin_manager = PluginManager::getInstance();
-
-        $plugin = $plugin_manager->getPluginInfoById($plugin_id);
-
-        $this->plugins       = $plugin_manager->getPluginInfos();
-        $this->plugin_types  = $this->plugin_admin->getPluginTypes();
-        $this->update_info   = $this->get_update_info($this->plugins);
+        $plugin = PluginManager::getInstance()->getPluginInfoById($plugin_id);
 
         if (!$plugin['core']) {
-            $this->delete_plugin = $this->plugins[$plugin_id];
+            $question = sprintf(
+                _('Wollen Sie wirklich "%s" deinstallieren?'),
+                $plugin['name']
+            );
+            PageLayout::postQuestion($question)
+                      ->setApproveURL($this->url_for("admin/plugin/delete/{$plugin_id}"))
+                      ->includeTicket();
         }
 
-        $this->render_action('index');
+        $this->redirect('admin/plugin');
     }
 
     /**
@@ -314,6 +314,10 @@ class Admin_PluginController extends AuthenticatedController
 
         if (isset($plugin) && !$plugin['core']) {
             $this->plugin_admin->uninstallPlugin($plugin);
+            PageLayout::postSuccess(sprintf(
+                _('Das Plugin "%s" wurde deinstalliert.'),
+                $plugin['name']
+            ));
         }
 
         $this->redirect('admin/plugin?plugin_filter=' . $plugin_filter);
