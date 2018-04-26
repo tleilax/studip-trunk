@@ -120,10 +120,9 @@ if (isset($course_id)) {
     unset($course_id);
 }
 
-if (Request::get("sober") && ($GLOBALS['user']->id === "nobody" || $GLOBALS['perm']->have_perm("root"))) {
-    //deactivate non-core-plugins:
-    URLHelper::bindLinkParam("sober", $sober);
-    PluginManager::$sober = true;
+if (Request::int('sober') !== null && ($GLOBALS['user']->id === 'nobody' || $GLOBALS['perm']->have_perm('root'))) {
+    // deactivate non-core plugins
+    PluginManager::getInstance()->setPluginsDisabled(Request::int('sober'));
 }
 
 // load the default set of plugins

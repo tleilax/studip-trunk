@@ -39,14 +39,9 @@ class PluginManager
     private $plugins_default_activations_cache = array();
 
     /**
-     * should only core-plugins be activated? Sober means free of any external plugins.
-     */
-    static public $sober = false;
-
-    /**
      * Returns the PluginManager singleton instance.
      */
-    public static function getInstance ($sober = false)
+    public static function getInstance ()
     {
         static $instance;
 
@@ -54,7 +49,7 @@ class PluginManager
             return $instance;
         }
 
-        return $instance = new PluginManager($sober);
+        return $instance = new PluginManager();
     }
 
     /**
@@ -97,27 +92,22 @@ class PluginManager
                 'enabled'                 => $plugin['enabled'] === 'yes',
                 'position'                => $plugin['navigationpos'],
                 'depends'                 => (int) $plugin['dependentonid'],
-                'core'                    => mb_strpos($plugin['pluginpath'], 'core/') === 0,
+                'core'                    => strpos($plugin['pluginpath'], 'core/') === 0,
                 'automatic_update_url'    => $plugin['automatic_update_url'],
                 'automatic_update_secret' => $plugin['automatic_update_secret']
             );
         }
     }
 
-     /**
-      * @addtogroup notifications
-      *
-      * Enabling or disabling a plugin triggers a PluginDidEnable or
-      * respectively PluginDidDisable notification. The plugin's ID
-      * is transmitted as subject of the notification.
-      */
-
+    /**
+     * @addtogroup notifications
+     *
+     * Enabling or disabling a plugin triggers a PluginDidEnable or
+     * respectively PluginDidDisable notification. The plugin's ID
+     * is transmitted as subject of the notification.
+     */
     /**
      * Set the enabled/disabled status of the given plugin.
-     *
-     * Triggers a PluginDidEnable or respectively PluginDidDisable
-     * notification. The plugin's ID is transmitted as subject of the
-     * notification.
      *
      * If the plugin implements the method "onEnable" or "onDisable", this
      * method will be called accordingly. If the method returns false or
@@ -332,6 +322,24 @@ class PluginManager
     }
 
     /**
+     * Disable loading of all non-core plugins for the current session.
+     *
+     * @param $status      true: disable non-core plugins
+     */
+    public function setPluginsDisabled($status)
+    {
+        $_SESSION['plugins_disabled'] = (bool) $status;
+    }
+
+    /**
+     * Check whether loading of non-core plugins is currently disabled.
+     */
+    public function isPluginsDisabled()
+    {
+        return $_SESSION['plugins_disabled'];
+    }
+
+    /**
      * Load a plugin class from the given file system path and
      * return the ReflectionClass instance for the plugin.
      *
@@ -351,18 +359,9 @@ class PluginManager
             }
         }
 
-        if (self::$sober && !$this->isPluginCorePlugin($class, $path)) {
-            return null;
-        }
-
         require_once $pluginfile;
 
         return new ReflectionClass($class);
-    }
-
-    private function isPluginCorePlugin($class, $path)
-    {
-        return mb_stripos($path, 'core/') === 0;
     }
 
     /**
@@ -601,7 +600,9 @@ class PluginManager
             return $this->plugin_cache[$cache_key];
         }
 
-        $plugin_class = $this->loadPlugin($class, $path);
+        if ($plugin_info['core'] || !$this->isPluginsDisabled()) {
+            $plugin_class = $this->loadPlugin($class, $path);
+        }
 
         if ($plugin_class) {
             $plugin = $plugin_class->newInstance();

@@ -252,16 +252,42 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function install_action()
     {
-        $plugin_url = Request::get('plugin_url');
-
         $this->check_ticket();
+
+        $plugin_manager = PluginManager::getInstance();
+        $this->flash['plugins_disabled'] = $plugin_manager->isPluginsDisabled();
+        $this->flash['plugin_url'] = Request::get('plugin_url');
+
+        if (isset($_FILES['upload_file'])) {
+            $upload_file = tempnam(get_config('TMP_PATH'), 'plugin');
+
+            if (move_uploaded_file($_FILES['upload_file']['tmp_name'], $upload_file)) {
+                $this->flash['upload_file'] = $upload_file;
+            }
+        }
+
+        $plugin_manager->setPluginsDisabled(true);
+        $this->redirect('admin/plugin/internal_install');
+    }
+
+    /**
+     * Install a given plugin, either by URL (from the repository)
+     * or using a file uploaded by the administrator.
+     * Note: This action is only called internally via redirect.
+     */
+    public function internal_install_action()
+    {
+        $plugin_manager = PluginManager::getInstance();
+        $plugin_manager->setPluginsDisabled($this->flash['plugins_disabled']);
+
+        $plugin_url = $this->flash['plugin_url'];
 
         try {
             if (isset($plugin_url)) {
                 $this->plugin_admin->installPluginFromURL($plugin_url);
             } else if (get_config('PLUGINS_UPLOAD_ENABLE')) {
                 // process the upload and register plugin in the database
-                $upload_file = $_FILES['upload_file']['tmp_name'];
+                $upload_file = $this->flash['upload_file'];
                 $this->plugin_admin->installPlugin($upload_file);
             }
 
@@ -360,14 +386,32 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function install_updates_action()
     {
-        $plugins = PluginManager::getInstance()->getPluginInfos();
-        $plugin_filter = Request::option('plugin_filter', '');
+        $this->check_ticket();
+
+        $plugin_manager = PluginManager::getInstance();
+        $this->flash['plugins_disabled'] = $plugin_manager->isPluginsDisabled();
+        $this->flash['plugin_filter'] = Request::option('plugin_filter', '');
+        $this->flash['update'] = Request::intArray('update');
+
+        $plugin_manager->setPluginsDisabled(true);
+        $this->redirect('admin/plugin/internal_install_updates');
+    }
+
+    /**
+     * Install updates for all selected plugins.
+     * Note: This action is only called internally via redirect.
+     */
+    public function internal_install_updates_action()
+    {
+        $plugin_manager = PluginManager::getInstance();
+        $plugin_manager->setPluginsDisabled($this->flash['plugins_disabled']);
+
+        $plugins = $plugin_manager->getPluginInfos();
+        $plugin_filter = $this->flash['plugin_filter'];
         $update_info = $this->plugin_admin->getUpdateInfo($plugins);
 
-        $update = Request::intArray('update');
+        $update = $this->flash['update'];
         $update_status = array();
-
-        $this->check_ticket();
 
         // update each plugin in turn
         foreach ($update as $id) {
