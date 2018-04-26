@@ -812,12 +812,14 @@ class MessagesController extends AuthenticatedController {
         $file_ref = $message_top_folder->createFile($file);
 
         if (!$file_ref instanceof FileRef) {
-            $error_message = _('Die hochgeladene Datei kann nicht verarbeitet werden!');
+            $error = _('Ein Systemfehler ist beim Upload aufgetreten.');
 
             if ($file_ref instanceof MessageBox) {
-                $error_message .= ' ' . $file_ref->message;
+                $error .= ' ' . $file_ref->message;
             }
-            throw new RuntimeException($error_message);
+            $this->response->set_status(400);
+            $this->render_json(compact('error'));
+            return;
         }
 
         $output['document_id'] = $file_ref->id;

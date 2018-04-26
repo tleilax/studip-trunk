@@ -313,7 +313,9 @@ class StandardFolder implements FolderType
             $newfile->storage   = 'disk';
             $newfile->user_id   = $file['$user_id'];
             $newfile->id        = $newfile->getNewId();
-            $newfile->connectWithDataFile($file['tmp_name']);
+            if (!$newfile->connectWithDataFile($file['tmp_name'])) {
+                return null;
+            }
 
             $file_ref_data['description'] = $file['description'];
             $file_ref_data['content_terms_of_use_id'] = $file['content_terms_of_use_id'];
