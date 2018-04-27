@@ -665,11 +665,9 @@ function TransformInternalLinks($str){
 *
 * @deprecated since Stud.IP 4.2, use QuestionBox oder PageLayout::postQuestion()
 */
-
-function createQuestion($question, $approveParams, $disapproveParams = array(), $baseUrl = '?') {
+function createQuestion($question, $approveParams, $disapproveParams = [], $baseUrl = '?') {
     $question_box = QuestionBox::create($question, $approveParams, $disapproveParams);
-    $question_box->setApproveURL($baseUrl);
-    $question_box->setDisapproveURL($baseUrl);
+    $question_box->setBaseURL($baseUrl);
     return (string) $question_box;
 }
 
@@ -683,13 +681,10 @@ function createQuestion($question, $approveParams, $disapproveParams = array(), 
 *
 * @return  string $dialog            text which contains the dialog
 *
-* @deprecated since Stud.IP 4.2, use QuestionBox oder PageLayout::postQuestion()
+* @deprecated since Stud.IP 4.2, use QuestionBox or PageLayout::postQuestion()
 */
-function createQuestion2($question, $approveParams, $disapproveParams = array(), $baseUrl = '?') {
-    $question_box = QuestionBox::createForm($question, $approveParams, $disapproveParams);
-    $question_box->setApproveURL($baseUrl);
-    $question_box->setDisapproveURL($baseUrl);
-    return (string) $question_box;
+function createQuestion2($question, $approveParams, $disapproveParams = [], $baseUrl = '?') {
+    return createQuestion($question, $approveParams, $disapproveParams, $baseUrl);
 }
 
 /**

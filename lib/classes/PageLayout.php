@@ -572,8 +572,7 @@ class PageLayout
     }
 
     /**
-     * Convenience method: Post a question to confirm an action. This will
-     * always be a post request.
+     * Convenience method: Post a question to confirm an action.
      *
      * @param String $question          Question to confirm
      * @param Array  $approve_params    Parameters to send when approving
@@ -584,7 +583,7 @@ class PageLayout
      */
     public static function postQuestion($question, array $approve_params = [], array $disapprove_params = [])
     {
-        $qbox = QuestionBox::createForm($question, $approve_params, $disapprove_params);
+        $qbox = QuestionBox::create($question, $approve_params, $disapprove_params);
         self::postMessage($qbox, 'question-box');
         return $qbox;
     }

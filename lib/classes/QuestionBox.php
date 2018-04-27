@@ -30,23 +30,7 @@ class QuestionBox implements LayoutMessage
         return $qbox;
     }
 
-    /**
-     * Creates a question object that should be confirmed as a POST request.
-     *
-     * @param string $question              The question that should be confirmed
-     * @param array  $approve_parameters    Parameters to send upon approval
-     * @param array  $disapprove_parameters Parameters to send upon disapproval
-     * @return QuestionBox instance to allow chaining
-     */
-    public static function createForm($question, array $approve_params = [], array $disapprove_params = [])
-    {
-        $qbox = self::create($question, $approve_params, $disapprove_params);
-        $qbox->setMethod('POST');
-        return $qbox;
-    }
-
     protected $question;
-    protected $method = 'GET';
     protected $approve_parameters = [];
     protected $disapprove_parameters = [];
     protected $approve_url = '?';
@@ -126,24 +110,6 @@ class QuestionBox implements LayoutMessage
     }
 
     /**
-     * Set the request method for the approval request.
-     *
-     * @param string $method
-     * @return QuestionBox instance to allow chaining
-     * @throws Exception when method is neither GET nor POST
-     */
-    public function setMethod($method)
-    {
-        $method = strtoupper($method);
-        if (!in_array($method, ['GET', 'POST'])) {
-            throw new Exception('Only GET and POST are allowed as methods.');
-        }
-        $this->method = $method;
-
-        return $this;
-    }
-
-    /**
      * Defines whether a stud.ip ticket should be included in the question.
      *
      * @param bool $state
@@ -167,7 +133,6 @@ class QuestionBox implements LayoutMessage
 
         return $GLOBALS['template_factory']->render('shared/question-box', [
             'question' => $this->question,
-            'method'   => $this->method,
 
             'approve_url'        => $this->approve_url,
             'approve_parameters' => $this->approve_parameters,
