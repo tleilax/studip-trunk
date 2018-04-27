@@ -51,8 +51,10 @@ class AuxLockRule extends SimpleORMap
      */
     public function getDatafields()
     {
-        $sorting = json_decode($this->sorting, true);
-        foreach (json_decode($this->attributes, true) as $key => $attr) {
+        $attributes = json_decode($this->attributes, true) ?: [];
+        $sorting    = json_decode($this->sorting, true) ?: [];
+
+        foreach ($attributes as $key => $attr) {
             if (!$attr) {
                 unset($sorting[$key]);
             }

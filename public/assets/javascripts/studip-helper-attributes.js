@@ -43,7 +43,7 @@
     });
 
     $(document).ready(connectProxyAndProxied);
-    $(document).on('dialog-update', connectProxyAndProxied);
+    $(document).on('dialog-update refresh-handlers', connectProxyAndProxied);
 
     // Use a checkbox as a toggle switch for the disabled attribute of another
     // element. Define element to disable if checkbox is neither :checked nor
@@ -51,7 +51,11 @@
     $(document).on('change', ':checkbox[data-activates]', function () {
         var activates = $(this).data('activates'),
             activated = $(this).prop('checked') || $(this).prop('indeterminate') || false;
-        $(activates).attr('disabled', !activated).trigger('update.proxy');
+        $(activates).each(function () {
+            var condition = $(this).data().activatesCondition,
+                activate = activated && (!condition || $(condition).length > 0);
+            $(this).attr('disabled', !activate).trigger('update.proxy');
+        });
     }).ready(function () {
         $(':checkbox[data-activates]').trigger('change');
     });

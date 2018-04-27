@@ -90,9 +90,8 @@ class SemGroupScheduleDayOfWeek extends ScheduleView
     {
         $add_link_timestamp = $this->base_date + ($i * 60 * 60);
         $add_link_timestamp .= "&show_object=" . $this->show_columns[$l];
-        return sprintf ("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s%s\">%s</a></td>",
-                        $this->add_link,
-                        $add_link_timestamp,
+        return sprintf ("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s\">%s</a></td>",
+                        URLHelper::getLink($this->add_link . $add_link_timestamp),
                         Icon::create(
                             'add',
                             Icon::ROLE_INACTIVE,

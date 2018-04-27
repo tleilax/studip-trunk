@@ -12,22 +12,6 @@
     );
 ?>
 
-<? if ($verify_action === 'reset'): ?>
-<?= $controller->verifyDialog(
-        _('Durch das Zurücksetzen werden die persönliche Messaging-Einstellungen '
-         .'auf die Startwerte zurückgesetzt und die persönlichen Nachrichten-Ordner '
-         .'gelöscht. ' . "\n\n" . 'Nachrichten werden nicht entfernt.'),
-        array('settings/messaging/reset/reset', true),
-        array('settings/messaging')
-    ) ?>
-<? elseif ($verify_action === 'forward_receiver'): ?>
-<?= $controller->verifyDialog(
-        _('Wollen Sie wirklich die eingestellte Weiterleitung entfernen?'),
-        array('settings/messaging/reset/forward_receiver', true),
-        array('settings/messaging')
-    ) ?>
-<? endif; ?>
-
 <form action="<?= $controller->url_for('settings/messaging') ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
@@ -71,7 +55,7 @@
 
             <label>
                 <?= _('E-Mail in folgendem Format versenden') ?>
-                <select name="">
+                <select name="mail_format">
                     <? foreach ($mail_formats as $key => $label): ?>
                         <option value="<?= htmlReady($key) ?>" <? if ($config->getValue('MAIL_AS_HTML') == $key) echo 'selected' ?>>
                             <?= htmlReady($label) ?>

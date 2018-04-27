@@ -64,9 +64,9 @@
                                 }
                                 ?>
 
-                                <td <?= day_class ?> <?= $month == 1 ? 'height="25"' : '' ?>>
+                                <td <?= $day_class ?> <?= $month == 1 ? 'height="25"' : '' ?>>
 
-                                    <? if (count($count_list[$iday])) : ?>
+                                    <? if (isset($count_list[$iday]) && count($count_list[$iday])) : ?>
                                         <table width="100%" cellspacing="0" cellpadding="0">
                                             <tr>
                                                 <td<?= $day_class ?>>
@@ -100,7 +100,7 @@
                                         <? endif; ?>
                                     </span>
 
-                                    <? if (count($count_list[$iday])) : ?>
+                                    <? if (isset($count_list[$iday]) && count($count_list[$iday])) : ?>
                                         <? $event_count_txt = sprintf(ngettext('1 Termin', '%s Termine', count($count_list[$iday])), count($count_list[$iday])) ?>
                                                 </td>
                                                 <td<?= $day_class ?> align="right">

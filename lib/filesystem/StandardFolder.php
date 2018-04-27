@@ -191,7 +191,7 @@ class StandardFolder implements FolderType
      */
     public function getDescriptionTemplate()
     {
-        return htmlReady($this->folderdata['description']);
+        return formatReady($this->folderdata['description']);
     }
 
     /**
@@ -231,26 +231,13 @@ class StandardFolder implements FolderType
      */
     public function validateUpload($uploadedfile, $user_id)
     {
-        if ($this->range_type === 'course') {
-            $status = $GLOBALS['perm']->get_studip_perm($this->range_id, $user_id);
-            $active_upload_type = Course::find($this->range_id)->status;
-        } elseif ($this->range_type === 'institute') {
-            $status = $GLOBALS['perm']->get_studip_perm($this->range_id, $user_id);
-            $active_upload_type = 'institute';
-        } else {
-            $status = $GLOBALS['perm']->get_perm($user_id);
-            $active_upload_type = "personalfiles";
-        }
 
-        if (!isset($GLOBALS['UPLOAD_TYPES'][$active_upload_type])) {
-            $active_upload_type = 'default';
-        }
+        $upload_type = FileManager::getUploadTypeConfig($this->range_id, $user_id);
 
-        $upload_type = $GLOBALS['UPLOAD_TYPES'][$active_upload_type];
-        if ($upload_type['file_sizes'][$status] < $uploadedfile['size']) {
+        if ($upload_type['file_size'] < $uploadedfile['size']) {
             return sprintf(
                 _('Die maximale Größe für einen Upload (%s) wurde überschritten.'),
-                relsize($upload_type['file_sizes'][$status])
+                relsize($upload_type['file_size'])
             );
         }
 
@@ -326,7 +313,9 @@ class StandardFolder implements FolderType
             $newfile->storage   = 'disk';
             $newfile->user_id   = $file['$user_id'];
             $newfile->id        = $newfile->getNewId();
-            $newfile->connectWithDataFile($file['tmp_name']);
+            if (!$newfile->connectWithDataFile($file['tmp_name'])) {
+                return null;
+            }
 
             $file_ref_data['description'] = $file['description'];
             $file_ref_data['content_terms_of_use_id'] = $file['content_terms_of_use_id'];
@@ -349,6 +338,14 @@ class StandardFolder implements FolderType
     public function deleteFile($file_ref_id)
     {
         $file_ref = $this->folderdata->file_refs->find($file_ref_id);
+
+        if (!$this->isFileWritable($file_ref->id, $GLOBALS['user']->id)) {
+            return [sprintf(
+                _('Ungenügende Berechtigungen zum Löschen der Datei %s in Ordner %s!'),
+                $file_ref->name,
+                $this->name
+            )];
+        }
 
         if ($file_ref) {
             return $file_ref->delete();

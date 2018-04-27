@@ -31,7 +31,7 @@
  * echo MessageBox::success('Nachricht', array('optional details'), true);
  *
  */
-class MessageBox
+class MessageBox implements LayoutMessage
 {
     /**
      * type and contents of the message box

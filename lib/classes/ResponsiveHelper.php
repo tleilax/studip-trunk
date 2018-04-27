@@ -18,7 +18,9 @@ class ResponsiveHelper
      */
     public static function getNavigationArray()
     {
-        $navigation = array();
+        $navigation = [];
+
+        $link_params = array_fill_keys(array_keys(URLHelper::getLinkParams()), null);
 
         foreach (Navigation::getItem('/')->getSubNavigation() as $path => $nav) {
             if (!$nav->isVisible(true)) {
@@ -30,7 +32,7 @@ class ResponsiveHelper
             $item = array(
                 'icon'   => $image_src ? self::getAssetsURL($image_src) : false,
                 'title'  => $nav->getTitle(),
-                'url'    => self::getURL($nav->getURL()),
+                'url'    => self::getURL($nav->getURL(), $link_params),
                 'active' => $nav->isActive(),
             );
 
@@ -85,9 +87,9 @@ class ResponsiveHelper
      * @param  String $url The url to compress
      * @return String containing the compressed url
      */
-    protected static function getURL($url)
+    protected static function getURL($url, $params = [])
     {
-        return str_replace($GLOBALS['ABSOLUTE_URI_STUDIP'], '', URLHelper::getURL($url));
+        return str_replace($GLOBALS['ABSOLUTE_URI_STUDIP'], '', URLHelper::getURL($url, $params));
     }
 
     /**

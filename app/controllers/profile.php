@@ -121,17 +121,6 @@ class ProfileController extends AuthenticatedController
             $this->has_denoted_fields = true;
         }
 
-        // get kings informations
-        if (Config::Get()->SCORE_ENABLE) {
-            if ($this->current_user->user_id === $GLOBALS['user']->id || $this->current_user->score) {
-                $kings = $this->current_user->getStudipKingIcon();
-
-                if ($kings != null) {
-                    $this->kings = $kings;
-                }
-            }
-        }
-
         $show_admin = ($this->perm->have_perm('autor') && $this->user->user_id == $this->current_user->user_id)
                    || (isDeputyEditAboutActivated() && isDeputy($this->user->user_id, $this->current_user->user_id, true));
         if (Visibility::verify('news', $this->current_user->user_id) || $show_admin) {
@@ -263,14 +252,20 @@ class ProfileController extends AuthenticatedController
         //shall be visible in the sidebar. Therefore we must construct
         //a generic WidgetElement object and its HTML in here.
 
+        if (Config::Get()->SCORE_ENABLE) {
+            if ($this->current_user->user_id === $GLOBALS['user']->id || $this->current_user->score) {
+                $kings = $this->current_user->getStudipKingIcon();
+            }
+        }
+
         $avatar_widget = new TemplateWidget(
             $this->current_user->getFullName(),
             $this->get_template_factory()->open('profile/widget-avatar.php'),
             [
-                'avatar' => Avatar::getAvatar($this->current_user->user_id),
-                'kings' => $this->kings,
-                'views' => object_return_views($this->current_user->user_id),
-                'score' => $this->score,
+                'avatar'      => Avatar::getAvatar($this->current_user->user_id),
+                'kings'       => $kings,
+                'views'       => object_return_views($this->current_user->user_id),
+                'score'       => $this->score,
                 'score_title' => $this->score_title
             ]
         );
@@ -292,10 +287,18 @@ class ProfileController extends AuthenticatedController
 
             if (!$this->user->isFriendOf($this->current_user)) {
                 $actions->addLink(
-                    _('zu den Kontakten hinzufügen'),
+                    _('Zu den Kontakten hinzufügen'),
                     $this->url_for('profile/add_buddy?username=' . $this->current_user->username),
-                    Icon::create('person', 'clickable', tooltip2(_('Zu den Kontakten hinzufügen')))
-                );
+                    Icon::create('person+add', 'clickable', tooltip2(_('Zu den Kontakten hinzufügen'))),
+                    ['data-confirm' => _('Wollen Sie die Person wirklich als Kontakt hinzufügen?')]
+                )->asButton();
+            } else {
+                $actions->addLink(
+                    _('Von den Kontakten entfernen'),
+                    $this->url_for('profile/remove_buddy', ['username' => $this->current_user->username]),
+                    Icon::create('person+remove', 'clickable', tooltip2(_('Zu den Kontakten hinzufügen'))),
+                    ['data-confirm' => _('Wollen Sie die Person wirklich von den Kontakten entfernen?')]
+                )->asButton();
             }
 
             $actions->addLink(
@@ -374,6 +377,8 @@ class ProfileController extends AuthenticatedController
      */
     public function add_buddy_action()
     {
+        CSRFProtection::verifyUnsafeRequest();
+
         $username            = Request::username('username');
         $user                = User::findByUsername($username);
         $current             = User::findCurrent();
@@ -384,6 +389,27 @@ class ProfileController extends AuthenticatedController
         $this->redirect('profile/index?username=' . $username);
     }
 
+
+    /**
+     * Removes the user identified by the variable username from the current
+     * user's contacts.
+     */
+    public function remove_buddy_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+
+        $username = Request::username('username');
+        $current  = User::findCurrent();
+
+        $current->contacts = $current->contacts->filter(function ($contact) use ($username) {
+            return $contact->username !== $username;
+        });
+
+        $current->store();
+
+        PageLayout::postSuccess(_('Der Kontakt wurde entfernt.'));
+        $this->redirect('profile/index?username=' . $username);
+    }
     /**
      * Returns user-institutes
      * @return mixed

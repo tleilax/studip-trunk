@@ -245,10 +245,20 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             }
         }
         if ($config['db_fields'][$config['pk'][0]]['extra'] == 'auto_increment') {
-            $config['registered_callbacks']['before_store'][] = 'cbAutoIncrementColumn';
-            $config['registered_callbacks']['after_create'][] = 'cbAutoIncrementColumn';
+            if (!isset($config['registered_callbacks']['before_store'])) {
+                $config['registered_callbacks']['before_store'] = [];
+            }
+            array_unshift($config['registered_callbacks']['before_store'], 'cbAutoIncrementColumn');
+
+            if (!isset($config['registered_callbacks']['after_create'])) {
+                $config['registered_callbacks']['after_create'] = [];
+            }
+            array_unshift($config['registered_callbacks']['after_create'], 'cbAutoIncrementColumn');
         } elseif (count($config['pk']) === 1) {
-            $config['registered_callbacks']['before_store'][] = 'cbAutoKeyCreation';
+            if (!isset($config['registered_callbacks']['before_store'])) {
+                $config['registered_callbacks']['before_store'] = [];
+            }
+            array_unshift($config['registered_callbacks']['before_store'], 'cbAutoKeyCreation');
         }
 
         $auto_notification_map['after_create'] = $class . 'DidCreate';
@@ -277,15 +287,25 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         }
 
         if (I18N::isEnabled()) {
-            if (count($config['i18n_fields'])) {
+            if (isset($config['i18n_fields']) && count($config['i18n_fields']) > 0) {
                 $config['registered_callbacks']['before_store'][] = 'cbI18N';
                 $config['registered_callbacks']['after_delete'][] = 'cbI18N';
             }
         } else {
             $config['i18n_fields'] = array();
         }
-        $config['registered_callbacks']['after_initialize'][] = 'cbAfterInitialize';
-        $config['known_slots'] = array_merge(array_keys($config['db_fields']), array_keys($config['alias_fields'] ?: []), array_keys($config['additional_fields'] ?: []), array_keys($config['relations'] ?: []));
+
+        if (!isset($config['registered_callbacks']['after_initialize'])) {
+            $config['registered_callbacks']['after_initialize'] = [];
+        }
+        array_unshift($config['registered_callbacks']['after_initialize'], 'cbAfterInitialize');
+
+        $config['known_slots'] = array_merge(
+            array_keys($config['db_fields']),
+            array_keys($config['alias_fields'] ?: []),
+            array_keys($config['additional_fields'] ?: []),
+            array_keys($config['relations'] ?: [])
+        );
 
         foreach (array_map('mb_strtolower', get_class_methods($class)) as $method) {
             if (in_array(mb_substr($method, 0, 3), ['get', 'set'])) {
@@ -433,7 +453,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     {
         $class = get_called_class();
         $record = new $class();
-        $record->setData($data, true);
+        $record->setData($data, !$is_new);
         $record->setNew($is_new);
         return $record;
     }
@@ -784,8 +804,8 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
-     * interceptor for static findByColumn / findEachByColumn
-     * magic
+     * interceptor for static findByColumn / findEachByColumn / countByColumn /
+     * deleteByColumn magic
      * @param string $name
      * @param array $arguments
      * @throws BadMethodCallException
@@ -806,14 +826,14 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 $order = $arguments[1];
                 $param_arr[0] =& $where;
                 $param_arr[1] = array($where_param);
-                $find = 'findonebysql';
+                $method = 'findonebysql';
                 break;
             case 'find':
             case 'findmany':
                 $order = $arguments[1];
                 $param_arr[0] =& $where;
                 $param_arr[1] = array($where_param);
-                $find = 'findbysql';
+                $method = 'findbysql';
                 break;
             case 'findeach':
             case 'findeachmany':
@@ -821,15 +841,23 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 $param_arr[0] = $arguments[0];
                 $param_arr[1] =& $where;
                 $param_arr[2] = array($where_param);
-                $find = 'findeachbysql';
+                $method = 'findeachbysql';
                 break;
+            case 'count':
+            case 'delete':
+                $param_arr[0] =& $where;
+                $param_arr[1] = array($where_param);
+                $method = "{$prefix}bysql";
+                break;
+            default:
+                throw new BadMethodCallException("Method $class::$name not found");
         }
         if (isset($record->alias_fields[$field])) {
             $field = $record->alias_fields[$field];
         }
         if (isset($record->db_fields[$field])) {
             $where = "`{$record->db_table}`.`$field` IN(?) " . $order;
-            return call_user_func_array(array($class, $find), $param_arr);
+            return call_user_func_array(array($class, $method), $param_arr);
         }
         throw new BadMethodCallException("Method $class::$name not found");
     }
@@ -1164,6 +1192,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if (count($this->pk) == 1) {
             return $this->content[$this->pk[0]];
         } else {
+            $id = [];
             foreach ($this->pk as $key) {
                 if ($this->content[$key] !== null) {
                     $id[] = $this->content[$key];

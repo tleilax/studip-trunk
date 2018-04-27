@@ -44,8 +44,10 @@ if (!$controllerpath) {
             </div>
         </div>
         <? if (is_object($last_crumb) && ($description_template = $last_crumb->getDescriptionTemplate())) : ?>
-        <small><?= $description_template instanceof Flexi_Template ? $description_template->render() : (string)$description_template ?></small>
+        <div style="font-size: small">
+        <?= $description_template instanceof Flexi_Template ? $description_template->render() : (string)$description_template ?>
         <? endif; ?>
+        </div>
     </caption>
     <?= $this->render_partial('files/_files_thead.php') ?>
 
@@ -82,24 +84,24 @@ if (!$controllerpath) {
                 <td colspan="7">
                     <span class="multibuttons">
                         <?= Studip\Button::create(_('Herunterladen'), 'download', [
-                            'disabled' => '',
+                            'data-activates-condition' => 'table.documents tr[data-permissions*=d] :checkbox:checked'
                         ]) ?>
                     <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
                         <?= Studip\Button::create(_('Verschieben'), 'move', [
-                            'data-dialog' => '',
-                            'disabled' => 'disabled'
+                            'data-dialog'              => '',
+                            'data-activates-condition' => 'table.documents tr[data-permissions*=w] :checkbox:checked'
                         ]) ?>
                     <? endif; ?>
                     <? if ($topFolder->isReadable($GLOBALS['user']->id)): ?>
                         <?= Studip\Button::create(_('Kopieren'), 'copy', [
-                            'data-dialog' => '',
-                            'disabled'    => '',
+                            'data-dialog'              => '',
+                            'data-activates-condition' => 'table.documents tr[data-permissions*=r] :checkbox:checked'
                         ]) ?>
                     <? endif; ?>
                     <? if ($topFolder->isWritable($GLOBALS['user']->id)): ?>
                         <?= Studip\Button::create(_('Löschen'), 'delete', [
-                            'disabled'     => '',
-                            'data-confirm' => _('Soll die Auswahl wirklich gelöscht werden?')
+                            'data-confirm'             => _('Soll die Auswahl wirklich gelöscht werden?'),
+                            'data-activates-condition' => 'table.documents tr[data-permissions*=w] :checkbox:checked'
                         ]) ?>
                     <? endif; ?>
                     </span>
@@ -128,6 +130,7 @@ if (!$controllerpath) {
     <?= $this->render_partial('file/add_files_window.php', [
         'folder_id' => $topFolder->getId(),
         'hidden'    => true,
+        'upload_type' => FileManager::getUploadTypeConfig($topFolder->range_id, $GLOBALS['user']->id)
     ]) ?>
 <? endif ?>
 <? endif ?>

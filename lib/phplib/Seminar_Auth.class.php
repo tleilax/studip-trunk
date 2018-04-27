@@ -324,7 +324,12 @@ class Seminar_Auth
         }
 
         $this->check_environment();
-        // load the default set of plugins
+
+        if (Request::int('sober') !== null && ($GLOBALS['user']->id === 'nobody' || $GLOBALS['perm']->have_perm('root'))) {
+            // deactivate non-core plugins
+            PluginManager::getInstance()->setPluginsDisabled(Request::int('sober'));
+        }
+
         PluginEngine::loadPlugins();
 
         if (Request::get('loginname') && !$_COOKIE[get_class($GLOBALS['sess'])]) {

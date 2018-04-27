@@ -264,6 +264,17 @@ class Course_DetailsController extends AuthenticatedController
                 );
             }
 
+            if (!$this->course->admission_binding
+                && in_array($GLOBALS['perm']->get_studip_perm($this->course->id), ['user','autor'])
+                && !$this->course->getSemClass()->isGroup())
+            {
+                $links->addLink(
+                    _('Austragen aus der Veranstaltung'),
+                    $this->url_for("my_courses/decline/{$this->course->id}", ['cmd' => 'suppose_to_kill']),
+                    Icon::create('door-leave')
+                );
+            }
+
             if ($links->hasElements()) {
                 $sidebar->addWidget($links);
             }

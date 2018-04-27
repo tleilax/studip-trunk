@@ -120,10 +120,9 @@ if (isset($course_id)) {
     unset($course_id);
 }
 
-if (Request::get("sober") && ($GLOBALS['user']->id === "nobody" || $GLOBALS['perm']->have_perm("root"))) {
-    //deactivate non-core-plugins:
-    URLHelper::bindLinkParam("sober", $sober);
-    PluginManager::$sober = true;
+if (Request::int('sober') !== null && ($GLOBALS['user']->id === 'nobody' || $GLOBALS['perm']->have_perm('root'))) {
+    // deactivate non-core plugins
+    PluginManager::getInstance()->setPluginsDisabled(Request::int('sober'));
 }
 
 // load the default set of plugins
@@ -153,9 +152,15 @@ if ($seminar_open_redirected) {
     startpage_redirect(UserConfig::get($user->id)->PERSONAL_STARTPAGE);
 }
 
-if (Config::get()->SHOW_TERMS_ON_FIRST_LOGIN && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') {
-    require_once('lib/terms.inc.php');
-    check_terms($GLOBALS['user']->id, $GLOBALS['_language_path']);
+// Show terms on first login
+if (Config::get()->SHOW_TERMS_ON_FIRST_LOGIN
+    && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody'
+    && !$GLOBALS['user']->cfg->TERMS_ACCEPTED
+    && !match_route('dispatch.php/terms'))
+{
+    header('Location: ' . URLHelper::getURL('dispatch.php/terms', ['return_to' => $_SERVER['REQUEST_URI']], true));
+    page_close();
+    die;
 }
 
 if (Config::get()->USER_VISIBILITY_CHECK && is_object($GLOBALS['user']) && $GLOBALS['user']->id !== 'nobody') {

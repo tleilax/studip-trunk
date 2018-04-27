@@ -158,9 +158,6 @@ class Course extends \RESTAPI\RouteMap
         foreach ($memberships as $membership) {
             $course_json = $this->courseToJSON($course = $membership->course);
 
-            // add group color
-            $course_json['group'] = (int) $membership->gruppe;
-
             $json[$this->urlf("/course/%s", [$course->id])] = $course_json;
         }
         return $json;
@@ -206,6 +203,16 @@ class Course extends \RESTAPI\RouteMap
                 $json['modules'][$module] = $this->urlf('/course/%s/%s', [htmlReady($course->id), $uri]);
             }
         }
+
+        // Add group if current user is member of the group
+        $json['group'] = null;
+
+        $member = $course->members->findOneBy('user_id', $GLOBALS['user']->id);
+        if ($member) {
+            $json['group'] = (int) $member->gruppe;
+        }
+
+
         return $json;
     }
 

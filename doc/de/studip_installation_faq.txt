@@ -1,12 +1,12 @@
 1. Sortierung der Umlaute
 
-Q: Stud.IP sortiert Umlaute immer am Ende einer Liste ein, nicht da wo sie hingeh�ren. Wie kann ich das �ndern?
+Q: Stud.IP sortiert Umlaute immer am Ende einer Liste ein, nicht da wo sie hingehören. Wie kann ich das ändern?
 
 A: Das ist kein Problem von Stud.IP, sondern von MySQL(?). Was helfen sollte:
    - MySQL(?) runterfahren
    - in die my.cnf folgende Zeile unter [mysqld] eintragen: "default-character-set=german1"
    - in das Verzeichnis mit den Tabellen wechseln
-   - "myisamchk -r -q --set-character-set=german1 *.MYI" ausf�hren
+   - "myisamchk -r -q --set-character-set=german1 *.MYI" ausführen
    - MySQL(?) wieder starten
 
    Vorher ein Backup der DB machen :)
@@ -15,44 +15,44 @@ A: Das ist kein Problem von Stud.IP, sondern von MySQL(?). Was helfen sollte:
 
 Q: Wie richte ich LDAP Authentifizierung ein ?
 
-Zur Authentifizierung gegen einen LDAP Server stehen im Release zwei Plugins zur Verf�gung (in der config/config_local.inc als
+Zur Authentifizierung gegen einen LDAP Server stehen im Release zwei Plugins zur Verfügung (in der config/config_local.inc als
 Ldap und LdapReader bezeichnet). Die entsprechenden Klassen befinden sich im Verzeichnis
 lib/classes/auth_plugins und heissen dort StudipAuthLdap.class.php und StudipAuthLdapReader.class.php.
 Die Konfiguration dieser Plugins sollte in der local.inc vorgenommen werden. Hierzu muss der Name des Plugins in die
 Konfigurationsvariable $STUDIP_AUTH_PLUGIN[] eingetragen werden, normalerweise reicht das entfernen der
 Kommentarzeichen. Es kann mehr als ein Plugin aktiviert sein, die Reihenfolge, in der die Plugins bei einem
 Authentifizierungsvorgang abgearbeitet werden, kann hier auch vorgenommen werden. Unterhalb von $STUDIP_AUTH_PLUGIN[]
-m�ssen dann die Optionen f�r das ausgew�hlte Plugin konfiguriert werden ($STUDIP_AUTH_CONFIG_xxx). F�r Ldap sind
-folgende Einstellungen n�tig:
+müssen dann die Optionen für das ausgewählte Plugin konfiguriert werden ($STUDIP_AUTH_CONFIG_xxx). Für Ldap sind
+folgende Einstellungen nötig:
 
     - host : Hostname des LDAP Servers, oder eine URL der Form ldap[s]://[hostname]:[port]
-    - protocol_version : LDAPv2 oder LDAPv3, f�r OpenLDAP 2.x.x besser 3
-    - base_dn : base DN, die Suchbasis unterhalb derer die Eintr�ge zu finden sein m�ssen
-    - username_attribute : Attribut, welches den Nutzernamen enth�lt
-    - anonymous_bind : l�sst der LDAP Server ein anonymes anmelden zu, so kann vor der eigentlichen Authentifizierung
+    - protocol_version : LDAPv2 oder LDAPv3, für OpenLDAP 2.x.x besser 3
+    - base_dn : base DN, die Suchbasis unterhalb derer die Einträge zu finden sein müssen
+    - username_attribute : Attribut, welches den Nutzernamen enthält
+    - anonymous_bind : lässt der LDAP Server ein anonymes anmelden zu, so kann vor der eigentlichen Authentifizierung
       das Verzeichnis nach dem eingegebenen Nutzernamen durchsucht werden, um den korrekten Nutzer DN zu finden.
-      Ist das anonyme Binden ausgeschaltet, muss die Suchbasis dem Zweig entsprechen, indem die persönliche Angaben zu finden 
-      sind, da der Nutzer DN in diesem Fall direkt aus der Suchbasis gebildet wird. Au�erdem ist dann keine M�glichkeit
-      gegeben eine Meldung �ber ein falsches Passwort zu geben.
-    - error_head : Pr�fix der Fehlermeldung bei fehlgeschlagener Anmeldung mit diesem Plugin
-    - user_data_mapping : in diesem Array werden die Zuordnungen von LDAP Attributen zu Stud.IP Datenbankeintr�gen
+      Ist das anonyme Binden ausgeschaltet, muss die Suchbasis dem Zweig entsprechen, indem die persönliche Angaben zu finden
+      sind, da der Nutzer DN in diesem Fall direkt aus der Suchbasis gebildet wird. Außerdem ist dann keine Möglichkeit
+      gegeben eine Meldung über ein falsches Passwort zu geben.
+    - error_head : Präfix der Fehlermeldung bei fehlgeschlagener Anmeldung mit diesem Plugin
+    - user_data_mapping : in diesem Array werden die Zuordnungen von LDAP Attributen zu Stud.IP Datenbankeinträgen
       vorgenommen. Diese Zurodnungen werden bei jeder erfolgreichen Anmeldung in der Stud.IP Datenbank aktualisiert.
-      Der Schl�ssel eines Eintrages ist das Stud.IP Datenbankfeld in der Form <tabelle>.<feld>. Zu jedem Schl�ssel sind
-      zwei weitere Eintr�ge n�tig. In "callback" wird der Name der Methode im Plugin angegeben, die die Zuordnung
-      vornehmen soll, "map_args" enth�lt die Argumente, die an die Methode �bergeben werden. Der Eintrag dummy als
+      Der Schlüssel eines Eintrages ist das Stud.IP Datenbankfeld in der Form <tabelle>.<feld>. Zu jedem Schlüssel sind
+      zwei weitere Einträge nötig. In "callback" wird der Name der Methode im Plugin angegeben, die die Zuordnung
+      vornehmen soll, "map_args" enthält die Argumente, die an die Methode übergeben werden. Der Eintrag dummy als
       callback nimmt keine Zuordnung vor, verhindert aber, dass die entsprechenden Felder im Stud.IP vom Nutzer
-      ver�ndert werden k�nnen, man sollte die default Eintr�ge f�r username und password besser nicht ver�ndern.
+      verändert werden können, man sollte die default Einträge für username und password besser nicht verändern.
       Im LDAP PLugin existieren zwei simple mapping Methoden doLdapMap und doLdapMapVorname. Erstere erwartet als
-      Argument den Namen des LDAP Attributes (z.B. sn f�r den Nachnamen) und gibt einfach den Inhalt zur�ck. Letztere
+      Argument den Namen des LDAP Attributes (z.B. sn für den Nachnamen) und gibt einfach den Inhalt zurück. Letztere
       nimmt zwei Argumente entgegen und versucht aus dem cn den Vornamen zu extrahieren (nur ein Beispiel).
-      Ben�tigt man komplexere Mappings, so empfiehlt es sich ein eigenenes Plugin von AuthLdap abzuleiten und
+      Benötigt man komplexere Mappings, so empfiehlt es sich ein eigenenes Plugin von AuthLdap abzuleiten und
       die entsprechenden Methoden dort zu realisieren.
 
 
 LdapReader authentifiziert nicht den Nutzer direkt gegen den LDAP Server, sondern benutzt einen konfigurierten LDAP
 Account mit Leserechten, um das Passwort des Nutzers aus dem Verzeichnis zu lesen und mit dem eingegebenen zu vergleichen.
-Anonymes Binden wird dazu nicht ben�tigt. Dieses Plugin ist als Beispiel gedacht, und
-sollte als Vorlage f�r eigene Plugins dienen.
+Anonymes Binden wird dazu nicht benötigt. Dieses Plugin ist als Beispiel gedacht, und
+sollte als Vorlage für eigene Plugins dienen.
 Einstellungen:
 
     - user_password_attribute : das Attribut des Nutzerpasswortes (Passwort muss als MD5 Hash vorliegen!)
@@ -63,10 +63,10 @@ Einstellungen:
 
 Q: Probleme mit der Literaturverwaltung (Modul php-yaz fehlt) mit neueren PHP-Versionen/SuSE-Distributionen (SuSE Linux > 9.2)
 
-Das von der Literaturverwaltung ben�tigte Modul php-yaz ist nicht mehr standardm��ig in php enthalten und muss
+Das von der Literaturverwaltung benötigte Modul php-yaz ist nicht mehr standardmäßig in php enthalten und muss
 nachinstalliert werden. Dabei gibt es mehrere Probleme, mit denen ein Linux-Laie schlecht umgehen kann.
 
-Zumindest in SuSE Linux 9.2 und 9.3 gibt es f�r phpyaz n�mlich kein rpm. Erforderlich ist es also, die
+Zumindest in SuSE Linux 9.2 und 9.3 gibt es für phpyaz nämlich kein rpm. Erforderlich ist es also, die
 Datei yaz.so aus der Source zu generieren. Dazu holt man sich die Aktuelle Source (bei mir 1.04) von
 http://www.indexdata.dk/phpyaz/.
 
@@ -82,7 +82,7 @@ yaz.so speichert man in das Verzeichnis der php-Extensions (unter SuSE Linux 9.3
 
 In php.ini  (bei mir /etc/php.ini)
 
-Erg�nzt man im extensions-Abschnitt
+Ergänzt man im extensions-Abschnitt
 
 extension = yaz.so
 
@@ -90,11 +90,11 @@ Neuladen des Apache-Webservers nicht vergessen!
 
 4. Assets
 
-Q: Ich m�chte Grafiken, CSS und Javascrips gerne auslagern. Wie gehe ich dabei vor?
+Q: Ich möchte Grafiken, CSS und Javascrips gerne auslagern. Wie gehe ich dabei vor?
 
 Bitte passen Sie den Wert $ASSETS_URL in der config/config_local.inc.php an. Achten Sie bitte unbedingt darauf, dass Sie den absoluten Pfad zu dem Assets-Verzeichnis
 angeben, da die Bildarstellung ansonsten nicht korrekt funktioniert.
-In der E-Learning-Schnittstelle m�ssen ggf. die Pfade zu den verwendeten Grafiken anpassen, wenn diese nach dem Verschieben des Assets-
+In der E-Learning-Schnittstelle müssen ggf. die Pfade zu den verwendeten Grafiken anpassen, wenn diese nach dem Verschieben des Assets-
 Verzeichnisses nicht korrekt dargestellt werden. Sie finden diese Einstellungen in der local.inc.
 
 - The Stud.IP Core Group <info@studip.de> 2007

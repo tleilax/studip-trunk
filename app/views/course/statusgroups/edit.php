@@ -7,7 +7,7 @@
             <label for="name" class="required">
                 <?= _('Name') ?>
             </label>
-            <input type="text" name="name" size="75" maxlength="255" value="<?= htmlReady($group->name) ?>">
+            <input type="text" name="name" size="75" maxlength="255" value="<?= htmlReady($group->name) ?>" required>
         </section>
         <section>
             <label for="size">

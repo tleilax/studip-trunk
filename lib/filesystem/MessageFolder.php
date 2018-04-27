@@ -323,7 +323,9 @@ class MessageFolder implements FolderType
             $new_file->size      = $file['size'];
             $new_file->storage   = 'disk';
             $new_file->id        = $new_file->getNewId();
-            $new_file->connectWithDataFile($file['tmp_name']);
+            if (!$new_file->connectWithDataFile($file['tmp_name'])) {
+                return null;
+            }
         }
 
         if ($new_file->isNew()) {

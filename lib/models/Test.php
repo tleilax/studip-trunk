@@ -58,7 +58,7 @@ class Test extends QuestionnaireQuestion implements QuestionType
 
             $task['answers'][] = [
                 'text' => $trimmedText,
-                'score' => array_key_exists($index, $correct) ? 1 : 0,
+                'score' => in_array($index + 1, $correct) ? 1 : 0,
                 'feedback' => ''
             ];
         }

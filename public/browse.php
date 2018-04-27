@@ -180,7 +180,7 @@ if (mb_strlen($name) > 2) {
     $parameters[':needle'] = '%' . $name . '%';
 }
 
-if (count($filter)) {
+if ($filter && count($filter)) {
     $_fields  = implode(', ', $fields);
     $_tables  = implode(' ', $tables);
     $_filters = implode(' AND ', $filter);

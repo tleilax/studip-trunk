@@ -54,7 +54,10 @@ class SemBrowse {
             $this->sem_browse_data['default_sem'] = Request::option($this->search_obj->form_name . "_sem");
         }
 
-        if (Request::get('keep_result_set') || $this->sem_browse_data['sset'] || (count($this->sem_browse_data['search_result']) && $this->sem_browse_data['show_entries'])){
+        if (Request::get('keep_result_set')
+            || $this->sem_browse_data['sset']
+            || (!empty($this->sem_browse_data['search_result']) && $this->sem_browse_data['show_entries']))
+        {
             $this->show_result = true;
         }
 
@@ -321,11 +324,11 @@ class SemBrowse {
 
                 ?>
                 <nav class="hidden-large-up button-group">
-                    <?= Studip\LinkButton::create(_("Suche in Einrichtungen"), URLHelper::getLink('?level=ev&cmd=qs&sset=0')) ?>
+                    <?= Studip\LinkButton::create(_("Suche in Einrichtungen"), URLHelper::getURL('?level=ev&cmd=qs&sset=0')) ?>
 
-                    <? if ($this->show_class()) { ?>
-                        <?= Studip\LinkButton::create(_("Suche im Vorlesungsverzeichnis"), URLHelper::getLink('?level=vv&cmd=qs&sset=0')) ?>
-                    <? } ?>
+                    <? if ($this->show_class()) : ?>
+                        <?= Studip\LinkButton::create(_("Suche im Vorlesungsverzeichnis"), URLHelper::getURL('?level=vv&cmd=qs&sset=0')) ?>
+                    <? endif ?>
                 </nav>
                 <?
             }
@@ -363,7 +366,7 @@ class SemBrowse {
             list($group_by_data, $sem_data) = $this->get_result();
 
             $visibles = $sem_data;
-            if (!$GLOBALS['perm']->have_perm('root')) {
+            if (!$GLOBALS['perm']->have_perm(Config::get()->SEM_VISIBILITY_PERM)) {
                 $visibles = array_filter($visibles, function ($c) {
                     return key($c['visible']) == 1;
                 });
@@ -490,11 +493,11 @@ class SemBrowse {
             // Creating the first worksheet
             $worksheet1 = $workbook->addworksheet(_("Veranstaltungen"));
             $worksheet1->set_row(0, 20);
-            $worksheet1->write_string(0, 0, $headline ,$head_format);
+            $worksheet1->write_string(0, 0, mb_convert_encoding($headline, 'WINDOWS-1252') ,$head_format);
             $worksheet1->set_row(1, 20);
-            $worksheet1->write_string(1, 0, sprintf(_(" %s Veranstaltungen gefunden %s, Gruppierung: %s"),count($sem_data),
+            $worksheet1->write_string(1, 0, mb_convert_encoding(sprintf(_(" %s Veranstaltungen gefunden %s, Gruppierung: %s"),count($sem_data),
                 (($this->sem_browse_data['sset']) ? _("(Suchergebnis)") : ""),
-                $this->group_by_fields[$this->sem_browse_data['group_by']]['name']), $caption_format);
+                $this->group_by_fields[$this->sem_browse_data['group_by']]['name']), 'WINDOWS-1252'), $caption_format);
 
             $worksheet1->write_blank(0,1,$head_format);
             $worksheet1->write_blank(0,2,$head_format);
@@ -535,7 +538,7 @@ class SemBrowse {
 
                 }
                 ++$row;
-                $worksheet1->write_string($row, 0 , $headline, $caption_format);
+                $worksheet1->write_string($row, 0 , mb_convert_encoding($headline, 'WINDOWS-1252') , $caption_format);
                 $worksheet1->write_blank($row,1, $caption_format);
                 $worksheet1->write_blank($row,2, $caption_format);
                 $worksheet1->write_blank($row,3, $caption_format);
@@ -561,15 +564,15 @@ class SemBrowse {
                             if ($seminar_obj->admission_prelim) $sem_name .= ', '. _("Zutritt auf Anfrage");
                             $sem_name .= ')';
                         }
-                        $worksheet1->write_string($row, 0, $sem_name, $data_format);
+                        $worksheet1->write_string($row, 0, mb_convert_encoding($sem_name, 'WINDOWS-1252'), $data_format);
                         $temp_turnus_string = $seminar_obj->getFormattedTurnus(true);
                         //Shorten, if string too long (add link for details.php)
                         if (mb_strlen($temp_turnus_string) > 245) {
                             $temp_turnus_string = mb_substr($temp_turnus_string, 0, mb_strpos(mb_substr($temp_turnus_string, 245, mb_strlen($temp_turnus_string)), ",") + 246);
                             $temp_turnus_string .= " ... ("._("mehr").")";
                         }
-                        $worksheet1->write_string($row, 1, $seminar_number, $data_format);
-                        $worksheet1->write_string($row, 2, $temp_turnus_string, $data_format);
+                        $worksheet1->write_string($row, 1, mb_convert_encoding($seminar_number, 'WINDOWS-1252'), $data_format);
+                        $worksheet1->write_string($row, 2, mb_convert_encoding($temp_turnus_string, 'WINDOWS-1252'), $data_format);
 
                         $doz_name = array();
                         $c = 0;
@@ -586,7 +589,7 @@ class SemBrowse {
                         if (is_array($doz_name)){
                             if(count($doz_position) != count($doz_name)) $doz_position = range(1, count($doz_name));
                             array_multisort($doz_position, $doz_name);
-                            $worksheet1->write_string($row, 3, join(', ', $doz_name), $data_format);
+                            $worksheet1->write_string($row, 3, mb_convert_encoding(join(', ', $doz_name), 'WINDOWS-1252'), $data_format);
                         }
                         ++$row;
                     }
@@ -742,7 +745,8 @@ class SemBrowse {
      * @param bool $child call in "child mode" -> force output because here children are listed
      * @return string A HTML table row.
      */
-    private function printCourseRow($seminar_id, &$sem_data, $child = false) {
+    private function printCourseRow($seminar_id, &$sem_data, $child = false)
+    {
         global $_fullname_sql,$SEM_TYPE,$SEM_CLASS;
 
         $row = '';
@@ -752,7 +756,7 @@ class SemBrowse {
          * Child courses are not shown extra, but summarized under their parent if
          * the parent is part of the search result.
          */
-        if (($GLOBALS['perm']->have_perm('root') || key($sem_data[$seminar_id]['visible']) == 1) && (!$sem_data[key($sem_data[$seminar_id]['parent_course'])] || $child)) {
+        if (($GLOBALS['perm']->have_perm(Config::get()->SEM_VISIBILITY_PERM) || key($sem_data[$seminar_id]['visible']) == 1) && (!$sem_data[key($sem_data[$seminar_id]['parent_course'])] || $child)) {
             // create instance of seminar-object
             $seminar_obj = new Seminar($seminar_id);
             // is this sem a studygroup?
@@ -802,9 +806,12 @@ class SemBrowse {
             if (count($seminar_obj->children) > 0) {
 
                 // If you are not root, perhaps not all available subcourses are visible.
-                $visibleChildren = $GLOBALS['perm']->have_perm('root') ?
-                    $seminar_obj->children :
-                    $seminar_obj->children->filter(function($c) { return $c->visible == 1; });
+                $visibleChildren = $seminar_obj->children;
+                if (!$GLOBALS['perm']->have_perm(Config::get()->SEM_VISIBILITY_PERM)) {
+                    $visibleChildren = $visibleChildren->filter(function($c) {
+                        return $c->visible;
+                    });
+                }
                 if (count($visibleChildren) > 0) {
                     $row .= Icon::create('add', 'clickable',[
                             'id' => 'show-subcourses-' . $seminar_id,

@@ -78,7 +78,7 @@
                           ->condition(!($is_participants_locked || $is_locked))
                           ->addMultiPersonSearch(
                               MultiPersonSearch::get('add_statusgroup_member' . $group->id)
-                                  ->setTitle(_('Personen hinzufügen'))
+                                  ->setTitle(sprintf(_('Personen zu Gruppe %s hinzufügen'), $group->name))
                                   ->setLinkText(_('Personen hinzufügen'))
                                   ->setSearchObject($memberSearch)
                                   ->setDefaultSelectedUser($group->members->pluck('user_id'))

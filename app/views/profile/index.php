@@ -78,11 +78,6 @@
         <? endif ?>
         </dl>
 
-    <? if (isset($kings)): ?>
-        <p>
-            <?= $kings ?>
-        </p>
-    <? endif; ?>
     <? if ($has_denoted_fields): ?>
         <p>
             <small>

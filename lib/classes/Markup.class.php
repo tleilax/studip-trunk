@@ -84,9 +84,8 @@ class Markup
      *
      * Stud.IP-HTML is HTML that can contain Stud.IP Markup.
      *
-     * Stud.IP-HTML must either match Stud.IP 3.2's HTML marker
-     * or begin with '<' and end with '>'. Leading and trailing
-     * whitespace is ignored.
+     * Stud.IP-HTML must match Stud.IP 3.2's HTML marker.
+     * Leading and trailing whitespace is ignored.
      *
      * Everything else is considered not Stud.IP-HTML. In other
      * words, if it's not Stud.IP-HTML it might be everything
@@ -111,8 +110,7 @@ class Markup
             return true;
         }
 
-        // it's Stud.IP-HTML if it fit's the '< ... >' heuristic
-        return $text[0] === '<' && mb_substr($text, -1) === '>';
+        return false;
     }
 
     /**

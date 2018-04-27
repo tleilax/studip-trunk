@@ -33,7 +33,7 @@ $start_pages = array(
         <? if (!$GLOBALS['perm']->have_perm('root')): ?>
         <label>
             <?= _('Persönliche Startseite') ?>
-            <?= tooltipIcon(_('Sie können hier einstellen, welche Seite standardmäßig nach dem Einloggen '
+            <?= tooltipHtmlIcon(_('Sie können hier einstellen, welche Seite standardmäßig nach dem Einloggen '
                 .'angezeigt wird. Wenn Sie zum Beispiel regelmäßig die Seite &raquo;Meine '
                 .'Veranstaltungen&laquo; nach dem Login aufrufen, so können Sie dies hier '
                 .'direkt einstellen.')) ?>
@@ -63,7 +63,7 @@ $start_pages = array(
                    aria-describedby="accesskey_enable_description" value="1"
                 <? if ($config->ACCESSKEY_ENABLE) echo 'checked'; ?>>
             <?= _('Tastenkombinationen für Hauptfunktionen') ?>
-            <?= tooltipIcon(_('Mit dieser Einstellung können Sie für die meisten in der Kopfzeile '
+            <?= tooltipHtmlIcon(_('Mit dieser Einstellung können Sie für die meisten in der Kopfzeile '
                 .'erreichbaren Hauptfunktionen eine Bedienung über Tastenkombinationen '
                 .'aktivieren. <br>Die Tastenkombination wird im Tooltip des jeweiligen '
                 .'Icons angezeigt.')." "._('Diese kann für jeden Browser und jedes Betriebssystem unterschiedlich '

@@ -24,10 +24,11 @@ class Course_TopicsController extends AuthenticatedController
             }
             if (Request::submitted("delete_topic")) {
                 $topic->delete();
-                PageLayout::postMessage(MessageBox::success(_("Thema gelöscht.")));
+                PageLayout::postSuccess(_('Thema gelöscht.'));
             } else {
-                $topic['title'] = Request::get("title");
-                $topic['description'] = Studip\Markup::purifyHtml(Request::get("description"));
+                $topic['title']         = Request::get("title");
+                $topic['description']   = Studip\Markup::purifyHtml(Request::get("description"));
+                $topic['paper_related'] = (bool) Request::int('paper_related');
                 if ($topic->isNew()) {
                     $topic['seminar_id'] = Context::getId();
                 }

@@ -17,7 +17,7 @@ use Studip\Button, Studip\LinkButton;
       action="<?= $controller->url_for('institute/avatar/put/' . $institute_id) ?>"
       method="post" style="float: left">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="MAX_FILE_SIZE" value="1000000">
+    <input type="hidden" name="MAX_FILE_SIZE" value="<?= Avatar::MAX_FILE_SIZE ?>">
     <label for="upload-input"><?= _("Wählen Sie ein Bild für die Einrichtung:") ?></label>
     <input id="upload-input" name="avatar" type="file">
 

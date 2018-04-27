@@ -55,6 +55,15 @@
                 $('input[name="selfassign_start"]').closest($('section')).toggle();
                 $('input[name="selfassign_end"]').closest($('section')).toggle();
             });
+
+            $('input[name="numbering_type"]').on('click', function() {
+                var type     = $('input[name="numbering_type"]:checked').val(),
+                    disabled = type == 2;
+
+                $('input[name="startnumber"]')
+                    .prop('disabled', disabled)
+                    .toggle(!disabled);
+            })
         }
 
     };
@@ -104,4 +113,3 @@
     });
 
 }(jQuery, STUDIP));
-

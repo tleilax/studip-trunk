@@ -221,7 +221,7 @@ use Studip\Button, Studip\LinkButton;
                 <? if (StudipAuthAbstract::CheckField('auth_user_md5.Email', $auth_plugin) || LockRules::check($user->user_id, 'email')) : ?>
                     <?= htmlReady($user->email) ?>
                 <? else : ?>
-                    <input class="user_form" type="text" name="Email" id="email"
+                    <input class="user_form" type="email" name="Email" id="email"
                            value="<?= htmlReady($user['Email']) ?>" <? if (!$prelim) echo 'required'; ?>>
                     <? if ($GLOBALS['MAIL_VALIDATE_BOX']) : ?>
                         <label>

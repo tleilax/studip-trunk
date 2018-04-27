@@ -238,7 +238,7 @@ class NotificationCenterTest extends PHPUnit_Framework_TestCase
         $wildcard = $this->getMock("Observer");
         $wildcard->expects($this->once())->method('update')->with('foobar', $subject, $user_data);
 
-        NotificationCenter::addObserver($wildcard, 'update', 'foo');
+        NotificationCenter::addObserver($wildcard, 'update', 'foo*');
 
 
         // expect notication

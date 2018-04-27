@@ -32,14 +32,17 @@ class MyStudygroupsController extends AuthenticatedController
         $sidebar->setTitle(_('Meine Studiengruppen'));
 
         $actions = new ActionsWidget();
-        $actions->addLink(_('Neue Studiengruppe anlegen'),
-                          URLHelper::getLink('dispatch.php/course/wizard', ['studygroup' => 1]),
-                          Icon::create('add', 'clickable'));
+        $actions->addLink(
+            _('Neue Studiengruppe anlegen'),
+            URLHelper::getLink('dispatch.php/course/wizard', ['studygroup' => 1]),
+            Icon::create('add')
+        )->asDialog('size=auto');
         if (count($this->studygroups) > 0) {
-            $actions->addLink(_('Farbgruppierung ändern'),
-                              URLHelper::getLink('dispatch.php/my_courses/groups/all/true'),
-                              Icon::create('group4', 'clickable'))
-                    ->asDialog();
+            $actions->addLink(
+                _('Farbgruppierung ändern'),
+                URLHelper::getLink('dispatch.php/my_courses/groups/all/true'),
+                Icon::create('group4')
+            )->asDialog();
         }
         $sidebar->addWidget($actions);
     }

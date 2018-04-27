@@ -1,4 +1,3 @@
-<div><?= htmlReady($type) ?>:</div>
 <div>
     <div><?= _('Ein Ordner für Materialien, welche nur zum Download zu Verfügung gestellt werden sollen.') ?></div>
     <div>
@@ -7,7 +6,7 @@
     </div>
     <? if ($folderdata['description']) : ?>
         <div>
-            <?= htmlReady($folderdata['description']) ?>
+            <?= formatReady($folderdata['description']) ?>
         </div>
     <? endif ?>
 </div>

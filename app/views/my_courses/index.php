@@ -24,7 +24,7 @@
                     <col width="7px">
                     <col width="25px">
                     <? if ($config_sem_number) : ?>
-                        <col width="10%">
+                        <col width="70px">
                     <? endif ?>
                     <col>
                     <col class="hidden-small-down" width="45px">

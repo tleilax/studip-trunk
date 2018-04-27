@@ -69,57 +69,66 @@ class FileController extends AuthenticatedController
         if (!$folder || !$folder->isWritable($GLOBALS['user']->id)) {
             throw new AccessDeniedException();
         }
-        if (Request::isPost() && is_array($_FILES['file'])) {
-            //CSRFProtection::verifyUnsafeRequest();
-            $validatedFiles = FileManager::handleFileUpload(
-                $_FILES['file'],
-                $folder,
-                $GLOBALS['user']->id
-            );
-
-            if (count($validatedFiles['error']) > 0) {
-                 // error during upload: display error message:
-                $this->render_json(['message' => MessageBox::error(
-                    _('Beim Hochladen ist ein Fehler aufgetreten '),
-                    array_map('htmlready', $validatedFiles['error'])
-                )]);
-
-                return;
-            }
-
-            //all files were uploaded successfully:
-            $storedFiles = [];
-            $default_license = ContentTermsOfUse::find(
-                'UNDEF_LICENSE'
-            );
-
-            foreach ($validatedFiles['files'] as $fileref) {
-                //If no terms of use is set for the file ref
-                //we must set it to a default terms of use
-                //and update the fileref.
-                if (!$fileref->content_terms_of_use_id
-                    and $default_license) {
-                    $fileref->content_terms_of_use_id = $default_license->id;
-                    if ($fileref->isDirty()) {
-                        $fileref->store();
-                    }
-                }
-                $storedFiles[] = $fileref;
-            }
-            if (count($storedFiles) > 0 && !Request::isXhr()) {
-                PageLayout::postSuccess(
-                    sprintf(
-                        _('Es wurden %s Dateien hochgeladen'),
-                        count($storedFiles)
-                    ),
-                    array_map('htmlready', $storedFiles)
+        if (Request::isPost()) {
+            if (is_array($_FILES['file'])) {
+                $validatedFiles = FileManager::handleFileUpload(
+                    $_FILES['file'],
+                    $folder,
+                    $GLOBALS['user']->id
                 );
+
+                if (count($validatedFiles['error']) > 0) {
+                    // error during upload: display error message:
+                    $this->render_json(['message' => (string)MessageBox::error(
+                        _('Beim Hochladen ist ein Fehler aufgetreten '),
+                        array_map('htmlready', $validatedFiles['error'])
+                    )]);
+
+                    return;
+                }
+
+                //all files were uploaded successfully:
+                $storedFiles = [];
+                $default_license = ContentTermsOfUse::find(
+                    'UNDEF_LICENSE'
+                );
+
+                foreach ($validatedFiles['files'] as $fileref) {
+                    //If no terms of use is set for the file ref
+                    //we must set it to a default terms of use
+                    //and update the fileref.
+                    if (!$fileref->content_terms_of_use_id
+                        and $default_license) {
+                        $fileref->content_terms_of_use_id = $default_license->id;
+                        if ($fileref->isDirty()) {
+                            $fileref->store();
+                        }
+                    }
+                    $storedFiles[] = $fileref;
+                }
+                if (count($storedFiles) > 0 && !Request::isXhr()) {
+                    PageLayout::postSuccess(
+                        sprintf(
+                            _('Es wurden %s Dateien hochgeladen'),
+                            count($storedFiles)
+                        ),
+                        array_map('htmlready', $storedFiles)
+                    );
+                }
+            } else {
+                $this->render_json(['message' => (string)MessageBox::error(
+                    _('Ein Systemfehler ist beim Upload aufgetreten.')
+
+                )]);
+                return;
             }
 
             if (Request::isXhr()) {
                 $output = ['new_html' => []];
 
-                if (count($storedFiles) === 1 && $storedFiles[0]['mime_type'] === 'application/zip' && Seminar_Perm::get()->have_studip_perm('tutor', $folder->range_id)) {
+                if (count($storedFiles) === 1
+                        && (strtolower(substr($storedFiles[0]['name'], -4)) === ".zip")
+                        && ($folder->range_id === $GLOBALS['user']->id || Seminar_Perm::get()->have_studip_perm('tutor', $folder->range_id))) {
                     $ref_ids = [];
                     foreach ($storedFiles as $file_ref) {
                         $ref_ids[] = $file_ref->getId();
@@ -711,10 +720,12 @@ class FileController extends AuthenticatedController
             );
 
             if ($result) {
+                $filename = $folder ? $folder->name : basename($tmp_file);
+
                 //ZIP file was created successfully
                 $this->redirect(FileManager::getDownloadURLForTemporaryFile(
                     basename($tmp_file),
-                    basename($tmp_file) . '.zip'
+                    FileManager::cleanFileName("{$filename}.zip")
                 ));
             } else {
                 throw new Exception('Error while creating ZIP archive!');
@@ -956,7 +967,12 @@ class FileController extends AuthenticatedController
 
     public function add_files_window_action($folder_id)
     {
-        $this->folder_id = $folder_id;
+        $this->folder_id   = $folder_id;
+
+        $this->upload_type = FileManager::getUploadTypeConfig(
+            Context::getId(), $GLOBALS['user']->id
+        );
+
         $this->plugin = Request::get('to_plugin');
     }
 
@@ -1648,7 +1664,7 @@ class FileController extends AuthenticatedController
 
                 if ($file_ref) {
                     $result = $parent_folder->deleteFile($element);
-                    if (!is_array($result)) {
+                    if ($result && !is_array($result)) {
                         $count_files += 1;
                     }
                 } elseif ($foldertype) {
@@ -1667,7 +1683,7 @@ class FileController extends AuthenticatedController
             }
 
             if (empty($errors) || $count_files > 0 || $count_folders > 0) {
-                if ($count_files == 1) {
+                if ($count_files == 1 || $count_folders == 1) {
                     if ($count_folders) {
                         PageLayout::postSuccess(_('Der Ordner wurde gelöscht!'));
                     } else {
@@ -1681,7 +1697,7 @@ class FileController extends AuthenticatedController
                     PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner gelöscht!'), $count_folders));
                 }
             } else {
-                PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), $errors);
+                PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), array_map('htmlReady', $errors));
             }
 
             $this->redirectToFolder($parent_folder);

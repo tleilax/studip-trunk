@@ -271,7 +271,7 @@ class FileManager
     {
         $errors = [];
         if ($uploaded_file['error'] === UPLOAD_ERR_INI_SIZE) {
-            $errors[] = _('Die maximale Dateigröße wurde überschritten.');
+            $errors[] = sprintf(_('Ein Systemfehler ist beim Upload aufgetreten. Fehlercode: %s.'), 'upload_max_filesize=' . ini_get('upload_max_filesize'));
         } elseif ($uploaded_file['error'] > 0) {
             $errors[] = sprintf(
                 _('Ein Systemfehler ist beim Upload aufgetreten. Fehlercode: %s.'),
@@ -1279,7 +1279,7 @@ class FileManager
      */
     public static function deleteFolder(FolderType $folder, User $user)
     {
-        if (!$folder->isWritable($user->id)) {
+        if (!$folder->isEditable($user->id)) {
             return [sprintf(
                     _('Unzureichende Berechtigungen zum Löschen von Ordner %s!'),
                     $folder->name
@@ -1556,8 +1556,9 @@ class FileManager
         $array_walker = function ($top_folder) use (&$array_walker, &$folders,$user_id) {
             if (!($top_folder->isVisible($user_id) && $top_folder->isReadable($user_id))) {
                 $folders[$top_folder->getId()] = $top_folder;
-                array_walk($top_folder->getSubFolders(), $array_walker);
             }
+            array_walk($top_folder->getSubFolders(), $array_walker);
+
         };
 
         $top_folders = [$top_folder];
@@ -1852,5 +1853,42 @@ class FileManager
         }
 
         return $outbox_folder->getTypedFolder();
+    }
+
+    /**
+     * returns config array for upload types and sizes
+     *
+     * @param $range_id string id of Course Institute User
+     * @param null $user_id string
+     * @return array
+     */
+    public static function getUploadTypeConfig($range_id, $user_id = null)
+    {
+        if (is_null($user_id)) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        $range_object = get_object_by_range_id($range_id);
+        $active_upload_type = null;
+        if ($range_object instanceof Course) {
+            $status = $GLOBALS['perm']->get_studip_perm($range_id, $user_id);
+            $active_upload_type = $range_object->status;
+        } elseif ($range_object instanceof Institute) {
+            $status = $GLOBALS['perm']->get_studip_perm($range_id, $user_id);
+            $active_upload_type = 'institute';
+        } else {
+            $status = $GLOBALS['perm']->get_perm($user_id);
+            $active_upload_type = "personalfiles";
+        }
+
+        if (!isset($GLOBALS['UPLOAD_TYPES'][$active_upload_type])) {
+            $active_upload_type = 'default';
+        }
+
+        $upload_type = $GLOBALS['UPLOAD_TYPES'][$active_upload_type];
+        return [
+            'type' => $upload_type['type'],
+            'file_types' => $upload_type['file_types'],
+            'file_size' => $upload_type['file_sizes'][$status]
+        ];
     }
 }

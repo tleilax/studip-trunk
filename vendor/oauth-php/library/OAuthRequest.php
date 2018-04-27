@@ -2,25 +2,25 @@
 
 /**
  * Request wrapper class.  Prepares a request for consumption by the OAuth routines
- * 
+ *
  * @version $Id: OAuthRequest.php 186 2011-02-18 15:46:18Z scherpenisse $
  * @author Marc Worrell <marcw@pobox.com>
  * @date  Nov 16, 2007 12:20:31 PM
- * 
+ *
  * The MIT License
- * 
+ *
  * Copyright (c) 2007-2008 Mediamatic Lab
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,11 +36,11 @@ require_once dirname(__FILE__) . '/OAuthException2.php';
 /**
  * Object to parse an incoming OAuth request or prepare an outgoing OAuth request
  */
-class OAuthRequest 
+class OAuthRequest
 {
 	/* the realm for this request */
 	protected $realm;
-	
+
 	/* all the parameters, RFC3986 encoded name/value pairs */
 	protected $param = array();
 
@@ -55,15 +55,15 @@ class OAuthRequest
 
 	/* the request method */
 	protected $method;
-	
+
 	/* the body of the OAuth request */
 	protected $body;
-	
+
 
 	/**
 	 * Construct from the current request. Useful for checking the signature of a request.
 	 * When not supplied with any parameters this will use the current request.
-	 * 
+	 *
 	 * @param string	uri				might include parameters
 	 * @param string	method			GET, PUT, POST etc.
 	 * @param string	parameters		additional post parameters, urlencoded (RFC1738)
@@ -109,7 +109,7 @@ class OAuthRequest
 		}
 		$headers      = OAuthRequestLogger::getAllHeaders();
 		$this->method = strtoupper($method);
-		
+
 		// If this is a post then also check the posted variables
 		if (strcasecmp($method, 'POST') == 0)
 		{
@@ -154,7 +154,7 @@ class OAuthRequest
 	/**
 	 * Return the signature base string.
 	 * Note that we can't use rawurlencode due to specified use of RFC3986.
-	 * 
+	 *
 	 * @return string
 	 */
 	function signatureBaseString ()
@@ -163,16 +163,16 @@ class OAuthRequest
 		$sig[]	= $this->method;
 		$sig[]	= $this->getRequestUrl();
 		$sig[]	= $this->getNormalizedParams();
-		
+
 		return implode('&', array_map(array($this, 'urlencode'), $sig));
 	}
-	
-	
+
+
 	/**
 	 * Calculate the signature of the request, using the method in oauth_signature_method.
 	 * The signature is returned encoded in the form as used in the url.  So the base64 and
 	 * urlencoding has been done.
-	 * 
+	 *
 	 * @param string consumer_secret
 	 * @param string token_secret
 	 * @param string token_type
@@ -208,16 +208,16 @@ class OAuthRequest
 		return $signature;
 	}
 
-	
+
 	/**
 	 * Calculate the signature of a string.
 	 * Uses the signature method from the current parameters.
-	 * 
+	 *
 	 * @param string 	data
 	 * @param string	consumer_secret
 	 * @param string	token_secret
 	 * @param string 	signature_method
-	 * @exception OAuthException2 thrown when the signature method is unknown 
+	 * @exception OAuthException2 thrown when the signature method is unknown
 	 * @return string signature
 	 */
 	function calculateDataSignature ( $data, $consumer_secret, $token_secret, $signature_method )
@@ -235,7 +235,7 @@ class OAuthRequest
 	/**
 	 * Select a signature method from the list of available methods.
 	 * We try to check the most secure methods first.
-	 * 
+	 *
 	 * @todo Let the signature method tell us how secure it is
 	 * @param array methods
 	 * @exception OAuthException2 when we don't support any method in the list
@@ -264,7 +264,7 @@ class OAuthRequest
 					break;
 				}
 			}
-			
+
 			if (empty($method))
 			{
 				throw new OAuthException2('None of the signing methods is supported.');
@@ -273,10 +273,10 @@ class OAuthRequest
 		return $method;
 	}
 
-	
+
 	/**
 	 * Fetch the signature object used for calculating and checking the signature base string
-	 * 
+	 *
 	 * @param string method
 	 * @return OAuthSignatureMethod object
 	 */
@@ -301,7 +301,7 @@ class OAuthRequest
 
 	/**
 	 * Perform some sanity checks.
-	 * 
+	 *
 	 * @exception OAuthException2 thrown when sanity checks failed
 	 */
 	function checks ()
@@ -319,7 +319,7 @@ class OAuthRequest
 
 	/**
 	 * Return the request method
-	 * 
+	 *
 	 * @return string
 	 */
 	function getMethod ()
@@ -330,27 +330,27 @@ class OAuthRequest
 	/**
 	 * Return the complete parameter string for the signature check.
 	 * All parameters are correctly urlencoded and sorted on name and value
-	 * 
+	 *
 	 * @return string
 	 */
 	function getNormalizedParams ()
 	{
 		/*
-		// sort by name, then by value 
+		// sort by name, then by value
 		// (needed when we start allowing multiple values with the same name)
 		$keys   = array_keys($this->param);
 		$values = array_values($this->param);
 		array_multisort($keys, SORT_ASC, $values, SORT_ASC);
-        */
-        $params     = $this->param;
+		*/
+		$params     = $this->param;
 		$normalized = array();
 
 		ksort($params);
 		foreach ($params as $key => $value)
 		{
-		    // all names and values are already urlencoded, exclude the oauth signature
-		    if ($key != 'oauth_signature')
-		   	{
+			// all names and values are already urlencoded, exclude the oauth signature
+			if ($key != 'oauth_signature')
+			{
 				if (is_array($value))
 				{
 					$value_sort = $value;
@@ -375,12 +375,12 @@ class OAuthRequest
 	 */
 	function getRequestUrl ()
 	{
-        $url =  $this->uri_parts['scheme'] . '://'
-              . $this->uri_parts['user'] . (!empty($this->uri_parts['pass']) ? ':' : '')
-              . $this->uri_parts['pass'] . (!empty($this->uri_parts['user']) ? '@' : '')
+		$url =  $this->uri_parts['scheme'] . '://'
+			  . $this->uri_parts['user'] . (!empty($this->uri_parts['pass']) ? ':' : '')
+			  . $this->uri_parts['pass'] . (!empty($this->uri_parts['user']) ? '@' : '')
 			  . $this->uri_parts['host'];
-			  
-		if (	$this->uri_parts['port'] 
+
+		if (	$this->uri_parts['port']
 			&&	$this->uri_parts['port'] != $this->defaultPortForScheme($this->uri_parts['scheme']))
 		{
 			$url .= ':'.$this->uri_parts['port'];
@@ -391,11 +391,11 @@ class OAuthRequest
 		}
 		return $url;
 	}
-	
-	
+
+
 	/**
 	 * Get a parameter, value is always urlencoded
-	 * 
+	 *
 	 * @param string	name
 	 * @param boolean	urldecode	set to true to decode the value upon return
 	 * @return string value		false when not found
@@ -430,7 +430,7 @@ class OAuthRequest
 
 	/**
 	 * Set a parameter
-	 * 
+	 *
 	 * @param string	name
 	 * @param string	value
 	 * @param boolean	encoded	set to true when the values are already encoded
@@ -467,7 +467,7 @@ class OAuthRequest
 	{
 		$params      = $this->param;
 		$this->param = array();
-		
+
 		foreach ($params as $name=>$value)
 		{
 			if (is_array($value))
@@ -485,7 +485,7 @@ class OAuthRequest
 
 	/**
 	 * Return the body of the OAuth request.
-	 * 
+	 *
 	 * @return string		null when no body
 	 */
 	function getBody ()
@@ -496,7 +496,7 @@ class OAuthRequest
 
 	/**
 	 * Return the body of the OAuth request.
-	 * 
+	 *
 	 * @return string		null when no body
 	 */
 	function setBody ( $body )
@@ -507,7 +507,7 @@ class OAuthRequest
 
 	/**
 	 * Parse the uri into its parts.  Fill in the missing parts.
-	 * 
+	 *
 	 * @param string $parameters  optional extra parameters (from eg the http post)
 	 */
 	protected function parseUri ( $parameters )
@@ -522,7 +522,7 @@ class OAuthRequest
 			$ps['host'] = mb_strtolower($ps['host']);
 		else
 			$ps['host'] = strtolower($ps['host']);
-			
+
 		if (!preg_match('/^[a-z0-9\.\-]+$/', $ps['host']))
 		{
 			throw new OAuthException2('Unsupported characters in host name');
@@ -533,7 +533,7 @@ class OAuthRequest
 		{
 			$ps['port'] = $this->defaultPortForScheme($ps['scheme']);
 		}
-		
+
 		if (empty($ps['user']))
 		{
 			$ps['user'] = '';
@@ -564,19 +564,19 @@ class OAuthRequest
 				foreach ($params as $p)
 				{
 					@list($name, $value) = explode('=', $p, 2);
-					if (!strlen($name)) 
+					if (!strlen($name))
 					{
 						continue;
 					}
 
-					if (array_key_exists($name, $this->param)) 
+					if (array_key_exists($name, $this->param))
 					{
 						if (is_array($this->param[$name]))
 							$this->param[$name][] = $value;
 						else
 							$this->param[$name] = array($this->param[$name], $value);
 					}
-					else 
+					else
 					{
 						$this->param[$name]  = $value;
 					}
@@ -589,7 +589,7 @@ class OAuthRequest
 
 	/**
 	 * Return the default port for a scheme
-	 * 
+	 *
 	 * @param string scheme
 	 * @return int
 	 */
@@ -604,11 +604,11 @@ class OAuthRequest
 			break;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Encode a string according to the RFC3986
-	 * 
+	 *
 	 * @param string s
 	 * @return string
 	 */
@@ -623,11 +623,11 @@ class OAuthRequest
 			return str_replace('%7E', '~', rawurlencode($s));
 		}
 	}
-	
+
 	/**
 	 * Decode a string according to RFC3986.
 	 * Also correctly decodes RFC1738 urls.
-	 * 
+	 *
 	 * @param string s
 	 * @return string
 	 */
@@ -647,7 +647,7 @@ class OAuthRequest
 	 * urltranscode - make sure that a value is encoded using RFC3986.
 	 * We use a basic urldecode() function so that any use of '+' as the
 	 * encoding of the space character is correctly handled.
-	 * 
+	 *
 	 * @param string s
 	 * @return string
 	 */
@@ -669,27 +669,27 @@ class OAuthRequest
 	 * Parse the oauth parameters from the request headers
 	 * Looks for something like:
 	 *
-     * Authorization: OAuth realm="http://photos.example.net/authorize",
-     *           oauth_consumer_key="dpf43f3p2l4k3l03",
-     *           oauth_token="nnch734d00sl2jdk",
-     *           oauth_signature_method="HMAC-SHA1",
-     *           oauth_signature="tR3%2BTy81lMeYAr%2FFid0kMTYa%2FWM%3D",
-     *           oauth_timestamp="1191242096",
-     *           oauth_nonce="kllo9940pd9333jh",
-     *           oauth_version="1.0"
-     */
+	 * Authorization: OAuth realm="http://photos.example.net/authorize",
+	 *           oauth_consumer_key="dpf43f3p2l4k3l03",
+	 *           oauth_token="nnch734d00sl2jdk",
+	 *           oauth_signature_method="HMAC-SHA1",
+	 *           oauth_signature="tR3%2BTy81lMeYAr%2FFid0kMTYa%2FWM%3D",
+	 *           oauth_timestamp="1191242096",
+	 *           oauth_nonce="kllo9940pd9333jh",
+	 *           oauth_version="1.0"
+	 */
 	private function parseHeaders ()
 	{
 /*
 		$this->headers['Authorization'] = 'OAuth realm="http://photos.example.net/authorize",
-                oauth_consumer_key="dpf43f3p2l4k3l03",
-                oauth_token="nnch734d00sl2jdk",
-                oauth_signature_method="HMAC-SHA1",
-                oauth_signature="tR3%2BTy81lMeYAr%2FFid0kMTYa%2FWM%3D",
-                oauth_timestamp="1191242096",
-                oauth_nonce="kllo9940pd9333jh",
-                oauth_version="1.0"';
-*/		
+				oauth_consumer_key="dpf43f3p2l4k3l03",
+				oauth_token="nnch734d00sl2jdk",
+				oauth_signature_method="HMAC-SHA1",
+				oauth_signature="tR3%2BTy81lMeYAr%2FFid0kMTYa%2FWM%3D",
+				oauth_timestamp="1191242096",
+				oauth_nonce="kllo9940pd9333jh",
+				oauth_version="1.0"';
+*/
 		if (isset($this->headers['Authorization']))
 		{
 			$auth = trim($this->headers['Authorization']);
@@ -706,7 +706,7 @@ class OAuthRequest
 						{
 							$value = substr(substr($value, 1), 0, -1);
 						}
-						
+
 						if (strcasecmp($name, 'realm') == 0)
 						{
 							$this->realm = $value;
@@ -724,7 +724,7 @@ class OAuthRequest
 
 	/**
 	 * Fetch the content type of the current request
-	 * 
+	 *
 	 * @return string
 	 */
 	private function getRequestContentType ()
@@ -740,9 +740,9 @@ class OAuthRequest
 
 	/**
 	 * Get the body of a POST or PUT.
-	 * 
+	 *
 	 * Used for fetching the post parameters and to calculate the body signature.
-	 * 
+	 *
 	 * @return string		null when no body present (or wrong content type for body)
 	 */
 	private function getRequestBody ()
@@ -781,7 +781,7 @@ class OAuthRequest
 		if ($this->method == 'POST')
 		{
 			$body = '';
-			if (is_array($_POST) && count($_POST) > 1) 
+			if (is_array($_POST) && count($_POST) > 1)
 			{
 				foreach ($_POST AS $k => $v) {
 					$body .= $k . '=' . $this->urlencode($v) . '&';
@@ -795,17 +795,18 @@ class OAuthRequest
 
 		return $body;
 	}
-	
-	
+
+
 	/**
 	 * Simple function to perform a redirect (GET).
 	 * Redirects the User-Agent, does not return.
-	 * 
+	 *
 	 * @param string uri
 	 * @param array params		parameters, urlencoded
+	 * @param bool  skip protocol check
 	 * @exception OAuthException2 when redirect uri is illegal
 	 */
-	public function redirect ( $uri, $params )
+	public function redirect ( $uri, $params, $skip_protocol_check = false )
 	{
 		if (!empty($params))
 		{
@@ -815,7 +816,7 @@ class OAuthRequest
 				$q[] = $name.'='.$value;
 			}
 			$q_s = implode('&', $q);
-			
+
 			if (strpos($uri, '?'))
 			{
 				$uri .= '&'.$q_s;
@@ -825,18 +826,21 @@ class OAuthRequest
 				$uri .= '?'.$q_s;
 			}
 		}
-		
+
 		// simple security - multiline location headers can inject all kinds of extras
 		$uri = preg_replace('/\s/', '%20', $uri);
-		if (strncasecmp($uri, 'http://', 7) && strncasecmp($uri, 'https://', 8))
-		{
-			if (strpos($uri, '://'))
+
+		if (!$skip_protocol_check) {
+			if (strncasecmp($uri, 'http://', 7) && strncasecmp($uri, 'https://', 8))
 			{
-				throw new OAuthException2('Illegal protocol in redirect uri '.$uri);
+				if (strpos($uri, '://'))
+				{
+					throw new OAuthException2('Illegal protocol in redirect uri '.$uri);
+				}
+				$uri = 'http://'.$uri;
 			}
-			$uri = 'http://'.$uri;
 		}
-		
+
 		header('HTTP/1.1 302 Found');
 		header('Location: '.$uri);
 		echo '';

@@ -132,7 +132,7 @@ class EvaluationExportManagerCSV extends EvaluationExportManager {
    function exportHeader () {
       if (empty ($this->filehandle))
          return $this->throwError (1, _("ExportManager::Konnte temporäre Datei nicht öffnen."));
-
+      fputs ($this->filehandle, "\xEF\xBB\xBF");
       fputs ($this->filehandle, EVALEXPORT_DELIMITER . _("Nummer") . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
       fputs ($this->filehandle, EVALEXPORT_DELIMITER . _("Datum") . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
       fputs ($this->filehandle, EVALEXPORT_DELIMITER . _("Benutzername") . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);

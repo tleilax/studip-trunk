@@ -633,8 +633,8 @@ class Course_TimesroomsController extends AuthenticatedController
 
         if (Request::int('cancel_send_message') && count($deleted_dates) > 0) {
             $snd_messages = raumzeit_send_cancel_message(Request::get('cancel_comment'), $deleted_dates);
-            if ($snd_messages) {
-                $this->course->createMessage(sprintf(_('Es wurden %u Benachrichtigungen gesendet.'), $snd_messages));
+            if ($snd_messages > 0) {
+                $this->course->createMessage(_('Alle Teilnehmenden wurden benachrichtigt.'));
             }
         }
     }
@@ -1003,8 +1003,8 @@ class Course_TimesroomsController extends AuthenticatedController
         }
         if (Request::int('cancel_send_message')) {
             $snd_messages = raumzeit_send_cancel_message(Request::get('cancel_comment'), $termin);
-            if ($snd_messages) {
-                $this->course->createInfo(sprintf(_('Es wurden %s Benachrichtigungen gesendet.'), $snd_messages));
+            if ($snd_messages > 0) {
+                $this->course->createInfo(_('Alle Teilnehmenden wurden benachrichtigt.'));
             }
         }
         $this->displayMessages();
@@ -1039,19 +1039,17 @@ class Course_TimesroomsController extends AuthenticatedController
         Sidebar::Get()->addWidget($widget);
 
         if ($GLOBALS['perm']->have_perm('admin')) {
-            $list = new SelectorWidget();
-            $list->setUrl($this->url_for('/index'));
-            $list->setSelectParameterName('cid');
-            foreach (AdminCourseFilter::get()->getCourses(false) as $seminar) {
-                $element = new SelectElement(
+            $list = new SelectWidget(_('Veranstaltungen'), $this->url_for('course/timesrooms/index'), 'cid');
+
+            foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
+                $list->addElement(new SelectElement(
                     $seminar['Seminar_id'],
                     $seminar['Name'],
-                    $seminar['Seminar_id'] === Context::get()->id,
+                    $seminar['Seminar_id'] === Context::getId(),
                     $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
-                );
-                $list->addElement($element, 'select-' . $seminar['Seminar_id']);
+                ));
             }
-            $list->setSelection($this->course->id);
+            $list->size = 8;
             Sidebar::Get()->addWidget($list);
         }
     }
@@ -1123,19 +1121,14 @@ class Course_TimesroomsController extends AuthenticatedController
             $has_topics  = $termin->topics->count();
             if ($termin->delete()) {
                 StudipLog::log("SEM_DELETE_SINGLEDATE", $termin_id, $seminar_id, 'appointment cancelled');
-                if (Request::get('approveDelete')) {
-                    if ($has_topics) {
-                        $this->course->createMessage(sprintf(_('Sie haben den Termin %s gelöscht, dem ein Thema zugeordnet war.'
-                                                               . 'Sie können das Thema im Ablaufplan einem anderen Termin (z.B. einem Ausweichtermin) zuordnen.'),
-                                                             $termin_date, '<a href="' . URLHelper::getLink('dispatch.php/course/topics') . '">', '</a>'));
-                    } elseif ($termin_room) {
-                        $this->course->createMessage(sprintf(_('Der Termin %s wurde gelöscht! Die Buchung für den Raum %s wurde gelöscht.'),
-                                                             $termin_date, $termin_room));
-                    } else {
-                        $this->course->createMessage(sprintf(_('Der Termin %s wurde gelöscht!'), $termin_date));
-                    }
+                if ($has_topics) {
+                    $this->course->createMessage(sprintf(_('Sie haben den Termin %s gelöscht, dem ein Thema zugeordnet war.'
+                        . 'Sie können das Thema im Ablaufplan einem anderen Termin (z.B. einem Ausweichtermin) zuordnen.'),
+                        $termin_date, '<a href="' . URLHelper::getLink('dispatch.php/course/topics') . '">', '</a>'));
+                } elseif ($termin_room) {
+                    $this->course->createMessage(sprintf(_('Der Termin %s wurde gelöscht! Die Buchung für den Raum %s wurde gelöscht.'),
+                        $termin_date, $termin_room));
                 } else {
-                    // no approval needed, delete unquestioned
                     $this->course->createMessage(sprintf(_('Der Termin %s wurde gelöscht!'), $termin_date));
                 }
             }

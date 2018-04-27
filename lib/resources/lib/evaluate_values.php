@@ -1477,7 +1477,11 @@ switch (Request::option('skip_closed_requests')) {
 
 //cancel an edit request session
 if (Request::int('cancel_edit_request_x') || Request::submitted('cancel_edit_request') ) {
-    if (sizeof($_SESSION['resources_data']["requests_open"]) < sizeof ($_SESSION['resources_data']["requests_working_on"])) {
+    if (isset($_SESSION['resources_data']["requests_open"])
+        && isset($_SESSION['resources_data']["requests_working_on"])
+        && sizeof($_SESSION['resources_data']["requests_open"]) < sizeof($_SESSION['resources_data']["requests_working_on"]))
+    {
+        $request_ids = [];
         foreach ($_SESSION['resources_data']["requests_working_on"] as $val) {
             $request_ids[] = $val["request_id"];
             $request_data[$val["request_id"]] = $val;
@@ -1624,7 +1628,7 @@ if (Request::submitted('save_state')) {
 
     // check if request has been closed by another process in the meantime
     if ($reqObj->closed == null || $reqObj->closed == 2) {
-        throw new Exception(_('Sie haben versucht eine bereits geschlossen Raumanfrage zu bearbeiten!'));
+        throw new Exception(_('Sie haben versucht, eine bereits geschlossene Raumanfrage zu bearbeiten!'));
     } else {
         //if not single date-mode, we have to load all termin_ids from other requests of this seminar, because these dates don't have to be touched (they have an own request!)
         if (!$reqObj->getTerminId()) {

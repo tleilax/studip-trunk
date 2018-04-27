@@ -31,7 +31,6 @@ class SearchWidget extends SidebarWidget
         $this->template = 'sidebar/search-widget';
 
         $this->needles = $needles;
-        $this->filters = $filters;
     }
 
     /**

@@ -25,7 +25,7 @@ use Studip\Button, Studip\LinkButton;
     <?= $this->render_partial("admin/autoinsert/_search.php", array('semester_data' => $semester_data)) ?>
 </form>
 
-<? if (count($seminar_search) > 0): ?>
+<? if (is_array($seminar_search) && count($seminar_search) > 0): ?>
 <form action="<?= $controller->url_for('admin/autoinsert/new') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
@@ -53,8 +53,8 @@ use Studip\Button, Studip\LinkButton;
                 <td>
                     <?= _('Automatisches Eintragen mit Nutzerstatus:') ?>
                 </td>
-             
-              
+
+
             </tr>
                   <?php foreach($userdomains as $domain):?>
               <tr class="<?= TextHelper::cycle('cycle_odd', 'cycle_even') ?>">
@@ -105,11 +105,11 @@ use Studip\Button, Studip\LinkButton;
                     <?= htmlReady($auto_sem['Name'])?>
                 </a>
             </td>
-                
-           
-         
-            
-        
+
+
+
+
+
             <?= $this->render_partial("admin/autoinsert/_status.php", array('status' => 'dozent', 'auto_sem' => $auto_sem,'domains'=>$userdomains)) ?>
             <?= $this->render_partial("admin/autoinsert/_status.php", array('status' => 'tutor', 'auto_sem' => $auto_sem,'domains'=>$userdomains)) ?>
             <?= $this->render_partial("admin/autoinsert/_status.php", array('status' => 'autor', 'auto_sem' => $auto_sem,'domains'=>$userdomains)) ?>

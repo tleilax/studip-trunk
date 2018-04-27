@@ -14,12 +14,16 @@
          */
         toggleSearchBar: function (visible, cleanup) {
             $('#globalsearch-searchbar').toggleClass('is-visible', visible);
+            $('#globalsearch-input').toggleClass('hidden-small-down', !visible);
+            $('#globalsearch-icon').toggleClass('hidden-small-down', visible);
 
             if (!visible && cleanup) {
                 $('#globalsearch-searchbar').removeClass('has-value');
                 $('#globalsearch-results').html('');
                 $('#globalsearch-input').blur().val('');
             }
+
+            $('html.responsive-display').toggleClass('globalsearch-visible', visible);
 
             return false;
         },
@@ -34,9 +38,11 @@
                 resultsPerType  = resultsDiv.data('results-per-type'),
                 moreResultsText = resultsDiv.data('more-results'),
                 wrapper         = $('#globalsearch-searchbar');
+
             if (searchterm === '') {
                 return;
             }
+
 
             wrapper.toggleClass('has-value', hasValue);
 
@@ -217,13 +223,26 @@
     $(function () {
         // Clear search term
         $('#globalsearch-clear').on('click', function () {
+            var before = $('#globalsearch-input').val();
             STUDIP.GlobalSearch.resetSearch();
+
+            if ($('html').is('.responsive-display') && before.length === 0) {
+                STUDIP.GlobalSearch.toggleSearchBar(false);
+            }
+
             return false;
         });
 
         // Bind icon click to performing search.
         $('#globalsearch-icon').on('click', function () {
             STUDIP.GlobalSearch.doSearch();
+
+            if ($('html').hasClass('responsified')) {
+                var input = $('#globalsearch-input');
+                input.toggleClass('hidden-small-down', false);
+                input.focus();
+            }
+
             return false;
         });
 
@@ -268,6 +287,11 @@
 
         // Key bindings.
         $(document).keydown(function (e) {
+            // Don't do anything if a dialog is open
+            if (STUDIP.Dialog.stack.length > 0) {
+                return;
+            }
+
             // ctrl + space
             if (e.which === 32 && e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
                 e.preventDefault();

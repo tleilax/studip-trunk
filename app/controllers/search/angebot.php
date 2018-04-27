@@ -55,12 +55,14 @@ class Search_AngebotController extends MVVController
             $char = mb_substr($fach->name, 0, 1);
 
             foreach ($fach->abschluesse as $abschluss) {
-                $result[$char][] = array(
-                    'abschluss_id' => $abschluss->getId(),
-                    'fach_id' => $fach->getId(),
-                    'name' => sprintf('%s - %s', $fach->name,
-                            $abschluss->getDisplayName())
-                );
+                if (count(Studiengang::findByFachAbschluss($fach->getId(), $abschluss->getId(), $filter))) {
+                    $result[$char][] = array(
+                        'abschluss_id' => $abschluss->getId(),
+                        'fach_id' => $fach->getId(),
+                        'name' => sprintf('%s - %s', $fach->name,
+                                $abschluss->getDisplayName())
+                    );
+                }
             }
 
             $chars[$char] = $char;

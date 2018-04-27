@@ -51,6 +51,9 @@ javascripts:
     - javascripts/jquery/jquery.tablesorter.pager-2.28.8.js
     - javascripts/jquery/jquery.tablesorter.widgets-2.29.0.js
 
+  api: &api
+    - javascripts/studip-restapi.js
+
   base:
     - *jquery
     - *modernizr
@@ -72,6 +75,9 @@ javascripts:
     - *sidebar
     - *toolbar
     - *dialog
+    - *api
+
+    - javascripts/responsive.js
 
     - javascripts/ajax_notifications.js
     - javascripts/url_helper.js
@@ -107,7 +113,6 @@ javascripts:
     - javascripts/qrcode.js
     - javascripts/tables.js
     - javascripts/start.js
-    - javascripts/responsive.js
     - javascripts/wiki.js
     - javascripts/coursewizard.js
     - javascripts/smiley.js
@@ -165,16 +170,12 @@ javascripts:
   subcourses:
     - javascripts/subcourses.js
 
-  api: &api
-    - javascripts/studip-restapi.js
-
   filesdashboard: &filesdashboard
     - javascripts/files-dashboard.js
 
   widgets:
     - javascripts/vendor/gridstack-0.3.0.js
     - javascripts/vendor/gridstack.jQueryUI-0.3.0.js
-    - *api
     - javascripts/string-crc32.js
     - javascripts/studip-widgetsystem.js
     - javascripts/studip-widgets.js

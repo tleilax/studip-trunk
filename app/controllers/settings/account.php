@@ -137,12 +137,10 @@ class Settings_AccountController extends Settings_SettingsController
 
                 if (!$is_sso && !$auth->isAuthenticated($this->user->username, Request::get('password'))) {
                     $errors[] = _('Das aktuelle Passwort wurde nicht korrekt eingegeben.');
-                } else if ($email1 !== $email2) {
+                } elseif ($email1 !== $email2) {
                     $errors[] = _('Die Wiederholung der E-Mail-Adresse stimmt nicht mit Ihrer Eingabe überein.');
-                } else {
-                    if ($this->user->changeEmail($email1)) {
-                        $this->user->email = $email1;
-                    }
+                } elseif ($this->user->changeEmail($email1)) {
+                    $this->user->email = $email1;
                 }
             }
 
