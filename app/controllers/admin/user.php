@@ -1572,22 +1572,22 @@ class Admin_UserController extends AuthenticatedController
             }
 
             // Create link to role administration for this user
-            $extra = '';
-            $title = '';
-            $roles = $this->user->getRoles();
-
+            $extra              = '';
+            $roles              = $this->user->getRoles();
+            $roles_attributes   = [];
             if ($roles) {
                 $extra = ' (' . count($roles) . ')';
                 $title = '• ' . implode("\n• ", array_map(function ($role) {
                     return $role->rolename;
                 }, $roles));
+                $roles_attributes['data-tooltip'] = $title;
             }
 
             $views->addLink(
                 _('Zur Rollenverwaltung') . $extra,
                 $this->url_for('admin/role/assign_role/' . $this->user->id),
                 Icon::create('roles2', 'clickable'),
-                ['data-tooltip' => $title]
+                $roles_attributes
             );
         }
         $sidebar->insertWidget($views, 'user_actions', 'views');
