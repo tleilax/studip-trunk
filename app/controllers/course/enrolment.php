@@ -212,13 +212,15 @@ class Course_EnrolmentController extends AuthenticatedController
         if ($enrol_user && $this->confirmed) {
             $this->relocate(URLHelper::getLink('seminar_main.php', ['auswahl' => $this->course_id]));
         } elseif ($enrol_user) {
-            $question = sprintf(
-                _('Wollen Sie sich zu der Veranstaltung "%s" wirklich anmelden?'),
-                Course::find($this->course_id)->name
-            );
 
-            $qbox = PageLayout::postQuestion($question, ['apply' => 1], ['decline' => 1]);
-            $qbox->setBaseURL($this->url_for("/apply/{$this->course_id}"));
+            PageLayout::postQuestion(
+                sprintf(
+                    _('Wollen Sie sich zu der Veranstaltung "%s" wirklich anmelden?'),
+                    Course::find($this->course_id)->name
+                ),
+                $this->url_for("/apply/{$this->course_id}", ['apply' => 1]),
+                $this->url_for("/apply/{$this->course_id}", ['decline' => 1])
+            );
 
             $this->relocate(URLHelper::getLink('dispatch.php/course/details', ['sem_id' => $this->course_id]));
         }

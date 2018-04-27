@@ -1,6 +1,6 @@
 <form class="default settings-avatar" enctype="multipart/form-data" action="<?= $controller->url_for('settings/avatar/upload') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
     <fieldset>
         <legend> <?= _('Profilbild') ?> </legend>

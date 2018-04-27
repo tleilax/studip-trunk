@@ -140,13 +140,13 @@ class Admin_RoleController extends AuthenticatedController
      */
     public function ask_remove_role_action($role_id)
     {
-        $question = sprintf(
-            _('Wollen Sie wirklich die Rolle "%s" löschen?'),
-            self::getRole($role_id)->getRolename()
-        );
-        PageLayout::postQuestion($question)
-                  ->setApproveURL($this->url_for("admin/role/remove_role/{$role_id}"))
-                  ->includeTicket();
+        PageLayout::postQuestion(
+            sprintf(
+                _('Wollen Sie wirklich die Rolle "%s" löschen?'),
+                self::getRole($role_id)->getRolename()
+            ),
+            $this->url_for("admin/role/remove_role/{$role_id}")
+        )->includeTicket();
 
         $this->redirect('admin/role');
     }

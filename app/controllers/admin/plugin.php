@@ -313,13 +313,13 @@ class Admin_PluginController extends AuthenticatedController
         $plugin = PluginManager::getInstance()->getPluginInfoById($plugin_id);
 
         if (!$plugin['core']) {
-            $question = sprintf(
-                _('Wollen Sie wirklich "%s" deinstallieren?'),
-                $plugin['name']
-            );
-            PageLayout::postQuestion($question)
-                      ->setApproveURL($this->url_for("admin/plugin/delete/{$plugin_id}"))
-                      ->includeTicket();
+            PageLayout::postQuestion(
+                sprintf(
+                    _('Wollen Sie wirklich "%s" deinstallieren?'),
+                    $plugin['name']
+                ),
+                $this->url_for("admin/plugin/delete/{$plugin_id}")
+            )->includeTicket();
         }
 
         $this->redirect('admin/plugin');

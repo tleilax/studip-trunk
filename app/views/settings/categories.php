@@ -5,7 +5,7 @@
 <? else: ?>
 <form action="<?= $controller->url_for('settings/categories/store') ?>" method="post" name="main_content">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
     <table class="default nohover">
         <colgroup>

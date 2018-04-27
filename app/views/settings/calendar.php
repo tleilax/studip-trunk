@@ -28,7 +28,7 @@ $cal_step_weeks = array(
 ?>
 
 <form method="post" action="<?= $controller->url_for('settings/calendar/store') ?>" class="default">
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>

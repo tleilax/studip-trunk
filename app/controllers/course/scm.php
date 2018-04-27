@@ -107,9 +107,10 @@ class Course_ScmController extends StudipController
         }
 
         if (Request::get('verify') == 'delete') {
-            PageLayout::postQuestion(_('Wollen Sie diese Seite wirklich löschen?'))
-                      ->setApproveURL($this->url_for("course/scm/delete/{$this->scm->id}"))
-                      ->includeTicket('ticket');
+            PageLayout::postQuestion(
+                _('Wollen Sie diese Seite wirklich löschen?'),
+                $this->url_for("course/scm/delete/{$this->scm->id}")
+            )->includeTicket('ticket');
         }
 
         $this->set_title($this->scm->tab_name);

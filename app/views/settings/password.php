@@ -2,7 +2,7 @@
 
 <form id="edit_password" method="post" action="<?= $controller->url_for('settings/password/store') ?>" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <fieldset>
         <legend>
             <?= _('Passwort ändern') ?>

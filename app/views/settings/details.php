@@ -6,7 +6,7 @@
 
 <form id="edit_private" action="<?= $controller->url_for('settings/details/store') ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <fieldset>
         <legend><?= _('Lebenslauf bearbeiten') ?></legend>
         <label>

@@ -17,25 +17,46 @@ class QuestionBox implements LayoutMessage
     /**
      * Creates a question object that should be confirmed.
      *
-     * @param string $question              The question that should be confirmed
-     * @param array  $approve_parameters    Parameters to send upon approval
-     * @param array  $disapprove_parameters Parameters to send upon disapproval
+     * If you want to pass additional parameters, include them in the url. They
+     * will be extract from the url.
+     *
+     * @param string $question    The question that should be confirmed
+     * @param string $accept_url  URL to send the acceptance request to
+     * @param string $decline_url URL to send the declination request to
      * @return QuestionBox instance to allow chaining
      */
-    public static function create($question, array $approve_params = [], array $disapprove_params = [])
+    public static function create($question, $accept_url = '?', $decline_url = '?')
     {
-        $qbox = new static($question);
-        $qbox->setApproveParameters($approve_params);
-        $qbox->setDisapproveParameters($disapprove_params);
+        return new static($question, $accept_url, $decline_url);
+    }
+
+    /**
+     * Creates a question object that should be confirmed. The question may
+     * contain HTML.
+     *
+     * If you want to pass additional parameters, include them in the url. They
+     * will be extract from the url.
+     *
+     * @param string $question    The question that should be confirmed
+     * @param string $accept_url  URL to send the acceptance request to
+     * @param string $decline_url URL to send the declination request to
+     * @return QuestionBox instance to allow chaining
+     */
+    public static function createHTML($question, $accept_url = '?', $decline_url = '?')
+    {
+        $qbox = new static($question, $accept_url, $decline_url);
+        $qbox->setHTML();
         return $qbox;
     }
 
+
     protected $question;
-    protected $approve_parameters = [];
-    protected $disapprove_parameters = [];
-    protected $approve_url = '?';
-    protected $disapprove_url = '?';
+    protected $accept_url = '?';
+    protected $accept_parameters = [];
+    protected $decline_parameters = [];
+    protected $decline_url = '?';
     protected $include_ticket = false;
+    protected $is_html = false;
 
     /**
      * Constructs the object. Protected to enforce the use of our static helper
@@ -43,80 +64,85 @@ class QuestionBox implements LayoutMessage
      *
      * @param string $question The question that should be confirmed
      */
-    protected function __construct($question)
+    protected function __construct($question, $accept_url, $decline_url)
     {
         $this->question = $question;
+        $this->setAcceptURL($accept_url);
+        $this->setDeclineURL($decline_url);
     }
 
     /**
-     * Set the parameters that are sent upon approval.
-     *
-     * @param array $parameters
-     * @return QuestionBox instance to allow chaining
-     */
-    public function setApproveParameters(array $parameters)
-    {
-        $this->approve_parameters = $parameters;
-        return $this;
-    }
-
-    /**
-     * Set the url the approval parameters are sent to.
+     * Set the url the acceptance request is sent to.
      *
      * @param string $url
+     * @param array  $parameters
      * @return QuestionBox instance to allow chaining
      */
-    public function setApproveURL($url)
+    public function setAcceptURL($url, array $parameters = [])
     {
-        $this->approve_url = $url;
+        $parameters = array_merge(
+            $this->extractURLParameters($url),
+            $parameters
+        );
+
+        $this->accept_url        = $url;
+        $this->accept_parameters = $parameters;
         return $this;
     }
 
     /**
-     * Set the parameters that are sent upon disapproval.
-     *
-     * @param array $parameters
-     * @return QuestionBox instance to allow chaining
-     */
-    public function setDisapproveParameters(array $parameters)
-    {
-        $this->disapprove_parameters = $parameters;
-        return $this;
-    }
-
-    /**
-     * Set the url the disapproval parameters are sent to.
+     * Set the url the declination url is sent to.
      *
      * @param string $url
+     * @param array  $parameters
      * @return QuestionBox instance to allow chaining
      */
-    public function setDisapproveURL($url)
+    public function setDeclineURL($url, array $parameters = [])
     {
-        $this->disapprove_url = $url;
+        $parameters = array_merge(
+            $this->extractURLParameters($url),
+            $parametes
+        );
+
+        $this->decline_url        = $url;
+        $this->decline_parameters = $parameters;
         return $this;
     }
 
     /**
-     * Sets boths url for approval and disapproval to the same url.
+     * Sets boths url for acceptance and declination to the same url.
      *
      * @param string $url
      * @return QuestionBox instance to allow chaining
      */
     public function setBaseURL($url)
     {
-        $this->setApproveURL($url);
-        $this->setDisapproveURL($url);
+        $this->setAcceptURL($url);
+        $this->setDeclineURL($url);
         return $this;
     }
 
     /**
      * Defines whether a stud.ip ticket should be included in the question.
      *
-     * @param bool $state
+     * @param bool $name
+     * @return QuestionBox instance to allow chaining
      */
     public function includeTicket($name = 'studip_ticket')
     {
         $this->include_ticket = $name;
+        return $this;
+    }
+
+    /**
+     * Defines whether the question is html.
+     *
+     * @param bool $state
+     * @return QuestionBox instance to allow chaining
+     */
+    public function setHTML($state = true)
+    {
+        $this->is_html = $stte;
     }
 
     /**
@@ -128,17 +154,32 @@ class QuestionBox implements LayoutMessage
     {
         // Include fresh ticket
         if ($this->include_ticket) {
-            $this->approve_parameters[$this->include_ticket] = get_ticket();
+            $this->accept_parameters[$this->include_ticket] = get_ticket();
         }
 
         return $GLOBALS['template_factory']->render('shared/question-box', [
             'question' => $this->question,
 
-            'approve_url'        => $this->approve_url,
-            'approve_parameters' => $this->approve_parameters,
+            'accept_url'        => $this->accept_url,
+            'accept_parameters' => $this->accept_parameters,
 
-            'disapprove_url'        => $this->disapprove_url,
-            'disapprove_parameters' => $this->disapprove_parameters,
+            'decline_url'        => $this->decline_url,
+            'decline_parameters' => $this->decline_parameters,
+
+            'is_html' => $this->is_html,
         ]);
+    }
+
+    /**
+     * Extracts parameters from a url.
+     *
+     * @param string $url
+     * @return array
+     */
+    protected function extractURLParameters($url)
+    {
+        $query = parse_url($url, PHP_URL_QUERY);
+        parse_str($query, $parameters);
+        return $parameters;
     }
 }

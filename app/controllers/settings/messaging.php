@@ -91,14 +91,15 @@ class Settings_MessagingController extends Settings_SettingsController
             $question = _('Durch das Zurücksetzen werden die persönliche Messaging-Einstellungen '
                          .'auf die Startwerte zurückgesetzt und die persönlichen Nachrichten-Ordner '
                          .'gelöscht. ' . "\n\n" . 'Nachrichten werden nicht entfernt.');
-            PageLayout::postQuestion($question)
-                      ->setApproveURL($this->url_for('settings/messaging/reset/reset/1'))
-                      ->includeTicket();
+            PageLayout::postQuestion(
+                $question,
+                $this->url_for('settings/messaging/reset/reset/1')
+            )->includeTicket();
         } elseif ($action === 'forward_receiver') {
-            $question = _('Wollen Sie wirklich die eingestellte Weiterleitung entfernen?');
-            PageLayout::postQuestion($question)
-                      ->setApproveURL($this->url_for('settings/messaging/reset/forward_receiver/1'))
-                      ->includeTicket();
+            PageLayout::postQuestion(
+                _('Wollen Sie wirklich die eingestellte Weiterleitung entfernen?'),
+                $this->url_for('settings/messaging/reset/forward_receiver/1')
+            )->includeTicket();
         }
 
         $this->redirect('settings/messaging');

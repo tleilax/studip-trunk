@@ -1,20 +1,20 @@
 <div class="modaloverlay">
     <div class="create-question-dialog ui-widget-content ui-dialog studip-confirmation">
-        <form action="<?= URLHelper::getLink($approve_url) ?>" method="post">
+        <form action="<?= URLHelper::getLink($accept_url) ?>" method="post">
             <?= CSRFProtection::tokenTag() ?>
-        <? foreach ($approve_parameters as $key => $value): ?>
+        <? foreach ($accept_parameters as $key => $value): ?>
             <?= addHiddenFields($key, $value) ?>
         <? endforeach; ?>
 
             <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix">
                 <span><?= _('Bitte bestätigen Sie die Aktion') ?></span>
-                <a href="<?= URLHelper::getLink($disapprove_url, $disapprove_parameters) ?>" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close">
+                <a href="<?= URLHelper::getLink($decline_url, $decline_parameters) ?>" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close">
                     <span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span>
                     <span class="ui-button-text"><?= _('Schliessen') ?></span>
                 </a>
             </div>
             <div class="content ui-widget-content ui-dialog-content studip-confirmation">
-                <?= formatReady($question) ?>
+                <?= $is_html ? $question : formatReady($question) ?>
             </div>
             <div class="buttons ui-widget-content ui-dialog-buttonpane">
                 <div class="ui-dialog-buttonset">
@@ -22,7 +22,7 @@
 
                     <?= Studip\LinkButton::createCancel(
                         _('Nein'),
-                        URLHelper::getURL($disapprove_url, $disapprove_parameters)
+                        URLHelper::getURL($decline_url, $decline_parameters)
                     ) ?>
                 </div>
             </div>

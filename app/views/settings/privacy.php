@@ -5,7 +5,7 @@ use Studip\Button, Studip\LinkButton;
 ?>
 <form method="post" action="<?= $controller->url_for('settings/privacy/global') ?>" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
     <fieldset>
         <legend>

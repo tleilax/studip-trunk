@@ -869,13 +869,13 @@ class Course_StudygroupController extends AuthenticatedController
                             get_fullname_from_uname($user, 'full')
                         ));
                     } elseif ($action === 'remove') {
-                        $question = sprintf(
-                            _('Möchten Sie wirklich den Nutzer %s aus der Studiengruppe entfernen?'),
-                            get_fullname_from_uname($user, 'full')
-                        );
-                        PageLayout::postQuestion($question)
-                                  ->setApproveURL($this->url_for("course/studygroup/edit_members/{$id}/remove_approved"))
-                                  ->includeTicket();
+                        PageLayout::postQuestion(
+                            sprintf(
+                                _('Möchten Sie wirklich den Nutzer %s aus der Studiengruppe entfernen?'),
+                                get_fullname_from_uname($user, 'full')
+                            ),
+                            $this->url_for("course/studygroup/edit_members/{$id}/remove_approved")
+                        )->includeTicket();
                     } elseif ($action == 'remove_approved' && check_ticket(Request::get('studip_ticket'))) {
                         StudygroupModel::remove_user($user, $id);
                         PageLayout::postSucces(sprintf(
@@ -980,9 +980,11 @@ class Course_StudygroupController extends AuthenticatedController
                 }
                 return;
             } else if (!$approveDelete) {
-                PageLayout::postQuestion(_('Sind Sie sicher, dass Sie diese Studiengruppe löschen möchten?'))
-                          ->setApproveURL($this->url_for("course/studygroup/delete/{$id}/true"))
-                          ->includeTicket();
+                PageLayout::postQuestion(
+                    _('Sind Sie sicher, dass Sie diese Studiengruppe löschen möchten?'),
+                    $this->url_for("course/studygroup/delete/{$id}/true")
+                )->includeTicket();
+
                 $this->redirect('course/studygroup/edit/' . $id);
                 return;
             }

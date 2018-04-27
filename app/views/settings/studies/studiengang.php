@@ -4,7 +4,7 @@
 
 <? if ($allow_change['sg']): ?>
 <form action="<?= $controller->url_for('settings/studies/store_sg') ?>" method="post">
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
     <? endif; ?>
     <table class="default" id="select_fach_abschluss">
@@ -45,7 +45,7 @@
             <? foreach ($user->studycourses as $usc): ?>
             <tr>
                 <td data-label="<?= _('Fach') ?>"><?= htmlReady($usc->studycourse->name) ?></td>
-                <td data-label="<?= _('Abschluss') ?>"><?= htmlReady($usc->degree->name) ?></td>            
+                <td data-label="<?= _('Abschluss') ?>"><?= htmlReady($usc->degree->name) ?></td>
                 <? if ($allow_change['sg']): ?>
                     <td data-label="<?= _('Version') ?>">
                             <? $versionen = StgteilVersion::findByFachAbschluss($usc->fach_id, $usc->abschluss_id); ?>

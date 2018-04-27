@@ -574,6 +574,10 @@ class PageLayout
     /**
      * Convenience method: Post a question to confirm an action.
      *
+     * Be aware, that this will output the question as html. So you should
+     * either know what you are doing, use htmlReady() or set isHTML() on the
+     * returned QuestionBox object to false.
+     *
      * @param String $question          Question to confirm
      * @param Array  $approve_params    Parameters to send when approving
      * @param Array  $disapprove_params Parameters to send when disapproving
@@ -581,9 +585,9 @@ class PageLayout
      * @see QuestionBox
      * @since Stud.IP 4.2
      */
-    public static function postQuestion($question, array $approve_params = [], array $disapprove_params = [])
+    public static function postQuestion($question, $accept_url = '?', $decline_url = '?')
     {
-        $qbox = QuestionBox::create($question, $approve_params, $disapprove_params);
+        $qbox = QuestionBox::createHTML($question, $accept_url, $decline_url);
         self::postMessage($qbox, 'question-box');
         return $qbox;
     }

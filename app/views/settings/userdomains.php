@@ -2,7 +2,7 @@
 
 <? if ($allow_change): ?>
 <form action="<?= $controller->url_for('settings/userdomains/store') ?>" method="post">
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
 <? endif; ?>
 

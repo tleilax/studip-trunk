@@ -666,9 +666,11 @@ function TransformInternalLinks($str){
 * @deprecated since Stud.IP 4.2, use QuestionBox oder PageLayout::postQuestion()
 */
 function createQuestion($question, $approveParams, $disapproveParams = [], $baseUrl = '?') {
-    $question_box = QuestionBox::create($question, $approveParams, $disapproveParams);
-    $question_box->setBaseURL($baseUrl);
-    return (string) $question_box;
+    return (string) QuestionBox::create(
+        $question,
+        URLHelper::getURL($baseUrl, $approveParams),
+        URLHelper::getURL($baseUrl, $disapproveParams)
+    );
 }
 
 /**
