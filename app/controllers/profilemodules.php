@@ -81,7 +81,7 @@ class ProfileModulesController extends AuthenticatedController
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/plugin-sidebar.png');
         $sidebar->setTitle(PageLayout::getTitle());
-        
+
         $plusconfig = UserConfig::get($GLOBALS['user']->id)->PLUS_SETTINGS;
 
         if (!isset($_SESSION['profile_plus'])) {
@@ -148,7 +148,7 @@ class ProfileModulesController extends AuthenticatedController
             $widget->addLink(_("Alles aufklappen"),
                 URLHelper::getLink('?', array('mode' => 'openall')), Icon::create('assessment', 'clickable'));
         }
-        
+
         if ($_SESSION['profile_plus']['displaystyle'] == 'category') {
             $widget->addLink(_("Alphabetische Anzeige ohne Kategorien"),
                     URLHelper::getLink('?', array('displaystyle' => 'alphabetical')), Icon::create('assessment', 'clickable'));
@@ -163,7 +163,7 @@ class ProfileModulesController extends AuthenticatedController
         $widget->addLink(_('Alle Inhaltselemente deaktivieren'),
             $this->url_for('profilemodules/reset'), Icon::create('decline', 'clickable'));
         $sidebar->addWidget($widget);
-        
+
         $plusconfig['profile_plus'] = $_SESSION['profile_plus'];
         UserConfig::get($GLOBALS['user']->id)->store(PLUS_SETTINGS,$plusconfig);
     }
@@ -174,8 +174,7 @@ class ProfileModulesController extends AuthenticatedController
      */
     public function index_action()
     {
-
-        $this->sortedList = $this->getSortedList();
+        $this->sortedList = $this->getSortedList(User::find($this->user_id));
         if (Request::submitted('deleteContent')) $this->deleteContent($this->sortedList);
     }
 
@@ -203,7 +202,7 @@ class ProfileModulesController extends AuthenticatedController
                 $updated = $manager->setPluginActivated($id, $this->user_id, $state_after, 'user');
 
                 $success = $success || $updated;
-                
+
                 if ($state_after) {
                     PageLayout::postSuccess(sprintf(_('"%s" wurde aktiviert.'), $plugin->getPluginName()));
                 } else {
@@ -241,15 +240,18 @@ class ProfileModulesController extends AuthenticatedController
     }
 
 
-    private function getSortedList()
+    private function getSortedList(Range $context)
     {
-
         $list = array();
 
         $manager = PluginManager::getInstance();
 
         // Now loop through all found plugins.
         foreach ($this->plugins as $plugin) {
+            if (!$plugin->isActivatableForContext($context)) {
+                continue;
+            }
+
             // Check local activation status.
             $id = $plugin->getPluginId();
             $activated = $manager->isPluginActivatedForUser($id, $this->user_id);
@@ -257,25 +259,25 @@ class ProfileModulesController extends AuthenticatedController
             $metadata = $plugin->getMetadata();
 
             if($_SESSION['profile_plus']['displaystyle'] != 'category'){
-                 
+
                 $key = isset($info['displayname']) ? $info['displayname'] : $plugin->getPluginname();
-                 
+
 
                 $list['Funktionen von A-Z'][mb_strtolower($key)]['object'] = $plugin;
                 $list['Funktionen von A-Z'][mb_strtolower($key)]['activated'] = $activated;
 
-                 
-            } else {            
-            
+
+            } else {
+
                 $cat = isset($metadata['category']) ? $metadata['category'] : 'Sonstiges';
-    
+
                 if (!isset($_SESSION['profile_plus']['Kategorie'][$cat])) $_SESSION['profile_plus']['Kategorie'][$cat] = 1;
-    
+
                 $key = isset($metadata['displayname']) ? $metadata['displayname'] : $plugin->getPluginname();
-    
+
                 $list[$cat][mb_strtolower($key)]['object'] = $plugin;
                 $list[$cat][mb_strtolower($key)]['activated'] = $activated;
-                
+
             }
         }
 

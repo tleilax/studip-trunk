@@ -111,6 +111,17 @@ abstract class StudIPPlugin {
     }
 
     /**
+     * Returns whether the plugin may be activated in a certain context.
+     *
+     * @param Range $context
+     * @return bool
+     */
+    public function isActivatableForContext(Range $context)
+    {
+        return true;
+    }
+
+    /**
      * Return a warning message to be printed before deactivation of
      * this plugin in the given context.
      *
