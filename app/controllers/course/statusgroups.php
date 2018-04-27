@@ -88,7 +88,8 @@ class Course_StatusgroupsController extends AuthenticatedController
                 FROM `statusgruppen` s
     	            JOIN `statusgruppe_user` u USING (`statusgruppe_id`)
                 WHERE s.`range_id` = ?
-                GROUP BY u.`statusgruppe_id`",
+                GROUP BY `statusgruppe_id`
+                ORDER BY s.`position` ASC, s.`name` ASC",
                 [$this->course_id]),
             'membercount',
             'statusgruppe_id'
