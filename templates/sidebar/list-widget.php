@@ -1,7 +1,7 @@
 <ul class="<?= implode(' ', $css_classes) ?>">
 <? foreach ($elements as $index => $element): ?>
     <? $icon = $element->icon; ?>
-    <? if ($icon && $element->isDisabled()): ?>
+    <? if ($icon && $element instanceof LinkElement && $element->isDisabled()): ?>
         <? $icon = $icon->copyWithRole('inactive') ?>
     <? endif ?>
     <li id="<?= htmlReady($index) ?>"
