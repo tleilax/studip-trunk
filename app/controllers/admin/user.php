@@ -467,8 +467,8 @@ class Admin_UserController extends AuthenticatedController
             }
 
             //change institute
-            if(!empty($new_institutes)) {
-                foreach($new_institutes as $institute_id) {
+            if (!empty($new_institutes)) {
+                foreach ($new_institutes as $institute_id) {
                     if ($editPerms[0] != 'root'
                         && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_inst'))
                         && !Request::option('new_student_inst')
@@ -487,7 +487,7 @@ class Admin_UserController extends AuthenticatedController
                         $details[] = sprintf(
                             _('<b>%s wurde nicht hinzugefügt.</b> Sie können keine Person gleichzeitig als Studierende/-r und als Mitarbeiter/-in einer Einrichtung hinzufügen.'),
                             htmlReady(Institute::find($institute_id)->getFullname())
-                            );
+                        );
                     }
                 }
             }
