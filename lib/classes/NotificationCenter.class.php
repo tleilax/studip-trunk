@@ -128,4 +128,31 @@ class NotificationCenter
         }
     }
 
+    /**
+     * Convenience method that uses a jQuery like structure for event
+     * registration by closures.
+     *
+     * @param string  $event
+     * @param Closure $callback
+     * @param mixed   $object
+     * @since Stud.IP 4.2
+     */
+    public static function on($event, Closure $callback, $object = null)
+    {
+        static::addObserver($callback, '__invoke', $event, $object);
+    }
+
+    /**
+     * Convenience method that uses a jQuery like structure for event
+     * unregistration by closures.
+     *
+     * @param string  $event
+     * @param Closure $callback
+     * @param mixed   $object
+     * @since Stud.IP 4.2
+     */
+    public static function off($event, Closure $callback, $object = null)
+    {
+        static::removeObserver($callback, $event, $object);
+    }
 }
