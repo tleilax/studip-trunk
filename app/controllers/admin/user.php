@@ -450,11 +450,12 @@ class Admin_UserController extends AuthenticatedController
                     $details[] = _('Die Versionen der Studiengänge wurden geändert.');
                 }
             }
-
+            $new_institutes = Request::getArray('new_inst');
+            
             //change institute for studiendaten
             if (in_array($editPerms[0], ['autor', 'tutor', 'dozent'])
                 && Request::option('new_student_inst')
-                && Request::option('new_student_inst') != Request::option('new_inst')
+                && empty($new_institutes)
                 && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_student_inst'))
             ) {
                 StudipLog::log('INST_USER_ADD', Request::option('new_student_inst'), $user_id, 'user');
@@ -466,20 +467,29 @@ class Admin_UserController extends AuthenticatedController
             }
 
             //change institute
-            if (Request::option('new_inst')
-                && Request::option('new_student_inst') != Request::option('new_inst')
-                && $editPerms[0] != 'root'
-                && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_inst'))
-            ) {
-                StudipLog::log('INST_USER_ADD', Request::option('new_inst'), $user_id, $editPerms[0]);
-                $db = DBManager::get()->prepare("REPLACE INTO user_inst (user_id, Institut_id, inst_perms) "
-                    . "VALUES (?,?,?)");
-                $db->execute([$user_id, Request::option('new_inst'), $editPerms[0]]);
-                NotificationCenter::postNotification('UserInstitutionDidUpdate', Request::option('new_inst'), $user_id);
-                InstituteMember::ensureDefaultInstituteForUser($user_id);
-                $details[] = _('Die Einrichtung wurde hinzugefügt.');
-            } elseif (Request::option('new_inst') != '' && Request::option('new_student_inst') == Request::option('new_inst') && $editPerms[0] != 'root') {
-                $details[] = _('<b>Die Einrichtung wurde nicht hinzugefügt.</b> Sie können keine Person gleichzeitig als Studierende/-r und als Mitarbeiter/-in einer Einrichtung hinzufügen.');
+            if (!empty($new_institutes)) {
+                foreach ($new_institutes as $institute_id) {
+                    if ($editPerms[0] != 'root'
+                        && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_inst'))
+                        && !Request::option('new_student_inst')
+                    ) {
+                        $membership = InstituteMember::build(
+                            ['user_id' => $user_id, 'Institut_id' => $institute_id, 'inst_perms' => $editPerms[0]]
+                        );
+                        
+                        if($membership->store()) {
+                            StudipLog::log('INST_USER_ADD', Request::option('new_inst'), $user_id, $editPerms[0]);
+                            NotificationCenter::postNotification('UserInstitutionDidUpdate', Request::option('new_inst'), $user_id);
+                            InstituteMember::ensureDefaultInstituteForUser($user_id);
+                            $details[] = sprintf(_('%s wurde hinzugefügt.'), htmlReady($membership->institute->getFullname()));
+                        }
+                    } elseif ($institute_id != '' && Request::option('new_student_inst') == $institute_id && $editPerms[0] != 'root') {
+                        $details[] = sprintf(
+                            _('<b>%s wurde nicht hinzugefügt.</b> Sie können keine Person gleichzeitig als Studierende/-r und als Mitarbeiter/-in einer Einrichtung hinzufügen.'),
+                            htmlReady(Institute::find($institute_id)->getFullname())
+                        );
+                    }
+                }
             }
 
             //change userdomain
@@ -566,7 +576,7 @@ class Admin_UserController extends AuthenticatedController
                 return $a->inst_perms !== 'user';
             });
         }
-
+        
         $this->available_institutes = Institute::getMyInstitutes();
         $this->userfields           = DataFieldEntry::getDataFieldEntries($user_id, 'user');
         $this->userdomains          = UserDomain::getUserDomainsForUser($user_id);
@@ -1572,14 +1582,22 @@ class Admin_UserController extends AuthenticatedController
             }
 
             // Create link to role administration for this user
-            $extra = '';
-            if ($count = count($this->user->getRoles())) {
-                $extra = ' (' . $count . ')';
+            $extra              = '';
+            $roles              = $this->user->getRoles();
+            $roles_attributes   = [];
+            if ($roles) {
+                $extra = ' (' . count($roles) . ')';
+                $title = '• ' . implode("\n• ", array_map(function ($role) {
+                    return $role->rolename;
+                }, $roles));
+                $roles_attributes['data-tooltip'] = $title;
             }
+
             $views->addLink(
                 _('Zur Rollenverwaltung') . $extra,
                 $this->url_for('admin/role/assign_role/' . $this->user->id),
-                Icon::create('roles2', 'clickable')
+                Icon::create('roles2', 'clickable'),
+                $roles_attributes
             );
         }
         $sidebar->insertWidget($views, 'user_actions', 'views');
