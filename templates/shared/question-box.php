@@ -14,7 +14,7 @@
                 </a>
             </div>
             <div class="content ui-widget-content ui-dialog-content studip-confirmation">
-                <?= $is_html ? $question : formatReady($question) ?>
+                <?= $question ?>
             </div>
             <div class="buttons ui-widget-content ui-dialog-buttonpane">
                 <div class="ui-dialog-buttonset">

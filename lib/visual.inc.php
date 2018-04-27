@@ -665,7 +665,7 @@ function TransformInternalLinks($str){
 *
 * @deprecated since Stud.IP 4.2, use QuestionBox oder PageLayout::postQuestion()
 */
-function createQuestion($question, $approveParams, $disapproveParams = [], $baseUrl = '?') {
+function createQuestion($question, $approveParams, $disapproveParams = [], $baseUrl = '') {
     return (string) QuestionBox::create(
         $question,
         URLHelper::getURL($baseUrl, $approveParams),
@@ -685,7 +685,7 @@ function createQuestion($question, $approveParams, $disapproveParams = [], $base
 *
 * @deprecated since Stud.IP 4.2, use QuestionBox or PageLayout::postQuestion()
 */
-function createQuestion2($question, $approveParams, $disapproveParams = [], $baseUrl = '?') {
+function createQuestion2($question, $approveParams, $disapproveParams = [], $baseUrl = '') {
     return createQuestion($question, $approveParams, $disapproveParams, $baseUrl);
 }
 

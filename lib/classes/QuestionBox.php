@@ -25,9 +25,9 @@ class QuestionBox implements LayoutMessage
      * @param string $decline_url URL to send the declination request to
      * @return QuestionBox instance to allow chaining
      */
-    public static function create($question, $accept_url = '?', $decline_url = '?')
+    public static function create($question, $accept_url = '', $decline_url = '')
     {
-        return new static($question, $accept_url, $decline_url);
+        return new static(formatReady($question), $accept_url, $decline_url);
     }
 
     /**
@@ -42,21 +42,17 @@ class QuestionBox implements LayoutMessage
      * @param string $decline_url URL to send the declination request to
      * @return QuestionBox instance to allow chaining
      */
-    public static function createHTML($question, $accept_url = '?', $decline_url = '?')
+    public static function createHTML($question, $accept_url = '', $decline_url = '')
     {
-        $qbox = new static($question, $accept_url, $decline_url);
-        $qbox->setHTML();
-        return $qbox;
+        return new static($question, $accept_url, $decline_url);
     }
 
-
     protected $question;
-    protected $accept_url = '?';
+    protected $accept_url;
     protected $accept_parameters = [];
+    protected $decline_url;
     protected $decline_parameters = [];
-    protected $decline_url = '?';
     protected $include_ticket = false;
-    protected $is_html = false;
 
     /**
      * Constructs the object. Protected to enforce the use of our static helper
@@ -135,17 +131,6 @@ class QuestionBox implements LayoutMessage
     }
 
     /**
-     * Defines whether the question is html.
-     *
-     * @param bool $state
-     * @return QuestionBox instance to allow chaining
-     */
-    public function setHTML($state = true)
-    {
-        $this->is_html = $stte;
-    }
-
-    /**
      * Renders the question box as html.
      *
      * @return string
@@ -165,8 +150,6 @@ class QuestionBox implements LayoutMessage
 
             'decline_url'        => $this->decline_url,
             'decline_parameters' => $this->decline_parameters,
-
-            'is_html' => $this->is_html,
         ]);
     }
 
