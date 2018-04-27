@@ -206,15 +206,16 @@ class Course_StatusgroupsController extends AuthenticatedController
         if ($this->is_tutor) {
             if (!$this->is_locked) {
                 $actions = new ActionsWidget();
-                $actions->addLink(_('Neue Gruppe anlegen'),
+                $actions->addLink(
+                    _('Neue Gruppe anlegen'),
                     $this->url_for('course/statusgroups/edit'),
-                    Icon::create('add', 'clickable'))->asDialog('size=auto');
-                $actions->addLink(_('Mehrere Gruppen anlegen'),
+                    Icon::create('add')
+                )->asDialog('size=auto');
+                $actions->addLink(
+                    _('Mehrere Gruppen anlegen'),
                     $this->url_for('course/statusgroups/create_groups'),
-                    Icon::create('group2+add', 'clickable'))->asDialog('size=auto');
-                $actions->addLink(_('Gruppenreihenfolge ändern'),
-                    $this->url_for('course/statusgroups/sortgroups'),
-                    Icon::create('arr_2down', 'clickable'))->asDialog('size=auto');
+                    Icon::create('group2+add')
+                )->asDialog('size=auto');
 
                 $sidebar->addWidget($actions);
             }
@@ -663,7 +664,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             for ($i = 0 ; $i < Request::int('number') ; $i++) {
                 $group = StatusgroupsModel::updateGroup('', Request::get('prefix').' '.
                     $numbering++,
-                    $counter + 1, $this->course_id, Request::int('size', 0),
+                    null, $this->course_id, Request::int('size', 0),
                     Request::int('selfassign', 0) + Request::int('exclusive', 0),
                     strtotime(Request::get('selfassign_start', 'now')),
                     strtotime(Request::get('selfassign_end', 0)),
@@ -688,7 +689,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                     foreach ($topics as $t) {
                         $group = StatusgroupsModel::updateGroup('', _('Thema:') . ' ' . $t->title,
-                            $t->priority, $this->course_id, Request::int('size', 0),
+                            null, $this->course_id, Request::int('size', 0),
                             Request::int('selfassign', 0) + Request::int('exclusive', 0),
                             strtotime(Request::get('selfassign_start', 'now')),
                             strtotime(Request::get('selfassign_end', 0)),
@@ -738,7 +739,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         }
 
                         $group = StatusgroupsModel::updateGroup('', $name,
-                            $counter + 1, $this->course_id, Request::int('size', 0),
+                            null, $this->course_id, Request::int('size', 0),
                             Request::int('selfassign', 0) + Request::int('exclusive', 0),
                             strtotime(Request::get('selfassign_start', 'now')),
                             strtotime(Request::get('selfassign_end', 0)),
@@ -792,7 +793,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                     foreach ($lecturers as $l) {
                         StatusgroupsModel::updateGroup('', $l->getUserFullname('full'),
-                            $l->position, $this->course_id, Request::int('size', 0),
+                            null, $this->course_id, Request::int('size', 0),
                             Request::int('selfassign', 0) + Request::int('exclusive', 0),
                             strtotime(Request::get('selfassign_start', 'now')),
                             strtotime(Request::get('selfassign_end', 0)),
@@ -1181,26 +1182,48 @@ class Course_StatusgroupsController extends AuthenticatedController
         $this->relocate('course/statusgroups');
     }
 
-    public function sortgroups_action()
+    public function order_action()
     {
-        if ($this->is_tutor && !$this->is_locked) {
-            if (Request::submitted('order')) {
-                $ordered = studip_json_decode(Request::get('ordering'));
-                if (is_array($ordered)) {
-                    $ok = false;
-                    foreach ($ordered as $p => $g) {
-                        if ($group = Statusgruppen::find($g['id'])) {
-                            $group->position = $p + 1;
-                            $ok += $group->store();
-                        }
-                    }
-                    if ($ok) {
-                        PageLayout::postSuccess(_('Die Gruppenreihenfolge wurde gespeichert.'));
-                    }
-                    return $this->redirect($this->url_for('/index'));
-                }
-            }
-            $this->groups = Statusgruppen::findBySeminar_id($this->course_id);
+        if (!Request::isPost()) {
+            throw new MethodAllowedException();
         }
+
+        if (!$this->is_tutor || $this->is_locked) {
+            throw new AccessDeniedException();
+        }
+
+        $id    = Request::option('id');
+        $index = Request::int('index');
+
+        $group = Statusgruppen::find($id);
+        if (!$group || $group->range_id !== $this->course_id) {
+            throw new Exception('Invalid group or group does not belong to course');
+        }
+
+        if ($group->position == $index) {
+            return;
+        }
+
+        if ($group->position < $index) {
+            $range = [$group->position, $index];
+            $adjustment = -1;
+        } else {
+            $range = [$index, $group->position];
+            $adjustment = 1;
+        }
+
+        Statusgruppen::findEachBySQL(
+            function ($g) use ($adjustment) {
+                $g->position = $g->position + $adjustment;
+                $g->store();
+            },
+            'range_id = ? AND statusgruppe_id != ? AND position BETWEEN ? AND ?',
+            [$this->course_id, $id, $range[0], $range[1]]
+        );
+
+        $group->position = $index;
+        $group->store();
+
+        $this->render_nothing();
     }
 }

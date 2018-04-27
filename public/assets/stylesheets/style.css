@@ -8372,12 +8372,12 @@ section.course-statusgroups article header h1 a.no-contentbox-link::before {
 section.course-statusgroups article header h1 a img {
   vertical-align: bottom;
 }
-section.course-statusgroups article input.groupselector {
-  float: left;
-}
 section.course-statusgroups article section {
   border-left: 1px solid #e7ebf1;
   border-right: 1px solid #e7ebf1;
+}
+section.course-statusgroups article section table td.memberactions {
+  text-align: right;
 }
 section.course-statusgroups article section table thead tr th {
   background-color: #e7ebf1;
@@ -8386,16 +8386,10 @@ section.course-statusgroups article section table tbody tr td span.member-invisi
   font-style: italic;
   color: #6d727a;
 }
-section.course-statusgroups article section table tbody tr td.memberactions {
-  text-align: right;
-}
 section.course-statusgroups article section table tfoot tr td {
   background-color: #e7ebf1;
   padding-left: 5px;
   padding-right: 0;
-}
-section.course-statusgroups article section table tfoot tr td.memberactions {
-  text-align: right;
 }
 section.course-statusgroups article section div.statusgroup-no-members {
   font-style: italic;
@@ -8408,6 +8402,16 @@ section.course-statusgroups footer {
   padding: 5px;
   padding-left: 18px;
   text-align: left;
+}
+section.course-statusgroups.ui-sortable article.draggable header {
+  cursor: move;
+  background-image: url("../images/anfasser_24.png");
+  background-position: 3px center;
+  background-repeat: no-repeat;
+  padding-left: 12px;
+}
+section.course-statusgroups.ui-sortable article.ui-sortable-placeholder {
+  border-style: dotted;
 }
 #sort1,
 #sort0,

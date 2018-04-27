@@ -1,5 +1,5 @@
 <form action="<?= $controller->url_for('course/statusgroups/batch_action') ?>" method="post">
-<section class="contentbox course-statusgroups">
+<section class="contentbox course-statusgroups" <? if ($is_tutor && !$is_locked) echo 'data-sortable="' . $controller->url_for('course/statusgroups/order') . '"'; ?>>
     <header>
         <h1><?= _('Teilnehmende nach Gruppen') ?></h1>
     </header>
