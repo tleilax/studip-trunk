@@ -584,20 +584,14 @@ class PluginManager
      * Get instance of the plugin specified by plugin meta data.
      *
      * @param $plugin_info   plugin meta data
-     * @param $context       context range id (optional)
      */
-    protected function getCachedPlugin ($plugin_info, $context = NULL)
+    protected function getCachedPlugin ($plugin_info)
     {
         $class = $plugin_info['class'];
         $path  = $plugin_info['path'];
-        $cache_key = isset($context) ? $class.'_'.$context : $class;
 
         if (isset($this->plugin_cache[$class])) {
             return $this->plugin_cache[$class];
-        }
-
-        if (isset($this->plugin_cache[$cache_key])) {
-            return $this->plugin_cache[$cache_key];
         }
 
         if ($plugin_info['core'] || !$this->isPluginsDisabled()) {
@@ -608,7 +602,7 @@ class PluginManager
             $plugin = $plugin_class->newInstance();
         }
 
-        return $this->plugin_cache[$cache_key] = $plugin;
+        return $this->plugin_cache[$class] = $plugin;
     }
 
     /**
@@ -666,7 +660,7 @@ class PluginManager
                 || $this->isPluginActivated($info['id'], $context);
 
             if ($this->checkUserAccess($info, $user) && $activated) {
-                $plugin = $this->getCachedPlugin($info, $context);
+                $plugin = $this->getCachedPlugin($info);
 
                 if ($plugin !== NULL) {
                     $plugins[] = $plugin;
