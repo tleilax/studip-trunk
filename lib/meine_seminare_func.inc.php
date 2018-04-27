@@ -118,23 +118,6 @@ function sort_groups($group_field, &$groups)
     return true;
 }
 
-function getPluginNavigationForSeminar($seminar_id, $visitdate)
-{
-    static $plugin_navigation;
-
-    if (!$plugin_navigation[$seminar_id]) {
-        $plugin_navigation[$seminar_id] = array();
-        $plugins = PluginEngine::getPlugins('StandardPlugin', $seminar_id);
-        foreach ($plugins as $plugin) {
-            $nav = $plugin->getIconNavigation($seminar_id, $visitdate, $GLOBALS['user']->id);
-            if ($nav instanceof Navigation) {
-                $plugin_navigation[$seminar_id][get_class($plugin)] = $nav;
-            }
-        }
-    }
-    return $plugin_navigation[$seminar_id];
-}
-
 /**
  *
  * @param unknown_type $groups

@@ -87,8 +87,9 @@ class MyInstitutesController extends AuthenticatedController
                 }
             }
         }
-        $plugins = getPluginNavigationForSeminar($institute['institut_id'], $institute['visitdate']);
-        if(empty($plugins)) return false;
+
+        $plugins = $institute['navigation'];
+
         foreach ($plugins as $navigation) {
             if ($navigation && $navigation->isVisible(true) && $navigation->hasBadgeNumber()) {
                 return true;
