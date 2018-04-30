@@ -170,7 +170,11 @@ class Seminar_Auth
                     case "log":
                         if ($uid = $this->auth_validatelogin()) {
                             $this->auth["uid"] = $uid;
-                            $sess->regenerate_session_id(array('auth', 'forced_language', '_language'));
+                            $keep_session_vars = array('auth', 'forced_language', '_language');
+                            if ($this->auth['perm'] === 'root') {
+                                $keep_session_vars[] = 'plugins_disabled';
+                            }
+                            $sess->regenerate_session_id($keep_session_vars);
                             $sess->freeze();
                             $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
                             return true;
@@ -325,11 +329,7 @@ class Seminar_Auth
 
         $this->check_environment();
 
-        if (Request::int('sober') !== null && ($GLOBALS['user']->id === 'nobody' || $GLOBALS['perm']->have_perm('root'))) {
-            // deactivate non-core plugins
-            PluginManager::getInstance()->setPluginsDisabled(Request::int('sober'));
-        }
-
+        // load the default set of plugins
         PluginEngine::loadPlugins();
 
         if (Request::get('loginname') && !$_COOKIE[get_class($GLOBALS['sess'])]) {
