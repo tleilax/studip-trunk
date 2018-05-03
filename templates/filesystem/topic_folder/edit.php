@@ -2,7 +2,7 @@
 $topics = CourseTopic::findBySeminar_id($folder->range_id);
 ?>
 <label>
-    <?= _('Wählen sie eine zugehöriges Thema aus') ?>
+    <?= _('Wählen sie eine zugehöriges Thema aus, Titel und Beschreibung des Themas werden automatisch übernommen.') ?>
     <select name="topic_id">
     <? if (count($topics) === 0): ?>
         <option value="">
