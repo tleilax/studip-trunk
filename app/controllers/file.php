@@ -258,6 +258,7 @@ class FileController extends AuthenticatedController
                     }
                 }
             }
+            $this->fullpath = FileManager::getFullPath($folder);
 
             $this->render_action('file_details');
         } else {
