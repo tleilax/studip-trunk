@@ -94,14 +94,14 @@
                                 <?= \Studip\LinkButton::create(_("Alle Termine ausfallen lassen"), URLHelper::getURL("dispatch.php/course/cancel_dates", array('issue_id' => $topic->getId())), array('data-dialog' => '')) ?>
                             <? endif ?>
                             <? if ($key > 0) : ?>
-                                <form action="?" method="post" style="display: inline;">
+                                <form action="<?=$controller->link_for()?>" method="post" style="display: inline;">
                                     <input type="hidden" name="move_up" value="<?= $topic->getId() ?>">
                                     <input type="hidden" name="open" value="<?= $topic->getId() ?>">
                                     <?= \Studip\Button::createMoveUp(_("nach oben verschieben")) ?>
                                 </form>
                             <? endif ?>
                             <? if ($key < count($topics) - 1) : ?>
-                            <form action="?" method="post" style="display: inline;">
+                            <form action="<?=$controller->link_for()?>" method="post" style="display: inline;">
                                 <input type="hidden" name="move_down" value="<?= $topic->getId() ?>">
                                 <input type="hidden" name="open" value="<?= $topic->getId() ?>">
                                 <?= \Studip\Button::createMoveDown(_("nach unten verschieben")) ?>
