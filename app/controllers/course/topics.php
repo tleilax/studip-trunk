@@ -148,10 +148,11 @@ class Course_TopicsController extends AuthenticatedController
         }
         if ($GLOBALS['perm']->have_perm("root")) {
             $this->courseSearch = new SQLSearch("
-                SELECT seminare.Seminar_id, CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')')
+                SELECT seminare.Seminar_id, CONCAT_WS(' ', seminare.VeranstaltungsNummer, seminare.name, '(', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', COUNT(issue_id), ')')
                 FROM seminare
-                    LEFT JOIN semester_data ON (semester_data.beginn = seminare.start_time)
-                WHERE CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')') LIKE :input
+                INNER JOIN semester_data ON (semester_data.beginn = seminare.start_time)
+                INNER JOIN themen ON themen.seminar_id = seminare.Seminar_id
+                WHERE seminare.VeranstaltungsNummer LIKE :input OR seminare.name LIKE :input
                 GROUP BY seminare.Seminar_id
                 ORDER BY semester_data.beginn DESC, seminare.VeranstaltungsNummer ASC, seminare.name ASC
                 ",
@@ -160,12 +161,14 @@ class Course_TopicsController extends AuthenticatedController
             );
         } elseif ($GLOBALS['perm']->have_perm("admin")) {
             $this->courseSearch = new SQLSearch("
-                SELECT seminare.Seminar_id, CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')')
+                SELECT seminare.Seminar_id, CONCAT_WS(' ', seminare.VeranstaltungsNummer, seminare.name, '(', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', COUNT(issue_id), ')')
                 FROM seminare
                     INNER JOIN seminar_inst ON (seminare.Seminar_id = seminar_inst.seminar_id)
                     INNER JOIN user_inst ON (user_inst.Institut_id = seminar_inst.institut_id)
-                    LEFT JOIN semester_data ON (semester_data.beginn = seminare.start_time)
-                WHERE CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')') LIKE :input
+                    INNER JOIN semester_data ON (semester_data.beginn = seminare.start_time)
+                    INNER JOIN themen ON themen.seminar_id = seminare.Seminar_id
+
+                WHERE seminare.VeranstaltungsNummer LIKE :input OR seminare.name LIKE :input
                     AND user_inst.user_id = ".DBManager::get()->quote($GLOBALS['user']->id)."
                     AND user_inst.inst_perms = 'admin'
                 GROUP BY seminare.Seminar_id
@@ -176,11 +179,12 @@ class Course_TopicsController extends AuthenticatedController
             );
         } else {
             $this->courseSearch = new SQLSearch("
-                SELECT seminare.Seminar_id, CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')')
+                SELECT seminare.Seminar_id, CONCAT_WS(' ', seminare.VeranstaltungsNummer, seminare.name, '(', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', COUNT(issue_id), ')')
                 FROM seminare
                     INNER JOIN seminar_user ON (seminare.Seminar_id = seminar_user.Seminar_id)
-                    LEFT JOIN semester_data ON (semester_data.beginn = seminare.start_time)
-                WHERE CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')') LIKE :input
+                    INNER JOIN semester_data ON (semester_data.beginn = seminare.start_time)
+                    INNER JOIN themen ON themen.seminar_id = seminare.Seminar_id
+                WHERE seminare.VeranstaltungsNummer LIKE :input OR seminare.name LIKE :input
                     AND seminar_user.status IN ('tutor', 'dozent')
                     AND seminar_user.user_id = ".DBManager::get()->quote($GLOBALS['user']->id)."
                 GROUP BY seminare.Seminar_id
