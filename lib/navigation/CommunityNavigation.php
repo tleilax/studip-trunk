@@ -28,7 +28,7 @@ class CommunityNavigation extends Navigation
     {
         parent::initItem();
         $onlinetip = _('Nur Sie sind online');
-        $user_count = get_users_online_count(10); // Should be the same value as in public/index.php
+        $user_count = get_users_online_count();
 
         if ($user_count) {
 

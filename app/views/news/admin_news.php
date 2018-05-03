@@ -57,7 +57,7 @@
     <?= MessageBox::info(htmlReady($filter_text) )?>
 <? endif ?>
 
-<? if (count($news_items)) : ?>
+<? if ($news_items && count($news_items)) : ?>
     <? foreach ($area_structure as $type => $area_data) : ?>
         <? $last_title = 'none' ?>
         <? if (count($news_items[$type])) : ?>

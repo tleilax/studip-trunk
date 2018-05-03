@@ -138,13 +138,17 @@ class Admin_RoleController extends AuthenticatedController
      *
      * @param integer   id of role to delete
      */
-    public function ask_remove_role_action($roleid)
+    public function ask_remove_role_action($role_id)
     {
-        $this->delete_role = $roleid;
-        $this->roles = RolePersistence::getAllRoles();
-        $this->stats = $this->get_role_stats($this->roles);
+        PageLayout::postQuestion(
+            sprintf(
+                _('Wollen Sie wirklich die Rolle "%s" löschen?'),
+                self::getRole($role_id)->getRolename()
+            ),
+            $this->url_for("admin/role/remove_role/{$role_id}")
+        )->includeTicket();
 
-        $this->render_action('index');
+        $this->redirect('admin/role');
     }
 
     /**

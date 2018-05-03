@@ -37593,7 +37593,7 @@ msgstr "Person not found. "
 #: ../app/controllers/my_courses.php:518
 #, php-format
 msgid "Erfolgreich von Veranstaltung <b>%s</b> abgemeldet."
-msgstr "Signed off from course <b>%s>/b>."
+msgstr "Signed off from course <b>%s</b>."
 
 #: ../app/controllers/my_courses.php:537
 #, php-format

@@ -434,7 +434,7 @@ class ExternModule {
         if (self::$is_raw_output) {
             return $text;
         }
-        return formatReady($text, TRUE, TRUE, FALSE);
+        return Studip\Markup::apply(new StudipFormat(), $text, true);
     }
 
     public static function ExtWikiReady ($text, $show_comments = 'all') {

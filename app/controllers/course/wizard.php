@@ -29,18 +29,31 @@ class Course_WizardController extends AuthenticatedController
         if (Request::isXhr()) {
             $this->dialog = true;
         }
-        PageLayout::setTitle(_('Neue Veranstaltung anlegen'));
-        $navigation = new Navigation(_('Neue Veranstaltung anlegen'), 'dispatch.php/course/wizard');
-        Navigation::addItem('/browse/my_courses/new_course', $navigation);
-        Navigation::activateItem('/browse/my_courses/new_course');
-        $this->sidebar = Sidebar::get();
-        $this->sidebar->setImage('sidebar/seminar-sidebar.png');
-        $this->sidebar->setTitle(_('Neue Veranstaltung anlegen'));
-        $this->steps = CourseWizardStepRegistry::findBySQL("`enabled`=1 ORDER BY `number`");
-        // Special handling for studygroups.
-        if (Request::int('studygroup')) {
+
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/seminar-sidebar.png');
+
+        $this->studygroup = Request::int('studygroup') ?: $this->flash['studygroup'];
+
+        if (!$this->studygroup) {
+            PageLayout::setTitle(_('Neue Veranstaltung anlegen'));
+            $sidebar->setTitle(_('Neue Veranstaltung anlegen'));
+
+            $navigation = new Navigation(_('Neue Veranstaltung anlegen'), 'dispatch.php/course/wizard');
+            Navigation::addItem('/browse/my_courses/new_course', $navigation);
+            Navigation::activateItem('/browse/my_courses/new_course');
+        } else {
             $this->flash['studygroup'] = true;
+
+            PageLayout::setTitle(_('Neue Studiengruppe anlegen'));
+            $sidebar->setTitle(_('Neue Studiengruppe anlegen'));
+
+            $navigation = new Navigation(_('Neue Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1');
+            Navigation::addItem('/browse/my_courses/new_course', $navigation);
+            Navigation::activateItem('/browse/my_courses/new_course');
         }
+
+        $this->steps = CourseWizardStepRegistry::findBySQL("`enabled`=1 ORDER BY `number`");
 
         if ($GLOBALS['user']->perms === 'user') {
             throw new AccessDeniedException();
@@ -52,7 +65,7 @@ class Course_WizardController extends AuthenticatedController
      */
     public function index_action()
     {
-        $this->redirect('course/wizard/step/0'.(Request::int('studygroup') ? '?studygroup=1' : ''));
+        $this->redirect('course/wizard/step/0' . ($this->studygroup ? '?studygroup=1' : ''));
     }
 
     /**
@@ -76,10 +89,12 @@ class Course_WizardController extends AuthenticatedController
         if ($number == 0) {
             $this->first_step = true;
         }
-        if ($this->flash['studygroup']) {
+        if ($this->studygroup) {
             // Add special studygroup flag to set values.
-            $this->setStepValues(get_class($step),
-                array_merge($this->getValues(get_class($step)), array('studygroup' => 1)));
+            $this->setStepValues(
+                get_class($step),
+                array_merge($this->getValues(get_class($step)), array('studygroup' => 1))
+            );
         }
         $this->values = $this->getValues();
         $this->content = $step->getStepTemplate($this->values, $number, $this->temp_id);

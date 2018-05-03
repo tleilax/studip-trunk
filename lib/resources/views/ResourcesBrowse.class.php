@@ -328,7 +328,7 @@ class ResourcesBrowse {
                                 <?=_('Semester')?>:
                                 <select name="search_semester">
                                 <? foreach ($semesters as $id => $semester): ?>
-                                    <option value="<?= htmlReady($di) ?>" <? if ($semester['selected']) echo 'selected'; ?>>
+                                    <option value="<?= htmlReady($id) ?>" <? if ($semester['selected']) echo 'selected'; ?>>
                                         <?= htmlReady($semester['label']) ?>
                                     </option>
                                 <? endforeach; ?>

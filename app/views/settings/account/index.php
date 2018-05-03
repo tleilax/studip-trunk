@@ -22,7 +22,7 @@ $genders = [
       action="<?= $controller->url_for('settings/account/store') ?>"
         <? if (!$restricted) echo 'data-validate="true"'; ?>>
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <fieldset>
         <legend>
             <?= _('Persönliche Angaben bearbeiten') ?>

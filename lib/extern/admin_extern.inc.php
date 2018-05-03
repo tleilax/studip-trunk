@@ -207,8 +207,10 @@ $choose_module_form = '';
 // remove global configuration
 array_shift($module_types_ordered);
 foreach ($module_types_ordered as $i) {
-    if ((sizeof($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][$i]['module']]) < $EXTERN_MAX_CONFIGURATIONS)
-        && ExternModule::HaveAccessModuleType(Request::option('view'), $i)) {
+    if (isset($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][$i]['module']])
+        && count($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][$i]['module']]) < $EXTERN_MAX_CONFIGURATIONS
+        && ExternModule::HaveAccessModuleType(Request::option('view'), $i))
+    {
         $choose_module_form .= "<option value=\"{$GLOBALS['EXTERN_MODULE_TYPES'][$i]['module']}\">"
                 . $GLOBALS['EXTERN_MODULE_TYPES'][$i]['name'] . "</option>\n";
     }

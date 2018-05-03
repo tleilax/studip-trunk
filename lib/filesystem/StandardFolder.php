@@ -191,7 +191,7 @@ class StandardFolder implements FolderType
      */
     public function getDescriptionTemplate()
     {
-        return htmlReady($this->folderdata['description']);
+        return formatReady($this->folderdata['description']);
     }
 
     /**
@@ -313,7 +313,9 @@ class StandardFolder implements FolderType
             $newfile->storage   = 'disk';
             $newfile->user_id   = $file['$user_id'];
             $newfile->id        = $newfile->getNewId();
-            $newfile->connectWithDataFile($file['tmp_name']);
+            if (!$newfile->connectWithDataFile($file['tmp_name'])) {
+                return null;
+            }
 
             $file_ref_data['description'] = $file['description'];
             $file_ref_data['content_terms_of_use_id'] = $file['content_terms_of_use_id'];
@@ -336,6 +338,14 @@ class StandardFolder implements FolderType
     public function deleteFile($file_ref_id)
     {
         $file_ref = $this->folderdata->file_refs->find($file_ref_id);
+
+        if (!$this->isFileWritable($file_ref->id, $GLOBALS['user']->id)) {
+            return [sprintf(
+                _('Ungenügende Berechtigungen zum Löschen der Datei %s in Ordner %s!'),
+                $file_ref->name,
+                $this->name
+            )];
+        }
 
         if ($file_ref) {
             return $file_ref->delete();

@@ -100,7 +100,7 @@ class Shared_ModulController extends AuthenticatedController
             $this->self_url = $this->url_for('modul/show/' . $id);
             $this->detail_url = $this->url_for('modul/detail/' . $id);
             $this->teilnahmeVoraussetzung = $modul->getDeskriptor()->voraussetzung;
-            PageLayout::setTitle($modul->getDisplayName());
+            PageLayout::setTitle($modul->getDisplayName() . ' (' . _('Veranstaltungsübersicht') .')');
         }
     }
     
@@ -146,7 +146,7 @@ class Shared_ModulController extends AuthenticatedController
         $this->type = $type;
         $this->semester = $currentSemester;
         $this->display_language = $display_language;
-        PageLayout::setTitle($modul->getDisplayName());
+        PageLayout::setTitle($modul->getDisplayName() . ' (' . _('Vollständige Modulbeschreibung') .')');
     }
     
 }

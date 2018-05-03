@@ -267,7 +267,7 @@ class QuestionnaireController extends AuthenticatedController
                     }
                     $answer->store();
                 }
-                if ($this->questionnaire['anonymous']) {
+                if ($this->questionnaire['anonymous'] && ($GLOBALS['user']->id !== "nobody")) {
                     $anonymous_answer = new QuestionnaireAnonymousAnswer();
                     $anonymous_answer['questionnaire_id'] = $this->questionnaire->getId();
                     $anonymous_answer['user_id'] = $GLOBALS['user']->id;

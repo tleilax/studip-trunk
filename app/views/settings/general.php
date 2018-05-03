@@ -11,7 +11,7 @@ $start_pages = array(
 
 <form method="post" action="<?= $controller->url_for('settings/general/store') ?>" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
     <fieldset>
         <legend>

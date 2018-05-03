@@ -24,6 +24,16 @@
         </section>
         <section class="numbering-data">
             <label>
+                <input type="radio" name="numbering_type" value="1" checked>
+                <?= _('Numerische Nummerierung')?>
+            </label>
+            <label>
+                <input type="radio" name="numbering_type" value="2">
+                <?= _('Alphabetische Nummerierung')?>
+            </label>
+        </section>
+        <section class="numbering-data">
+            <label>
                 <?= _('Beginne Nummerierung bei') ?>
             </label>
             <input type="number" name="startnumber" value="1" min="0">
@@ -34,22 +44,30 @@
             </label>
             <input type="text" name="prefix" maxlength="200" value="<?= _('Gruppe') ?>">
         </section>
-        <?php if ($has_topics) : ?>
+        <? if ($has_paper_related_topics): ?>
+            <section class="course-data">
+                <label>
+                    <input type="radio" name="createmode" value="paper_related">
+                    <?= _('Lege eine Gruppe pro Thema vom Typ "Hausarbeit/Referat" an') ?>
+                </label>
+            </section>
+        <? endif; ?>
+        <? if ($has_topics) : ?>
             <section class="course-data">
                 <label>
                     <input type="radio" name="createmode" value="topics">
                     <?= _('Lege eine Gruppe pro Thema an') ?>
                 </label>
             </section>
-        <?php endif ?>
-        <?php if ($has_cycles || $has_singledates) : ?>
+        <? endif ?>
+        <? if ($has_cycles || $has_singledates) : ?>
             <section class="course-data">
                 <label>
                     <input type="radio" name="createmode" value="dates">
                     <?= _('Lege eine Gruppe pro regelmäßiger Zeit/Einzeltermin an') ?>
                 </label>
             </section>
-        <?php endif ?>
+        <? endif ?>
         <section class="course-data">
             <label>
                 <input type="radio" name="createmode" value="lecturers">

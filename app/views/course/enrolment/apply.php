@@ -1,4 +1,3 @@
-<h1><?= htmlReady($course_name) ?></h1>
 <?= $admission_error ?>
 <? if ($courseset_message) : ?>
 <p>
@@ -43,12 +42,14 @@
     </form>
 <? endif ?>
 <? if (!$priocourses && !$admission_form) :?>
-    <div data-dialog-button>
-    <? if ($enrol_user) : ?>
-        <?=Studip\LinkButton::createAccept(_('Zur Veranstaltung'), URLHelper::getScriptURL('seminar_main.php', array('auswahl' => $course_id))) ?>
-    <? else : ?>
-        <?=Studip\LinkButton::createAccept(_('OK'), URLHelper::getScriptURL('dispatch.php/course/details/', array('sem_id' => $course_id))) ?>
-    <? endif ?>
-    </div>
+    <? if (!$enrol_user): ?>
+        <div data-dialog-button>
+            <?=Studip\LinkButton::createAccept(_('OK'), URLHelper::getLink('dispatch.php/course/details', ['sem_id' => $course_id])) ?>
+        </div>
+    <? elseif ($confimed): ?>
+        <div data-dialog-button>
+            <?=Studip\LinkButton::createAccept(_('Zur Veranstaltung'), URLHelper::getLink('seminar_main.php', ['auswahl' => $course_id])) ?>
+        </div>
+    <? endif; ?>
 <? endif ?>
 <script>STUDIP.enrollment();</script>

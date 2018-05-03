@@ -37,9 +37,7 @@ class StatusgroupsModel
         $group = new Statusgruppen($id);
 
         $group->name = $name;
-        if ($position) {
-            $group->position = $position;
-        }
+        $group->position = $position ?: null;
         $group->range_id = $range_id;
         $group->size = $size;
         $group->selfassign = $selfassign;

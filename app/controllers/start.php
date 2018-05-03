@@ -212,16 +212,20 @@ class StartController extends AuthenticatedController
                 $name = WidgetHelper::getWidgetName($id);
                 if (WidgetHelper::removeWidget($id, $name, $GLOBALS['user']->id)) {
                     $message = sprintf(_('Widget "%s" wurde entfernt.'), $name);
-                    PageLayout::postMessage(MessageBox::success($message));
+                    PageLayout::postSuccess($message);
                 } else {
                     $message = sprintf(_('Widget "%s" konnte nicht entfernt werden.'), $name);
-                    PageLayout::postMessage(MessageBox::error($message));
+                    PageLayout::postError($message);
                 }
             }
         } else {
-            $message = sprintf(_('Sind Sie sicher, dass Sie das Widget "%s" von der Startseite entfernen möchten?'),
-                               WidgetHelper::getWidgetName($id));
-            $this->flash['question'] = createQuestion2($message, [], [], $this->url_for('start/delete/' . $id));
+            PageLayout::postQuestion(
+                sprintf(
+                    _('Sind Sie sicher, dass Sie das Widget "%s" von der Startseite entfernen möchten?'),
+                    WidgetHelper::getWidgetName($id)
+                ),
+                $this->url_for('start/delete/' . $id)
+            );
         }
         $this->redirect('start');
     }

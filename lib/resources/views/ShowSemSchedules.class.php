@@ -139,7 +139,7 @@ class ShowSemSchedules extends ShowSchedules {
 
 
          //select view to jump from the schedule
-         if ($this->used_view == "openobject_schedule")
+         if ($this->used_view == "openobject_schedule" && Context::get())
             $view = "openobject_assign";
          else
             $view = "edit_object_assign";

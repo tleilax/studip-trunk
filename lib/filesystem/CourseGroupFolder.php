@@ -121,6 +121,8 @@ class CourseGroupFolder extends StandardFolder
     public function getEditTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/group_folder/edit.php');
+        $group = Statusgruppen::find($this->folderdata['data_content']['group']);
+        $template->set_attribute('group', $group);
         $template->set_attribute('folder', $this);
         return $template;
     }

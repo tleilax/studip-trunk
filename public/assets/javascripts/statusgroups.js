@@ -55,6 +55,15 @@
                 $('input[name="selfassign_start"]').closest($('section')).toggle();
                 $('input[name="selfassign_end"]').closest($('section')).toggle();
             });
+
+            $('input[name="numbering_type"]').on('click', function () {
+                var type     = $('input[name="numbering_type"]:checked').val(),
+                    disabled = parseInt(type, 10) === 2;
+
+                $('input[name="startnumber"]')
+                    .prop('disabled', disabled)
+                    .toggle(!disabled);
+            });
         }
 
     };
@@ -63,12 +72,11 @@
         ajax_endpoint = $('meta[name="statusgroups-ajax-movable-endpoint"]').attr('content');
         STUDIP.Statusgroups.apply();
 
-        $('.nestable').each(function() {
+        $('.nestable').each(function () {
             $(this).nestable({
-                    rootClass: 'nestable',
-                    maxDepth: $(this).data('max-depth') || 5
-                }
-            );
+                rootClass: 'nestable',
+                maxDepth: $(this).data('max-depth') || 5
+            });
         });
 
         $('a.get-group-members').on('click', function () {
@@ -89,14 +97,36 @@
             }
         });
 
-    }).on('dialog-open dialog-update', function () {
-        $('.nestable').each(function() {
-            $(this).nestable({
-            rootClass: 'nestable',
-            maxDepth: $(this).data('max-depth') || 5
-            });
-        })
+        var index_before = null;
+        $('.course-statusgroups[data-sortable]').disableSelection().sortable({
+            axis: 'y',
+            containment: 'parent',
+            forcePlaceholderSize: true,
+            items: '> .draggable',
+            placeholder: 'sortable-placeholder',
+            start: function (event, ui) {
+                index_before = ui.item.index();
+            },
+            stop: function (event, ui) {
+                if (index_before === ui.item.index()) {
+                    return;
+                }
 
+                var url = $(this).data('sortable');
+                $.post(url, {
+                    id: ui.item.attr('id'),
+                    index: ui.item.index() - 1
+                });
+            }
+        });
+
+    }).on('dialog-open dialog-update', function () {
+        $('.nestable').each(function () {
+            $(this).nestable({
+                rootClass: 'nestable',
+                maxDepth: $(this).data('max-depth') || 5
+            });
+        });
     }).on('submit', '#order_form', function () {
         var structure = $('.nestable').nestable('serialize'),
             json_data = JSON.stringify(structure);
@@ -104,4 +134,3 @@
     });
 
 }(jQuery, STUDIP));
-

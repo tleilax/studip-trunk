@@ -3,27 +3,8 @@
 use Studip\Button, Studip\LinkButton;
 
 ?>
-<? if (isset($error)): ?>
-    <?= MessageBox::error($error, $error_detail) ?>
-<? endif ?>
-
-<? if (isset($flash['error'])): ?>
-    <?= MessageBox::error($flash['error'], $flash['error_detail']) ?>
-<? elseif (isset($flash['message'])): ?>
-    <?= MessageBox::success($flash['message']) ?>
-<? elseif ($num_updates): ?>
+<? if ($num_updates): ?>
     <?= MessageBox::info($this->render_partial('admin/plugin/update_info')) ?>
-<? endif ?>
-
-<? if ($delete_plugin): ?>
-    <?= $GLOBALS['template_factory']->render('shared/question', [
-        'question' => sprintf(_('Wollen Sie wirklich "%s" deinstallieren?'), $delete_plugin['name']),
-        'approvalLink' => $controller->url_for(
-            'admin/plugin/delete/' . $delete_plugin['id'],
-            ['studip_ticket' => get_ticket()]
-        ),
-         'disapprovalLink' => $controller->url_for('admin/plugin')
-    ]) ?>
 <? endif ?>
 
 <? if (count($plugins) == 0): ?>

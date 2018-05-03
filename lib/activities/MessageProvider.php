@@ -19,10 +19,13 @@ class MessageProvider implements ActivityProvider
     {
         $message = \Message::find($activity->object_id);
 
-        if (!$message || !$message->permissionToRead($activity->getContextObject()->getObserver()->id))
+        if (!$message
+            || !$activity->getContextObject()
+            || !$message->permissionToRead($activity->getContextObject()->getObserver()->id))
         {
             return false;
         }
+
         $activity->content = formatReady($message->message);
 
         $url = \URLHelper::getUrl("dispatch.php/messages/read/{$message->id}", array('cid' => null));

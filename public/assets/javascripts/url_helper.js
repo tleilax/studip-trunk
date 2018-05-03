@@ -49,12 +49,13 @@ STUDIP.URLHelper = {
      *
      * @param url string: any url-string
      * @param param_object map: associative object for extra values
+     * @param ignore_params boolean: ignore previously bound parameters
      * @return: url with all necessary and additional parameters, encoded
      */
-    getURL: function (url, param_object) {
+    getURL: function (url, param_object, ignore_params) {
 
         var url_params = jQuery.isArray(STUDIP.URLHelper.parameters) ? {} : STUDIP.URLHelper.parameters,
-            params = _.defaults(param_object || {}, url_params),
+            params = _.defaults(param_object || {}, ignore_params ? {} : url_params),
             tmp, fragment, query;
 
         tmp = url.split("#");

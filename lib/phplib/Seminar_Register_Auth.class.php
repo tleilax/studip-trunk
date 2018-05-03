@@ -28,6 +28,7 @@ class Seminar_Register_Auth extends Seminar_Auth
     public function auth_registerform()
     {
         $this->check_environment();
+
         // load the default set of plugins
         PluginEngine::loadPlugins();
 

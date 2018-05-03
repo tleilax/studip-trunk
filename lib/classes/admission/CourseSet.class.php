@@ -940,6 +940,35 @@ class CourseSet
         if (count($this->courses)) {
             DBManager::get()->execute("UPDATE seminare SET Lesezugriff=1,Schreibzugriff=1 WHERE seminar_id IN(?)", array(array_keys($this->courses)));
         }
+        //create general log
+        $this->log_store();
+
+    }
+
+    /**
+     * Generates a general log entry if the CourseSet rules were changed.
+     */
+    private function log_store()
+    {
+        $text = '';
+        $rule_counter = 1;
+        foreach ($this->getAdmissionRules() as $rule) {
+            $rule_text = strip_tags(kill_format($rule->toString()));
+            $semicolon = ($rule_counter < count($this->getAdmissionRules()) ? '; ' : '');
+            $text .= '#' . $rule_counter . ' => ' . $rule_text . $semicolon;
+            $rule_counter++;
+        }
+        
+        $courses = $this->getCourses();
+        foreach ($courses as $course_id) {
+            StudipLog::log(
+                'SEM_CHANGED_ACCESS',
+                $course_id,
+                NULL,
+                $text,
+                sprintf('Anmeldeset: %s (%s)', strip_tags(kill_format(($this->name))), $this->id)
+            );
+        }
     }
 
     /**

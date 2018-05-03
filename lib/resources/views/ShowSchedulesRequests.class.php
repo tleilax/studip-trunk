@@ -96,7 +96,7 @@ class ShowSchedulesRequests extends ShowSchedules{
     }
 
 
-    function showScheduleGraphical() {
+    function showScheduleGraphical($print_view = false) {
         global $view_mode;
 
         $categories["na"] = 4;
@@ -305,4 +305,3 @@ class ShowSchedulesRequests extends ShowSchedules{
     <?
     }
 }
-

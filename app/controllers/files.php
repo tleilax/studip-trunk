@@ -29,41 +29,7 @@ class FilesController extends AuthenticatedController
      */
     public static function getRangeLink($folder)
     {
-        if (!$folder->range_type) {
-            return null;
-        }
-
-        switch ($folder->range_type) {
-            case 'course':
-                $link = URLHelper::getLink(
-                    'dispatch.php/course/files/index/'.$folder->id,
-                    ['cid' => $folder->range_id]
-                );
-                break;
-
-            case 'institute':
-                $link = URLHelper::getLink(
-                    'dispatch.php/institute/files/index/'.$folder->id,
-                    ['cid' => $folder->range_id]
-                );
-                break;
-
-            case 'message':
-                $link = URLHelper::getLink('dispatch.php/messages/overview/'.$folder->range_id);
-                break;
-
-            case 'user':
-                $link = URLHelper::getLink('dispatch.php/files/index/'.$folder->id);
-                break;
-
-            default:
-                $link = URLHelper::getLink(
-                    'dispatch.php/files/system/'.$folder->range_type.'/'.$folder->id,
-                    ['cid' => null]
-                );
-        }
-
-        return $link;
+        return FileManager::getFolderLink($folder);
     }
 
     public function before_filter(&$action, &$args)
@@ -173,7 +139,7 @@ class FilesController extends AuthenticatedController
 
         if ($folder->isWritable($GLOBALS['user']->id)) {
             $uploadArea = new LinksWidget();
-            $uploadArea->setTitle(_("Dateien hochladen"));
+            $uploadArea->setTitle(_("Dateien hinzufügen"));
             $uploadArea->addElement(new WidgetElement(
                     $this->render_template_as_string('files/upload-drag-and-drop'))
             );

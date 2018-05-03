@@ -137,7 +137,7 @@ class IconClassTest extends PHPUnit_Framework_TestCase
     function testIconCreateAsCSSWithSize()
     {
         $this->assertEquals(
-            'background-image:url(images/icons/17/blue/add/vote.png);background-image:none,url(images/icons/blue/add/vote.svg);background-size:17px 17px;',
+            'background-image:url(images/icons/blue/add/vote.svg);background-size:17px 17px;',
             Icon::create('vote+add', 'clickable')->asCSS(17)
         );
     }

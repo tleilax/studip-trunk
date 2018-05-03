@@ -170,7 +170,11 @@ class Seminar_Auth
                     case "log":
                         if ($uid = $this->auth_validatelogin()) {
                             $this->auth["uid"] = $uid;
-                            $sess->regenerate_session_id(array('auth', 'forced_language', '_language'));
+                            $keep_session_vars = array('auth', 'forced_language', '_language');
+                            if ($this->auth['perm'] === 'root') {
+                                $keep_session_vars[] = 'plugins_disabled';
+                            }
+                            $sess->regenerate_session_id($keep_session_vars);
                             $sess->freeze();
                             $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
                             return true;
@@ -324,6 +328,7 @@ class Seminar_Auth
         }
 
         $this->check_environment();
+
         // load the default set of plugins
         PluginEngine::loadPlugins();
 

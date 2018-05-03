@@ -1,11 +1,11 @@
-<article class="<?= ContentBoxHelper::classes($group->id) ?>" id="<?= $group->id ?>">
+<article class="<?= ContentBoxHelper::classes($group->id) ?> <? if ($group->id != 'nogroup' && $is_tutor && !$is_locked) echo 'draggable'; ?>" id="<?= $group->id ?>">
     <header>
         <h1>
             <?php if ($group->id != 'nogroup' && $is_tutor && !$is_locked) : ?>
                 <input aria-label="<?= _('Gruppe auswählen') ?>"
                        type="checkbox" name="groups[]"
                        class="groupselector" value="<?= $group->id ?>"
-                       id="<?= $group->id ?>" style="float:left"
+                       id="<?= $group->id ?>"
                        data-activates="select#batch-groups-action"/>
             <?php endif ?>
             <a href="<?= ContentBoxHelper::href($group->id) ?>" class="get-group-members"
@@ -78,7 +78,7 @@
                           ->condition(!($is_participants_locked || $is_locked))
                           ->addMultiPersonSearch(
                               MultiPersonSearch::get('add_statusgroup_member' . $group->id)
-                                  ->setTitle(_('Personen hinzufügen'))
+                                  ->setTitle(sprintf(_('Personen zu Gruppe %s hinzufügen'), $group->name))
                                   ->setLinkText(_('Personen hinzufügen'))
                                   ->setSearchObject($memberSearch)
                                   ->setDefaultSelectedUser($group->members->pluck('user_id'))

@@ -1,18 +1,11 @@
 <? use Studip\Button, Studip\LinkButton; ?>
-<? if ($verify && $verify['action'] === 'delete'): ?>
-<?= $controller->verifyDialog(
-        sprintf(_('Möchten Sie wirklich die Kategorie "%s" löschen?'), Kategorie::find($verify['id'])->name),
-        array('settings/categories/delete', $verify['id'], true),
-        array('settings/categories')
-    ) ?>
-<? endif; ?>
 
 <? if (count($categories) === 0): ?>
 <p class="info"><?= _('Es existieren zur Zeit keine eigenen Kategorien.') ?></p>
 <? else: ?>
 <form action="<?= $controller->url_for('settings/categories/store') ?>" method="post" name="main_content">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
     <table class="default nohover">
         <colgroup>
@@ -53,7 +46,7 @@
                 <? endif; ?>
 
                     <a href="<?= $controller->url_for('settings/categories/delete', $category->id) ?>">
-                        <?= Icon::create('trash', 'clickable')->asImg(['class' => 'text-top', 'title' => _('Kategorie löschen')]) ?>
+                        <?= Icon::create('trash')->asImg(['class' => 'text-top', 'title' => _('Kategorie löschen')]) ?>
                     </a>
                 </th>
             </tr>
@@ -69,7 +62,7 @@
                 </td>
             </tr>
         </tbody>
-    <? $last = $category; 
+    <? $last = $category;
        endforeach; ?>
     <? if ($hidden_count > 0): ?>
         <tbody>

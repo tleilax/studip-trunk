@@ -643,7 +643,7 @@ class MyCoursesController extends AuthenticatedController
             }
         }
 
-        $plugins_navigation = getPluginNavigationForSeminar($seminar_content['seminar_id'], $seminar_content['visitdate']);
+        $plugins_navigation = $seminar_content['navigation'];
 
         foreach ($plugins_navigation as $navigation) {
             if ($navigation && $navigation->isVisible(true) && $navigation->hasBadgeNumber()) {

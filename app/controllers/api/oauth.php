@@ -55,7 +55,7 @@ class Api_OauthController extends StudipController
         $auth_plugin = Config::get()->API_OAUTH_AUTH_PLUGIN;
         if ($GLOBALS['user']->id === 'nobody' && $auth_plugin !== 'Standard' && !Request::option('sso')) {
             $params = $_GET;
-            $params['sso'] = $auth_plugin;
+            $params['sso'] = strtolower($auth_plugin);
             $this->redirect($this->url_for('api/oauth/authorize?' . http_build_query($params)));
             return;
         } else {

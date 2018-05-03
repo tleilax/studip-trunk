@@ -1,7 +1,7 @@
 <?php
 /**
  * Icon class is used to create icon objects which can be rendered as
- * svg or png. Output will be html. Optionally, the icon can be rendered
+ * svg. Output will be html. Optionally, the icon can be rendered
  * as a css background.
  *
  * @author    Jan-Hendrik Willms <tleilax+studip@gmail.com>
@@ -12,7 +12,6 @@
 class Icon
 {
     const SVG = 1;
-    const PNG = 2;
     const CSS_BACKGROUND = 4;
     const INPUT = 256;
 
@@ -235,15 +234,18 @@ class Icon
     public function asCSS($size = null)
     {
         if (self::isStatic($this->shape)) {
-            return sprintf('background-image:url(%1$s);background-size:%2$upx %2$upx;',
-                           $this->shapeToPath($this->shape),
-                           $this->get_size($size));
+            return sprintf(
+                'background-image:url(%1$s);background-size:%2$upx %2$upx;',
+                $this->shapeToPath($this->shape),
+                $this->get_size($size)
+            );
         }
 
-        return sprintf('background-image:url(%1$s);background-image:none,url(%2$s);background-size:%3$upx %3$upx;',
-                       $this->get_asset_png($size),
-                       $this->get_asset_svg(),
-                       $this->get_size($size));
+        return sprintf(
+            'background-image:url(%1$s);background-size:%2$upx %2$upx;',
+            $this->get_asset_svg(),
+            $this->get_size($size)
+        );
     }
 
     /**
@@ -334,25 +336,6 @@ class Icon
         return Assets::url('images/icons/' . self::roleToColor($this->role) . '/' . $this->shapeToPath($this->shape) . '.svg');
     }
 
-
-    /**
-     * Get the correct asset for a PNG icon.
-     *
-     * @param int $size  size of the icon
-     * @return String containing the url of the corresponding asset
-     */
-    protected function get_asset_png($size)
-    {
-        $color = self::roleToColor($this->role);
-        $size = $this->get_size($size);
-
-        if ($GLOBALS['auth']->auth['devicePixelRatio'] > 1.2) {
-            $size *= 2;
-        }
-
-        return Assets::url('images/icons/' . $size . '/' . $color . '/' . $this->shapeToPath($this->shape) . '.png');
-    }
-
     /**
      * Get the size of the icon. If a size was passed as a parameter and
      * inside the attributes array during icon construction, the size from
@@ -382,6 +365,6 @@ class Icon
     {
         return self::isStatic($this->shape)
             ? $this->shape :
-            join('/', array_reverse(explode('+', preg_replace('/\.(?:png|svg)$/', '', $this->shape))));
+            join('/', array_reverse(explode('+', preg_replace('/\.svg$/', '', $this->shape))));
     }
 }

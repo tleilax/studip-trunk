@@ -9,7 +9,7 @@ JAVA   = $(shell which java)
 ifneq ($(wildcard $(JLESSC)),)
 	LESSC = $(JLESSC) -sm=on
 else
-	LESSC = $(PLESSC) -sm=on
+	LESSC = $(PLESSC) --strict-math
 endif
 
 ifneq ($(wildcard $(CODECEPT_VENDOR)),)

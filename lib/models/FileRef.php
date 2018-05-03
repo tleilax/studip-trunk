@@ -131,6 +131,7 @@ class FileRef extends SimpleORMap
         }
         $mode = Config::get()->SENDFILE_LINK_MODE ?: 'normal';
         $link = [];
+        $params = [];
         $type = '0';
         $file_name = $this->name;
         $file_id = $this->id;
@@ -152,17 +153,17 @@ class FileRef extends SimpleORMap
                 $link[] = $type . '/' . $file_id . '/' . $file_name;
                 break;
             default:
-                $link[] = 'sendfile.php?';
-                if ($dltype == 'zip'){
-                    $link[] = 'zip=1&';
+                $link[] = 'sendfile.php';
+                if ($dltype == 'zip') {
+                    $params['zip'] = 1;
                 } elseif (in_array($dltype,  ['force_download', 'force'])) {
-                    $link[] = 'force_download=1&';
+                    $params['force_download'] = 1;
                 }
-                $link[] = 'type='.$type;
-                $link[] = '&file_id=' . $file_id;
-                $link[] = '&file_name=' . $file_name;
+                $params['type'] = $type;
+                $params['file_id'] = $file_id;
+                $params['file_name'] = $file_name;
         }
-        return URLHelper::getScriptURL(implode('', $link));
+        return URLHelper::getScriptURL(implode('', $link), $params);
     }
 
     /**

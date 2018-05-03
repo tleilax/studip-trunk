@@ -1,16 +1,3 @@
-<?
-if (isset($flash['question']) && isset($flash['candidate'])) {
-    $dialog = $GLOBALS['template_factory']->open('shared/question');
-    echo $this->render_partial($dialog, array(
-        "question"        => $flash['question'],
-        "approvalLink"    => $controller->url_for('course/studygroup/edit_members/'
-                                                  . $sem_id . '/remove_approved/todo/' . get_ticket()
-                                                  . '?user=' . $flash['candidate']),
-        "disapprovalLink" => $controller->url_for('course/studygroup/members/' . $sem_id . '/' . $page),
-    ));
-}
-?>
-
 <?= $this->render_partial("course/studygroup/_feedback", compact('anzahl', 'page', 'sem_id')) ?>
 
 <? if (count($moderators) > 0): ?>

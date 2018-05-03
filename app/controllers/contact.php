@@ -15,7 +15,6 @@
  */
 class ContactController extends AuthenticatedController
 {
-
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
@@ -39,7 +38,7 @@ class ContactController extends AuthenticatedController
     /**
      * Main action to display contacts
      */
-    function index_action($filter = null)
+    public function index_action($filter = null)
     {
 
         // Check if we need to add contacts
@@ -122,9 +121,9 @@ class ContactController extends AuthenticatedController
 
     }
 
-    function remove_action($group = null)
+    public function remove_action($group = null)
     {
-        CSRFProtection::verifyRequest();
+        CSRFProtection::verifyUnsafeRequest();
         $contact = Contact::find(array(User::findCurrent()->id, User::findByUsername(Request::username('user'))->id));
         if ($contact) {
             if ($group) {
@@ -141,9 +140,8 @@ class ContactController extends AuthenticatedController
         $this->redirect('contact/index/' . $group);
     }
 
-    function editGroup_action()
+    public function editGroup_action()
     {
-
         // If we got a group load it
         if (!$this->group) {
             $this->group = new Statusgruppen();
@@ -158,20 +156,20 @@ class ContactController extends AuthenticatedController
         }
     }
 
-    function deleteGroup_action()
+    public function deleteGroup_action()
     {
         CSRFProtection::verifyRequest();
         $this->group->delete();
         $this->redirect('contact/index');
     }
 
-    function vcard_action($group = null)
+    public function vcard_action($group = null)
     {
 
         // Set constants for export
         $charset = 'utf-8';
         $filename = _('Kontakte');
-        
+
         // Set layout
         $this->set_layout(null);
 

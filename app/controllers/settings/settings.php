@@ -99,7 +99,7 @@ class Settings_SettingsController extends AuthenticatedController
      */
     protected function check_ticket()
     {
-        $ticket = Request::get('studipticket');
+        $ticket = Request::get('studip_ticket');
         if (!$ticket || !check_ticket($ticket)) {
             throw new InvalidSecurityTokenException();
         }
@@ -185,32 +185,6 @@ class Settings_SettingsController extends AuthenticatedController
         return !($field && StudipAuthAbstract::CheckField($field, $this->user->auth_plugin))
             && !LockRules::check($this->user->user_id, $attribute)
             && (($value === null) || ($this->user->$column != $value));
-    }
-
-    /**
-     * Generic verififcation dialog
-     *
-     * @param String $message  Message to be displayed to the user
-     * @param mixed  $approved Arguments to pass to url_for if the user
-     *                         approves the question
-     * @param mixed  $rejected Arguments to pass to url_for if the user
-     *                         disapproves the question
-     * @return String Rendered output of the verification dialog.
-     */
-    public function verifyDialog($message, $approved, $rejected)
-    {
-        $template = $GLOBALS['template_factory']->open('shared/question');
-
-        // inject tickets into arguments
-        $arguments = is_array(end($approved)) ? array_pop($approved) : array();
-        $arguments['studipticket'] = get_ticket();
-        $approved[] = $arguments;
-
-        $template->approvalLink    = call_user_func_array(array($this, 'url_for'), $approved);
-        $template->disapprovalLink = call_user_func_array(array($this, 'url_for'), $rejected);
-        $template->question        = $message;
-
-        return $template->render();
     }
 
     /**

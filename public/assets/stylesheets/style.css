@@ -1268,9 +1268,6 @@ form.default .required:after {
   content: "*";
   color: red;
 }
-form.default input[type=radio] {
-  margin-right: 10px;
-}
 form.default footer {
   background-color: #e7ebf1;
   border-top: 1px solid #1f3f70;
@@ -1526,6 +1523,20 @@ form.default label.packed button {
   vertical-align: text-top;
   width: 16px;
 }
+.studip-checkbox:indeterminate + label::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 5px;
+  background-image: url("../images/icons/blue/checkbox-indeterminate.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
 .content_title {
   background-color: #e3eaf6;
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#cdd9ed), color-stop(40%, #e3eaf6), to(#e3eaf6));
@@ -1571,6 +1582,17 @@ form.default label.packed button {
   background-color: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(0, 0, 0, 0.5);
   padding: 0 0.5ex;
+}
+.formatted-content ul,
+.formatted-content ol {
+  margin: 0.5em 0;
+}
+.formatted-content ul ul,
+.formatted-content ol ul,
+.formatted-content ul ol,
+.formatted-content ol ol {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .css-tree,
 .css-tree ul {
@@ -2730,7 +2752,8 @@ body.fixed #barTopMenu {
   background-color: #28497c;
   list-style: none;
   margin: 0px 0px 0px -15px;
-  padding: 0px 0px 0px 0px;
+  padding: 0px;
+  position: absolute;
   width: -moz-fit-content;
   width: -webkit-fit-content;
   width: fit-content;
@@ -2882,7 +2905,9 @@ div#sidebar-navigation div.sidebar-widget-content {
   line-height: 16px;
 }
 .widget-links span[disabled] {
-  text-decoration: line-through;
+  color: #636971;
+  cursor: not-allowed;
+  font-weight: lighter;
 }
 .widget-links.sidebar-navigation > li.active {
   background-color: #28497c;
@@ -2977,6 +3002,20 @@ div#sidebar-navigation div.sidebar-widget-content {
 .widget-links.sidebar-navigation > li.active:after,
 .widget-links.sidebar-views > li.active:after {
   border-left-width: 8px;
+}
+.widget-links .link-form {
+  display: inline-block;
+}
+.widget-links .link-form button {
+  background: transparent;
+  border: 0;
+  color: #28497c;
+  margin: 0;
+  padding: 0;
+}
+.widget-links .link-form button:hover {
+  color: #d60000;
+  cursor: pointer;
 }
 .sidebar-widget-cloud {
   margin: 0px;
@@ -5213,7 +5252,7 @@ div.clear {
   position: absolute;
   text-align: left;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-  white-space: normal;
+  white-space: pre-line;
   z-index: 10000;
   word-wrap: break-word;
   -webkit-hyphens: auto;
@@ -5305,7 +5344,7 @@ div.clear {
   position: absolute;
   text-align: left;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-  white-space: normal;
+  white-space: pre-line;
   z-index: 10000;
   word-wrap: break-word;
   -webkit-hyphens: auto;
@@ -5713,10 +5752,10 @@ html.cssanimations .copyable-link-animation div {
 .js .drag-and-drop.hovered {
   background-color: #28497c;
   background-image: url("../images/icons/white/upload.svg");
-  -webkit-background-size: 60px 60px;
-  -moz-background-size: 60px 60px;
-  -o-background-size: 60px 60px;
-  background-size: 60px 60px;
+  -webkit-background-size: 50px 50px;
+  -moz-background-size: 50px 50px;
+  -o-background-size: 50px 50px;
+  background-size: 50px 50px;
   color: white;
 }
 table.attribute_table {
@@ -7256,60 +7295,6 @@ div.file_select_possibilities input[name=folder_type]:checked + label img,
 div.file_select_possibilities.content_terms_of_use_icons {
   justify-content: left;
 }
-input.document-checkbox[type="checkbox"] {
-  display: none;
-}
-input.document-checkbox[type="checkbox"] + label span {
-  display: inline-block;
-  width: 30px;
-  height: 20px;
-  margin: 0px 0px 0 0;
-  vertical-align: bottom;
-  text-align: center;
-  cursor: pointer;
-}
-input.document-checkbox[type="checkbox"] + label span::after {
-  background-repeat: no-repeat;
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  margin-left: 4;
-  background-image: url("../images/icons/blue/checkbox-unchecked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  vertical-align: text-top;
-  width: 16px;
-}
-input.document-checkbox[type="checkbox"]:checked + label span::after {
-  background-repeat: no-repeat;
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  margin-left: 4;
-  background-image: url("../images/icons/blue/checkbox-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  vertical-align: text-top;
-  width: 16px;
-}
-input.document-checkbox[type="checkbox"]:indeterminate + label span::after {
-  background-repeat: no-repeat;
-  content: ' ';
-  display: inline-block;
-  height: 16px;
-  margin-left: 4;
-  background-image: url("../images/icons/blue/checkbox-indeterminate.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
-  vertical-align: text-top;
-  width: 16px;
-}
 #file_edit_window,
 #file_details_window {
   display: flex;
@@ -7466,6 +7451,10 @@ form.default fieldset.select_terms_of_use > input[type=radio]:checked + label + 
 table.documents td,
 table.documents th {
   vertical-align: top;
+}
+table.documents td:first-child,
+table.documents th:first-child {
+  padding-left: 8px;
 }
 table.documents.flat td.filter-match {
   background-color: #fce2cc;
@@ -8230,16 +8219,9 @@ div.at_least_one_teacher {
 .contentbox.timesrooms form.default tfoot select {
   max-width: 30em;
 }
-.flex-row {
-  display: -ms-flexbox;
-  display: -webkit-box;
-  display: -webkit-box-flex;
-  display: -webkit-flex;
-  display: -moz-box;
-  display: flex;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  width: 100%;
+.times-rooms-grid .selectbox input[type="radio"]:checked + label {
+  font-weight: bold;
+  text-decoration: underline;
 }
 .opengraph-area {
   margin: 10px auto 5px;
@@ -8392,12 +8374,12 @@ section.course-statusgroups article header h1 a.no-contentbox-link::before {
 section.course-statusgroups article header h1 a img {
   vertical-align: bottom;
 }
-section.course-statusgroups article input.groupselector {
-  float: left;
-}
 section.course-statusgroups article section {
   border-left: 1px solid #e7ebf1;
   border-right: 1px solid #e7ebf1;
+}
+section.course-statusgroups article section table td.memberactions {
+  text-align: right;
 }
 section.course-statusgroups article section table thead tr th {
   background-color: #e7ebf1;
@@ -8406,16 +8388,10 @@ section.course-statusgroups article section table tbody tr td span.member-invisi
   font-style: italic;
   color: #6d727a;
 }
-section.course-statusgroups article section table tbody tr td.memberactions {
-  text-align: right;
-}
 section.course-statusgroups article section table tfoot tr td {
   background-color: #e7ebf1;
   padding-left: 5px;
   padding-right: 0;
-}
-section.course-statusgroups article section table tfoot tr td.memberactions {
-  text-align: right;
 }
 section.course-statusgroups article section div.statusgroup-no-members {
   font-style: italic;
@@ -8428,6 +8404,16 @@ section.course-statusgroups footer {
   padding: 5px;
   padding-left: 18px;
   text-align: left;
+}
+section.course-statusgroups.ui-sortable article.draggable header {
+  cursor: move;
+  background-image: url("../images/anfasser_24.png");
+  background-position: 3px center;
+  background-repeat: no-repeat;
+  padding-left: 12px;
+}
+section.course-statusgroups.ui-sortable article.ui-sortable-placeholder {
+  border-style: dotted;
 }
 #sort1,
 #sort0,
@@ -10902,9 +10888,9 @@ html.responsive-display:not(.globalsearch-visible) #globalsearch-clear {
 html.responsive-display.globalsearch-visible #barBottomright ul li {
   display: none;
 }
-html.responsive-display.globalsearch-visible #barBottomright ul li:first-child,
 html.responsive-display.globalsearch-visible #barBottomright ul #quicksearch_item,
-html.responsive-display.globalsearch-visible #barBottomright ul #sidebar-menu {
+html.responsive-display.globalsearch-visible #barBottomright ul #sidebar-menu,
+html.responsive-display.globalsearch-visible #barBottomright ul li:first-child {
   display: initial;
 }
 html.responsive-display.globalsearch-visible .helpbar {
@@ -12463,12 +12449,28 @@ div.overdiv div.content {
 .plugin_image {
   text-align: center;
   width: 88px;
+  vertical-align: top;
 }
 .plugin_score {
   white-space: nowrap;
 }
 .plugin_install {
   text-align: center;
+}
+.plugin_description {
+  max-height: 15em;
+  overflow: hidden;
+  position: relative;
+}
+.plugin_description p.read_more {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  margin: 0;
+  padding: 10px 0;
+  background-image: linear-gradient(to bottom, transparent, white);
 }
 img.plugin_preview {
   height: 60px;
@@ -12786,4 +12788,45 @@ div#layout-sidebar div.sidebar-image img {
 }
 .recolor {
   filter: hue-rotate(0deg) saturate(100%) brightness(100%);
+}
+/**
+ * Style the details tag according to stud.ip
+ */
+details.studip summary {
+  cursor: pointer;
+  list-style: none;
+}
+details.studip summary::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 0;
+  background-image: url("../images/icons/blue/arr_1right.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
+}
+details.studip summary::before {
+  vertical-align: text-bottom;
+}
+details.studip summary::-webkit-details-marker {
+  display: none;
+}
+details.studip[open] summary::before {
+  background-repeat: no-repeat;
+  content: ' ';
+  display: inline-block;
+  height: 16px;
+  margin-right: 0;
+  background-image: url("../images/icons/blue/arr_1down.svg");
+  -webkit-background-size: 16px 16px;
+  -moz-background-size: 16px 16px;
+  -o-background-size: 16px 16px;
+  background-size: 16px 16px;
+  vertical-align: text-top;
+  width: 16px;
 }

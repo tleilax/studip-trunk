@@ -5,7 +5,7 @@ use Studip\Button, Studip\LinkButton;
 ?>
 <? if ($deputies): ?>
     <form method="post" action="<?= $controller->url_for('settings/deputies/store') ?>">
-        <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+        <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
         <?= CSRFProtection::tokenTag() ?>
 
         <table class="default no-hover">

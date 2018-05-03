@@ -4,7 +4,7 @@
 
 <? if ($allow_change['in']): ?>
 <form action="<?= $controller->url_for('settings/studies/store_in') ?>" method="post">
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
 <? endif; ?>
 

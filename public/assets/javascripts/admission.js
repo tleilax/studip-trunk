@@ -92,7 +92,7 @@ STUDIP.Admission = {
     removeRule: function (targetId, containerId) {
         var parent = $('#' + targetId).parent();
         $('#' + targetId).remove();
-        if (parent.children('div').size() === 0) {
+        if (parent.children('div').length === 0) {
             parent.remove();
             var norules = 'Sie haben noch keine Anmelderegeln festgelegt.'.toLocaleString();
             $('#' + containerId).prepend('<span id="norules">' +
@@ -158,7 +158,7 @@ STUDIP.Admission = {
     removeUserFromUserlist: function (userId) {
         var parent = $('#user_' + userId).parent();
         $('#user_' + userId).remove();
-        if (parent.children('li').size() === 0) {
+        if (parent.children('li').length === 0) {
             var nousers = 'Sie haben noch niemanden hinzugefügt.'.toLocaleString();
             $(parent).parent().append('<span id="nousers">' +
                 '<i>' + nousers + '</i></span>');

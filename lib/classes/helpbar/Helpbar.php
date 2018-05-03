@@ -28,13 +28,14 @@ class Helpbar extends WidgetContainer
      */
     public function loadContent()
     {
+        $route        = get_route();
         $help_content = HelpContent::getContentByRoute();
         foreach ($help_content as $row) {
             $this->addPlainText($row['label'] ?: '',
                                 $this->interpolate($row['content'], $this->variables),
                                 $row['icon'] ? Icon::create($row['icon'], 'info_alt') : null,
-                                URLHelper::getURL('dispatch.php/help_content/edit/'.$row['content_id']),
-                                URLHelper::getURL('dispatch.php/help_content/delete/'.$row['content_id']));
+                                URLHelper::getURL('dispatch.php/help_content/edit/'.$row['content_id'], ['from' => $route]),
+                                URLHelper::getURL('dispatch.php/help_content/delete/'.$row['content_id'], ['from' => $route]));
         }
         if (!count($help_content) && $this->help_admin) {
             $this->addPlainText('',
@@ -42,7 +43,7 @@ class Helpbar extends WidgetContainer
                                 null,
                                 null,
                                 null,
-                                URLHelper::getURL('dispatch.php/help_content/edit/new'.'?help_content_route='.get_route()));
+                                URLHelper::getURL('dispatch.php/help_content/add', ['?help_content_route' => $route, 'from' => $route]));
         }
     }
 

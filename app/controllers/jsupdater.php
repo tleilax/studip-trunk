@@ -140,7 +140,7 @@ class JsupdaterController extends AuthenticatedController
                         ->render(compact("message") + array('controller' => $this));
             }
         }
-        if (count($page_info['Questionnaire']['questionnaire_ids']) > 0) {
+        if (is_array($page_info['Questionnaire']['questionnaire_ids'])) {
             foreach ($page_info['Questionnaire']['questionnaire_ids'] as $questionnaire_id) {
                 $questionnaire = new Questionnaire($questionnaire_id);
                 if ($questionnaire->latestAnswerTimestamp() > $page_info['Questionnaire']['last_update']) {

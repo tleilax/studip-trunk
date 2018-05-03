@@ -1,9 +1,19 @@
 <? if (count($topics) > 0) : ?>
 <table class="default withdetails">
+    <colgroup>
+        <col width="50%">
+        <col>
+        <col width="24px">
+    </colgroup>
     <thead>
         <tr>
             <th><?= _("Thema") ?></th>
             <th><?= _("Termine") ?></th>
+            <th>
+                <abbr title="<?= _('Thema behandelt eine Hausarbeit oder ein Referat') ?>">
+                    <?= Icon::create('glossary', Icon::ROLE_INFO) ?>
+                </abbr>
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -22,9 +32,16 @@
                     <? endforeach ?>
                 </ul>
             </td>
+            <td>
+            <? if ($topic->paper_related): ?>
+                <?= Icon::create('checkbox-checked', Icon::ROLE_INFO) ?>
+            <? else: ?>
+                <?= Icon::create('checkbox-unchecked', Icon::ROLE_INFO) ?>
+            <? endif; ?>
+            </td>
         </tr>
         <tr class="details nohover">
-            <td colspan="2">
+            <td colspan="3">
                 <div class="detailscontainer">
                     <table class="default nohover">
                         <tbody>

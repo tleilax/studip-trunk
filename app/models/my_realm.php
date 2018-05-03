@@ -37,142 +37,87 @@ class MyRealmModel
     public static function checkDocuments(&$my_obj, $user_id, $object_id)
     {
         if ($my_obj["modules"]["documents"]) {
-            //the document module is available in the object
             $db = DBManager::get();
-
-            $last_visit_date = $my_obj["visitdate"];
-            $top_folder = Folder::findTopFolder($object_id);
-            if(!$top_folder) {
-                return null;
+            $unreadable_folders = [];
+            if (!Seminar_Perm::get()->have_studip_perm('tutor', $object_id, $user_id)) {
+                $unreadable_folders = array_map(
+                    function ($f) {
+                        return $f->getId();
+                    },
+                    FileManager::getUnreadableFolders(
+                        Folder::findTopFolder($object_id)->getTypedFolder(), $user_id)
+                );
             }
-
-            $top_folder = $top_folder->getTypedFolder();
-            if(!$top_folder) {
-                //we can't do anything useful if no top folder can be found.
-                return null;
-            }
-
-            //count all files in standard folders for the object.
-            $files_count = FileRef::countBySql(
-                "INNER JOIN folders ON folders.id = file_refs.folder_id
-                WHERE
-                folders.folder_type = 'StandardFolder'
-                AND folders.range_id = :range_id",
-                [
-                    'range_id' => $object_id
-                ]
-            );
-
-            //Count all new files in standard folders for the object.
-            //Permission checks for standard folders are omitted
-            //to allow a wider use of this method.
-            $new_files_count = FileRef::countBySql(
-                "INNER JOIN folders ON folders.id = file_refs.folder_id
-                WHERE
-                (file_refs.mkdate > :last_visit_date
-                OR file_refs.chdate > :last_visit_date)
-                AND folders.folder_type IN ('StandardFolder', 'RootFolder')
-                AND folders.range_id = :range_id
-                AND file_refs.user_id <> :user_id",
-                [
-                    'last_visit_date' => $last_visit_date,
-                    'range_id' => $object_id,
-                    'user_id' => $user_id
-                ]
-            );
-
-
-            //For nonstandard folders we must loop through all files
-            //if those folders are visible for the selected user.
-            //First we get all nonstandard folders of a course
-            //and then add those files to a list if the folder is readable
-            //for the current user.
-            $nonstandard_folders = Folder::findBySql(
-                "folder_type NOT IN ('StandardFolder', 'RootFolder')
-                AND range_id = :range_id",
-                [
-                    'range_id' => $object_id
-                ]
-            );
-
-
-            $filter_closure = function($file_ref) use ($last_visit_date, $user_id) {
-                if ($file_ref->user_id === $user_id) {
-                    return false;
+            $query = "SELECT COUNT(fr.id) as count,
+            COUNT(IF((fr.chdate > IFNULL(ouv.visitdate, :threshold)
+            AND fr.user_id != :user_id), fr.id, NULL)) AS neue,
+            MAX(IF((fr.chdate > IFNULL(ouv.visitdate, :threshold)
+            AND fr.user_id != :user_id), fr.chdate, 0)) AS last_modified
+            FROM folders a 
+            INNER JOIN file_refs fr ON (fr.folder_id=a.id)
+            LEFT JOIN object_user_visits ouv ON (ouv.object_id = a.range_id AND ouv.user_id = :user_id AND ouv.type ='documents')
+	        WHERE a.range_id = :object_id " . (count($unreadable_folders) ? "AND a.id NOT IN (:unreadable_folders)" : "");
+            $result = $db->fetchOne($query, [
+                ':user_id'            => $user_id,
+                ':threshold'          => object_get_visit_threshold(),
+                ':object_id'          => $object_id,
+                ':unreadable_folders' => $unreadable_folders
+            ]);
+            if (!empty($result)) {
+                if (!is_null($result['last_modified']) && (int)$result['last_modified'] != 0) {
+                    if ($my_obj['last_modified'] < $result['last_modified']) {
+                        $my_obj['last_modified'] = $result['last_modified'];
+                    }
                 }
 
-                if ($file_ref->mkdate > $last_visit_date) {
-                    return true;
+
+                $navigation = new Navigation('files');
+                if ($result['neue'] > 0) {
+                    $navigation->setURL(
+                        URLHelper::getURL(
+                            'dispatch.php/' . ($my_obj["obj_type"] == 'sem' ? 'course' : 'institute') . '/files/flat',
+                            [
+                                'select' => 'new'
+                            ]
+                        )
+                    );
+
+                    $navigation->setImage(
+                        Icon::create(
+                            'files+new',
+                            'attention',
+                            [
+                                'title' => sprintf(
+                                    _('%s Datei(en), %s neue'),
+                                    $result['count'],
+                                    $result['neue']
+                                )
+                            ]
+                        )
+                    );
+
+                    $navigation->setBadgeNumber($result['neue']);
+                } elseif ($result['count']) {
+                    $navigation->setURL(
+                        URLHelper::getURL(
+                            'dispatch.php/' . ($my_obj["obj_type"] == 'sem' ? 'course' : 'institute') . '/files/index'
+                        )
+                    );
+                    $navigation->setImage(
+                        Icon::create(
+                            'files',
+                            'inactive',
+                            [
+                                'title' => sprintf(
+                                    _('%s Datei(en)'),
+                                    $result['count']
+                                )
+                            ]
+                        )
+                    );
                 }
-                //if this is executed the file is not new:
-                return false;
-            };
-
-
-
-            foreach($nonstandard_folders as $folder) {
-                $folder = $folder->getTypedFolder();
-
-                //A folder must be readable and visible for a user
-                //so that the new files it contains are shown to the user.
-                if($folder->isReadable($user_id) && $folder->isVisible($user_id)) {
-                    //first get the amount of all files:
-                    $files = $folder->getFiles();
-                    $files_count += count($files);
-
-                    //then filter them to get only the new files:
-                    $new_files = array_filter($files, $filter_closure);
-
-                    $new_files_count += count($new_files);
-                }
+                return $navigation;
             }
-
-            $navigation = new Navigation('files');
-            if ($new_files_count > 0) {
-                $navigation->setURL(
-                    URLHelper::getURL(
-                        'dispatch.php/' . ($my_obj["obj_type"] == 'sem' ? 'course' : 'institute')  . '/files/flat',
-                        [
-                            'select' => 'new'
-                        ]
-                    )
-                );
-
-                $navigation->setImage(
-                    Icon::create(
-                        'files+new',
-                        'attention',
-                        [
-                            'title' => sprintf(
-                                _('%s Datei(en), %s neue'),
-                                $files_count,
-                                $new_files_count
-                            )
-                        ]
-                    )
-                );
-
-                $navigation->setBadgeNumber($new_files_count);
-            } else {
-                $navigation->setURL(
-                    URLHelper::getURL(
-                        'dispatch.php/' . ($my_obj["obj_type"] == 'sem' ? 'course' : 'institute')  . '/files/index'
-                    )
-                );
-                $navigation->setImage(
-                    Icon::create(
-                        'files',
-                        'inactive',
-                        [
-                            'title' => sprintf(
-                                _('%s Datei(en)'),
-                                $files_count
-                            )
-                        ]
-                    )
-                );
-            }
-            return $navigation;
         }
 
         return null;
@@ -1244,8 +1189,7 @@ class MyRealmModel
                 if (strcmp($key, 'participants') === 0) {
                     array_push($params, false);
                 }
-                $nav = call_user_func_array(array(self,
-                                                  $function), $params);
+                $nav = call_user_func_array(['self', $function], $params);
 
             }
 

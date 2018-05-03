@@ -24,7 +24,7 @@ class DatafieldCondition extends UserFilterField
         $ret = array();
         try {
             foreach (DataField::findBySQL("object_type='user' AND (object_class & (1|2|4|8) OR object_class IS NULL) AND is_userfilter = 1 ORDER BY priority") as $df) {
-                $ret[__CLASS__ . '_' . $df->id] = chr(160) . _("Datenfeld") . ': ' . $df->name;
+                $ret[__CLASS__ . '_' . $df->id] = utf8_encode(chr(160)) . _("Datenfeld") . ': ' . $df->name;
             }
         } catch (PDOException $e) {} //migration 128 chokes on this...
         return $ret;

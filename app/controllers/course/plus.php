@@ -68,7 +68,7 @@ class Course_PlusController extends AuthenticatedController
         }
 
         $this->setupSidebar();
-        $this->available_modules = $this->getSortedList();
+        $this->available_modules = $this->getSortedList($this->sem);
 
         if (Request::submitted('deleteContent')) $this->deleteContent($this->available_modules);
     }
@@ -199,17 +199,20 @@ class Course_PlusController extends AuthenticatedController
 
         unset($_SESSION['plus']['Kategorielist']);
         $plusconfig['course_plus'] = $_SESSION['plus'];
-        UserConfig::get($GLOBALS['user']->id)->store(PLUS_SETTINGS,$plusconfig);
+        UserConfig::get($GLOBALS['user']->id)->store('PLUS_SETTINGS', $plusconfig);
     }
 
 
-    private function getSortedList()
+    private function getSortedList(Range $context)
     {
 
         $list = array();
         $cat_index = array();
 
         foreach (PluginEngine::getPlugins('StandardPlugin') as $plugin) {
+            if (!$plugin->isActivatableForContext($context)) {
+                continue;
+            }
 
             if ((!$this->sem_class && !$plugin->isCorePlugin())
                 || ($this->sem_class && !$this->sem_class->isModuleMandatory(get_class($plugin))
@@ -450,7 +453,7 @@ class Course_PlusController extends AuthenticatedController
 
             }
         }
-        if (!count($_SESSION['admin_modules_data']["conflicts"])) {
+        if (empty($_SESSION['admin_modules_data']["conflicts"])) {
             $changes = false;
             $anchor = "";
             // Inhaltselemente speichern
@@ -474,7 +477,7 @@ class Course_PlusController extends AuthenticatedController
                 $changes = true;
             }
             // Plugins speichern
-            if (count($_SESSION['plugin_toggle']) > 0) {
+            if (!empty($_SESSION['plugin_toggle'])) {
                 $plugin_manager = PluginManager::getInstance();
 
                 foreach ($plugins as $plugin) {

@@ -59,6 +59,11 @@ class Statusgruppen extends SimpleORMap
             'foreign_key' => 'range_id',
         );
         $config['additional_fields']['children'] = true;
+
+        $config['default_values']['position'] = null;
+
+        $config['registered_callbacks']['after_delete'][] = 'reorderPositions';
+
         parent::configure($config);
     }
 
@@ -531,13 +536,6 @@ class Statusgruppen extends SimpleORMap
 
         }
 
-        // Resort groups
-        $query = "UPDATE statusgruppen
-                  SET position = position - 1
-                  WHERE range_id = ? AND position > ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute([$this->range_id, $this->position]);
-
         // Remove datafields
         $query = "DELETE FROM datafields_entries
                   WHERE range_id = ?";
@@ -547,5 +545,21 @@ class Statusgruppen extends SimpleORMap
         $result += parent::delete();
 
         return $result;
+    }
+
+    /**
+     * Reorders position after delete or for the assoicated range_id.
+     */
+    public function reorderPositions()
+    {
+        $i = 0;
+        self::findEachBySQL(
+            function ($group) use (&$i) {
+                $group->position = $i++;
+                $group->store();
+            },
+            'range_id = ? ORDER BY position ASC, name ASC',
+            [$this->range_id]
+        );
     }
 }

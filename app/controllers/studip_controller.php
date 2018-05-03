@@ -201,7 +201,9 @@ abstract class StudipController extends Trails_Controller
             $to = $prefix . $to;
         }
         $args[0] = $to;
-        $url = call_user_func_array("parent::url_for", $args);
+        $url = preg_match('#^(/|\w+://)#', $to)
+             ? $to
+             : call_user_func_array('parent::url_for', $args);
         if ($fragment) {
             $url .= '#' . $fragment;
         }
@@ -271,6 +273,39 @@ abstract class StudipController extends Trails_Controller
     {
         $this->set_content_type('application/json;charset=utf-8');
         return $this->render_text(json_encode($data));
+    }
+
+    /**
+     * Render given data as csv, data is assumed to be utf-8.
+     * The first row of data may contain column titles.
+     *
+     * @param array $data       data as two dimensional array
+     * @param string $filename  download file name (optional)
+     * @param string $delimiter field delimiter char (optional)
+     * @param string $enclosure field enclosure char (optional)
+     */
+    public function render_csv($data, $filename = null, $delimiter = ';', $enclosure = '"')
+    {
+        $this->set_content_type('text/csv; charset=UTF-8');
+
+        $output = fopen('php://temp', 'rw');
+        fputs($output, "\xEF\xBB\xBF");
+
+        foreach ($data as $row) {
+            fputcsv($output, $row, $delimiter, $enclosure);
+        }
+
+        rewind($output);
+        $csv_data = stream_get_contents($output);
+        fclose($output);
+
+        if (isset($filename)) {
+            $this->response->add_header('Content-Disposition', 'attachment; ' . encode_header_parameter('filename', $filename));
+        }
+
+        $this->response->add_header('Content-Length', strlen($csv_data));
+
+        return $this->render_text($csv_data);
     }
 
     /**
