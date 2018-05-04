@@ -30,11 +30,13 @@
             <col width="20%">
             <col width="20%">
             <col width="20%">
+            <col width="10%">
         <? else: ?>
             <col>
             <col width="10%">
             <col width="30%">
             <col width="30%">
+            <col width="10%">
         <? endif; ?>
         <? if ($has_access): ?>
             <col width="48px">
@@ -49,6 +51,7 @@
         <? endif; ?>
             <th data-sort="text" class="hidden-small-down"><?= _('Thema') ?></th>
             <th data-sort="text"><?= _('Raum') ?></th>
+            <th data-sort="htmldata"><?= _('Dateien')?></th>
         <? if ($has_access): ?>
             <th datasort="false"></th>
         <? endif; ?>
@@ -91,6 +94,7 @@
         <? endif; ?>
         <th data-sort="text" class="hidden-small-down"><?= _('Thema') ?></th>
         <th data-sort="text"><?= _('Raum') ?></th>
+        <th data-sort="htmldata"><?= _('Dateien')?></th>
     </tr>
     </thead>
     <tbody>

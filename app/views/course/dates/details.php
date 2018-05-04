@@ -53,3 +53,27 @@
     <? endif; ?>
     </tbody>
 </table>
+<? extract($date->getAccessibleFolderFiles($GLOBALS['user']->id))?>
+<? if (count($files) > 0): ?>
+    <article class="studip">
+        <header>
+            <h1>
+                <?= _('Dateien') ?>
+            </h1>
+        </header>
+        <section>
+            <table class="default sortable-table" data-sortlist="[[2, 0]]">
+                <?= $this->render_partial('files/_files_thead') ?>
+                <? foreach($files as $file_ref): ?>
+                    <?= $this->render_partial('files/_fileref_tr',
+                        [
+                            'file_ref' => $file_ref,
+                            'current_folder' => $folders[$file_ref->folder_id],
+                            'last_visitdate' => time()
+                        ]) ?>
+                <? endforeach ?>
+            </table>
+        </section>
+    </article>
+<? endif; ?>
+

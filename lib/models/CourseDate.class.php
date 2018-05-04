@@ -38,6 +38,30 @@ class CourseDate extends SimpleORMap
     const FORMAT_DEFAULT = 'default';
     const FORMAT_VERBOSE = 'verbose';
 
+    private static $numbered_dates = null;
+
+    /**
+     * return consecutive number for a date in its course, if semester is given
+     * only within that time range
+     *
+     * @param CourseDate $date
+     * @param null|Semester $semester
+     * @return int|null
+     */
+    public static function getConsecutiveNumber($date, $semester = null)
+    {
+        if (!isset(self::$numbered_dates[@$semester->id ?: 'all'])) {
+            $db = DBManager::get();
+            $numbered = array_flip($db->fetchFirst("SELECT termin_id FROM termine WHERE range_id = ?" .
+                ($semester ? " AND date BETWEEN ? AND ?" : "") .
+                " ORDER BY date",
+                $semester ? [$date->range_id, $semester->beginn, $semester->ende] : [$date->range_id]));
+            self::$numbered_dates[@$semester->id ?: 'all'] = $numbered;
+        }
+        return isset(self::$numbered_dates[@$semester->id ?: 'all'][$date->termin_id]) ? self::$numbered_dates[@$semester->id ?: 'all'][$date->termin_id] + 1 : null;
+
+    }
+
     /**
      * Returns course dates by issue id.
      *
@@ -121,6 +145,10 @@ class CourseDate extends SimpleORMap
             'order_by' => 'ORDER BY Nachname, Vorname',
             'on_delete' => 'delete',
             'on_store' => 'store'
+        );
+        $config['has_many']['folders'] = array(
+            'class_name'  => 'Folder',
+            'assoc_func' => 'findByTermin_id'
         );
         $config['belongs_to']['author'] = array(
             'class_name'  => 'User',
@@ -388,5 +416,30 @@ class CourseDate extends SimpleORMap
         }
 
         return $warnings;
+    }
+
+    /**
+     * return all filerefs belonging to this date, permissions fpr given user are checked
+     *
+     * @param string|User $user_or_id
+     * @return mixed[] A mixed array with FolderType and FileRef objects.
+     */
+    public function getAccessibleFolderFiles($user_or_id)
+    {
+        $user_id = $user_or_id instanceof User ? $user_or_id->id : $user_or_id;
+        $all_files = [];
+        $all_folders = [];
+        $folders = $this->folders->getArrayCopy();
+        foreach ($this->topics as $topic) {
+            $folders = array_merge($folders, $topic->folders->getArrayCopy());
+        }
+        foreach ($folders as $folder) {
+            list($files, $typed_folders) = array_values(FileManager::getFolderFilesRecursive($folder->getTypedFolder(), $user_id));
+            foreach ($files as $file) {
+                $all_files[$file->id] = $file;
+            }
+            $all_folders = array_merge($all_folders, $typed_folders);
+        }
+        return ['files' => $all_files, 'folders' => $all_folders];
     }
 }

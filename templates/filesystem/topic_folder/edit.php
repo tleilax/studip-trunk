@@ -16,3 +16,7 @@ $topics = CourseTopic::findBySeminar_id($folder->range_id);
     <? endforeach; ?>
     </select>
 </label>
+<label>
+    <input name="course_topic_folder_perm_write" type="checkbox" value="1" <? if ($folder->checkPermission('w')) echo 'checked'; ?>>
+    <?= _('Studierende dürfen Dateien in diesen Ordner hochladen') ?>
+</label>
