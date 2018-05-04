@@ -103,6 +103,7 @@ class CourseTopic extends SimpleORMap {
                     $folder['data_content']['topic_id'] = $this->getId();
                     $folder['user_id'] = $GLOBALS['user']->id;
                     $folder['name'] = $this['title'];
+                    $folder['description'] = $this['description'];
                     return $folder->store();
                 }
             }

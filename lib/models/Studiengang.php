@@ -194,7 +194,7 @@ class Studiengang extends ModuleManagementModelTreeItem
     {
         return parent::getEnrichedByQuery('
             SELECT ms.*, 
-                COUNT(msf.fach_id) AS `count_faecher`
+                COUNT(mfi.fach_id) AS `count_faecher`
             FROM mvv_studiengang AS ms 
                 LEFT JOIN mvv_abschl_zuord AS maz USING(abschluss_id) 
                 LEFT JOIN mvv_stg_stgteil USING(studiengang_id) 

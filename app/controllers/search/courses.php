@@ -13,75 +13,110 @@
 
 class Search_CoursesController extends AuthenticatedController
 {
+    
+    protected $with_session = true;
+    protected $allow_nobody = false;
+    private $nav_option = null;
+    
     public function before_filter(&$action, &$args)
     {
+        $this->allow_nobody = Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY;
+        
         parent::before_filter($action, $args);
-        PageLayout::setHelpKeyword("Basis.VeranstaltungenAbonnieren");
-        PageLayout::setTitle(_("Suche nach Veranstaltungen"));
-        if (Request::option('view')) {
-            $_SESSION['sem_portal']['bereich'] = Request::option('view');
+        
+        PageLayout::setHelpKeyword('Basis.VeranstaltungenAbonnieren');
+        PageLayout::setTitle(_('Suche nach Veranstaltungen'));
+
+        // activate navigation item
+        $nav_options = Config::get()->COURSE_SEARCH_NAVIGATION_OPTIONS;
+        URLHelper::bindLinkParam('option', $this->nav_option);
+        if ($nav_options[$this->nav_option]
+                && Navigation::hasItem('/search/courses/' . $this->nav_option)) {
+            Navigation::activateItem($nav_path);
+        } else {
+            URLHelper::removeLinkParam('option');
+            $level = Request::get('level', $_SESSION['sem_browse_data']['level']);
+            $default_option = SemBrowse::getSearchOptionNavigation('sidebar');
+            if (!$level) {
+                $this->relocate($default_option->getURL());
+            } elseif ($level == 'f' && $nav_options['courses']['visible']) {
+                    Navigation::activateItem('/search/courses/courses');
+            } elseif ($level == 'vv' && $nav_options['semtree']['visible']) {
+                Navigation::activateItem('/search/courses/semtree');
+            } elseif ($level == 'ev' && $nav_options['rangetree']['visible']) {
+                Navigation::activateItem('/search/courses/rangetree');
+            } else {
+                throw new AccessDeniedException();
+            }
         }
-
-        if (!$_SESSION['sem_portal']['bereich']) {
-            $_SESSION['sem_portal']['bereich'] = "all";
-        }
-
-        Request::set('view', $_SESSION['sem_portal']['bereich']);
-        Navigation::activateItem('/search/courses');
-
-        if (Request::option('choose_toplist')) {
-            $_SESSION['sem_portal']['toplist'] = Request::option('choose_toplist');
-        }
-
-        if (!$_SESSION['sem_portal']['toplist']) {
-            $_SESSION['sem_portal']['toplist'] = 4;
-        }
-
-        $views = new ViewsWidget();
-        $views->addLink(_('Alle'), $this->url_for(
-            'search/courses?reset_all=TRUE&cmd=qs',
-            ['view' => 'all']
-        ))->setActive(Request::get('view', 'all') === 'all');
-
-        foreach ($GLOBALS['SEM_CLASS'] as $key => $val) {
-            $views->addLink($val['name'], $this->url_for(
-                'search/courses?reset_all=TRUE&cmd=qs',
-                ['view' => $key]
-            ))->setActive(Request::int('view') === $key);
-        }
-        Sidebar::Get()->addWidget($views);
     }
 
     public function index_action()
     {
-        if ($_SESSION['sem_portal']['bereich'] != "all") {
-            $class = $GLOBALS['SEM_CLASS'][$_SESSION['sem_portal']['bereich']];
-            $this->anzahl_seminare_class = $class->countSeminars();
-            $sem_status = array_keys($class->getSemTypes());
+        SemBrowse::transferSessionData();
+        $this->sem_browse_obj = new SemBrowse();
+        
+        if (!$GLOBALS['perm']->have_perm('root')) {
+            $this->sem_browse_obj->target_url = 'dispatch.php/course/details/';
+            $this->sem_browse_obj->target_id = 'sem_id';
         } else {
-            $sem_status = false;
+            $this->sem_browse_obj->target_url = 'seminar_main.php';
+            $this->sem_browse_obj->target_id = 'auswahl';
         }
+        
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/seminar-sidebar.png');
 
-        $init_data = array( "level" => "f",
-            "cmd"=>"qs",
-            "show_class"=>$_SESSION['sem_portal']['bereich'],
-            "group_by"=>0,
-            "default_sem"=> ( ($default_sem = SemesterData::GetSemesterIndexById($_SESSION['_default_sem'])) !== false ? $default_sem : "all"),
-            "sem_status"=> $sem_status);
-
-        if (Request::option('reset_all')) $_SESSION['sem_browse_data'] = null;
-        $this->sem_browse_obj = new SemBrowse($init_data);
-        $sem_browse_data['show_class'] = $_SESSION['sem_portal']['bereich'];
-
-        if (!$GLOBALS['perm']->have_perm("root")){
-            $this->sem_browse_obj->target_url="dispatch.php/course/details/";
-            $this->sem_browse_obj->target_id="sem_id";
-        } else {
-            $this->sem_browse_obj->target_url="seminar_main.php";
-            $this->sem_browse_obj->target_id="auswahl";
+        SemBrowse::setSemesterSelector($this->url_for('search/courses/index'));
+        SemBrowse::setClassesSelector($this->url_for('search/courses/index'));
+        
+        // add search options to sidebar
+        if (Request::get('level', $_SESSION['sem_browse_data']['level'] ?: 'f') == 'f') {
+            $widget = new OptionsWidget();
+            $widget->setTitle(_('Suchoptionen'));
+            $widget->addCheckbox(_('Erweiterte Suche anzeigen'),
+                    $_SESSION['sem_browse_data']['cmd'] == "xts",
+                    URLHelper::getLink('?cmd=xts&level=f'),
+                    URLHelper::getLink('?cmd=qs&level=f'));
+            $sidebar->addWidget($widget);
         }
+        
+        if ($this->sem_browse_obj->show_result
+                && count($_SESSION['sem_browse_data']['search_result'])) {
+            $actions = new ActionsWidget();
+            $actions->addLink(_('Download des Ergebnisses'),
+                    URLHelper::getURL('dispatch.php/search/courses/export_results'),
+                    Icon::create('file-office', 'clickable'));
+            $sidebar->addWidget($actions);
 
-        $this->toplist_entries = $this->getToplistEntries($sem_status);
+            $grouping = new OptionsWidget();
+            $grouping->setTitle(_('Suchergebnis gruppieren:'));
+            foreach ($this->sem_browse_obj->group_by_fields as $i => $field) {
+                $grouping->addRadioButton(
+                    $field['name'],
+                    URLHelper::getLink('?', array('group_by' => $i,
+                        'keep_result_set' => 1)),
+                    $_SESSION['sem_browse_data']['group_by'] == $i
+                );
+            }
+            $sidebar->addWidget($grouping);
+        }
+        
+        // show information about course class if class was changed
+        $class = $GLOBALS['SEM_CLASS'][$_SESSION['sem_browse_data']['show_class']];
+        if (is_object($class) && $class->countSeminars() > 0) {
+            if (trim($GLOBALS['SEM_CLASS'][$_SESSION['sem_browse_data']['show_class']]['description'])) {
+                PageLayout::postInfo(sprintf(_('Gewählte Veranstaltungsklasse <i>%1s</i>: %2s'),
+                        $GLOBALS['SEM_CLASS'][$_SESSION['sem_browse_data']['show_class']]['name'],
+                        $GLOBALS['SEM_CLASS'][$_SESSION['sem_browse_data']['show_class']]['description']));
+            } else {
+                PageLayout::postInfo(sprintf(_('Gewählte Veranstaltungsklasse <i>%1s</i>.'),
+                        $GLOBALS['SEM_CLASS'][$_SESSION['sem_browse_data']['show_class']]['name']));
+            }
+        } elseif ($_SESSION['sem_browse_data']['show_class'] != 'all') {
+            PageLayout::postInfo(_('Im gewählten Semester ist in dieser Veranstaltungsklasse keine Veranstaltung verfügbar. Bitte wählen Sie eine andere Veranstaltungsklasse oder ein anderes Semester!'));
+        }
+        
         $this->controller = $this;
     }
 
@@ -90,101 +125,11 @@ class Search_CoursesController extends AuthenticatedController
         $sem_browse_obj = new SemBrowse();
         $tmpfile = basename($sem_browse_obj->create_result_xls());
         if ($tmpfile) {
-            $this->redirect(FileManager::getDownloadURLForTemporaryFile($tmpfile, _("ErgebnisVeranstaltungssuche.xls"), 4));
+            $this->redirect(FileManager::getDownloadURLForTemporaryFile(
+                    $tmpfile, _('ErgebnisVeranstaltungssuche.xls'), 4));
         } else {
             $this->render_nothing();
         }
     }
-
-
-    protected function getToplistEntries($sem_status) {
-        $sql_where_query_seminare = " WHERE 1 ";
-        $parameters = array();
-
-        if (!$GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM'))) {
-            $sql_where_query_seminare .= " AND seminare.visible = 1 ";
-        }
-
-        if ($_SESSION['sem_portal']['bereich'] != 'all' && count($sem_status)) {
-            $sql_where_query_seminare .= " AND seminare.status IN (?) ";
-            $parameters[] = $sem_status;
-        }
-        switch ($_SESSION['sem_portal']["toplist"]) {
-            case 4:
-            default:
-                $query = "SELECT seminar_id, name, mkdate AS count
-                      FROM seminare
-                      {$sql_where_query_seminare}
-                      ORDER BY mkdate DESC
-                      LIMIT 5";
-                $statement = DBManager::get()->prepare($query);
-                $statement->execute($parameters);
-                $top_list = $statement->fetchAll(PDO::FETCH_ASSOC);
-                //$toplist =  $this->getToplist(_('neueste Veranstaltungen'), $query, 'date', $parameters);
-                break;
-            case 1:
-                $query = "SELECT seminare.seminar_id, seminare.name, COUNT(seminare.seminar_id) AS count
-                      FROM seminare
-                      LEFT JOIN seminar_user USING (seminar_id)
-                      {$sql_where_query_seminare}
-                      GROUP BY seminare.seminar_id
-                      ORDER BY count DESC
-                      LIMIT 5";
-                $statement = DBManager::get()->prepare($query);
-                $statement->execute($parameters);
-                $top_list = $statement->fetchAll(PDO::FETCH_ASSOC);
-                //$toplist = $this->getToplist(_('Teilnehmeranzahl'), $query, 'count', $parameters);
-                break;
-            case 2:
-                $query = "SELECT seminare.seminar_id, seminare.name, COUNT(file_refs.id) AS count
-                      FROM seminare
-                      INNER JOIN folders ON (range_id = seminar_id)
-                      INNER JOIN file_refs ON (folders.id = folder_id)
-                      {$sql_where_query_seminare}
-                      GROUP BY seminare.seminar_id
-                      ORDER BY count DESC
-                      LIMIT 5";
-                $statement = DBManager::get()->prepare($query);
-                $statement->execute($parameters);
-                $top_list = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-                //$toplist =  $this->getToplist(_('die meisten Materialien'), $query, 'count', $parameters);
-                break;
-            case 3:
-                $cache = StudipCacheFactory::getCache();
-                $hash  = '/sem_portal/most_active';
-                $top_list = unserialize($cache->read($hash));
-                if (!$top_list) {
-                    // get TopTen of seminars from all ForumModules and add up the
-                    // count for seminars with more than one active ForumModule
-                    // to get a combined toplist
-                    $seminars = array();
-                    foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
-                        $new_seminars = $plugin->getTopTenSeminars();
-                        foreach ($new_seminars as $sem) {
-                            if (!isset($seminars[$sem['seminar_id']])) {
-                                $seminars[$sem['seminar_id']] = $sem;
-                                $seminars[$sem['seminar_id']]['name'] = $seminars[$sem['seminar_id']]['display'];
-                            } else {
-                                $seminars[$sem['seminar_id']]['count'] += $sem['count'];
-                            }
-                        }
-                    }
-                    // sort the seminars by the number of combined postings
-                    usort($seminars, function($a, $b) {
-                        if ($a['count'] == $b['count']) {
-                            return 0;
-                        }
-                        return ($a['count'] > $b['count']) ? -1 : 1;
-                    });
-                    $top_list = $seminars;
-                    // use only the first five seminars
-                    $top_list = array_slice($top_list, 0, 5);
-
-                    $cache->write($hash, serialize($top_list), 5 * 60);
-                }
-                break;
-        }
-        return $top_list;
-    }
+    
 }

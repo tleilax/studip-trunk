@@ -3,7 +3,7 @@
         STUDIP.Topics = {
             loadTopics: function (seminar_id) {
                 jQuery.ajax({
-                    'url': STUDIP.ABSOLUTE_URI_STUDIP + "dispatch.php/course/topics/fetch_topics",
+                    'url': STUDIP.URLHelper.getURL("dispatch.php/course/topics/fetch_topics"),
                     'data': { 'seminar_id': seminar_id },
                     'dataType': "json",
                     'success': function (json) {

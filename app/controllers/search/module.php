@@ -21,9 +21,10 @@ class Search_ModuleController extends MVVController
 
     public function before_filter(&$action, &$args)
     {
+        $this->allow_nobody = Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY;
+        
         parent::before_filter($action, $args);
-        // set navigation
-        Navigation::activateItem('/search/module/modulsuche');
+        
         $this->drill_down_type = Request::option('type');
         $this->drill_down_id = Request::option('id');
         $this->sterm = Request::get('sterm');
@@ -40,9 +41,21 @@ class Search_ModuleController extends MVVController
                 URLHelper::bindLinkParam('id', $this->drill_down_id);
             }
         }
+        
+        // set navigation
+        Navigation::activateItem('/search/courses/module');
+        
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
-        $this->setSidebar();
+        
+        $views = new ViewsWidget();
+        $views->addLink(_('Module'), $this->url_for('search/module'))
+                ->setActive();
+        $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'));
+        $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'));
+        $views->addLink(_('Fach-Abschlusskombinationen'), $this->url_for('search/stgtable'));
+        
+        $sidebar->addWidget($views);
     }
 
     protected function isVisible()

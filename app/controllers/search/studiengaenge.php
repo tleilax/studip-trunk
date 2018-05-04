@@ -18,16 +18,29 @@ class Search_StudiengaengeController extends MVVController
 
     public function before_filter(&$action, &$args)
     {
+        $this->allow_nobody = Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY;
+        
         parent::before_filter($action, $args);
-
+        
         // set navigation
-        Navigation::activateItem('/search/module/studiengaenge');
+        Navigation::activateItem('/search/courses/module');
+        
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/learnmodule-sidebar.png');
+        
+        $views = new ViewsWidget();
+        $views->addLink(_('Module'), $this->url_for('search/module'));
+        $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'));
+        $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'))
+                ->setActive();
+        $views->addLink(_('Fach-Abschluss-Kombinationen'), $this->url_for('search/stgtable'));
+        
+        $sidebar->addWidget($views);
+        
         $this->breadcrumb = new BreadCrumb();
         $this->action = $action;
-
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-        }
+        $this->verlauf_url = '/verlauf';
+        PageLayout::setTitle(_('Suche im Modulverzeichnis'));
     }
 
     protected function isVisible()
@@ -43,6 +56,7 @@ class Search_StudiengaengeController extends MVVController
 
         $this->breadcrumb->init();
         $this->breadcrumb->append(_('Studienangebot'), 'index');
+        $this->render_template('search/studiengaenge/index', $this->layout);
     }
 
     public function kategorie_action($kategorie_id)
@@ -77,6 +91,7 @@ class Search_StudiengaengeController extends MVVController
         $this->kategorie = $kategorie;
         $this->abschluesse = $abschluesse;
         $this->studiengaenge = $studiengaenge_abschluss;
+        $this->render_template('search/studiengaenge/kategorie', $this->layout);
     }
 
     public function studiengang_action($studiengang_id)
@@ -92,7 +107,7 @@ class Search_StudiengaengeController extends MVVController
 
         if (!$this->studiengang || !in_array($this->studiengang->stat, $status_filter)) {
             PageLayout::postError( _('Unbekannter Studiengang.'));
-            $this->redirect('search/studiengaenge');
+            $this->relocate($this->url_for('/index'));
             return null;
         }
 
@@ -115,7 +130,7 @@ class Search_StudiengaengeController extends MVVController
 
         if (!$studiengang || !in_array($studiengang->stat, $status_filter)) {
             PageLayout::postError( _('Unbekannter Studiengang.'));
-            $this->redirect('search/studiengaenge');
+            $this->relocate($this->url_for('/index'));
             return null;
         }
 
@@ -152,7 +167,7 @@ class Search_StudiengaengeController extends MVVController
         $this->teilNamen = $teilNamen;
 
         if (!$this->verlauf_url) {
-            $this->verlauf_url = 'search/studiengaenge/verlauf';
+            $this->verlauf_url = '/verlauf';
         }
 
         if(count($studiengang->stgteil_assignments) == 1) {
@@ -174,7 +189,6 @@ class Search_StudiengaengeController extends MVVController
             $teil = $studiengangTeile;
             $id = $teil[0]->getId();
             $this->verlauf_action($id);
-            $this->render_template('search/studiengaenge/verlauf', $this->layout);
         } else {
             // Einfach-Studiengang mit Ausprägungen
             // (unterschiedliche Studiengangteile direkt am Studiengang, ohne
@@ -184,7 +198,7 @@ class Search_StudiengaengeController extends MVVController
                 $this->data[$teil->getId()] = $teil->fach->getDisplayName();
             }
             if (!$this->verlauf_url) {
-                $this->verlauf_url = 'search/studiengaenge/verlauf';
+                $this->verlauf_url = '/verlauf';
             }
             $this->breadcrumb->append(Studiengang::find($studiengang_id), 'einfach');
             $this->render_template('search/studiengaenge/einfach', $this->layout);
@@ -234,7 +248,6 @@ class Search_StudiengaengeController extends MVVController
                 $active_sem = reset($this->semesters);
                 $this->active_sem = Semester::find($active_sem['semester_id']);
             }
-            $this->setVersionSelectWidget($versionen);
 
             $abschnitte = StgteilAbschnitt::findByStgteilVersion($this->cur_version_id);
             $abschnitteData = array();
@@ -299,11 +312,26 @@ class Search_StudiengaengeController extends MVVController
                     $this->stgTeilBez = StgteilBezeichnung::get($stgteil_bez_id);
                     $this->breadcrumb->append([$this->stgTeilBez, $studiengangTeil], 'verlauf');
                 } else {
-                    $this->stgTeilBez = StgteilBezeichnung::get($stgteil_bez_id);
                     $this->breadcrumb->append($studiengangTeil, 'verlauf');
                 }
                 $this->studiengang = Studiengang::get($studiengang_id);
             }
+            
+            $this->setVersionSelectWidget($versionen,
+                    $this->url_for('/verlauf',
+                            $studiengangTeil->id,
+                            $stgteil_bez_id,
+                            $studiengang_id));
+            
+            $sidebar = Sidebar::get();
+            $widget = new OptionsWidget();
+            $widget->setTitle(_('Filter'));
+            $widget->addCheckbox(_('Für Erstsemesterstudierende'),
+                    $_SESSION['MVV_FILTER_FIRST_SEMESTER'],
+                    URLHelper::getLink('?first_sem=1'),
+                    URLHelper::getLink('?first_sem=0'));
+            $sidebar->addWidget($widget);
+            
             ksort($fachsemesterData);
             $this->fachsemesterData = $fachsemesterData;
             $this->abschnitteData = $abschnitteData;
@@ -312,10 +340,9 @@ class Search_StudiengaengeController extends MVVController
             // Ausgabe des Namens ohne Fach (dieses ist im Zusatz bereits enthalten)
             // $this->studiengangTeilName = $studiengangTeil->getDisplayName(0);
             $this->studiengangTeilName = $studiengangTeil->getDisplayName();
-            $this->self_url = $this->url_for('search/studiengaenge/verlauf/' . $stgteil_id . '/');
-            $this->modul_url = $this->url_for('search/module/detail/');
-            $this->modulTeil_url = $this->url_for('modulteil/show/');
         }
+        $this->breadcrumb->append(Studiengang::find($studiengang_id), 'verlauf');
+        $this->render_template('search/studiengaenge/verlauf', $this->layout);
     }
 
     public function kommentar_action($abschnitt_id)
@@ -324,6 +351,7 @@ class Search_StudiengaengeController extends MVVController
         if (!$this->abschnitt) {
             throw new Trails_Exception(404);
         }
+        $this->render_template('search/studiengaenge/kommentar', $this->layout);
     }
 
     private function getSemester($version)
@@ -390,26 +418,26 @@ class Search_StudiengaengeController extends MVVController
      *
      * @param string $selected
      */
-    private function setVersionSelectWidget($versions)
+    private function setVersionSelectWidget($versions, $url)
     {
 
         $semester_time_switch = (int) Config::get()->getValue('SEMESTER_TIME_SWITCH');
         $cur_semester = Semester::findByTimestamp(time()
             + $semester_time_switch * 7 * 24 * 60 * 60);
-
+        
         $sidebar = Sidebar::get();
 
         if (count($versions) > 1) {
             $widget = new SelectWidget(_('Versionen-Auswahl'),
-                    '', 'version');
+                    $url, 'version');
             $options = [];
             foreach ($versions as $version) {
                 $options[$version->id] = $version->getDisplayName(0);
                 // fallback: show name of Studiengangteil if version or
                 // semester is unknown
-                $options[$version->id] =
+                $options[$version->id] = 
                         trim($options[$version->id])
-                        ?: $version->getDisplayName(ModuleManagementModel::DISPLAY_STGTEIL);
+                        ?: $version->getDisplayName(ModuleManagementModel::DISPLAY_STGTEIL); 
             }
             $widget->setOptions($options, $this->cur_version_id);
             $widget->setMaxLength(100);
@@ -417,7 +445,7 @@ class Search_StudiengaengeController extends MVVController
         }
 
         $widget = new SelectWidget(_('Semesterauswahl'),
-            '', 'semester');
+                $url, 'semester');
         $options = [];
         foreach ($this->semesters as $sem) {
             $options[$sem['semester_id']] = $sem['name'];
