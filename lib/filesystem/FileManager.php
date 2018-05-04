@@ -1911,10 +1911,10 @@ class FileManager
 
     /**
      * Create URL to a folder
-     * @param FolderType $folder  the folder
+     * @param FolderType|Folder $folder  the folder
      * @return string URL to the folder's range
      */
-    public static function getFolderURL(FolderType $folder)
+    public static function getFolderURL($folder)
     {
         if (!$folder->range_type) {
             return null;
@@ -1956,10 +1956,10 @@ class FileManager
 
     /**
      * Create link to a folder
-     * @param \FolderType $folder  the folder
+     * @param FolderType|Folder $folder  the folder
      * @return string link to the folder's range
      */
-    public static function getFolderLink(FolderType $folder)
+    public static function getFolderLink($folder)
     {
         return htmlReady(self::getFolderURL($folder));
     }
