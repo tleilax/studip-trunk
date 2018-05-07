@@ -63,7 +63,6 @@ javascripts:
     - javascripts/l10n.js
     - javascripts/vendor/chartist-0.11.0.js
     - javascripts/vendor/qrcode-04f46c6.js
-    - javascripts/jquery/lightbox/lightbox-2.9.0.js
     - javascripts/init.js
 
     - javascripts/vendor/select2.full-4.0.5.js
@@ -130,6 +129,7 @@ javascripts:
     - javascripts/studip-scroll.js
     - javascripts/studip-selection-helper.js
     - javascripts/studip-cache.js
+    - javascripts/studip-lightbox.js
     - javascripts/application.js
 
     - javascripts/course_archive.js

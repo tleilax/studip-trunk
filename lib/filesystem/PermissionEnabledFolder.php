@@ -53,7 +53,7 @@ class PermissionEnabledFolder extends StandardFolder
         return implode(array_reverse($r));
     }
 
-    protected function checkPermission($perm, $user_id = null)
+    public function checkPermission($perm, $user_id = null)
     {
         if ($user_id && is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_studip_perm($this->must_have_perm, $this->range_id, $user_id)) {
             return true;

@@ -12,7 +12,7 @@
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category  Stud.IP
  */
-class CourseTopicFolder extends StandardFolder implements FolderType
+class CourseTopicFolder extends PermissionEnabledFolder implements FolderType
 {
 
     public static $sorter = 1;
@@ -56,8 +56,12 @@ class CourseTopicFolder extends StandardFolder implements FolderType
             if ($this->topic === null) {
                 $this->topic = CourseTopic::find($this->folderdata['data_content']['topic_id']);
             }
-            $this->folderdata['name']        = (string)$this->topic->title;
-            $this->folderdata['description'] = (string)$this->topic->description;
+            if ($this->topic) {
+                $this->folderdata['name'] = (string)$this->topic->title;
+                $this->folderdata['description'] = (string)$this->topic->description;
+            } else {
+                $this->folderdata['name'] = _('(Thema gelöscht)') . ' ' . $this->folderdata['name'];
+            }
             return $this->topic;
         }
     }
@@ -97,6 +101,11 @@ class CourseTopicFolder extends StandardFolder implements FolderType
             return MessageBox::error(_('Es wurde kein Thema ausgewählt.'));
         } else {
             $this->setTopic($topic);
+        }
+        if (isset($request['course_topic_folder_perm_write'])) {
+            $this->folderdata['data_content']['permission'] = 7;
+        } else {
+            $this->folderdata['data_content']['permission'] = 5;
         }
         return $this;
     }

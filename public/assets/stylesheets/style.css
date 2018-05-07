@@ -9280,6 +9280,60 @@ table.default tr.subcourses td:nth-child(-n+4) {
 .ui-dialog.studip-confirmation .ui-dialog-buttonpane .ui-dialog-buttonset > * {
   display: inline-block;
 }
+.ui-dialog.studip-lightbox .wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 3px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+.ui-dialog.studip-lightbox .wrapper .next,
+.ui-dialog.studip-lightbox .wrapper .previous {
+  width: 32px;
+  height: 32px;
+  -webkit-transform: translate(0, -50%);
+  -moz-transform: translate(0, -50%);
+  -ms-transform: translate(0, -50%);
+  -o-transform: translate(0, -50%);
+  transform: translate(0, -50%);
+  background-repeat: no-repeat;
+  display: block;
+  opacity: 0.5;
+  position: absolute;
+  top: 50%;
+  -webkit-transition: opacity 300ms;
+  -moz-transition: opacity 300ms;
+  -o-transition: opacity 300ms;
+  transition: opacity 300ms;
+}
+.ui-dialog.studip-lightbox .wrapper .next:hover,
+.ui-dialog.studip-lightbox .wrapper .previous:hover {
+  opacity: 1;
+}
+.ui-dialog.studip-lightbox .wrapper .previous {
+  background-image: url("../images/icons/blue/arr_1left.svg");
+  -webkit-background-size: 32px 32px;
+  -moz-background-size: 32px 32px;
+  -o-background-size: 32px 32px;
+  background-size: 32px 32px;
+  left: 0;
+}
+.ui-dialog.studip-lightbox .wrapper .next {
+  background-image: url("../images/icons/blue/arr_1right.svg");
+  -webkit-background-size: 32px 32px;
+  -moz-background-size: 32px 32px;
+  -o-background-size: 32px 32px;
+  background-size: 32px 32px;
+  right: 0;
+}
+.ui-dialog.studip-lightbox .wrapper.first .previous,
+.ui-dialog.studip-lightbox .wrapper.last .next {
+  display: none;
+}
 .modal-overlay {
   background: rgba(40, 73, 124, 0.5);
   opacity: 1;

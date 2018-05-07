@@ -190,3 +190,48 @@
         }
     }
 }
+
+.ui-dialog.studip-lightbox {
+    .wrapper {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        margin: 3px;
+
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        
+        .next,
+        .previous {
+            .square(32px);
+            .translate(0, -50%);
+            background-repeat: no-repeat;
+            display: block;
+            opacity: 0.5;
+            position: absolute;
+            top: 50%;
+            .transition(opacity 300ms);
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+        .previous {
+            .background-icon('arr_1left', 'clickable', 32);
+            left: 0;
+        }
+        .next {
+            .background-icon('arr_1right', 'clickable', 32);
+            right: 0;
+        }
+        
+        &.first .previous,
+        &.last .next {
+            display: none;
+        }
+    }
+}
