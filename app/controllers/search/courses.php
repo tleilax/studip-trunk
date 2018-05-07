@@ -14,8 +14,9 @@
 class Search_CoursesController extends AuthenticatedController
 {
     
-    protected $with_session = true;
-    protected $allow_nobody = false;
+    /**
+     * @var string Holds the URL parameter with selected navigation option
+     */
     private $nav_option = null;
     
     public function before_filter(&$action, &$args)
