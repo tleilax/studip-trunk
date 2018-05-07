@@ -76,7 +76,7 @@ class MVVController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        if (!MVV::isVisible()) {
+        if (!$this->isVisible()) {
             throw new AccessDeniedException();
         }
 
