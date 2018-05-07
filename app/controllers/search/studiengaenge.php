@@ -414,9 +414,11 @@ class Search_StudiengaengeController extends MVVController
     }
 
     /**
-     * Adds a widget to select versions of Studiengang-Teile
+     * Adds a widget to select versions of Studiengang-Teile and semesters
      *
-     * @param string $selected
+     * @param  $versions SimpleORMapCollection Collection with versions of
+     * this Studiengangteil.
+     * @param $url string Submit url
      */
     private function setVersionSelectWidget($versions, $url)
     {
