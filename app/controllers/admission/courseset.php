@@ -38,7 +38,7 @@ class Admission_CoursesetController extends AuthenticatedController
                 throw new AccessDeniedException();
             }
         }
-        PageLayout::addSqueezePackage('admission');
+        PageLayout::addScript('studip-admission.js');
 
         $views = new ActionsWidget();
         $views->addLink(

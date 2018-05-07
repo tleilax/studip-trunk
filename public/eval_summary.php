@@ -600,7 +600,7 @@ Navigation::activateItem('/tools/evaluation');
 PageLayout::setTitle(_("Evaluations-Auswertung"));
 
 if ($ausgabeformat == 2) {
-    PageLayout::removeStylesheet('style.css');
+    PageLayout::removeStylesheet('studip-base.css');
     PageLayout::addStylesheet('print.css');
 }
 $layout = $GLOBALS['template_factory']->open('layouts/base.php');

@@ -144,7 +144,6 @@ class Course_GroupingController extends AuthenticatedController
             Course::findCurrent()->getFullname(),
             _('Teilnehmende in Unterveranstaltungen')
         ));
-        PageLayout::addScript('members.js');
         Navigation::activateItem('course/members/children');
         $this->courses = SimpleCollection::createFromArray(
             Course::findByParent_Course(

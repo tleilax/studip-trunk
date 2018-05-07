@@ -45,8 +45,7 @@ class FilesDashboardController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        PageLayout::addSqueezePackage('tablesorter');
-        PageLayout::addSqueezePackage('filesdashboard');
+        PageLayout::addScript('studip-filesdashboard.js');
         PageLayout::setHelpKeyword('Basis.FilesDashboard'); // set keyword for new help
 
         $this->user = $GLOBALS['user'];

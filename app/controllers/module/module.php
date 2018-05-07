@@ -1051,7 +1051,6 @@ class Module_ModuleController extends MVVController
             }
 
             PageLayout::setTitle(_('Vergleichsansicht'));
-            PageLayout::addScript('mvv_difflog.js');
             PageLayout::addStylesheet('print.css');
             $factory = $this->get_template_factory();
             $template = $factory->open('module/module/diff');

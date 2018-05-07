@@ -94,8 +94,6 @@ class Institute_MembersController extends AuthenticatedController
         URLHelper::addLinkParam('direction', $this->direction);
         URLHelper::addLinkParam('extend', $this->extend);
 
-        PageLayout::addScript('multi_person_search.js');
-
         $this->setupSidebar();
     }
 

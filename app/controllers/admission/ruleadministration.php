@@ -27,7 +27,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController
         $GLOBALS['perm']->check('root');
 
         Navigation::activateItem('/admin/config/admissionrules');
-        PageLayout::addSqueezePackage('admission');
+        PageLayout::addScript('studip-admission.js');
 
         $sidebar = Sidebar::Get();
         $sidebar->setTitle(PageLayout::getTitle() ?: _('Anmelderegeln'));

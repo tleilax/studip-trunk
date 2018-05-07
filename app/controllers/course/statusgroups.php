@@ -46,7 +46,8 @@ class Course_StatusgroupsController extends AuthenticatedController
         $this->is_participants_locked = LockRules::Check($this->course_id, 'participants');
 
         PageLayout::setTitle(sprintf('%s - %s', Course::findCurrent()->getFullname(), _('Gruppen')));
-        PageLayout::addSqueezePackage('statusgroups');
+        PageLayout::addStyleSheet('studip-statusgroups.css');
+        PageLayout::addScript('studip-statusgroups.js');
     }
 
     /**

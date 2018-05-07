@@ -57,7 +57,6 @@ class Course_MembersController extends AuthenticatedController
 
         // Layoutsettings
         PageLayout::setTitle(sprintf('%s - %s', Course::findCurrent()->getFullname(), _("Teilnehmende")));
-        PageLayout::addScript('members.js');
 
         SkipLinks::addIndex(Navigation::getItem('/course/members')->getTitle(), 'main_content', 100);
 

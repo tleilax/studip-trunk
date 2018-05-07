@@ -27,7 +27,7 @@ class Course_FilesController extends AuthenticatedController
         $this->course = Course::findCurrent();
         $this->last_visitdate = object_get_visit($this->course->id, 'documents');
 
-        PageLayout::addSqueezePackage('files');
+        PageLayout::addScript('studip-files.js');
         PageLayout::setHelpKeyword('Basis.Dateien');
         PageLayout::setTitle(Context::get()->getFullname() . ' - ' . _('Dateien'));
 

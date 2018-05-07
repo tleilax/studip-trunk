@@ -175,7 +175,7 @@ class LiteratureController extends AuthenticatedController
      */
     public function print_view_action()
     {
-        PageLayout::removeStylesheet('style.css');
+        PageLayout::removeStylesheet('studip-base.css');
         PageLayout::addStylesheet('print.css'); // use special stylesheet for printing
         $_range_id = Request::option('_range_id');
         if ($_range_id != $GLOBALS['user']->id && !$GLOBALS['perm']->have_studip_perm('user',$_range_id)){
