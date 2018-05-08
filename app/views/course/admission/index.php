@@ -111,7 +111,7 @@
                 <input <?= $is_locked['admission_disable_waitlist'] ?>
                         type="checkbox" id="admission_disable_waitlist"
                         name="admission_disable_waitlist"
-                        value="1" <?= ($course->admission_disable_waitlist == 0 ? "checked" : ""); ?>>
+                        value="1" <?= $course->admission_disable_waitlist == 0 ? "checked" : "" ?>>
                 <?= _('Warteliste aktivieren') ?>
                 <? if ($num_waitlist = $course->admission_applicants->findBy('status', 'awaiting')->count()) : ?>
                     &nbsp;<?= sprintf(_("(%s Wartende)"), $num_waitlist) ?>
@@ -122,7 +122,7 @@
                         type="checkbox"
                         id="admission_disable_waitlist_move"
                         name="admission_disable_waitlist_move"
-                        value="1" <?= ($course->admission_disable_waitlist_move == 0 ? "checked" : ""); ?>>
+                        value="1" <?= $course->admission_disable_waitlist_move == 0 ? "checked" : "" ?>>
                 <?= _('automatisches Nachrücken aus der Warteliste aktivieren') ?></label>
             <label for="admission_waitlist_max">
                 <?= _('max. Anzahl an Wartenden (optional)') ?>
@@ -130,7 +130,7 @@
                         type="text"
                         id="admission_waitlist_max"
                         name="admission_waitlist_max"
-                        value="<?= ($course->admission_waitlist_max ?: '') ?>">
+                        value="<?= $course->admission_waitlist_max ?: '' ?>">
             </label>
         </fieldset>
         <footer>
@@ -151,13 +151,13 @@
             <input <?= $is_locked['admission_prelim'] ?>
                     type="radio" id="admission_prelim_0"
                     name="admission_prelim"
-                    value="0" <?= ($course->admission_prelim == 0 ? "checked" : ""); ?>>
+                    value="0" <?= $course->admission_prelim == 0 ? "checked" : "" ?>>
             <?= _('Direkter Eintrag') ?></label>
         <label for="admission_prelim_1">
             <input <?= $is_locked['admission_prelim'] ?>
                     type="radio" id="admission_prelim_1"
                     name="admission_prelim"
-                    value="1" <?= ($course->admission_prelim == 1 ? "checked" : ""); ?>>
+                    value="1" <?= $course->admission_prelim == 1 ? "checked" : "" ?>>
             <?= _('Vorläufiger Eintrag') ?></label>
         <? if ($course->admission_prelim == 1) : ?>
             <label for="admission_prelim_txt"><?= _("Hinweistext bei vorläufigen Eintragungen:"); ?></label>
@@ -168,7 +168,7 @@
         <? endif ?>
         <label for="admission_binding">
             <input <?= $is_locked['admission_binding'] ?> id="admission_binding"
-                                                          type="checkbox" <?= ($course->admission_binding == 1 ? "checked" : ""); ?>
+                                                          type="checkbox" <?= $course->admission_binding == 1 ? "checked" : "" ?>
                                                           name="admission_binding" value="1">
             <?= _("Anmeldung ist <u>verbindlich</u>. (Teilnehmenden können sich nicht selbst wieder abmelden.)") ?>
         </label>
@@ -191,7 +191,7 @@
             <label for="lesezugriff">
                 <input <?= $is_locked['read_level'] ?>
                         id="lesezugriff"
-                        type="checkbox" <?= ($course->lesezugriff == 0 ? "checked" : ""); ?>
+                        type="checkbox" <?= $course->lesezugriff == 0 ? "checked" : "" ?>
                         name="read_level" value="1">
                 <?= _('Lesezugriff für nicht in Stud.IP angemeldete Personen erlauben') ?>
             </label>
@@ -200,7 +200,7 @@
                 <label for="schreibzugriff">
                     <input <?= $is_locked['write_level'] ?>
                             id="schreibzugriff"
-                            type="checkbox" <?= ($course->schreibzugriff == 0 ? "checked" : ""); ?>
+                            type="checkbox" <?= $course->schreibzugriff == 0 ? "checked" : "" ?>
                             name="write_level" value="1">
                     <?= _('Schreibzugriff für nicht in Stud.IP angemeldete Personen erlauben') ?>
                 </label>
@@ -225,7 +225,7 @@
                 <label for="user_domain_<?= $domain->getId() ?>">
                     <input <?= $is_locked['user_domain'] ?>
                             id="user_domain_<?= $domain->getId() ?>"
-                            type="checkbox" <?= (in_array($domain->getId(), $seminar_domains) ? "checked" : ""); ?>
+                            type="checkbox" <?= in_array($domain->getId(), $seminar_domains) ? "checked" : "" ?>
                             name="user_domain[]" value="<?= $domain->getId() ?>">
                     <?= htmlReady($domain->getName()) ?></label>
             <? endforeach ?>

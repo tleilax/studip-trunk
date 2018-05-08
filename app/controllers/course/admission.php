@@ -232,7 +232,7 @@ class Course_AdmissionController extends AuthenticatedController
             if ($this->course->store()) {
                 $message = sprintf('read access = %d, write access = %d', $request['read_level'], $request['write_level']);
                 StudipLog::log('SEM_CHANGED_ACCESS', $this->course->id, null, 'Zugriff für externe Nutzer wurde geändert', $message);
-                PageLayout::postMessage(MessageBox::success(_("Zugriff für externe Nutzer wurde geändert.")));
+                PageLayout::postSuccess(_("Zugriff für externe Nutzer wurde geändert."));
             }
         }
         $this->redirect($this->url_for('/index'));
