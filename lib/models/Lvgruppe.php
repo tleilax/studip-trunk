@@ -240,7 +240,6 @@ class Lvgruppe extends ModuleManagementModelTreeItem
                 . 'WHERE (mvv_lvgruppe.name LIKE :search_term OR mvv_modul.code LIKE :search_term '
                 . 'OR mvv_modul_deskriptor.bezeichnung LIKE :search_term) '
                 . $filter_sql
-                //. 'OR mmd.bezeichnung_kurz LIKE :search_term '
                 . 'GROUP BY lvgruppe_id '
                 . 'ORDER BY `name`', array(':search_term' => $term));
     }

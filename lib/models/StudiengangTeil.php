@@ -480,7 +480,9 @@ class StudiengangTeil extends ModuleManagementModelTreeItem
                 $messages[] = _('Es muss die Anzahl der Semester angegeben werden.');
                 $rejected = true;
             }
-            if (mb_strlen($this->zusatz->original()) < 2) {
+            if (mb_strlen($this->isI18nField('zusatz')
+                    ? $this->zusatz->original()
+                    : $this->zusatz) < 2) {
                 $ret['zusatz'] = true;
                 $messages[] = _('Der Titelzusatz ist zu kurz (mindestens 2 Zeichen).');
                 $rejected = true;

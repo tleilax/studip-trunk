@@ -8,25 +8,40 @@
             <tr>
                 <td style="vertical-align: top;"><strong><?= _('Alternativtext:') ?></strong></td>
                 <td>
-                <? if (!mb_strlen($lvgruppe->alttext->original()) && !count($lvgruppe->alttext->toArray())) : ?>
-                    <span class="mvv-no-entry">
-                    <?= _('Kein Alternativtext vorhanden.') ?>
-                    </span>
-                <? else : ?>
-                    <? $languages = Config::get()->CONTENT_LANGUAGES; ?>
-                    <? $def_lang = reset(array_keys($languages)); ?>
-                    <? if (mb_strlen($lvgruppe->alttext->original())) : ?>
-                    <div>
-                        <img style="display: block;" src="<?= Assets::image_path('languages/' . $languages[$def_lang]['picture']) ?>" alt="<?= $languages[$def_lang]['name'] ?>" title="<?= $languages[$def_lang]['name'] ?>">
-                        <?= formatReady($lvgruppe->alttext->original()) ?>
-                    </div>
+                <? if ($lvgruppe->isI18nField('alttext')) : ?>
+                    <? if (!mb_strlen($lvgruppe->alttext->original())
+                            && count(array_diff([null], $lvgruppe->alttext->toArray())) === 0) : ?>
+                        <span class="mvv-no-entry">
+                        <?= _('Kein Alternativtext vorhanden.') ?>
+                        </span>
+                    <? else : ?>
+                        <? $languages = Config::get()->CONTENT_LANGUAGES; ?>
+                        <? $def_lang = reset(array_keys($languages)); ?>
+                        <? if (mb_strlen($lvgruppe->alttext->original())) : ?>
+                        <div>
+                            <img style="display: block;" src="<?= Assets::image_path('languages/' . $languages[$def_lang]['picture']) ?>" alt="<?= $languages[$def_lang]['name'] ?>" title="<?= $languages[$def_lang]['name'] ?>">
+                            <?= formatReady($lvgruppe->alttext->original()) ?>
+                        </div>
+                        <? endif; ?>
+                        <? foreach ($lvgruppe->alttext->toArray() as $lang => $alttext) : ?>
+                            <? if (mb_strlen($alttext)) : ?>
+                            <div style="margin-top:10px;">
+                                <img style="display: block;" src="<?= Assets::image_path('languages/' . $languages[$lang]['picture']) ?>" alt="<?= $languages[$lang]['name'] ?>" title="<?= $languages[$lang]['name'] ?>">
+                                <?= formatReady($alttext) ?>
+                            </div>
+                            <? endif; ?>
+                        <? endforeach; ?>
                     <? endif; ?>
-                    <? foreach ($lvgruppe->alttext->toArray() as $lang => $alttext) : ?>
-                    <div style="margin-top:10px;">
-                        <img style="display: block;" src="<?= Assets::image_path('languages/' . $languages[$lang]['picture']) ?>" alt="<?= $languages[$lang]['name'] ?>" title="<?= $languages[$lang]['name'] ?>">
-                        <?= formatReady($alttext) ?>
-                    </div>
-                    <? endforeach; ?>
+                <? else : ?>
+                    <? if (!mb_strlen($lvgruppe->alttext)) : ?>
+                        <span class="mvv-no-entry">
+                        <?= _('Kein Alternativtext vorhanden.') ?>
+                        </span>
+                    <? else : ?>
+                        <div>
+                            <?= formatReady($lvgruppe->alttext) ?>
+                        </div>
+                    <? endif; ?>
                 <? endif; ?>
                 </td>
             </tr>
