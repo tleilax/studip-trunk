@@ -192,6 +192,9 @@
 }
 
 .ui-dialog.studip-lightbox {
+    @arrow-distance: 4px;
+    @arrow-size: 32px;
+    @arrow-zoom: 16px;
     .wrapper {
         position: absolute;
         top: 0;
@@ -204,31 +207,48 @@
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
-        
+
         .next,
         .previous {
-            .square(32px);
-            .translate(0, -50%);
+            .transition(opacity 300ms);
             background-repeat: no-repeat;
             display: block;
             opacity: 0.5;
+
             position: absolute;
-            top: 50%;
-            .transition(opacity 300ms);
+            top: 0;
+            bottom: 0;
+
+            outline: none;
 
             &:hover {
                 opacity: 1;
             }
+
         }
         .previous {
-            .background-icon('arr_1left', 'clickable', 32);
             left: 0;
+            right: 50%;
+
+            .background-icons(
+                'arr_1left', 'clickable', @arrow-size,
+                'arr_1left', 'info_alt', (@arrow-size + @arrow-zoom)
+            );
+            background-position: left unit(@arrow-distance, px) center,
+                                 left unit((@arrow-distance - @arrow-zoom / 2), px) center;
         }
         .next {
-            .background-icon('arr_1right', 'clickable', 32);
             right: 0;
+            left: 50%;
+
+            .background-icons(
+                'arr_1right', 'clickable', @arrow-size,
+                'arr_1right', 'info_alt', (@arrow-size + @arrow-zoom)
+            );
+            background-position: right unit(@arrow-distance, px) center,
+                                 right unit((@arrow-distance - @arrow-zoom / 2), px) center;
         }
-        
+
         &.first .previous,
         &.last .next {
             display: none;

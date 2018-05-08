@@ -517,7 +517,8 @@
         // Blur background
         $('#layout_wrapper').css({
             WebkitFilter: 'blur(' + STUDIP.Dialog.stack.length + 'px)',
-            filter: 'blur(' + STUDIP.Dialog.stack.length + 'px)'
+            filter: 'blur(' + STUDIP.Dialog.stack.length + 'px)',
+            overflowX: 'hidden'
         });
 
         // Create/update dialog
@@ -566,7 +567,8 @@
             } else {
                 $('#layout_wrapper').css({
                     WebkitFilter: '',
-                    filter: ''
+                    filter: '',
+                    overflowX: 'initial'
                 });
             }
         }
