@@ -49,7 +49,6 @@
  * @property string admission_waitlist_max database column
  * @property string admission_disable_waitlist_move database column
  * @property string completion database column
- * @property string public_topics database column
  * @property string parent_course database column
  * @property string end_time computed column read/write
  * @property SimpleORMapCollection topics has_many CourseTopic

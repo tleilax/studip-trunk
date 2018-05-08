@@ -283,8 +283,7 @@
     </article>
 <? endif ?>
 
-
-<? if ($course['public_topics'] && count($course->topics)) : ?>
+<? if (CourseConfig::get($course->id)->COURSE_PUBLIC_TOPICS && count($course->topics)) : ?>
     <article class="studip">
         <header>
             <h1><?= _("Themen") ?></h1>

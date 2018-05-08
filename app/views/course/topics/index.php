@@ -147,7 +147,7 @@ if ($GLOBALS['perm']->have_studip_perm('tutor', Context::getId())) {
     $options = new OptionsWidget();
     $options->addCheckbox(
         _('Themen öffentlich einsehbar'),
-        Context::get()->public_topics,
+        CourseConfig::get(Context::getId())->COURSE_PUBLIC_TOPICS,
         $controller->url_for('course/topics/allow_public')
     );
     $sidebar->addWidget($options);
