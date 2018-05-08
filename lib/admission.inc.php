@@ -165,7 +165,7 @@ function renumber_admission ($seminar_id, $send_message = TRUE)
             $update_statement->execute(array($position, $user_id, $seminar->id));
 
             //User benachrichten
-            if ($update_statement->rowCount() && $send_message) {
+            if ($update_statement->rowCount() && Config::get()->NOTIFY_ON_WAITLIST_ADVANCE && $send_message) {
                 //Usernamen auslesen
                 $username = get_username($user_id);
 
