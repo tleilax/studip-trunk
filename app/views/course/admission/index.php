@@ -183,9 +183,9 @@
     <form class="default" action="<?= $controller->link_for('/change_free_access') ?>" method="post">
         <?= CSRFProtection::tokenTag() ?>
         <fieldset>
-            <legend><?= _('Freier Zugriff') ?></legend>
+            <legend><?= _('Zugriff für externe Nutzer') ?></legend>
             <div>
-                <?= _('Sollen Personen Zugriff auf die Veranstaltung haben, die nicht in Stud.IP angemeldet sind?'); ?>
+                <?= _('Über diese Einstellung können Sie externen Nutzern, die keinen Zugang zum Stud.IP haben, Zugriff auf die Veranstaltung gewähren. Bitte beachten Sie, dass von Kursteilnehmern z.B. im Forum, Dateibereich oder Wiki erstellte Inhalte damit weltweit ohne Anmeldung einsehbar sind. Die Teilnehmerliste ist für externe Nutzer nicht sichtbar.'); ?>
             </div>
 
             <label for="lesezugriff">
@@ -193,20 +193,21 @@
                         id="lesezugriff"
                         type="checkbox" <?= ($course->lesezugriff == 0 ? "checked" : ""); ?>
                         name="read_level" value="1">
-                <?= _('Lesezugriff für nicht angemeldete Personen erlauben') ?>
+                <?= _('Lesezugriff für nicht in Stud.IP angemeldete Personen erlauben') ?>
             </label>
 
-
-            <label for="schreibzugriff">
-                <input <?= $is_locked['write_level'] ?>
-                        id="schreibzugriff"
-                        type="checkbox" <?= ($course->schreibzugriff == 0 ? "checked" : ""); ?>
-                        name="write_level" value="1">
-                <?= _('Schreibzugriff für nicht angemeldete Personen erlauben') ?>
-            </label>
+            <? if (!$is_locked['write_level'] || $course->schreibzugriff == 0): ?>
+                <label for="schreibzugriff">
+                    <input <?= $is_locked['write_level'] ?>
+                            id="schreibzugriff"
+                            type="checkbox" <?= ($course->schreibzugriff == 0 ? "checked" : ""); ?>
+                            name="write_level" value="1">
+                    <?= _('Schreibzugriff für nicht in Stud.IP angemeldete Personen erlauben') ?>
+                </label>
+            <? endif ?>
         </fieldset>
         <footer>
-            <?= Studip\Button::create(_('Freien Zugriff ändern'), 'change_free_access', ['data-dialog' => '']) ?>
+            <?= Studip\Button::create(_('Zugriffseinstellung ändern'), 'change_free_access', ['data-dialog' => '']) ?>
         </footer>
     </form>
     <br>
