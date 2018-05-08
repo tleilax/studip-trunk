@@ -64,14 +64,14 @@ class Settings_GeneralController extends Settings_SettingsController
         $this->config->store('TOUR_AUTOSTART_DISABLE', Request::int('tour_autostart_disable'));
 
         if (Request::int('personal_notifications_activated')) {
-            PersonalNotifications::activate();
+            PersonalNotifications::activate($this->user->id);
         } else {
-            PersonalNotifications::deactivate();
+            PersonalNotifications::deactivate($this->user->id);
         }
         if (Request::int('personal_notifications_audio_activated')) {
-            PersonalNotifications::activateAudioFeedback();
+            PersonalNotifications::activateAudioFeedback($this->user->id);
         } else {
-            PersonalNotifications::deactivateAudioFeedback();
+            PersonalNotifications::deactivateAudioFeedback($this->user->id);
         }
 
         PageLayout::postSuccess(_('Die Einstellungen wurden gespeichert.'));
