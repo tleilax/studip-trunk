@@ -35,7 +35,7 @@ class LonCapaContentModule extends ContentModule
             $courses = new SimpleXMLElement($response);
             $course = $courses->course[0];
 
-            list($author, $dummy) = split(':', (string)$course->owner);
+            list($author, $dummy) = explode(':', (string)$course->owner);
 
             $this->id = (string)$course->id;
             $this->title = (string) $course->description;
