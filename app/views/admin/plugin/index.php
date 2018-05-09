@@ -7,17 +7,6 @@ use Studip\Button, Studip\LinkButton;
     <?= MessageBox::info($this->render_partial('admin/plugin/update_info')) ?>
 <? endif ?>
 
-<? if ($delete_plugin): ?>
-    <?= $GLOBALS['template_factory']->render('shared/question', [
-        'question' => sprintf(_('Wollen Sie wirklich "%s" deinstallieren?'), $delete_plugin['name']),
-        'approvalLink' => $controller->url_for(
-            'admin/plugin/delete/' . $delete_plugin['id'],
-            ['studip_ticket' => get_ticket()]
-        ),
-         'disapprovalLink' => $controller->url_for('admin/plugin')
-    ]) ?>
-<? endif ?>
-
 <? if (count($plugins) == 0): ?>
     <?= MessageBox::info(_('Es sind noch keine Plugins in diesem Stud.IP vorhanden.'), [
         _('Sie können Plugins aus dem Marktplatz installieren oder manuell hochladen.'),

@@ -155,6 +155,16 @@ class LinkElement extends WidgetElement implements ArrayAccess
     }
 
     /**
+     * Returns whether the element is disabled.
+     *
+     * @return bool
+     */
+    public function isDisabled()
+    {
+        return isset($this->attributes['disabled']) && $this->attributes['disabled'] !== false;
+    }
+
+    /**
      * Renders the element.
      *
      * @return string
@@ -165,8 +175,7 @@ class LinkElement extends WidgetElement implements ArrayAccess
             $this->url = html_entity_decode($this->url);
         }
 
-        $disabled = isset($this->attributes['disabled'])
-                 && $this->attributes['disabled'] !== false;
+        $disabled = $this->isDisabled();
 
         if ($this->as_button && !$disabled) {
             return $this->renderButton();
@@ -178,7 +187,7 @@ class LinkElement extends WidgetElement implements ArrayAccess
 
         $attributes = (array) $this->attributes;
 
-        if (isset($this->attributes['disabled']) && $this->attributes['disabled'] !== false) {
+        if ($disabled) {
             $tag = 'span';
         } else {
             $tag = 'a';

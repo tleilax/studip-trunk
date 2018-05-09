@@ -68,7 +68,7 @@ class Course_PlusController extends AuthenticatedController
         }
 
         $this->setupSidebar();
-        $this->available_modules = $this->getSortedList();
+        $this->available_modules = $this->getSortedList($this->sem);
 
         if (Request::submitted('deleteContent')) $this->deleteContent($this->available_modules);
     }
@@ -203,13 +203,16 @@ class Course_PlusController extends AuthenticatedController
     }
 
 
-    private function getSortedList()
+    private function getSortedList(Range $context)
     {
 
         $list = array();
         $cat_index = array();
 
         foreach (PluginEngine::getPlugins('StandardPlugin') as $plugin) {
+            if (!$plugin->isActivatableForContext($context)) {
+                continue;
+            }
 
             if ((!$this->sem_class && !$plugin->isCorePlugin())
                 || ($this->sem_class && !$this->sem_class->isModuleMandatory(get_class($plugin))

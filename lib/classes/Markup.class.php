@@ -277,7 +277,7 @@ class Markup
         // - fonts: only Stud.IP-specific fonts should be allowed
         //
         $config->set('HTML.Allowed', '
-            a[class|href|target|rel]
+            a[class|href|target|rel|name|id]
             audio[controls|src|height|width|style]
             big
             blockquote
@@ -318,6 +318,7 @@ class Markup
 
         $config->set('Attr.AllowedFrameTargets', array('_blank'));
         $config->set('Attr.AllowedRel', array('nofollow'));
+        $config->set('Attr.EnableID', true);
         $config->set('Attr.AllowedClasses', array(
             'author',
             'content',

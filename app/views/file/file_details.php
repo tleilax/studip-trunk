@@ -14,6 +14,12 @@
                    <? if ($file_ref->file) printf('type="%s"', $file_ref->mime_type); ?>></video>
         <? endif; ?>
     <? endif; ?>
+        <h3><?=_('Pfad')?></h3>
+        <article>
+            <? foreach (array_values($fullpath) as $i => $one_folder) : ?>
+                <a href="<?=FileManager::getFolderLink($one_folder)?>"><?=htmlReady($one_folder->name)?></a><?=($i < count($fullpath) - 1 ? ' / ' : '')?>
+            <? endforeach; ?>
+        </article>
 
         <h3><?= _('Beschreibung') ?></h3>
         <article>

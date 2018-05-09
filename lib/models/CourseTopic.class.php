@@ -103,6 +103,7 @@ class CourseTopic extends SimpleORMap {
                     $folder['data_content']['topic_id'] = $this->getId();
                     $folder['user_id'] = $GLOBALS['user']->id;
                     $folder['name'] = $this['title'];
+                    $folder['description'] = $this['description'];
                     return $folder->store();
                 }
             }
@@ -150,5 +151,30 @@ class CourseTopic extends SimpleORMap {
         if (empty($this->content['priority'])) {
             $this->content['priority'] = self::getMaxPriority($this->seminar_id) + 1;
         }
+    }
+
+    /**
+     * return all filerefs belonging to this topic, permissions fpr given user are checked
+     *
+     * @param string|User $user_or_id
+     * @return mixed[] A mixed array with FolderType and FileRef objects.
+     */
+    public function getAccessibleFolderFiles($user_or_id)
+    {
+        $user_id = $user_or_id instanceof User ? $user_or_id->id : $user_or_id;
+        $all_files = [];
+        $all_folders = [];
+        $folders = $this->folders->getArrayCopy();
+        foreach ($this->dates as $date) {
+            $folders = array_merge($folders, $date->folders->getArrayCopy());
+        }
+        foreach ($folders as $folder) {
+            list($files, $typed_folders) = array_values(FileManager::getFolderFilesRecursive($folder->getTypedFolder(), $user_id));
+            foreach ($files as $file) {
+                $all_files[$file->id] = $file;
+            }
+            $all_folders = array_merge($all_folders, $typed_folders);
+        }
+        return ['files' => $all_files, 'folders' => $all_folders];
     }
 }

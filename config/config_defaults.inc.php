@@ -142,6 +142,19 @@ $ELEARNING_INTERFACE_MODULES["pmwiki-farm"] =   array(
             )
 );
 
+$ELEARNING_INTERFACE_MODULES["loncapa"] =
+array(
+    "name" => "LonCapa",
+    "ABSOLUTE_PATH_ELEARNINGMODULES" => "http://127.0.0.1/loncapa",
+    "CLASS_PREFIX" => "LonCapa",
+    "auth_necessary" => false,
+    "logo_file" => "assets/images/logos/lon-capa.gif",
+    "types" =>  array(
+        "loncapa" => array("name" => "LonCapa-Lernmodul",
+                           "icon" => "learnmodule"),
+        )
+);
+
 $PLUGINS_UPLOAD_ENABLE = TRUE;      //Upload of Plugins is enabled
 
 $PLUGIN_REPOSITORIES = array(

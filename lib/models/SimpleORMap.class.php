@@ -804,8 +804,8 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
-     * interceptor for static findByColumn / findEachByColumn
-     * magic
+     * interceptor for static findByColumn / findEachByColumn / countByColumn /
+     * deleteByColumn magic
      * @param string $name
      * @param array $arguments
      * @throws BadMethodCallException
@@ -826,14 +826,14 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 $order = $arguments[1];
                 $param_arr[0] =& $where;
                 $param_arr[1] = array($where_param);
-                $find = 'findonebysql';
+                $method = 'findonebysql';
                 break;
             case 'find':
             case 'findmany':
                 $order = $arguments[1];
                 $param_arr[0] =& $where;
                 $param_arr[1] = array($where_param);
-                $find = 'findbysql';
+                $method = 'findbysql';
                 break;
             case 'findeach':
             case 'findeachmany':
@@ -841,15 +841,23 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 $param_arr[0] = $arguments[0];
                 $param_arr[1] =& $where;
                 $param_arr[2] = array($where_param);
-                $find = 'findeachbysql';
+                $method = 'findeachbysql';
                 break;
+            case 'count':
+            case 'delete':
+                $param_arr[0] =& $where;
+                $param_arr[1] = array($where_param);
+                $method = "{$prefix}bysql";
+                break;
+            default:
+                throw new BadMethodCallException("Method $class::$name not found");
         }
         if (isset($record->alias_fields[$field])) {
             $field = $record->alias_fields[$field];
         }
         if (isset($record->db_fields[$field])) {
             $where = "`{$record->db_table}`.`$field` IN(?) " . $order;
-            return call_user_func_array(array($class, $find), $param_arr);
+            return call_user_func_array(array($class, $method), $param_arr);
         }
         throw new BadMethodCallException("Method $class::$name not found");
     }

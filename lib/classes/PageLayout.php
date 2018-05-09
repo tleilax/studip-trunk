@@ -497,7 +497,7 @@ class PageLayout
      *
      * @param MessageBox  message object to display
      */
-    public static function postMessage(MessageBox $message, $id = null)
+    public static function postMessage(LayoutMessage $message, $id = null)
     {
         if ($id === null ) {
             $_SESSION['messages'][] = $message;
@@ -569,6 +569,27 @@ class PageLayout
     public static function postException($message, $details = [], $close_details = false)
     {
         self::postMessage(MessageBox::exception($message, $details, $close_details));
+    }
+
+    /**
+     * Convenience method: Post a question to confirm an action.
+     *
+     * Be aware, that this will output the question as html. So you should
+     * either know what you are doing, use htmlReady() or post the QuestionBox
+     * for yourself using self::postMessage().
+     *
+     * @param String $question          Question to confirm
+     * @param Array  $approve_params    Parameters to send when approving
+     * @param Array  $disapprove_params Parameters to send when disapproving
+     * @return QuestionBox to allow further settings like urls and such
+     * @see QuestionBox
+     * @since Stud.IP 4.2
+     */
+    public static function postQuestion($question, $accept_url = '', $decline_url = '')
+    {
+        $qbox = QuestionBox::createHTML($question, $accept_url, $decline_url);
+        self::postMessage($qbox, 'question-box');
+        return $qbox;
     }
 
     /**

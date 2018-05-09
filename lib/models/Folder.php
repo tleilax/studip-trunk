@@ -145,7 +145,7 @@ class Folder extends SimpleORMap
      *
      * @param string $topic_id The ID of a CourseTopic object.
      *
-     * @return Folder[]|null An array with one folder object matching the topic-ID
+     * @return Folder[] An array with one folder object matching the topic-ID
      *     if such a folder can be found. Null otherwise.
      */
     public static function findByTopic_id($topic_id)
@@ -158,6 +158,30 @@ class Folder extends SimpleORMap
         $ret = [];
         foreach ($topic_folders as $key => $folder) {
             if ($folder['data_content']['topic_id'] === $topic_id) {
+                $ret[] = $folder;
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * Retrieves folders by the ID of a CourseDate object.
+     *
+     * @param string $termin_id The ID of a CourseDate object.
+     *
+     * @return Folder[] An array with one folder object matching the $termin_id
+     *     if such a folder can be found. Null otherwise.
+     */
+    public static function findByTermin_id($termin_id)
+    {
+        $seminar_id    = CourseDate::find($termin_id)->range_id;
+        $date_folders = self::findBySQL(
+            "folder_type = 'CourseDateFolder' AND range_id = ? AND range_type = 'course'",
+            [$seminar_id]
+        );
+        $ret = [];
+        foreach ($date_folders as $key => $folder) {
+            if ($folder['data_content']['termin_id'] === $termin_id) {
                 $ret[] = $folder;
             }
         }

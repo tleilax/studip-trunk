@@ -1975,10 +1975,7 @@ textarea.ui-resizable-handle.ui-resizable-s {
   height: 16px;
   margin-left: 0;
   background-image: url("../images/icons/white/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -2009,10 +2006,7 @@ textarea.ui-resizable-handle.ui-resizable-s {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/white/arr_1left.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }

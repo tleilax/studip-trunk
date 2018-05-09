@@ -12,10 +12,12 @@
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category  Stud.IP
  */
-class CourseTopicFolder extends StandardFolder implements FolderType
+class CourseTopicFolder extends PermissionEnabledFolder implements FolderType
 {
 
     public static $sorter = 1;
+
+    private $topic;
 
 
     public static function getTypeName()
@@ -31,12 +33,48 @@ class CourseTopicFolder extends StandardFolder implements FolderType
         }
     }
 
+    public function __construct($folderdata = null)
+    {
+        parent::__construct($folderdata);
+        $this->getTopic();
+    }
+
     public function getIcon($role = Icon::DEFAULT_ROLE)
     {
         return Icon::create(
             count($this->getFiles()) ? 'folder-topic-full' : 'folder-topic-empty',
             $role
         );
+    }
+
+    /**
+     * @return CourseTopic
+     */
+    public function getTopic()
+    {
+        if (isset($this->folderdata['data_content']['topic_id'])) {
+            if ($this->topic === null) {
+                $this->topic = CourseTopic::find($this->folderdata['data_content']['topic_id']);
+            }
+            if ($this->topic) {
+                $this->folderdata['name'] = (string)$this->topic->title;
+                $this->folderdata['description'] = (string)$this->topic->description;
+            } else {
+                $this->folderdata['name'] = _('(Thema gelöscht)') . ' ' . $this->folderdata['name'];
+            }
+            return $this->topic;
+        }
+    }
+
+    /**
+     * @param CourseTopic $topic
+     * @return CourseTopic
+     */
+    public function setTopic(CourseTopic $topic)
+    {
+        $this->topic = $topic;
+        $this->folderdata['data_content']['topic_id'] = $this->topic->id;
+        return $this->getTopic();
     }
 
     /**
@@ -47,8 +85,7 @@ class CourseTopicFolder extends StandardFolder implements FolderType
     public function getEditTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/topic_folder/edit.php');
-        $topic = CourseTopic::find($this->folderdata['data_content']['topic_id']);
-        $template->set_attribute('topic', $topic);
+        $template->set_attribute('topic', $this->getTopic());
         $template->set_attribute('folder', $this);
         return $template;
     }
@@ -59,16 +96,18 @@ class CourseTopicFolder extends StandardFolder implements FolderType
      */
     public function setDataFromEditTemplate($request)
     {
-        if ($request['topic_id'] == null) {
+        $topic = CourseTopic::find($request['topic_id']);
+        if ($topic === null) {
             return MessageBox::error(_('Es wurde kein Thema ausgewählt.'));
+        } else {
+            $this->setTopic($topic);
         }
-
-        $this->folderdata['data_content']['topic_id'] = $request['topic_id'];
-        if (!$request['name']) {
-            $request['name'] = CourseTopic::find($request['topic_id'])->title;
+        if (isset($request['course_topic_folder_perm_write'])) {
+            $this->folderdata['data_content']['permission'] = 7;
+        } else {
+            $this->folderdata['data_content']['permission'] = 5;
         }
-
-        return parent::setDataFromEditTemplate($request);
+        return $this;
     }
 
     /**
@@ -78,12 +117,11 @@ class CourseTopicFolder extends StandardFolder implements FolderType
      */
     public function getDescriptionTemplate()
     {
-        $topic = CourseTopic::find($this->folderdata['data_content']['topic_id']);
 
         $template = $GLOBALS['template_factory']->open('filesystem/topic_folder/description.php');
         $template->type       = self::getTypeName();
         $template->folder     = $this;
-        $template->topic      = $topic;
+        $template->topic      = $this->getTopic();
         $template->folderdata = $this->folderdata;
 
         return $template;

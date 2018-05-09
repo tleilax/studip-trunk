@@ -199,10 +199,7 @@ a.link-intern::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/link-intern.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -213,10 +210,7 @@ a.link-extern::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/link-extern.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -227,10 +221,7 @@ a.link-add::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/add.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -241,10 +232,7 @@ a.link-edit::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/edit.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -391,27 +379,18 @@ td.tree-elbow-end svg {
 .collapsable .toggle-indicator a {
   background: left center no-repeat;
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   color: #000;
   cursor: pointer;
   display: block;
 }
 .collapsable .empty .toggle-indicator a {
   background-image: url("../images/icons/grey/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .collapsable .collapsed .toggle-indicator a {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .collapsable td.label-cell,
 .collapsable .toggle-indicator a,
@@ -709,20 +688,14 @@ table.tree .header > td a.link {
 }
 table.tree .header > td a.link.open {
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: left center;
   background-repeat: no-repeat;
   padding-left: 20px;
 }
 table.tree .header > td a.link.closed {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: left center;
   background-repeat: no-repeat;
   padding-left: 20px;
@@ -900,10 +873,7 @@ table.default > caption .caption-actions {
 }
 table.default > tbody.toggleable.toggled .toggle-switch {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 table.default > tbody.toggleable.toggled tr:not(:first-child) {
   display: none;
@@ -915,10 +885,7 @@ table.default > tbody.toggleable .toggle-switch {
   background-color: transparent;
   border: 0;
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   display: inline-block;
   height: 16px;
   text-align: center;
@@ -968,10 +935,7 @@ article.studip > section > table.default:last-child > tbody:last-child > tr:last
 }
 table.withdetails > tbody > tr:not(.details) > td:first-child {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   background-position: 2px center;
   padding-left: 20px;
@@ -985,10 +949,7 @@ table.withdetails > tbody > tr.open > td {
 }
 table.withdetails > tbody > tr.open > td:first-child {
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 table.withdetails tr.details {
   display: none;
@@ -1283,10 +1244,7 @@ form.default footer .button {
 }
 form.default label.file-upload {
   background-image: url("../images/icons/blue/upload.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   background-position: top left;
   background-size: 20px 20px;
@@ -1416,10 +1374,7 @@ form.default fieldset.collapsable legend {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 20px 20px;
-  -moz-background-size: 20px 20px;
-  -o-background-size: 20px 20px;
-  background-size: 20px 20px;
+  background-size: 20px;
   background-position: 6px center;
   background-repeat: no-repeat;
   cursor: pointer;
@@ -1432,10 +1387,7 @@ form.default fieldset.collapsable.collapsed {
 .js form.default.collapsable fieldset.collapsed legend,
 form.default fieldset.collapsable.collapsed legend {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 20px 20px;
-  -moz-background-size: 20px 20px;
-  -o-background-size: 20px 20px;
-  background-size: 20px 20px;
+  background-size: 20px;
   margin-bottom: 0;
 }
 .js form.default.collapsable fieldset.collapsed *:not(legend),
@@ -1502,10 +1454,7 @@ form.default label.packed button {
   height: 16px;
   margin-right: 5px;
   background-image: url("../images/icons/blue/checkbox-unchecked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -1516,10 +1465,7 @@ form.default label.packed button {
   height: 16px;
   margin-right: 5px;
   background-image: url("../images/icons/blue/checkbox-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -1530,10 +1476,7 @@ form.default label.packed button {
   height: 16px;
   margin-right: 5px;
   background-image: url("../images/icons/blue/checkbox-indeterminate.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -1652,10 +1595,7 @@ form.default label.packed button {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -1683,10 +1623,7 @@ form.default label.packed button {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -1697,10 +1634,7 @@ form.default label.packed button {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -2454,10 +2388,7 @@ li#notification_container:hover .list {
   position: relative;
   margin-top: 10px;
   background-image: url("../images/icons/blue/accept.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-color: #e2e3e4;
   background-repeat: no-repeat;
   background-position: right 8px center;
@@ -2719,10 +2650,7 @@ body:not(.fixed) #barTopMenu:not(.overflown) > .overflow {
 }
 label[for="barTopMenu-toggle"] {
   background-image: url("../images/icons/white/hamburger.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: 0px center;
   background-repeat: no-repeat;
   color: #fff;
@@ -2905,7 +2833,9 @@ div#sidebar-navigation div.sidebar-widget-content {
   line-height: 16px;
 }
 .widget-links span[disabled] {
-  text-decoration: line-through;
+  color: #636971;
+  cursor: not-allowed;
+  font-weight: lighter;
 }
 .widget-links.sidebar-navigation > li.active {
   background-color: #28497c;
@@ -3149,17 +3079,11 @@ div#sidebar-navigation div.sidebar-widget-content {
 }
 .sidebar-widget .widget-options .options-checkbox.options-checked {
   background-image: url("../images/icons/blue/checkbox-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .sidebar-widget .widget-options .options-checkbox.options-unchecked {
   background-image: url("../images/icons/blue/checkbox-unchecked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .sidebar-widget .widget-options .options-radio {
   background-repeat: no-repeat;
@@ -3169,17 +3093,11 @@ div#sidebar-navigation div.sidebar-widget-content {
 }
 .sidebar-widget .widget-options .options-radio.options-checked {
   background-image: url("../images/icons/blue/radiobutton-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .sidebar-widget .widget-options .options-radio.options-unchecked {
   background-image: url("../images/icons/blue/radiobutton-unchecked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 select.sidebar-selectlist {
   overflow-y: auto;
@@ -3211,10 +3129,7 @@ select.sidebar-selectlist {
   width: 29px;
   height: 20px;
   background-image: url("../images/icons/white/search.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   float: left;
   background-position: center 3px;
   background-repeat: no-repeat;
@@ -3257,10 +3172,7 @@ select.sidebar-selectlist {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/link-intern.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -3271,10 +3183,7 @@ select.sidebar-selectlist {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/link-extern.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -3336,10 +3245,7 @@ select.sidebar-selectlist {
 }
 .helpbar .helpbar-title {
   background-image: url("../images/icons/blue/question-circle.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  background-size: 24px;
   background-position: right top;
   background-repeat: no-repeat;
   margin: 2px 4px -4px;
@@ -3379,10 +3285,7 @@ select.sidebar-selectlist {
 }
 .helpbar .help-tours a {
   background-image: url("../images/icons/white/play.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: left 2px;
   background-repeat: no-repeat;
   display: block;
@@ -3390,17 +3293,11 @@ select.sidebar-selectlist {
 }
 .helpbar .help-tours a.tour-paused {
   background-image: url("../images/icons/white/pause.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .helpbar .help-tours a.tour-completed {
   background-image: url("../images/icons/white/accept.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .helpbar {
   width: 32px;
@@ -3425,10 +3322,7 @@ select.sidebar-selectlist {
 }
 #helpbar-sticky:checked + .helpbar .helpbar-title {
   background-image: url("../images/icons/white/decline-circle.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  background-size: 24px;
 }
 #helpbar-sticky:checked + .helpbar .helpbar-widgets {
   max-height: 1000px;
@@ -3564,10 +3458,7 @@ section.contentbox > article header h1 a::before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -3663,10 +3554,7 @@ section.contentbox > article.new header h1 a::before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/red/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -3847,10 +3735,7 @@ html.no-js .action-menu:hover .action-menu-icon div:nth-child(3) {
 }
 html:not(.csstransforms) .action-menu .action-menu-icon {
   background-image: url("../images/icons/blue/mobile-sidebar.svg");
-  -webkit-background-size: 20px 20px;
-  -moz-background-size: 20px 20px;
-  -o-background-size: 20px 20px;
-  background-size: 20px 20px;
+  background-size: 20px;
 }
 html:not(.csstransforms) .action-menu .action-menu-icon div {
   display: none;
@@ -3858,10 +3743,7 @@ html:not(.csstransforms) .action-menu .action-menu-icon div {
 html:not(.csstransforms) .action-menu.active .action-menu-icon,
 html.no-js:not(.csstransforms) .action-menu:hover .action-menu-icon {
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 20px 20px;
-  -moz-background-size: 20px 20px;
-  -o-background-size: 20px 20px;
-  background-size: 20px 20px;
+  background-size: 20px;
 }
 .force-visible-overflow {
   overflow: visible !important;
@@ -3926,10 +3808,7 @@ html.no-js:not(.csstransforms) .action-menu:hover .action-menu-icon {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/black/info-circle.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -3951,10 +3830,7 @@ html.no-js:not(.csstransforms) .action-menu:hover .action-menu-icon {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/radiobutton-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -3965,10 +3841,7 @@ html.no-js:not(.csstransforms) .action-menu:hover .action-menu-icon {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/radiobutton-unchecked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -3978,18 +3851,12 @@ html.no-js:not(.csstransforms) .action-menu:hover .action-menu-icon {
 .studip-selection .studip-selection-selected li:hover .studip-selection-image,
 .studip-selection .studip-selection-selected li:hover .studip-selection-label::before {
   background-image: url("../images/icons/blue/remove-circle-full.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .studip-selection .studip-selection-selectable li:hover .studip-selection-image,
 .studip-selection .studip-selection-selectable li:hover .studip-selection-label::before {
   background-image: url("../images/icons/blue/add-circle-full.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .studip-selection .studip-selection-selected,
 .studip-selection .studip-selection-selectable {
@@ -4130,10 +3997,7 @@ article.studip.toggle > header::before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -4182,10 +4046,7 @@ article.new.toggle > header::before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/red/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -4798,179 +4659,107 @@ form div.files-search .input-group-append a.button.reset::before,
 }
 .button.accept::before {
   background-image: url("../images/icons/blue/accept.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.accept:hover::before {
   background-image: url("../images/icons/white/accept.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.accept.disabled:hover::before,
 .button.accept[disabled]:hover::before {
   background-image: url("../images/icons/blue/accept.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.cancel::before {
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.cancel:hover::before {
   background-image: url("../images/icons/white/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.cancel.disabled:hover::before,
 .button.cancel[disabled]:hover::before {
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.download::before {
   background-image: url("../images/icons/blue/download2.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.download:hover::before {
   background-image: url("../images/icons/white/download2.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.download.disabled:hover::before,
 .button.download[disabled]:hover::before {
   background-image: url("../images/icons/blue/download2.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.edit::before {
   background-image: url("../images/icons/blue/edit.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.edit:hover::before {
   background-image: url("../images/icons/white/edit.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.edit.disabled:hover::before,
 .button.edit[disabled]:hover::before {
   background-image: url("../images/icons/blue/edit.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.move-up::before {
   background-image: url("../images/icons/blue/arr_1up.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.move-up:hover::before {
   background-image: url("../images/icons/white/arr_1up.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.move-up.disabled:hover::before,
 .button.move-up[disabled]:hover::before {
   background-image: url("../images/icons/blue/arr_1up.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.move-down::before {
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.move-down:hover::before {
   background-image: url("../images/icons/white/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.move-down.disabled:hover::before,
 .button.move-down[disabled]:hover::before {
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.add::before {
   background-image: url("../images/icons/blue/add.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.add:hover::before {
   background-image: url("../images/icons/white/add.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.add.disabled:hover::before,
 .button.add[disabled]:hover::before {
   background-image: url("../images/icons/blue/add.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.download::before {
   background-image: url("../images/icons/blue/download.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.download:hover::before {
   background-image: url("../images/icons/white/download.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .button.download.disabled:hover::before,
 .button.download[disabled]:hover::before {
   background-image: url("../images/icons/blue/download.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 /* Grouped Buttons */
 .button-group {
@@ -5019,24 +4808,15 @@ div.messagebox .messagebox_buttons a.details span {
 }
 div.messagebox .messagebox_buttons a.close {
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 div.messagebox .messagebox_buttons a.details {
   background-image: url("../images/icons/blue/arr_eol-down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 div.messagebox.details_hidden .messagebox_buttons a.details {
   background-image: url("../images/icons/blue/arr_eol-up.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 div.messagebox.details_hidden .messagebox_details {
   height: 0;
@@ -5165,10 +4945,7 @@ a.message-tag::before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/tag.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -5187,10 +4964,7 @@ a.message-tag::before {
   height: 20px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/mail.svg");
-  -webkit-background-size: 20px 20px;
-  -moz-background-size: 20px 20px;
-  -o-background-size: 20px 20px;
-  background-size: 20px 20px;
+  background-size: 20px;
   vertical-align: text-top;
   width: 20px;
 }
@@ -5301,10 +5075,7 @@ input.quicksearchbox {
   width: 29px;
   height: 20px;
   background-image: url("../images/icons/white/search.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: center 4px;
   background-repeat: no-repeat;
   vertical-align: top;
@@ -5612,7 +5383,7 @@ div.clear {
   position: absolute;
   text-align: left;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-  white-space: normal;
+  white-space: pre-line;
   z-index: 10000;
   word-wrap: break-word;
   -webkit-hyphens: auto;
@@ -5656,10 +5427,7 @@ div.clear {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/grey/info-circle.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -5670,10 +5438,7 @@ div.clear {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/red/info-circle.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -5704,7 +5469,7 @@ div.clear {
   position: absolute;
   text-align: left;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-  white-space: normal;
+  white-space: pre-line;
   z-index: 10000;
   word-wrap: break-word;
   -webkit-hyphens: auto;
@@ -5906,10 +5671,7 @@ div.clear {
   height: 16px;
   margin-right: 5px;
   background-image: url("../images/icons/green/check-circle.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -6089,10 +5851,7 @@ html.cssanimations .copyable-link-animation div {
   text-align: center;
   background-color: #e7ebf1;
   background-image: url("../images/icons/blue/upload.svg");
-  -webkit-background-size: 50px 50px;
-  -moz-background-size: 50px 50px;
-  -o-background-size: 50px 50px;
-  background-size: 50px 50px;
+  background-size: 50px;
   background-repeat: no-repeat;
   background-position: center 10px;
   padding-top: 70px;
@@ -6112,10 +5871,7 @@ html.cssanimations .copyable-link-animation div {
 .js .drag-and-drop.hovered {
   background-color: #28497c;
   background-image: url("../images/icons/white/upload.svg");
-  -webkit-background-size: 50px 50px;
-  -moz-background-size: 50px 50px;
-  -o-background-size: 50px 50px;
-  background-size: 50px 50px;
+  background-size: 50px;
   color: white;
 }
 table.attribute_table {
@@ -6232,31 +5988,19 @@ table.attribute_table div[container]#deactivated_modules .plugin > div {
 }
 .course-admin th .course-completion {
   background-image: url("../images/icons/blue/radiobutton-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .course-admin td .course-completion {
   background-image: url("../images/icons/red/radiobutton-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .course-admin td .course-completion[data-course-completion="1"] {
   background-image: url("../images/icons/yellow/radiobutton-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .course-admin td .course-completion[data-course-completion="2"] {
   background-image: url("../images/icons/green/radiobutton-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .course-admin td .course-completion.ajaxing {
   background-image: url("../images/ajax_indicator_small.gif");
@@ -7274,25 +7018,16 @@ form div.files-search .input-group-append a.button.reset {
 }
 form div.files-search .input-group-append a.button.reset::before {
   background-image: url("../images/icons/blue/refresh.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 form div.files-search .input-group-append a.button.reset:hover::before {
   background-image: url("../images/icons/blue/refresh.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 form div.files-search .input-group-append a.button.reset.disabled:hover::before,
 form div.files-search .input-group-append a.button.reset[disabled]:hover::before {
   background-image: url("../images/icons/blue/refresh.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 @media (max-width: 575px) {
   .files-search-search {
@@ -7378,20 +7113,14 @@ form div.files-search .input-group-append a.button.reset[disabled]:hover::before
 }
 .documents .bread-crumbs li a {
   background-image: url("../images/icons/blue/folder-parent.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  background-size: 24px;
   background-position: left center;
   background-repeat: no-repeat;
   padding-left: 30px;
 }
 .documents .bread-crumbs li:first-child a {
   background-image: url("../images/icons/blue/folder-empty.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  background-size: 24px;
 }
 .document-dialog {
   *zoom: 1;
@@ -8376,10 +8105,7 @@ ul.studygroup-gallery li section {
   height: 12px;
   margin-left: 0;
   background-image: url("../images/icons/red/star.svg");
-  -webkit-background-size: 12px 12px;
-  -moz-background-size: 12px 12px;
-  -o-background-size: 12px 12px;
-  background-size: 12px 12px;
+  background-size: 12px;
   vertical-align: text-top;
   width: 12px;
 }
@@ -8524,10 +8250,7 @@ div.at_least_one_teacher {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -8538,10 +8261,7 @@ div.at_least_one_teacher {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/red/radiobutton-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -8552,10 +8272,7 @@ div.at_least_one_teacher {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/yellow/radiobutton-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -8566,10 +8283,7 @@ div.at_least_one_teacher {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/green/radiobutton-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -8621,31 +8335,19 @@ div.at_least_one_teacher {
 }
 .opengraph-area .switcher .switch-left {
   background-image: url("../images/icons/blue/arr_1left.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .opengraph-area .switcher .switch-left[disabled] {
   background-image: url("../images/icons/grey/arr_1left.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .opengraph-area .switcher .switch-right {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .opengraph-area .switcher .switch-right[disabled] {
   background-image: url("../images/icons/grey/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .js .opengraph-area .opengraph.hidden,
 .js .opengraph-area:not(.handled) .opengraph:not(:first-of-type) {
@@ -8734,12 +8436,12 @@ section.course-statusgroups article header h1 a.no-contentbox-link::before {
 section.course-statusgroups article header h1 a img {
   vertical-align: bottom;
 }
-section.course-statusgroups article input.groupselector {
-  float: left;
-}
 section.course-statusgroups article section {
   border-left: 1px solid #e7ebf1;
   border-right: 1px solid #e7ebf1;
+}
+section.course-statusgroups article section table td.memberactions {
+  text-align: right;
 }
 section.course-statusgroups article section table thead tr th {
   background-color: #e7ebf1;
@@ -8748,16 +8450,10 @@ section.course-statusgroups article section table tbody tr td span.member-invisi
   font-style: italic;
   color: #6d727a;
 }
-section.course-statusgroups article section table tbody tr td.memberactions {
-  text-align: right;
-}
 section.course-statusgroups article section table tfoot tr td {
   background-color: #e7ebf1;
   padding-left: 5px;
   padding-right: 0;
-}
-section.course-statusgroups article section table tfoot tr td.memberactions {
-  text-align: right;
 }
 section.course-statusgroups article section div.statusgroup-no-members {
   font-style: italic;
@@ -8770,6 +8466,16 @@ section.course-statusgroups footer {
   padding: 5px;
   padding-left: 18px;
   text-align: left;
+}
+section.course-statusgroups.ui-sortable article.draggable header {
+  cursor: move;
+  background-image: url("../images/anfasser_24.png");
+  background-position: 3px center;
+  background-repeat: no-repeat;
+  padding-left: 12px;
+}
+section.course-statusgroups.ui-sortable article.ui-sortable-placeholder {
+  border-style: dotted;
 }
 #sort1,
 #sort0,
@@ -9227,17 +8933,11 @@ table.default tr.subcourses td:nth-child(-n+4) {
 }
 .pagination .prev a {
   background-image: url("../images/icons/blue/arr_1left.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .pagination .next a {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 #rulelist div.admissionrule {
   display: list-item;
@@ -9374,10 +9074,7 @@ table.default tr.subcourses td:nth-child(-n+4) {
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/white/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: 0;
   display: inline-block;
   margin: 0;
@@ -9391,10 +9088,7 @@ table.default tr.subcourses td:nth-child(-n+4) {
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-titlebar-close .ui-icon:hover {
   background-image: url("../images/icons/white/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content.no-close .ui-dialog-titlebar-close {
   display: none;
@@ -9472,69 +9166,42 @@ table.default tr.subcourses td:nth-child(-n+4) {
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.accept::before {
   background-image: url("../images/icons/blue/accept.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.accept:hover::before {
   background-image: url("../images/icons/white/accept.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.accept.disabled:hover::before,
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.accept[disabled]:hover::before {
   background-image: url("../images/icons/blue/accept.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.cancel::before {
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.cancel:hover::before {
   background-image: url("../images/icons/white/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.cancel.disabled:hover::before,
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.cancel[disabled]:hover::before {
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.download::before {
   background-image: url("../images/icons/blue/download2.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.download:hover::before {
   background-image: url("../images/icons/white/download2.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.download.disabled:hover::before,
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.download[disabled]:hover::before {
   background-image: url("../images/icons/blue/download2.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button.disabled,
 .ui-dialog.ui-widget.ui-widget-content .ui-dialog-buttonpane .ui-button[disabled] {
@@ -9556,10 +9223,7 @@ table.default tr.subcourses td:nth-child(-n+4) {
 }
 .ui-dialog-titlebar-wiki {
   background-image: url("../images/icons/white/question-circle.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  background-size: 24px;
   background-position: center;
   background-repeat: no-repeat;
   display: inline-block;
@@ -9604,10 +9268,7 @@ table.default tr.subcourses td:nth-child(-n+4) {
 .ui-dialog.studip-confirmation .ui-dialog-titlebar-close .ui-icon,
 .ui-dialog.studip-confirmation .ui-dialog-titlebar-close .ui-icon:hover {
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: 0;
 }
 .ui-dialog.studip-confirmation .ui-dialog-content {
@@ -9615,10 +9276,7 @@ table.default tr.subcourses td:nth-child(-n+4) {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   background-image: url("../images/icons/yellow/question-circle-full.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: 12px 8px;
   background-repeat: no-repeat;
   background-size: 32px 32px;
@@ -9635,6 +9293,53 @@ table.default tr.subcourses td:nth-child(-n+4) {
 }
 .ui-dialog.studip-confirmation .ui-dialog-buttonpane .ui-dialog-buttonset > * {
   display: inline-block;
+}
+.ui-dialog.studip-lightbox .wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 3px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+.ui-dialog.studip-lightbox .wrapper .next,
+.ui-dialog.studip-lightbox .wrapper .previous {
+  -webkit-transition: opacity 300ms;
+  -moz-transition: opacity 300ms;
+  -o-transition: opacity 300ms;
+  transition: opacity 300ms;
+  background-repeat: no-repeat;
+  display: block;
+  opacity: 0.5;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  outline: none;
+}
+.ui-dialog.studip-lightbox .wrapper .next:hover,
+.ui-dialog.studip-lightbox .wrapper .previous:hover {
+  opacity: 1;
+}
+.ui-dialog.studip-lightbox .wrapper .previous {
+  left: 0;
+  right: 50%;
+  background-image: url("../images/icons/blue/arr_1left.svg"), url("../images/icons/white/arr_1left.svg");
+  background-size: 32px, 48px;
+  background-position: left 4px center, left -4px center;
+}
+.ui-dialog.studip-lightbox .wrapper .next {
+  right: 0;
+  left: 50%;
+  background-image: url("../images/icons/blue/arr_1right.svg"), url("../images/icons/white/arr_1right.svg");
+  background-size: 32px, 48px;
+  background-position: right 4px center, right -4px center;
+}
+.ui-dialog.studip-lightbox .wrapper.first .previous,
+.ui-dialog.studip-lightbox .wrapper.last .next {
+  display: none;
 }
 .modal-overlay {
   background: rgba(40, 73, 124, 0.5);
@@ -9789,10 +9494,7 @@ select::-ms-expand {
 select:not([multiple]):not([size]) {
   padding-right: 20px;
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 10px 10px;
-  -moz-background-size: 10px 10px;
-  -o-background-size: 10px 10px;
-  background-size: 10px 10px;
+  background-size: 10px;
   background-position: right 4px center;
   background-repeat: no-repeat;
   height: 30px;
@@ -10324,10 +10026,7 @@ select:focus {
 }
 .select2-container--default .select2-selection--single .select2-selection__clear {
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 10px 10px;
-  -moz-background-size: 10px 10px;
-  -o-background-size: 10px 10px;
-  background-size: 10px 10px;
+  background-size: 10px;
   background-position: right center;
   background-repeat: no-repeat;
   color: transparent;
@@ -10368,19 +10067,13 @@ select:focus {
 .select2-container--default .select2-selection--multiple {
   padding-right: 15px;
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 10px 10px;
-  -moz-background-size: 10px 10px;
-  -o-background-size: 10px 10px;
-  background-size: 10px 10px;
+  background-size: 10px;
   background-position: right 4px top 11px;
   background-repeat: no-repeat;
 }
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 10px 10px;
-  -moz-background-size: 10px 10px;
-  -o-background-size: 10px 10px;
-  background-size: 10px 10px;
+  background-size: 10px;
   background-position: right center;
   background-repeat: no-repeat;
   color: transparent !important;
@@ -10420,10 +10113,7 @@ select:focus {
 }
 .select2-container--default .select2-selection__arrow {
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 10px 10px;
-  -moz-background-size: 10px 10px;
-  -o-background-size: 10px 10px;
-  background-size: 10px 10px;
+  background-size: 10px;
   background-position: right 4px center;
   background-repeat: no-repeat;
 }
@@ -10669,10 +10359,7 @@ form.course-wizard-step-0 footer {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/white/smiley.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -10683,10 +10370,7 @@ form.course-wizard-step-0 footer {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/black/smiley.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -10730,10 +10414,7 @@ form.course-wizard-step-0 footer {
   background-color: transparent;
   border: 0;
   background-image: url("../images/icons/blue/checkbox-unchecked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: center;
   background-repeat: no-repeat;
   display: inline-block;
@@ -10741,10 +10422,7 @@ form.course-wizard-step-0 footer {
 }
 .smiley-toggle.favorite {
   background-image: url("../images/icons/blue/checkbox-checked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .smiley-toggle.ajax {
   background-image: url("../images/ajax_indicator_small.gif");
@@ -10979,10 +10657,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
   height: 12px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 12px 12px;
-  -moz-background-size: 12px 12px;
-  -o-background-size: 12px 12px;
-  background-size: 12px 12px;
+  background-size: 12px;
   vertical-align: text-top;
   width: 12px;
 }
@@ -11201,10 +10876,7 @@ div.i18n_group > div.i18n .cktoolbar .cke_inner {
 }
 #globalsearch-searchbar #globalsearch-results article section .globalsearch-result-expand a {
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  background-size: 24px;
   width: 24px;
   height: 24px;
   display: inline-block;
@@ -11244,9 +10916,9 @@ html.responsive-display:not(.globalsearch-visible) #globalsearch-clear {
 html.responsive-display.globalsearch-visible #barBottomright ul li {
   display: none;
 }
-html.responsive-display.globalsearch-visible #barBottomright ul li:first-child,
 html.responsive-display.globalsearch-visible #barBottomright ul #quicksearch_item,
-html.responsive-display.globalsearch-visible #barBottomright ul #sidebar-menu {
+html.responsive-display.globalsearch-visible #barBottomright ul #sidebar-menu,
+html.responsive-display.globalsearch-visible #barBottomright ul li:first-child {
   display: initial;
 }
 html.responsive-display.globalsearch-visible .helpbar {
@@ -11315,10 +10987,7 @@ html.responsive-display.globalsearch-visible #layout_page::before {
   height: 24px;
   margin-right: 0;
   background-image: url("../images/icons/white/arr_1right.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  background-size: 24px;
   vertical-align: text-top;
   width: 24px;
 }
@@ -11336,10 +11005,7 @@ label[for="responsive-toggle"]::before {
   height: 20px;
   margin-right: 0;
   background-image: url("../images/icons/white/hamburger-icon.svg");
-  -webkit-background-size: 20px 20px;
-  -moz-background-size: 20px 20px;
-  -o-background-size: 20px 20px;
-  background-size: 20px 20px;
+  background-size: 20px;
   vertical-align: text-top;
   width: 20px;
 }
@@ -11421,10 +11087,7 @@ label[for="responsive-toggle"]::before {
   height: 24px;
   margin-right: 0;
   background-image: url("../images/icons/white/arr_1down.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  background-size: 24px;
   vertical-align: text-top;
   width: 24px;
 }
@@ -11435,10 +11098,7 @@ label[for="responsive-toggle"]::before {
   height: 24px;
   margin-right: 0;
   background-image: url("../images/icons/white/arr_1right.svg");
-  -webkit-background-size: 24px 24px;
-  -moz-background-size: 24px 24px;
-  -o-background-size: 24px 24px;
-  background-size: 24px 24px;
+  background-size: 24px;
   vertical-align: text-top;
   width: 24px;
 }
@@ -11468,10 +11128,7 @@ label[for="responsive-toggle"]::before {
   height: 20px;
   margin-right: 0;
   background-image: url("../images/icons/white/hamburger-icon-small.svg");
-  -webkit-background-size: 20px 20px;
-  -moz-background-size: 20px 20px;
-  -o-background-size: 20px 20px;
-  background-size: 20px 20px;
+  background-size: 20px;
   vertical-align: text-top;
   width: 20px;
 }
@@ -12125,10 +11782,7 @@ ul.mvv-modul li::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/black/learnmodule.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -12145,10 +11799,7 @@ ul.mvv-persons li::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/black/person.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -12162,10 +11813,7 @@ ul.mvv-faecher li::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/black/file.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -12176,10 +11824,7 @@ ul.mvv-dokumente li > div:first-child::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/black/file.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -12193,10 +11838,7 @@ ul.mvv-institute li::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/black/institute.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -12210,10 +11852,7 @@ ul.mvv-languages li::before {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/black/consultation.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -12311,10 +11950,7 @@ select.mvv-search-select-list {
 }
 #mvv-chooser ul li.selected {
   background-image: url("../images/icons/grey/arr_2right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: right;
   background-repeat: no-repeat;
   cursor: pointer;
@@ -12322,10 +11958,7 @@ select.mvv-search-select-list {
 }
 #mvv-chooser ul li.selected.last {
   background-image: url("../images/icons/grey/accept.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: right;
   background-repeat: no-repeat;
 }
@@ -12346,10 +11979,7 @@ select.mvv-search-select-list {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/arr_2up.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -12373,10 +12003,7 @@ select.mvv-search-select-list {
   height: 16px;
   margin-right: 2px;
   background-image: url("../images/icons/blue/arr_2down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -12953,38 +12580,26 @@ img.plugin_preview {
 .arrow_down {
   background: transparent top left no-repeat !important;
   background-image: url("../images/icons/blue/arr_1down.svg") !important;
-  -webkit-background-size: 16px 16px !important;
-  -moz-background-size: 16px 16px !important;
-  -o-background-size: 16px 16px !important;
-  background-size: 16px 16px !important;
+  background-size: 16px !important;
 }
 .arrow_right {
   background: transparent top left no-repeat !important;
   background-image: url("../images/icons/blue/arr_1right.svg") !important;
-  -webkit-background-size: 16px 16px !important;
-  -moz-background-size: 16px 16px !important;
-  -o-background-size: 16px 16px !important;
-  background-size: 16px 16px !important;
+  background-size: 16px !important;
 }
 h1:hover .arrow_down,
 h2:hover .arrow_down,
 h3:hover .arrow_down,
 h4:hover .arrow_down {
   background-image: url("../images/icons/red/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 h1:hover .arrow_right,
 h2:hover .arrow_right,
 h3:hover .arrow_right,
 h4:hover .arrow_right {
   background-image: url("../images/icons/red/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 .invalid {
   border: 2px dotted red;
@@ -13130,10 +12745,7 @@ a.new-member::after {
   height: 8px;
   margin-left: 0;
   background-image: url("../images/icons/red/star.svg");
-  -webkit-background-size: 8px 8px;
-  -moz-background-size: 8px 8px;
-  -o-background-size: 8px 8px;
-  background-size: 8px 8px;
+  background-size: 8px;
   vertical-align: text-top;
   width: 8px;
 }
@@ -13159,10 +12771,7 @@ details.studip summary::before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/arr_1right.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -13179,10 +12788,7 @@ details.studip[open] summary::before {
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/blue/arr_1down.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }

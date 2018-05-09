@@ -10,18 +10,23 @@
             <tr>
                 <td><strong><?= _('Name:') ?></strong></td>
                 <td>
-                    <? if (mb_strlen($dokument->name->original())) : ?>
+                    <? $dokument_name = $dokument->isI18nField('name')
+                            ? $dokument->name->original()
+                            : $dokument->name; ?>
+                    <? if (mb_strlen($dokument_name)) : ?>
                     <div>
                         <img style="display: block;" src="<?= Assets::image_path('languages/' . $languages[$def_lang]['picture']) ?>" alt="<?= $languages[$def_lang]['name'] ?>" title="<?= $languages[$def_lang]['name'] ?>">
-                        <?= htmlReady($dokument->name->original()) ?>
+                        <?= htmlReady($dokument_name) ?>
                     </div>
                     <? endif; ?>
-                    <? foreach ($dokument->name->toArray() as $lang => $name) : ?>
-                    <div style="margin-top:10px;">
-                        <img style="display: block;" src="<?= Assets::image_path('languages/' . $languages[$lang]['picture']) ?>" alt="<?= $languages[$lang]['name'] ?>" title="<?= $languages[$lang]['name'] ?>">
-                        <?= htmlReady($name) ?>
-                    </div>
-                    <? endforeach; ?>
+                    <? if ($dokument->isI18nField('name')) : ?>
+                        <? foreach ($dokument->name->toArray() as $lang => $name) : ?>
+                        <div style="margin-top:10px;">
+                            <img style="display: block;" src="<?= Assets::image_path('languages/' . $languages[$lang]['picture']) ?>" alt="<?= $languages[$lang]['name'] ?>" title="<?= $languages[$lang]['name'] ?>">
+                            <?= htmlReady($name) ?>
+                        </div>
+                        <? endforeach; ?>
+                    <? endif; ?>
                 </td>
             </tr>
             <tr>
@@ -33,8 +38,12 @@
             <tr>
                 <td><strong><?= _('Beschreibung:') ?></strong></td>
                 <td>
-                    <? if (!mb_strlen($dokument->beschreibung->original()) && !count($dokument->beschreibung->toArray())) : ?>
+                <? if ($dokument->isI18nField('beschreibung')) : ?>
+                    <? if (!mb_strlen($dokument->beschreibung->original())
+                            && count(array_diff([null], $dokument->beschreibung->toArray())) === 0) : ?>
+                        <span class="mvv-no-entry">
                         <?= _('Keine Beschreibung vorhanden.') ?>
+                        </span>
                     <? else : ?>
                         <? if (mb_strlen($dokument->beschreibung->original())) : ?>
                         <div>
@@ -47,7 +56,18 @@
                             <img style="display: block;" src="<?= Assets::image_path('languages/' . $languages[$lang]['picture']) ?>" alt="<?= $languages[$lang]['name'] ?>" title="<?= $languages[$lang]['name'] ?>">
                             <?= formatReady($beschreibung) ?>
                         </div>
-                    <? endforeach; ?>
+                        <? endforeach; ?>
+                    <? endif; ?>
+                <? else : ?>
+                    <? if (!mb_strlen($dokument->beschreibung)) : ?>
+                        <span class="mvv-no-entry">
+                        <?= _('Keine Beschreibung vorhanden.') ?>
+                        </span>
+                    <? else : ?>
+                        <div>
+                            <?= formatReady($dokument->beschreibung) ?>
+                        </div>
+                    <? endif; ?>
                 <? endif; ?>
                 </td>
             </tr>

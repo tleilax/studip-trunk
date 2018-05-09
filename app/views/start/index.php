@@ -17,10 +17,6 @@ if (get_config('BANNER_ADS_ENABLE')) {
 }
 ?>
 
-<? if ($flash['question']): ?>
-    <?= $flash['question'] ?>
-<? endif; ?>
-
 <div class="start-widgetcontainer">
     <? foreach (array($left, $right) as $column): ?>
         <ul class="portal-widget-list">

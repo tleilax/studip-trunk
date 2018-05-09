@@ -103,7 +103,7 @@ $EXTERN_MODULE_TYPES[15] = array("module" => "TemplateSemBrowse", "name" => _("V
 $EXTERN_MODULE_TYPES[16] = array('module' => 'TemplatePersBrowse', 'name' => _("Personenbrowser (templatebasiert)"), 'level' => 1, 'description' => _("Das Modul &quot;Personenbrowser&quot; ermöglicht die Anzeige eines systemweiten Personalverzeichnisses."), 'order' => 55, 'view' => array('studip'));
 
 // Allowed number of configurations
-$EXTERN_MAX_CONFIGURATIONS = 6;
+$EXTERN_MAX_CONFIGURATIONS = 32;
 
 // print this message instead of data if an error occurs
 $EXTERN_ERROR_MESSAGE = "<b>Ein Fehler ist aufgetreten. Die Daten können nicht angezeigt werden. Bitte wenden Sie sich an den Webmaster.</b>";

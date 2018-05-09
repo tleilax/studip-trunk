@@ -1,9 +1,19 @@
 <? if (count($topics) > 0) : ?>
 <table class="default withdetails">
+    <colgroup>
+        <col width="50%">
+        <col>
+        <col width="24px">
+    </colgroup>
     <thead>
         <tr>
             <th><?= _("Thema") ?></th>
             <th><?= _("Termine") ?></th>
+            <th>
+                <abbr title="<?= _('Thema behandelt eine Hausarbeit oder ein Referat') ?>">
+                    <?= Icon::create('glossary', Icon::ROLE_INFO) ?>
+                </abbr>
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -22,9 +32,16 @@
                     <? endforeach ?>
                 </ul>
             </td>
+            <td>
+            <? if ($topic->paper_related): ?>
+                <?= Icon::create('checkbox-checked', Icon::ROLE_INFO) ?>
+            <? else: ?>
+                <?= Icon::create('checkbox-unchecked', Icon::ROLE_INFO) ?>
+            <? endif; ?>
+            </td>
         </tr>
         <tr class="details nohover">
-            <td colspan="2">
+            <td colspan="3">
                 <div class="detailscontainer">
                     <table class="default nohover">
                         <tbody>
@@ -77,14 +94,14 @@
                                 <?= \Studip\LinkButton::create(_("Alle Termine ausfallen lassen"), URLHelper::getURL("dispatch.php/course/cancel_dates", array('issue_id' => $topic->getId())), array('data-dialog' => '')) ?>
                             <? endif ?>
                             <? if ($key > 0) : ?>
-                                <form action="?" method="post" style="display: inline;">
+                                <form action="<?=$controller->link_for()?>" method="post" style="display: inline;">
                                     <input type="hidden" name="move_up" value="<?= $topic->getId() ?>">
                                     <input type="hidden" name="open" value="<?= $topic->getId() ?>">
                                     <?= \Studip\Button::createMoveUp(_("nach oben verschieben")) ?>
                                 </form>
                             <? endif ?>
                             <? if ($key < count($topics) - 1) : ?>
-                            <form action="?" method="post" style="display: inline;">
+                            <form action="<?=$controller->link_for()?>" method="post" style="display: inline;">
                                 <input type="hidden" name="move_down" value="<?= $topic->getId() ?>">
                                 <input type="hidden" name="open" value="<?= $topic->getId() ?>">
                                 <?= \Studip\Button::createMoveDown(_("nach unten verschieben")) ?>
@@ -130,7 +147,7 @@ if ($GLOBALS['perm']->have_studip_perm('tutor', Context::getId())) {
     $options = new OptionsWidget();
     $options->addCheckbox(
         _('Themen öffentlich einsehbar'),
-        Context::get()->public_topics,
+        CourseConfig::get(Context::getId())->COURSE_PUBLIC_TOPICS,
         $controller->url_for('course/topics/allow_public')
     );
     $sidebar->addWidget($options);

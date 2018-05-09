@@ -1,5 +1,3 @@
-<?= $verification ?>
-
 <article class="studip">
     <header>
         <h1>

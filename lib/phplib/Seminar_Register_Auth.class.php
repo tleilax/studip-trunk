@@ -28,14 +28,8 @@ class Seminar_Register_Auth extends Seminar_Auth
     public function auth_registerform()
     {
         $this->check_environment();
+
         // load the default set of plugins
-
-        if (Request::get("sober") && ($GLOBALS['user']->id === "nobody" || $GLOBALS['perm']->have_perm("root"))) {
-            //deactivate non-core-plugins:
-            URLHelper::bindLinkParam("sober", $sober);
-            PluginManager::$sober = true;
-        }
-
         PluginEngine::loadPlugins();
 
         if (!$_COOKIE[get_class($GLOBALS['sess'])]) {

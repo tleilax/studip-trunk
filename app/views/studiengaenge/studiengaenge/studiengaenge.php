@@ -23,7 +23,7 @@
                 <? endif; ?>
             </td>
             <td class="dont-hide">
-                <?= htmlReady($studiengang->abschluss->category->getDisplayName()) ?>
+                <?//= htmlReady($studiengang->abschluss->category->getDisplayName()) ?>
             </td>
             <td class="actions dont-hide">
                 <form method="post">

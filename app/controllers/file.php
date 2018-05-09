@@ -258,6 +258,7 @@ class FileController extends AuthenticatedController
                     }
                 }
             }
+            $this->fullpath = FileManager::getFullPath($folder);
 
             $this->render_action('file_details');
         } else {
@@ -1407,7 +1408,11 @@ class FileController extends AuthenticatedController
             }
             $request = Request::getInstance();
             $request->offsetSet('parent_id', $folder_id);
-            $new_folder = new $folder_type();
+            $new_folder = new $folder_type(
+                ['range_id' => $parent_folder->range_id,
+                 'range_type' => $parent_folder->range_type,
+                 'parent_id' => $parent_folder->getId()]
+            );
             $result = $new_folder->setDataFromEditTemplate($request);
             if ($result instanceof FolderType) {
                 $new_folder->user_id = User::findCurrent()->id;

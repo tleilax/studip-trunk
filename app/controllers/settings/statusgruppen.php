@@ -26,10 +26,6 @@ class Settings_StatusgruppenController extends Settings_SettingsController
      */
     public function before_filter(&$action, &$args)
     {
-        if ($action === 'verify') {
-            $action = 'index';
-        }
-
         parent::before_filter($action, $args);
 
         require_once 'lib/statusgruppe.inc.php';
@@ -421,5 +417,17 @@ class Settings_StatusgruppenController extends Settings_SettingsController
 
         $this->redirect($this->url_for('settings/statusgruppen',
             ['contentbox_open' => $id, 'type' => strtolower($type)]));
+    }
+
+    public function verify_action($action, $id = null)
+    {
+        if ($action === 'delete' && $id) {
+            PageLayout::postQuestion(
+                _('Wollen Sie die Zuordnung zu der Funktion wirklich löschen?'),
+                $this->url_for("settings/statusgruppen/delete/{$id}/1")
+            )->includeTicket();
+        }
+
+        $this->redirect('settings/statusgruppen');
     }
 }

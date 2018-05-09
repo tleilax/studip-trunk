@@ -1556,8 +1556,9 @@ class FileManager
         $array_walker = function ($top_folder) use (&$array_walker, &$folders,$user_id) {
             if (!($top_folder->isVisible($user_id) && $top_folder->isReadable($user_id))) {
                 $folders[$top_folder->getId()] = $top_folder;
-                array_walk($top_folder->getSubFolders(), $array_walker);
             }
+            array_walk($top_folder->getSubFolders(), $array_walker);
+
         };
 
         $top_folders = [$top_folder];
@@ -1889,5 +1890,77 @@ class FileManager
             'file_types' => $upload_type['file_types'],
             'file_size' => $upload_type['file_sizes'][$status]
         ];
+    }
+
+    /**
+     * Create URL to a folder
+     * @param FolderType $folder  the folder
+     * @param bool $include_root
+     * @return array array of FolderType
+     */
+    public static function getFullPath(FolderType $folder, $include_root = true)
+    {
+        $path = [$folder->getId() => $folder];
+        $current = $folder;
+        while ($current = $current->getParent()) {
+            if ($current instanceof RootFolder && !$include_root) continue;
+            $path[$current->getId()] = $current;
+        }
+        return array_reverse($path, true);
+    }
+
+    /**
+     * Create URL to a folder
+     * @param FolderType|Folder $folder  the folder
+     * @return string URL to the folder's range
+     */
+    public static function getFolderURL($folder)
+    {
+        if (!$folder->range_type) {
+            return null;
+        }
+
+        switch ($folder->range_type) {
+            case 'course':
+                $url = URLHelper::getURL(
+                    'dispatch.php/course/files/index/'.$folder->id,
+                    ['cid' => $folder->range_id]
+                );
+                break;
+
+            case 'institute':
+                $url = URLHelper::getURL(
+                    'dispatch.php/institute/files/index/'.$folder->id,
+                    ['cid' => $folder->range_id]
+                );
+                break;
+
+            case 'message':
+                $url = URLHelper::getURL('dispatch.php/messages/overview/'.$folder->range_id,
+                    ['cid' => null]);
+                break;
+
+            case 'user':
+                $url = URLHelper::getURL('dispatch.php/files/index/'.$folder->id,
+                    ['cid' => null]);
+                break;
+
+            default:
+                $url = URLHelper::getURL(
+                    'dispatch.php/files/system/'.$folder->range_type.'/'.$folder->id,
+                    ['cid' => null]
+                );
+        }
+        return $url;
+    }
+
+    /**
+     * Create link to a folder
+     * @param FolderType|Folder $folder  the folder
+     * @return string link to the folder's range
+     */
+    public static function getFolderLink($folder)
+    {
+        return htmlReady(self::getFolderURL($folder));
     }
 }

@@ -569,12 +569,20 @@ class Admission_CoursesetController extends AuthenticatedController
         $applicants = AdmissionPriority::getPriorities($set_id);
         $users = User::findMany(array_keys($applicants), 'ORDER BY Nachname');
         $courses = SimpleCollection::createFromArray(Course::findMany($courseset->getCourses()));
-        $captions = array(_("Nachname"), _("Vorname"), _("Nutzername"), _("Veranstaltung"), _("Nummer"), _("Priorität"));
+        $captions = array(_("Nachname"), _("Vorname"), _("Nutzername"), _("Veranstaltung"), _("Nummer"), _("Studiengang"), _("Priorität"));
         $data = array();
+        $studycourses = function ($st) {
+            return sprintf(
+                '%s (%s)',
+                trim($st->studycourse_name . ' ' . $st->degree_name),
+                $st->semester
+            );
+        };
         foreach ($users as $user) {
             $row = array();
             $app_courses = $applicants[$user->id];
             asort($app_courses);
+
             foreach ($app_courses as $course_id => $prio) {
                 $row = array();
                 $row[] = $user->nachname;
@@ -582,6 +590,7 @@ class Admission_CoursesetController extends AuthenticatedController
                 $row[] = $user->username;
                 $row[] = $courses->findOneBy('id', $course_id)->name;
                 $row[] = $courses->findOneBy('id', $course_id)->veranstaltungsnummer;
+                $row[] = implode('; ', $user->studycourses->map($studycourses));
                 $row[] = $prio;
                 if ($csv) {
                     $row[] = $user->email;

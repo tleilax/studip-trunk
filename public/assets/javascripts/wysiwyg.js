@@ -118,7 +118,7 @@ jQuery(function ($) {
                     // class="link-extern", target="_blank" and rel="nofollow"
                     // and internal links should not have any attributes except
                     // for href, but this cannot be enforced here
-                    attributes: ['!href', 'target', 'rel'],
+                    attributes: ['href', 'target', 'rel', 'name','id'],
                     classes: ['link-extern', 'link-intern']
                 },
                 audio: {
@@ -245,7 +245,7 @@ jQuery(function ($) {
                 {name: 'styles', groups: ['styles', 'colors', 'tools', 'links', 'insert']},
                 {name: 'others', groups: ['mode', 'settings']}
             ],
-            removeButtons: 'Font,FontSize,Anchor',
+            removeButtons: 'Font,FontSize',
             toolbarCanCollapse: true,
             toolbarStartupExpanded: textarea.width() > 420,
 
