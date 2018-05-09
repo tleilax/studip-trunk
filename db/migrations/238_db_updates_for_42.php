@@ -24,6 +24,9 @@ class DbUpdatesFor42 extends Migration
         $db->exec("UPDATE plugins_activated SET range_type = 'user', range_id = SUBSTRING(poiid, 5) WHERE poiid LIKE 'user%'");
         $db->exec('UPDATE plugins_activated SET state = 0 WHERE state = 2');
 
+        // delete invalid entries
+        $db->exec("DELETE FROM plugins_activated WHERE range_id = ''");
+
         $db->exec('ALTER TABLE plugins_activated
                     DROP PRIMARY KEY, DROP KEY poiid,
                     ADD PRIMARY KEY (pluginid, range_type, range_id),
