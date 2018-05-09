@@ -132,16 +132,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      * callbacks
      * @var array $registered_callbacks
      */
-    protected $registered_callbacks = array('before_create' => array(),
-                                              'before_update' => array(),
-                                              'before_store' => array(),
-                                              'before_delete' => array(),
-                                              'before_initialize' => array(),
-                                              'after_create' => array(),
-                                              'after_update' => array(),
-                                              'after_store' => array(),
-                                              'after_delete' => array(),
-                                              'after_initialize' => array());
+    protected $registered_callbacks = array();
 
     /**
      * contains an array of all used identifiers for fields
@@ -244,20 +235,28 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 }
             }
         }
-        if ($config['db_fields'][$config['pk'][0]]['extra'] == 'auto_increment') {
-            if (!isset($config['registered_callbacks']['before_store'])) {
-                $config['registered_callbacks']['before_store'] = [];
-            }
-            array_unshift($config['registered_callbacks']['before_store'], 'cbAutoIncrementColumn');
 
-            if (!isset($config['registered_callbacks']['after_create'])) {
-                $config['registered_callbacks']['after_create'] = [];
+        $callbacks = ['before_create',
+                      'before_update',
+                      'before_store',
+                      'before_delete',
+                      'before_initialize',
+                      'after_create',
+                      'after_update',
+                      'after_store',
+                      'after_delete',
+                      'after_initialize'];
+
+        foreach ($callbacks as $callback) {
+            if (!isset($config['registered_callbacks'][$callback])) {
+                $config['registered_callbacks'][$callback] = [];
             }
+        }
+
+        if ($config['db_fields'][$config['pk'][0]]['extra'] == 'auto_increment') {
+            array_unshift($config['registered_callbacks']['before_store'], 'cbAutoIncrementColumn');
             array_unshift($config['registered_callbacks']['after_create'], 'cbAutoIncrementColumn');
         } elseif (count($config['pk']) === 1) {
-            if (!isset($config['registered_callbacks']['before_store'])) {
-                $config['registered_callbacks']['before_store'] = [];
-            }
             array_unshift($config['registered_callbacks']['before_store'], 'cbAutoKeyCreation');
         }
 
@@ -295,9 +294,6 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             $config['i18n_fields'] = array();
         }
 
-        if (!isset($config['registered_callbacks']['after_initialize'])) {
-            $config['registered_callbacks']['after_initialize'] = [];
-        }
         array_unshift($config['registered_callbacks']['after_initialize'], 'cbAfterInitialize');
 
         $config['known_slots'] = array_merge(
@@ -856,19 +852,12 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $class = get_class($this);
         //initialize configuration for subclass, only one time
         if (!array_key_exists($class, self::$config)) {
-            static::configure(['db_table' => $this->db_table]);
+            static::configure();
         }
         //if configuration data for subclass is found, point internal properties to it
         if (self::$config[$class] !== null) {
             foreach (array_keys(self::$config[$class]) as $config_key) {
-                //workaround if old-style config in contructor is used
-                if (is_array($this->{$config_key}) && count($this->{$config_key})) {
-                    foreach (array_keys(self::$config[$class][$config_key]) as $config_sub_key) {
-                        $this->{$config_key}[$config_sub_key] = self::$config[$class][$config_key][$config_sub_key];
-                    }
-                } else {
-                    $this->{$config_key} = self::$config[$class][$config_key];
-                }
+                $this->{$config_key} = self::$config[$class][$config_key];
             }
         }
 
