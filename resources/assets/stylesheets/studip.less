@@ -124,7 +124,7 @@ blockquote {
     margin-left: 0px;
     background-color: rgba(0,0,0,0.05);
     > .author {
-        background-color: @brand-color-lighter;
+    	background-color: @brand-color-lighter;
         padding: 4px;
         margin-left: -10px;
         padding-left: 15px;
@@ -303,10 +303,28 @@ div.overdiv {
 .plugin_image {
     text-align: center;
     width: 88px;
+    vertical-align: top;
 }
 
 .plugin_score   { white-space: nowrap; }
 .plugin_install { text-align: center; }
+
+.plugin_description {
+    max-height: 15em;
+    overflow: hidden;
+    position: relative;
+
+    p.read_more {
+         position: absolute;
+         bottom: 0;
+         left: 0;
+         width: 100%;
+         text-align: center;
+         margin: 0;
+         padding: 10px 0;
+         background-image: linear-gradient(to bottom, transparent, white)
+    }
+}
 
 img.plugin_preview {
     height: 60px;
@@ -600,5 +618,32 @@ a.new-member {
 
 .recolor {
     .recolor();
+}
+
+/**
+ * Style the details tag according to stud.ip
+ */
+details.studip {
+    summary {
+        .icon('before', 'arr_1right', 'clickable');
+        cursor: pointer;
+
+        &::before {
+            vertical-align: text-bottom;
+        }
+
+        // Hide default icon
+        list-style: none;
+        &::-webkit-details-marker {
+            display: none;
+        }
+    }
+
+    &[open] {
+        summary {
+            .icon('before', 'arr_1down', 'clickable');
+        }
+    }
+
 }
 }
