@@ -77,7 +77,7 @@ import "./studip-jquery-tweaks.js"
 import "./studip-jquery.multi-select.tweaks.js"
 
 // javascripts/vendor/modernizr-3.5.0.js
-// import Modernizr from "modernizr"
+import "./vendor/modernizr-3.5.0.js"
 
 import hljs from './studip-highlight.js'
 window.hljs = hljs
