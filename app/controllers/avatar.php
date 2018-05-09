@@ -30,11 +30,6 @@ class AvatarController extends AuthenticatedController
         PageLayout::setTitle(_('Hochladen eines persönlichen Bildes'));
         SkipLinks::addIndex(_('Hochladen eines persönlichen Bildes'), 'edit_avatar');
 
-        $this->customized = Avatar::getAvatar($this->user->user_id)->is_customized();
-        if ($this->customized) {
-            SkipLinks::addIndex(_('Eigenes Bild löschen'), 'delete_picture');
-        }
-
         PageLayout::addSqueezePackage('avatar');
     }
 
@@ -70,16 +65,19 @@ class AvatarController extends AuthenticatedController
         PageLayout::setTitle(Context::getHeaderLine() . ' - ' . _('Bild ändern'));
 
         if ($type == 'user') {
-
+            Navigation::activateItem('/profile/index');
         } else if ($type == 'institute') {
             Navigation::activateItem('/admin/institute/details');
         } else {
-
+            Navigation::activateItem('/course/admin/avatar');
         }
 
+        $this->customized = false;
         $avatar = $class::getAvatar($id);
         if ($avatar->is_customized()) {
+            $this->customized = true;
             $this->avatar = $avatar->getURL($class::NORMAL);
+            SkipLinks::addIndex(_('Bild löschen'), 'delete_picture');
         }
 
         $this->type = $type;
@@ -210,6 +208,6 @@ class AvatarController extends AuthenticatedController
         $class::getAvatar($id)->reset();
 
         PageLayout::postMessage(MessageBox::success(_('Das Bild wurde gelöscht.')));
-        $this->relocate($redirect));
+        $this->relocate($redirect);
     }
 }
