@@ -482,7 +482,7 @@ class Course_StudygroupController extends AuthenticatedController
                 $this->url_for('course/wizard?studygroup=1'), Icon::create('studygroup+add', 'clickable'));
             if ($GLOBALS['perm']->have_studip_perm('tutor', $id)) {
                 $actions->addLink(_('Bild ändern'),
-                    $this->url_for('course/avatar/update/' . $id), Icon::create('edit', 'clickable'));
+                    $this->url_for('avatar/update/course' . $id), Icon::create('edit', 'clickable'));
             }
             $actions->addLink(_('Diese Studiengruppe löschen'),
                 $this->url_for('course/studygroup/delete/' . $id), Icon::create('trash', 'clickable'));
