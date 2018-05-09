@@ -323,15 +323,6 @@ class Search_StudiengaengeController extends MVVController
                             $stgteil_bez_id,
                             $studiengang_id));
             
-            $sidebar = Sidebar::get();
-            $widget = new OptionsWidget();
-            $widget->setTitle(_('Filter'));
-            $widget->addCheckbox(_('Für Erstsemesterstudierende'),
-                    $_SESSION['MVV_FILTER_FIRST_SEMESTER'],
-                    URLHelper::getLink('?first_sem=1'),
-                    URLHelper::getLink('?first_sem=0'));
-            $sidebar->addWidget($widget);
-            
             ksort($fachsemesterData);
             $this->fachsemesterData = $fachsemesterData;
             $this->abschnitteData = $abschnitteData;
