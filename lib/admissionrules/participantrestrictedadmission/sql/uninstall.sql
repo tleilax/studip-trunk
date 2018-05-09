@@ -1,9 +1,9 @@
 --
--- Remove timed admissions.
+-- Remove participant restricted admissions.
 --
-DROP TABLE `timedadmissions`;
+DROP TABLE `participantrestrictedadmissions`;
 
 --
 -- Delete courseset assignments.
 --
-DELETE FROM `courseset_rule` WHERE `type`='TimedAdmission';
+DELETE FROM `courseset_rule` WHERE `type`='ParticipantRestrictedAdmission';
