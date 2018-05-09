@@ -6,7 +6,7 @@
     <?php if ($GLOBALS['perm']->have_profile_perm('user', $current_user)) : ?>
         <div class="avatar-overlay">
             <p>
-                <a href="<?= URLHelper::getURL('dispatch.php/settings/avatar') ?>" data-dialog>
+                <a href="<?= URLHelper::getURL('dispatch.php/avatar/update/user/' . $current_user) ?>" data-dialog>
                     <?= _('Klicken Sie hier, um ein neues Bild hochzuladen oder das aktuelle zu löschen.') ?>
                 </a>
             </p>

@@ -4,6 +4,13 @@
     STUDIP.Avatar = {
 
         cropControls: function() {
+            var container = $('div#avatar-preview');
+            var dialog = container.closest('div[role="dialog"]');
+            if (container.length > 0) {
+                // Adjust maximal cropper container height to dialog dimensions.
+                container.css('max-height', dialog.height() - 200);
+                container.css('max-width', dialog.width() - 50);
+            }
             $('#avatar-upload').on('change', function() { STUDIP.Avatar.readFile(this); });
         },
 
@@ -58,4 +65,5 @@ jQuery(function () {
     $(document).on('dialog-open', function() {
         STUDIP.Avatar.cropControls();
     });
+    STUDIP.Avatar.cropControls();
 });

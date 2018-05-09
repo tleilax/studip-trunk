@@ -80,7 +80,9 @@ class Course_AvatarController extends AuthenticatedController
      */
     public function update_action()
     {
-        // nothing to do
+        $this->upload_url = $this->url_for('course/avatar/put');
+
+        $this->render_template('shared/avatar');
     }
 
     /**
