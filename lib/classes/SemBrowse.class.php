@@ -525,7 +525,7 @@ class SemBrowse {
                 });
             }
 
-            echo "\n" . '<table class="default" id="sem_search_result">' . "\n";
+            echo '<table class="default" id="sem_search_result">';
             echo '<caption>'
                 . sprintf(_(' %s Veranstaltungen gefunden %s, Gruppierung: %s'), count($visibles),
                 (($this->sem_browse_data['sset']) ? _('(Suchergebnis)') : ''),
@@ -533,7 +533,11 @@ class SemBrowse {
                 . '</caption>';
 
             foreach ($group_by_data as $group_field => $sem_ids) {
-                echo "\n" . '<tr><th colspan="5">';
+                if (Config::get()->COURSE_SEARCH_SHOW_ADMISSION_STATE) {
+                    echo '<tr><th colspan="6">';
+                } else {
+                    echo '<tr><th colspan="5">';
+                }
                 switch ($this->sem_browse_data['group_by']){
                     case 0:
                         echo htmlReady($this->search_obj->sem_dates[$group_field]['name']);
@@ -1082,7 +1086,29 @@ class SemBrowse {
                     }
                     ++$i;
                 }
-                $row .= ')</td></tr>';
+                $row .= ')</td>';
+                if (Config::get()->COURSE_SEARCH_SHOW_ADMISSION_STATE) {
+                    $row .= '<td>';
+                    switch (self::getStatusCourseAdmission($seminar_id,
+                            $seminar_obj->admission_prelim)) {
+                        case 1:
+                            $row .= Icon::create('span-2quarter',
+                                    Icon::ROLE_STATUS_YELLOW,
+                            tooltip2(_('Eingeschränkter Zugang')));
+                            break;
+                        case 2:
+                            $row .= Icon::create('span-empty',
+                                    Icon::ROLE_STATUS_RED,
+                            tooltip2(_('Kein Zugang')));
+                            break;
+                        default:
+                            $row .= Icon::create('span-full',
+                                    Icon::ROLE_STATUS_GREEN,
+                            tooltip2(_('Uneingeschränkter Zugang')));
+                    }
+                    $row .= '</td>';
+                }
+                $row .= '</tr>';
             }
 
             // Process children.
@@ -1291,4 +1317,31 @@ class SemBrowse {
         $sidebar->addWidget($list, 'filter_semester');
     }
     
+    public static function getStatusCourseAdmission($seminar_id, $prelim)
+    {
+        $sql = "
+            SELECT COUNT(`type`) AS `types`,
+                SUM(IF(`type` = 'LockedAdmission', 1, 0)) AS `type_locked`
+            FROM `seminar_courseset`
+	        INNER JOIN `courseset_rule`
+                    USING(`set_id`)
+	    WHERE `seminar_id` = ?
+            GROUP BY `set_id`";
+	 
+	$stmt = DBManager::get()->prepare($sql);
+	$stmt->execute([$seminar_id]);
+	$result = $stmt->fetch();
+
+        if ($result['types']) {
+            if ($result['type_locked']) {
+                return 2;
+            }
+            return 1;
+        }
+        
+        if ($prelim) {
+            return 1;
+        }
+        return 0;
+    }
 }

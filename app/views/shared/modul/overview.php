@@ -127,6 +127,37 @@
                                 <? if ($course['visible'] != 1) : ?>
                                 <em><?= _('[versteckt]') ?></em>
                                 <? endif; ?>
+                                <? if (Config::get()->COURSE_SEARCH_SHOW_ADMISSION_STATE) : ?>
+                                    <? switch (SemBrowse::getStatusCourseAdmission($course->id,
+                                        $course->admission_prelim)) :
+                                        case 1:
+                                            echo Icon::create('span-2quarter',
+                                                    Icon::ROLE_STATUS_YELLOW,
+                                                    [
+                                                        'alt'   => _('Eingeschränkter Zugang'),
+                                                        'title' => _('Eingeschränkter Zugang'),
+                                                        'style' => 'vertical-align: text-bottom;'
+                                                    ]);
+                                            break;
+                                        case 2:
+                                            echo Icon::create('span-empty',
+                                                    Icon::ROLE_STATUS_RED,
+                                                    [
+                                                        'alt'   => _('Kein Zugang'),
+                                                        'title' => _('Kein Zugang'),
+                                                        'style' => 'vertical-align: text-bottom;'
+                                                    ]);
+                                            break;
+                                        default:
+                                            echo Icon::create('span-full',
+                                                    Icon::ROLE_STATUS_GREEN,
+                                                    [
+                                                        'alt'   => _('Uneingeschränkter Zugang'),
+                                                        'title' => _('Uneingeschränkter Zugang'),
+                                                        'style' => 'vertical-align: text-bottom;'
+                                                    ]);
+                                    endswitch; ?>
+                                <? endif; ?>
                             </li>
                         <? endforeach; ?>
                         </ul>
