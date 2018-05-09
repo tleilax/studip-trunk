@@ -212,6 +212,9 @@ class Search_StudiengaengeController extends MVVController
             $this->sessSet('selected_semester', $sem);
         }
 
+        $this->with_courses = Request::option('with_courses', ($_SESSION['MVV_SEARCH_SEQUENCE_WITH_COURSES'] ?: null));
+        $_SESSION['MVV_SEARCH_SEQUENCE_WITH_COURSES'] = $this->with_courses;
+
         $studiengangTeil = StudiengangTeil::find($stgteil_id);
         $versionen = StgteilVersion::findByStgteil($stgteil_id, 'start', 'DESC')->filter(
             function ($version) {
@@ -289,6 +292,9 @@ class Search_StudiengaengeController extends MVVController
                                 $countcourses += count($courses);
                             }
                         }
+                        
+                        // filter modules whether they have courses or not
+ 	                if ($this->with_courses && $countcourses == 0) continue;
 
                         $fachSemester = $abschnitt_modul->getAllFachSemester($teil->id);
 
@@ -331,6 +337,14 @@ class Search_StudiengaengeController extends MVVController
             // Ausgabe des Namens ohne Fach (dieses ist im Zusatz bereits enthalten)
             // $this->studiengangTeilName = $studiengangTeil->getDisplayName(0);
             $this->studiengangTeilName = $studiengangTeil->getDisplayName();
+            
+            // add option widget to show only modules with courses in the
+            // selected semester
+            $widget = new OptionsWidget();
+            $widget->addCheckbox(_('Nur Module mit Veranstaltungen anzeigen'),
+              $this->with_courses, $this->link_for('/verlauf/' . $stgteil_id,
+                ['with_courses' => intval(!$this->with_courses)]));
+            Sidebar::get()->addWidget($widget, 'with_courses');
         }
         $this->breadcrumb->append(Studiengang::find($studiengang_id), 'verlauf');
         $this->render_template('search/studiengaenge/verlauf', $this->layout);
