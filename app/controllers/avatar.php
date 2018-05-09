@@ -26,10 +26,6 @@ class AvatarController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        PageLayout::setHelpKeyword('Basis.HomepageBild');
-        PageLayout::setTitle(_('Hochladen eines persönlichen Bildes'));
-        SkipLinks::addIndex(_('Hochladen eines persönlichen Bildes'), 'edit_avatar');
-
         PageLayout::addSqueezePackage('avatar');
     }
 
@@ -42,12 +38,20 @@ class AvatarController extends AuthenticatedController
     {
         // Check for permission to save a new avatar.
         if ($type == 'user') {
+            PageLayout::setHelpKeyword('Basis.HomepageBild');
+            PageLayout::setTitle(_('Hochladen eines persönlichen Bildes'));
+            SkipLinks::addIndex(_('Hochladen eines persönlichen Bildes'), 'edit_avatar');
+
             $has_perm = $GLOBALS['perm']->have_profile_perm('user', $id);
             $class = 'Avatar';
         } else if ($type == 'institute') {
+            PageLayout::setTitle(Context::getHeaderLine() . ' - ' . _('Einrichtungsbild ändern'));
+
             $has_perm = $GLOBALS['perm']->have_studip_perm('admin', $id);
             $class = 'InstituteAvatar';
         } else {
+            PageLayout::setTitle(Context::getHeaderLine() . ' - ' . _('Veranstaltungsbild ändern'));
+
             $has_perm = $GLOBALS['perm']->have_studip_perm('tutor', $id);
             $sem = Seminar::getInstance($id);
             $studygroup_mode = $sem->getSemClass()->offsetget('studygroup_mode');
@@ -61,8 +65,6 @@ class AvatarController extends AuthenticatedController
         if (!$has_perm) {
             throw new AccessDeniedException(_('Sie haben keine Berechtigung, das Bild zu ändern.'));
         }
-
-        PageLayout::setTitle(Context::getHeaderLine() . ' - ' . _('Bild ändern'));
 
         if ($type == 'user') {
             Navigation::activateItem('/profile/index');
@@ -98,7 +100,7 @@ class AvatarController extends AuthenticatedController
         if ($type == 'user') {
             $has_perm = $GLOBALS['perm']->have_profile_perm('user', $id);
             $class = 'Avatar';
-            $redirect = 'profile';
+            $redirect = 'profile?username=' . User::find($id)->username;
         } else if ($type == 'institute') {
             $has_perm = $GLOBALS['perm']->have_studip_perm('admin', $id);
             $class = 'InstituteAvatar';
