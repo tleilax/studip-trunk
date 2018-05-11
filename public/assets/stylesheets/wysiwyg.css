@@ -23,6 +23,9 @@
     text-indent: 0;
     z-index: 1;
 }
+.cke_editable {
+    min-height: 6em;
+}
 
 /* CKEDITOR dialogs */
 select.cke_dialog_ui_input_select {
@@ -135,7 +138,6 @@ a.cke_mathjax_doc[href] {
 }
 
 /* other settings */
-
 .wiki-link {
     background-image: url(../javascripts/ckeditor/plugins/studip-wiki/icons/wikilink-grey.png);
     background-repeat: no-repeat;
@@ -146,29 +148,28 @@ a.cke_mathjax_doc[href] {
 
 
 /* from plugins/emojione/styles/emojione.css */
-
 .emojione, .cke_hand[data-shortcode] {
-  /* Emoji Sizing */
-  font-size: inherit;
-  height: 30px !important;
-  width: 30px !important;
+    /* Emoji Sizing */
+    font-size: inherit;
+    height: 30px !important;
+    width: 30px !important;
 
-  /* Inline alignment adjust the margins  */
-  display: inline-block;
-  margin: -.2ex .15em .2ex;
-  line-height: normal;
-  vertical-align: middle;
+    /* Inline alignment adjust the margins  */
+    display: inline-block;
+    margin: -.2ex .15em .2ex;
+    line-height: normal;
+    vertical-align: middle;
 }
 
 /* Margin for lists */
-.cke_wysiwyg_div ul,
-.cke_wysiwyg_div ol {
-  margin: 0.5em 0;
+.cke_editable ul,
+.cke_editable ol {
+    margin: 0.5em 0;
 }
-.cke_wysiwyg_div ul ul,
-.cke_wysiwyg_div ol ul,
-.cke_wysiwyg_div ul ol,
-.cke_wysiwyg_div ol ol {
-  margin-top: 0;
-  margin-bottom: 0;
+.cke_editable ul ul,
+.cke_editable ol ul,
+.cke_editable ul ol,
+.cke_editable ol ol {
+    margin-top: 0;
+    margin-bottom: 0;
 }
