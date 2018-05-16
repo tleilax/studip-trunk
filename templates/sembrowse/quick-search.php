@@ -31,18 +31,7 @@ SkipLinks::addIndex(_('Suchformular'), 'search_sem_qs', 100);
             <input type="hidden" name="level" value="ev">
         </label>
     <? endif; ?>
-
-    <label class="search_sem_label">
-        <?= _('Semester') ?>
-
-        <div class="hgroup-btn">
-            <?= $search_obj->getSearchField(
-                'sem',
-                [ 'id' => 'search_sem_sem', 'class' => 'form-control' ],
-                $sem_browse_data['default_sem']) ?>
-        </div>
-    </label>
-
+    <input type="hidden" name="search_sem_sem" value="<?= htmlReady($_SESSION['sem_browse_data']['default_sem']) ?>">
 </fieldset>
 
 <footer>
@@ -56,7 +45,11 @@ SkipLinks::addIndex(_('Suchformular'), 'search_sem_qs', 100);
         ) ?>
         <?= Studip\LinkButton::create(
             _('Zurücksetzen'),
-            URLHelper::getURL('?reset_all=1'),
+            URLHelper::getURL('?reset_all=1',
+                    [
+                        'level' => $_SESSION['sem_browse_data']['level'],
+                        'cmd'   => 'qs'
+                    ], true),
             ['title' => _('Zurücksetzen')]
         ) ?>
     </span>
