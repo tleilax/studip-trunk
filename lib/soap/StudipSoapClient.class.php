@@ -41,7 +41,7 @@ class StudipSoapClient
             else
                 return $result;
         }
-        echo $this->error;
+        error_log($this->error);
         return false;
     }
 
