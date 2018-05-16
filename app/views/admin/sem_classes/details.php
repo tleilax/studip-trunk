@@ -157,10 +157,6 @@
             <td><input type="checkbox" id="studygroup_mode" value="1"<?= $sem_class['studygroup_mode'] ? " checked" : "" ?>></td>
         </tr>
         <tr class="sub">
-            <td><label for="workgroup_mode"><?= _("Neue Nutzer immer als Tutoren eintragen.") ?></label></td>
-            <td><input type="checkbox" id="workgroup_mode" value="1"<?= $sem_class['workgroup_mode'] ? " checked" : "" ?>></td>
-        </tr>
-        <tr class="sub">
             <td><label for="only_inst_user"><?= _("Nur Nutzer der Einrichtungen sind erlaubt.") ?></label></td>
             <td><input type="checkbox" id="only_inst_user" value="1"<?= $sem_class['only_inst_user'] ? " checked" : "" ?>></td>
         </tr>

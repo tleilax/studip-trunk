@@ -4,6 +4,10 @@
         <legend>
             <?=_('Auswahl der Termine')?>
         </legend>
+        <label>
+            <input type="checkbox" name="all" data-proxyfor=":checkbox[name^=course_date_folders]">
+            <?=_('Alle auswählen')?>
+        </label>
         <? foreach ($dates as $one) : ?>
         <label>
             <input type="checkbox" name="course_date_folders[]" value="<?=htmlReady($one->id)?>">

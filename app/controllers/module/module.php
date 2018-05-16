@@ -233,43 +233,23 @@ class Module_ModuleController extends MVVController
                 $this->modul->verantwortlich = trim(Request::get('verantwortlich'));
             }
             
-            $this->deskriptor->bezeichnung->setLocalized(
-                    trim(Request::get('bezeichnung')), $this->language);
-            $this->deskriptor->verantwortlich->setLocalized(
-                    trim(Request::get('verantwortlich')), $this->language);
-            $this->deskriptor->voraussetzung->setLocalized(
-                    trim(Request::get('voraussetzung')), $this->language);
-            $this->deskriptor->kompetenzziele->setLocalized(
-                    trim(Request::get('kompetenzziele')), $this->language);
-            $this->deskriptor->inhalte->setLocalized(
-                    trim(Request::get('inhalte')), $this->language);
-            $this->deskriptor->literatur->setLocalized(
-                    trim(Request::get('literatur')), $this->language);
-            $this->deskriptor->links->setLocalized(
-                    trim(Request::get('links')), $this->language);
-            $this->deskriptor->kommentar->setLocalized(
-                    trim(Request::get('kommentar')), $this->language);
-            $this->deskriptor->turnus->setLocalized(
-                    trim(Request::get('turnus')), $this->language);
-            $this->deskriptor->kommentar_kapazitaet->setLocalized(
-                    trim(Request::get('kommentar_kapazitaet')), $this->language);
-            $this->deskriptor->kommentar_wl_selbst->setLocalized(
-                    trim(Request::get('kommentar_wl_selbst')), $this->language);
-            $this->deskriptor->kommentar_wl_pruef->setLocalized(
-                    trim(Request::get('kommentar_wl_pruef')), $this->language);
-            $this->deskriptor->kommentar_sws->setLocalized(
-                    trim(Request::get('kommentar_sws')), $this->language);
-            $this->deskriptor->kommentar_note->setLocalized(
-                    trim(Request::get('kommentar_note')), $this->language);
-            $this->deskriptor->pruef_vorleistung->setLocalized(
-                    trim(Request::get('pruef_vorleistung')), $this->language);
-            $this->deskriptor->pruef_leistung->setLocalized(
-                    trim(Request::get('pruef_leistung')), $this->language);
-            $this->deskriptor->pruef_wiederholung->setLocalized(
-                    trim(Request::get('pruef_wiederholung')), $this->language);
-            $this->deskriptor->ersatztext->setLocalized(
-                    trim(Request::get('ersatztext')), $this->language);
-
+            $deskriptor_fields = ['bezeichnung', 'verantwortlich',
+                'voraussetzung', 'kompetenzziele', 'inhalte', 'literatur',
+                'links', 'kommentar', 'turnus', 'kommentar_kapazitaet',
+                'kommentar_wl_selbst', 'kommentar_wl_pruef', 'kommentar_sws',
+                'kommentar_note', 'pruef_vorleistung', 'pruef_leistung',
+                'pruef_wiederholung', 'ersatztext'];
+            
+            foreach ($deskriptor_fields as $deskriptor_field) {
+                if ($this->deskriptor->isI18nField($deskriptor_field)) {
+                    $this->deskriptor->$deskriptor_field->setLocalized(
+                        trim(Request::get($deskriptor_field)), $this->language);
+                } else {
+                    $this->deskriptor->setValue($deskriptor_field,
+                            trim(Request::get($deskriptor_field)));
+                }
+            }
+            
             // update datafields
             foreach (Request::getArray('datafields') as $df_key => $df_value) {
                 $df = $this->deskriptor->datafields->findOneBy('datafield_id', $df_key);
@@ -669,28 +649,21 @@ class Module_ModuleController extends MVVController
                     Request::optionArray('language_items'));
             }
 
-            $this->deskriptor->bezeichnung->setLocalized(
-                    trim(Request::get('bezeichnung')), $this->language);
-            $this->deskriptor->voraussetzung->setLocalized(
-                    trim(Request::get('voraussetzung')), $this->language);
-            $this->deskriptor->kommentar->setLocalized(
-                    trim(Request::get('kommentar')), $this->language);
-            $this->deskriptor->kommentar_kapazitaet->setLocalized(
-                    trim(Request::get('kommentar_kapazitaet')), $this->language);
-            $this->deskriptor->kommentar_wl_praesenz->setLocalized(
-                    trim(Request::get('kommentar_wl_praesenz')), $this->language);
-            $this->deskriptor->kommentar_wl_bereitung->setLocalized(
-                    trim(Request::get('kommentar_wl_bereitung')), $this->language);
-            $this->deskriptor->kommentar_wl_selbst->setLocalized(
-                    trim(Request::get('kommentar_wl_selbst')), $this->language);
-            $this->deskriptor->kommentar_wl_pruef->setLocalized(
-                    trim(Request::get('kommentar_wl_pruef')), $this->language);
-            $this->deskriptor->pruef_vorleistung->setLocalized(
-                    trim(Request::get('pruef_vorleistung')), $this->language);
-            $this->deskriptor->pruef_leistung->setLocalized(
-                    trim(Request::get('pruef_leistung')), $this->language);
-            $this->deskriptor->kommentar_pflicht->setLocalized(
-                    trim(Request::get('kommentar_pflicht')), $this->language);
+            $deskriptor_fields = ['bezeichnung', 'voraussetzung', 'kommentar',
+                'kommentar_kapazitaet', 'kommentar_wl_praesenz',
+                'kommentar_wl_bereitung', 'kommentar_wl_selbst',
+                'kommentar_wl_pruef', 'pruef_vorleistung', 'pruef_leistung',
+                'kommentar_pflicht'];
+            
+            foreach ($deskriptor_fields as $deskriptor_field) {
+                if ($this->deskriptor->isI18nField($deskriptor_field)) {
+                    $this->deskriptor->$deskriptor_field->setLocalized(
+                            trim(Request::get($deskriptor_field)), $this->language);
+                } else {
+                    $this->deskriptor->setValue($deskriptor_field,
+                            trim(Request::get($deskriptor_field)));
+                }
+            }
 
             // update datafields
             foreach (Request::getArray('datafields') as $df_key => $df_value) {

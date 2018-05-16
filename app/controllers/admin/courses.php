@@ -1185,24 +1185,26 @@ class Admin_CoursesController extends AuthenticatedController
         $filter = AdminCourseFilter::get(true);
 
         if ($params['datafields']) {
-            //enable filtering by datafield values:
-            $filter->settings['query']['joins']['datafields_entries'] = array(
-                    'join' => "INNER JOIN",
-                    'on' => "seminare.seminar_id = datafields_entries.range_id"
-            );
-
-            //and use the where-clause for each datafield:
-
-            foreach ($params['datafields'] as $fieldId => $fieldValue) {
-                $filter->where("datafields_entries.datafield_id = :fieldId "
-                    . "AND datafields_entries.content = :fieldValue",
-                    array(
-                        'fieldId' => $fieldId,
-                        'fieldValue' => $fieldValue
-                    )
-                );
+            foreach ($params['datafields'] as $field_id => $value) {
+                $datafield = DataField::find($field_id);
+                if ($datafield) {
+                    //enable filtering by datafield values:
+                    //and use the where-clause for each datafield:
+                    $filter->settings['query']['joins']['de_'.$field_id] = array(
+                        'table' => "datafields_entries",
+                        'join' => "LEFT JOIN",
+                        'on' => "seminare.seminar_id = de_".$field_id.".range_id"
+                    );
+                    $filter->where("(de_".$field_id.".datafield_id = :fieldId_".$field_id." "
+                        . "AND de_".$field_id.".content = :fieldValue_".$field_id.") "
+                        . ($datafield['default_value'] == $value ? " OR (de_".$field_id.".content IS NULL)" : "")." ",
+                        array(
+                            'fieldId_'.$field_id => $field_id,
+                            'fieldValue_'.$field_id => $value
+                        )
+                    );
+                }
             }
-
         }
 
         $filter->where("sem_classes.studygroup_mode = '0'");

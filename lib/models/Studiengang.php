@@ -748,13 +748,20 @@ class Studiengang extends ModuleManagementModelTreeItem
             $messages = array();
             $rejected = false;
             // The name of the studiengang must be longer than 4 characters
-            if (mb_strlen($this->name->original()) < 4) {
+            if (mb_strlen($this->isI18nField('name')
+                    ? $this->name->original()
+                    : $this->name) < 4) {
                 $ret['name'] = true;
                 $messages[] = _('Der Name des Studiengangs ist zu kurz (mindestens 4 Zeichen).');
                 $rejected = true;
             }
             // if the short name is given it must be at least 2 characters
-            if (trim($this->name_kurz->original()) && mb_strlen(trim($this->name_kurz->original())) < 2) {
+            if (trim($this->isI18nField('name_kurz')
+                    ? $this->name_kurz->original()
+                    : $this->name_kurz)
+                && mb_strlen(trim($this->isI18nField('name_kurz')
+                    ? $this->name_kurz->original()
+                    : $this->name_kurz)) < 2) {
                 $ret['name_kurz'] = true;
                 $messages[] = _('Die Kurzbezeichnung muss mindestens 2 Zeichen lang sein.');
                 $rejected = true;

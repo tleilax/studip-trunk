@@ -175,7 +175,8 @@ class messaging
 
         setTempLanguage($rec_user_id);
 
-        $title = "[Stud.IP - " . Config::get()->UNI_NAME_CLEAN . "] " . kill_format(str_replace(array("\r", "\n"), '', $subject));
+        $title_prefix = Config::get()->MAIL_USE_SUBJECT_PREFIX ? '[Stud.IP - ' . Config::get()->UNI_NAME_CLEAN . '] ' : '';
+        $title = $title_prefix . kill_format(str_replace(array("\r", "\n"), '', $subject));
 
         if ($snd_user_id != "____%system%____") {
             $sender = User::find($snd_user_id);

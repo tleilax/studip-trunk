@@ -25,7 +25,9 @@
         <? if ($perm_dokumente) : ?>
         <li id="dokumente_<?= $dokument->dokument_id ?>" class="sort_items">
             <div style="flex: 9;">
-                <?= htmlReady($dokument->document->name->original()) ?>
+                <?= htmlReady($dokument->document->isI18nField('name')
+                        ? $dokument->document->name->original()
+                        : $dokument->document->name) ?>
             </div>
             <div style="flex: 1; text-align: right;" class="mvv-item-list-buttons">
                 <a href="#" class="mvv-item-remove"><?= Icon::create('trash', 'clickable', array('title' => _('Dokument entfernen')))->asImg(); ?></a>
@@ -42,7 +44,9 @@
         <? else : ?>
         <li id="dokumente_<?= $dokument->dokument_id ?>">
             <div style="flex: 1;">
-                <?= htmlReady($dokument->document->name->original()) ?>
+                <?= htmlReady($dokument->document->isI18nField('name')
+                        ? $dokument->document->name->original()
+                        : $dokument->document->name) ?>
             </div>
             <input type="hidden" name="dokumente_items[]" value="<?= $dokument->dokument_id ?>">
         </li>

@@ -117,9 +117,8 @@ class Course_TopicsController extends AuthenticatedController
         if (!$GLOBALS['perm']->have_studip_perm("tutor", Context::getId())) {
             throw new AccessDeniedException();
         }
-        $this->course = Course::findCurrent();
-        $this->course['public_topics'] = $this->course['public_topics'] ? 0 : 1;
-        $this->course->store();
+        $config = CourseConfig::get(Context::getId());
+        $config->store('COURSE_PUBLIC_TOPICS', !$config->COURSE_PUBLIC_TOPICS);
         $this->redirect("course/topics");
     }
 

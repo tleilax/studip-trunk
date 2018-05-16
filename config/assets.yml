@@ -191,7 +191,6 @@ css:
     studip-jquery-ui.css: screen, print
     jshighlight_tomorrow.css: screen, print
     chartist.min.css: screen, print
-    lightbox.css: screen
     style.css:  screen
     print.css:  print
 

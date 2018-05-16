@@ -66,13 +66,13 @@
             }
 
             if (this.images.length > 1) {
-                title.push(sprintf(
+                title.unshift(sprintf(
                     'Bild %u von %u'.toLocaleString(),
                     this.current + 1,
                     this.images.length
                 ));
             }
-            return title.join(' - ');
+            return title.join(': ');
         },
         getClasses: function () {
             var classes = [];

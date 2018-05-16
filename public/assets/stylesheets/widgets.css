@@ -566,10 +566,7 @@
   height: 16px;
   margin-right: 0;
   background-image: url("../images/icons/grey/edit.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   vertical-align: text-top;
   width: 16px;
 }
@@ -769,10 +766,7 @@
 }
 .grid-stack-item-content.widget-disabled .widget-content {
   background-image: url("../images/icons/grey/decline-circle-full.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: center;
   background-repeat: no-repeat;
   background-size: auto 75%;
@@ -821,10 +815,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/edit.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -838,10 +829,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/decline.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -855,10 +843,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/lock-unlocked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -872,10 +857,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/lock-locked.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -889,10 +871,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/accept/group.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -906,10 +885,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/decline/group.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -923,10 +899,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/add.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -940,10 +913,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/admin.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -957,10 +927,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/refresh.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -974,10 +941,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/rss.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -991,10 +955,7 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/add/rss.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
@@ -1008,20 +969,14 @@
   width: 16px;
   height: 16px;
   background-image: url("../images/icons/blue/visibility-invisible.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-repeat: no-repeat;
   cursor: pointer;
   display: block;
 }
 .widget-action[data-action="visibility"].visible {
   background-image: url("../images/icons/blue/visibility-visible.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
 }
 #layout-sidebar {
   display: -ms-flexbox;
@@ -1240,10 +1195,7 @@ form.add-widget .position input[type="radio"] {
 }
 form.add-widget .position input[type="radio"] + label {
   background-image: url("../images/icons/blue/span-empty.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-position: left 1em center;
   background-repeat: no-repeat;
   background-size: 2em;
@@ -1256,10 +1208,7 @@ form.add-widget .position input[type="radio"] + label {
 form.add-widget .position input[type="radio"]:checked + label {
   background-color: #e2efcf;
   background-image: url("../images/icons/blue/check-circle-full.svg");
-  -webkit-background-size: 16px 16px;
-  -moz-background-size: 16px 16px;
-  -o-background-size: 16px 16px;
-  background-size: 16px 16px;
+  background-size: 16px;
   background-size: 2em;
   font-weight: bold;
 }
