@@ -201,7 +201,7 @@ if ($request_resource_id = $request->getResourceId()) :
             <? endif ?>
 
         <? endif ?>
-        <? if (!count($search_result)) : ?>
+        <? if (empty($search_result)) : ?>
             <section>
 
                 <input id="search_exp_room" type="text" size="30" maxlength="255" name="search_exp_room"
