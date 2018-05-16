@@ -582,7 +582,7 @@ $(document).on('ready dialog-update', function () {
 /* ------------------------------------------------------------------------
  * the local MVV namespace
  * ------------------------------------------------------------------------ */
-var MVV = MVV || {};
+window.MVV = window.MVV || {};
 
 MVV.CourseWizard = {
 
