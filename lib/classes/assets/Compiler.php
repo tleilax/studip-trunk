@@ -56,15 +56,9 @@ class Compiler
     {
         Autoloader::register();
 
-        $parser = new Parser(
-            [
-                'strictMath' => true,
-            ],
-            null,
-            [
-                new FileSystemImporter([$GLOBALS['STUDIP_BASE_PATH'] . '/resources/'])
-            ]
-        );
+        $parser = new Parser(['strictMath' => true], null, [
+            new FileSystemImporter([$GLOBALS['STUDIP_BASE_PATH'] . '/resources/'])
+        ]);
 
         return $parser;
     }
