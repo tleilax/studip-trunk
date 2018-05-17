@@ -100,8 +100,17 @@ class CourseTopicFolder extends PermissionEnabledFolder implements FolderType
         if ($topic === null) {
             return MessageBox::error(_('Es wurde kein Thema ausgewählt.'));
         } else {
+            if ($topic->id === $this->getTopic()->id) {
+                if (!$request['name']) {
+                    return MessageBox::error(_('Die Bezeichnung des Ordners fehlt.'));
+                }
+                $topic->title = $request['name'];
+                $topic->description = $request['description'] ?: '';
+                $topic->store();
+            }
             $this->setTopic($topic);
         }
+
         if (isset($request['course_topic_folder_perm_write'])) {
             $this->folderdata['data_content']['permission'] = 7;
         } else {
