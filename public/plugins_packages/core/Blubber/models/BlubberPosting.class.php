@@ -119,9 +119,9 @@ class BlubberPosting extends SimpleORMap {
             "SELECT seminar_user.Seminar_id " .
             "FROM seminar_user " .
                 "INNER JOIN seminare ON (seminare.Seminar_id = seminar_user.Seminar_id) " .
-                "INNER JOIN plugins_activated ON (pluginid = :blubber_id AND plugins_activated.poiid = CONCAT('sem', seminar_user.Seminar_id)) " .
+                "INNER JOIN plugins_activated ON (pluginid = :blubber_id AND plugins_activated.range_type = 'sem' AND plugins_activated.range_id = seminar_user.Seminar_id) " .
             "WHERE seminar_user.user_id = :user_id " .
-                "AND plugins_activated.state = 'on' " .
+                "AND plugins_activated.state = 1 " .
             "ORDER BY seminare.start_time ASC, seminare.name ASC " .
         "");
         $statement->execute(array('user_id' => $GLOBALS['user']->id, 'blubber_id' => $blubber_plugin_info['id']));

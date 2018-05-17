@@ -62,7 +62,8 @@ class Statusgruppen extends SimpleORMap
 
         $config['default_values']['position'] = null;
 
-        $config['registered_callbacks']['after_delete'][] = 'reorderPositions';
+        $config['registered_callbacks']['before_store'][] = 'cbAddPosition';
+        $config['registered_callbacks']['after_delete'][] = 'cbReorderPositions';
 
         parent::configure($config);
     }
@@ -484,17 +485,6 @@ class Statusgruppen extends SimpleORMap
         $stmt2->execute(array($pos, $this->id, $statususer->user_id));
     }
 
-    public function store()
-    {
-        if ($this->position === null) {
-            $sql = "SELECT MAX(position) + 1 FROM statusgruppen WHERE range_id = ?";
-            $stmt = DBManager::get()->prepare($sql);
-            $stmt->execute(array($this->range_id));
-            $this->position = $stmt->fetchColumn();
-        }
-        return parent::store();
-    }
-
     /**
      * Deletes a status group. Any associated child group will move upwards
      * in the tree.
@@ -548,9 +538,22 @@ class Statusgruppen extends SimpleORMap
     }
 
     /**
+     * Adds the next free position if position is null.
+     */
+    public function cbAddPosition()
+    {
+        if ($this->position === null) {
+            $sql = "SELECT MAX(position) FROM statusgruppen WHERE range_id = ?";
+            $stmt = DBManager::get()->prepare($sql);
+            $stmt->execute(array($this->range_id));
+            $this->position = 1 + $stmt->fetchColumn();
+        }
+    }
+
+    /**
      * Reorders position after delete or for the assoicated range_id.
      */
-    public function reorderPositions()
+    public function cbReorderPositions()
     {
         $i = 0;
         self::findEachBySQL(

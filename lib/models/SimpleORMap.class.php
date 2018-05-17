@@ -132,16 +132,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      * callbacks
      * @var array $registered_callbacks
      */
-    protected $registered_callbacks = array('before_create' => array(),
-                                              'before_update' => array(),
-                                              'before_store' => array(),
-                                              'before_delete' => array(),
-                                              'before_initialize' => array(),
-                                              'after_create' => array(),
-                                              'after_update' => array(),
-                                              'after_store' => array(),
-                                              'after_delete' => array(),
-                                              'after_initialize' => array());
+    protected $registered_callbacks = array();
 
     /**
      * contains an array of all used identifiers for fields
@@ -194,7 +185,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         }
 
         if (!isset($config['db_fields'])) {
-            if (self::TableScheme($config['db_table'])) {
+            if (static::tableScheme($config['db_table'])) {
                 $config['db_fields'] = self::$schemes[$config['db_table']]['db_fields'];
                 $config['pk'] = self::$schemes[$config['db_table']]['pk'];
             }
@@ -244,20 +235,28 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                 }
             }
         }
-        if ($config['db_fields'][$config['pk'][0]]['extra'] == 'auto_increment') {
-            if (!isset($config['registered_callbacks']['before_store'])) {
-                $config['registered_callbacks']['before_store'] = [];
-            }
-            array_unshift($config['registered_callbacks']['before_store'], 'cbAutoIncrementColumn');
 
-            if (!isset($config['registered_callbacks']['after_create'])) {
-                $config['registered_callbacks']['after_create'] = [];
+        $callbacks = ['before_create',
+                      'before_update',
+                      'before_store',
+                      'before_delete',
+                      'before_initialize',
+                      'after_create',
+                      'after_update',
+                      'after_store',
+                      'after_delete',
+                      'after_initialize'];
+
+        foreach ($callbacks as $callback) {
+            if (!isset($config['registered_callbacks'][$callback])) {
+                $config['registered_callbacks'][$callback] = [];
             }
+        }
+
+        if ($config['db_fields'][$config['pk'][0]]['extra'] == 'auto_increment') {
+            array_unshift($config['registered_callbacks']['before_store'], 'cbAutoIncrementColumn');
             array_unshift($config['registered_callbacks']['after_create'], 'cbAutoIncrementColumn');
         } elseif (count($config['pk']) === 1) {
-            if (!isset($config['registered_callbacks']['before_store'])) {
-                $config['registered_callbacks']['before_store'] = [];
-            }
             array_unshift($config['registered_callbacks']['before_store'], 'cbAutoKeyCreation');
         }
 
@@ -295,9 +294,6 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             $config['i18n_fields'] = array();
         }
 
-        if (!isset($config['registered_callbacks']['after_initialize'])) {
-            $config['registered_callbacks']['after_initialize'] = [];
-        }
         array_unshift($config['registered_callbacks']['after_initialize'], 'cbAfterInitialize');
 
         $config['known_slots'] = array_merge(
@@ -317,6 +313,21 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             }
         }
         self::$config[$class] = $config;
+    }
+
+    /**
+     * fetch config data for the called class
+     *
+     * @param string $key config key
+     * @return string value of config key (null if not set)
+     */
+    protected static function config($key)
+    {
+        if (!array_key_exists(static::class, self::$config)) {
+            static::configure();
+        }
+
+        return self::$config[static::class][$key];
     }
 
     /**
@@ -390,12 +401,13 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     public static function exists($id)
     {
         $ret = false;
+        $db_table = static::config('db_table');
         $class = get_called_class();
         $record = new $class();
         call_user_func_array(array($record, 'setId'), func_get_args());
         $where_query = $record->getWhereQuery();
         if ($where_query) {
-            $query = "SELECT 1 FROM `{$record->db_table}` WHERE "
+            $query = "SELECT 1 FROM `$db_table` WHERE "
                     . join(" AND ", $where_query);
             $ret = (bool)DBManager::get()->query($query)->fetchColumn();
         }
@@ -411,14 +423,13 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     public static function countBySql($sql = 1, $params = array())
     {
-        $class = get_called_class();
-        $record = new $class();
+        $db_table = static::config('db_table');
         $db = DBManager::get();
         $has_join = mb_stripos($sql, 'JOIN ');
         if ($has_join === false || $has_join > 10) {
             $sql = 'WHERE ' . $sql;
         }
-        $sql = "SELECT count(*) FROM `" .  $record->db_table . "` " . $sql;
+        $sql = "SELECT count(*) FROM `" .  $db_table . "` " . $sql;
         $st = $db->prepare($sql);
         $st->execute($params);
         return (int)$st->fetchColumn();
@@ -466,7 +477,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     public static function buildExisting($data)
     {
-        return self::build($data, false);
+        return static::build($data, false);
     }
 
     /**
@@ -535,6 +546,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     public static function findBySQL($sql, $params = array())
     {
+        $db_table = static::config('db_table');
         $class = get_called_class();
         $record = new $class();
         $db = DBManager::get();
@@ -542,7 +554,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if ($has_join === false || $has_join > 10) {
             $sql = 'WHERE ' . $sql;
         }
-        $sql = "SELECT `" . $record->db_table . "`.* FROM `" .  $record->db_table . "` " . $sql;
+        $sql = "SELECT `" . $db_table . "`.* FROM `" . $db_table . "` " . $sql;
         $ret = array();
         $stmt = DBManager::get()->prepare($sql);
         $stmt->execute($params);
@@ -553,43 +565,6 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             $ret[] = clone $record;
         }
         return $ret;
-    }
-
-    public static function findByObject(SimpleORMap $object)
-    {
-        $lastclass = get_called_class();
-        $lastrecord = new $lastclass();
-
-        $args = func_get_args();
-        array_shift($args);
-        $classes = array_reverse($args);
-        $sql = " ";
-        foreach ($classes as $class) {
-            $record = new $class();
-            $column = null;
-            self::$config[$class];
-            foreach (self::$config[$class]['has_many'] as $config) {
-                if ($config['class_name'] === $lastclass) {
-                    $column = $config['foreign_key'];
-                }
-            }
-            $sql .= "INNER JOIN `". $record->db_table ."` ON (`". $record->db_table ."`.`".$column ."` = `". $lastrecord->db_table ."`.`".$record->pk ."`) ";
-
-            $lastrecord = $record;
-            $lastclass = $class;
-        }
-
-        $column = null;
-        self::$config[get_class($object)];
-        foreach (self::$config[get_class($object)]['has_many'] as $config) {
-            if ($config['class_name'] === $lastclass) {
-                $column = $config['foreign_key'];
-            }
-        }
-        $sql .= "INNER JOIN `". $object->db_table ."` ON (`". $object->db_table ."`.`".$column ."` = `". $lastrecord->db_table ."`.`".$record->pk ."`) ";
-        $sql .= " WHERE `". $object->db_table ."`.`".$record->pk ."` = ? ";
-
-        return self::findBySQL($sql, array($object->getId()));
     }
 
     /**
@@ -604,7 +579,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if (mb_stripos($where, 'LIMIT') === false) {
             $where .= " LIMIT 1";
         }
-        $found = self::findBySQL($where, $params);
+        $found = static::findBySQL($where, $params);
         return isset($found[0]) ? $found[0] : null;
     }
 
@@ -623,10 +598,11 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $thru_assoc_key = $options['thru_assoc_key'];
         $assoc_foreign_key = $options['assoc_foreign_key'];
 
+        $db_table = static::config('db_table');
         $class = get_called_class();
         $record = new $class();
-        $sql = "SELECT `{$record->db_table}`.* FROM `$thru_table`
-        INNER JOIN `{$record->db_table}` ON `$thru_table`.`$thru_assoc_key` = `{$record->db_table}`.`$assoc_foreign_key`
+        $sql = "SELECT `$db_table`.* FROM `$thru_table`
+        INNER JOIN `$db_table` ON `$thru_table`.`$thru_assoc_key` = `$db_table`.`$assoc_foreign_key`
         WHERE `$thru_table`.`$thru_key` = ? " . $options['order_by'];
         $db = DBManager::get();
         $st = $db->prepare($sql);
@@ -651,6 +627,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     public static function findEachBySQL($callable, $sql, $params = array())
     {
+        $db_table = static::config('db_table');
         $class = get_called_class();
         $record = new $class();
         $db = DBManager::get();
@@ -658,7 +635,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         if ($has_join === false || $has_join > 10) {
             $sql = 'WHERE ' . $sql;
         }
-        $sql = "SELECT `" . $record->db_table . "`.* FROM `" .  $record->db_table . "` " . $sql;
+        $sql = "SELECT `" . $db_table . "`.* FROM `" .  $db_table . "` " . $sql;
         $st = $db->prepare($sql);
         $st->execute($params);
         $st->setFetchMode(PDO::FETCH_INTO , $record);
@@ -680,14 +657,14 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     public static function findMany($pks = array(), $order = '', $order_params = array())
     {
-        $class = get_called_class();
-        $record = new $class();
+        $db_table = static::config('db_table');
+        $pk = static::config('pk');
         $db = DBManager::get();
-        if (count($record->pk) > 1) {
+        if (count($pk) > 1) {
             throw new Exception('not implemented yet');
         }
-        $where = "`{$record->db_table}`.`{$record->pk[0]}` IN ("  . $db->quote($pks) . ") ";
-        return self::findBySQL($where . $order, $order_params);
+        $where = "`$db_table`.`{$pk[0]}` IN ("  . $db->quote($pks) . ") ";
+        return static::findBySQL($where . $order, $order_params);
     }
 
     /**
@@ -700,14 +677,14 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     public static function findEachMany($callable, $pks = array(), $order = '', $order_params = array())
     {
-        $class = get_called_class();
-        $record = new $class();
+        $db_table = static::config('db_table');
+        $pk = static::config('pk');
         $db = DBManager::get();
-        if (count($record->pk) > 1) {
+        if (count($pk) > 1) {
             throw new Exception('not implemented yet');
         }
-        $where = "`{$record->db_table}`.`{$record->pk[0]}` IN ("  . $db->quote($pks) . ") ";
-        return self::findEachBySQL($callable, $where . $order, $order_params);
+        $where = "`$db_table`.`{$pk[0]}` IN ("  . $db->quote($pks) . ") ";
+        return static::findEachBySQL($callable, $where . $order, $order_params);
     }
 
     /**
@@ -725,7 +702,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $calleach = function($m) use (&$ret, $callable) {
             $ret[] = $callable($m);
         };
-        self::findEachBySQL($calleach, $where, $params);
+        static::findEachBySQL($calleach, $where, $params);
         return $ret;
     }
 
@@ -744,14 +721,14 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $calleach = function($m) use (&$ret, $callable) {
             $ret[] = $callable($m);
         };
-        $class = get_called_class();
-        $record = new $class();
+        $db_table = static::config('db_table');
+        $pk = static::config('pk');
         $db = DBManager::get();
-        if (count($record->pk) > 1) {
+        if (count($pk) > 1) {
             throw new Exception('not implemented yet');
         }
-        $where = "`{$record->db_table}`.`{$record->pk[0]}` IN ("  . $db->quote($pks) . ") ";
-        self::findEachBySQL($calleach, $where . $order, $order_params);
+        $where = "`$db_table`.`{$pk[0]}` IN ("  . $db->quote($pks) . ") ";
+        static::findEachBySQL($calleach, $where . $order, $order_params);
         return $ret;
     }
 
@@ -764,7 +741,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
     public static function deleteBySQL($where, $params = array())
     {
         $killeach = function($record) {$record->delete();};
-        return self::findEachBySQL($killeach, $where, $params);
+        return static::findEachBySQL($killeach, $where, $params);
     }
 
     /**
@@ -782,8 +759,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             return $id_or_object;
         }
         if (is_array($id_or_object)) {
-            $object = new $class();
-            list( ,$pk) = array_values($object->getTableMetadata());
+            $pk = static::config('pk');
             $key_values = array();
             foreach($pk as $key) {
                 if (array_key_exists($key, $id_or_object)) {
@@ -813,9 +789,11 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
      */
     public static function __callStatic($name, $arguments)
     {
+        $db_table = static::config('db_table');
+        $alias_fields = static::config('alias_fields');
+        $db_fields = static::config('db_fields');
         $name = mb_strtolower($name);
         $class = get_called_class();
-        $record = new $class();
         $param_arr = array();
         $where = '';
         $where_param = is_array($arguments[0]) ? $arguments[0] : array($arguments[0]);
@@ -852,11 +830,11 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             default:
                 throw new BadMethodCallException("Method $class::$name not found");
         }
-        if (isset($record->alias_fields[$field])) {
-            $field = $record->alias_fields[$field];
+        if (isset($alias_fields[$field])) {
+            $field = $alias_fields[$field];
         }
-        if (isset($record->db_fields[$field])) {
-            $where = "`{$record->db_table}`.`$field` IN(?) " . $order;
+        if (isset($db_fields[$field])) {
+            $where = "`$db_table`.`$field` IN(?) " . $order;
             return call_user_func_array(array($class, $method), $param_arr);
         }
         throw new BadMethodCallException("Method $class::$name not found");
@@ -874,19 +852,12 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
         $class = get_class($this);
         //initialize configuration for subclass, only one time
         if (!array_key_exists($class, self::$config)) {
-            static::configure(['db_table' => $this->db_table]);
+            static::configure();
         }
         //if configuration data for subclass is found, point internal properties to it
         if (self::$config[$class] !== null) {
             foreach (array_keys(self::$config[$class]) as $config_key) {
-                //workaround if old-style config in contructor is used
-                if (is_array($this->{$config_key}) && count($this->{$config_key})) {
-                    foreach (array_keys(self::$config[$class][$config_key]) as $config_sub_key) {
-                        $this->{$config_key}[$config_sub_key] = self::$config[$class][$config_key][$config_sub_key];
-                    }
-                } else {
-                    $this->{$config_key} = self::$config[$class][$config_key];
-                }
+                $this->{$config_key} = self::$config[$class][$config_key];
             }
         }
 
@@ -1041,7 +1012,7 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
                     $options['assoc_foreign_key']= $meta['pk'][0];
                 }
             }
-            self::TableScheme($thru_table);
+            static::tableScheme($thru_table);
             if (is_array(self::$schemes[$thru_table])) {
                 $thru_key_ok = isset(self::$schemes[$thru_table]['db_fields'][$options['thru_key']]);
                 $thru_assoc_key_ok = isset(self::$schemes[$thru_table]['db_fields'][$options['thru_assoc_key']]);
@@ -1123,17 +1094,6 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
             }
         }
         return $options;
-    }
-
-    /**
-     * restore table metadata from db or cache
-     */
-    protected function getTableScheme()
-    {
-        if(self::TableScheme($this->db_table)) {
-            $this->db_fields = self::$schemes[$this->db_table]['db_fields'];
-            $this->pk = self::$schemes[$this->db_table]['pk'];
-        }
     }
 
     /**

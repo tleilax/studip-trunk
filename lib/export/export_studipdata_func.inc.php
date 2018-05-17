@@ -538,23 +538,13 @@ function export_teilis($inst_id, $ex_sem_id = "no")
     } else {
 
         if (!in_array($filter, words('awaiting claiming'))) {
-            if (!$SEM_CLASS[$SEM_TYPE[Context::getArtNum()]['class']]['workgroup_mode']) {
-                $gruppe = array(
-                    'dozent'   => _('Lehrende'),
-                    'tutor'    => _('Tutor/-innen'),
-                    'autor'    => _('Studierende'),
-                    'user'     => _('Leser/-innen'),
-                    'accepted' => _('Vorläufig akzeptierte Personen')
-                );
-            } else {
-                $gruppe = array(
-                    'dozent'   => _('Leitung'),
-                    'tutor'    => _('Mitglieder'),
-                    'autor'    => _('Autor/-innen'),
-                    'user'     => _('Leser/-innen'),
-                    'accepted' => _('Vorläufig akzeptierte Personen')
-                );
-            }
+            $gruppe = array(
+                'dozent'   => get_title_for_status('dozent', 2),
+                'tutor'    => get_title_for_status('tutor', 2),
+                'autor'    => get_title_for_status('autor', 2),
+                'user'     => get_title_for_status('user', 2),
+                'accepted' => get_title_for_status('accepted', 2)
+            );
         } else {
             $gruppe[$filter] = _('Anmeldeliste');
         }

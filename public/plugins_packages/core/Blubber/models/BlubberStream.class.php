@@ -538,16 +538,16 @@ class BlubberStream extends SimpleORMap {
             FROM seminar_user
                 INNER JOIN seminare ON (seminare.Seminar_id = seminar_user.Seminar_id)
                 INNER JOIN plugins_activated ON (pluginid = :blubber_plugin_id
-                    AND plugins_activated.poiid = CONCAT('sem', seminare.Seminar_id))
+                    AND plugins_activated.range_type = 'sem' AND plugins_activated.range_id = seminare.Seminar_id)
             WHERE seminar_user.user_id = :me
-                AND plugins_activated.state = 'on'
+                AND plugins_activated.state = 1
                 AND seminare.status NOT IN (:forbidden_types)
 
             UNION DISTINCT SELECT seminare.Seminar_id
             FROM seminar_user
                 INNER JOIN seminare ON (seminare.Seminar_id = seminar_user.Seminar_id)
                 LEFT JOIN plugins_activated ON (pluginid = :blubber_plugin_id
-                    AND plugins_activated.poiid = CONCAT('sem', seminare.Seminar_id))
+                    AND plugins_activated.range_type = 'sem' AND plugins_activated.range_id = seminare.Seminar_id)
             WHERE seminar_user.user_id = :me
                 AND plugins_activated.state IS NULL
                 AND seminare.status NOT IN (:forbidden_types)
@@ -564,12 +564,12 @@ class BlubberStream extends SimpleORMap {
                 "SELECT deputies.range_id " .
                 "FROM deputies " .
                     "INNER JOIN seminare ON (seminare.Seminar_id = deputies.range_id) " .
-                    "LEFT JOIN plugins_activated ON (pluginid = :blubber_plugin_id AND plugins_activated.poiid = CONCAT('sem', seminare.Seminar_id)) " .
+                    "LEFT JOIN plugins_activated ON (pluginid = :blubber_plugin_id AND plugins_activated.range_type = 'sem' AND plugins_activated.range_id = seminare.Seminar_id) " .
                 "WHERE deputies.user_id = :me " .
                     "AND (" .
                         "seminare.status IN (:mandatory_types) " .
-                        "OR (plugins_activated.state = 'on') " .
-                        "OR (seminare.status IN (:standard_types) AND plugins_activated.state != 'off') " .
+                        "OR (plugins_activated.state = 1) " .
+                        "OR (seminare.status IN (:standard_types) AND plugins_activated.state != 0) " .
                     ") " .
                     "AND seminare.status NOT IN (:forbidden_types) " .
             "");

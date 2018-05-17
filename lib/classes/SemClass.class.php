@@ -367,7 +367,6 @@ class SemClass implements ArrayAccess
                 "SET name = :name, " .
                 "description = :description, " .
                 "create_description = :create_description, " .
-                "workgroup_mode = :workgroup_mode, " .
                 "studygroup_mode = :studygroup_mode, " .
                 "only_inst_user = :only_inst_user, " .
                 "default_read_level = :default_read_level, " .
@@ -410,7 +409,6 @@ class SemClass implements ArrayAccess
             'name' => $this->data['name'],
             'description' => $this->data['description'],
             'create_description' => $this->data['create_description'],
-            'workgroup_mode' => (int) $this->data['workgroup_mode'],
             'studygroup_mode' => (int) $this->data['studygroup_mode'],
             'only_inst_user' => (int) $this->data['only_inst_user'],
             'default_read_level' => (int) $this->data['default_read_level'],
@@ -522,8 +520,6 @@ class SemClass implements ArrayAccess
         switch ($offset) {
             case "name":
                 return gettext($this->data['name']);
-            case "workgroup_mode":
-                return (bool) $this->data['workgroup_mode'];
             case "only_inst_user":
                 return (bool) $this->data['only_inst_user'];
             case "bereiche":

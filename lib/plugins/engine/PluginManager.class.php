@@ -204,16 +204,16 @@ class PluginManager
         if (!isset($this->plugins_activated_cache[$context])) {
             $query = "SELECT pluginid, state "
                    . "FROM plugins_activated "
-                   . "WHERE (poiid = CONCAT('sem', ?) OR poiid = CONCAT('inst', ?))";
+                   . "WHERE range_type IN ('sem', 'inst') AND range_id = ?";
             $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($context, $context));
+            $statement->execute(array($context));
             $this->plugins_activated_cache[$context] = $statement->fetchGrouped(PDO::FETCH_COLUMN);
         }
         $state = $this->plugins_activated_cache[$context][$id];
         if (get_object_type($context, array('sem')) === 'sem') {
-            if (!$state) {
+            if ($state === null) {
                 if (!isset($this->plugins_default_activations_cache[$context])) {
-                    $query = "SELECT pluginid, 'on' as state "
+                    $query = "SELECT pluginid, 1 as state "
                         . "FROM plugins_default_activations "
                         . "JOIN seminar_inst ON (institutid = institut_id) "
                         . "WHERE seminar_id = ?";
@@ -231,7 +231,7 @@ class PluginManager
                 $forbidden = $modules[$plugin_class]['sticky'] && !$sem_class_default;
             }
         }
-        return ((($inst_default || $sem_class_default) && $state !== 'off' || $state === 'on') && !$forbidden)
+        return ((($inst_default || $sem_class_default) && $state !== '0' || $state === '1') && !$forbidden)
             || $mandatory;
     }
 
@@ -250,17 +250,17 @@ class PluginManager
         if (!isset($this->plugins_activated_cache[$userId])) {
             $query = "SELECT pluginid, state "
                    . "FROM plugins_activated "
-                   . "WHERE poiid = CONCAT('user', ?)";
+                   . "WHERE range_type = 'user' AND range_id = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($userId));
             $this->plugins_activated_cache[$userId] = $statement->fetchGrouped(PDO::FETCH_COLUMN);
 
         }
         $state = $this->plugins_activated_cache[$userId][$pluginId];
-        if (!$state) {
+        if ($state === null) {
             $activated = (bool) Config::get()->HOMEPAGEPLUGIN_DEFAULT_ACTIVATION;
         } else {
-            $activated = $state === 'on';
+            $activated = (bool) $state;
         }
 
         return $activated;
@@ -274,13 +274,15 @@ class PluginManager
      * @param $active    plugin status (true or false)
      * @param $context   context of plugin activation
      */
-    public function setPluginActivated ($id, $rangeId, $active, $context='sem')
+    public function setPluginActivated ($id, $rangeId, $active, $context = 'sem')
     {
         $db = DBManager::get();
-        $state = $active ? 'on' : 'off';
+        $state = $active ? 1 : 0;
         unset($this->plugins_activated_cache[$rangeId]);
-        return $db->exec("REPLACE INTO plugins_activated (pluginid, poiid, state)
-                   VALUES ('$id', '$context$rangeId', '$state')");
+
+        $stmt = $db->prepare('REPLACE INTO plugins_activated (pluginid, range_type, range_id, state)
+                              VALUES (?, ?, ?, ?)');
+        return $stmt->execute(array($id, $context, $rangeId, $state));
     }
 
     /**

@@ -133,7 +133,7 @@ class Ilias3Soap extends StudipSoapClient
     */
     function loadCacheData($cms)
     {
-        $this->soap_cache = $_SESSION["cache_data"][$cms];
+        $this->soap_cache = (array)$_SESSION["cache_data"][$cms];
     }
 
     /**
@@ -169,8 +169,8 @@ class Ilias3Soap extends StudipSoapClient
     */
     function clearCache()
     {
-        $this->soap_cache = "";
-        $_SESSION["cache_data"][$this->cms_type] = "";
+        $this->soap_cache = [];
+        $_SESSION["cache_data"][$this->cms_type] = [];
 
     }
 
@@ -1068,4 +1068,4 @@ class Ilias3Soap extends StudipSoapClient
         return false;
     }
 }
-?>
+

@@ -24,7 +24,7 @@ class LonCapaConnectedCMS extends ConnectedCMS
     public function __construct($cms = ""){
         parent::__construct($cms);
 
-        $this->seminarId = $GLOBALS['SessSemName'][1];
+        $this->seminarId = Context::getId();
         $this->user = User::findCurrent();
         $this->lcRequest = new LonCapaRequest();
         $this->cmsUrl = $this->ABSOLUTE_PATH_ELEARNINGMODULES;
@@ -43,7 +43,7 @@ class LonCapaConnectedCMS extends ConnectedCMS
     public function searchContentModules($key){
 
         if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->seminarId)) {
-            throw new Studip_AccessDeniedException('Keine Berechtigung.');
+            throw new AccessDeniedException('Keine Berechtigung.');
         }
 
         $url = $this->cmsUrl.'/courses?search='.urlencode($key).'&owner='.urlencode($this->user->username);
@@ -52,7 +52,7 @@ class LonCapaConnectedCMS extends ConnectedCMS
             $courses = new SimpleXMLElement($response);
             $result = array();
             foreach($courses->course as $course){
-                $temp = split(':', (string)$course->owner);
+                $temp = explode(':', (string)$course->owner);
 
                 $result[] = array(
                     'ref_id' => (string)$course->id,

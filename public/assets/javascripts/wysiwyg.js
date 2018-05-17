@@ -218,10 +218,8 @@ jQuery(function ($) {
             width: textareaWidth,
             skin: 'studip,' + STUDIP.ASSETS_URL + 'stylesheets/ckeditor-skin/',
             // NOTE codemirror crashes when not explicitely loaded in CKEditor 4.4.7
-            extraPlugins: 'codemirror,confighelper,magicline,studip-floatbar,studip-quote,studip-settings,emojione'
-                + (extraPlugins ? ',' + extraPlugins : '')
-                // only enable uploads in courses with a file section
-                + ($('li#nav_course_files').length > 0 ? ',studip-upload' : ''),
+            extraPlugins: 'codemirror,confighelper,magicline,studip-floatbar,studip-quote,studip-upload,studip-settings,emojione'
+                + (extraPlugins ? ',' + extraPlugins : ''),
             removePlugins: removePlugins ? removePlugins : '',
             enterMode: CKEDITOR.ENTER_BR,
             mathJaxLib: STUDIP.URLHelper.getURL('assets/javascripts/mathjax/MathJax.js?config=TeX-AMS_HTML,default'),
