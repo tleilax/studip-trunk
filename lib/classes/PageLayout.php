@@ -98,6 +98,8 @@ class PageLayout
     {
         // set favicon
         self::addHeadElement('link', array('rel' => 'apple-touch-icon', 'sizes' => '180x180', 'href' => Assets::image_path('apple-touch-icon.png')));
+        self::addHeadElement('link', array('rel' => 'icon', 'type' => 'image/svg+xml', 'href' => Assets::image_path('favicon.svg')));
+        self::addHeadElement('link', array('rel' => 'icon', 'type' => 'image/png', 'sizes' => '64x64', 'href' => Assets::image_path('favicon-64x64.png')));
         self::addHeadElement('link', array('rel' => 'icon', 'type' => 'image/png', 'sizes' => '32x32', 'href' => Assets::image_path('favicon-32x32.png')));
         self::addHeadElement('link', array('rel' => 'icon', 'type' => 'image/png', 'sizes' => '16x16', 'href' => Assets::image_path('favicon-16x16.png')));
         self::addHeadElement('link', array('rel' => 'manifest', 'href' => Assets::image_path('manifest.json')));
