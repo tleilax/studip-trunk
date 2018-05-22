@@ -16,7 +16,7 @@ use Studip\Button, Studip\LinkButton;
 <? if (empty($search_results)): ?>
     <?= MessageBox::info(_('Es wurden keine Plugins gefunden.')) ?>
 <? else: ?>
-    <table class="default">
+    <table class="default nohover">
         <caption>
         <? if ($search === null): ?>
             <?= _('Empfohlene Plugins') ?>
