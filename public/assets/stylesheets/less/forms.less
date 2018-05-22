@@ -257,10 +257,11 @@ form.default {
         .flex();
 
         > * {
-            .flex-item(1, 1, 100%);
+            .flex-item(1);
+            max-width: none;
         }
         button {
-            .flex-item(1, 0, auto);
+            .flex-item(0, 0, auto);
             margin: 0;
         }
     }
