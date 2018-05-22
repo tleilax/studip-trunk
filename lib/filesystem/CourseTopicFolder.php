@@ -57,8 +57,8 @@ class CourseTopicFolder extends PermissionEnabledFolder implements FolderType
                 $this->topic = CourseTopic::find($this->folderdata['data_content']['topic_id']);
             }
             if ($this->topic) {
-                $this->folderdata['name'] = (string)$this->topic->title;
-                $this->folderdata['description'] = (string)$this->topic->description;
+                $this->folderdata['name']        = (string) $this->topic->title;
+                $this->folderdata['description'] = (string) $this->topic->description;
             } else {
                 $this->folderdata['name'] = _('(Thema gelöscht)') . ' ' . $this->folderdata['name'];
             }

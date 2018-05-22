@@ -30,7 +30,7 @@ class Folder extends SimpleORMap
     /**
      * @param array $config
      */
-    protected static function configure($config = array())
+    protected static function configure($config = [])
     {
         $config['db_table'] = 'folders';
         $config['belongs_to']['owner'] = [
@@ -174,7 +174,7 @@ class Folder extends SimpleORMap
      */
     public static function findByTermin_id($termin_id)
     {
-        $seminar_id    = CourseDate::find($termin_id)->range_id;
+        $seminar_id   = CourseDate::find($termin_id)->range_id;
         $date_folders = self::findBySQL(
             "folder_type = 'CourseDateFolder' AND range_id = ? AND range_type = 'course'",
             [$seminar_id]
