@@ -4,13 +4,17 @@
     <section>
         <div id="avatar-buttons" class="hidden-js">
             <a href="" id="avatar-zoom-in" title="<?= _('Vergrößern') ?>">
-                <?= Icon::create('add', 'clickable')->asImg(24) ?></a>
+                <?= Icon::create('add')->asImg(24) ?>
+            </a>
             <a href="" id="avatar-zoom-out" title="<?= _('Verkleinern') ?>">
-                <?= Icon::create('remove', 'clickable')->asImg(24) ?></a>
+                <?= Icon::create('remove')->asImg(24) ?>
+            </a>
             <a href="" id="avatar-rotate-clockwise" title="<?= _('Im Uhrzeigersinn drehen') ?>">
-                <?= Icon::create('arr_1right', 'clickable')->asImg(24) ?></a>
+                <?= Icon::create('arr_1right')->asImg(24) ?>
+            </a>
             <a href="" id="avatar-rotate-counter-clockwise" title="<?= _('Gegen den Uhrzeigersinn drehen') ?>">
-                <?= Icon::create('arr_1left', 'clickable')->asImg(24) ?></a>
+                <?= Icon::create('arr_1left')->asImg(24) ?>
+            </a>
         </div>
     </section>
     <section>
@@ -28,8 +32,10 @@
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Absenden'), 'upload', ['id' => 'submit-avatar']) ?>
         <? if ($customized): ?>
-            <?= Studip\LinkButton::create(_('Aktuelles Bild löschen'),
-                $controller->url_for('avatar/delete', $type, $id)) ?>
+            <?= Studip\LinkButton::create(
+                _('Aktuelles Bild löschen'),
+                $controller->url_for('avatar/delete', $type, $id)
+            ) ?>
         <? endif ?>
     </footer>
 </form>

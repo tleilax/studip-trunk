@@ -142,10 +142,7 @@ class AvatarController extends AuthenticatedController
                 $imgdata = base64_decode($imgdata);
                 // Write data to file.
                 $filename = $GLOBALS['TMP_PATH'] . '/avatar-' . $id . '.png';
-                file_put_contents(
-                    $filename,
-                    $imgdata
-                );
+                file_put_contents($filename, $imgdata);
 
                 // Use new image file for avatar creation.
                 $class::getAvatar($id)->createFrom($filename);
@@ -166,7 +163,6 @@ class AvatarController extends AuthenticatedController
                 }
 
                 unlink($filename);
-
             } catch (Exception $e) {
                 PageLayout::postError($e->getMessage());
             }

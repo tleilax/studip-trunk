@@ -5,13 +5,13 @@
     vertical-align: middle;
     .size(25px, 25px);
 }
-.avatar-medium { 
+.avatar-medium {
     max-width: 100px;
-    height: 100px; 
+    height: 100px;
 }
-.avatar-normal { 
+.avatar-normal {
     max-width: 250px;
-    height: 250px; 
+    height: 250px;
 }
 
 .course-avatar-small {
@@ -19,9 +19,9 @@
     max-width: 25px;
     height: 25px;
 }
-.course-avatar-medium { 
+.course-avatar-medium {
     max-width: 100px;
-    height: 100px; 
+    height: 100px;
 }
 .course-avatar-normal {
     max-height: 250px;
@@ -38,7 +38,7 @@ div.avatar-widget {
 
     div.avatar-overlay {
         .transition(opacity .5s ease-in-out);
-        background-color: ~"@{base-color}aa";
+        background-color: fadeout(@base-color, 33.3%);
         opacity: 0;
         height: 260px;
         left: 0;
@@ -82,27 +82,24 @@ div#avatar {
 }
 
 form.avatar {
-    div {
-        &#avatar-preview {
-            height: 250px;
-            margin-left: auto;
-            margin-right: auto;
-            width: 250px;
+    #avatar-preview {
+        height: 250px;
+        margin-left: auto;
+        margin-right: auto;
+        width: 250px;
+    }
 
-            img#new-avatar {
-                height: 250px;
-                width: 250px;
-            }
-        }
+    #new-avatar {
+        height: 250px;
+        width: 250px;
+    }
 
-        &#avatar-buttons {
-            background-color: @light-gray-color-20;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 5px;
-            text-align: center;
-            width: 150px;
-        }
-
+    #avatar-buttons {
+        background-color: @light-gray-color-20;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 5px;
+        text-align: center;
+        width: 150px;
     }
 }
