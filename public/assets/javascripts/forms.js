@@ -217,7 +217,7 @@
         $(wrapper).add(element).css('width', width);
 
         if ($('.is-placeholder', element).length > 0) {
-            placeholder = $('.is-placeholder', element).text();
+            placeholder = $('.is-placeholder', element).text().trim();
 
             option.attr('selected', $(element).val() === '');
             $('.is-placeholder', element).replaceWith(option);
