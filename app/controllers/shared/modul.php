@@ -18,6 +18,13 @@
 class Shared_ModulController extends AuthenticatedController
 {
     
+    public function before_filter(&$action, &$args)
+    {
+        $this->allow_nobody = Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY;
+        
+        parent::before_filter($action, $args);
+    }
+    
     public function overview_action($modul_id, $semester_id = null)
     {
         $display_language = Request::option('display_language', $_SESSION['_language']);
