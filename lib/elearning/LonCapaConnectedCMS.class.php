@@ -1,23 +1,19 @@
 <?php
-
-require_once 'ConnectedCMS.class.php';
-require_once 'LonCapaRequest.class.php';
-
 /**
-* main-class for connection to LonCapa
-*
-* This class contains the main methods of the elearning-interface to connect to
-* LonCapa. Extends ConnectedCMS.
-*
-* @access   public
-* @modulegroup  elearning_interface_modules
-* @module       LonCapaConnectedCMS
-* @package  ELearning-Interface
-*/
+ * main-class for connection to LonCapa
+ *
+ * This class contains the main methods of the elearning-interface to connect to
+ * LonCapa. Extends ConnectedCMS.
+ *
+ * @access   public
+ * @modulegroup  elearning_interface_modules
+ * @module       LonCapaConnectedCMS
+ * @package  ELearning-Interface
+ */
 class LonCapaConnectedCMS extends ConnectedCMS
 {
-    protected $seminarId;
     public $user;
+    protected $seminarId;
     protected $lcRequest;
     protected $cmsUrl;
 
@@ -33,13 +29,13 @@ class LonCapaConnectedCMS extends ConnectedCMS
 
 
     /**
-    * search for content modules
-    *
-    * returns found content modules
-    * @access public
-    * @param string $key keyword
-    * @return array list of content modules
-    */
+     * search for content modules
+     *
+     * returns found content modules
+     * @throws AccessDeniedException
+     * @param string $key keyword
+     * @return array list of content modules
+     */
     public function searchContentModules($key)
     {
 
@@ -53,13 +49,13 @@ class LonCapaConnectedCMS extends ConnectedCMS
         if ($response) {
             $courses = new SimpleXMLElement($response);
 
-            $result  = [];
-            foreach ($courses->course as $course){
-                $temp = explode(':', (string) $course->owner);
+            $result = [];
+            foreach ($courses->course as $course) {
+                $temp = explode(':', (string)$course->owner);
 
                 $result[] = [
-                    'ref_id'  => (string) $course->id,
-                    'title'   => (string) $course->description,
+                    'ref_id'  => (string)$course->id,
+                    'title'   => (string)$course->description,
                     'authors' => $temp[0],
                     'type'    => $this->cms_type
                 ];

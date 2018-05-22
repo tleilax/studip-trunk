@@ -1,7 +1,4 @@
 <?php
-require_once 'ContentModule.class.php';
-require_once 'LonCapaRequest.class.php';
-
 /**
  *
  * This class contains methods to handle LonCapa learning modules
@@ -13,9 +10,21 @@ require_once 'LonCapaRequest.class.php';
 
 class LonCapaContentModule extends ContentModule
 {
+    /**
+     * @var LonCapaRequest
+     */
     public $lcRequest;
+    /**
+     * @var string
+     */
     public $cmsUrl;
 
+    /**
+     * LonCapaContentModule constructor.
+     * @param string $module_id
+     * @param string $module_type
+     * @param string $cms_type
+     */
     public function __construct($module_id = "", $module_type, $cms_type)
     {
         $this->lcRequest = new LonCapaRequest();
@@ -25,7 +34,8 @@ class LonCapaContentModule extends ContentModule
     }
 
     /**
-     * reads data for content module
+     *fetch data from LonCapa
+     *
      */
     public function readData()
     {
@@ -36,28 +46,33 @@ class LonCapaContentModule extends ContentModule
             $courses = new SimpleXMLElement($response);
             $course = $courses->course[0];
 
-            list($author, $dummy) = explode(':', (string) $course->owner);
+            list($author, $dummy) = explode(':', (string)$course->owner);
 
-            $this->id      = (string) $course->id;
-            $this->title   = (string) $course->description;
+            $this->id = (string)$course->id;
+            $this->title = (string)$course->description;
             $this->authors = $author;
         }
 
     }
 
     /**
-    * get permission-status
-    *
-    * returns true, if operation is allowed
-    *
-    * @param string $operation operation
-    * @return boolean allowed
-    */
+     * get permission-status
+     *
+     *
+     * @param string $operation operation
+     * @return boolean allowed
+     */
     public function isAllowed($operation)
     {
         return true;
     }
 
+    /**
+     * store connection between Stud.IP course and LonCapa course
+     *
+     * @param string $seminar_id
+     * @return bool
+     */
     public function setConnection($seminar_id)
     {
         $this->is_connected = true;

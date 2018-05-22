@@ -1,21 +1,38 @@
 <?php
-
+/**
+ *
+ * This class is used to communicate with LonCapa
+ *
+ * @depends curl
+ * @modulegroup  elearning_interface_modules
+ * @module       LonCapaContentModule
+ * @package  ELearning-Interface
+ */
 class LonCapaRequest
 {
+    /**
+     * options for curl
+     * @var array
+     */
     protected $options;
+    /**
+     * curl resource
+     * @var resource
+     */
     protected $ch;
 
+    /**
+     * LonCapaRequest constructor.
+     */
     public function __construct()
     {
         $this->ch = curl_init();
         $this->initOptions();
     }
 
-    public function __destruct()
-    {
-        curl_close($this->ch);
-    }
-
+    /**
+     * initializes curl options
+     */
     public function initOptions()
     {
         $this->options = [
@@ -27,11 +44,31 @@ class LonCapaRequest
         ];
     }
 
+    /**
+     * close connection
+     */
+    public function __destruct()
+    {
+        curl_close($this->ch);
+    }
+
+    /**
+     * set curl options
+     * @param $key
+     * @param $value
+     */
     public function setOption($key, $value)
     {
         $this->options[$key] = $value;
     }
 
+    /**
+     * do a curl request on the given url and return the result if successfull
+     *
+     * @param $url string
+     * @param array $postfields
+     * @return string
+     */
     public function request($url, $postfields = null)
     {
         $result = $this->sendRequest($url, $postfields);
@@ -43,6 +80,12 @@ class LonCapaRequest
         }
     }
 
+    /**
+     * do a curl request on the given url and return the result if successfull
+     * @param $url string
+     * @param array $postfields
+     * @return array
+     */
     protected function sendRequest($url, $postfields = null)
     {
         $options = $this->options;
