@@ -25,11 +25,13 @@ class Search_AngebotController extends MVVController
         // set navigation
         Navigation::activateItem('/search/courses/module');
         
+        PageLayout::setTitle(_('Modulverzeichnis - Studienangebot von A bis Z'));
+        
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
         
         $views = new ViewsWidget();
-        $views->addLink(_('Module'), $this->url_for('search/module'));
+        $views->addLink(_('Modulsuche'), $this->url_for('search/module'));
         $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'))
                 ->setActive();
         $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'));
@@ -98,7 +100,6 @@ class Search_AngebotController extends MVVController
         $this->breadcrumb->append(_('Studienangebot von A bis Z'), 'index');
         $this->faecher = $result;
         $this->chars = $chars;
-        $this->name = _('Studienangebot von A bis Z');
         $this->url = 'search/angebot/detail';
     }
 

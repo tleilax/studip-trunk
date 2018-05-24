@@ -1,5 +1,4 @@
 <?= $this->render_partial('search/breadcrumb') ?>
-<h1><?= $kategorie->name ?></h1>
 <? foreach ($studiengaenge as $abschluss_id => $studiengaenge_abschluss): ?>
 <section class="contentbox">
     <header>

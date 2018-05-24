@@ -1,5 +1,3 @@
-<?//= $this->render_partial('search/breadcrumb') ?>
-<h1><?= _('Fach-Abschluss-Kombinationen') ?></h1>
 <table class="default">
     <colgroup>
         <col>
@@ -17,11 +15,9 @@
     </thead>
     <tbody>
         <? foreach ($stgs as $name => $stg): ?>
-        <? //var_dump($fach->abschluesse); exit; ?>
             <tr>
                 <td><?= htmlReady($name) ?></td>
                 <? foreach ($kategorien as $kat_id => $kategorie): ?>
-                    <? // $fach_abschluss_ids = $fach->abschluesse->pluck('id'); ?>
                     <? if ($stg[$kat_id]) : ?>
                 <td style="text-align: center;">
                     <a href="<?= $controller->link_for('/studiengang', $stg[$kat_id]) ?>"><?= Icon::create('info-circle-full', 'clickable', array('title' => _('Studiengang anzeigen')))->asImg(); ?></a>

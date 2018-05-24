@@ -32,7 +32,7 @@ class Search_StgtableController extends Search_StudiengaengeController
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
         
         $views = new ViewsWidget();
-        $views->addLink(_('Module'), $this->url_for('search/module'));
+        $views->addLink(_('Modulsuche'), $this->url_for('search/module'));
         $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'));
         $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'));
         $views->addLink(_('Fach-Abschluss-Kombinationen'), $this->url_for('search/stgtable'))
@@ -43,7 +43,7 @@ class Search_StgtableController extends Search_StudiengaengeController
         $this->breadcrumb = new BreadCrumb();
         $this->action = $action;
         $this->verlauf_url = 'search/stgtable/verlauf';
-        PageLayout::setTitle(_('Suche im Modulverzeichnis'));
+        PageLayout::setTitle(_('Modulverzeichnis - Fach-Abschluss-Kombinationen'));
     }
     
     public function index_action()
@@ -55,9 +55,7 @@ class Search_StgtableController extends Search_StudiengaengeController
             }
         }
         
-        
         $public_status = [];
-        
         
         // combine all Studiengänge with the same name to one entry
         $this->stgs = [];
@@ -75,17 +73,7 @@ class Search_StgtableController extends Search_StudiengaengeController
     
     public function matrix_detail_action($fach_id, $abschluss_id, $studiengang_id = null)
     {
-        
-        
         $this->relocate('detail/', $fach_id, $abschluss_id, $studiengang_id);
-      //  parent::detail_action($fach_id, $abschluss_id, $studiengang_id);
-      //  return;
-        /*
-        $response = $this->relay('search/angebot/detail/'));
-        $this->body = $response->body;
-        return;
-         * 
-         */
     }
     
     public function studiengang_action($studiengang_id)

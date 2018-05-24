@@ -1,8 +1,7 @@
 <?= $this->render_partial('search/breadcrumb') ?>
-<h1><?= htmlReady($fach->name) . ' (' . htmlReady($abschluss->name) . ')' ?></h1>
 <section class="contentbox">
     <header>
-        <h1><?= _('Angebotene Studiengänge') ?></h1>
+        <h1><?= htmlReady($fach->name) . ' (' . htmlReady($abschluss->name) . ') - ' . _('Angebotene Studiengänge') ?></h1>
     </header>
     <ul class="mvv-result-list">
     <? foreach($studiengaenge as $studiengang):?>

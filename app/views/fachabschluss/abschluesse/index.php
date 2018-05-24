@@ -1,4 +1,4 @@
-S<form method="post">
+<form method="post">
     <?= CSRFProtection::tokenTag(); ?>
     <table class="default collapsable">
         <caption>

@@ -29,7 +29,7 @@ class Search_StudiengaengeController extends MVVController
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
         
         $views = new ViewsWidget();
-        $views->addLink(_('Module'), $this->url_for('search/module'));
+        $views->addLink(_('Modulsuche'), $this->url_for('search/module'));
         $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'));
         $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'))
                 ->setActive();
@@ -40,7 +40,7 @@ class Search_StudiengaengeController extends MVVController
         $this->breadcrumb = new BreadCrumb();
         $this->action = $action;
         $this->verlauf_url = '/verlauf';
-        PageLayout::setTitle(_('Suche im Modulverzeichnis'));
+        PageLayout::setTitle(_('Modulverzeichnis - Studiengänge'));
     }
 
     protected function isVisible()

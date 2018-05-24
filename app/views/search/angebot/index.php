@@ -1,7 +1,10 @@
-<h1><?= $name ?></h1>
 <h4><strong><?= implode(' | ',$chars)?> </strong></h4>
 <? foreach ($faecher as $char => $abschluesse): ?>
-<h3 style="background-color: #e7ebf1; padding: 5px;"><a name="<?= $char ?>"><?= ucfirst($char)?></a></h3>
+<a name="<?= $char ?>"></a>
+<section class="contentbox">
+    <header>
+        <h1><?= ucfirst($char); ?></h1>
+    </header>
     <ul style="list-style-type: none;">
     <? foreach ($abschluesse as $fach): ?>
         <li>
@@ -9,4 +12,5 @@
         </li>
     <? endforeach; ?>
     </ul>
+</section>
 <? endforeach; ?>

@@ -45,11 +45,14 @@ class Search_ModuleController extends MVVController
         // set navigation
         Navigation::activateItem('/search/courses/module');
         
+        //set title
+        PageLayout::setTitle(_('Modulverzeichnis - Modulsuche'));
+        
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
         
         $views = new ViewsWidget();
-        $views->addLink(_('Module'), $this->url_for('search/module'))
+        $views->addLink(_('Modulsuche'), $this->url_for('search/module'))
                 ->setActive();
         $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'));
         $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'));
@@ -69,9 +72,6 @@ class Search_ModuleController extends MVVController
 
     public function index_action()
     {
-        //set title
-        PageLayout::setTitle(_('Suche nach Modulen'));
-
         $template = $this->get_template_factory()
                 ->open('search/module/_infobox_info');
 

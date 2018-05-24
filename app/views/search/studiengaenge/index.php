@@ -1,4 +1,3 @@
-<h1><?= _('Studienangebot') ?></h1>
 <section class="contentbox">
     <header>
         <h1><?= _('Abschluss-Kategorien') ?></h1>
