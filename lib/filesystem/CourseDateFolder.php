@@ -14,14 +14,18 @@
  */
 class CourseDateFolder extends PermissionEnabledFolder implements FolderType
 {
-
     public static $sorter = 1;
 
     private $date;
 
     public static function formatDate(CourseDate $date)
     {
-        return sprintf("%'.02d. %s (%s)", CourseDate::getConsecutiveNumber($date),  $date->getFullname(), $date->getTypeName());
+        return sprintf(
+            "%'.02d. %s (%s)",
+            CourseDate::getConsecutiveNumber($date),
+            $date->getFullname(),
+            $date->getTypeName()
+        );
     }
 
     public static function getTypeName()
@@ -33,7 +37,8 @@ class CourseDateFolder extends PermissionEnabledFolder implements FolderType
     {
         $course = Course::toObject($range_id_or_object);
         if ($course && !$course->isNew()) {
-            return Seminar_Perm::get()->have_studip_perm('tutor', $course->id, $user_id) && CourseDate::countBySql("range_id = ?" , [$course->id]);
+            return Seminar_Perm::get()->have_studip_perm('tutor', $course->id, $user_id)
+                && CourseDate::countBySql("range_id = ?" , [$course->id]);
         }
     }
 
@@ -88,8 +93,8 @@ class CourseDateFolder extends PermissionEnabledFolder implements FolderType
     public function getEditTemplate()
     {
         $template = $GLOBALS['template_factory']->open('filesystem/date_folder/edit.php');
-        $template->set_attribute('date', $this->getDate());
-        $template->set_attribute('folder', $this);
+        $template->date   = $this->getDate();
+        $template->folder = $this;
         return $template;
     }
 
@@ -121,7 +126,6 @@ class CourseDateFolder extends PermissionEnabledFolder implements FolderType
      */
     public function getDescriptionTemplate()
     {
-
         $template = $GLOBALS['template_factory']->open('filesystem/date_folder/description.php');
         $template->type       = self::getTypeName();
         $template->folder     = $this;
@@ -130,6 +134,4 @@ class CourseDateFolder extends PermissionEnabledFolder implements FolderType
 
         return $template;
     }
-
-
 }

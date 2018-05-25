@@ -7,8 +7,8 @@
     <input type="hidden" name="module_system_type" value="<?= htmlReady($cms_type) ?>">
 
     <? if ($connected) : ?>
-        <?= Studip\Button::create(_("Entfernen"), 'remove') ?>
+        <?= Studip\Button::create(_('Entfernen'), 'remove') ?>
     <? else : ?>
-        <?= Studip\Button::create(_("Hinzufügen"), 'add') ?>
+        <?= Studip\Button::create(_('Hinzufügen'), 'add') ?>
     <? endif ?>
 </form>

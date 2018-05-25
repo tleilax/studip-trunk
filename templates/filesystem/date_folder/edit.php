@@ -10,7 +10,7 @@ $dates = CourseDate::findByRange_id($folder->range_id);
         </option>
     <? endif; ?>
     <? foreach ($dates as $one_date): ?>
-        <option <?=(@$date->id === $one_date->id ? 'selected' : '')?> value="<?= htmlReady($one_date->id) ?>">
+        <option <?= @$date->id === $one_date->id ? 'selected' : '' ?> value="<?= htmlReady($one_date->id) ?>">
             <?= htmlReady(CourseDateFolder::formatDate($one_date)) ?>
         </option>
     <? endforeach; ?>
@@ -21,8 +21,8 @@ $dates = CourseDate::findByRange_id($folder->range_id);
     <?= _('Studierende dürfen Dateien in diesen Ordner hochladen') ?>
 </label>
 <script>
-    $('input#edit_folder_name').attr('disabled', $('input:radio[name=folder_type]:checked').attr('id') == 'folder-type-CourseDateFolder');
+    $('input#edit_folder_name').attr('disabled', $('input:radio[name=folder_type]:checked').attr('id') === 'folder-type-CourseDateFolder');
     $('input:radio[name=folder_type]').on('change', function (ev) {
-        $('input#edit_folder_name').attr('disabled', $('input:radio[name=folder_type]:checked').attr('id') == 'folder-type-CourseDateFolder');
+        $('input#edit_folder_name').attr('disabled', $('input:radio[name=folder_type]:checked').attr('id') === 'folder-type-CourseDateFolder');
     });
 </script>

@@ -94,7 +94,7 @@
         <? endif; ?>
         <th data-sort="text" class="hidden-small-down"><?= _('Thema') ?></th>
         <th data-sort="text"><?= _('Raum') ?></th>
-        <th data-sort="htmldata"><?= _('Dateien')?></th>
+        <th data-sort="htmldata"><?= _('Dateien') ?></th>
     </tr>
     </thead>
     <tbody>

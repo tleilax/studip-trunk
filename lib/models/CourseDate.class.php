@@ -41,6 +41,69 @@ class CourseDate extends SimpleORMap
     private static $numbered_dates = null;
 
     /**
+     * Configures this model.
+     *
+     * @param Array $config Configuration array
+     */
+    protected static function configure($config = [])
+    {
+        $config['db_table'] = 'termine';
+        $config['has_and_belongs_to_many']['topics'] = [
+            'class_name' => 'CourseTopic',
+            'thru_table' => 'themen_termine',
+            'order_by'   => 'ORDER BY priority',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store'
+        ];
+        $config['has_and_belongs_to_many']['statusgruppen'] = [
+            'class_name' => 'Statusgruppen',
+            'thru_table' => 'termin_related_groups',
+            'order_by'   => 'ORDER BY position',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store'
+        ];
+        $config['has_and_belongs_to_many']['dozenten'] = [
+            'class_name'  => 'User',
+            'thru_table'  => 'termin_related_persons',
+            'foreign_key' => 'termin_id',
+            'thru_key'    => 'range_id',
+            'order_by'    => 'ORDER BY Nachname, Vorname',
+            'on_delete'   => 'delete',
+            'on_store'    => 'store'
+        ];
+        $config['has_many']['folders'] = [
+            'class_name' => 'Folder',
+            'assoc_func' => 'findByTermin_id'
+        ];
+        $config['belongs_to']['author'] = [
+            'class_name'  => 'User',
+            'foreign_key' => 'autor_id'
+        ];
+        $config['belongs_to']['course'] = [
+            'class_name'  => 'Course',
+            'foreign_key' => 'range_id'
+        ];
+        $config['belongs_to']['cycle'] = [
+            'class_name'  => 'SeminarCycleDate',
+            'foreign_key' => 'metadate_id'
+        ];
+        $config['has_one']['room_assignment'] = [
+            'class_name'        => 'ResourceAssignment',
+            'foreign_key'       => 'termin_id',
+            'assoc_foreign_key' => 'assign_user_id',
+            'on_delete'         => 'delete',
+            'on_store'          => 'store'
+        ];
+        $config['has_one']['room_request'] = [
+            'class_name'        => 'RoomRequest',
+            'assoc_foreign_key' => 'termin_id',
+            'on_delete'         => 'delete',
+        ];
+        $config['default_values']['date_typ'] = 1;
+        parent::configure($config);
+    }
+
+    /**
      * return consecutive number for a date in its course, if semester is given
      * only within that time range
      *
@@ -58,8 +121,9 @@ class CourseDate extends SimpleORMap
                 $semester ? [$date->range_id, $semester->beginn, $semester->ende] : [$date->range_id]));
             self::$numbered_dates[@$semester->id ?: 'all'] = $numbered;
         }
-        return isset(self::$numbered_dates[@$semester->id ?: 'all'][$date->termin_id]) ? self::$numbered_dates[@$semester->id ?: 'all'][$date->termin_id] + 1 : null;
-
+        return isset(self::$numbered_dates[@$semester->id ?: 'all'][$date->termin_id])
+             ? self::$numbered_dates[@$semester->id ?: 'all'][$date->termin_id] + 1
+             : null;
     }
 
     /**
@@ -113,69 +177,6 @@ class CourseDate extends SimpleORMap
             ORDER BY `date` ASC",
             array($group_id)
         );
-    }
-
-    /**
-     * Configures this model.
-     *
-     * @param Array $config Configuration array
-     */
-    protected static function configure($config = array())
-    {
-        $config['db_table'] = 'termine';
-        $config['has_and_belongs_to_many']['topics'] = array(
-            'class_name' => 'CourseTopic',
-            'thru_table' => 'themen_termine',
-            'order_by' => 'ORDER BY priority',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_and_belongs_to_many']['statusgruppen'] = array(
-            'class_name' => 'Statusgruppen',
-            'thru_table' => 'termin_related_groups',
-            'order_by' => 'ORDER BY position',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_and_belongs_to_many']['dozenten'] = array(
-            'class_name' => 'User',
-            'thru_table' => 'termin_related_persons',
-            'foreign_key' => 'termin_id',
-            'thru_key' => 'range_id',
-            'order_by' => 'ORDER BY Nachname, Vorname',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_many']['folders'] = array(
-            'class_name'  => 'Folder',
-            'assoc_func' => 'findByTermin_id'
-        );
-        $config['belongs_to']['author'] = array(
-            'class_name'  => 'User',
-            'foreign_key' => 'autor_id'
-        );
-        $config['belongs_to']['course'] = array(
-            'class_name'  => 'Course',
-            'foreign_key' => 'range_id'
-        );
-        $config['belongs_to']['cycle'] = array(
-            'class_name'  => 'SeminarCycleDate',
-            'foreign_key' => 'metadate_id'
-        );
-        $config['has_one']['room_assignment'] = array(
-            'class_name'  => 'ResourceAssignment',
-            'foreign_key' => 'termin_id',
-            'assoc_foreign_key' => 'assign_user_id',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_one']['room_request'] = array(
-            'class_name'        => 'RoomRequest',
-            'assoc_foreign_key' => 'termin_id',
-            'on_delete'          => 'delete',
-        );
-        $config['default_values']['date_typ'] = 1;
-        parent::configure($config);
     }
 
     public function __construct($id = null)

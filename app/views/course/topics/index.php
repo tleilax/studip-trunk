@@ -3,23 +3,27 @@
     <colgroup>
         <col width="50%">
         <col>
-        <col width="24px">
     </colgroup>
     <thead>
         <tr>
             <th><?= _("Thema") ?></th>
             <th><?= _("Termine") ?></th>
-            <th>
-                <abbr title="<?= _('Thema behandelt eine Hausarbeit oder ein Referat') ?>">
-                    <?= Icon::create('glossary', Icon::ROLE_INFO) ?>
-                </abbr>
-            </th>
         </tr>
     </thead>
     <tbody>
     <? foreach ($topics as $key => $topic) : ?>
         <tr class="<?= Request::get("open") === $topic->getId() ? "open" : "" ?>">
-            <td><a href="" name="<?=$topic->getId()?>" onClick="jQuery(this).closest('tr').toggleClass('open'); return false;"><?= htmlReady($topic['title']) ?></a></td>
+            <td>
+                <a href="#" name="<?=$topic->getId()?>" onClick="jQuery(this).closest('tr').toggleClass('open'); return false;">
+                <? if ($topic->paper_related): ?>
+                    <?= Icon::create('glossary')->asImg(array_merge(
+                        ['class' => 'text-top'],
+                        tooltip2(_('Thema behandelt eine Hausarbeit oder ein Referat'))
+                    )) ?>
+                <? endif; ?>
+                    <?= htmlReady($topic['title']) ?>
+                </a>
+            </td>
             <td>
                 <ul class="clean">
                     <? foreach ($topic->dates as $date) : ?>
@@ -32,16 +36,9 @@
                     <? endforeach ?>
                 </ul>
             </td>
-            <td>
-            <? if ($topic->paper_related): ?>
-                <?= Icon::create('checkbox-checked', Icon::ROLE_INFO) ?>
-            <? else: ?>
-                <?= Icon::create('checkbox-unchecked', Icon::ROLE_INFO) ?>
-            <? endif; ?>
-            </td>
         </tr>
         <tr class="details nohover">
-            <td colspan="3">
+            <td colspan="2">
                 <div class="detailscontainer">
                     <table class="default nohover">
                         <tbody>

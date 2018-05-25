@@ -50,11 +50,11 @@ $dialog_url = $show_raumzeit
         <?= htmlReady($date->raum) ?>
     <? endif; ?>
     </td>
-    <? $filecount = count($date->getAccessibleFolderFiles($GLOBALS['user']->id)['files']);?>
-    <td style="text-align: center" data-sort-value="<?=$filecount?>">
+    <? $filecount = count($date->getAccessibleFolderFiles($GLOBALS['user']->id)['files']); ?>
+    <td style="text-align: center" data-sort-value="<?= $filecount ?>">
         <? if ($filecount) : ?>
             <a href="<?=$controller->link_for('course/dates/details_files/' . $date->id)?>" data-dialog>
-                <?=Icon::create('folder-topic-full', Icon::ROLE_CLICKABLE, ['title' => sprintf(_('%s Dateien'), $filecount)])?>
+                <?=Icon::create('folder-topic-full')->asImg(tooltip2(sprintf(_('%u Dateien'), $filecount))) ?>
             </a>
         <? endif; ?>
     </td>

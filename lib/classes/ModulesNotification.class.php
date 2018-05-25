@@ -255,12 +255,18 @@ class ModulesNotification extends Modules {
             }
         }
         if (count($news)) {
+            $auth_plugin = User::find($user_id)->auth_plugin;
+            if (!is_a('StudipAuth' . ucfirst($auth_plugin), 'StudipAuthSSO', true)) {
+                $auth_plugin = null;
+            }
             $template = $GLOBALS['template_factory']->open('mail/notification_html');
             $template->set_attribute('lang', getUserLanguagePath($user_id));
             $template->set_attribute('news', $news);
+            $template->set_attribute('sso', $auth_plugin);
 
             $template_text = $GLOBALS['template_factory']->open('mail/notification_text');
             $template_text->set_attribute('news', $news);
+            $template_text->set_attribute('sso', $auth_plugin);
             return array('text' => $template_text->render(), 'html' => $template->render());;
         } else {
             return FALSE;
