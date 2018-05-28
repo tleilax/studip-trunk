@@ -33,7 +33,7 @@ class Search_CoursesController extends AuthenticatedController
         URLHelper::bindLinkParam('option', $this->nav_option);
         if ($nav_options[$this->nav_option]
                 && Navigation::hasItem('/search/courses/' . $this->nav_option)) {
-            Navigation::activateItem($nav_path);
+            Navigation::activateItem('/search/courses/' . $this->nav_option);
         } else {
             URLHelper::removeLinkParam('option');
             $level = Request::get('level', $_SESSION['sem_browse_data']['level']);
