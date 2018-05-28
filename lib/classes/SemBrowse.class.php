@@ -1169,6 +1169,7 @@ class SemBrowse {
                             URLHelper::getURL('dispatch.php/search/module'),null, true);
             }
         } else {
+            URLHelper::removeLinkParam('option');
             return new Navigation($option['title'][$language],
                     URLHelper::getURL($option['url'], ['option' => $option_name], true));
         }
