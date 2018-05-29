@@ -30,7 +30,6 @@ class TermsController extends AuthenticatedController
             } else {
                 $this->redirectUser('logout.php');
             }
-            return;
         }
     }
 
