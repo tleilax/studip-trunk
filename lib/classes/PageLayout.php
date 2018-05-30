@@ -110,15 +110,6 @@ class PageLayout
             'title' => _('Hilfe zur Textformatierung')
         ));
 
-        self::addHeadElement(
-            'script',
-            [],
-            sprintf(
-                'window.foo = "%s"',
-                htmlReady($GLOBALS['ASSETS_URL'])
-            )
-        );
-
         self::addStylesheet('studip-base.css');
         self::addScript('studip-base.js');
 

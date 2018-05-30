@@ -18,7 +18,7 @@
  * Returns something like:
  * "http://uni-adresse.de/studip/adresse.php?hello=world&mandatory=parameter#anchor"
  */
-STUDIP.URLHelper = {
+STUDIP.URLHelper = _.defaults(STUDIP.URLHelper || {}, {
 
     //the base url for all links
     base_url: null,
@@ -54,8 +54,7 @@ STUDIP.URLHelper = {
      */
     getURL: function (url, param_object, ignore_params) {
 
-        var url_params = jQuery.isArray(STUDIP.URLHelper.parameters) ? {} : STUDIP.URLHelper.parameters,
-            params = _.defaults(param_object || {}, ignore_params ? {} : url_params),
+        var params = _.defaults(param_object || {}, ignore_params ? {} : STUDIP.URLHelper.parameters),
             tmp, fragment, query;
 
         tmp = url.split("#");
@@ -88,4 +87,4 @@ STUDIP.URLHelper = {
 
         return url;
     }
-};
+});

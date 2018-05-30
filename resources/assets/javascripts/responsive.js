@@ -65,7 +65,6 @@
     // STUDIP.Navigation object
     function responsify() {
         media_query.removeListener(responsify);
-        STUDIP.URLHelper.base_url = STUDIP.ABSOLUTE_URI_STUDIP;
 
         $('html').addClass('responsified');
 
