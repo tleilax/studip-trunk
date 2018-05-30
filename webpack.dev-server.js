@@ -12,7 +12,10 @@ module.exports = {
     compress: true,
     port: 8123,
     historyApiFallback: true,
-    https: true
+      https: true,
+      headers: {
+          "Access-Control-Allow-Origin": "*"
+      }
   },
   entry: {
     "studip-base": assetsPath + "/entry-base.js",
