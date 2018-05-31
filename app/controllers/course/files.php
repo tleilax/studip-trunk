@@ -224,7 +224,7 @@ class Course_FilesController extends AuthenticatedController
             $this->redirect(
                 FileManager::getDownloadURLForTemporaryFile(
                     basename($tmp_file),
-                    basename($tmp_file) . '.zip'
+                    $this->top_folder->name . '.zip'
                 )
             );
         } else {
