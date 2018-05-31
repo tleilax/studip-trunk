@@ -1639,7 +1639,7 @@ class FileController extends AuthenticatedController
                 //ZIP file was created successfully
                 $this->redirect(FileManager::getDownloadURLForTemporaryFile(
                     basename($tmp_file),
-                    $zip_file_name . '.zip'
+                    ($zip_file_name ?: basename($tmp_file)) . '.zip'
                 ));
             } else {
                 throw new Exception('Error while creating ZIP archive!');
