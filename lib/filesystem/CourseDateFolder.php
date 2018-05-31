@@ -21,10 +21,10 @@ class CourseDateFolder extends PermissionEnabledFolder implements FolderType
     public static function formatDate(CourseDate $date)
     {
         return sprintf(
-            "%'.02d. %s (%s)",
+            _("%'.02d. %s am %s"),
             CourseDate::getConsecutiveNumber($date),
-            $date->getFullname(),
-            $date->getTypeName()
+            $date->getTypeName(),
+            $date->getFullname()
         );
     }
 
