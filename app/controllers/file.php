@@ -1631,10 +1631,15 @@ class FileController extends AuthenticatedController
             );
 
             if ($result) {
+                if (count($file_area_objects) === 1 && $file_area_objects[0] instanceof FolderType) {
+                    $zip_file_name = $file_area_objects[0]->name;
+                } else {
+                    $zip_file_name = $parent_folder->name;
+                }
                 //ZIP file was created successfully
                 $this->redirect(FileManager::getDownloadURLForTemporaryFile(
                     basename($tmp_file),
-                    basename($tmp_file) . '.zip'
+                    $zip_file_name . '.zip'
                 ));
             } else {
                 throw new Exception('Error while creating ZIP archive!');
