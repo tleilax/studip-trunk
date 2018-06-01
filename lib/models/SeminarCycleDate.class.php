@@ -246,7 +246,7 @@ class SeminarCycleDate extends SimpleORMap
     public function setSingleDateType($type)
     {
         $result = 0;
-        if(count($this->dates)) {
+        if (count($this->dates)) {
             foreach($this->dates as $date) {
                 $date->date_typ = $type;
                 $result += $date->store();
@@ -282,6 +282,7 @@ class SeminarCycleDate extends SimpleORMap
                     $this->delete();
                     return 0;
                 }
+                $this->resetRelation("dates");
                 StudipLog::log('SEM_ADD_CYCLE', $this->seminar_id, NULL, $this->toString());
                 return $result;
             }
