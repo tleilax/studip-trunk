@@ -89,18 +89,12 @@ function submitWikiPage($keyword, $version, $body, $user_id, $range_id) {
         PageLayout::postMessage($message);
     } else if ($latestVersion && ($version !== null) && ($lastchange < 30*60) && ($user_id == $latestVersion['user_id'])) {
         // if same author changes again within 30 minutes, no new verison is created
-        NotificationCenter::postNotification('WikiPageWillUpdate', array($range_id, $keyword));
-
-        // apply replace-before-save transformations
-        $body = transformBeforeSave($body);
-
-        $query = "UPDATE wiki
-                  SET body = ?, chdate = UNIX_TIMESTAMP()
-                  WHERE keyword = ? AND range_id = ? AND version = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($body, $keyword, $range_id, $version));
-
-        NotificationCenter::postNotification('WikiPageDidUpdate', array($range_id, $keyword));
+        $wp = WikiPage::find([$range_id, $keyword, $version]);
+        if ($wp) {
+            // apply replace-before-save transformations
+            $wp->body = transformBeforeSave($body);
+            $wp->store();
+        }
     } else {
         if ($version === null) {
             $version=0;
@@ -108,17 +102,9 @@ function submitWikiPage($keyword, $version, $body, $user_id, $range_id) {
             $version=$latestVersion['version']+1;
         }
 
-        NotificationCenter::postNotification('WikiPageWillCreate', array($range_id, $keyword));
-
         // apply replace-before-save transformations
         $body = transformBeforeSave($body);
-
-        $query = "INSERT INTO wiki (range_id, user_id, keyword, body, chdate, version)
-                  VALUES (?, ?, ?, ?, UNIX_TIMESTAMP(), ?)";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($range_id, $user_id, $keyword, $body, $version));
-
-        NotificationCenter::postNotification('WikiPageDidCreate', array($range_id, $keyword));
+        WikiPage::create(compact('range_id', 'user_id', 'keyword', 'body', 'version'));
     }
     StudipTransformFormat::removeStudipMarkup('wiki-comments');
     refreshBacklinks($keyword, $body);
@@ -530,13 +516,10 @@ function deleteWikiPage($keyword, $version, $range_id) {
         throw new InvalidArgumentException(_('Die Version, die Sie löschen wollen, ist nicht die aktuellste. Überprüfen Sie, ob inzwischen eine aktuellere Version erstellt wurde.'));
     }
 
-    NotificationCenter::postNotification('WikiPageWillDelete', array($range_id, $keyword));
-
-    $query = "DELETE FROM wiki WHERE keyword = ? AND version = ? AND range_id = ?";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($keyword, $version, $range_id));
-
-    NotificationCenter::postNotification('WikiPageDidDelete', array($range_id, $keyword));
+    $wp = WikiPage::find([$range_id, $keyword, $version]);
+    if ($wp) {
+        $wp->delete();
+    }
 
     if (!keywordExists($keyword)) { // all versions have gone
         $addmsg = '<br>' . sprintf(_("Damit ist die Seite %s mit allen Versionen gelöscht."),'<b>'.htmlReady($keyword).'</b>');
@@ -572,10 +555,7 @@ function deleteAllWikiPage($keyword, $range_id) {
         throw new AccessDeniedException(_('Sie haben keine Berechtigung, Seiten zu löschen.'));
     }
 
-    $query = "DELETE FROM wiki WHERE keyword = ? AND range_id = ?";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($keyword, $range_id));
-
+    WikiPage::deleteBySQL("keyword = ? AND range_id = ?", [$keyword, $range_id]);
     $message = MessageBox::info(sprintf(_('Die Seite %s wurde mit allen Versionen gelöscht.'), '<b>'.htmlReady($keyword).'</b>'));
     PageLayout::postMessage($message);
     refreshBacklinks($keyword, "");
