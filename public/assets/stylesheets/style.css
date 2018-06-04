@@ -12079,20 +12079,25 @@ div.overdiv div.content {
 .plugin_install {
   text-align: center;
 }
-.plugin_description {
+.plugin_description a {
+  display: none;
+}
+.plugin_description.short div {
   max-height: 15em;
   overflow: hidden;
   position: relative;
 }
-.plugin_description p.read_more {
+.plugin_description.short div p.read_more {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  text-align: center;
+  height: 4em;
   margin: 0;
-  padding: 10px 0;
   background-image: linear-gradient(to bottom, transparent, white);
+}
+.plugin_description.short a {
+  display: inline-block;
 }
 img.plugin_preview {
   height: 60px;

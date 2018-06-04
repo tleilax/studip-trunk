@@ -56,13 +56,17 @@ use Studip\Button, Studip\LinkButton;
                     <strong><?= htmlReady($name) ?></strong>
                 <? endif ?>
                 <? if (mb_strlen($plugin['description']) > 500) : ?>
-                    <div class="plugin_description">
+                <span class="plugin_description short">
+                    <div>
                         <?= nl2br(htmlReady($plugin['description'])) ?>
 
-                        <p class="read_more">
-                            <a href="#" onClick="$(this).parent().hide().parent().css('max-height', 'none').css('overflow', 'auto');return false;" class="button"><?= _('Weiterlesen') ?></a>
-                        </p>
+                        <p class="read_more"></p>
                     </div>
+
+                    <?= LinkButton::create(_('Weiterlesen'), '', [
+                        'onClick' => "jQuery(this).parent().toggleClass('short');return false;"
+                    ]) ?>
+                </span>
                 <? else: ?>
                     <p>
                         <?= nl2br(htmlReady($plugin['description'])) ?>
