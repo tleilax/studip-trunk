@@ -116,7 +116,7 @@ jQuery(function ($) {
                     // class="link-extern", target="_blank" and rel="nofollow"
                     // and internal links should not have any attributes except
                     // for href, but this cannot be enforced here
-                    attributes: ['!href', 'target', 'rel'],
+                    attributes: ['href', 'target', 'rel', 'name','id'],
                     classes: ['link-extern', 'link-intern']
                 },
                 audio: {
@@ -216,10 +216,8 @@ jQuery(function ($) {
             width: textareaWidth,
             skin: 'studip,' + STUDIP.ASSETS_URL + 'stylesheets/ckeditor-skin/',
             // NOTE codemirror crashes when not explicitely loaded in CKEditor 4.4.7
-            extraPlugins: 'codemirror,confighelper,magicline,studip-floatbar,studip-quote,studip-settings,emojione'
-                + (extraPlugins ? ',' + extraPlugins : '')
-                // only enable uploads in courses with a file section
-                + ($('li#nav_course_files').length > 0 ? ',studip-upload' : ''),
+            extraPlugins: 'codemirror,confighelper,magicline,studip-floatbar,studip-quote,studip-upload,studip-settings,emojione'
+                + (extraPlugins ? ',' + extraPlugins : ''),
             removePlugins: removePlugins ? removePlugins : '',
             enterMode: CKEDITOR.ENTER_BR,
             mathJaxLib: STUDIP.URLHelper.getURL('assets/javascripts/mathjax/MathJax.js?config=TeX-AMS_HTML,default'),
@@ -243,7 +241,7 @@ jQuery(function ($) {
                 {name: 'styles', groups: ['styles', 'colors', 'tools', 'links', 'insert']},
                 {name: 'others', groups: ['mode', 'settings']}
             ],
-            removeButtons: 'Font,FontSize,Anchor',
+            removeButtons: 'Font,FontSize',
             toolbarCanCollapse: true,
             toolbarStartupExpanded: textarea.width() > 420,
 

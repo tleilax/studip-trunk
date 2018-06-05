@@ -3,7 +3,6 @@ import './public-path.js'
 import "../stylesheets/studip-jquery-ui.less"
 import "highlight.js/styles/tomorrow.css"
 import "chartist/dist/chartist.css"
-import "../stylesheets/lightbox.css"
 import "../stylesheets/studip.less"
 
 import 'expose-loader?$!jquery';
@@ -92,8 +91,6 @@ window.Chartist = chartist
 
 import "expose-loader?QRCode!./vendor/qrcode-04f46c6.js"
 
-import "lightbox2"
-
 import "./init.js"
 
 import select2 from "select2/dist/js/select2.full.js"
@@ -173,6 +170,7 @@ import "./studip-tooltip.js"
 import "./studip-scroll.js"
 import "./studip-selection-helper.js"
 import "./studip-cache.js"
+import "./studip-lightbox.js"
 import "./application.js"
 
 import "./course_archive.js"

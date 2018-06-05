@@ -91,13 +91,29 @@
   @color: 'yellow';
 }
 
-.background-icon(@icon, @role, @size: 16) {
+.background-icon(@icon, @role, @size: 16, @append: 0) {
     .role2color(@role);
     @temp-icon: replace("@{color}/@{icon}", "\.(png|svg)$", '', g);
     @svg: "@{image-path}/icons/@{temp-icon}.svg";
 
-    background-image: url("@{svg}");
-    .background-size(unit(@size, px) unit(@size, px));
+
+    & when (@append = 0) {
+        background-image: url("@{svg}");
+        background-size: unit(@size, px);
+    }
+    & when (@append = 1) {
+        background-image+: url("@{svg}");
+        background-size+: unit(@size, px);
+    }
+}
+
+.background-icons(@icon0, @role0, @size0: 16, @icon1, @role1: @role0, @size1: @size0) {
+    & {
+        .background-icon(@icon0, @role0, @size0, 1);
+    }
+    & {
+        .background-icon(@icon1, @role1, @size1, 1);
+    }
 }
 
 .icon(@position, @icon, @role, @size: 16, @padding: 0) when (@position = "before") {
