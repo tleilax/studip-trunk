@@ -21,7 +21,6 @@ module.exports = {
     "studip-base": assetsPath + "/entry-base.js",
     "studip-admission": assetsPath + "/entry-admission.js",
     "studip-enrolment": assetsPath + "/entry-enrolment.js",
-    "studip-files": assetsPath + "/entry-files.js",
     "studip-filesdashboard": assetsPath + "/entry-filesdashboard.js",
     "studip-raumzeit": assetsPath + "/entry-raumzeit.js",
     "studip-settings": assetsPath + "/entry-settings.js",
@@ -84,12 +83,30 @@ module.exports = {
   plugins: [
     new ExtractTextPlugin({
       filename: "stylesheets/[name].css"
-    }),
-    new webpack.ProvidePlugin({
-      $: "jquery",
-      jQuery: "jquery",
-      "window.$": "jquery",
-      "window.jQuery": "jquery"
     })
-  ]
+  ],
+  resolve: {
+    alias: {
+      'jquery-ui/data': 'jquery-ui/ui/data',
+      'jquery-ui/disable-selection': 'jquery-ui/ui/disable-selection',
+      'jquery-ui/focusable': 'jquery-ui/ui/focusable',
+      'jquery-ui/form': 'jquery-ui/ui/form',
+      'jquery-ui/ie': 'jquery-ui/ui/ie',
+      'jquery-ui/keycode': 'jquery-ui/ui/keycode',
+      'jquery-ui/labels': 'jquery-ui/ui/labels',
+      'jquery-ui/jquery-1-7': 'jquery-ui/ui/jquery-1-7',
+      'jquery-ui/plugin': 'jquery-ui/ui/plugin',
+      'jquery-ui/safe-active-element': 'jquery-ui/ui/safe-active-element',
+      'jquery-ui/safe-blur': 'jquery-ui/ui/safe-blur',
+      'jquery-ui/scroll-parent': 'jquery-ui/ui/scroll-parent',
+      'jquery-ui/tabbable': 'jquery-ui/ui/tabbable',
+      'jquery-ui/unique-id': 'jquery-ui/ui/unique-id',
+      'jquery-ui/version': 'jquery-ui/ui/version',
+      'jquery-ui/widget': 'jquery-ui/ui/widget',
+      'jquery-ui/widgets/mouse': 'jquery-ui/ui/widgets/mouse',
+      'jquery-ui/widgets/draggable': 'jquery-ui/ui/widgets/draggable',
+      'jquery-ui/widgets/droppable': 'jquery-ui/ui/widgets/droppable',
+      'jquery-ui/widgets/resizable': 'jquery-ui/ui/widgets/resizable'
+    }
+  }
 };
