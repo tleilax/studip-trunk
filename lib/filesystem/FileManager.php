@@ -1228,10 +1228,23 @@ class FileManager
         $new_folder = null;
         if ($source_folder instanceof StandardFolder) {
             //Standard folders just have to be put below the
-            //destination folder. Their subfolders and files
-            //cannot be moved since they would stay in the
-            //same place.
-            return $destination_folder->createSubfolder($source_folder);
+            //destination folder.
+            $new_folder = $destination_folder->createSubfolder($source_folder);
+
+            $array_walker = function ($folder) use (&$array_walker, $destination_folder, $user) {
+                $type = get_class($folder);
+                if (!$type::availableInRange($destination_folder->range_id, $user->id)) {
+                    $folder = new StandardFolder($folder);
+                }
+                $folder->range_id   = $destination_folder->range_id;
+                $folder->range_type = $destination_folder->range_type;
+                $folder->store();
+                array_walk($folder->getSubFolders(), $array_walker);
+
+            };
+            array_walk($new_folder->getSubfolders(), $array_walker);
+            return $new_folder;
+
         } else {
             //It is a plugin folder which needs special treatment.
             $new_folder = $destination_folder->createSubfolder(

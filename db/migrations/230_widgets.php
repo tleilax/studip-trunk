@@ -53,7 +53,7 @@ class Widgets extends Migration
                     PRIMARY KEY (`container_id`),
                     UNIQUE KEY `range` (`range_id`, `range_type`, `scope`),
                     KEY `parent_id` (`parent_id`)
-                  )";
+                  ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC";
         DBManager::get()->exec($query);
 
         $query = "CREATE TABLE IF NOT EXISTS `widget_elements` (
@@ -72,7 +72,7 @@ class Widgets extends Migration
                     PRIMARY KEY (`element_id`),
                     KEY `container_id` (`container_id`),
                     KEY `widget_id` (`widget_id`)
-                  )";
+                  ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC";
         DBManager::get()->exec($query);
 
         $query = "CREATE TABLE IF NOT EXISTS `widgets` (
@@ -84,7 +84,7 @@ class Widgets extends Migration
                     `chdate` INT(11) UNSIGNED NOT NULL,
                     PRIMARY KEY (`widget_id`),
                     UNIQUE KEY `class` (`class`)
-                  )";
+                  ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC";
         DBManager::get()->exec($query);
     }
 
