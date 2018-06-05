@@ -405,6 +405,8 @@ class Course_DatesController extends AuthenticatedController
             _('Typ'),
             _('Thema'),
             _('Beschreibung'),
+            _('Lehrende'),
+            _('Gruppen'),
             _('Raum'),
             _('Raumbeschreibung'),
             _('Sitzplätze')
@@ -439,6 +441,26 @@ class Course_DatesController extends AuthenticatedController
                 $row[] = trim($issue);
                 $row[] = trim($descr);
             }
+
+            $related_persons = '';
+
+            if ($date->related_persons) {
+                foreach ($date->related_persons as $user_id) {
+                    $related_persons .= User::find($user_id)->getFullname() . "\n";
+                }
+            }
+
+            $row[] = trim($related_persons);
+
+            $related_groups = '';
+
+            if ($date->related_groups) {
+                foreach ($date->related_groups as $group_id) {
+                    $related_groups .= Statusgruppen::find($group_id)->name . "\n";
+                }
+            }
+
+            $row[] = trim($related_groups);
 
             if ($date->resource_id) {
                 $resource_object = ResourceObject::Factory($date->resource_id);
