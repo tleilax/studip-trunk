@@ -1,5 +1,5 @@
 <div class="modaloverlay">
-    <div class="create-question-dialog ui-widget-content ui-dialog studip-confirmation">
+    <div class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons studip-confirmation">
         <form action="<?= URLHelper::getLink($accept_url) ?>" method="post">
             <?= CSRFProtection::tokenTag() ?>
         <? foreach ($accept_parameters as $key => $value): ?>
@@ -7,7 +7,7 @@
         <? endforeach; ?>
 
             <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix">
-                <span><?= _('Bitte bestätigen Sie die Aktion') ?></span>
+                <span class="ui-dialog-title"><?= _('Bitte bestätigen Sie die Aktion') ?></span>
                 <a href="<?= URLHelper::getLink($decline_url, $decline_parameters) ?>" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close">
                     <span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span>
                     <span class="ui-button-text"><?= _('Schliessen') ?></span>

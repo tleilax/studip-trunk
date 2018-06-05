@@ -8893,45 +8893,38 @@ table.default tr.subcourses td:nth-child(-n+4) {
   text-align: center;
   vertical-align: middle;
 }
-.ui-dialog.studip-confirmation {
+.ui-dialog.ui-widget.ui-widget-content.studip-confirmation {
   min-width: 30em;
 }
-.ui-dialog.studip-confirmation .ui-dialog-titlebar {
+.ui-dialog.ui-widget.ui-widget-content.studip-confirmation .ui-dialog-titlebar {
   background-color: #ffbd33;
   color: black;
   text-align: left;
 }
-.ui-dialog.studip-confirmation .ui-dialog-titlebar-close {
+.ui-dialog.ui-widget.ui-widget-content.studip-confirmation .ui-dialog-titlebar-close {
   background: transparent;
   border: 0;
 }
-.ui-dialog.studip-confirmation .ui-dialog-titlebar-close .ui-icon,
-.ui-dialog.studip-confirmation .ui-dialog-titlebar-close .ui-icon:hover {
+.ui-dialog.ui-widget.ui-widget-content.studip-confirmation .ui-dialog-titlebar-close .ui-icon,
+.ui-dialog.ui-widget.ui-widget-content.studip-confirmation .ui-dialog-titlebar-close .ui-icon:hover {
   background-image: url("../images/icons/blue/decline.svg");
   background-size: 16px;
   background-position: 0;
 }
-.ui-dialog.studip-confirmation .ui-dialog-content {
+.ui-dialog.ui-widget.ui-widget-content.studip-confirmation .ui-dialog-content {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  background-image: url("../images/icons/yellow/question-circle-full.svg");
-  background-size: 16px;
-  background-position: 12px 8px;
-  background-repeat: no-repeat;
-  background-size: 32px 32px;
-  font-weight: bold;
-  padding: 15px 15px 15px 55px;
-  text-align: left;
+  padding: 15px;
   max-height: 60vh;
 }
-.ui-dialog.studip-confirmation .ui-dialog-buttonpane {
+.ui-dialog.ui-widget.ui-widget-content.studip-confirmation .ui-dialog-buttonpane {
   text-align: center;
 }
-.ui-dialog.studip-confirmation .ui-dialog-buttonpane .ui-dialog-buttonset {
+.ui-dialog.ui-widget.ui-widget-content.studip-confirmation .ui-dialog-buttonpane .ui-dialog-buttonset {
   float: none;
 }
-.ui-dialog.studip-confirmation .ui-dialog-buttonpane .ui-dialog-buttonset > * {
+.ui-dialog.ui-widget.ui-widget-content.studip-confirmation .ui-dialog-buttonpane .ui-dialog-buttonset > * {
   display: inline-block;
 }
 .ui-dialog.studip-lightbox .wrapper {
