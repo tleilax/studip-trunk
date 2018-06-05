@@ -473,7 +473,7 @@
                 var helpbar_element = $('.helpbar a[href*="hilfe.studip.de"]'),
                     tooltip = helpbar_element.text(),
                     link    = options.wiki_link || helpbar_element.attr('href'),
-                    element = $('<a class="ui-dialog-titlebar-wiki" target="_blank">').attr('href', link).attr('title', tooltip),
+                    element = $('<a class="ui-dialog-titlebar-wiki" target="_blank" rel="noopener noreferrer">').attr('href', link).attr('title', tooltip),
                     buttons = $(this).parent().find('.ui-dialog-buttonset .ui-button');
 
                 if (options.wikilink === undefined || options.wikilink !== false) {

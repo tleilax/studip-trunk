@@ -21,7 +21,10 @@ class LonCapaConnectedLink extends ConnectedLink
 
         $url = URLHelper::getURL('dispatch.php/loncapa/enter', array('cms_type' => $this->cms_type, 'module' => $current_module));
 
-        return Studip\LinkButton::create(_("Starten"), $url, array('target' => '_blank'));
+        return Studip\LinkButton::create(_('Starten'), $url, [
+            'target' => '_blank',
+            'rel'    => 'noopener noreferrer',
+        ]);
     }
 
     /**

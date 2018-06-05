@@ -241,8 +241,17 @@ class Admin_PluginController extends AuthenticatedController
         $this->unknown_plugins = $this->plugin_admin->scanPluginDirectory();
 
         $actions = new ActionsWidget();
-        $actions->addLink(_('Pluginverwaltung'), $this->url_for('admin/plugin'), Icon::create('plugin', 'clickable'));
-        $actions->addLink(_('Alle Plugins im Plugin-Marktplatz'), 'http://plugins.studip.de/', Icon::create('export', 'clickable'), ['target' => '_blank']);
+        $actions->addLink(
+            _('Pluginverwaltung'),
+            $this->url_for('admin/plugin'),
+            Icon::create('plugin', 'clickable')
+        );
+        $actions->addLink(
+            _('Alle Plugins im Plugin-Marktplatz'),
+            'http://plugins.studip.de/',
+            Icon::create('export', 'clickable'),
+            ['target' => '_blank', 'rel' => 'noopener noreferrer']
+        );
         Sidebar::Get()->addWidget($actions);
     }
 

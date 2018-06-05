@@ -123,17 +123,24 @@ class ExternElementStudipLink extends ExternElement {
         $out .= "<td height=\"{$args['height']}\" width=\"100%\" align=\""
                 . $this->config->getValue($this->name, "align") . "\">\n";
         $font = "<font" . $this->config->getAttributes($this->name, "font") . ">";
-        $out .= sprintf("<a href=\"%s\"%s target=\"_blank\">%s%s</font></a>", $args['link'],
-                $this->config->getAttributes($this->name, "a"), $font,
-                $this->config->getValue($this->name, "linktext"));
+        $out .= sprintf(
+            "<a href=\"%s\"%s target=\"_blank\" rel=\"noopener noreferrer\">%s%s</font></a>",
+            $args['link'],
+            $this->config->getAttributes($this->name, "a"), $font,
+            $this->config->getValue($this->name, "linktext")
+        );
         if ($this->config->getValue($this->name, "image")) {
             if ($image_url = $this->config->getValue($this->name, "imageurl"))
                 $img = Assets::img($image_url);
             else {
                 $img = Icon::create('door-enter', 'clickable')->asImg();
             }
-            $out .= sprintf("&nbsp;<a href=\"%s\"%s target=\"_blank\">%s</a>", $args['link'],
-                    $this->config->getAttributes($this->name, "a"), $img);
+            $out .= sprintf(
+                "&nbsp;<a href=\"%s\"%s target=\"_blank\" rel=\"noopener noreferrer\">%s</a>",
+                $args['link'],
+                $this->config->getAttributes($this->name, "a"),
+                $img
+            );
         }
         $out .= "\n</td></tr></table>\n";
 

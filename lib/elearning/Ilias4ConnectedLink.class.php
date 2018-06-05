@@ -51,7 +51,7 @@ class Ilias4ConnectedLink extends Ilias3ConnectedLink
         . "&cms_select=" . $this->cms_type
         . "&ref_id=" . $module_id
         . "&type=" . $module_type
-        . "&target=start"). "\" target=\"_blank\">";
+        . "&target=start"). "\" target=\"_blank\" rel=\"noopener noreferrer\">";
         $output .= $title;
         $output .= "</a>&nbsp;";
 

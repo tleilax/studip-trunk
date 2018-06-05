@@ -1,10 +1,11 @@
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
-/*global window, $, jQuery, _ */
+/*jslint browser: true, nomen: true, unparam: true */
+/*global jQuery, STUDIP, _ */
 
 /* ------------------------------------------------------------------------
  * Default toolbar buttonset
  * ------------------------------------------------------------------------ */
-(function ($) {
+(function ($, STUDIP, _) {
+    'use strict';
 
     // Creates a wrapper function that wraps the passed string using the
     // passed prefix and suffix. If the suffix is omitted, it will be replaced
@@ -71,10 +72,12 @@
             help: {
                 label: '?',
                 evaluate: function () {
-                    var url = $('link[rel=help].text-format').attr('href');
-                    window.open(url, '_blank');
+                    var url = $('link[rel=help].text-format').attr('href'),
+                        win;
+                    win = window.open(url, '_blank');
+                    win.opener = null;
                 }
             }
         }
     };
-}(jQuery));
+}(jQuery, STUDIP, _));

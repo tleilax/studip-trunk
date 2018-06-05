@@ -15,7 +15,7 @@ $elementId = sprintf(
 
     <span class="document-icon">
         <? if ($currentFolder->isFileDownloadable($fileRef, $userId)) : ?>
-            <a href="<?= htmlReady($fileRef->getDownloadURL('force_download')) ?>" target="_blank">
+            <a href="<?= htmlReady($fileRef->getDownloadURL('force_download')) ?>" target="_blank" rel="noopener noreferrer">
                 <?= Icon::create(
                     FileManager::getIconNameForMimeType($fileRef->mime_type),
                     Icon::ROLE_CLICKABLE)->asImg(24) ?>

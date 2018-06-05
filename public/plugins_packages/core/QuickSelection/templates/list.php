@@ -5,7 +5,7 @@
             <? if (is_internal_url($url = $nav->getURL())) : ?>
                 <a href="<?= URLHelper::getLink($url) ?>">
             <? else : ?>
-                <a href="<?= htmlReady($url) ?>" target="_blank">
+                <a href="<?= htmlReady($url) ?>" target="_blank" rel="noopener noreferrer">
             <? endif ?>
             <?= htmlReady($nav->getTitle()) ?></a>
             <? $pos = 0 ?>
@@ -16,7 +16,7 @@
                         <? if (is_internal_url($url = $subnav->getURL())) : ?>
                             <a href="<?= URLHelper::getLink($url) ?>">
                         <? else : ?>
-                            <a href="<?= htmlReady($url) ?>" target="_blank">
+                            <a href="<?= htmlReady($url) ?>" target="_blank" rel="noopener noreferrer">
                         <? endif ?>
                         <?= htmlReady($subnav->getTitle()) ?></a>
                     </font>
