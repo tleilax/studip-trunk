@@ -18,8 +18,7 @@ class Course_DatesController extends AuthenticatedController
             PageLayout::setTitle(_('Termine'));
         }
 
-        PageLayout::addSqueezePackage('tablesorter');
-        PageLayout::addScript('raumzeit');
+        PageLayout::addScript('studip-raumzeit.js');
 
         Sidebar::get()->setImage('sidebar/date-sidebar.png');
 

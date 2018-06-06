@@ -49,7 +49,7 @@ class Course_AdmissionController extends AuthenticatedController
             $this->is_locked['write_level'] = 'disabled readonly';
         }
         update_admission($this->course->id);
-        PageLayout::addSqueezePackage('admission');
+        PageLayout::addScript('studip-admission.js');
         URLHelper::addLinkParam('return_to_dialog', Request::get('return_to_dialog'));
     }
 

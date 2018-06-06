@@ -38,7 +38,6 @@ class FilesController extends AuthenticatedController
 
         PageLayout::setTitle(_('Meine Dateien'));
         PageLayout::setHelpKeyword('Basis.Dateien');
-        PageLayout::addSqueezePackage('tablesorter');
 
         $this->user = User::findCurrent();
         $this->last_visitdate = time();

@@ -26,7 +26,7 @@ class Userfilter_FieldController extends AuthenticatedController
             Navigation::activateItem('/tools/coursesets');;
         }
         PageLayout::setTitle(_('Bedingung'));
-        PageLayout::addSqueezePackage('userfilter');
+        PageLayout::addScript('studip-userfilter.js');
     }
 
     /**

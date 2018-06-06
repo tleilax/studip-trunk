@@ -362,11 +362,11 @@ class Admin_CoursesController extends AuthenticatedController
         PageLayout::setHelpKeyword("Basis.Veranstaltungen");
         PageLayout::setTitle(_("Verwaltung von Veranstaltungen und Einrichtungen"));
         Sidebar::Get()->setTitle(_('Veranstaltungsadministration'));
-        PageLayout::addSqueezePackage('raumzeit');
+        PageLayout::addScript('studip-raumzeit.js');
         // Add admission functions.
-        PageLayout::addSqueezePackage('admission');
+        PageLayout::addScript('studip-admission.js');
         // Add subcourses listing.
-        PageLayout::addSqueezePackage('subcourses');
+        PageLayout::addScript('studip-subcourses.js');
     }
 
     /**

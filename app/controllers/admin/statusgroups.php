@@ -34,7 +34,8 @@ class Admin_StatusgroupsController extends AuthenticatedController
         $this->user_id = $GLOBALS['user']->user_id;
 
         // Set pagelayout
-        PageLayout::addSqueezePackage('statusgroups');
+        PageLayout::addStyleSheet('studip-statusgroups.css');
+        PageLayout::addScript('studip-statusgroups.js');
         PageLayout::setHelpKeyword("Basis.Allgemeines");
         PageLayout::setTitle(_("Verwaltung von Funktionen und Gruppen"));
         Navigation::activateItem('/admin/institute/groups');

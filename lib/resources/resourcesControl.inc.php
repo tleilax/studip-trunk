@@ -694,7 +694,7 @@ if ($quick_view_mode === 'no_nav' || Request::get('print_view')) {
     PageLayout::disableHeader();
 }
 if (Request::get('print_view')){
-    PageLayout::removeStylesheet('style.css');
+    PageLayout::removeStylesheet('studip-base.css');
     PageLayout::addStylesheet('print.css'); // use special stylesheet for printing
 }
 

@@ -13,11 +13,6 @@
  * @category    Stud.IP
  */
 
-require_once 'lib/classes/squeeze/squeeze.php';
-
-use \Studip\Squeeze\Configuration;
-use \Studip\Squeeze\Packager;
-
 /**
  * The PageLayout class provides utility functions to control the
  * global page layout of Stud.IP. This includes the page title, the
@@ -70,11 +65,6 @@ class PageLayout
      */
     private static $display_header = true;
 
-    /**
-     * names of the squeeze packages to include
-     */
-    private static $squeeze_packages = array();
-
     /*
      * Custom quicksearch on the page
      */
@@ -122,9 +112,12 @@ class PageLayout
             'title' => _('Hilfe zur Textformatierung')
         ));
 
-        self::setSqueezePackages("base");
+        self::addStylesheet('studip-base.css');
+        self::addScript('studip-base.js');
+
         if (Config::get()->WYSIWYG) {
-            self::addSqueezePackage("wysiwyg");
+            self::addStylesheet('studip-wysiwyg.css');
+            self::addScript('studip-wysiwyg.js');
         }
         self::addScript("mathjax/MathJax.js?config=TeX-AMS_HTML,default");
     }
@@ -388,7 +381,7 @@ class PageLayout
     {
         $result = '';
 
-        $package_elements = self::includeSqueezePackages();
+        $package_elements = [];
 
         if (isset($GLOBALS['_include_stylesheet'])) {
             unset($package_elements['base-style.css']);
@@ -628,7 +621,7 @@ class PageLayout
      */
     public static function getSqueezePackages()
     {
-        return array_unique(self::$squeeze_packages);
+        return [];
     }
 
     /**
@@ -647,7 +640,10 @@ class PageLayout
      */
     public static function setSqueezePackages($package/*, ...*/)
     {
-        self::$squeeze_packages = func_get_args();
+        $packages = func_get_args();
+        foreach ($packages as $package) {
+            self::addSqueezePackage($package);
+        }
     }
 
     /**
@@ -661,60 +657,17 @@ class PageLayout
      */
     public static function addSqueezePackage($package)
     {
-        self::$squeeze_packages[] = $package;
-    }
+        $oldPackages = ["admission", "base", "enrolment", "filesdashboard", "raumzeit", "settings", "statusgroups", "subcourses", "userfilter", "widgets", "wysiwyg"];
+        $oldCssPackages = ["base", "statusgroups", "widgets", "wysiwyg"];
 
-    /**
-     * Depending on \Studip\ENV, either includes individual script
-     * elements for each JS file in every package, or a single script
-     * element containing the squeezed source code for every package.
-     */
-    private static function includeSqueezePackages()
-    {
-        global $STUDIP_BASE_PATH;
+        // tablesorter loads on demand
 
-        $config_path   = "$STUDIP_BASE_PATH/config/assets.yml";
-        $configuration = Configuration::load($config_path);
-        $packager      = new Packager($configuration);
-        $javascripts   = \Studip\Squeeze\includePackages($packager, self::getSqueezePackages());
-
-        $css = array();
-        foreach (self::getSqueezePackages() as $package) {
-            if (isset($configuration['css'][$package])) {
-                foreach ($configuration['css'][$package] as $filename => $media) {
-                    $attributes = array(
-                        'rel' => 'stylesheet',
-                        'href' => \Studip\Squeeze\shouldPackage()
-                             ? $configuration['package_url'] . '/' . $package . '-' . $filename
-                             : Assets::stylesheet_path($filename),
-                        'media' => $media
-                    );
-                    $css[$package . '-' . $filename] = array(
-                        'name'       => 'link',
-                        'attributes' => $attributes
-                    );
-                }
-            }
+        if (in_array($package, $oldPackages)) {
+            self::addScript('studip-'.$package.'.js');
         }
-
-        $files = array_merge($css, $javascripts);
-
-        // When not in development mode, add the current version number to
-        // the assets file, so browser caches will be informed about an
-        // update
-        if (Studip\ENV !== 'development') {
-            $v = preg_replace('/^(\d+(?:\.\d+)*).*$/', '$1', $GLOBALS['SOFTWARE_VERSION']);
-            $files = array_map(function ($file) use ($v) {
-                if ($file['name'] === 'link') {
-                    $file['attributes']['href'] = URLHelper::getURL($file['attributes']['href'], compact('v'), true);
-                } else if ($file['name'] === 'script') {
-                    $file['attributes']['src'] = URLHelper::getURL($file['attributes']['src'], compact('v'), true);
-                }
-                return $file;
-            }, $files);
+        if (in_array($package, $oldCssPackages)) {
+            self::addStylesheet('studip-'.$package.'.css');
         }
-
-        return $files;
     }
 
     /**
