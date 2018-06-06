@@ -76,9 +76,9 @@ class AvatarController extends AuthenticatedController
 
         $this->customized = false;
         $avatar = $class::getAvatar($id);
+        $this->avatar = $avatar->getURL($class::NORMAL);
         if ($avatar->is_customized()) {
             $this->customized = true;
-            $this->avatar = $avatar->getURL($class::NORMAL);
             SkipLinks::addIndex(_('Bild löschen'), 'delete_picture');
         }
 
