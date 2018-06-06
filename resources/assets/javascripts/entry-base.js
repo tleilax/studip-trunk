@@ -17,7 +17,8 @@ import "./l10n.js"
 import chartist from "chartist"
 window.Chartist = chartist
 
-import "expose-loader?QRCode!./vendor/qrcode-04f46c6.js"
+import QRCode from "./vendor/qrcode-04f46c6.js"
+window.QRCode = QRCode
 
 import "./jquery-bundle.js"
 
