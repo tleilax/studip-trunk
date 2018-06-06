@@ -2,8 +2,9 @@
         action="<?= $controller->url_for('avatar/upload', $type, $id) ?>" method="post">
     <fieldset>
         <legend>
-            <?= $type == 'user' ? _('Profilbild') :
-                ($type == 'course' ? _('Veranstaltungsbild') : _('Einrichtungsbild')) ?>
+            <?= $type == 'user' ? _('Profilbild bearbeiten und zuschneiden') :
+                ($type == 'course' ? _('Veranstaltungsbild bearbeiten und zuschneiden') :
+                    _('Einrichtungsbild bearbeiten und zuschneiden')) ?>
         </legend>
         <div class="form-group">
             <div id="avatar-preview">
@@ -13,6 +14,7 @@
             <label class="file-upload">
                 <?= _('Wählen Sie ein Bild von Ihrer Festplatte aus.') ?>
                 <input name="avatar-img" type="file" id="avatar-upload" accept="image/gif,image/png,image/jpeg"
+                       capture="camera"
                        data-max-size="<?= Avatar::MAX_FILE_SIZE ?>"
                        data-message-too-large="<?= _('Die hochgeladene Datei ist zu groß. Bitte wählen Sie ein anderes Bild.') ?>">
 

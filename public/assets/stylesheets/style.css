@@ -4543,9 +4543,6 @@ div.avatar-widget div.avatar-overlay p a {
 div#avatar img {
   max-width: 100%;
 }
-form.settings-avatar .form-group {
-  margin-top: 15px;
-}
 form.settings-avatar .avatar-normal {
   padding: 2em;
   display: block;
@@ -4560,7 +4557,7 @@ form.settings-avatar .file-upload {
   flex: 1 1 auto;
   position: absolute;
   left: 320px;
-  top: 50px;
+  top: 65px;
 }
 form.settings-avatar .form-text {
   color: initial;
@@ -4579,6 +4576,13 @@ form.settings-avatar .form-text {
     align-items: center;
   }
 }
+@media (max-width: 767px) {
+  form.settings-avatar .file-upload {
+    position: initial;
+    left: 0;
+    top: 0;
+  }
+}
 form.settings-avatar .cropper-container {
   margin-left: auto;
   margin-right: auto;
@@ -4589,7 +4593,7 @@ form.settings-avatar #avatar-buttons {
   position: absolute;
   right: 10px;
   text-align: center;
-  top: 50px;
+  top: 45px;
   width: 28px;
 }
 a.button,

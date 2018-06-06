@@ -39,8 +39,8 @@ class AvatarController extends AuthenticatedController
         // Check for permission to save a new avatar.
         if ($type == 'user') {
             PageLayout::setHelpKeyword('Basis.HomepageBild');
-            PageLayout::setTitle(_('Hochladen eines persönlichen Bildes'));
-            SkipLinks::addIndex(_('Hochladen eines persönlichen Bildes'), 'edit_avatar');
+            PageLayout::setTitle(_('Profilbild ändern'));
+            SkipLinks::addIndex(_('Profilbild ändern'), 'edit_avatar');
 
             $has_perm = $GLOBALS['perm']->have_profile_perm('user', $id);
             $class = 'Avatar';
