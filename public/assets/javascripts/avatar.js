@@ -20,12 +20,24 @@
 
                     var container = $('div#avatar-preview'),
                         dialog = container.closest('div[role="dialog"]');
-                    if (container.length > 0) {
+                    // We are in a modal dialog
+                    if (dialog.length > 0) {
                         // Adjust maximal cropper container height to dialog dimensions.
                         container.css('height', dialog.height() - 200);
                         container.css('width', dialog.width() - 100);
                         container.css('max-height', dialog.height() - 200);
                         container.css('max-width', dialog.width() - 100);
+                    // No dialog, full page.
+                    } else {
+                        dialog = $('#layout_content');
+                        // Adjust maximal cropper container height to page dimensions.
+                        container.css('height', 0.75 * dialog.height());
+                        container.css('width', 0.75 * dialog.width());
+                        container.css('max-height', 0.75 * dialog.height());
+                        container.css('max-width', 0.75 * dialog.width());
+                        // Adjust tool button positions.
+                        $('#avatar-buttons').css('left', container.width() + 10);
+                        $('#avatar-buttons').css('right', 0);
                     }
 
                     reader.onload = function (event) {
