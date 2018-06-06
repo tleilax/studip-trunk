@@ -4,7 +4,7 @@
             <h1><?= _('Was ist Stud.IP?') ?></h1>
         </header>
         <section>
-            <?= _('Stud.IP ist ein Open Source Projekt und steht unter der Gnu General Public License (GPL). Das System befindet sich in der ständigen Weiterentwicklung.') ?>
+            <?= _('Stud.IP ist ein Open Source Projekt und steht unter der GNU General Public License (GPL). Das System befindet sich in der ständigen Weiterentwicklung.') ?>
 
             <? printf(_('Für Vorschläge und Kritik findet sich immer ein Ohr. Wenden Sie sich hierzu entweder an die %sStud.IP Crew%s oder direkt an Ihren lokalen %sSupport%s.'),
                 "<a href=\"mailto:studip-users@lists.sourceforge.net\">", "</a>",
