@@ -3,7 +3,7 @@
 ?>
 <html>
 <head>
-  <?= Assets::stylesheet('style.css') ?>
+  <?= Assets::stylesheet('studip-base.css') ?>
 </head>
 <body>
   <div style="background-color: white; margin: auto; max-width: 700px; padding: 4px;">
