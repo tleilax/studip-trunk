@@ -61,9 +61,8 @@ div.avatar-widget {
             a {
                 color: @white;
                 display: block;
-                font-size: @font-size-large;
                 height: 100%;
-                padding-top: calc(50% - 2em);
+                padding-top: 70%;
                 width: 100%;
             }
         }
@@ -81,25 +80,47 @@ div#avatar {
     }
 }
 
-form.avatar {
-    #avatar-preview {
-        height: 250px;
-        margin-left: auto;
-        margin-right: auto;
-        width: 250px;
+form.settings-avatar {
+
+    .form-group {
+        margin-top: 15px;
     }
 
-    #new-avatar {
-        height: 250px;
-        width: 250px;
+    .avatar-normal {
+        padding: 2em;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .file-upload {
+        .flex-item(1, 1);
+        position: absolute;
+        left: 320px;
+        top: 50px;
+    }
+
+    .form-text {
+        color: initial;
+    }
+
+    .media-breakpoint-small-up({ .form-group {
+        .flex();
+        .flex-align-items(center);
+    } });
+
+    .cropper-container {
+        margin-left: auto;
+        margin-right: auto;
     }
 
     #avatar-buttons {
-        background-color: @light-gray-color-20;
-        margin-left: auto;
-        margin-right: auto;
-        padding: 5px;
+        padding-left: 5px;
+        padding-right: 5px;
+        position: absolute;
+        right: 10px;
         text-align: center;
-        width: 150px;
+        top: 50px;
+        width: 28px;
     }
 }

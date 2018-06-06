@@ -4532,9 +4532,8 @@ div.avatar-widget div.avatar-overlay p {
 div.avatar-widget div.avatar-overlay p a {
   color: #fff;
   display: block;
-  font-size: 18px;
   height: 100%;
-  padding-top: calc(50% - 2em);
+  padding-top: 70%;
   width: 100%;
 }
 #custom_avatar label {
@@ -4544,23 +4543,54 @@ div.avatar-widget div.avatar-overlay p a {
 div#avatar img {
   max-width: 100%;
 }
-form.avatar div#avatar-preview {
-  height: 250px;
+form.settings-avatar .form-group {
+  margin-top: 15px;
+}
+form.settings-avatar .avatar-normal {
+  padding: 2em;
+  display: block;
   margin-left: auto;
   margin-right: auto;
-  width: 250px;
 }
-form.avatar div#avatar-preview img#new-avatar {
-  height: 250px;
-  width: 250px;
+form.settings-avatar .file-upload {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  -moz-box-flex: 1;
+  flex: 1 1 auto;
+  position: absolute;
+  left: 320px;
+  top: 50px;
 }
-form.avatar div#avatar-buttons {
-  background-color: #e2e3e4;
+form.settings-avatar .form-text {
+  color: initial;
+}
+@media (min-width: 576px) {
+  form.settings-avatar .form-group {
+    display: -ms-flexbox;
+    display: -webkit-box;
+    display: -webkit-box-flex;
+    display: -webkit-flex;
+    display: -moz-box;
+    display: flex;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    -moz-box-align: center;
+    align-items: center;
+  }
+}
+form.settings-avatar .cropper-container {
   margin-left: auto;
   margin-right: auto;
-  padding: 5px;
+}
+form.settings-avatar #avatar-buttons {
+  padding-left: 5px;
+  padding-right: 5px;
+  position: absolute;
+  right: 10px;
   text-align: center;
-  width: 150px;
+  top: 50px;
+  width: 28px;
 }
 a.button,
 button.button {
@@ -8712,39 +8742,6 @@ div.available-widgets .studip-widget {
 }
 .profile-view-actions img {
   vertical-align: text-top;
-}
-form.settings-avatar .avatar-normal {
-  padding: 2em;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-form.settings-avatar .file-upload {
-  -webkit-box-flex: 1;
-  -webkit-flex: 1 1 auto;
-  -ms-flex: 1 1 auto;
-  -moz-box-flex: 1;
-  flex: 1 1 auto;
-}
-form.settings-avatar .form-text {
-  color: initial;
-}
-form.settings-avatar footer {
-  padding-left: 40px;
-}
-@media (min-width: 576px) {
-  form.settings-avatar .form-group {
-    display: -ms-flexbox;
-    display: -webkit-box;
-    display: -webkit-box-flex;
-    display: -webkit-flex;
-    display: -moz-box;
-    display: flex;
-    -webkit-align-items: center;
-    -ms-flex-align: center;
-    -moz-box-align: center;
-    align-items: center;
-  }
 }
 @media (max-width: 575px) {
   table.settings-privacy,
