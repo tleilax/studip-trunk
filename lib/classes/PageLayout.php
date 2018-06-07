@@ -112,7 +112,7 @@ class PageLayout
             'title' => _('Hilfe zur Textformatierung')
         ));
 
-        self::addStylesheet('studip-base.css');
+        self::addStylesheet('studip-base.css', ['media' => 'screen']);
         self::addScript('studip-base.js');
 
         if (Config::get()->WYSIWYG) {
