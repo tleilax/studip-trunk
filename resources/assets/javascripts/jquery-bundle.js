@@ -1,5 +1,3 @@
-import "../stylesheets/studip-jquery-ui.less"
-
 import "expose-loader?$!jquery";
 import "expose-loader?jQuery!jquery";
 
