@@ -30,25 +30,27 @@
     position: relative;
     margin: 0 -10px;
 
-    // Hide widget grid until initialised
-    &:not(.studip-widget-grid) {
-        .grid-stack-item {
-            display: none;
-        }
+    // TODO: REACTIVATE
 
-        &::before {
-            position: absolute;
-            top: 0;
-            right: 0;
-            left: 0;
-            height: 200px;
-            background: url("@{image-path}/ajax-indicator-black.svg") no-repeat center;
-            background-size: 4em;
-
-            display: block;
-            content: '';
-        }
-    }
+    // // Hide widget grid until initialised
+    // &:not(.studip-widget-grid) {
+    //     .grid-stack-item {
+    //         display: none;
+    //     }
+    //
+    //     &::before {
+    //         position: absolute;
+    //         top: 0;
+    //         right: 0;
+    //         left: 0;
+    //         height: 200px;
+    //         background: url("@{image-path}/ajax-indicator-black.svg") no-repeat center;
+    //         background-size: 4em;
+    //
+    //         display: block;
+    //         content: '';
+    //     }
+    // }
 
     &.admin-mode .widget-content {
         .disable-select();
@@ -523,4 +525,9 @@ form.add-widget {
             border-bottom: 1px solid @content-color-40;
         }
     }
+}
+
+// TODO: REMOVE
+.grid-stack > .grid-stack-item > .grid-stack-item-content {
+    bottom: initial;
 }

@@ -34,10 +34,11 @@
         this.grid = $(container_element).addClass(GRID_CLASSNAME).gridstack({
             acceptWidgets: '.widget-to-add',
             width: 6, // TODO: Same as Widgets\Container model
-            cellHeight: 100,
+            cellHeight: 'auto',
             handle: '.widget-header',
             resizable: {autoHide: false}
         });
+
         this.gridstack = this.grid.data('gridstack');
 
         this.hashcode = JSON.stringify(this.serialize()).crc32();
@@ -266,10 +267,11 @@
     };
 
     // Initialize widget system itself and possible instances on page
-    $(document).ready(function () {
-        $('.grid-stack').each(function () {
-            STUDIP.WidgetSystem.initialize(this);
-        });
-    });
+    // TODO: REACTIVATE
+    // $(document).ready(function () {
+    //     $('.grid-stack').each(function () {
+    //         STUDIP.WidgetSystem.initialize(this);
+    //     });
+    // });
 
 }(jQuery, STUDIP));
