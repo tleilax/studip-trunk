@@ -7,7 +7,7 @@
         <div class="avatar-overlay">
             <p>
                 <a href="<?= URLHelper::getURL('dispatch.php/avatar/update/user/' . $current_user) ?>" data-dialog>
-                    <?= _('Klicken Sie hier, um ein neues Bild hochzuladen oder das aktuelle zu löschen.') ?>
+                    <?= _('Bild hochladen oder löschen') ?>
                 </a>
             </p>
         </div>
