@@ -44,11 +44,13 @@ class AvatarController extends AuthenticatedController
 
             $has_perm = $GLOBALS['perm']->have_profile_perm('user', $id);
             $class = 'Avatar';
+            $this->cancel_link = $this->url_for('profile', ['username' => User::find($id)->username]);
         } else if ($type == 'institute') {
             PageLayout::setTitle(Context::getHeaderLine() . ' - ' . _('Einrichtungsbild ändern'));
 
             $has_perm = $GLOBALS['perm']->have_studip_perm('admin', $id);
             $class = 'InstituteAvatar';
+            $this->cancel_link = $this->url_for('institute/basicdata/index', ['cid' => $id]);
         } else {
             PageLayout::setTitle(Context::getHeaderLine() . ' - ' . _('Veranstaltungsbild ändern'));
 
@@ -60,6 +62,7 @@ class AvatarController extends AuthenticatedController
             } else {
                 $class = 'CourseAvatar';
             }
+            $this->cancel_link = $this->url_for('avatar/update/course', $id);
         }
 
         if (!$has_perm) {

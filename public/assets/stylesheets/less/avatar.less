@@ -39,6 +39,7 @@ div.avatar-widget {
     div.avatar-overlay {
         .transition(opacity .5s ease-in-out);
         background-color: fadeout(@base-color, 33.3%);
+        display: table;
         opacity: 0;
         height: 260px;
         left: 0;
@@ -51,7 +52,6 @@ div.avatar-widget {
         width: calc(100% - 20px);
 
         &:hover {
-            display: table;
             opacity: 1;
         }
 
@@ -62,7 +62,7 @@ div.avatar-widget {
                 color: @white;
                 display: block;
                 height: 100%;
-                padding-top: 80%;
+                padding-top: ~"calc(100% - 30px)";
                 width: 100%;
             }
         }

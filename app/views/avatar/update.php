@@ -56,5 +56,6 @@
                 $controller->url_for('avatar/delete', $type, $id)
             ) ?>
         <? endif ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'), $cancel_link) ?>
     </footer>
 </form>

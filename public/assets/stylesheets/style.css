@@ -4511,6 +4511,7 @@ div.avatar-widget div.avatar-overlay {
   -o-transition: opacity 0.5s ease-in-out;
   transition: opacity 0.5s ease-in-out;
   background-color: rgba(40, 73, 124, 0.667);
+  display: table;
   opacity: 0;
   height: 260px;
   left: 0;
@@ -4523,7 +4524,6 @@ div.avatar-widget div.avatar-overlay {
   width: calc(100% - 20px);
 }
 div.avatar-widget div.avatar-overlay:hover {
-  display: table;
   opacity: 1;
 }
 div.avatar-widget div.avatar-overlay p {
@@ -4533,7 +4533,7 @@ div.avatar-widget div.avatar-overlay p a {
   color: #fff;
   display: block;
   height: 100%;
-  padding-top: 80%;
+  padding-top: calc(100% - 30px);
   width: 100%;
 }
 #custom_avatar label {
