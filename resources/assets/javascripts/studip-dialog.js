@@ -402,7 +402,7 @@
         // Adjust size if neccessary
         if (options.size && (options.size === 'auto' || options.size === 'fit')) {
             // Render off screen
-            helper = $('<div class="ui-dialog">').addClass(options.dialogClass || dialog_options.dialogClass || '');
+            helper = $('<div class="ui-dialog ui-widget ui-widget-content">').addClass(options.dialogClass || dialog_options.dialogClass || '');
             $('<div class="ui-dialog-content">').html(content).appendTo(helper);
             helper.css({
                 position: 'absolute',
