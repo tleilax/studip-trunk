@@ -187,6 +187,7 @@ javascripts:
 
   avatar:
     - javascripts/vendor/cropper.js
+    - javascripts/jquery/jquery-cropper-1.0.0.js
     - javascripts/avatar.js
 
 css:
