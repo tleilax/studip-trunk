@@ -63,33 +63,23 @@
             });
         }
 
-        STUDIP.Table = { enhanceSortableTable: enhanceSortableTable };
+        STUDIP.Table = {
+            enhanceSortableTable: function (table) {
+                // async load the tablesorter, then enhance
+                import(/* webpackChunkName: "tablesorter" */ './tablesorter')
+                    .then(() => {
+                        enhanceSortableTable(table)
+                    })
+                    .catch(error => {
+                        console.log('An error occurred while loading the tablesorter component', error)
+                    })
+            }
+        };
 
         if ($('table.sortable-table').length) {
-            import(/* webpackChunkName: "tablesorter" */ './tablesorter')
-                .then(() => {
-                    $.tablesorter.addParser({
-                        id: 'htmldata',
-                        is: function (s, table, cell, $cell) {
-                            var c = table.config,
-                                p = c.parserMetadataName || 'sortValue';
-                            return $(cell).data(p) !== undefined;
-                        },
-                        format: function (s, table, cell) {
-                            var c = table.config,
-                                p = c.parserMetadataName || 'sortValue';
-                            return $(cell).data(p);
-                        },
-                        type: 'numeric'
-                    });
-
-                    $('table.sortable-table').each(function (index, element) {
-                        enhanceSortableTable(element);
-                    });
-                })
-                .catch(error => {
-                    console.log('An error occurred while loading the tablesorter component', error)
-                })
+            $('table.sortable-table').each(function (index, element) {
+                STUDIP.Table.enhanceSortableTable(element);
+            });
         }
     });
 
