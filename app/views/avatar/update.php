@@ -8,7 +8,8 @@
         </legend>
         <div class="form-group">
             <div id="avatar-preview">
-                <img class="avatar-normal" id="new-avatar" src="<?= $avatar ?>">
+                <img class="avatar-normal" id="new-avatar" src="<?= $avatar ?>"
+                     data-message-too-small="<?= _('Das Bild ist kleiner als 250 x 250 Pixel. Wollen Sie wirklich fortfahren?') ?>">
             </div>
 
             <label class="file-upload">
