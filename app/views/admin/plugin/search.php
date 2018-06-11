@@ -63,9 +63,9 @@ use Studip\Button, Studip\LinkButton;
                         <p class="read_more"></p>
                     </div>
 
-                    <?= LinkButton::create(_('Weiterlesen'), '', [
-                        'onClick' => "jQuery(this).parent().toggleClass('short');return false;"
-                    ]) ?>
+                    <a href="" class="read_more_link" onClick="jQuery(this).parent().toggleClass('short');return false;">
+                        <span><?= _('Weiterlesen') ?></span>
+                    </a>
                 </span>
                 <? else: ?>
                     <p>
