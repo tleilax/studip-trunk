@@ -85,7 +85,7 @@ class ForumAbo
         // get all parent topic-ids, to find out which users to notify
         $path = ForumEntry::getPathToPosting($topic_id);
 
-        // fetch all users to notify, exlcude current user
+        // fetch all users to notify, exclude current user
         $stmt = $db->prepare("SELECT DISTINCT user_id
             FROM forum_abo_users
             WHERE topic_id IN (:topic_ids)
@@ -103,6 +103,11 @@ class ForumAbo
         // notify users
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user_id = $data['user_id'];
+
+            // don't notify user if view permission is not granted
+            if (!ForumPerm::has('view', $topic['seminar_id'], $user_id)) {
+                continue;
+            }
 
             $user = User::find($user_id);
 
@@ -154,7 +159,6 @@ class ForumAbo
                     $userWantsHtml ? $htmlMessage : null
                 );
             }
-            restoreLanguage();
         }
 
         $messaging->bulkSend();
