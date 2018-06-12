@@ -25,7 +25,13 @@ if (is_array($dates['regular']['turnus_data'])) foreach ($dates['regular']['turn
     endforeach;
     if (is_array($cycle['freetext_rooms'])) foreach ($cycle['freetext_rooms'] as $room => $count) :
         if ($room) :
-            $output['(' . htmlReady($room) . ')'][] = $cycle['tostring'] . ' (' . $count . 'x)';
+            $output[htmlReady($room)][] = $cycle['tostring'] . ' (' . $count . 'x)';
+        elseif ($cycle['tostring']) :
+            $without_location = $cycle['tostring'];
+            if($count) :
+                $without_location .=  '(' . $count . 'x)';
+            endif;
+            $output['k.A.'][] = $without_location;
         endif;
     endforeach;
 endforeach;
@@ -51,7 +57,7 @@ if (is_array($output_dates)) foreach ($output_dates as $dates) :
             $output[htmlReady($resObj->getName())][] = implode('<br>', shrink_dates($dates));
         }
     elseif ($dates[0]['raum']) :
-        $output['(' . htmlReady($dates[0]['raum']) . ')'][] = implode('<br>', shrink_dates($dates));
+        $output[htmlReady($dates[0]['raum'])][] = implode('<br>', shrink_dates($dates));
     endif;
 endforeach;
 ?>
