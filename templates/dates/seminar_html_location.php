@@ -31,7 +31,7 @@ if (is_array($dates['regular']['turnus_data'])) foreach ($dates['regular']['turn
             if($count) :
                 $without_location .=  '(' . $count . 'x)';
             endif;
-            $output['k.A.'][] = $without_location;
+            $output[_('k.A.')][] = $without_location;
         endif;
     endforeach;
 endforeach;
