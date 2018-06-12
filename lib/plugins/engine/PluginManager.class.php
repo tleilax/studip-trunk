@@ -115,11 +115,13 @@ class PluginManager
      *
      * @param string $id        id of the plugin
      * @param bool   $enabled   plugin status (true or false)
+     * @param bool   $force     force (de)activation regardless of the result
+    *                           of on(en|dis)able
      * @return bool  indicating whether the plugin was updated or null if the
      *               passed state equals the current state or if the plugin is
      *               missing.
      */
-    public function setPluginEnabled ($id, $enabled)
+    public function setPluginEnabled ($id, $enabled, $force = false)
     {
         $info = $this->getPluginInfoById($id);
 
@@ -145,7 +147,7 @@ class PluginManager
         }
 
         // Plugin shall not be updated
-        if ($abort) {
+        if (!$force && $abort) {
             return false;
         }
 

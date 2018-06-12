@@ -48,7 +48,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         return $template;
     }
 
-    public static function onEnable($plugin_id)
+    public static function onEnable($pluginId)
     {
         $errors = [];
         if (!Config::get()->API_ENABLED) {
@@ -69,12 +69,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
             );
         }
 
-        if (count($errors) > 0) {
-            PageLayout::postInfo(
-                _('Das Aktivitäten-Plugin konnte nicht vollständig aktiviert werden.'),
-                $errors
-            );
-        }
+        return count($errors) === 0;
     }
 
     public function save_action()

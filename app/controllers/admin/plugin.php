@@ -102,6 +102,16 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function index_action()
     {
+        // Check if an activation error has been flashed from the last request
+        if (isset($this->flash['activation-error'])) {
+            PageLayout::postError(
+                $this->get_template_factory()->render(
+                    'admin/plugin/activation-error-form.php',
+                    $this->flash['activation-error'] + ['controller' => $this]
+                )
+            );
+        }
+
         $plugin_manager = PluginManager::getInstance();
         $plugin_filter = Request::option('plugin_filter', '');
 
@@ -136,11 +146,14 @@ class Admin_PluginController extends AuthenticatedController
         $type = $plugin_filter != '' ? $plugin_filter : NULL;
         $plugins = $plugin_manager->getPluginInfos($type);
 
+        $force = (bool) Request::int('force');
+
         $this->check_ticket();
 
         // update enabled/disabled status and position if set
         $messages = [];
         $errors   = [];
+        $memory   = [];
         foreach ($plugins as $plugin){
             // Skip plugins that are currently not visible due to filter settings
             if (!Request::submittedSome('position_' . $plugin['id'], 'enabled_' . $plugin['id'])) {
@@ -150,12 +163,14 @@ class Admin_PluginController extends AuthenticatedController
             $enabled = Request::int('enabled_' . $plugin['id'], 0);
             $navpos = Request::int('position_' . $plugin['id']);
 
-            $result = $plugin_manager->setPluginEnabled($plugin['id'], $enabled);
+            $result = $plugin_manager->setPluginEnabled($plugin['id'], $enabled, $force);
             if ($result === false) {
                 $error = $enabled
-                       ? _('Plugin "%s" konnte nicht aktiviert werden')
-                       : _('Plugin "%s" konnte nicht deaktiviert werden');
-                $errors[] = sprintf($error, $plugin['name']);
+                       ? _('Plugin "%s" hat die Aktivierung verhindert')
+                       : _('Plugin "%s" hat die Deaktivierung verhindert');
+                $errors[$plugin['id']] = sprintf($error, $plugin['name']);
+
+                $memory[$plugin['id']] = $enabled;
             } elseif ($result === true) {
                 $message = $enabled
                          ? _('Plugin "%s" wurde aktiviert')
@@ -176,10 +191,9 @@ class Admin_PluginController extends AuthenticatedController
         }
 
         if (count($errors) > 0) {
-            PageLayout::postError(
-                _('Die folgenden Fehler sind aufgetreten:'),
-                array_map('htmlReady', $errors)
-            );
+            // Unfortunately, we need to flash this since it needs a fresh
+            // ticket (the current one is invalid due to the redirection)
+            $this->flash['activation-error'] = compact('memory', 'errors');
         }
         if (count($messages) > 0) {
             PageLayout::postSuccess(
