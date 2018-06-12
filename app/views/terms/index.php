@@ -1,4 +1,5 @@
-<form action="<?= $controller->link_for('terms', compact('return_to')) ?>" method="post">
+<form action="<?= $controller->link_for('terms', compact('return_to', 'redirect_token')) ?>" method="post">
+    <?= CSRFProtection::tokenTag()?>
     <section class="contentbox">
         <header>
             <h1><?= _('Was ist Stud.IP?') ?></h1>
@@ -30,7 +31,7 @@
         <?= Studip\Button::createAccept(_('Ich erkenne die Nutzungsbedingungen an'), 'accept') ?>
         <?= Studip\LinkButton::createCancel(
             _('Ich stimme den Nutzungsbedingungen nicht zu'),
-            URLHelper::getLink('logout.php')
+            URLHelper::getURL('logout.php')
         ) ?>
     </footer>
 </form>
