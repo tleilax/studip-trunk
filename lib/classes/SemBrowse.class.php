@@ -51,7 +51,7 @@ class SemBrowse {
                         'unique_field' => 'Institut_id'
                     ]
                 ];
-        
+
         if (!$_SESSION['sem_browse_data']) {
             $_SESSION['sem_browse_data'] = $sem_browse_data_init;
         }
@@ -65,12 +65,12 @@ class SemBrowse {
                 $this->sem_browse_data[$persistend_field] = Request::option($persistend_field);
             }
         }
-        $this->search_obj = new StudipSemSearch('search_sem', 
+        $this->search_obj = new StudipSemSearch('search_sem',
                 false, !(is_object($GLOBALS['perm'])
                     && $GLOBALS['perm']->have_perm(get_config('SEM_VISIBILITY_PERM'))),
                 $this->sem_browse_data['show_class']);
-        
-        
+
+
         if (Request::get($this->search_obj->form_name . '_scope_choose')) {
             $this->sem_browse_data['start_item_id'] =
                     Request::option($this->search_obj->form_name . '_scope_choose');
@@ -384,7 +384,7 @@ class SemBrowse {
             echo "\n" . '<tr><td align="center" class="table_row_odd" height="40" valign="middle">
                 <div style="margin-top:10px;margin-bottom:10px;">';
             if (!($this->show_result && count($this->sem_browse_data['search_result']))) {
-                $navigation_options = 
+                $navigation_options =
                     [
                         'semtree'   =>
                             [
@@ -416,7 +416,7 @@ class SemBrowse {
                     ];
                 echo '<table class="hidden-medium-down">';
                 echo '<tr>';
-                
+
                 foreach (Config::get()->COURSE_SEARCH_NAVIGATION_OPTIONS as $name => $option) {
                     $navigation = self::getSearchOptionNavigation('courses', $name);
                     if ($navigation) {
@@ -465,8 +465,8 @@ class SemBrowse {
                 }
                 SkipLinks::addLink(_('Suche im Einrichtungsverzeichnis'),
                         URLHelper::getLink('dispatch.php/search/courses', ['level' => 'ev', 'cmd' => 'qs', 'sset' => '0']));
-                
-                 * 
+
+                 *
                  */
                 echo '</tr></table>';
 
@@ -815,12 +815,12 @@ class SemBrowse {
                 . $add_query . "
             WHERE (seminare.Seminar_id IN('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "')
                 OR seminare.parent_course IN ('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "'))";
-        
+
         // don't show Studiengruppen if user not logged in
         if (!$GLOBALS['user'] || $GLOBALS['user']->id == 'nobody') {
             $query .= " AND seminare.status != '99'";
         }
-        
+
         $db = new DB_Seminar($query);
         $snap = new DbSnapshot($db);
         $group_field = $this->group_by_fields[$this->sem_browse_data['group_by']]['group_field'];
@@ -1092,19 +1092,25 @@ class SemBrowse {
                     switch (self::getStatusCourseAdmission($seminar_id,
                             $seminar_obj->admission_prelim)) {
                         case 1:
-                            $row .= Icon::create('span-2quarter',
-                                    Icon::ROLE_STATUS_YELLOW,
-                            tooltip2(_('Eingeschränkter Zugang')));
+                            $row .= Icon::create(
+                                'span-2quarter',
+                                Icon::ROLE_STATUS_YELLOW,
+                                tooltip2(_('Eingeschränkter Zugang'))
+                            );
                             break;
                         case 2:
-                            $row .= Icon::create('span-empty',
-                                    Icon::ROLE_STATUS_RED,
-                            tooltip2(_('Kein Zugang')));
+                            $row .= Icon::create(
+                                'span-empty',
+                                Icon::ROLE_STATUS_RED,
+                                tooltip2(_('Kein Zugang'))
+                            );
                             break;
                         default:
-                            $row .= Icon::create('span-full',
-                                    Icon::ROLE_STATUS_GREEN,
-                            tooltip2(_('Uneingeschränkter Zugang')));
+                            $row .= Icon::create(
+                                'span-full',
+                                Icon::ROLE_STATUS_GREEN,
+                                tooltip2(_('Uneingeschränkter Zugang'))
+                            );
                     }
                     $row .= '</td>';
                 }
@@ -1120,7 +1126,7 @@ class SemBrowse {
 
         return $row;
     }
-    
+
     public static function getSearchOptionNavigation($target, $option_name = null)
     {
         // return first visible search option
@@ -1133,8 +1139,8 @@ class SemBrowse {
             }
             return null;
         }
-        
-        
+
+
         $language = $_SESSION['_language'] ?: reset(array_keys(Config::get()->INSTALLED_LANGUAGES));
         $option = Config::get()->COURSE_SEARCH_NAVIGATION_OPTIONS[$option_name];
         if (!$option['visible'] || $option['target'] != $target) {
@@ -1202,17 +1208,17 @@ class SemBrowse {
                         ], true));
         }
     }
-    
+
     public static function transferSessionData()
     {
         if (Request::option('reset_all')) {
             $_SESSION['sem_browse_data'] = null;
-            
+
         }
-        
+
         $_SESSION['sem_browse_data']['qs_choose'] = Request::get('search_sem_qs_choose',
                 $_SESSION['sem_browse_data']['qs_choose']);
-        
+
         // simulate button clicked if semester has changed
         if (Request::option('search_sem_sem', $_SESSION['sem_browse_data']['default_sem'])
                 != $_SESSION['sem_browse_data']['default_sem']) {
@@ -1230,12 +1236,12 @@ class SemBrowse {
                 Request::set('search_sem_sem_select', '1');
             }
         }
-        
+
         // simulate button clicked if class has changed
         if (Request::option('show_class', $_SESSION['sem_browse_data']['show_class'])
                 != $_SESSION['sem_browse_data']['show_class']) {
             $_SESSION['sem_browse_data']['show_class'] = Request::option('show_class');
-            
+
             if ($_SESSION['sem_browse_data']['show_class']
                     && $_SESSION['sem_browse_data']['show_class'] != 'all') {
                 $class = $GLOBALS['SEM_CLASS'][$_SESSION['sem_browse_data']['show_class']];
@@ -1243,7 +1249,7 @@ class SemBrowse {
             } else {
                 $_SESSION['sem_browse_data']['sem_status'] = false;
             }
-            
+
             if ($_SESSION['sem_browse_data']['sset']) {
                 Request::set('search_sem_quick_search_parameter', $_SESSION['sem_browse_data']['sset']);
                 Request::set('search_sem_quick_search', $_SESSION['sem_browse_data']['sset']);
@@ -1257,7 +1263,7 @@ class SemBrowse {
                 Request::set('search_sem_sem_select', '1');
             }
         }
-        
+
         // set default values
         if (!$_SESSION['sem_browse_data']['default_sem']) {
             $_SESSION['sem_browse_data']['default_sem'] =
@@ -1269,7 +1275,7 @@ class SemBrowse {
         $_SESSION['sem_browse_data']['group_by'] =
                 $_SESSION['sem_browse_data']['group_by'] ?: '0';
     }
-    
+
     public static function getDefaultSemester()
     {
         $default_sem = $_SESSION['_default_sem'];
@@ -1282,7 +1288,7 @@ class SemBrowse {
 
         return $default_sem;
     }
-    
+
     public static function setClassesSelector($submit_url)
     {
         $classes_filter = new SelectWidget(_('Veranstaltungsklassen'),
@@ -1295,7 +1301,7 @@ class SemBrowse {
         }
         Sidebar::Get()->addWidget($classes_filter);
     }
-    
+
     /**
      * Adds the semester selector to the sidebar
      */
@@ -1317,21 +1323,26 @@ class SemBrowse {
         }
         $sidebar->addWidget($list, 'filter_semester');
     }
-    
+
+    /**
+     * Returns the admission status for a course.
+     *
+     * @param string $seminar_id Id of the course
+     * @param bool   $prelim     State of preliminary setting
+     * @return int
+     */
     public static function getStatusCourseAdmission($seminar_id, $prelim)
     {
-        $sql = "
-            SELECT COUNT(`type`) AS `types`,
-                SUM(IF(`type` = 'LockedAdmission', 1, 0)) AS `type_locked`
-            FROM `seminar_courseset`
-	        INNER JOIN `courseset_rule`
-                    USING(`set_id`)
-	    WHERE `seminar_id` = ?
-            GROUP BY `set_id`";
-	 
-	$stmt = DBManager::get()->prepare($sql);
-	$stmt->execute([$seminar_id]);
-	$result = $stmt->fetch();
+        $sql = "SELECT COUNT(`type`) AS `types`,
+                       SUM(IF(`type` = 'LockedAdmission', 1, 0)) AS `type_locked`
+                FROM `seminar_courseset`
+	            INNER JOIN `courseset_rule` USING (`set_id`)
+	            WHERE `seminar_id` = ?
+                GROUP BY `set_id`";
+
+	    $stmt = DBManager::get()->prepare($sql);
+	    $stmt->execute([$seminar_id]);
+	    $result = $stmt->fetch();
 
         if ($result['types']) {
             if ($result['type_locked']) {
@@ -1339,7 +1350,7 @@ class SemBrowse {
             }
             return 1;
         }
-        
+
         if ($prelim) {
             return 1;
         }
