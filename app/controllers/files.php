@@ -184,8 +184,7 @@ class FilesController extends AuthenticatedController
         }
 
         $this->topFolder = $folder->getTypedFolder();
-
-        if (!$this->topFolder->isVisible($GLOBALS['user']->id)) {
+        if (!$this->topFolder->isVisible($GLOBALS['user']->id) || $this->topFolder->range_id !== $GLOBALS['user']->id) {
             throw new AccessDeniedException();
         }
 
