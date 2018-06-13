@@ -451,7 +451,7 @@ class Admin_UserController extends AuthenticatedController
                 }
             }
             $new_institutes = Request::getArray('new_inst');
-            
+
             //change institute for studiendaten
             if (in_array($editPerms[0], ['autor', 'tutor', 'dozent'])
                 && Request::option('new_student_inst')
@@ -470,16 +470,16 @@ class Admin_UserController extends AuthenticatedController
             if (!empty($new_institutes)) {
                 foreach ($new_institutes as $institute_id) {
                     if ($editPerms[0] != 'root'
-                        && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_inst'))
+                        && $GLOBALS['perm']->have_studip_perm("admin", $institute_id)
                         && !Request::option('new_student_inst')
                     ) {
                         $membership = InstituteMember::build(
                             ['user_id' => $user_id, 'Institut_id' => $institute_id, 'inst_perms' => $editPerms[0]]
                         );
-                        
-                        if($membership->store()) {
-                            StudipLog::log('INST_USER_ADD', Request::option('new_inst'), $user_id, $editPerms[0]);
-                            NotificationCenter::postNotification('UserInstitutionDidUpdate', Request::option('new_inst'), $user_id);
+
+                        if ($membership->store()) {
+                            StudipLog::log('INST_USER_ADD', $institute_id, $user_id, $editPerms[0]);
+                            NotificationCenter::postNotification('UserInstitutionDidUpdate', $institute_id, $user_id);
                             InstituteMember::ensureDefaultInstituteForUser($user_id);
                             $details[] = sprintf(_('%s wurde hinzugefügt.'), htmlReady($membership->institute->getFullname()));
                         }
@@ -576,7 +576,7 @@ class Admin_UserController extends AuthenticatedController
                 return $a->inst_perms !== 'user';
             });
         }
-        
+
         $this->available_institutes = Institute::getMyInstitutes();
         $this->userfields           = DataFieldEntry::getDataFieldEntries($user_id, 'user');
         $this->userdomains          = UserDomain::getUserDomainsForUser($user_id);
