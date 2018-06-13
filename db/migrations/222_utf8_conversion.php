@@ -35,13 +35,13 @@ class Utf8Conversion extends Migration
         // create a helper-function in MySQL
         $pdo->exec("DROP FUNCTION IF EXISTS entity_decode");
         $pdo->exec("
-        CREATE FUNCTION entity_decode(txt TEXT CHARSET utf8mb4) RETURNS TEXT
+        CREATE FUNCTION entity_decode(txt MEDIUMTEXT CHARSET utf8mb4) RETURNS MEDIUMTEXT
             CHARSET utf8mb4
                 NO SQL
                 DETERMINISTIC
             BEGIN
 
-                DECLARE tmp TEXT    CHARSET utf8mb4 DEFAULT txt;
+                DECLARE tmp     MEDIUMTEXT CHARSET utf8mb4 DEFAULT txt;
                 DECLARE entity  TEXT CHARSET utf8mb4;
                 DECLARE pos1    INT DEFAULT 1;
                 DECLARE pos2    INT;
