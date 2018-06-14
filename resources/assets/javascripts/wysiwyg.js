@@ -480,9 +480,9 @@ jQuery(function ($) {
 });
 
 // Hotfix for Dialogs
-/*
+
 $.widget( "ui.dialog", $.ui.dialog, {
- 
+
   // jQuery UI v1.11+ fix to accommodate CKEditor (and other iframed content) inside a dialog
   // @see http://bugs.jqueryui.com/ticket/9087
   // @see http://dev.ckeditor.com/ticket/10269
@@ -497,4 +497,3 @@ $.widget( "ui.dialog", $.ui.dialog, {
       !!$( event.target ).closest( ".cke_dialog, .cke_dialog_background_cover, .cke" ).length;
   }
 });
-*/
