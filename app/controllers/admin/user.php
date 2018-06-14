@@ -145,15 +145,20 @@ class Admin_UserController extends AuthenticatedController
                              'registriert seit',
                              'inaktiv seit'];
                 $mapper   = function ($u) {
-                    return [$u['username'],
-                            $u['Vorname'],
-                            $u['Nachname'],
-                            $u['Email'],
-                            $u['perms'],
-                            $u['auth_plugin'],
-                            $u['userdomains'],
-                            strftime('%x', $u['mkdate']),
-                            strftime('%x', $u['changed_timestamp'])];
+                    $userdomains = array_map(function ($ud) {
+                        return $ud->getName();
+                    }, UserDomain::getUserDomainsForUser($u->id));
+                    return [
+                        $u['username'],
+                        $u['Vorname'],
+                        $u['Nachname'],
+                        $u['Email'],
+                        $u['perms'],
+                        $u['auth_plugin'],
+                        join(';', $userdomains),
+                        $u['mkdate'] ? strftime('%x', $u['mkdate']) : '',
+                        $u->online->last_lifesign ? strftime('%x', $u->online->last_lifesign) : ''
+                    ];
                 };
                 if (array_to_csv(array_map($mapper, $this->users), $GLOBALS['TMP_PATH'] . '/' . $tmpname, $captions)) {
                     $this->redirect(
