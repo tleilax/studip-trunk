@@ -74,7 +74,7 @@ class CronjobScheduler
         if (is_object($task)) {
             $reflection = new ReflectionClass($task);
             $class = $reflection->getName();
-            $class_filename = str_replace($GLOBALS['STUDIP_BASE_PATH'] . '/', '', $reflection->getFileName());
+            $class_filename = studip_relative_path($reflection->getFileName());
         } else {
             $filename = $GLOBALS['STUDIP_BASE_PATH'] . '/' . $task;
             if (!file_exists($filename)) {

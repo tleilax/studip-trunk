@@ -95,6 +95,6 @@ class SeminarSearch extends SearchType
      */
     public function includePath()
     {
-        return __FILE__;
+        return studip_relative_path(__FILE__);
     }
 }

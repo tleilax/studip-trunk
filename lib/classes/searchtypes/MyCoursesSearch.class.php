@@ -181,6 +181,6 @@ class MyCoursesSearch extends StandardSearch
      */
     public function includePath()
     {
-        return __FILE__;
+	return studip_relative_path(__FILE__);
     }
 }

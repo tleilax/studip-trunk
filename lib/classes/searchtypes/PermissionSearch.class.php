@@ -169,6 +169,6 @@ class PermissionSearch extends SQLSearch {
      * @return: path to this class
      */
     public function includePath() {
-        return __file__;
+        return studip_relative_path(__FILE__);
     }
 }
