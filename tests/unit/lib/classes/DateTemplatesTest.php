@@ -118,7 +118,7 @@ class DateTemplatesTests extends PHPUnit_Framework_TestCase
                 
                                     Montag: 10:00 - 12:00 (ab 10/18/10), <i>Vorlesung</i> (2x)                            </td>
                     <tr>
-            <td style="vertical-align: top">&lt;script&gt;alert(&quot;böse&quot;);&lt;/script&gt;</td>
+            <td style="vertical-align: top">(&lt;script&gt;alert(&quot;böse&quot;);&lt;/script&gt;)</td>
             <td>
                 
                                     Montag: 10:00 - 12:00 (16x)<br> 12.05. 09:00 - 13:00                            </td>
@@ -156,7 +156,7 @@ class DateTemplatesTests extends PHPUnit_Framework_TestCase
                 
                                     Montag: 10:00 - 12:00 (ab 10/18/10), <i>Vorlesung</i> (2x)                            </td>
                     <tr>
-            <td style="vertical-align: top">&lt;script&gt;alert(&quot;böse&quot;);&lt;/script&gt;</td>
+            <td style="vertical-align: top">(&lt;script&gt;alert(&quot;böse&quot;);&lt;/script&gt;)</td>
             <td>
                 
                                     Montag: 10:00 - 12:00 (16x)<br> 12.05. 09:00 - 13:00                            </td>
