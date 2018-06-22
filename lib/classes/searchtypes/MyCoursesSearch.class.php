@@ -94,14 +94,14 @@ class MyCoursesSearch extends StandardSearch
     private function getSQL()
     {
         $semnumber = Config::get()->IMPORTANT_SEMNUMBER;
-        $semester_text = "CONCAT(' (', 
+        $semester_text = "CONCAT(' (',
             IF(s.`duration_time` = -1, CONCAT_WS(' - ', sem1.`name`, '" . _('unbegrenzt') . "'),
                 IF(s.`duration_time` != 0, CONCAT_WS(' - ', sem1.`name`, sem2.`name`), sem1.`name`)), ')')";
 
         switch ($this->perm_level) {
             // Roots see everything, everywhere.
             case 'root':
-                $query = "SELECT DISTINCT s.`Seminar_id`, CONCAT(s.`VeranstaltungsNummer`, ' ', s.`Name`, " . $semester_text . ") 
+                $query = "SELECT DISTINCT s.`Seminar_id`, CONCAT(s.`VeranstaltungsNummer`, ' ', s.`Name`, " . $semester_text . ")
                     FROM `seminare` s
                         JOIN `semester_data` sem1 ON (s.`start_time` = sem1.`beginn`)
                         LEFT JOIN `semester_data` sem2 ON (s.`start_time` + s.`duration_time` = sem2.`beginn`)
@@ -181,6 +181,6 @@ class MyCoursesSearch extends StandardSearch
      */
     public function includePath()
     {
-        return __FILE__;
+        return studip_relative_path(__FILE__);
     }
 }

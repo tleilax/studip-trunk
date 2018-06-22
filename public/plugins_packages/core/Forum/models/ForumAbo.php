@@ -85,36 +85,14 @@ class ForumAbo
         // get all parent topic-ids, to find out which users to notify
         $path = ForumEntry::getPathToPosting($topic_id);
 
-        // fetch all users to notify, exlcude current user and users which are not in the seminar any more
-        // (the latter is done below)
-        $stmt = $db->prepare("SELECT DISTINCT fau.user_id
-            FROM forum_abo_users fau
-                JOIN forum_entries fe USING (topic_id)
+        // fetch all users to notify, exclude current user
+        $stmt = $db->prepare("SELECT DISTINCT user_id
+            FROM forum_abo_users
             WHERE topic_id IN (:topic_ids)
-                AND fau.user_id != :user_id");
-
+                AND user_id != :user_id");
         $stmt->bindParam(':topic_ids', array_keys($path), StudipPDO::PARAM_ARRAY);
         $stmt->bindParam(':user_id', $GLOBALS['user']->id);
         $stmt->execute();
-
-        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Check for course deputies.
-        if (Config::get()->DEPUTIES_ENABLE) {
-            // fetch all deputies to notify, exclude current user
-            $stmt = $db->prepare("SELECT DISTINCT fau.user_id
-            FROM forum_abo_users fau
-                JOIN forum_entries fe USING (topic_id)
-                JOIN deputies d ON (d.range_id = fe.seminar_id AND d.user_id = fau.user_id)
-            WHERE topic_id IN (:topic_ids)
-                AND fau.user_id != :user_id");
-
-            $stmt->bindParam(':topic_ids', array_keys($path), StudipPDO::PARAM_ARRAY);
-            $stmt->bindParam(':user_id', $GLOBALS['user']->id);
-            $stmt->execute();
-
-            $users = array_unique(array_merge($users, $stmt->fetchAll(PDO::FETCH_ASSOC)));
-        }
 
         // get details for topic
         $topic = ForumEntry::getConstraints($topic_id);
@@ -123,33 +101,13 @@ class ForumAbo
         $template = $template_factory->open('index/_mail_notification');
 
         // notify users
-        foreach ($users as $data) {
+        while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user_id = $data['user_id'];
 
-            //In cases where the user is a member of the course
-            //or the topic is part of the forum of an institute
-            //we must send a notification.
-
-
-            $topic_range_type = get_object_type($topic['seminar_id']);
-
-            if($topic_range_type == 'sem') {
-                $user_is_course_member = CourseMember::countBySql(
-                    'user_id = :user_id AND seminar_id = :seminar_id',
-                    [
-                        'user_id' => $user_id,
-                        'seminar_id' => $topic['seminar_id']
-                    ]
-                );
-
-                if(!$user_is_course_member) {
-                    //The topic belongs to a course and the user is not
-                    //a member of the course. We must not send notifications
-                    //to the user!
-                    continue;
-                }
+            // don't notify user if view permission is not granted
+            if (!ForumPerm::has('view', $topic['seminar_id'], $user_id)) {
+                continue;
             }
-
 
             $user = User::find($user_id);
 
@@ -201,7 +159,6 @@ class ForumAbo
                     $userWantsHtml ? $htmlMessage : null
                 );
             }
-            restoreLanguage();
         }
 
         $messaging->bulkSend();

@@ -1634,6 +1634,17 @@ function count_table_rows($table) {
     return (int)$stat['Rows'];
 }
 
+/**
+ * get the file path relative to the STUDIP_BASE_PATH
+ *
+ * @param string path of the file
+ * @return string relative path of the file
+ */
+function studip_relative_path($filepath)
+{
+    return str_replace($GLOBALS['STUDIP_BASE_PATH'] . '/', '', $filepath);
+}
+
 
 /**
  * converts a given array to a csv format

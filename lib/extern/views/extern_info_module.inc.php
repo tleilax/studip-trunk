@@ -21,7 +21,7 @@ use Studip\Button, Studip\LinkButton;
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // extern_info_module.inc.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -71,7 +71,7 @@ $info = ExternConfig::GetInfo($range_id, $config_id);
 if ($info['module_type'] != 0)  :?>
     <? if ($info['level'] == 1) : ?>
         <p><strong><?= _('Direkter Link') ?></strong></p>
-        <blockquote><a href="<?= $info['link'] ?>" target=\"_blank\"><?= $info['link_br'] ?></a></blockquote>
+        <blockquote><a href="<?= $info['link'] ?>" target="_blank" rel="noopener noreferrer"><?= $info['link_br'] ?></a></blockquote>
         <p><?= _('Diese Adresse können Sie in einen Link auf Ihrer Website integrieren, um auf die Ausgabe des Moduls zu verweisen.') ?></p>
     <? endif ?>
 

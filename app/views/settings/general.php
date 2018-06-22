@@ -68,7 +68,7 @@ $start_pages = array(
                 .'aktivieren. <br>Die Tastenkombination wird im Tooltip des jeweiligen '
                 .'Icons angezeigt.')." "._('Diese kann für jeden Browser und jedes Betriebssystem unterschiedlich '
                     .'sein (siehe <a href="http://en.wikipedia.org/wiki/Accesskey" '
-                    .'target="_blank"">Wikipedia</a>).')) ?>
+                    .'target="_blank" rel="noopener noreferrer">Wikipedia</a>).')) ?>
         </label>
 
         <label>

@@ -39,7 +39,7 @@ use Studip\Button, Studip\LinkButton;
                 <td class="plugin_image">
                     <? if ($plugin['image']): ?>
                         <? if ($plugin['plugin_url']): ?>
-                            <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank">
+                            <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank" rel="noopener noreferrer">
                                 <img src="<?= htmlReady($plugin['image']) ?>" class="plugin_preview">
                             </a>
                         <? else: ?>
@@ -49,7 +49,7 @@ use Studip\Button, Studip\LinkButton;
                 </td>
                 <td>
                 <? if ($plugin['plugin_url']): ?>
-                    <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank">
+                    <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank" rel="noopener noreferrer">
                         <strong><?= htmlReady($name) ?></strong>
                     </a>
                 <? else: ?>
@@ -63,9 +63,9 @@ use Studip\Button, Studip\LinkButton;
                         <p class="read_more"></p>
                     </div>
 
-                    <?= LinkButton::create(_('Weiterlesen'), '', [
-                        'onClick' => "jQuery(this).parent().toggleClass('short');return false;"
-                    ]) ?>
+                    <a href="" class="read_more_link" onClick="jQuery(this).parent().toggleClass('short');return false;">
+                        <span><?= _('Weiterlesen') ?></span>
+                    </a>
                 </span>
                 <? else: ?>
                     <p>

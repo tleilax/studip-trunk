@@ -2,7 +2,7 @@
 
     <td class="files-search-icon">
         <? if ($searchResult['folder']->isFileDownloadable($searchResult['fileRef'], $user->id)) : ?>
-            <a href="<?= htmlReady($searchResult['fileRef']->getDownloadURL('force_download')) ?>" target="_blank">
+            <a href="<?= htmlReady($searchResult['fileRef']->getDownloadURL('force_download')) ?>" target="_blank" rel="noopener noreferrer">
                 <?= Icon::create(
                     FileManager::getIconNameForMimeType($searchResult['fileRef']->mime_type),
                     Icon::ROLE_CLICKABLE)->asImg(24) ?>

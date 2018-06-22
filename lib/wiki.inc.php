@@ -1000,7 +1000,7 @@ function wikiEdit($keyword, $wikiData, $user_id, $backpage=NULL)
 function printWikiPage($keyword, $version)
 {
     $wikiData=getWikiPage($keyword, $version);
-    PageLayout::removeStylesheet('style.css');
+    PageLayout::removeStylesheet('studip-base.css');
     PageLayout::addStylesheet('print.css'); // use special stylesheet for printing
     include ('lib/include/html_head.inc.php'); // Output of html head
     echo "<p><em>" . htmlReady(Context::getHeaderLine()) ."</em></p>";

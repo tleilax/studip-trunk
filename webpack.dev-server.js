@@ -1,0 +1,112 @@
+const webpack = require("webpack");
+const path = require("path");
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+
+const assetsPath = path.resolve(__dirname, "resources/assets/javascripts");
+
+module.exports = {
+  mode: "development",
+  devtool: "inline-source-map",
+  devServer: {
+    contentBase: path.join(__dirname, "./public/assets"),
+    compress: true,
+    port: 8123,
+    historyApiFallback: true,
+      https: true,
+      headers: {
+          "Access-Control-Allow-Origin": "*"
+      }
+  },
+  entry: {
+    "studip-base": assetsPath + "/entry-base.js",
+    "studip-admission": assetsPath + "/entry-admission.js",
+    "studip-enrolment": assetsPath + "/entry-enrolment.js",
+    "studip-filesdashboard": assetsPath + "/entry-filesdashboard.js",
+    "studip-raumzeit": assetsPath + "/entry-raumzeit.js",
+    "studip-settings": assetsPath + "/entry-settings.js",
+    "studip-statusgroups": assetsPath + "/entry-statusgroups.js",
+    "studip-subcourses": assetsPath + "/entry-subcourses.js",
+    "studip-userfilter": assetsPath + "/entry-userfilter.js",
+    "studip-widgets": assetsPath + "/entry-widgets.js",
+    "studip-wysiwyg": assetsPath + "/entry-wysiwyg.js",
+    "print": path.resolve(__dirname, "resources/assets/stylesheets") + "/print.less"
+  },
+  output: {
+    path: path.resolve(__dirname, "public/assets"),
+    chunkFilename: "javascripts/[name].chunk.js",
+    filename: "javascripts/[name].js"
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ExtractTextPlugin.extract({
+          use: [
+            {
+              loader: "css-loader",
+              options: {
+                url: false,
+                importLoaders: 1
+              }
+            },
+            {
+              loader: "postcss-loader"
+            }
+          ]
+        })
+      },
+      {
+        test: /\.less$/,
+        use: ExtractTextPlugin.extract({
+          use: [
+            {
+              loader: "css-loader",
+              options: {
+                url: false,
+                importLoaders: 1
+              }
+            },
+            {
+              loader: "postcss-loader"
+            },
+            {
+              loader: "less-loader",
+              options: {
+                relativeUrls: false
+              }
+            }
+          ]
+        })
+      }
+    ]
+  },
+  plugins: [
+    new ExtractTextPlugin({
+      filename: "stylesheets/[name].css"
+    })
+  ],
+  resolve: {
+    alias: {
+      'jquery-ui/data': 'jquery-ui/ui/data',
+      'jquery-ui/disable-selection': 'jquery-ui/ui/disable-selection',
+      'jquery-ui/focusable': 'jquery-ui/ui/focusable',
+      'jquery-ui/form': 'jquery-ui/ui/form',
+      'jquery-ui/ie': 'jquery-ui/ui/ie',
+      'jquery-ui/keycode': 'jquery-ui/ui/keycode',
+      'jquery-ui/labels': 'jquery-ui/ui/labels',
+      'jquery-ui/jquery-1-7': 'jquery-ui/ui/jquery-1-7',
+      'jquery-ui/plugin': 'jquery-ui/ui/plugin',
+      'jquery-ui/safe-active-element': 'jquery-ui/ui/safe-active-element',
+      'jquery-ui/safe-blur': 'jquery-ui/ui/safe-blur',
+      'jquery-ui/scroll-parent': 'jquery-ui/ui/scroll-parent',
+      'jquery-ui/tabbable': 'jquery-ui/ui/tabbable',
+      'jquery-ui/unique-id': 'jquery-ui/ui/unique-id',
+      'jquery-ui/version': 'jquery-ui/ui/version',
+      'jquery-ui/widget': 'jquery-ui/ui/widget',
+      'jquery-ui/widgets/mouse': 'jquery-ui/ui/widgets/mouse',
+      'jquery-ui/widgets/draggable': 'jquery-ui/ui/widgets/draggable',
+      'jquery-ui/widgets/droppable': 'jquery-ui/ui/widgets/droppable',
+      'jquery-ui/widgets/resizable': 'jquery-ui/ui/widgets/resizable'
+    }
+  }
+};

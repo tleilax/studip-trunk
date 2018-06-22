@@ -69,8 +69,8 @@ class PmWikiConnectedLink extends ConnectedLink
         $token = new Token($GLOBALS['auth']->auth['uid']);
 
         ob_start(); ?>
-        <form method='post' target='_blank'
-                    action='<?=$connected_cms[$this->cms_type]->content_module[$current_module]->link?>' >
+        <form method="post" target="_blank" rel="noopener noreferrer"
+              action="<?= $connected_cms[$this->cms_type]->content_module[$current_module]->link ?>">
 
             <?= CSRFProtection::tokenTag() ?>
             <input type='hidden'    name='authid'           value='<?= $GLOBALS['auth']->auth['uname'] ?>'>

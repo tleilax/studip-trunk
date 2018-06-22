@@ -145,15 +145,20 @@ class Admin_UserController extends AuthenticatedController
                              'registriert seit',
                              'inaktiv seit'];
                 $mapper   = function ($u) {
-                    return [$u['username'],
-                            $u['Vorname'],
-                            $u['Nachname'],
-                            $u['Email'],
-                            $u['perms'],
-                            $u['auth_plugin'],
-                            $u['userdomains'],
-                            strftime('%x', $u['mkdate']),
-                            strftime('%x', $u['changed_timestamp'])];
+                    $userdomains = array_map(function ($ud) {
+                        return $ud->getName();
+                    }, UserDomain::getUserDomainsForUser($u->id));
+                    return [
+                        $u['username'],
+                        $u['Vorname'],
+                        $u['Nachname'],
+                        $u['Email'],
+                        $u['perms'],
+                        $u['auth_plugin'],
+                        join(';', $userdomains),
+                        $u['mkdate'] ? strftime('%x', $u['mkdate']) : '',
+                        $u->online->last_lifesign ? strftime('%x', $u->online->last_lifesign) : ''
+                    ];
                 };
                 if (array_to_csv(array_map($mapper, $this->users), $GLOBALS['TMP_PATH'] . '/' . $tmpname, $captions)) {
                     $this->redirect(
@@ -451,7 +456,7 @@ class Admin_UserController extends AuthenticatedController
                 }
             }
             $new_institutes = Request::getArray('new_inst');
-            
+
             //change institute for studiendaten
             if (in_array($editPerms[0], ['autor', 'tutor', 'dozent'])
                 && Request::option('new_student_inst')
@@ -470,16 +475,16 @@ class Admin_UserController extends AuthenticatedController
             if (!empty($new_institutes)) {
                 foreach ($new_institutes as $institute_id) {
                     if ($editPerms[0] != 'root'
-                        && $GLOBALS['perm']->have_studip_perm("admin", Request::option('new_inst'))
+                        && $GLOBALS['perm']->have_studip_perm("admin", $institute_id)
                         && !Request::option('new_student_inst')
                     ) {
                         $membership = InstituteMember::build(
                             ['user_id' => $user_id, 'Institut_id' => $institute_id, 'inst_perms' => $editPerms[0]]
                         );
-                        
-                        if($membership->store()) {
-                            StudipLog::log('INST_USER_ADD', Request::option('new_inst'), $user_id, $editPerms[0]);
-                            NotificationCenter::postNotification('UserInstitutionDidUpdate', Request::option('new_inst'), $user_id);
+
+                        if ($membership->store()) {
+                            StudipLog::log('INST_USER_ADD', $institute_id, $user_id, $editPerms[0]);
+                            NotificationCenter::postNotification('UserInstitutionDidUpdate', $institute_id, $user_id);
                             InstituteMember::ensureDefaultInstituteForUser($user_id);
                             $details[] = sprintf(_('%s wurde hinzugefügt.'), htmlReady($membership->institute->getFullname()));
                         }
@@ -576,7 +581,7 @@ class Admin_UserController extends AuthenticatedController
                 return $a->inst_perms !== 'user';
             });
         }
-        
+
         $this->available_institutes = Institute::getMyInstitutes();
         $this->userfields           = DataFieldEntry::getDataFieldEntries($user_id, 'user');
         $this->userdomains          = UserDomain::getUserDomainsForUser($user_id);

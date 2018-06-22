@@ -40,7 +40,7 @@ if (isset($_COOKIE['navigation-length'])) {
                             <? if (is_internal_url($url = $nav->getURL())) : ?>
                                 href="<?= URLHelper::getLink($url) ?>"
                             <? else: ?>
-                                href="<?= htmlReady($url) ?>" target="_blank"
+                                href="<?= htmlReady($url) ?>" target="_blank" rel="noopener noreferrer"
                             <? endif; ?>
                             <? if ($nav->getDescription()): ?>
                                 title="<?= htmlReady($nav->getDescription()) ?>"
@@ -179,7 +179,7 @@ if (isset($_COOKIE['navigation-length'])) {
     </ul>
 
     <!-- Stud.IP Logo -->
-    <a class="studip-logo" id="barTopStudip" href="http://www.studip.de/" title="Stud.IP Homepage" target="_blank">
+    <a class="studip-logo" id="barTopStudip" href="http://www.studip.de/" title="Stud.IP Homepage" target="_blank" rel="noopener noreferrer">
         Stud.IP Homepage
     </a>
 </div>

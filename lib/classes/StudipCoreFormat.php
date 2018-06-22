@@ -594,7 +594,7 @@ class StudipCoreFormat extends TextFormat
         if ($link && $tag === "img") {
             $media = sprintf('<a href="%s"%s>%s</a>',
                 $link,
-                !isLinkIntern($link) ? ' target="_blank"' : "",
+                !isLinkIntern($link) ? ' target="_blank" rel="noreferrer noopener"' : "",
                 $media
             );
         }
@@ -629,7 +629,7 @@ class StudipCoreFormat extends TextFormat
         return sprintf('<a class="%s" href="%s"%s>%s</a>',
             $intern ? 'link-intern' : 'link-extern',
             $url,
-            $intern ? '' : ' target="_blank"',
+            $intern ? '' : ' target="_blank" rel="noreferrer noopener"',
             $linkmarkup->format($title)
         );
     }

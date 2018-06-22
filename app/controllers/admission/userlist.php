@@ -26,7 +26,7 @@ class Admission_UserListController extends AuthenticatedController
 
         PageLayout::setTitle(_('Personenlisten'));
         Navigation::activateItem('/tools/coursesets/userlists');
-        PageLayout::addSqueezePackage('admission');
+        PageLayout::addScript('studip-admission.js');
 
         $views = new ViewsWidget();
         $views->setTitle(_('Aktionen'));

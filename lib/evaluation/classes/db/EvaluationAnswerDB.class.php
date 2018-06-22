@@ -123,13 +123,13 @@ class EvaluationAnswerDB extends EvaluationObjectDB {
     /* save answers -------------------------------------------------------- */
     DBManager::get()->execute(
             "REPLACE INTO evalanswer SET
-                evalanswer_id   = ?,
-                parent_id       = ?,
-                position        = ?,
-                text            = ?,
-                value           = ?,
-                rows            = ?,
-                residual        = ?
+                `evalanswer_id`   = ?,
+                `parent_id`       = ?,
+                `position`        = ?,
+                `text`            = ?,
+                `value`           = ?,
+                `rows`            = ?,
+                `residual`        = ?
                 ",
             array($answerObject->getObjectID(),
                     $answerObject->getParentID(),

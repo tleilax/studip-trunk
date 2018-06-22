@@ -7,6 +7,7 @@ use Assets;
 use StudipCacheFactory;
 
 use ILess\Autoloader;
+use ILess\Importer\FileSystemImporter;
 use ILess\Parser;
 
 /**
@@ -55,9 +56,11 @@ class Compiler
     {
         Autoloader::register();
 
-        return new Parser([
-            'strictMath' => true,
-        ]);;
+        $parser = new Parser(['strictMath' => true], null, [
+            new FileSystemImporter([$GLOBALS['STUDIP_BASE_PATH'] . '/resources/'])
+        ]);
+
+        return $parser;
     }
 
     /**
@@ -73,17 +76,18 @@ class Compiler
         $cache = StudipCacheFactory::getCache();
 
         $prefix = $cache->read(self::CACHE_KEY_LESS);
+
         if ($prefix === false) {
             $prefix = '';
 
             // Load mixins and change relative to absolute filenames
-            $mixin_file = $GLOBALS['ABSOLUTE_PATH_STUDIP'] . 'assets/stylesheets/mixins.less';
+            $mixin_file = $GLOBALS['STUDIP_BASE_PATH'] . '/resources/assets/stylesheets/mixins.less';
             foreach (file($mixin_file) as $mixin) {
                 if (!preg_match('/@import(.*?) "(.*)";/', $mixin, $match)) {
                     continue;
                 }
 
-                $core_file = $GLOBALS['ABSOLUTE_PATH_STUDIP'] . 'assets/stylesheets/' . $match[2];
+                $core_file = $GLOBALS['STUDIP_BASE_PATH'] . '/resources/assets/stylesheets/' . $match[2];
                 $prefix .= sprintf('@import%s "%s";' . "\n", $match[1], $core_file);
             }
 

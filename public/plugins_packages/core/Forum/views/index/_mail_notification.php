@@ -11,22 +11,21 @@ $message = array(
     ),
     'title' => $topic['name'] ? '**' . $topic['name'] ."** \n\n" : '',
     'content' => $topic['content'],
-    'url' => '<a href="' . UrlHelper::getUrl(
+    'url' => _('Beitrag im Forum ansehen:') .' '. UrlHelper::getUrl(
         $GLOBALS['ABSOLUTE_URI_STUDIP']
         . 'plugins.php/coreforum/index/index/'
         . $topic['topic_id']
         .'?cid='
-        . $topic['seminar_id'] 
-        .'&again=yes#' 
+        . $topic['seminar_id']
+        .'&again=yes#'
         . $topic['topic_id']
-    ) . '">Beitrag im Forum ansehen.</a>'
+    )
 );
 
 // since we've possibly got a mixup of HTML and Stud.IP markup,
 // create a pure HTML message step by step
-$htmlMessage = '<div>'
-    . implode('<br><br>', array_map('formatReady', $message))
-    . '</div>';
+$htmlMessage = Studip\Markup::markAsHtml(
+    implode('<br><br>', array_map('formatReady', $message))
+);
 
 echo $htmlMessage;
-

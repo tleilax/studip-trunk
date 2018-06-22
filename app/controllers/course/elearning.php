@@ -146,7 +146,12 @@ class Course_ElearningController extends AuthenticatedController
         $widget->addLink(_('Externe Accounts verwalten'), URLHelper::getURL('dispatch.php/elearning/my_accounts'), Icon::create('person', 'clickable'));
         if (count($this->course_output['courses']))
             foreach ($this->course_output['courses'] as $course) {
-                $widget->addLink(sprintf(_('Direkt zum Kurs in %s'), $course['cms_name']), $course['url'], Icon::create('link-extern', 'clickable'), array('target' => '_blank'));
+                $widget->addLink(
+                    sprintf(_('Direkt zum Kurs in %s'), $course['cms_name']),
+                    $course['url'],
+                    Icon::create('link-extern', 'clickable'),
+                    ['target' => '_blank', 'rel' => 'noopener noreferrer']
+                );
             }
         $this->sidebar->addWidget($widget);
         $this->new_account = $this->new_account_cms;

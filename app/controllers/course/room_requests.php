@@ -104,11 +104,13 @@ class Course_RoomRequestsController extends AuthenticatedController
         Helpbar::get()->addPlainText(_('Information'), _('Hier können Sie Angaben zu gewünschten Raumeigenschaften machen.'));
 
         $request_was_closed_before = false;
+        $admission_turnout = Seminar::getInstance($this->course_id)->admission_turnout;
 
         if (Request::option('new_room_request_type')) {
             $request = new RoomRequest();
             $request->seminar_id = $this->course_id;
             $request->user_id = $GLOBALS['user']->id;
+            $request->setDefaultSeats($admission_turnout ?: 10);
 
             list($new_type, $id) = explode('_', Request::option('new_room_request_type'));
             if ($new_type == 'course') {
@@ -137,8 +139,7 @@ class Course_RoomRequestsController extends AuthenticatedController
             $request_was_closed_before = $request->getClosed() > 0;
         }
 
-        $admission_turnout = Seminar::getInstance($this->course_id)->admission_turnout;
-        $attributes = self::process_form($request, $admission_turnout);
+        $attributes = self::process_form($request);
 
         $this->params = array('request_id' => $request->getId());
         $this->params['fromDialog'] = Request::get('fromDialog');
@@ -186,7 +187,6 @@ class Course_RoomRequestsController extends AuthenticatedController
         }
         $this->search_result = $attributes['search_result'];
         $this->search_by_properties = $attributes['search_by_properties'];
-        $this->admission_turnout = $admission_turnout;
         $this->request = $request;
         $this->room_categories = $room_categories;
         $this->new_room_request_type = Request::option('new_room_request_type');
@@ -289,7 +289,7 @@ class Course_RoomRequestsController extends AuthenticatedController
      * handle common tasks for the romm request form
      * (set properties, searching etc.)
      */
-    public static function process_form($request, $admission_turnout = null)
+    public static function process_form($request)
     {
         if (Request::submitted('room_request_form')) {
             CSRFProtection::verifyUnsafeRequest();
@@ -383,7 +383,7 @@ class Course_RoomRequestsController extends AuthenticatedController
                 }
             }
         }
-        return compact('search_result', 'search_by_properties', 'request', 'admission_turnout');
+        return compact('search_result', 'search_by_properties');
     }
 
     /**

@@ -16,7 +16,7 @@
             <td>
                 <h3>
                 <? if ($consumer->url): ?>
-                    <a href="<?= htmlReady($consumer->url) ?>" target="_blank">
+                    <a href="<?= htmlReady($consumer->url) ?>" target="_blank" rel="noopener noreferrer">
                         <?= htmlReady($consumer->title) ?>
                     </a>
                 <? else: ?>

@@ -474,7 +474,7 @@ class StandardFolder implements FolderType
             if (Context::getId() === $this->range_id) {
                 $range = Context::get();
             } else {
-                $range = call_user_func([$this->range_type, 'find'], $this->range_id);
+                $range = call_user_func([ucfirst($this->range_type), 'find'], $this->range_id);
             }
         }
         return $range;

@@ -513,9 +513,12 @@ class ExternModuleLecturedetails extends ExternModule {
                 $link_inst = htmlReady($res['url']);
                 if (!preg_match('{^https?://.+$}', $link_inst))
                     $link_inst = "http://$link_inst";
-                $studip_info .= sprintf("<a href=\"%s\"%s target=\"_blank\">%s</a>", $link_inst,
-                        $this->config->getAttributes("LinkInternSimple", "a"),
-                        htmlReady($res['Name']));
+                $studip_info .= sprintf(
+                    "<a href=\"%s\"%s target=\"_blank\" rel=\"noopener noreferrer\">%s</a>",
+                    $link_inst,
+                    $this->config->getAttributes("LinkInternSimple", "a"),
+                    htmlReady($res['Name'])
+                );
             }else
                 $studip_info .= htmlReady($res['Name']);
             $studip_info .= "<br>\n";
@@ -532,9 +535,12 @@ class ExternModuleLecturedetails extends ExternModule {
                     $link_inst = htmlReady($res['url']);
                     if (!preg_match('{^https?://.+$}', $link_inst))
                         $link_inst = "http://$link_inst";
-                        $involved_insts[] = sprintf("<a href=\"%s\"%s target=\"_blank\">%s</a>",
-                        $link_inst, $this->config->getAttributes("LinkInternSimple", "a"),
-                        htmlReady($res['Name']));
+                        $involved_insts[] = sprintf(
+                            "<a href=\"%s\"%s target=\"_blank\" rel=\"noopener noreferrer\">%s</a>",
+                            $link_inst,
+                            $this->config->getAttributes("LinkInternSimple", "a"),
+                            htmlReady($res['Name'])
+                        );
                 }
                 else
                     $involved_insts[] = $res['Name'];
