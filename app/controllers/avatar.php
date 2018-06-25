@@ -26,7 +26,7 @@ class AvatarController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        PageLayout::addSqueezePackage('avatar');
+        PageLayout::addScript('studip-avatar.js');
     }
 
     /**

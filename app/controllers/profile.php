@@ -58,7 +58,7 @@ class ProfileController extends AuthenticatedController
     public function index_action()
     {
         if ($GLOBALS['perm']->have_profile_perm('user', $this->current_user->user_id)) {
-            PageLayout::addSqueezePackage('avatar');
+            PageLayout::addScript('studip-avatar.js');
         }
 
         // Template Index_Box for render-partials
