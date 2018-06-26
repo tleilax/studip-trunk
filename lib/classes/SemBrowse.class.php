@@ -100,9 +100,6 @@ class SemBrowse {
             }
         }
 
-        /*if ($this->sem_browse_data['cmd'] == "qs"){
-            $this->sem_browse_data['default_sem'] = "all";
-        }*/
         if($this->sem_browse_data['default_sem'] != 'all') {
             $this->sem_number[0] = intval($this->sem_browse_data['default_sem']);
         } else {
@@ -200,6 +197,11 @@ class SemBrowse {
 
     }
 
+    /**
+     * Returns whether the search for modules has to be displayed.
+     * 
+     * @return boolean True if search for modules has to be displayed.
+     */
     private function showModules()
     {
         if ($this->sem_browse_data['show_class'] == 'all') {
@@ -427,9 +429,11 @@ class SemBrowse {
                             printf('<a href="%s">%s<br>%s</a></td>',
                                     $navigation->getURL(),
                                     $navigation->getTitle(),
-                                    Assets::img($option['img']['filename'],
-                                            array_merge($option['img']['attributes'],
-                                            tooltip2($navigation->getTitle()))));
+                                    is_array($option['img'])
+                                        ? (Assets::img($option['img']['filename'],
+                                            array_merge((array) $option['img']['attributes'],
+                                            tooltip2($navigation->getTitle()))))
+                                        : '');
                         } else {
                             SkipLinks::addLink($navigation->getTitle(),
                                     $navigation->getURL());
@@ -441,33 +445,7 @@ class SemBrowse {
                         }
                     }
                 }
-                /*
-                echo '<td style="whitespace:nowrap; text-align: center; font-size:1.5em; padding:15px; font-weight:bold;">';
-                printf('<a href="%s">%s<br>%s</a></td>',
-                        URLHelper::getLink('?level=ev&cmd=qs&sset=0'),
-                        _('Suche in Einrichtungen'),
-                        Assets::img('institute-search.png', ['size' => '260@100', 'alt' =>_('Suche im Einrichtungsverzeichnis')]));
-                if ($this->showModules()) {
-                    SkipLinks::addLink(_('Suche im Modulverzeichnis'),
-                            URLHelper::getLink('dispatch.php/search/module'));
-                    printf('<td ><a href="%s"><b>%s</b><br><br>%s</a></td>',
-                            URLHelper::getLink('dispatch.php/search/module'),
-                            _('Suche im Modulverzeichnis'),
-                        Assets::img('directory-search.png', ['size' => '260@100', 'alt' => _('Suche im Modulverzeichnis')]));
-                }
-                if ($this->show_class()) {
-                    SkipLinks::addLink(_('Suche im Vorlesungsverzeichnis'),
-                            URLHelper::getLink('dispatch.php/search/courses', ['level' => 'vv', 'cmd' => 'qs', 'sset' => '0']));
-                    printf('<td><a href="%s"><b>%s</b><br><br>%s</a></td>',
-                            URLHelper::getLink('?level=vv&cmd=qs&sset=0'),
-                            _('Suche im Vorlesungsverzeichnis'),
-                        Assets::img('directory-search.png', ['size' => '260@100', 'alt' => _('Suche im Vorlesungsverzeichnis')]));
-                }
-                SkipLinks::addLink(_('Suche im Einrichtungsverzeichnis'),
-                        URLHelper::getLink('dispatch.php/search/courses', ['level' => 'ev', 'cmd' => 'qs', 'sset' => '0']));
-
-                 *
-                 */
+                
                 echo '</tr></table>';
 
                 ?>
@@ -922,6 +900,7 @@ class SemBrowse {
      * Creates HTML code for a single course row. This has been extracted
      * into a separate function as that makes handling and outputting
      * course children easier.
+     * 
      * @param string $seminar_id a single course id to output
      * @param mixed $sem_data collected data for all found courses
      * @param bool $child call in "child mode" -> force output because here children are listed
@@ -1127,6 +1106,123 @@ class SemBrowse {
         return $row;
     }
 
+    
+    /**
+     * Returns a new navigation object corresponding to the given target and
+     * name of the option. The target has two possibel values "sidebar" and
+     * "course" and indicates the place where the navigation is shown.
+     * The option name is the key of an entry in the array with the navigation
+     * options.
+     * 
+     * The navigation options are configured in the global configuration as an
+     * array. For further details see documentation of entry
+     * COURSE_SEARCH_NAVIGATION_OPTIONS in global configuration.
+     * 
+     * This is an example with all possible options:
+     * 
+     * {
+     *     // "courses", "semtree" and "rangetree" are the "old" search options.
+     *     // The link text is fixed.
+     *     "courses":{
+     *         "visible":true,
+     *         // The target indicates where the link to this search option is
+     *         // placed. Possible values are "sidebar" for a link in the sidebar
+     *         // or "courses" to show a link (maybe with picture) below the
+     *         // "course search".
+     *         "target":"sidebar"
+     *     },
+     *     "semtree":{
+     *         "visible":true,
+     *         "target":"sidebar"
+     *     },
+     *     "rangetree":{
+     *         "visible":false,
+     *         "target":"sidebar"
+     *     },
+     *     // New option to acivate the search for modules and the systematic
+     *     // search in studycourses, field of study and degrees.
+     *     "module":{
+     *         "visible":true,
+     *         "target":"sidebar"
+     *     },
+     *     // This option shows a direct link in the sidebar to an entry (level)
+     *     // in the range tree. The link text is the name of the level.
+     *     "fb3_hist":{
+     *         "visible":true,
+     *         "target":"sidebar",
+     *         "range_tree_id":"d1a07cf0c8057c664279214cc070b580"
+     *     },
+     *     // The same for an entry in the sem tree.
+     *     "grundstudium":{
+     *         "visible":true,
+     *         "target":"sidebar",
+     *         "sem_tree_id":"e1a07cf0c8057c664279214cc070b580"
+     *     },
+     *     // This shows a link in the sidebar to the course search. The text is
+     *     // availlable in two languages.
+     *     "vvz":{
+     *         "visible":true,
+     *         "target":"sidebar",
+     *         "url":"dispatch.php/search/courses?level=f&option=vav",
+     *         "title":{
+     *             "de_DE":"Veranstaltungsverzeichnis",
+     *             "en_GB":"Course Catalogue"
+     *         }
+     *     },
+     *     // This option uses an url with search option and shows a link in the
+     *     // sidebar to an entry in the range tree with all courses.
+     *     "test":{
+     *         "visible":true,
+     *         "target":"sidebar",
+     *         "url":"dispatch.php/search/courses?start_item_id=d1a07cf0c8057c664279214cc070b580&cmd=show_sem_range_tree&item_id=d1a07cf0c8057c664279214cc070b580_withkids&level=ev",
+     *         "title":{
+     *             "de_DE":"Historisches Institut",
+     *             "en_GB":"Historical Institute"
+     *         }
+     *     },
+     *     // This option shows a link to the sem tree with picture below the
+     *     // course search (target: courses).
+     *     // This is the behaviour of Stud.IP < 4.2.
+     *     "csemtree":{
+     *         "visible":true,
+     *         "target":"courses",
+     *         "url":"dispatch.php/search/courses?level=vv",
+     *         "img":{
+     *             "filename":"directory-search.png",
+     *             "attributes":{
+     *                 "size":"260@100"
+     *             }
+     *         },
+     *         "title":{
+     *             "de_DE":"Suche im Vorlesungsverzeichnis",
+     *             "en_GB":"Search course directory"
+     *         }
+     *     },
+     *     // This option shows a link to the range tree with picture below the
+     *     // course search (target: courses).
+     *     // This is the behaviour of Stud.IP < 4.2.
+     *     "crangetree":{
+     *         "visible":true,
+     *         "target":"courses",
+     *         "url":"dispatch.php/search/courses?level=ev",
+     *         "img":{
+     *             "filename":"institute-search.png",
+     *             "attributes":{
+     *                 "size":"260@100"
+     *             }
+     *         },
+     *         "title":{
+     *             "de_DE":"Suche in Einrichtungen",
+     *             "en_GB":"Search institutes"
+     *         }
+     *     }
+     * }
+     *
+     * 
+     * @param string $target
+     * @param string $option_name
+     * @return \Navigation
+     */
     public static function getSearchOptionNavigation($target, $option_name = null)
     {
         // return first visible search option
@@ -1140,7 +1236,6 @@ class SemBrowse {
             return null;
         }
 
-
         $language = $_SESSION['_language'] ?: reset(array_keys(Config::get()->INSTALLED_LANGUAGES));
         $option = Config::get()->COURSE_SEARCH_NAVIGATION_OPTIONS[$option_name];
         if (!$option['visible'] || $option['target'] != $target) {
@@ -1152,7 +1247,8 @@ class SemBrowse {
                     return new Navigation(_('Veranstaltungssuche'),
                             URLHelper::getURL('dispatch.php/search/courses',
                                     [
-                                        'level' => 'f'
+                                        'level' => 'f',
+                                        'option' => ''
                                     ], true));
                 case 'semtree':
                     return new Navigation(_('Suche im Vorlesungsverzeichnis'),
@@ -1160,7 +1256,8 @@ class SemBrowse {
                                     [
                                         'level' => 'vv',
                                         'cmd'   => 'qs',
-                                        'sset'  => '0'
+                                        'sset'  => '0',
+                                        'option' => ''
                                     ], true));
                 case 'rangetree':
                     return new Navigation(_('Suche in Einrichtungen'),
@@ -1168,14 +1265,14 @@ class SemBrowse {
                                     [
                                         'level' => 'ev',
                                         'cmd'   => 'qs',
-                                        'sset'  => '0'
+                                        'sset'  => '0',
+                                        'option' => ''
                                     ], true));
                 case 'module':
                     return new Navigation(_('Suche im Modulverzeichnis'),
                             URLHelper::getURL('dispatch.php/search/module'),null, true);
             }
         } else {
-            URLHelper::removeLinkParam('option');
             return new Navigation($option['title'][$language],
                     URLHelper::getURL($option['url'], ['option' => $option_name], true));
         }
@@ -1209,17 +1306,24 @@ class SemBrowse {
         }
     }
 
+    /**
+     * The class SemBrowse uses a vast number of variables stored in the
+     * session. This function sets the default values or transfers some
+     * of them to url parameters if a filter in the sidebar has been changed.
+     * 
+     * @see SemBrowse::setClassesSelector()
+     * @see SemBrowse::setSemesterSelector()
+     */
     public static function transferSessionData()
     {
         if (Request::option('reset_all')) {
             $_SESSION['sem_browse_data'] = null;
-
         }
 
         $_SESSION['sem_browse_data']['qs_choose'] = Request::get('search_sem_qs_choose',
                 $_SESSION['sem_browse_data']['qs_choose']);
 
-        // simulate button clicked if semester has changed
+        // simulate button clicked if semester was changed
         if (Request::option('search_sem_sem', $_SESSION['sem_browse_data']['default_sem'])
                 != $_SESSION['sem_browse_data']['default_sem']) {
             $_SESSION['sem_browse_data']['default_sem'] = Request::option('search_sem_sem');
@@ -1237,7 +1341,7 @@ class SemBrowse {
             }
         }
 
-        // simulate button clicked if class has changed
+        // simulate button clicked if class was changed
         if (Request::option('show_class', $_SESSION['sem_browse_data']['show_class'])
                 != $_SESSION['sem_browse_data']['show_class']) {
             $_SESSION['sem_browse_data']['show_class'] = Request::option('show_class');
@@ -1276,6 +1380,12 @@ class SemBrowse {
                 $_SESSION['sem_browse_data']['group_by'] ?: '0';
     }
 
+    /**
+     * Retrieves the default semester from session or calculate it considering
+     * the value from SEMESTER_TIME_SWITCH.
+     * 
+     * @return Semester The semester object of the default semester.
+     */
     public static function getDefaultSemester()
     {
         $default_sem = $_SESSION['_default_sem'];
@@ -1289,6 +1399,12 @@ class SemBrowse {
         return $default_sem;
     }
 
+    /**
+     * Adds a widget to the sidebar to select a course class. The result set is
+     * filtered by this class.
+     * 
+     * @param string $submit_url The submit url.
+     */
     public static function setClassesSelector($submit_url)
     {
         $classes_filter = new SelectWidget(_('Veranstaltungsklassen'),
@@ -1303,7 +1419,10 @@ class SemBrowse {
     }
 
     /**
-     * Adds the semester selector to the sidebar
+     * Adds a widget to the sidebar to select a semester. The result set is
+     * filtered by this semester.
+     * 
+     * @param string $submit_url The submit url.
      */
     public static function setSemesterSelector($submit_url)
     {
