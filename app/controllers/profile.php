@@ -57,6 +57,10 @@ class ProfileController extends AuthenticatedController
      */
     public function index_action()
     {
+        if ($GLOBALS['perm']->have_profile_perm('user', $this->current_user->user_id)) {
+            PageLayout::addScript('studip-avatar.js');
+        }
+
         // Template Index_Box for render-partials
         $layout           = $GLOBALS['template_factory']->open('shared/content_box');
         $this->shared_box = $layout;
@@ -266,7 +270,8 @@ class ProfileController extends AuthenticatedController
                 'kings'       => $kings,
                 'views'       => object_return_views($this->current_user->user_id),
                 'score'       => $this->score,
-                'score_title' => $this->score_title
+                'score_title' => $this->score_title,
+                'current_user' => $this->current_user->user_id
             ]
         );
 

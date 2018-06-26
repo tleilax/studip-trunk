@@ -1,15 +1,17 @@
+@import (inline) "../../../../node_modules/cropperjs/dist/cropper.css";
+
 /* --- Avatars of users, courses and institutes ----------------------------- */
 .avatar-small {
     vertical-align: middle;
     .size(25px, 25px);
 }
-.avatar-medium { 
+.avatar-medium {
     max-width: 100px;
-    height: 100px; 
+    height: 100px;
 }
-.avatar-normal { 
+.avatar-normal {
     max-width: 250px;
-    height: 250px; 
+    height: 250px;
 }
 
 .course-avatar-small {
@@ -17,21 +19,135 @@
     max-width: 25px;
     height: 25px;
 }
-.course-avatar-medium { 
+.course-avatar-medium {
     max-width: 100px;
-    height: 100px; 
+    height: 100px;
 }
 .course-avatar-normal {
     max-height: 250px;
     width: 250px;
 }
 
-.profile-avatar {
-    vertical-align: middle;
-    margin: 5px 0px;
+div.avatar-widget {
+    position: relative;
+
+    .profile-avatar {
+        vertical-align: middle;
+        margin: 5px 0px;
+    }
+
+    div.avatar-overlay {
+        .transition(opacity .5s ease-in-out);
+        background-color: fadeout(@base-color, 33.3%);
+        display: table;
+        opacity: 0;
+        height: 260px;
+        left: 0;
+        margin: 0;
+        padding-left: 10px;
+        padding-right: 10px;
+        position: absolute;
+        top: 0;
+        vertical-align: middle;
+        width: calc(100% - 20px);
+
+        &:hover {
+            opacity: 1;
+        }
+
+        p {
+            display: table-cell;
+
+            a {
+                color: @white;
+                display: block;
+                height: 100%;
+                padding-top: ~"calc(100% - 30px)";
+                width: 100%;
+            }
+        }
+    }
 }
 
 #custom_avatar label {
     display: block;
     font-weight: bold;
+}
+
+div#avatar {
+    img {
+        max-width: 100%;
+    }
+}
+
+form.settings-avatar {
+
+    .avatar-normal {
+        padding: 2em;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .file-upload {
+        .flex-item(1, 1);
+        position: absolute;
+        left: 320px;
+        top: 65px;
+    }
+
+    .form-text {
+        color: initial;
+    }
+
+    .media-breakpoint-small-up({ .form-group {
+        .flex();
+        .flex-align-items(center);
+    } });
+
+    .media-breakpoint-small-down({ .file-upload {
+        position: initial;
+        left: 0;
+        top: 0;
+    } });
+
+    .cropper-container {
+        margin-left: auto;
+        margin-right: auto;
+
+        .cropper-view-box {
+            outline: 1px solid @base-color-80;
+        }
+
+        .cropper-line, .cropper-point {
+            background-color: @base-color-80;
+        }
+    }
+
+    #avatar-buttons {
+        padding-left: 5px;
+        padding-right: 5px;
+        position: absolute;
+        right: 10px;
+        text-align: left;
+        top: 45px;
+        width: 150px;
+
+        /* Mozilla needs different top value */
+        @-moz-document url-prefix() {
+            & {
+                top: 10px;
+            }
+        }
+
+        a {
+            align-items: center;
+            display: flex;
+            margin-bottom: 10px;
+
+            img {
+                padding-right: 5px;
+            }
+        }
+    }
 }

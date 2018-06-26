@@ -35,7 +35,7 @@ class CoreAdmin implements StudipModule {
                 $item->setDescription(_('Bearbeiten der Grundeinstellungen dieser Veranstaltung.'));
                 $navigation->addSubNavigation('details', $item);
 
-                $item = new Navigation(_('Infobild'), 'dispatch.php/course/avatar/update/' . $course_id);
+                $item = new Navigation(_('Infobild'), 'dispatch.php/avatar/update/course/' . $course_id);
                 $item->setImage(Icon::create('file-pic', 'clickable'));
                 $item->setDescription(_('Infobild dieser Veranstaltung bearbeiten oder löschen.'));
                 $navigation->addSubNavigation('avatar', $item);

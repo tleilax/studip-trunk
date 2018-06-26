@@ -363,7 +363,7 @@ class Course_BasicdataController extends AuthenticatedController
 
         $widget = new ActionsWidget();
         $widget->addLink(_('Bild ändern'),
-                         $this->url_for('course/avatar/update', $course_id),
+                         $this->url_for('avatar/update/course', $course_id),
                          Icon::create('edit', 'clickable'));
         if ($this->deputies_enabled) {
             if (isDeputy($user->id, $this->course_id)) {
