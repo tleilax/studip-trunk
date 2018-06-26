@@ -83,17 +83,16 @@ div#avatar {
 form.settings-avatar {
 
     .avatar-normal {
-        padding: 2em;
         display: block;
         margin-left: auto;
         margin-right: auto;
+        padding: 2em;
     }
 
     .file-upload {
         .flex-item(1, 1);
-        position: absolute;
-        left: 320px;
-        top: 65px;
+        position: relative;
+        top: 2em;
     }
 
     .form-text {
@@ -102,7 +101,7 @@ form.settings-avatar {
 
     .media-breakpoint-small-up({ .form-group {
         .flex();
-        .flex-align-items(center);
+        .flex-align-items(normal);
     } });
 
     .media-breakpoint-small-down({ .file-upload {
@@ -130,15 +129,7 @@ form.settings-avatar {
         position: absolute;
         right: 10px;
         text-align: left;
-        top: 45px;
         width: 150px;
-
-        /* Mozilla needs different top value */
-        @-moz-document url-prefix() {
-            & {
-                top: 10px;
-            }
-        }
 
         a {
             align-items: center;
