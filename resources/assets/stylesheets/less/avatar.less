@@ -129,8 +129,25 @@ form.settings-avatar {
         padding-right: 5px;
         position: absolute;
         right: 10px;
-        text-align: center;
+        text-align: left;
         top: 45px;
-        width: 28px;
+        width: 150px;
+
+        /* Mozilla needs different top value */
+        @-moz-document url-prefix() {
+            & {
+                top: 10px;
+            }
+        }
+
+        a {
+            align-items: center;
+            display: flex;
+            margin-bottom: 10px;
+
+            img {
+                padding-right: 5px;
+            }
+        }
     }
 }

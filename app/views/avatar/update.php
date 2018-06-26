@@ -34,15 +34,19 @@
             <div id="avatar-buttons" class="hidden-js">
                 <a href="" id="avatar-zoom-in" title="<?= _('Vergrößern') ?>">
                     <?= Icon::create('zoom-in-2')->asImg(24) ?>
+                    <?= _('Vergrößern') ?>
                 </a>
                 <a href="" id="avatar-zoom-out" title="<?= _('Verkleinern') ?>">
                     <?= Icon::create('zoom-out-2')->asImg(24) ?>
+                    <?= _('Verkleinern') ?>
                 </a>
-                <a href="" id="avatar-rotate-clockwise" title="<?= _('Im Uhrzeigersinn drehen') ?>">
+                <a href="" id="avatar-rotate-clockwise" title="<?= _('Nach rechts drehen') ?>">
                     <?= Icon::create('rotate-right')->asImg(24) ?>
+                    <?= _('Nach rechts drehen') ?>
                 </a>
-                <a href="" id="avatar-rotate-counter-clockwise" title="<?= _('Gegen den Uhrzeigersinn drehen') ?>">
+                <a href="" id="avatar-rotate-counter-clockwise" title="<?= _('Nach links drehen') ?>">
                     <?= Icon::create('rotate-left')->asImg(24) ?>
+                    <?= _('Nach links drehen') ?>
                 </a>
             </div>
         </div>

@@ -16,9 +16,9 @@ STUDIP.Avatar = {
                 if (dialog.length > 0) {
                     // Adjust maximal cropper container height to dialog dimensions.
                     container.css('height', dialog.height() - 200);
-                    container.css('width', dialog.width() - 100);
+                    container.css('width', dialog.width() - 220);
                     container.css('max-height', dialog.height() - 200);
-                    container.css('max-width', dialog.width() - 100);
+                    container.css('max-width', dialog.width() - 220);
                     // No dialog, full page.
                 } else {
                     dialog = $('#layout_content');
