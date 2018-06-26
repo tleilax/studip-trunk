@@ -451,9 +451,22 @@ class ExternElement {
         return FALSE;
     }
     
-    function createUrl ($module_name, $args = NULL) {
-        if (!$args['main_module'])
+    function createUrl ($args = NULL) {
+        if (!$args['main_module']) {
             $args['main_module'] = 'Main';
+        }
+        $config_meta_data = ExternConfig::GetConfigurationMetaData($this->config->range_id, $this->config->getValue($this->getName(), 'config'));
+        if (is_array($config_meta_data)) {
+            $module_name = $config_meta_data['module_name'];
+        } else {
+            foreach ((array) $this->link_module_type as $type) {
+                $module_name = $GLOBALS['EXTERN_MODULE_TYPES'][$type]['module'];
+                $configs = ExternConfig::GetAllConfigurations($this->config->range_id, $type);
+                if (sizeof($configs)) {
+                    break;
+                }
+            }
+        }
         $sri_link = $this->config->getValue($this->getName(), 'srilink');
         $extern_link = $this->config->getValue($this->getName(), 'externlink');
         if ($this->config->getValue($args['main_module'], 'incdata')) {
@@ -510,7 +523,7 @@ class ExternElement {
                 }
             }
         }
-        return $link;
+        return ExternModule::ExtHtmlReady($link);
     }
 }
 
