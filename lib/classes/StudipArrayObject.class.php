@@ -129,7 +129,7 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
             return $ret;
         }
         if (in_array($key, $this->protectedProperties)) {
-            throw new InvalidArgumentException('$key is a protected property, use a different key');
+            throw new InvalidArgumentException("{$key} is a protected property, use a different key");
         }
 
         return $this->$key;
@@ -424,4 +424,3 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
         }
     }
 }
-
