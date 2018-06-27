@@ -84,18 +84,22 @@ class Events extends \RESTAPI\RouteMap
         }
 
         $export = new CalendarExportFile(new CalendarWriterICalendar());
-        $export->exportFromDatabase($user_id, 0, 2114377200, 'ALL_EVENTS', Calendar::getBindSeminare($user_id));
+        $export->exportFromDatabase($user_id, 0, 2114377200, 'ALL_EVENTS');
 
-        if ($GLOBALS['_calendar_error']->getMaxStatus(\ERROR_CRITICAL)) {
+        if ($GLOBALS['_calendar_error']->getMaxStatus(\ErrorHandler::ERROR_CRITICAL)) {
             $this->halt(500);
         }
 
-        $filename = sprintf('%s/export/%s', $GLOBALS['TMP_PATH'], $export->getTempFileName());
+        $filename = sprintf(
+            '%s/export/%s',
+            $GLOBALS['TMP_PATH'],
+            $export->getTempFileName()
+        );
 
-        $this->sendFile($filename, array(
-                            'type' => 'text/calendar',
-                            'filename' => 'studip.ics'
-                        ));
+        $this->sendFile($filename, [
+            'type'     => 'text/calendar',
+            'filename' => 'studip.ics',
+        ]);
     }
 
 
