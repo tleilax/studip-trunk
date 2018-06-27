@@ -1049,8 +1049,8 @@ class Admin_CoursesController extends AuthenticatedController
                 'attributes' => ['data-dialog' => 'size=big'],
             ),
             16 => array(
-                'name'       => _('Archivieren'),
-                'title'      => _('Archivieren'),
+                'name'       => _('Löschen'),
+                'title'      => _('Löschen'),
                 'url'        => 'dispatch.php/course/archive/confirm',
                 'multimode'  => true
             ),
@@ -1076,7 +1076,7 @@ class Admin_CoursesController extends AuthenticatedController
 
         if (!$GLOBALS['perm']->have_perm('admin')) {
             unset($actions[8]);
-            if (!get_config('ALLOW_DOZENT_ARCHIV')) {
+            if (!get_config('ALLOW_DOZENT_DELETE')) {
                 unset($actions[16]);
             }
         }

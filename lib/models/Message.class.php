@@ -26,7 +26,7 @@
  * @property MessageUser originator has_one MessageUser
  */
 
-class Message extends SimpleORMap
+class Message extends SimpleORMap implements PrivacyObject
 {
     public static function markAllAs($user_id = null, $state_of_flag = 1)
     {
@@ -296,6 +296,29 @@ class Message extends SimpleORMap
             return (bool)$this->delete();
         }
         return false;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user )
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("autor_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('message', $field_data, $user);
+            }
+        }
+        return [_('Nachrichten') => $storage];
     }
 
 }

@@ -25,12 +25,10 @@ class FooterNavigation extends Navigation
 
     public function initSubNavigation()
     {
-        global $perm, $user;
-
         parent::initSubNavigation();
 
         // sitemap
-        if (is_object($user) && $user->id != 'nobody') {
+        if (is_object($GLOBALS['user']) && $GLOBALS['user']->id !== 'nobody') {
             $this->addSubNavigation('sitemap', new Navigation(_('Sitemap'), 'dispatch.php/sitemap/'));
         }
 
@@ -42,5 +40,8 @@ class FooterNavigation extends Navigation
 
         // imprint
         $this->addSubNavigation('siteinfo', new Navigation(_('Impressum'), 'dispatch.php/siteinfo/show?cancel_login=1'));
+
+        // Datenschutzerklärung
+        $this->addSubNavigation('privacy', new Navigation(_('Datenschutz'), Config::get()->PRIVACY_URL));
     }
 }

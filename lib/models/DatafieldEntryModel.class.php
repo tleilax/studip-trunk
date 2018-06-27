@@ -24,7 +24,7 @@
  * @property Datafield datafield belongs_to Datafield
  */
 
-class DatafieldEntryModel extends SimpleORMap
+class DatafieldEntryModel extends SimpleORMap implements PrivacyObject
 {
     /**
      * returns datafields belonging to given model
@@ -82,11 +82,11 @@ class DatafieldEntryModel extends SimpleORMap
         if ($datafield_id !== null) {
             $one_datafield = ' AND a.datafield_id = ' . DBManager::get()->quote($datafield_id);
         }
-        
+
         $query = "SELECT a.*, b.*,a.datafield_id,b.datafield_id as isset_content ";
         $query .= "FROM datafields a LEFT JOIN datafields_entries b ON (a.datafield_id=b.datafield_id AND range_id = ? AND sec_range_id = ?) ";
         $query .= "WHERE object_type = ?";
-        
+
         if ($object_type === 'moduldeskriptor' || $object_type === 'modulteildeskriptor') {
             // find datafields by language (string)
             $query .= "AND (LOCATE(?, object_class) OR object_class IS NULL) $one_datafield ORDER BY priority";
@@ -104,7 +104,7 @@ class DatafieldEntryModel extends SimpleORMap
                 $object_type,
                 (int) $object_class);
         }
-        
+
         $st = DBManager::get()->prepare($query);
         $st->execute($params);
         $ret = array();
@@ -139,7 +139,7 @@ class DatafieldEntryModel extends SimpleORMap
         }
         return $ret;
     }
-    
+
     protected static function configure($config = array())
     {
         $config['db_table'] = 'datafields_entries';
@@ -156,14 +156,14 @@ class DatafieldEntryModel extends SimpleORMap
         if (!Config::get()->CONTENT_LANGUAGES[$language]) {
             throw new InvalidArgumentException('Language not configured.');
         }
-        
+
         if ($language == reset(array_keys(Config::get()->CONTENT_LANGUAGES))) {
             $language = '';
         }
-        
+
         $this->lang = $language;
     }
-    
+
     /**
      * returns matching "old-style" DataFieldEntry object
      *
@@ -174,7 +174,7 @@ class DatafieldEntryModel extends SimpleORMap
         $range_id = $this->sec_range_id
                   ? [$this->range_id, $this->sec_range_id, $this->lang]
                   : [$this->range_id, '', $this->lang];
-        
+
         $df = DataFieldEntry::createDataFieldEntry($this->datafield, $range_id, $this->getValue('content'));
         $observer = function ($event, $object, $user_data) {
             if ($user_data['changed']) {
@@ -184,5 +184,28 @@ class DatafieldEntryModel extends SimpleORMap
         NotificationCenter::addObserver($observer, '__invoke', 'DatafieldDidUpdate', $df);
 
         return $df;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("range_id = ?", array($user->user_id));
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('datafields_entries', $field_data, $user);
+            }
+        }
+        return [_('Datenfeld Einträge') => $storage];
     }
 }

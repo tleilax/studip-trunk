@@ -25,14 +25,14 @@
  * @property institute institute belongs_to Institute
  * @property event belongs_to CalendarEvent
  */
-class CalendarEvent extends SimpleORMap implements Event
+class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
 {
     const PARTSTAT_TENTATIVE = 1;
     const PARTSTAT_ACCEPTED = 2;
     const PARTSTAT_DECLINED = 3;
     const PARTSTAT_DELEGATED = 4;
     const PARTSTAT_NEEDS_ACTION = 5;
-    
+
     private $properties = null;
     private $permission_user_id = null;
 
@@ -78,7 +78,7 @@ class CalendarEvent extends SimpleORMap implements Event
     /**
      * Returns the owner of this event as an object of type User, Course
      * or Institute.
-     * 
+     *
      * @return object
      */
     public function getOwner()
@@ -92,7 +92,7 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         return null;
     }
-    
+
     public static function deleteBySQL($where, $params = array())
     {
         $ret = parent::deleteBySQL($where, $params);
@@ -155,7 +155,7 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         return $as_array ? $categories : implode(', ', $categories);
     }
-    
+
     /**
      * Returns the name of the group status.
      * Returns an empty string status is unknown.
@@ -179,7 +179,7 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         return '';
     }
-    
+
     /**
      * Returns all values that defines a recurrence rule or a single value
      * named by $index.
@@ -274,7 +274,7 @@ class CalendarEvent extends SimpleORMap implements Event
                         // max. length of selected week days must not exceed
                         // number of recurrences
                         $r_rule['wdays'] = substr($r_rule['wdays'], 0, $r_rule['count']);
-                        
+
                         $start_wday = date('N', $start);
                         $count_first_week = 0;
                         for ($i = 0; $i < strlen($r_rule['wdays']); $i++) {
@@ -282,9 +282,9 @@ class CalendarEvent extends SimpleORMap implements Event
                                 $count_first_week++;
                             }
                         }
-                        
+
                         $count_first_week += (date('N', $start) < $r_rule['wdays']{0}) ? 1 : 0;
-                        
+
                         $count_complete = $r_rule['count'] - $count_first_week;
                         $weeks_max = floor($count_complete / strlen($r_rule['wdays']));
 
@@ -296,7 +296,7 @@ class CalendarEvent extends SimpleORMap implements Event
                         } else {
                             $dt_expire = $dt_expire->sub(new DateInterval('P1D'));
                         }
-                        
+
                         $expire_ts = $dt_expire->format('U');
                         $r_rule['expire'] = mktime(23, 59, 59, date('n', $expire_ts),
                                 date('j', $expire_ts), date('Y', $expire_ts));
@@ -1128,7 +1128,7 @@ class CalendarEvent extends SimpleORMap implements Event
 
     /**
      * Sets the user_id to check his permission.
-     * 
+     *
      * @param string $user_id The id of the user.
      */
     public function setPermissionUser($user_id)
@@ -1140,7 +1140,7 @@ class CalendarEvent extends SimpleORMap implements Event
      * Checks the permission of the user previously set with
      * CalendarEvent::setPermissisonUser or given by second argument.
      * Returns true if the user have the at least the given permission.
-     * 
+     *
      * @param int $permission
      * @param string $user_id
      * @return boolean
@@ -1154,7 +1154,7 @@ class CalendarEvent extends SimpleORMap implements Event
     /**
      * Returns the permission of the given user or the user set by
      * CalendarEvent::setPermssionUser previously.
-     * 
+     *
      * @staticvar array $permissions
      * @param string $user_id The user's id.
      * @return int The permission.
@@ -1170,16 +1170,16 @@ class CalendarEvent extends SimpleORMap implements Event
             if ($user_id == $this->event->author_id) {
                 $permissions[$user_id][$this->event_id] = Event::PERMISSION_OWN;
             } else
-            
+
             // SEMBBS
             // Admins dürfen alle Termine löschen
             /*
             if ($GLOBALS['perm']->have_perm('admin')) {
                 $permissions[$user_id][$this->event_id] = Event::PERMISSION_DELETABLE;
-            } else 
-             * 
+            } else
+             *
              */
-            
+
             if ($user_id == $this->range_id) {
                 if ($this->group_status) {
                     $permissions[$user_id][$this->event_id] = Event::PERMISSION_READABLE;
@@ -1211,7 +1211,7 @@ class CalendarEvent extends SimpleORMap implements Event
 
     /**
      * Get the user's permission for this event in the actual calendar.
-     * 
+     *
      * @param string $user_id The user id.
      * @return int The permission.
      */
@@ -1255,7 +1255,7 @@ class CalendarEvent extends SimpleORMap implements Event
     /**
      * Get the user's permission for this event in the actual calendar if the
      * owner is a course.
-     * 
+     *
      * @param string $user_id The user's id.
      * @return int The permission.
      */
@@ -1286,7 +1286,7 @@ class CalendarEvent extends SimpleORMap implements Event
     /**
      * Get the user's permission for this event in the actual calendar if the
      * owner is an institute.
-     * 
+     *
      * @param string $user_id The user's id.
      * @return int The permssion.
      */
@@ -1315,7 +1315,7 @@ class CalendarEvent extends SimpleORMap implements Event
 
     /**
      * Returns the user id of the event's author.
-     * 
+     *
      * @return string The user id of the author.
      */
     public function getAuthor()
@@ -1325,12 +1325,35 @@ class CalendarEvent extends SimpleORMap implements Event
 
     /**
      * Returns teh user id of the event's last editor.
-     * 
+     *
      * @return string The uder id og the editor.
      */
     public function getEditor()
     {
         return $this->event->editor;
     }
-    
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = CalendarEvent::findBySQL("range_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('calendar_event', $field_data, $user);
+            }
+        }
+        return [_('Kalender') => $storage];
+    }
+
 }

@@ -14,7 +14,7 @@
  * @since       3.5
  */
 
-class Fach extends ModuleManagementModelTreeItem
+class Fach extends ModuleManagementModelTreeItem implements PrivacyObject
 {
 
     private $count_abschluesse;
@@ -75,7 +75,7 @@ class Fach extends ModuleManagementModelTreeItem
         $config['i18n_fields']['name'] = true;
         $config['i18n_fields']['name_kurz'] = true;
         $config['i18n_fields']['beschreibung'] = true;
-        
+
         parent::configure($config);
     }
 
@@ -108,15 +108,15 @@ class Fach extends ModuleManagementModelTreeItem
         $sortby = self::createSortStatement($sortby, $order, 'name',
                 array('count_abschluesse'));
         return parent::getEnrichedByQuery('
-            SELECT fach.*, 
-              COUNT(DISTINCT abschluss_id) AS `count_abschluesse` 
-            FROM fach 
-                LEFT JOIN mvv_fach_inst USING (fach_id) 
-                LEFT JOIN mvv_stgteil USING (fach_id) 
-                LEFT JOIN mvv_stg_stgteil USING (stgteil_id) 
-                LEFT JOIN mvv_studiengang USING (studiengang_id) 
+            SELECT fach.*,
+              COUNT(DISTINCT abschluss_id) AS `count_abschluesse`
+            FROM fach
+                LEFT JOIN mvv_fach_inst USING (fach_id)
+                LEFT JOIN mvv_stgteil USING (fach_id)
+                LEFT JOIN mvv_stg_stgteil USING (stgteil_id)
+                LEFT JOIN mvv_studiengang USING (studiengang_id)
             ' . self::getFilterSql($filter, true) . '
-            GROUP BY fach_id 
+            GROUP BY fach_id
             ORDER BY ' . $sortby,
             array(),
             $row_count,
@@ -134,9 +134,9 @@ class Fach extends ModuleManagementModelTreeItem
     public static function getCount($filter = null)
     {
         $query = '
-            SELECT COUNT(DISTINCT(fach.fach_id)) 
-            FROM fach 
-                LEFT JOIN mvv_fach_inst ON (fach.fach_id = mvv_fach_inst.fach_id) 
+            SELECT COUNT(DISTINCT(fach.fach_id))
+            FROM fach
+                LEFT JOIN mvv_fach_inst ON (fach.fach_id = mvv_fach_inst.fach_id)
             ' . self::getFilterSql($filter, true);
         $db = DBManager::get()->prepare($query);
         $db->execute();
@@ -164,13 +164,13 @@ class Fach extends ModuleManagementModelTreeItem
             array('count_stgteile')
         );
         return parent::getEnrichedByQuery('
-            SELECT fach.*, 
-            COUNT(stgteil_id) as `count_stgteile` 
-            FROM fach 
-                INNER JOIN mvv_fach_inst USING (fach_id) 
-                INNER JOIN mvv_stgteil USING (fach_id) 
+            SELECT fach.*,
+            COUNT(stgteil_id) as `count_stgteile`
+            FROM fach
+                INNER JOIN mvv_fach_inst USING (fach_id)
+                INNER JOIN mvv_stgteil USING (fach_id)
                 ' . self::getFilterSql($filter, true) . '
-            GROUP BY fach_id 
+            GROUP BY fach_id
             ORDER BY ' . $sortby,
             array(),
             $row_count,
@@ -188,10 +188,10 @@ class Fach extends ModuleManagementModelTreeItem
     public static function findByStudiengangTeil($stgteil_id)
     {
         return parent::getEnrichedByQuery('
-            SELECT mf.* 
-            FROM fach mf 
-                LEFT JOIN mvv_stgteil AS ms USING (fach_id) 
-            WHERE ms.stgteil_id = ? 
+            SELECT mf.*
+            FROM fach mf
+                LEFT JOIN mvv_stgteil AS ms USING (fach_id)
+            WHERE ms.stgteil_id = ?
             ORDER BY name',
             array($stgteil_id)
         );
@@ -206,12 +206,12 @@ class Fach extends ModuleManagementModelTreeItem
     public static function findByStudiengang($studiengang_id)
     {
         return parent::getEnrichedByQuery('
-            SELECT mf.* 
-            FROM fach mf 
-                INNER JOIN mvv_stgteil USING (fach_id) 
-                INNER JOIN mvv_stg_stgteil AS mss USING (stgteil_id) 
-                LEFT JOIN mvv_stgteil_bez USING (stgteil_bez_id) 
-            WHERE mss.studiengang_id = ? 
+            SELECT mf.*
+            FROM fach mf
+                INNER JOIN mvv_stgteil USING (fach_id)
+                INNER JOIN mvv_stg_stgteil AS mss USING (stgteil_id)
+                LEFT JOIN mvv_stgteil_bez USING (stgteil_bez_id)
+            WHERE mss.studiengang_id = ?
             ORDER BY name', array($studiengang_id));
     }
 
@@ -224,12 +224,12 @@ class Fach extends ModuleManagementModelTreeItem
     public static function findByAbschluss($abschluss_id)
     {
         return parent::getEnrichedByQuery('
-            SELECT mf.* 
-            FROM fach mf 
-                LEFT JOIN mvv_stgteil USING (fach_id) 
-                LEFT JOIN mvv_stg_stgteil USING (stgteil_id) 
-                LEFT JOIN mvv_studiengang ms USING (studiengang_id) 
-            WHERE ms.abschluss_id = ? 
+            SELECT mf.*
+            FROM fach mf
+                LEFT JOIN mvv_stgteil USING (fach_id)
+                LEFT JOIN mvv_stg_stgteil USING (stgteil_id)
+                LEFT JOIN mvv_studiengang ms USING (studiengang_id)
+            WHERE ms.abschluss_id = ?
             ORDER BY name',
             array($abschluss_id)
         );
@@ -249,11 +249,11 @@ class Fach extends ModuleManagementModelTreeItem
                 ? 'INNER JOIN mvv_stgteil USING (fach_id) '
                 : '';
         return parent::getEnrichedByQuery('
-            SELECT mf.* 
-            FROM fach mf 
+            SELECT mf.*
+            FROM fach mf
                 ' . $has_stgteile_sql . '
-                LEFT JOIN mvv_fach_inst mfi USING(fach_id) 
-            WHERE mfi.institut_id = ? 
+                LEFT JOIN mvv_fach_inst mfi USING(fach_id)
+            WHERE mfi.institut_id = ?
             ORDER BY name',
             array($fachbereich_id)
         );
@@ -269,19 +269,19 @@ class Fach extends ModuleManagementModelTreeItem
     public static function findPublicByModule($modul_ids)
     {
         return parent::getEnrichedByQuery('
-            SELECT mf.*, 
-                COUNT(DISTINCT msm.modul_id) AS count_module 
-                FROM mvv_stgteilabschnitt_modul AS msm 
-                INNER JOIN mvv_stgteilabschnitt USING (abschnitt_id) 
-                INNER JOIN mvv_stgteilversion msv USING (version_id) 
+            SELECT mf.*,
+                COUNT(DISTINCT msm.modul_id) AS count_module
+                FROM mvv_stgteilabschnitt_modul AS msm
+                INNER JOIN mvv_stgteilabschnitt USING (abschnitt_id)
+                INNER JOIN mvv_stgteilversion msv USING (version_id)
                 INNER JOIN mvv_stgteil USING (stgteil_id)
-                INNER JOIN mvv_stg_stgteil USING (stgteil_id) 
-                INNER JOIN mvv_studiengang ms USING (studiengang_id) 
-                INNER join fach mf USING (fach_id) 
-                WHERE msm.modul_id IN (?) 
-                    AND ms.stat IN (?) 
-                    AND msv.stat IN (?) 
-                GROUP BY mf.fach_id 
+                INNER JOIN mvv_stg_stgteil USING (stgteil_id)
+                INNER JOIN mvv_studiengang ms USING (studiengang_id)
+                INNER join fach mf USING (fach_id)
+                WHERE msm.modul_id IN (?)
+                    AND ms.stat IN (?)
+                    AND msv.stat IN (?)
+                GROUP BY mf.fach_id
                 ORDER BY count_module DESC',
             array(
                 $modul_ids,
@@ -303,9 +303,9 @@ class Fach extends ModuleManagementModelTreeItem
     {
         $quoted_term = DBManager::get()->quote('%' . $term . '%');
         return parent::getEnrichedByQuery("
-            SELECT mf.*, COUNT(ms.stgteil_id) AS `count_stgteile` 
-            FROM fach AS mf 
-                LEFT JOIN mvv_stgteil AS ms USING (fach_id) 
+            SELECT mf.*, COUNT(ms.stgteil_id) AS `count_stgteile`
+            FROM fach AS mf
+                LEFT JOIN mvv_stgteil AS ms USING (fach_id)
             WHERE ms.zusatz LIKE " . $quoted_term . "
                 OR mf.name LIKE " . $quoted_term . "
             GROUP BY stgteil_id ORDER BY `name`
@@ -334,14 +334,14 @@ class Fach extends ModuleManagementModelTreeItem
             array('count_stgteile')
         );
         return parent::getEnrichedByQuery('
-            SELECT fach.*, 
-                COUNT(DISTINCT stgteil_id) as `count_stgteile` 
-                FROM fach 
+            SELECT fach.*,
+                COUNT(DISTINCT stgteil_id) as `count_stgteile`
+                FROM fach
                 INNER JOIN mvv_fach_inst USING(fach_id)
-                INNER JOIN mvv_stgteil USING(fach_id) 
-            WHERE mvv_stgteil.stgteil_id IN(?) 
+                INNER JOIN mvv_stgteil USING(fach_id)
+            WHERE mvv_stgteil.stgteil_id IN(?)
                 ' . self::getFilterSql($filter) . '
-            GROUP BY fach_id 
+            GROUP BY fach_id
             ORDER BY ' . $sortby,
             array((array) $stgteil_ids),
             $row_count,
@@ -360,11 +360,11 @@ class Fach extends ModuleManagementModelTreeItem
         $order = ($order == 'DESC' ? $order : 'ASC');
         $fachbereiche = array();
         $stmt = DBManager::get()->prepare('
-            SELECT mfi.institut_id, i.Name AS `name`, 
-                COUNT(fach_id) AS faecher 
-            FROM mvv_fach_inst AS mfi 
-                LEFT JOIN Institute AS i ON (mfi.institut_id = i.Institut_id) 
-            GROUP BY institut_id 
+            SELECT mfi.institut_id, i.Name AS `name`,
+                COUNT(fach_id) AS faecher
+            FROM mvv_fach_inst AS mfi
+                LEFT JOIN Institute AS i ON (mfi.institut_id = i.Institut_id)
+            GROUP BY institut_id
             ORDER BY `name` ' . $order
         );
         $stmt->execute();
@@ -385,19 +385,19 @@ class Fach extends ModuleManagementModelTreeItem
     {
         return Fachbereich::getEnrichedByQuery('
             SELECT Institute.*,
-                COUNT(DISTINCT(mvv_stg_stgteil.studiengang_id)) AS `count_objects`, 
-                Institute.Institut_id AS `institut_id`, 
-                Institute.Name AS `name`, 
-                fak.Name AS `fak_name`, 
-                IF(Institute.Institut_id = Institute.fakultaets_id, 1, 0) AS `is_fak` 
-            FROM mvv_stg_stgteil 
-                INNER JOIN mvv_stgteil USING (stgteil_id) 
-                INNER JOIN mvv_fach_inst USING (fach_id) 
-                INNER JOIN Institute ON (mvv_fach_inst.institut_id = Institute.Institut_id) 
-                INNER JOIN Institute AS fak ON (Institute.fakultaets_id = fak.Institut_id) 
-            WHERE fak.Institut_id = fak.fakultaets_id 
+                COUNT(DISTINCT(mvv_stg_stgteil.studiengang_id)) AS `count_objects`,
+                Institute.Institut_id AS `institut_id`,
+                Institute.Name AS `name`,
+                fak.Name AS `fak_name`,
+                IF(Institute.Institut_id = Institute.fakultaets_id, 1, 0) AS `is_fak`
+            FROM mvv_stg_stgteil
+                INNER JOIN mvv_stgteil USING (stgteil_id)
+                INNER JOIN mvv_fach_inst USING (fach_id)
+                INNER JOIN Institute ON (mvv_fach_inst.institut_id = Institute.Institut_id)
+                INNER JOIN Institute AS fak ON (Institute.fakultaets_id = fak.Institut_id)
+            WHERE fak.Institut_id = fak.fakultaets_id
                 ' . Fachbereich::getFilterSql(array('mvv_stg_stgteil.studiengang_id' => $studiengang_ids)) . '
-            GROUP BY Institute.Institut_id 
+            GROUP BY Institute.Institut_id
             ORDER BY name ASC
         ');
     }
@@ -416,40 +416,40 @@ class Fach extends ModuleManagementModelTreeItem
         $fachbereiche = array();
         if (!is_null($kategorie_id) && is_null($abschluss_id)) {
             $stmt = DBManager::get()->prepare('
-                SELECT i.Name AS `name`, 
-                    i.Institut_id AS institut_id 
-                FROM mvv_fach_inst AS mfi 
-                    INNER JOIN mvv_stgteil AS mst USING(fach_id) 
-                    LEFT JOIN Institute AS i ON (mfi.institut_id = i.Institut_id)  
-                    INNER JOIN mvv_stg_stgteil AS mss ON (mss.stgteil_id = mss.stgteil_id) 
-                    INNER JOIN mvv_studiengang AS ms USING (studiengang_id) 
-                    INNER JOIN mvv_abschl_zuord AS maz USING (abschluss_id) 
-                WHERE maz.kategorie_id = ? 
-                GROUP BY i.Institut_id ORDER BY `name` 
+                SELECT i.Name AS `name`,
+                    i.Institut_id AS institut_id
+                FROM mvv_fach_inst AS mfi
+                    INNER JOIN mvv_stgteil AS mst USING(fach_id)
+                    LEFT JOIN Institute AS i ON (mfi.institut_id = i.Institut_id)
+                    INNER JOIN mvv_stg_stgteil AS mss ON (mss.stgteil_id = mss.stgteil_id)
+                    INNER JOIN mvv_studiengang AS ms USING (studiengang_id)
+                    INNER JOIN mvv_abschl_zuord AS maz USING (abschluss_id)
+                WHERE maz.kategorie_id = ?
+                GROUP BY i.Institut_id ORDER BY `name`
             ');
             $stmt->execute(array($kategorie_id));
         } else if (!is_null($abschluss_id)) {
                 $stmt = DBManager::get()->prepare('
-                    SELECT i.Name AS `name`, 
-                        i.Institut_id AS institut_id 
+                    SELECT i.Name AS `name`,
+                        i.Institut_id AS institut_id
                     FROM mvv_fach_inst AS mfi
-                        INNER JOIN mvv_stgteil AS mst USING(fach_id) 
-                        LEFT JOIN Institute i ON (mfi.institut_id = i.Institut_id) 
-                        INNER JOIN mvv_stg_stgteil AS mss ON (mst.stgteil_id = mss.stgteil_id) 
-                        INNER JOIN mvv_studiengang AS ms USING (studiengang_id) 
-                    WHERE ms.abschluss_id = ? 
-                    GROUP BY i.Institut_id ORDER BY `name` 
+                        INNER JOIN mvv_stgteil AS mst USING(fach_id)
+                        LEFT JOIN Institute i ON (mfi.institut_id = i.Institut_id)
+                        INNER JOIN mvv_stg_stgteil AS mss ON (mst.stgteil_id = mss.stgteil_id)
+                        INNER JOIN mvv_studiengang AS ms USING (studiengang_id)
+                    WHERE ms.abschluss_id = ?
+                    GROUP BY i.Institut_id ORDER BY `name`
                 ');
                 $stmt->execute(array($abschluss_id));
         } else {
             $stmt = DBManager::get()->prepare('
-                SELECT i.Name AS `name`, 
-                    i.Institut_id AS institut_id 
-                FROM mvv_fach_inst AS mfi 
-                    INNER JOIN mvv_stgteil AS mst USING (fach_id) 
-                    LEFT JOIN Institute AS i ON (mfi.institut_id = i.Institut_id) 
-                GROUP BY i.Institut_id 
-                ORDER BY `name` 
+                SELECT i.Name AS `name`,
+                    i.Institut_id AS institut_id
+                FROM mvv_fach_inst AS mfi
+                    INNER JOIN mvv_stgteil AS mst USING (fach_id)
+                    LEFT JOIN Institute AS i ON (mfi.institut_id = i.Institut_id)
+                GROUP BY i.Institut_id
+                ORDER BY `name`
             ');
             $stmt->execute();
         }
@@ -477,13 +477,13 @@ class Fach extends ModuleManagementModelTreeItem
         $order = ($order == 'ASC' ? 'ASC' : 'DESC');
         $fachbereiche = array();
         $stmt = DBManager::get()->prepare('
-            SELECT Institute.Name AS `name`, 
-                Institute.Institut_id AS `institut_id`, 
-                COUNT(DISTINCT fach_id) AS `faecher` 
-            FROM Institute 
-                LEFT JOIN mvv_fach_inst ON Institute.Institut_id = mvv_fach_inst.institut_id 
+            SELECT Institute.Name AS `name`,
+                Institute.Institut_id AS `institut_id`,
+                COUNT(DISTINCT fach_id) AS `faecher`
+            FROM Institute
+                LEFT JOIN mvv_fach_inst ON Institute.Institut_id = mvv_fach_inst.institut_id
                 ' . self::getFilterSql($filter, true) . '
-            GROUP BY Institute.Institut_id 
+            GROUP BY Institute.Institut_id
             ORDER BY ' . $sortby . ' ' . $order
         );
         $stmt->execute();
@@ -506,13 +506,13 @@ class Fach extends ModuleManagementModelTreeItem
     {
         $faecher = array();
         $query = '
-            SELECT mf.fach_id, mf.name, msf.position 
-            FROM mvv_fach_inst 
-                INNER JOIN fach mf USING (fach_id) 
-                INNER JOIN mvv_stgteil AS mst USING (fach_id) 
-                INNER JOIN mvv_stg_stgteil AS mss USING (stgteil_id) 
-            WHERE mfi.institut_id = ? 
-                AND mss.stgteil_id = ? 
+            SELECT mf.fach_id, mf.name, msf.position
+            FROM mvv_fach_inst
+                INNER JOIN fach mf USING (fach_id)
+                INNER JOIN mvv_stgteil AS mst USING (fach_id)
+                INNER JOIN mvv_stg_stgteil AS mss USING (stgteil_id)
+            WHERE mfi.institut_id = ?
+                AND mss.stgteil_id = ?
             ORDER BY position, name';
         $stmt = DBManager::get()->prepare($query);
         $stmt->execute(array($fachbereich_id, $stgteil_id));
@@ -641,26 +641,26 @@ class Fach extends ModuleManagementModelTreeItem
     {
         if ($only_public) {
             $query = '
-                SELECT DISTINCT mm.modul_id 
-                FROM mvv_stgteil 
-                    INNER JOIN mvv_stgteilversion msv USING (stgteil_id) 
-                    INNER JOIN mvv_stgteilabschnitt USING (version_id) 
+                SELECT DISTINCT mm.modul_id
+                FROM mvv_stgteil
+                    INNER JOIN mvv_stgteilversion msv USING (stgteil_id)
+                    INNER JOIN mvv_stgteilabschnitt USING (version_id)
                     INNER JOIN mvv_stgteilabschnitt_modul USING (abschnitt_id)
-                    INNER JOIN mvv_modul mm USING (modul_id) 
-                WHERE fach_id = ? 
-                    AND msv.stat IN (?) 
+                    INNER JOIN mvv_modul mm USING (modul_id)
+                WHERE fach_id = ?
+                    AND msv.stat IN (?)
                     AND mm.stat IN(?)
             ';
             $params = array($this->getId(), StgteilVersion::getPublicStatus(),
                 Modul::getPublicStatus());
         } else {
             $query = '
-                SELECT DISTINCT modul_id FROM mvv_stgteil 
-                    INNER JOIN mvv_stgteilversion AS msv USING (stgteil_id) 
-                    INNER JOIN mvv_stgteilabschnitt USING (version_id) 
+                SELECT DISTINCT modul_id FROM mvv_stgteil
+                    INNER JOIN mvv_stgteilversion AS msv USING (stgteil_id)
+                    INNER JOIN mvv_stgteilabschnitt USING (version_id)
                     INNER JOIN mvv_stgteilabschnitt_modul USING (abschnitt_id)
-                    INNER JOIN mvv_modul AS mm USING (modul_id) 
-                WHERE fach_id = ? 
+                    INNER JOIN mvv_modul AS mm USING (modul_id)
+                WHERE fach_id = ?
             ';
             $params = array($this->getId());
         }
@@ -728,7 +728,7 @@ class Fach extends ModuleManagementModelTreeItem
     public function countUser()
     {
         $stmt = DBManager::get()->prepare('
-            SELECT COUNT(DISTINCT user_id) 
+            SELECT COUNT(DISTINCT user_id)
             FROM user_studiengang WHERE fach_id = ?
         ');
         $stmt->execute(array($this->id));
@@ -744,13 +744,40 @@ class Fach extends ModuleManagementModelTreeItem
     public function countUserByDegree($degree_id)
     {
         $stmt = DBManager::get()->prepare('
-            SELECT COUNT(DISTINCT user_id) 
-            FROM user_studiengang 
-            WHERE fach_id = ? 
+            SELECT COUNT(DISTINCT user_id)
+            FROM user_studiengang
+            WHERE fach_id = ?
                 AND abschluss_id = ?
         ');
         $stmt->execute(array($this->id, $degree_id));
         return $stmt->fetchColumn();
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user )
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findThru($user->user_id, [
+            'thru_table'        => 'user_studiengang',
+            'thru_key'          => 'user_id',
+            'thru_assoc_key'    => 'fach_id',
+            'assoc_foreign_key' => 'fach_id',
+        ]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('fach', $field_data, $user);
+            }
+        }
+        return [_('Fächer/Studiengänge') => $storage];
     }
 
 }

@@ -38,7 +38,7 @@ class Course_ArchiveController extends AuthenticatedController
     {
         //check permissions: user has to be an administrator of the course:
         $requiredPermission = 'admin';
-        if (Config::get()->ALLOW_DOZENT_ARCHIV) {
+        if (Config::get()->ALLOW_DOZENT_DELETE) {
             //members of the "dozent" role may also archive the course:
             $requiredPermission = 'dozent';
         }
@@ -85,7 +85,7 @@ class Course_ArchiveController extends AuthenticatedController
      */
     public function confirm_action()
     {
-        PageLayout::setHelpKeyword('Veranstaltungen.Archivieren');
+        PageLayout::setHelpKeyword('Veranstaltungen.Löschen');
 
         //check the archiv_sem array and extract the relevant course IDs:
         if (Request::submitted('archiv_sem')) {
@@ -129,7 +129,7 @@ class Course_ArchiveController extends AuthenticatedController
         }
 
         //set the page title with the area of Stud.IP:
-        PageLayout::setTitle(_('Archivieren von Veranstaltungen'));
+        PageLayout::setTitle(_('Löschen von Veranstaltungen'));
 
         //get the list of "dozenten" and the last activity for each course (if any course):
         $this->dozenten = [];
@@ -162,19 +162,25 @@ class Course_ArchiveController extends AuthenticatedController
                 throw new AccessDeniedException();
             }
 
-            // to be replaced when archive.inc.php is replaced:
-            in_archiv($courseId);
 
             $course = Course::find($courseId);
             if ($course) {
                 $seminar = new Seminar($course);
-                $seminar->delete();
-                $archivedCourse = ArchivedCourse::find($courseId);
-                if ($archivedCourse) {
-                    $this->archivedCourses[] = $archivedCourse;
+                $coursename = $course->getFullname();
+                if ($seminar->delete()) {
+                    $this->deletedCourses[] = $courseId;
+                    PageLayout::postSuccess( sprintf(_('Die Veranstaltung %s wurde erfolgreich gelöscht.'), $coursename));
                 }
             } else {
                 throw new Exception(_('Veranstaltung nicht in Datenbank gefunden!'));
+            }
+        }
+
+        if (!empty($this->deletedCourses)) {
+            if ($GLOBALS['perm']->have_perm('admin')){
+                $this->redirect('admin/courses/index');
+            } else {
+                $this->redirect('my_courses');
             }
         }
 

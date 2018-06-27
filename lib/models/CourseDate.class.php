@@ -33,7 +33,7 @@
  * @property SimpleORMapCollection dozenten has_and_belongs_to_many User
  */
 
-class CourseDate extends SimpleORMap
+class CourseDate extends SimpleORMap implements PrivacyObject
 {
     const FORMAT_DEFAULT = 'default';
     const FORMAT_VERBOSE = 'verbose';
@@ -442,5 +442,28 @@ class CourseDate extends SimpleORMap
             $all_folders = array_merge($all_folders, $typed_folders);
         }
         return ['files' => $all_files, 'folders' => $all_folders];
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("autor_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('termine', $field_data, $user);
+            }
+        }
+        return [_('Termine') => $storage];
     }
 }

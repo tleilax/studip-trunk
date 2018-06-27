@@ -286,7 +286,7 @@ class ProfileController extends AuthenticatedController
                 $actions->addLink(
                     _('Dieses Konto bearbeiten'),
                     $this->url_for('admin/user/edit/' . $this->current_user->user_id),
-                    Icon::create('edit', 'clickable', tooltip2(_('Dieses Konto bearbeiten')))
+                    Icon::create('edit', Icon::ROLE_CLICKABLE, tooltip2(_('Dieses Konto bearbeiten')))
                 );
             }
 
@@ -294,14 +294,14 @@ class ProfileController extends AuthenticatedController
                 $actions->addLink(
                     _('Zu den Kontakten hinzufügen'),
                     $this->url_for('profile/add_buddy?username=' . $this->current_user->username),
-                    Icon::create('person+add', 'clickable', tooltip2(_('Zu den Kontakten hinzufügen'))),
+                    Icon::create('person+add', Icon::ROLE_CLICKABLE, tooltip2(_('Zu den Kontakten hinzufügen'))),
                     ['data-confirm' => _('Wollen Sie die Person wirklich als Kontakt hinzufügen?')]
                 )->asButton();
             } else {
                 $actions->addLink(
                     _('Von den Kontakten entfernen'),
                     $this->url_for('profile/remove_buddy', ['username' => $this->current_user->username]),
-                    Icon::create('person+remove', 'clickable', tooltip2(_('Zu den Kontakten hinzufügen'))),
+                    Icon::create('person+remove', Icon::ROLE_CLICKABLE, tooltip2(_('Zu den Kontakten hinzufügen'))),
                     ['data-confirm' => _('Wollen Sie die Person wirklich von den Kontakten entfernen?')]
                 )->asButton();
             }
@@ -309,14 +309,14 @@ class ProfileController extends AuthenticatedController
             $actions->addLink(
                 _('Nachricht schreiben'),
                 $this->url_for('messages/write', ['rec_uname' => $this->current_user->username]),
-                Icon::create('mail', 'clickable', tooltip2(_('Nachricht an Nutzer verschicken')))
+                Icon::create('mail', Icon::ROLE_CLICKABLE, tooltip2(_('Nachricht an Nutzer verschicken')))
             )->asDialog('size="50%"');
 
             if (class_exists('Blubber')) {
                 $actions->addLink(
                     _('Anblubbern'),
                     URLHelper::getLink('plugins.php/blubber/streams/global', ['mention' => $this->current_user->username]),
-                    Icon::create('blubber', 'clickable', tooltip2(_('Blubber diesen Nutzer an')))
+                    Icon::create('blubber', Icon::ROLE_CLICKABLE, tooltip2(_('Blubber diesen Nutzer an')))
                 );
             }
 
@@ -324,10 +324,47 @@ class ProfileController extends AuthenticatedController
         $actions->addLink(
             _('vCard herunterladen'),
             $this->url_for('contact/vcard', ['user[]' => $this->current_user->username]),
-            Icon::create('vcard', 'clickable', tooltip2(_('vCard herunterladen')))
+            Icon::create('vcard', Icon::ROLE_CLICKABLE, tooltip2(_('vCard herunterladen')))
         );
 
         $sidebar->addWidget($actions);
+
+        $privacy = new LinksWidget();
+        $privacy->setTitle(_('Datenschutz'));
+
+        if (Privacy::isVisible($user_id)) {
+            $privacy->addLink(
+                _('Anzeige Personendaten'),
+                $this->url_for('privacy/index/' . $this->current_user->user_id),
+                Icon::create('log', Icon::ROLE_CLICKABLE, tooltip2(_('Anzeige Personendaten')))
+            )->asDialog('size=big');
+
+            $privacy->addLink(
+                _('Personendaten drucken'),
+                $this->url_for('privacy/print/' . $this->current_user->user_id),
+                Icon::create('print', Icon::ROLE_CLICKABLE, tooltip2(_('Personendaten drucken'))),
+                ['class' => 'print_action', 'target' => '_blank']
+            );
+
+            $privacy->addLink(
+                _('Export Personendaten als CSV'),
+                $this->url_for('privacy/export/' . $this->current_user->user_id),
+                Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als CSV')))
+            );
+
+            $privacy->addLink(
+                _('Export persönlicher Dateien als ZIP'),
+                $this->url_for('privacy/filesexport/' . $this->current_user->user_id),
+                Icon::create('file-archive', Icon::ROLE_CLICKABLE, tooltip2(_('Export persönlicher Dateien als ZIP')))
+            );
+        } elseif ($this->current_user->username === $this->user->username) {
+            $privacy->addLink(
+                _('Datenschutzauskunft anfordern'),
+                $this->url_for('privacy/askfor/' . $this->current_user->user_id),
+                Icon::create('mail', Icon::ROLE_CLICKABLE, tooltip2(_('Datenschutzauskunft anfordern')))
+            )->asDialog('size=auto');
+        }
+        $sidebar->addWidget($privacy);
 
         $info_widget = new SidebarWidget();
         $info_widget->setTitle(_('Informationen'));

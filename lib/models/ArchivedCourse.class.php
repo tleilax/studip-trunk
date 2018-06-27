@@ -36,7 +36,7 @@
  * @property Institute home_institut belongs_to Institute
  */
 
-class ArchivedCourse extends SimpleORMap
+class ArchivedCourse extends SimpleORMap implements PrivacyObject
 {
     protected static function configure($config = array())
     {
@@ -51,5 +51,33 @@ class ArchivedCourse extends SimpleORMap
             'foreign_key' => 'heimat_inst_id',
         );
         parent::configure($config);
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findThru($user->user_id, [
+            'thru_table'        => 'archiv_user',
+            'thru_key'          => 'user_id',
+            'thru_assoc_key'    => 'Seminar_id',
+            'assoc_foreign_key' => 'Seminar_id',
+        ]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('archiv', $field_data, $user);
+            }
+        }
+        return [_('archivierte Seminare') => $storage];
     }
 }

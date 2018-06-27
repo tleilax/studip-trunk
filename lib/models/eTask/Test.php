@@ -18,7 +18,7 @@ namespace eTask;
  * @property SimpleORMapCollection assignments has_many etask\Assignment
  * @property JSONArrayobject options serialized database column
  */
-class Test extends \SimpleORMap
+class Test extends \SimpleORMap implements \PrivacyObject
 {
     use ConfigureTrait;
 
@@ -116,5 +116,34 @@ class Test extends \SimpleORMap
         $this->resetRelation('testtasks');
 
         return $testTask;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(\User $user)
+    {
+        $storage = new \StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('etask_tests', $field_data, $user);
+            }
+        }
+
+        $storage2 = new \StoredUserData($user);
+        $field_data = \DBManager::get()->fetchAll("SELECT * FROM etask_test_tags WHERE user_id =?", array($user->user_id));
+        if ($field_data) {
+            $storage2->addTabularData('etask_test_tags', $field_data, $user);
+        }
+        return [_('eTask Tests') => $storage, _('eTask Tests Tags') => $storage2];
     }
 }

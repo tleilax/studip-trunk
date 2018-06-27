@@ -30,7 +30,7 @@
  * @property SimpleORMap owner belongs_to User
  * @property SimpleORMap terms_of_use belongs_to ContentTermsOfUse
  */
-class FileRef extends SimpleORMap
+class FileRef extends SimpleORMap implements PrivacyObject
 {
 
     protected $folder_type;
@@ -262,5 +262,28 @@ class FileRef extends SimpleORMap
     public function isVideo()
     {
         return mb_strpos($this->mime_type, 'video/') === 0;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('file_refs', $field_data, $user);
+            }
+        }
+        return [_('Dateien') => $storage];
     }
 }

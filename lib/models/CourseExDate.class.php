@@ -33,7 +33,7 @@
  * @property SeminarCycleDate cycle belongs_to SeminarCycleDate
  */
 
-class CourseExDate extends SimpleORMap
+class CourseExDate extends SimpleORMap implements PrivacyObject
 {
     const FORMAT_DEFAULT = 'default';
     const FORMAT_VERBOSE = 'verbose';
@@ -224,5 +224,28 @@ class CourseExDate extends SimpleORMap
             return $date;
         }
         return null;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("autor_id = ?", array($user->user_id));
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('ex_termine', $field_data, $user);
+            }
+        }
+        return [_('ausgefallende Termine') => $storage];
     }
 }

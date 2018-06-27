@@ -82,8 +82,8 @@ class CoreAdmin implements StudipModule {
                         $main->addSubNavigation('copy', $item);
                     }
 
-                    if (get_config('ALLOW_DOZENT_ARCHIV') || $GLOBALS['perm']->have_perm('admin')) {
-                        $item = new Navigation(_('Veranstaltung archivieren'), 'dispatch.php/course/archive/confirm');
+                    if (get_config('ALLOW_DOZENT_DELETE') || $GLOBALS['perm']->have_perm('admin')) {
+                        $item = new Navigation(_('Veranstaltung löschen'), 'dispatch.php/course/archive/confirm');
                         $item->setImage(Icon::create('seminar+remove', 'clickable'));
                         $main->addSubNavigation('archive', $item);
                     }

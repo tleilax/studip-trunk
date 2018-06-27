@@ -36,7 +36,7 @@
  * @property User user belongs_to User
  * @property Course course belongs_to Course
  */
-class CourseMember extends SimpleORMap
+class CourseMember extends SimpleORMap implements PrivacyObject
 {
 
     public static function findByCourse($course_id)
@@ -128,5 +128,27 @@ class CourseMember extends SimpleORMap
     function getUserFullname($format = "full")
     {
         return User::build(array_merge(array('motto' => ''), $this->toArray('vorname nachname username title_front title_rear')))->getFullname($format);
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user )
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('seminar_user', $field_data, $user);
+            }
+        }
+        return [_('SeminareUser') => $storage];
     }
 }

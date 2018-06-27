@@ -70,7 +70,7 @@
  * @property SimpleORMapCollection children has_many Course
  */
 
-class Course extends SimpleORMap implements Range
+class Course extends SimpleORMap implements Range, PrivacyObject
 {
 
     /**
@@ -218,7 +218,7 @@ class Course extends SimpleORMap implements Range
         $config['i18n_fields']['lernorga'] = true;
         $config['i18n_fields']['leistungsnachweis'] = true;
         $config['i18n_fields']['ort'] = true;
-    
+
         $config['registered_callbacks']['before_update'][] = 'logStore';
         parent::configure($config);
     }
@@ -539,7 +539,7 @@ class Course extends SimpleORMap implements Range
         }
         return Icon::create('radiobutton-checked', $role);
     }
-    
+
     /**
      * Generates a general log entry if the course were changed.
      */
@@ -549,27 +549,27 @@ class Course extends SimpleORMap implements Range
         if ($this->isFieldDirty('admission_prelim')) {
             $log[] = $this->admission_prelim ?  _('Neuer Anmeldemodus: Vorläufiger Eintrag') : _('Neuer Anmeldemodus: Direkter Eintrag');
         }
-    
+
         if ($this->isFieldDirty('admission_binding')) {
             $log[] = $this->admission_binding? _('Anmeldung verbindlich') : _('Anmeldung unverbindlich');
         }
-    
+
         if ($this->isFieldDirty('admission_turnout')) {
             $log[] = sprintf(_('Neue Teilnehmerzahl: %s'), (int)$this->admission_turnout);
         }
-    
+
         if ($this->isFieldDirty('admission_disable_waitlist')) {
             $log[] = $this->admission_disable_waitlist ? _('Warteliste aktiviert') : _('Warteliste deaktiviert');
         }
-    
+
         if ($this->isFieldDirty('admission_waitlist_max')) {
             $log[] = sprintf(_('Plätze auf der Warteliste geändert: %u'), (int)$this->admission_waitlist_max);
         }
-    
+
         if ($this->isFieldDirty('admission_disable_waitlist_move')) {
             $log[] = $this->admission_disable_waitlist ? _('Nachrücken aktiviert') : _('Nachrücken deaktiviert');
         }
-        
+
         if ($this->isFieldDirty('admission_prelim_txt')) {
             if ($this->admission_prelim_txt) {
                 $log[] = sprintf(_('Neuer Hinweistext bei vorläufigen Eintragungen: %s'), strip_tags(kill_format($this->admission_prelim_txt)));
@@ -577,7 +577,7 @@ class Course extends SimpleORMap implements Range
                 $log[] = _('Hinweistext bei vorläufigen Eintragungen wurde entfert');
             }
         }
-        
+
         if (!empty($log)) {
             StudipLog::log(
                 'SEM_CHANGED_ACCESS',
@@ -587,9 +587,37 @@ class Course extends SimpleORMap implements Range
                 implode(' - ', $log)
             );
         }
-    
+
         if ($this->isFieldDirty('visible')) {
             StudipLog::log($this->visible ? 'SEM_VISIBLE' : 'SEM_INVISIBLE', $this->id);
         }
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findThru($user->user_id, [
+            'thru_table'        => 'seminar_user',
+            'thru_key'          => 'user_id',
+            'thru_assoc_key'    => 'Seminar_id',
+            'assoc_foreign_key' => 'Seminar_id',
+        ]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('seminare', $field_data, $user);
+            }
+        }
+        return [_('Seminare') => $storage];
     }
 }

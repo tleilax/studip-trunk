@@ -34,7 +34,7 @@
  * @property SimpleORMapCollection members has_many StatusgruppeUser
  * @property Statusgruppen parent belongs_to Statusgruppen
  */
-class Statusgruppen extends SimpleORMap
+class Statusgruppen extends SimpleORMap implements PrivacyObject
 {
     public $keep_children = false;
 
@@ -564,5 +564,33 @@ class Statusgruppen extends SimpleORMap
             'range_id = ? ORDER BY position ASC, name ASC',
             [$this->range_id]
         );
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findThru($user->user_id, [
+            'thru_table'        => 'statusgruppe_user',
+            'thru_key'          => 'user_id',
+            'thru_assoc_key'    => 'statusgruppe_id',
+            'assoc_foreign_key' => 'statusgruppe_id',
+        ]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('statusgruppen', $field_data, $user);
+            }
+        }
+        return [_('Statusgruppen') => $storage];
     }
 }
