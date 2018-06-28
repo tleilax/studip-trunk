@@ -1,15 +1,17 @@
 /*global jQuery, STUDIP */
+import Cropper from 'cropperjs';
+
 STUDIP.Avatar = {
-    image: '',
+    cropper: null,
 
     init: function(inputSelector) {
         $(document).on('change', inputSelector, function() {
             STUDIP.Avatar.readFile(this);
 
-            $(this)
+            $(document)
                 .off('submit.avatar', 'form.settings-avatar')
                 .on('submit.avatar', 'form.settings-avatar', function() {
-                    var data = STUDIP.Avatar.image.cropper('getData');
+                    var data = STUDIP.Avatar.cropper.getData();
                     return STUDIP.Avatar.checkImageSize(data);
                 });
         });
@@ -50,12 +52,14 @@ STUDIP.Avatar = {
                 }
 
                 reader.onload = function(event) {
-                    STUDIP.Avatar.image = jQuery('#new-avatar');
-                    STUDIP.Avatar.image.attr('src', event.target.result);
-                    STUDIP.Avatar.image.cropper({
-                        aspectRatio: 1, // 1 / 1,
-                        viewMode: 2
-                    });
+                    var image = document.getElementById('new-avatar');
+                    if (image) {
+                        image.src = event.target.result;
+                        STUDIP.Avatar.cropper = new Cropper(image, {
+                            aspectRatio: 1,
+                            viewMode: 2
+                        });
+                    }
                 };
 
                 reader.readAsDataURL(input.files[0]);
@@ -63,21 +67,21 @@ STUDIP.Avatar = {
                 jQuery('#avatar-buttons').removeClass('hidden-js');
                 jQuery('label.file-upload').hide();
                 jQuery('#avatar-zoom-in').on('click', function() {
-                    STUDIP.Avatar.image.cropper('zoom', 0.1);
+                    STUDIP.Avatar.cropper.zoom(0.1);
                     return false;
                 });
                 jQuery('#avatar-zoom-out').on('click', function() {
-                    STUDIP.Avatar.image.cropper('zoom', -0.1);
+                    STUDIP.Avatar.cropper.zoom(-0.1);
                     return false;
                 });
                 jQuery('#avatar-rotate-clockwise').on('click', function() {
-                    STUDIP.Avatar.image.cropper('rotate', 90);
+                    STUDIP.Avatar.cropper.rotate(90);
                     return false;
                 });
                 jQuery('#avatar-rotate-counter-clockwise').on(
                     'click',
                     function() {
-                        STUDIP.Avatar.image.cropper('rotate', -90);
+                        STUDIP.Avatar.cropper.rotate(-90);
                         return false;
                     }
                 );
@@ -85,9 +89,7 @@ STUDIP.Avatar = {
                 jQuery('#submit-avatar').on('click', function() {
                     jQuery('#cropped-image').attr(
                         'value',
-                        STUDIP.Avatar.image
-                            .cropper('getCroppedCanvas')
-                            .toDataURL()
+                        STUDIP.Avatar.cropper.getCroppedCanvas().toDataURL()
                     );
                 });
             } else {

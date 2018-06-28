@@ -81,5 +81,3 @@ import "blueimp-file-upload"
 import "blueimp-file-upload/js/jquery.iframe-transport.js"
 
 import "./jquery/jquery.filtertable-1.5.7.js"
-
-import cropper from 'jquery-cropper/dist/jquery-cropper.esm'
