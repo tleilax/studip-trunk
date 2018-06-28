@@ -83,7 +83,7 @@ STUDIP.Avatar = {
 
         // Show a warning if cropped area is smaller than 250x250px.
         if (data.width < 250 || data.height < 250) {
-            return confirm('The image is too small. Do you really want to continue?');
+            return confirm(jQuery('#new-avatar').data('message-too-small'));
         }
         return true;
     }
