@@ -104,11 +104,16 @@ form.settings-avatar {
         .flex-align-items(normal);
     } });
 
-    .media-breakpoint-small-down({ .file-upload {
-        position: initial;
-        left: 0;
-        top: 0;
-    } });
+    .media-breakpoint-small-down({
+        .file-upload {
+            position: initial;
+            left: 0;
+            top: 0;
+        }
+        .form-group {
+            display: initial;
+        }
+    });
 
     .cropper-container {
         margin-left: auto;
@@ -126,8 +131,6 @@ form.settings-avatar {
     #avatar-buttons {
         padding-left: 5px;
         padding-right: 5px;
-        position: absolute;
-        right: 10px;
         text-align: left;
         width: 150px;
 

@@ -23,13 +23,10 @@ STUDIP.Avatar = {
                 } else {
                     dialog = jQuery('#layout_content');
                     // Adjust maximal cropper container height to page dimensions.
-                    container.css('height', 0.75 * dialog.height());
-                    container.css('width', 0.75 * dialog.width());
-                    container.css('max-height', 0.75 * dialog.height());
-                    container.css('max-width', 0.75 * dialog.width());
-                    // Adjust tool button positions.
-                    jQuery('#avatar-buttons').css('left', container.width() + 10);
-                    jQuery('#avatar-buttons').css('right', 0);
+                    container.css('height', dialog.height() - 220);
+                    container.css('width', 0.95 * dialog.width());
+                    container.css('max-height',  dialog.height() * 220);
+                    container.css('max-width', 0.95 * dialog.width());
                 }
 
                 reader.onload = function (event) {
