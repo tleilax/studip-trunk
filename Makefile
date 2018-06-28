@@ -19,13 +19,13 @@ test: force_update
 	$(RUN_TESTS)
 
 webpack-dev: force_update
-	npx webpack --config webpack.dev.js --mode development
+	npm run webpack-dev
 
 webpack-prod: force_update
-	npx webpack --config webpack.prod.js --mode production
+	npm run webpack-prod
 
 wds: force_update
-	npx webpack-dev-server --progress --config webpack.dev-server.js
+	npm run wds
 
 # dummy target to force update of "doc" target
 force_update:

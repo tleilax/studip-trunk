@@ -4,7 +4,9 @@
     "description": "Stud.IP",
     "private": true,
     "scripts": {
-        "build": "webpack"
+        "wds": "webpack-dev-server --progress --config webpack.dev-server.js",
+        "webpack-dev": "webpack --config webpack.dev.js --mode development",
+        "webpack-prod": "webpack --config webpack.prod.js --mode production"
     },
     "author": "",
     "license": "GPL-2.0",
