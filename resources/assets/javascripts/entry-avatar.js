@@ -8,9 +8,9 @@ STUDIP.Avatar = {
             var reader = new window.FileReader(),
                 cropper;
 
-            if (input.files[0].size <= $(input).data('max-size')) {
+            if (input.files[0].size <= jQuery(input).data('max-size')) {
 
-                var container = $('div#avatar-preview'),
+                var container = jQuery('div#avatar-preview'),
                     dialog = container.closest('div[role="dialog"]');
                 // We are in a modal dialog
                 if (dialog.length > 0) {
@@ -21,56 +21,56 @@ STUDIP.Avatar = {
                     container.css('max-width', dialog.width() - 220);
                     // No dialog, full page.
                 } else {
-                    dialog = $('#layout_content');
+                    dialog = jQuery('#layout_content');
                     // Adjust maximal cropper container height to page dimensions.
                     container.css('height', 0.75 * dialog.height());
                     container.css('width', 0.75 * dialog.width());
                     container.css('max-height', 0.75 * dialog.height());
                     container.css('max-width', 0.75 * dialog.width());
                     // Adjust tool button positions.
-                    $('#avatar-buttons').css('left', container.width() + 10);
-                    $('#avatar-buttons').css('right', 0);
+                    jQuery('#avatar-buttons').css('left', container.width() + 10);
+                    jQuery('#avatar-buttons').css('right', 0);
                 }
 
                 reader.onload = function (event) {
 
-                    image = $('#new-avatar');
-                    image.attr('src', event.target.result);
-                    image.cropper({
+                    STUDIP.Avatar.image = jQuery('#new-avatar');
+                    STUDIP.Avatar.image.attr('src', event.target.result);
+                    STUDIP.Avatar.image.cropper({
                         aspectRatio: 1, // 1 / 1,
                         viewMode: 2
                     });
 
-                    cropper = image.data('cropper');
+                    cropper = STUDIP.Avatar.image.data('cropper');
                 };
 
                 reader.readAsDataURL(input.files[0]);
 
-                $('#avatar-buttons').removeClass('hidden-js');
-                $('label.file-upload').hide();
-                $('#avatar-zoom-in').on('click', function () {
+                jQuery('#avatar-buttons').removeClass('hidden-js');
+                jQuery('label.file-upload').hide();
+                jQuery('#avatar-zoom-in').on('click', function () {
                     cropper.zoom(0.1);
                     return false;
                 });
-                $('#avatar-zoom-out').on('click', function () {
+                jQuery('#avatar-zoom-out').on('click', function () {
                     cropper.zoom(-0.1);
                     return false;
                 });
-                $('#avatar-rotate-clockwise').on('click', function () {
+                jQuery('#avatar-rotate-clockwise').on('click', function () {
                     cropper.rotate(90);
                     return false;
                 });
-                $('#avatar-rotate-counter-clockwise').on('click', function () {
+                jQuery('#avatar-rotate-counter-clockwise').on('click', function () {
                     cropper.rotate(-90);
                     return false;
                 });
 
-                $('#submit-avatar').on('click', function () {
-                    $('#cropped-image').attr('value', image.cropper('getCroppedCanvas').toDataURL());
+                jQuery('#submit-avatar').on('click', function () {
+                    jQuery('#cropped-image').attr('value', STUDIP.Avatar.image.cropper('getCroppedCanvas').toDataURL());
                 });
 
             } else {
-                alert($(input).data('message-too-large'));
+                alert(jQuery(input).data('message-too-large'));
             }
 
         } else {
@@ -79,7 +79,7 @@ STUDIP.Avatar = {
     },
 
     checkImageSize: function () {
-        var data = image.cropper('getData');
+        var data = STUDIP.Avatar.image.cropper('getData');
 
         // Show a warning if cropped area is smaller than 250x250px.
         if (data.width < 250 || data.height < 250) {
@@ -94,19 +94,19 @@ STUDIP.Avatar = {
 
     'use strict';
 
-    $(function () {
-        $(document).on('dialog-update', function () {
-            $('#avatar-upload').on('change', function () {
+    jQuery(function () {
+        jQuery(document).on('dialog-update', function () {
+            jQuery('#avatar-upload').on('change', function () {
                 STUDIP.Avatar.readFile(this);
             });
-            $('form.settings-avatar').on('submit', function(event) {
+            jQuery('form.settings-avatar').on('submit', function(event) {
                 return STUDIP.Avatar.checkImageSize(event);
             });
         });
-        $('#avatar-upload').on('change', function () {
+        jQuery('#avatar-upload').on('change', function () {
             STUDIP.Avatar.readFile(this);
         });
-        $('form.settings-avatar').on('submit', function(event) {
+        jQuery('form.settings-avatar').on('submit', function(event) {
             return STUDIP.Avatar.checkImageSize(event);
         });
     });
