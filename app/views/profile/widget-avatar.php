@@ -5,11 +5,9 @@
     ]) ?>
     <?php if ($GLOBALS['perm']->have_profile_perm('user', $current_user)) : ?>
         <div class="avatar-overlay">
-            <p>
-                <a href="<?= URLHelper::getURL('dispatch.php/avatar/update/user/' . $current_user) ?>" data-dialog>
-                    <?= _('Bild hochladen oder löschen') ?>
-                </a>
-            </p>
+            <a href="<?= URLHelper::getURL('dispatch.php/avatar/update/user/' . $current_user) ?>" data-dialog>
+                <span><?= _('Bild hochladen oder löschen') ?></span>
+            </a>
         </div>
     <?php endif ?>
 </div>

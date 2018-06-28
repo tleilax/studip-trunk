@@ -34,35 +34,37 @@ div.avatar-widget {
     .profile-avatar {
         vertical-align: middle;
         margin: 5px 0px;
+        position: relative;
     }
 
     div.avatar-overlay {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+
+        margin: 0;
+        padding: 0;
+
         .transition(opacity .5s ease-in-out);
         background-color: fadeout(@base-color, 33.3%);
-        display: table;
         opacity: 0;
-        height: 260px;
-        left: 0;
-        margin: 0;
-        padding-left: 10px;
-        padding-right: 10px;
-        position: absolute;
-        top: 0;
-        vertical-align: middle;
-        width: calc(100% - 20px);
 
         &:hover {
             opacity: 1;
         }
 
-        p {
-            display: table-cell;
+        a {
+            color: @white;
+            display: block;
+            height: 100%;
+            width: 100%;
 
-            a {
-                color: @white;
-                display: block;
-                height: 100%;
-                padding-top: ~"calc(100% - 30px)";
+            span {
+                position: absolute;
+                bottom: 1em;
+                left: 0;
                 width: 100%;
             }
         }
