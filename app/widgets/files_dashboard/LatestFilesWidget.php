@@ -45,6 +45,10 @@ class LatestFilesWidget extends BaseWidget
     {
         $userId = $GLOBALS['user']->id;
 
+        if ($GLOBALS['perm']->have_perm('root')) {
+            return $this->findLatestFilesForRoot($userId, 10);
+        }
+
         return $this->findAllFolders($userId, 10);
     }
 
@@ -203,5 +207,19 @@ class LatestFilesWidget extends BaseWidget
             }
         }
         return $files;
+    }
+
+    private function findLatestFilesForRoot($userId, $limit)
+    {
+        $files = [];
+        $folders = [];
+        foreach (\FileRef::findBySQL('1 ORDER BY chdate DESC LIMIT ?', [$limit]) as $fileRef) {
+            $folder = $fileRef->folder->getTypedFolder();
+            if ($folder->isFileDownloadable($fileRef->id, $userId)) {
+                $files[$fileRef->id] = $fileRef;
+                $folders[$folder->id] = $folder;
+            }
+        }
+        return compact('files', 'folders');
     }
 }
