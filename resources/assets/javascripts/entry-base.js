@@ -94,3 +94,5 @@ import "./globalsearch.js"
 import "./mvv.js"
 import "./mvv_difflog.js"
 import "./members.js"
+
+import "./avatar.js"

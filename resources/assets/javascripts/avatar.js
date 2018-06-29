@@ -1,14 +1,12 @@
 /*global jQuery, STUDIP */
-import Cropper from 'cropperjs';
-
 STUDIP.Avatar = {
     cropper: null,
 
     init: function(inputSelector) {
-        $(document).on('change', inputSelector, function() {
+        jQuery(document).on('change', inputSelector, function() {
             STUDIP.Avatar.readFile(this);
 
-            $(document)
+            jQuery(document)
                 .off('submit.avatar', 'form.settings-avatar')
                 .on('submit.avatar', 'form.settings-avatar', function() {
                     var data = STUDIP.Avatar.cropper.getData();
@@ -55,10 +53,17 @@ STUDIP.Avatar = {
                     var image = document.getElementById('new-avatar');
                     if (image) {
                         image.src = event.target.result;
-                        STUDIP.Avatar.cropper = new Cropper(image, {
-                            aspectRatio: 1,
-                            viewMode: 2
-                        });
+
+                        import(/* webpackChunkName: "avatarcropper" */ 'cropperjs/dist/cropper.js')
+                            .then(({ default: Cropper }) => {
+                                STUDIP.Avatar.cropper = new Cropper(image, {
+                                    aspectRatio: 1,
+                                    viewMode: 2
+                                });
+                            })
+                            .catch(error => {
+                                console.log('An error occurred while loading the croppers lib', error);
+                            });
                     }
                 };
 
@@ -78,19 +83,13 @@ STUDIP.Avatar = {
                     STUDIP.Avatar.cropper.rotate(90);
                     return false;
                 });
-                jQuery('#avatar-rotate-counter-clockwise').on(
-                    'click',
-                    function() {
-                        STUDIP.Avatar.cropper.rotate(-90);
-                        return false;
-                    }
-                );
+                jQuery('#avatar-rotate-counter-clockwise').on('click', function() {
+                    STUDIP.Avatar.cropper.rotate(-90);
+                    return false;
+                });
 
                 jQuery('#submit-avatar').on('click', function() {
-                    jQuery('#cropped-image').attr(
-                        'value',
-                        STUDIP.Avatar.cropper.getCroppedCanvas().toDataURL()
-                    );
+                    jQuery('#cropped-image').attr('value', STUDIP.Avatar.cropper.getCroppedCanvas().toDataURL());
                 });
             } else {
                 alert(jQuery(input).data('message-too-large'));

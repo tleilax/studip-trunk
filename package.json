@@ -52,5 +52,10 @@
     "browserslist": [
         "> 1%",
         "last 2 versions"
-    ]
+    ],
+    "prettier": {
+        "printWidth": 120,
+        "singleQuote": true,
+        "tabWidth": 4
+    }
 }

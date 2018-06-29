@@ -17,19 +17,6 @@
 class AvatarController extends AuthenticatedController
 {
     /**
-     * Set up this controller
-     *
-     * @param String $action Name of the action to be invoked
-     * @param Array  $args   Arguments to be passed to the action method
-     */
-    public function before_filter(&$action, &$args)
-    {
-        parent::before_filter($action, $args);
-
-        PageLayout::addScript('studip-avatar.js');
-    }
-
-    /**
      * Display the avatar information of a user, course or institute
      * @param string $type object type: 'user', 'course' or 'institute'
      * @param string $id ID of the object this avatar belongs to

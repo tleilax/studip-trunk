@@ -8,7 +8,6 @@ module.exports = {
   entry: {
     "studip-base": assetsPath + "/entry-base.js",
     "studip-admission": assetsPath + "/entry-admission.js",
-    "studip-avatar": assetsPath + "/entry-avatar.js",
     "studip-enrolment": assetsPath + "/entry-enrolment.js",
     "studip-filesdashboard": assetsPath + "/entry-filesdashboard.js",
     "studip-raumzeit": assetsPath + "/entry-raumzeit.js",
