@@ -4,16 +4,21 @@ use Studip\Button, Studip\LinkButton;
 
 // Get background images (this should be resolved differently since mobile
 // browsers might still download the desktop background)
-$bg_desktop = LoginBackground::getRandomPicture('desktop');
-if ($bg_desktop) {
-    $bg_desktop = $bg_desktop->getURL();
+if (!match_route('web_migrate.php')) {
+    $bg_desktop = LoginBackground::getRandomPicture('desktop');
+    if ($bg_desktop) {
+        $bg_desktop = $bg_desktop->getURL();
+    } else {
+        $bg_desktop = URLHelper::getURL('pictures/loginbackgrounds/1.jpg');
+    }
+    $bg_mobile = LoginBackground::getRandomPicture('mobile');
+    if ($bg_mobile) {
+        $bg_mobile = $bg_mobile->getURL();
+    } else {
+        $bg_mobile = URLHelper::getURL('pictures/loginbackgrounds/2.jpg');
+    }
 } else {
     $bg_desktop = URLHelper::getURL('pictures/loginbackgrounds/1.jpg');
-}
-$bg_mobile = LoginBackground::getRandomPicture('mobile');
-if ($bg_mobile) {
-    $bg_mobile = $bg_mobile->getURL();
-} else {
     $bg_mobile = URLHelper::getURL('pictures/loginbackgrounds/2.jpg');
 }
 ?>
