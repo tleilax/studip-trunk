@@ -92,20 +92,20 @@ class Institute extends SimpleORMap implements Range
             $user_id = $user->id;
         }
         $db = DBManager::get();
-        if (!$perm->have_perm("admin")) {
+        if (!$perm->have_perm("admin", $user_id)) {
             $result = $db->query("SELECT user_inst.Institut_id, Institute.Name, Institute.fakultaets_id, IF(user_inst.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, user_inst.inst_perms " .
                 "FROM user_inst " .
                     "LEFT JOIN Institute USING (institut_id) " .
                 "WHERE (user_id = ".$db->quote($user_id)." " .
                     "AND (inst_perms = 'dozent' OR inst_perms = 'tutor')) " .
                 "ORDER BY Institute.Name ASC")->fetchAll(PDO::FETCH_ASSOC);
-        } else if (!$perm->have_perm("root")) {
+        } else if (!$perm->have_perm("root", $user_id)) {
             $result = $db->query("SELECT user_inst.Institut_id, Institute.Name, Institute.fakultaets_id, IF(user_inst.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, user_inst.inst_perms " .
                 "FROM user_inst " .
                     "LEFT JOIN Institute USING (institut_id) " .
                 "WHERE (user_id = ".$db->quote($user_id)." AND inst_perms = 'admin') " .
                 "ORDER BY Institute.Name ASC")->fetchAll(PDO::FETCH_ASSOC);
-            if ($perm->is_fak_admin()) {
+            if ($perm->is_fak_admin($user_id)) {
                 foreach($result as $fak) {
                     $combined_result[] = $fak;
                     $institutes = $db->query("SELECT Institut_id, Name, fakultaets_id, 0 as is_fak, 'admin' as inst_perms

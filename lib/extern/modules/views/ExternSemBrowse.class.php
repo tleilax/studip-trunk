@@ -117,7 +117,7 @@ class ExternSemBrowse extends SemBrowse {
         $this->get_sem_range_tree($start_item_id, true);        
     }
     
-    function print_result ($args) {
+    function print_result () {
         global $_fullname_sql,$SEM_TYPE,$SEM_CLASS;
 
         if (is_array($this->sem_browse_data['search_result']) && count($this->sem_browse_data['search_result'])) {
@@ -205,8 +205,9 @@ class ExternSemBrowse extends SemBrowse {
 
             $db = new DB_Seminar($query);
             $snap = new DbSnapshot($db);
-            if (isset($args['group']) && $args['group'] >= 0 && $args['group'] < 5) {
-                $this->sem_browse_data['group_by'] = $args['group'];
+            $group = Request::int('group');
+            if (isset($group) && $group >= 0 && $group < 5) {
+                $this->sem_browse_data['group_by'] = $group;
             }
             $group_field = $this->group_by_fields[$this->sem_browse_data['group_by']]['group_field'];
             $data_fields[0] = "Seminar_id";

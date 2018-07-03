@@ -96,7 +96,7 @@ if (is_array($_SESSION['_lit_data'])){
     }
 }
 
-PageLayout::removeStylesheet('style.css');
+PageLayout::removeStylesheet('studip-base.css');
 PageLayout::addStylesheet('print.css'); // use special stylesheet for printing
 $layout = $GLOBALS['template_factory']->open('layouts/base');
 

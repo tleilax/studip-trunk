@@ -30,7 +30,7 @@
  * @property string description database column
  * @property SimpleORMapCollection entries has_many DatafieldEntryModel
  */
-class DataField extends SimpleORMap
+class DataField extends SimpleORMap implements PrivacyObject
 {
     protected static $permission_masks = array(
         'user'   => 1,
@@ -290,5 +290,33 @@ class DataField extends SimpleORMap
     public function count()
     {
         return DatafieldEntryModel::countBySQL('datafield_id = ?', array($this->id));
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = DataField::findThru($user->user_id, [
+            'thru_table'        => 'datafields_entries',
+            'thru_key'          => 'range_id',
+            'thru_assoc_key'    => 'datafield_id',
+            'assoc_foreign_key' => 'datafield_id',
+        ]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('datafields', $field_data, $user);
+            }
+        }
+        return [_('Datenfelder') => $storage];
     }
 }

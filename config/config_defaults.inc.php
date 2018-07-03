@@ -56,14 +56,14 @@ $DYNAMIC_CONTENT_URL  = $ABSOLUTE_URI_STUDIP  . "pictures";
 
 
 //path to the temporary folder
-$TMP_PATH = "/srv/www/studip-el/StEPs/tmp/StEP00320";                                  //the system temp path
+$TMP_PATH ="/tmp";                                  //the system temp path
 
 // media proxy settings
 $MEDIA_CACHE_PATH = $STUDIP_BASE_PATH . '/data/media_cache';
 
 //caching
-$CACHING_ENABLE = false;
-$CACHING_FILECACHE_PATH = '/srv/www/studip-el/StEPs/tmp/StEP00320/studip_cache';
+$CACHING_ENABLE = true;
+$CACHING_FILECACHE_PATH = $TMP_PATH . '/studip_cache';
 $CACHE_IS_SESSION_STORAGE = false;                 //store session data in cache
 
 /*Stud.IP modules

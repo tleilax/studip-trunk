@@ -35,7 +35,7 @@
 * @author   André Noack <noack@data-quest.de>
 * @package
 */
-class StudipLitList extends TreeAbstract {
+class StudipLitList extends TreeAbstract implements PrivacyObject {
 
     var $format_default = "**{authors}** - {dc_title} - %%{published}%%";
     var $cat_element;
@@ -462,6 +462,28 @@ class StudipLitList extends TreeAbstract {
             }
         }
         return $ret;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM lit_list WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage->addTabularData('lit_list', $field_data, $user);
+        }
+        $storage2 = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM lit_list_content WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage2->addTabularData('lit_list_content', $field_data, $user);
+        }
+        return [_('Literaturlisten') => $storage, _('Literaturlisten Inhalte') => $storage2];
     }
 }
 ?>

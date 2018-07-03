@@ -145,7 +145,12 @@ class ElearningController extends AuthenticatedController
         if ($GLOBALS['perm']->have_perm('autor') AND count($this->cms_list)) {
             foreach($this->cms_list as $cms_key => $cms_data) {
                 if ($connected_cms[$cms_key]->user->isConnected()) {
-                    $widget->addLink(sprintf(_('Zur %s Startseite'), $cms_data['name']), URLHelper::getScriptLink($cms_data['start_link']), Icon::create('link-extern', 'clickable'), array('target' => '_blank'));
+                    $widget->addLink(
+                        sprintf(_('Zur %s Startseite'), $cms_data['name']),
+                        URLHelper::getScriptLink($cms_data['start_link']),
+                        Icon::create('link-extern', 'clickable'),
+                        ['target' => '_blank', 'rel' => 'noopener noreferrer']
+                    );
                     $link_count++;
                 }
             }

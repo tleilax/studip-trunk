@@ -18,7 +18,9 @@
             <? if ($cms_data['user'] AND $cms_data['start_link']) : ?>
                 <div class="messagebox messagebox_info" style="background-image: none; padding-left: 15px">
                     <?=_('Hier gelangen Sie direkt zur Startseite im angebundenen System:')?>
-                    <a href="<?=URLHelper::getScriptLink($cms_data['start_link'])?>" target="_blank"><?=htmlReady($cms_data['name'])?></a>
+                    <a href="<?= URLHelper::getScriptLink($cms_data['start_link']) ?>" target="_blank" rel="noopener noreferrer">
+                        <?= htmlReady($cms_data['name']) ?>
+                    </a>
                 </div>
                 <br>
             <? endif ?>

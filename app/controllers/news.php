@@ -53,7 +53,6 @@ class NewsController extends StudipController
                 'icon'  => 'person',
             ],
         ];
-        PageLayout::addSqueezePackage('tablesorter');
     }
 
     /**

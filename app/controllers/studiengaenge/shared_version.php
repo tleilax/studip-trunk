@@ -167,7 +167,6 @@ class SharedVersionController extends MVVController
                         $new_version->id, $old_version->id));
             }
             PageLayout::setTitle(_('Vergleichsansicht'));
-            PageLayout::addScript('mvv_difflog.js');
             PageLayout::addStylesheet('print.css');
             $factory = $this->get_template_factory();
             $template = $factory->open('studiengaenge/versionen/diff');

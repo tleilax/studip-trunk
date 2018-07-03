@@ -7,7 +7,7 @@ use SingleCalendar;
 use SingleDate;
 use Seminar;
 use Issue;
-use CalendarExportFile;
+use CalendarExport;
 use CalendarWriterICalendar;
 use SemesterData;
 
@@ -83,19 +83,21 @@ class Events extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
-        $export = new CalendarExportFile(new CalendarWriterICalendar());
-        $export->exportFromDatabase($user_id, 0, 2114377200, 'ALL_EVENTS', Calendar::getBindSeminare($user_id));
+        $export = new CalendarExport(new CalendarWriterICalendar());
+        $export->exportFromDatabase($user_id, 0, 2114377200, 'ALL_EVENTS');
 
-        if ($GLOBALS['_calendar_error']->getMaxStatus(\ERROR_CRITICAL)) {
+        if ($GLOBALS['_calendar_error']->getMaxStatus(\ErrorHandler::ERROR_CRITICAL)) {
             $this->halt(500);
         }
 
-        $filename = sprintf('%s/export/%s', $GLOBALS['TMP_PATH'], $export->getTempFileName());
+        $content = implode($export->getExport());
 
-        $this->sendFile($filename, array(
-                            'type' => 'text/calendar',
-                            'filename' => 'studip.ics'
-                        ));
+        $this->contentType('text/calendar');
+        $this->headers([
+            'Content-Length'      => strlen($content),
+            'Content-Disposition' => 'attachment; ' . encode_header_parameter('filename', 'studip.ics'),
+        ]);
+        $this->halt(200, $this->response->headers, $content);
     }
 
 

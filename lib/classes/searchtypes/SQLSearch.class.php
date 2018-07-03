@@ -171,6 +171,6 @@ class SQLSearch extends SearchType
      */
     public function includePath()
     {
-        return __file__;
+        return studip_relative_path(__FILE__);
     }
 }

@@ -35,7 +35,7 @@ class CoreAdmin implements StudipModule {
                 $item->setDescription(_('Bearbeiten der Grundeinstellungen dieser Veranstaltung.'));
                 $navigation->addSubNavigation('details', $item);
 
-                $item = new Navigation(_('Infobild'), 'dispatch.php/course/avatar/update/' . $course_id);
+                $item = new Navigation(_('Infobild'), 'dispatch.php/avatar/update/course/' . $course_id);
                 $item->setImage(Icon::create('file-pic', 'clickable'));
                 $item->setDescription(_('Infobild dieser Veranstaltung bearbeiten oder löschen.'));
                 $navigation->addSubNavigation('avatar', $item);
@@ -82,8 +82,8 @@ class CoreAdmin implements StudipModule {
                         $main->addSubNavigation('copy', $item);
                     }
 
-                    if (get_config('ALLOW_DOZENT_ARCHIV') || $GLOBALS['perm']->have_perm('admin')) {
-                        $item = new Navigation(_('Veranstaltung archivieren'), 'dispatch.php/course/archive/confirm');
+                    if (get_config('ALLOW_DOZENT_DELETE') || $GLOBALS['perm']->have_perm('admin')) {
+                        $item = new Navigation(_('Veranstaltung löschen'), 'dispatch.php/course/archive/confirm');
                         $item->setImage(Icon::create('seminar+remove', 'clickable'));
                         $main->addSubNavigation('archive', $item);
                     }

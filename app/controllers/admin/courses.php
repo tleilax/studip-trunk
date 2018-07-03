@@ -362,11 +362,11 @@ class Admin_CoursesController extends AuthenticatedController
         PageLayout::setHelpKeyword("Basis.Veranstaltungen");
         PageLayout::setTitle(_("Verwaltung von Veranstaltungen und Einrichtungen"));
         Sidebar::Get()->setTitle(_('Veranstaltungsadministration'));
-        PageLayout::addSqueezePackage('raumzeit');
+        PageLayout::addScript('studip-raumzeit.js');
         // Add admission functions.
-        PageLayout::addSqueezePackage('admission');
+        PageLayout::addScript('studip-admission.js');
         // Add subcourses listing.
-        PageLayout::addSqueezePackage('subcourses');
+        PageLayout::addScript('studip-subcourses.js');
     }
 
     /**
@@ -642,10 +642,11 @@ class Admin_CoursesController extends AuthenticatedController
             foreach (PluginManager::getInstance()->getPlugins("AdminCourseContents") as $plugin) {
                 foreach ($plugin->adminAvailableContents() as $index => $label) {
                     if (in_array($plugin->getPluginId()."_".$index, $filter_config)) {
-                        $content = $plugin->adminAreaGetCourseContent($course, $index);
-                        $row[$plugin->getPluginId()."_".$index] = is_a($content, "Flexi_Template")
+                        $content = $plugin->adminAreaGetCourseContent(Course::find($course_id), $index);
+                        $row[$plugin->getPluginId()."_".$index] = strip_tags(is_a($content, "Flexi_Template")
                             ? $content->render()
-                            : $content;
+                            : $content
+                        );
                     }
                 }
             }
@@ -1048,8 +1049,8 @@ class Admin_CoursesController extends AuthenticatedController
                 'attributes' => ['data-dialog' => 'size=big'],
             ),
             16 => array(
-                'name'       => _('Archivieren'),
-                'title'      => _('Archivieren'),
+                'name'       => _('Löschen'),
+                'title'      => _('Löschen'),
                 'url'        => 'dispatch.php/course/archive/confirm',
                 'multimode'  => true
             ),
@@ -1075,7 +1076,7 @@ class Admin_CoursesController extends AuthenticatedController
 
         if (!$GLOBALS['perm']->have_perm('admin')) {
             unset($actions[8]);
-            if (!get_config('ALLOW_DOZENT_ARCHIV')) {
+            if (!get_config('ALLOW_DOZENT_DELETE')) {
                 unset($actions[16]);
             }
         }

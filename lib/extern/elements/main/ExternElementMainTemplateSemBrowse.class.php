@@ -43,7 +43,7 @@ class ExternElementMainTemplateSemBrowse extends ExternElementMain {
             'name', 'includeurl', 'grouping', 'semstart', 'semrange', 'semswitch', 'allseminars', 'rangepathlevel',
             'time', 'lecturer', 'semclasses', 'aliasesgrouping', 'nameformat',
             'language', 'genericdatafields', 'mode', 'countshowsublevels', 'startitem',
-            'disableemptylevels', 'selectedeventtypes', 'resultsortby', 'maxnumberofhits', 'maxpagesresultbrowser'
+            'disableemptylevels', 'selectedeventtypes', 'resultorderby', 'maxnumberofhits', 'maxpagesresultbrowser'
         );
         $this->real_name = _("Grundeinstellungen");
         $this->description = _("In den Grundeinstellungen können Sie allgemeine Daten des Moduls ändern.");

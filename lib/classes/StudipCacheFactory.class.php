@@ -86,9 +86,7 @@ class StudipCacheFactory
         $arguments = json_encode($arguments);
 
         // strip leading STUDIP_BASE_PATH from file path
-        if (mb_strpos($file, $GLOBALS['STUDIP_BASE_PATH']) === 0) {
-            $file = mb_substr($file, mb_strlen($GLOBALS['STUDIP_BASE_PATH']) + 1);
-        }
+        $file = studip_relative_path($file);
 
         self::unconfigure();
 

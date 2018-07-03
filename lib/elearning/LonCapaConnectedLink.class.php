@@ -1,43 +1,39 @@
 <?php
-require_once("ConnectedLink.class.php");
-
 /**
-*
-* This class contains methods to generate links to LonCapa
-* @access   public
-* @modulegroup  elearning_interface_modules
-* @module       LonCapaConnectedLink
-* @package  ELearning-Interface
-*/
-
+ *
+ * This class contains methods to generate links to LonCapa
+ *
+ * @modulegroup  elearning_interface_modules
+ * @module       LonCapaConnectedLink
+ * @package  ELearning-Interface
+ */
 class LonCapaConnectedLink extends ConnectedLink
 {
     /**
-    * get user module links
-    *
-    * returns content module links for user
-    * @access public
-    * @return string html-code
-    */
-
-    function getUserModuleLinks()
+     * get user module links
+     *
+     * returns content module links for user
+     * @return string html-code
+     */
+    public function getUserModuleLinks()
     {
         global $connected_cms, $current_module;
 
         $url = URLHelper::getURL('dispatch.php/loncapa/enter', array('cms_type' => $this->cms_type, 'module' => $current_module));
 
-        return Studip\LinkButton::create(_("Starten"), $url, array('target' => '_blank'));
+        return Studip\LinkButton::create(_('Starten'), $url, [
+            'target' => '_blank',
+            'rel'    => 'noopener noreferrer',
+        ]);
     }
 
     /**
-    * get admin module links
-    *
-    * returns links add or remove a module from course
-    * @access public
-    * @return string returns html-code
-    */
-
-    function getAdminModuleLinks()
+     * get admin module links
+     *
+     * returns links add or remove a module from course
+     * @return string returns html-code
+     */
+    public function getAdminModuleLinks()
     {
         global $connected_cms, $view, $search_key, $cms_select, $current_module;
         global $template_factory;
@@ -50,16 +46,25 @@ class LonCapaConnectedLink extends ConnectedLink
         return $template->render(compact('view', 'search_key', 'cms_select', 'current_module'));
     }
 
-    function getRedirectUrl($module_id, $course_id)
+    /**
+     * returns url for connected LonCapa course
+     *
+     * @param string $module_id LonCapa ID
+     * @param string $course_id Stud.IP course ID
+     * @return string url for LonCapa
+     */
+    public function getRedirectUrl($module_id, $course_id)
     {
         $token = new Token($GLOBALS['user']->id, 60);
 
-        $url = sprintf('%s/enter/%s?token=%s&courseid=%s&systemid=%s',
-                $this->cms_link,
-                $module_id,
-                $token->get_token(),
-                $course_id,
-                $this->cms_type);
+        $url = sprintf(
+            '%s/enter/%s?token=%s&courseid=%s&systemid=%s',
+            $this->cms_link,
+            $module_id,
+            $token->get_token(),
+            $course_id,
+            $this->cms_type
+        );
         return $url;
     }
 }

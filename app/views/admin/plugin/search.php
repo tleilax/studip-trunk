@@ -16,7 +16,7 @@ use Studip\Button, Studip\LinkButton;
 <? if (empty($search_results)): ?>
     <?= MessageBox::info(_('Es wurden keine Plugins gefunden.')) ?>
 <? else: ?>
-    <table class="default">
+    <table class="default nohover">
         <caption>
         <? if ($search === null): ?>
             <?= _('Empfohlene Plugins') ?>
@@ -39,7 +39,7 @@ use Studip\Button, Studip\LinkButton;
                 <td class="plugin_image">
                     <? if ($plugin['image']): ?>
                         <? if ($plugin['plugin_url']): ?>
-                            <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank">
+                            <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank" rel="noopener noreferrer">
                                 <img src="<?= htmlReady($plugin['image']) ?>" class="plugin_preview">
                             </a>
                         <? else: ?>
@@ -49,20 +49,24 @@ use Studip\Button, Studip\LinkButton;
                 </td>
                 <td>
                 <? if ($plugin['plugin_url']): ?>
-                    <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank">
+                    <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank" rel="noopener noreferrer">
                         <strong><?= htmlReady($name) ?></strong>
                     </a>
                 <? else: ?>
                     <strong><?= htmlReady($name) ?></strong>
                 <? endif ?>
                 <? if (mb_strlen($plugin['description']) > 500) : ?>
-                    <div class="plugin_description">
+                <span class="plugin_description short">
+                    <div>
                         <?= nl2br(htmlReady($plugin['description'])) ?>
 
-                        <p class="read_more">
-                            <a href="#" onClick="$(this).parent().hide().parent().css('max-height', 'none').css('overflow', 'auto');return false;" class="button"><?= _('Weiterlesen') ?></a>
-                        </p>
+                        <p class="read_more"></p>
                     </div>
+
+                    <a href="" class="read_more_link" onClick="jQuery(this).parent().toggleClass('short');return false;">
+                        <span><?= _('Weiterlesen') ?></span>
+                    </a>
+                </span>
                 <? else: ?>
                     <p>
                         <?= nl2br(htmlReady($plugin['description'])) ?>

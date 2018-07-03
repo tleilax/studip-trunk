@@ -47,12 +47,12 @@ class WikiProvider implements ActivityProvider
      * posts an activity for a given notification event
      *
      * @param String $event a notification for an activity
-     * @param Array  $info information which a relevant for the activity
+     * @param \WikiPage  $info information which a relevant for the activity
      */
     public function postActivity($event, $info)
     {
-        $range_id = $info[0];
-        $keyword = $info[1];
+        $range_id = $info['range_id'];
+        $keyword = $info['keyword'];
 
         $type     = get_object_type($range_id);
         if ($type == 'sem') {

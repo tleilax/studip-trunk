@@ -39,9 +39,9 @@ use Studip\Button, Studip\LinkButton;
             <? foreach ($rule->getUngroupedConditions() as $condition): ?>
                 <? $condition->show_user_count = true; ?>
                 <div class="condition" id="condition_<?= $condition->getId() ?>">
-                <? if ($rule->conditiongroupsAllowed()): ?>
-                    <input type="checkbox" name="conditions_checkbox[]" value="<?= htmlReady(ObjectBuilder::exportAsJson($condition)) ?>">
-                <? endif; ?>
+                    <? if ($rule->conditiongroupsAllowed()): ?>
+                        <input type="checkbox" name="conditions_checkbox[]" value="<?= htmlReady(ObjectBuilder::exportAsJson($condition)) ?>">
+                    <? endif; ?>
                     <?= $condition->toString() ?>
                     <a href="#" onclick="return STUDIP.UserFilter.removeConditionField($(this).parent())"
                         class="conditionfield_delete">
@@ -54,7 +54,7 @@ use Studip\Button, Studip\LinkButton;
         </div>
         <? if ($rule->conditiongroupsAllowed()): ?>
             <input type="hidden" name="conditiongroups_allowed" value="1">
-            <?= Button::create(_('Kontingent erstellen'), 'group_conditions', array('class' => 'group_conditions', 'onclick' => 'return STUDIP.UserFilter.groupConditions()', 'style' => (count($rule->getUngroupedConditions()) > 1 ? '' : 'display: none'))) ?>
+            <?= Button::create(_('Kontingent erstellen'), 'group_conditions', array('class' => 'group_conditions', 'onclick' => 'return STUDIP.UserFilter.groupConditions()', 'style' => $rule->getUngroupedConditions() ? '' : 'display: none')) ?>
             <? foreach ($rule->getConditiongroups() as $conditiongroup_id => $conditiongroup): ?>
             <div class="grouped_conditions" id="conditiongroup_<?=$conditiongroup_id?>" style="margin-bottom: 5px">
                 <div class="condition_list">

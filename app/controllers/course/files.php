@@ -27,7 +27,6 @@ class Course_FilesController extends AuthenticatedController
         $this->course = Course::findCurrent();
         $this->last_visitdate = object_get_visit($this->course->id, 'documents');
 
-        PageLayout::addSqueezePackage('files');
         PageLayout::setHelpKeyword('Basis.Dateien');
         PageLayout::setTitle(Context::get()->getFullname() . ' - ' . _('Dateien'));
 
@@ -224,7 +223,7 @@ class Course_FilesController extends AuthenticatedController
             $this->redirect(
                 FileManager::getDownloadURLForTemporaryFile(
                     basename($tmp_file),
-                    basename($tmp_file) . '.zip'
+                    $this->top_folder->name . '.zip'
                 )
             );
         } else {

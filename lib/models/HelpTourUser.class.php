@@ -29,19 +29,42 @@
  * @author      Arne Schröder <schroeder@data-quest>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
- * 
+ *
  * @property string tour_id database column
  * @property string user_id database column
  * @property string step_nr database column
  * @property string completed database column
  * @property string id computed column read/write
  */
-class HelpTourUser extends SimpleORMap
+class HelpTourUser extends SimpleORMap implements PrivacyObject
 {
     protected static function configure($config = [])
     {
         $config['db_table'] = 'help_tour_user';
 
         parent::configure($config);
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user )
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('help_tour_user', $field_data, $user);
+            }
+        }
+        return [_('Hilfetouren') => $storage];
     }
 }

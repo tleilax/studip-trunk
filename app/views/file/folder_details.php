@@ -1,23 +1,22 @@
 <?php
-    $folder_template = $folder->getDescriptionTemplate();
+$folder_template = $folder->getDescriptionTemplate();
 ?>
 <div id="file_edit_window">
     <?= $this->render_partial('file/_folder_aside.php') ?>
 
     <div id="file_management_forms">
-        <h3><?= _('Eigenschaften') ?></h3>
-        <article>
-        <? if ($folder_template instanceof Flexi_Template): ?>
-            <?= $folder_template->render() ?>
-        <? else: ?>
-            <?= $folder_template ?>
+        <h3><?= _('Ordnertyp') ?></h3>
+        <article><?= htmlReady($folder->getTypeName()) ?></article>
+        <? if (!empty($folder_template)) : ?>
+            <h3><?= _('Beschreibung') ?></h3>
+            <article>
+            <? if ($folder_template instanceof Flexi_Template): ?>
+                <?= $folder_template->render() ?>
+            <? else: ?>
+                <?= $folder_template ?>
+            <? endif; ?>
+            </article>
         <? endif; ?>
-        </article>
-
-    <? if ($folder->description): ?>
-        <h3><?= _('Beschreibung') ?></h3>
-        <article><?= htmlReady($folder->description, true, true); ?></article>
-    <? endif; ?>
     </div>
 </div>
 

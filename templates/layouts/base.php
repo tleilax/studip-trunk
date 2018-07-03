@@ -47,19 +47,31 @@ if ($navigation) {
               href="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>" type="application/vnd.oftn.l10n+json">
     <? endif ?>
 
+    <script>
+    window.STUDIP = {
+        ABSOLUTE_URI_STUDIP: "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>",
+        ASSETS_URL: "<?= $GLOBALS['ASSETS_URL'] ?>",
+        CSRF_TOKEN: {
+            name: '<?=CSRFProtection::TOKEN?>',
+            value: '<? try {echo CSRFProtection::token();} catch (SessionRequiredException $e){}?>'
+        },
+        STUDIP_SHORT_NAME: "<?= htmlReady(Config::get()->STUDIP_SHORT_NAME) ?>",
+        URLHelper: {
+            base_url: "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>",
+            parameters: <?= json_encode(URLHelper::getLinkParams(), JSON_FORCE_OBJECT) ?>
+        },
+        jsupdate_enable: <?= json_encode(
+                         is_object($GLOBALS['perm']) &&
+                         $GLOBALS['perm']->have_perm('autor') &&
+                         PersonalNotifications::isActivated()) ?>,
+        wysiwyg_enabled: <?= json_encode((bool) Config::get()->WYSIWYG) ?>
+    }
+    </script>
+
     <?= PageLayout::getHeadElements() ?>
 
     <script>
-        STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
-        STUDIP.URLHelper.base_url = STUDIP.ABSOLUTE_URI_STUDIP;
-
-        STUDIP.ASSETS_URL = "<?= $GLOBALS['ASSETS_URL'] ?>";
-        STUDIP.STUDIP_SHORT_NAME = "<?= htmlReady(Config::get()->STUDIP_SHORT_NAME) ?>";
-        STUDIP.jsupdate_enable = <?= is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor') && PersonalNotifications::isActivated() ? 'true' : 'false' ?>;
-        STUDIP.wysiwyg_enabled = <?= Config::get()->WYSIWYG ? 'true' : 'false' ?>;
-        STUDIP.editor_enabled = <?= Studip\Markup::editorEnabled() ? 'true' : 'false' ?> && CKEDITOR.env.isCompatible;
-        STUDIP.URLHelper.parameters = <?= json_encode(URLHelper::getLinkParams()) ?>;
-        STUDIP.CSRF_TOKEN = {name: '<?=CSRFProtection::TOKEN?>', value: '<? try {echo CSRFProtection::token();} catch (SessionRequiredException $e){}?>'};
+    window.STUDIP.editor_enabled = <?= json_encode((bool) Studip\Markup::editorEnabled()) ?> && CKEDITOR.env.isCompatible;
     </script>
 </head>
 

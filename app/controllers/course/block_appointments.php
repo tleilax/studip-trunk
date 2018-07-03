@@ -35,7 +35,7 @@ class Course_BlockAppointmentsController extends AuthenticatedController
         ) {
             throw new Trails_Exception(400);
         }
-        PageLayout::addSqueezePackage('raumzeit');
+        PageLayout::addScript('studip-raumzeit.js');
         PageLayout::setHelpKeyword('Basis.VeranstaltungenVerwaltenAendernVonZeitenUndTerminen');
         PageLayout::setTitle(Course::findCurrent()->getFullname() . " - " . _('Blockveranstaltungstermine anlegen'));
     }

@@ -38,7 +38,6 @@ class FilesController extends AuthenticatedController
 
         PageLayout::setTitle(_('Meine Dateien'));
         PageLayout::setHelpKeyword('Basis.Dateien');
-        PageLayout::addSqueezePackage('tablesorter');
 
         $this->user = User::findCurrent();
         $this->last_visitdate = time();
@@ -185,8 +184,7 @@ class FilesController extends AuthenticatedController
         }
 
         $this->topFolder = $folder->getTypedFolder();
-
-        if (!$this->topFolder->isVisible($GLOBALS['user']->id)) {
+        if (!$this->topFolder->isVisible($GLOBALS['user']->id) || $this->topFolder->range_id !== $GLOBALS['user']->id) {
             throw new AccessDeniedException();
         }
 

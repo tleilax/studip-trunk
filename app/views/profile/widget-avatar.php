@@ -1,8 +1,15 @@
-<div class="text-center">
+<div class="text-center avatar-widget">
     <?= $avatar->getImageTag(Avatar::NORMAL, [
         'class' => 'profile-avatar',
         'style' => ''
     ]) ?>
+    <?php if ($GLOBALS['perm']->have_profile_perm('user', $current_user)) : ?>
+        <div class="avatar-overlay">
+            <a href="<?= URLHelper::getURL('dispatch.php/avatar/update/user/' . $current_user) ?>" data-dialog>
+                <span><?= _('Bild hochladen oder löschen') ?></span>
+            </a>
+        </div>
+    <?php endif ?>
 </div>
 <div class="profile-sidebar-details">
     <? if ($kings): ?>

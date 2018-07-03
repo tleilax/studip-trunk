@@ -1,5 +1,4 @@
 <?php
-
 namespace eTask;
 
 /**
@@ -24,7 +23,7 @@ namespace eTask;
  *  @property JSONArrayobject response serialized database column
  *  @property JSONArrayobject options serialized database column
  */
-class Response extends \SimpleORMap
+class Response extends \SimpleORMap implements \PrivacyObject
 {
     use ConfigureTrait;
 
@@ -61,5 +60,28 @@ class Response extends \SimpleORMap
         $config['serialized_fields']['options'] = 'JSONArrayObject';
 
         parent::configure($config);
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(\User $user)
+    {
+        $storage = new \StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('etask_responses', $field_data, $user);
+            }
+        }
+        return [_('eTask Antworten') => $storage];
     }
 }

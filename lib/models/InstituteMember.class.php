@@ -35,7 +35,7 @@
  * @property User user belongs_to User
  * @property Institute institute belongs_to Institute
  */
-class InstituteMember extends SimpleORMap
+class InstituteMember extends SimpleORMap implements PrivacyObject
 {
 
     protected static function configure($config = array())
@@ -165,5 +165,28 @@ class InstituteMember extends SimpleORMap
         }
 
         return $result;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id=?", array($user->user_id));
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('user_inst', $field_data, $user);
+            }
+        }
+        return [_('Einrichtungs Informationen') => $storage];
     }
 }

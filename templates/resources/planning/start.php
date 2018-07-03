@@ -191,7 +191,7 @@
         </tr>
     <? endif; ?>
     </tbody>
-<? if (is_array($open_requests) && count($open_requests) > 0): ?>
+<? if ($open_requests > 0): ?>
     <tfoot>
         <tr class="table_footer">
             <td>&nbsp;</td>

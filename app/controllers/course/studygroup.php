@@ -28,7 +28,6 @@ class Course_StudygroupController extends AuthenticatedController
             }
             PageLayout::setTitle(_("Studiengruppe bearbeiten"));
             PageLayout::setHelpKeyword('Basis.Studiengruppen');
-            PageLayout::addSqueezePackage('tablesorter');
         } else {
             throw new Exception(_("Die von Ihnen gewählte Option ist im System nicht aktiviert."));
         }
@@ -81,7 +80,7 @@ class Course_StudygroupController extends AuthenticatedController
         } else {
             PageLayout::setTitle($studygroup->getFullname() . ' - ' . _('Studiengruppendetails'));
             PageLayout::setHelpKeyword('Basis.StudiengruppenAbonnieren');
-            PageLayout::addSqueezePackage('enrolment');
+            PageLayout::addScript('studip-enrolment.js');
 
             $stmt = DBManager::get()->prepare("SELECT * FROM admission_seminar_user"
                                               . " WHERE user_id = ? AND seminar_id = ?");
@@ -482,7 +481,7 @@ class Course_StudygroupController extends AuthenticatedController
                 $this->url_for('course/wizard?studygroup=1'), Icon::create('studygroup+add', 'clickable'));
             if ($GLOBALS['perm']->have_studip_perm('tutor', $id)) {
                 $actions->addLink(_('Bild ändern'),
-                    $this->url_for('course/avatar/update/' . $id), Icon::create('edit', 'clickable'));
+                    $this->url_for('avatar/update/course' . $id), Icon::create('edit', 'clickable'));
             }
             $actions->addLink(_('Diese Studiengruppe löschen'),
                 $this->url_for('course/studygroup/delete/' . $id), Icon::create('trash', 'clickable'));

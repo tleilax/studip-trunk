@@ -22,23 +22,26 @@ class TermsController extends AuthenticatedController
         PageLayout::setTitle(_('Nutzungsbedingungen'));
 
         $this->return_to = Request::get('return_to');
+        $this->redirect_token = Request::get('redirect_token');
 
         if (Request::isPost()) {
+            CSRFProtection::verifyUnsafeRequest();
             if (Request::submitted('accept')) {
                 $GLOBALS['user']->cfg->store('TERMS_ACCEPTED', 1);
                 $this->redirectUser();
             } else {
                 $this->redirectUser('logout.php');
             }
-            return;
         }
     }
 
     private function redirectUser($target = null)
     {
-        $target = $target ?: Request::get('return_to') ?: 'dispatch.php/start';
-        $this->response->add_header('Location', URLHelper::getURL($target));
-        $this->response->set_status(302);
-        $this->render_nothing();
+        if (Token::is_valid(Request::option('redirect_token') === $GLOBALS['user']->id) && Request::get('return_to')) {
+            $target = Request::get('return_to') ;
+        } else {
+            $target = $target ?: 'dispatch.php/start';
+        }
+        $this->redirect(URLHelper::getURL($target));
     }
 }

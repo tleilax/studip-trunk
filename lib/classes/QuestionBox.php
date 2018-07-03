@@ -97,7 +97,7 @@ class QuestionBox implements LayoutMessage
     {
         $parameters = array_merge(
             $this->extractURLParameters($url),
-            $parametes
+            $parameters
         );
 
         $this->decline_url        = $url;

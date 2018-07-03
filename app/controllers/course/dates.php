@@ -18,8 +18,7 @@ class Course_DatesController extends AuthenticatedController
             PageLayout::setTitle(_('Termine'));
         }
 
-        PageLayout::addSqueezePackage('tablesorter');
-        PageLayout::addScript('raumzeit');
+        PageLayout::addScript('studip-raumzeit.js');
 
         Sidebar::get()->setImage('sidebar/date-sidebar.png');
 
@@ -65,7 +64,7 @@ class Course_DatesController extends AuthenticatedController
             $actions->addLink(
                 _('Neuer Einzeltermin'),
                 $this->url_for('course/dates/singledate'),
-                Icon::create('add', 'clickable')
+                Icon::create('add')
             )->asDialog('size=auto');
         }
 
@@ -73,19 +72,19 @@ class Course_DatesController extends AuthenticatedController
             $actions->addLink(
                 _('Sitzungsordner anlegen'),
                 $this->url_for('course/dates/create_folders'),
-                Icon::create('folder-topic-empty', 'clickable')
+                Icon::create('folder-topic-empty')
             )->asDialog('size=auto');
         }
         $actions->addLink(
             _('Als Doc-Datei runterladen'),
             $this->url_for('course/dates/export'),
-            Icon::create('file-word', 'clickable')
+            Icon::create('file-word')
         );
 
         $actions->addLink(
             _('Als CSV-Datei exportieren'),
             $this->url_for('course/dates/export_csv'),
-            Icon::create('file-excel', 'clickable')
+            Icon::create('file-excel')
         );
 
         Sidebar::get()->addWidget($actions);
@@ -405,6 +404,8 @@ class Course_DatesController extends AuthenticatedController
             _('Typ'),
             _('Thema'),
             _('Beschreibung'),
+            _('Lehrende'),
+            _('Gruppen'),
             _('Raum'),
             _('Raumbeschreibung'),
             _('Sitzplätze')
@@ -439,6 +440,26 @@ class Course_DatesController extends AuthenticatedController
                 $row[] = trim($issue);
                 $row[] = trim($descr);
             }
+
+            $related_persons = '';
+
+            if ($date->related_persons) {
+                foreach ($date->related_persons as $user_id) {
+                    $related_persons .= User::find($user_id)->getFullname() . "\n";
+                }
+            }
+
+            $row[] = trim($related_persons);
+
+            $related_groups = '';
+
+            if ($date->related_groups) {
+                foreach ($date->related_groups as $group_id) {
+                    $related_groups .= Statusgruppen::find($group_id)->name . "\n";
+                }
+            }
+
+            $row[] = trim($related_groups);
 
             if ($date->resource_id) {
                 $resource_object = ResourceObject::Factory($date->resource_id);
@@ -496,22 +517,22 @@ class Course_DatesController extends AuthenticatedController
             $root_folder_id = Folder::findTopFolder($this->course->id)->getId();
             foreach (Request::optionArray('course_date_folders') as $termin_id) {
                 $folder = Folder::build([
-                    'range_id' => $this->course->id,
-                    'parent_id' => $root_folder_id,
-                    'range_type' => "course",
-                    'folder_type' => "CourseTopicFolder",
-                    'user_id' => $GLOBALS['user']->id
+                    'range_id'    => $this->course->id,
+                    'parent_id'   => $root_folder_id,
+                    'range_type'  => 'course',
+                    'folder_type' => 'CourseTopicFolder',
+                    'user_id'     => $GLOBALS['user']->id
                 ]);
                 $date_folder = new CourseDateFolder($folder);
-                $ok = $date_folder->setDataFromEditTemplate(
-                    ['course_date_folder_termin_id' => $termin_id,
-                     'course_date_folder_perm_write' => Request::get('course_date_folder_perm_write')
-                    ]);
+                $ok = $date_folder->setDataFromEditTemplate([
+                    'course_date_folder_termin_id'  => $termin_id,
+                    'course_date_folder_perm_write' => Request::get('course_date_folder_perm_write')
+                ]);
                 if ($ok instanceof CourseDateFolder) {
                     $count += $ok->store();
                 }
             }
-            PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner erstellt.'), $count));
+            PageLayout::postSuccess(sprintf(_('Es wurden %u Ordner erstellt.'), $count));
             $this->relocate($this->url_for('/index'));
         }
     }

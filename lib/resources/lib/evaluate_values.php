@@ -1669,8 +1669,13 @@ if (Request::submitted('save_state')) {
             //check all selected resources for perms
             foreach ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["selected_resources"] as $key=>$val) {
                 $resPerms = ResourceObjectPerms::Factory($val);
-                if (!$resPerms->havePerm("autor"))
+
+                // only do the perms-check, if the selected resource has changed
+                if ($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]['groups'][$key]['resource_id'] != $val
+                        && !$resPerms->havePerm("autor")
+                ) {
                     $no_perm = TRUE;
+                }
                 $resPerms ='';
             }
 

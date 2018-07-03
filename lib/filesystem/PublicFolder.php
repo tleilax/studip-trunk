@@ -88,30 +88,6 @@ class PublicFolder extends StandardFolder
     }
 
     /**
-     * PublicFolders are writable for the owner.
-     *
-     * @param string $user_id The user who wishes to write inside the folder.
-     *
-     * @return bool True, if the user is the owner, false otherwise.
-     */
-    public function isWritable($user_id)
-    {
-        return $user_id === $GLOBALS['user']->id;
-    }
-
-    /**
-     * Only the owner may put subfolders inside a PublicFolder.
-     *
-     * @param string $user_id The user who wishes to create a subfolder inside the folder.
-     *
-     * @return bool True, if the user is the owner, false otherwise.
-     */
-    public function isSubfolderAllowed($user_id)
-    {
-        return $user_id === $GLOBALS['user']->id;
-    }
-
-    /**
      * Returns a description template for PublicFolders.
      *
      * @return string A string describing this folder type.
@@ -150,7 +126,7 @@ class PublicFolder extends StandardFolder
     public function isFileEditable($file_id, $user_id)
     {
         //only the owner may edit files
-        return $user_id === $this->folderdata['user_id'];
+        return $this->range_id === $user_id;
     }
 
     /**
@@ -164,7 +140,7 @@ class PublicFolder extends StandardFolder
     public function isFileWritable($file_id, $user_id)
     {
         //only the owner may delete files
-        return $user_id === $this->folderdata['user_id'];
+        return $this->range_id === $user_id;
     }
 
     /**

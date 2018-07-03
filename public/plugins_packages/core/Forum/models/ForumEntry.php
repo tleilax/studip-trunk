@@ -12,7 +12,8 @@
  * @category    Stud.IP
  */
 
-class ForumEntry {
+class ForumEntry  implements PrivacyObject
+{
     const WITH_CHILDS = true;
     const WITHOUT_CHILDS = false;
     const THREAD_PREVIEW_LENGTH = 100;
@@ -30,7 +31,7 @@ class ForumEntry {
      * @param string $text the text to work on
      * @returns string
      */
-    static function br2space($text)
+    public static function br2space($text)
     {
         return str_replace("\n", ' ', str_replace("\r", '', $text));
     }
@@ -41,7 +42,7 @@ class ForumEntry {
      * @param string $description the posting-content
      * @return string the content stripped by the edit-mark
      */
-    static function killEdit($description)
+    public static function killEdit($description)
     {
         // wurde schon mal editiert
         if (preg_match('/^(.*)(<admin_msg.*?)$/s', $description, $match)) {
@@ -56,7 +57,7 @@ class ForumEntry {
      * @param string $description the posting-content
      * @return string the content with the edit-mark
      */
-    static function appendEdit($description)
+    public static function appendEdit($description)
     {
         $edit = "<admin_msg autor=\"" . addslashes(get_fullname()) . "\" chdate=\"" . time() . "\">";
         return $description . $edit;
@@ -68,7 +69,7 @@ class ForumEntry {
      * @param string $description the posting-content
      * @return string the content with the raw text version of the edit-mark
      */
-    static function parseEdit($description, $anonymous = false)
+    public static function parseEdit($description, $anonymous = false)
     {
         // TODO figure out if this function can be removed
         //      has been replaced with getContentAsHTML in core code
@@ -85,7 +86,7 @@ class ForumEntry {
      *                              authors.
      * @return string  Content and edit comment as HTML.
      */
-    static function getContentAsHtml($description, $anonymous = false)
+    public static function getContentAsHtml($description, $anonymous = false)
     {
         $raw_content = ForumEntry::killEdit($description);
 
@@ -107,7 +108,7 @@ class ForumEntry {
      *                              authors.
      * @return string  Author and time or empty string if not edited.
      */
-    static function getEditComment($description, $anonymous = false)
+    public static function getEditComment($description, $anonymous = false)
     {
         $info = ForumEntry::getEditInfo($description);
         if ($info) {
@@ -126,7 +127,7 @@ class ForumEntry {
      * @return array    Associative array containing author and time.
      *         boolean  False if edit tag was not found.
      */
-    static function getEditInfo($description) {
+    public static function getEditInfo($description) {
         if (preg_match('/<admin_msg autor="([^"]*)" chdate="([^"]*)">\s*$/i', $description, $matches)) {
             // wurde schon mal editiert
             return array('author' => $matches[1], 'time' => $matches[2]);
@@ -140,7 +141,7 @@ class ForumEntry {
      * @param string $description the posting-content
      * @return string the posting without [quote]-tags
      */
-    static function killQuotes($description)
+    public static function killQuotes($description)
     {
         return str_replace('[/quote]', '', preg_replace("/\[quote=.*\]/U", "", $description));
     }
@@ -166,9 +167,8 @@ class ForumEntry {
      * @param string $text the text to parse
      * @return string the text without format-tags and without smileys
      */
-    static function killFormat($text)
+    public static function killFormat($text)
     {
-
         $text = kill_format($text);
 
         // find stuff which is enclosed between to colons
@@ -192,7 +192,7 @@ class ForumEntry {
      *
      * @throws Exception
      */
-    static function getConstraints($topic_id)
+    public static function getConstraints($topic_id)
     {
         //very bad performance if topic_id is 0 or false
         if (!$topic_id) return false;
@@ -221,7 +221,7 @@ class ForumEntry {
      *
      * @return string the topic_id of the parent element or false
      */
-    static function getParentTopicId($topic_id)
+    public static function getParentTopicId($topic_id)
     {
         $path = ForumEntry::getPathToPosting($topic_id);
         array_pop($path);
@@ -237,7 +237,7 @@ class ForumEntry {
      * @param string $topic_id the topic_id to find the childs for
      * @return array a list if topic_ids
      */
-    static function getChildTopicIds($topic_id)
+    public static function getChildTopicIds($topic_id)
     {
         $constraints = ForumEntry::getConstraints($topic_id);
 
@@ -259,7 +259,7 @@ class ForumEntry {
       * @param  string  $topic_id
       * @return  int
       */
-    static function getPostingPage($topic_id, $constraint = null)
+    public static function getPostingPage($topic_id, $constraint = null)
     {
         if (!$constraint) {
             $constraint = ForumEntry::getConstraints($topic_id);
@@ -283,7 +283,7 @@ class ForumEntry {
      * @param string $parent_id
      * @return string  id of oldest unread posting
      */
-    static function getLastUnread($parent_id)
+    public static function getLastUnread($parent_id)
     {
         $constraint = ForumEntry::getConstraints($parent_id);
 
@@ -308,7 +308,7 @@ class ForumEntry {
      * @param string $parent_id the node to lookup the childs in
      * @return mixed the data for the latest postings or false
      */
-    static function getLatestPosting($parent_id)
+    public static function getLatestPosting($parent_id)
     {
         $constraint = ForumEntry::getConstraints($parent_id);
 
@@ -333,7 +333,7 @@ class ForumEntry {
      *
      * @return array
      */
-    static function getPathToPosting($topic_id)
+    public static function getPathToPosting($topic_id)
     {
         $data = ForumEntry::getConstraints($topic_id);
         $ret = array();
@@ -369,7 +369,7 @@ class ForumEntry {
      *
      * @return array
      */
-    static function getFlatPathToPosting($topic_id)
+    public static function getFlatPathToPosting($topic_id)
     {
         // use only the part of the path until the thread, no posting title
         $postings = array_slice(self::getPathToPosting($topic_id), 0, 3);
@@ -391,7 +391,7 @@ class ForumEntry {
      * @param  array $postings
      * @return array
      */
-    static function parseEntries($postings)
+    public static function parseEntries($postings)
     {
         $posting_list = array();
 
@@ -467,7 +467,7 @@ class ForumEntry {
      *
      * @throws Exception  if the retrieval failed, an Exception is thrown
      */
-    static function getEntries($parent_id, $with_childs = false, $add = '',
+    public static function getEntries($parent_id, $with_childs = false, $add = '',
         $sort_order = 'DESC', $start = 0, $limit = ForumEntry::POSTINGS_PER_PAGE)
     {
         $constraint = ForumEntry::getConstraints($parent_id);
@@ -546,7 +546,7 @@ class ForumEntry {
      * @param array $postings
      * @return array
      */
-    function getLastPostings($postings)
+    public function getLastPostings($postings)
     {
         foreach ($postings as $key => $posting) {
 
@@ -589,7 +589,7 @@ class ForumEntry {
      * @param string $parent_id the are to fetch from
      * @return array array('list' => ..., 'count' => ...);
      */
-    static function getList($type, $parent_id)
+    public static function getList($type, $parent_id)
     {
         $start = (ForumHelpers::getPage() - 1) * ForumEntry::POSTINGS_PER_PAGE;
 
@@ -759,7 +759,7 @@ class ForumEntry {
      *
      * @return array list of postings
      */
-    function getLatestSince($parent_id, $start_date, $end_date)
+    public function getLatestSince($parent_id, $start_date, $end_date)
     {
         $constraint = ForumEntry::getConstraints($parent_id);
 
@@ -780,7 +780,7 @@ class ForumEntry {
      * @param array $options filter-options: search_title, search_content, search_author
      * @return array array('list' => ..., 'count' => ...);
      */
-    static function getSearchResults($parent_id, $_searchfor, $options)
+    public static function getSearchResults($parent_id, $_searchfor, $options)
     {
         $start = (ForumHelpers::getPage() - 1) * ForumEntry::POSTINGS_PER_PAGE;
 
@@ -850,7 +850,7 @@ class ForumEntry {
      * @param string $topic_id
      * @return array hash-array with the entries fields
      */
-    static function getEntry($topic_id)
+    public static function getEntry($topic_id)
     {
         return ForumEntry::getConstraints($topic_id);
     }
@@ -862,7 +862,7 @@ class ForumEntry {
      *
      * @return int  the number of child entries for the passed entry
      */
-    static function countEntries($parent_id)
+    public static function countEntries($parent_id)
     {
         $data = ForumEntry::getConstraints($parent_id);
         return max((($data['rgt'] - $data['lft'] - 1) / 2) + 1, 0);
@@ -877,7 +877,7 @@ class ForumEntry {
      *
      * @return int  number of entries user has ever written
      */
-    static function countUserEntries($user_id, $seminar_id = null)
+    public static function countUserEntries($user_id, $seminar_id = null)
     {
         static $entries;
 
@@ -912,7 +912,7 @@ class ForumEntry {
      *
      * @return void
      */
-    static function insert($data, $parent_id)
+    public static function insert($data, $parent_id)
     {
         $constraint = ForumEntry::getConstraints($parent_id);
 
@@ -947,7 +947,7 @@ class ForumEntry {
      *
      * @return void
      */
-    static function update($topic_id, $name, $content)
+    public static function update($topic_id, $name, $content)
     {
         $post = ForumEntry::getConstraints($topic_id);
 
@@ -978,7 +978,7 @@ class ForumEntry {
      *
      * @return void
      */
-    function delete($topic_id)
+    public function delete($topic_id)
     {
         $post   = ForumEntry::getConstraints($topic_id);
         $parent = ForumEntry::getConstraints(ForumEntry::getParentTopicId($topic_id));
@@ -1042,7 +1042,7 @@ class ForumEntry {
      *
      * @return void
      */
-    static function move($topic_id, $destination)
+    public static function move($topic_id, $destination)
     {
         // #TODO: Zusammenfassen in eine Transaktion!!!
         $constraints = ForumEntry::getConstraints($topic_id);
@@ -1140,7 +1140,7 @@ class ForumEntry {
      *
      * @return void
      */
-    static function close($topic_id)
+    public static function close($topic_id)
     {
         // close all entries belonging to the topic
         $stmt = DBManager::get()->prepare("UPDATE forum_entries
@@ -1156,7 +1156,7 @@ class ForumEntry {
      *
      * @return void
      */
-    static function open($topic_id)
+    public static function open($topic_id)
     {
         // open all entries belonging to the topic
         $stmt = DBManager::get()->prepare("UPDATE forum_entries
@@ -1172,7 +1172,7 @@ class ForumEntry {
      *
      * @return void
      */
-    static function sticky($topic_id)
+    public static function sticky($topic_id)
     {
         // open all entries belonging to the topic
         $stmt = DBManager::get()->prepare("UPDATE forum_entries
@@ -1188,7 +1188,7 @@ class ForumEntry {
      *
      * @return void
      */
-    static function unsticky($topic_id)
+    public static function unsticky($topic_id)
     {
         // open all entries belonging to the topic
         $stmt = DBManager::get()->prepare("UPDATE forum_entries
@@ -1205,7 +1205,7 @@ class ForumEntry {
      *
      * @return void
      */
-    function checkRootEntry($seminar_id)
+    public function checkRootEntry($seminar_id)
     {
         setTempLanguage();
 
@@ -1253,7 +1253,7 @@ class ForumEntry {
      *
      * @return array
      */
-    static function getTopTenSeminars()
+    public static function getTopTenSeminars()
     {
         return DBManager::get()->query("SELECT a.seminar_id, b.name AS display,
             count( a.seminar_id ) AS count FROM forum_entries a
@@ -1270,7 +1270,7 @@ class ForumEntry {
      *
      * @return int
      */
-    static function countAllEntries()
+    public static function countAllEntries()
     {
         return count_table_rows('forum_entries');
     }
@@ -1281,7 +1281,7 @@ class ForumEntry {
      * @param string $user_from
      * @param string $user_to
      */
-    static function migrateUser($user_from, $user_to)
+    public static function migrateUser($user_from, $user_to)
     {
         $stmt = DBManager::get()->prepare("UPDATE forum_entries SET user_id = ? WHERE user_id = ?");
         $stmt->execute(array($user_to, $user_from));
@@ -1306,7 +1306,7 @@ class ForumEntry {
      *
      * @return string
      */
-    static function getDump($seminar_id, $parent_id = null)
+    public static function getDump($seminar_id, $parent_id = null)
     {
         $seminar_name = get_object_name($seminar_id, 'sem');
         $content = '<h1>'. _('Forum') .': '  . $seminar_name['name'] .'</h1>';
@@ -1332,7 +1332,7 @@ class ForumEntry {
         return $content;
     }
 
-    static public function isClosed($topic_id)
+    public static function isClosed($topic_id)
     {
         foreach(ForumEntry::getPathToPosting($topic_id) as $entry) {
             if ($entry['closed']) {
@@ -1341,5 +1341,22 @@ class ForumEntry {
         }
 
         return false;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM forum_entries WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage->addTabularData('forum_entries', $field_data, $user);
+        }
+        return [_('Forum Einträge') => $storage];
     }
 }

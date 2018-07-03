@@ -1,8 +1,8 @@
 <? if ($courses) : ?>
     <?= MessageBox::warning(
             ngettext(
-                'Sie sind im Begriff, die folgende Veranstaltung zu archivieren. Dieser Schritt kann nicht rückgängig gemacht werden!',
-                'Sie sind im Begriff, die folgenden Veranstaltungen zu archivieren. Dieser Schritt kann nicht rückgängig gemacht werden!',
+                'Sie sind im Begriff, die folgende Veranstaltung zu löschen. Dieser Schritt kann nicht rückgängig gemacht werden!',
+                'Sie sind im Begriff, die folgenden Veranstaltungen zu löschen. Dieser Schritt kann nicht rückgängig gemacht werden!',
                 count($courses)
             )
         ) ?>
@@ -60,12 +60,12 @@
     <tfoot>
         <tr>
             <td colspan="4">
-                <form class="default" action="<?= $controller->url_for('course/archive/archive') ?>" method="post" data-dialog>
+                <form class="default" action="<?= $controller->url_for('course/archive/archive') ?>" method="post">
                     <? foreach ($courses as $course) : ?>
                         <input type="hidden" name="courseIds[]" value="<?= $course['id'] ?>">
                     <? endforeach ?>
                     <div data-dialog-button>
-                        <?= \Studip\Button::create(_('Archivieren')) ?>
+                        <?= \Studip\Button::create(_('Löschen')) ?>
                     </div>
                 </form>
             </td>

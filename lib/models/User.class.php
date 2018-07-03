@@ -68,7 +68,7 @@
  * @property UserInfo   info   has_one UserInfo
  * @property UserOnline online has_one UserOnline
  */
-class User extends AuthUserMd5 implements Range
+class User extends AuthUserMd5 implements Range, PrivacyObject
 {
     /**
      *
@@ -1311,5 +1311,44 @@ class User extends AuthUserMd5 implements Range
     public function userMayAdministerRange($user_id = null)
     {
         return $this->userMayEditRange($user_id);
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $storage2 = new StoredUserData($user);
+        $sorm = User::findBySQL("user_id = ?", [$user->user_id]);
+
+        if ($sorm) {
+            $limit ='user_id username password perms vorname nachname email validation_key auth_plugin locked lock_comment locked_by visible';
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray($limit);
+            }
+            if ($field_data) {
+                $storage->addTabularData('auth_user_md5', $field_data, $user);
+            }
+
+            $limit = 'user_id hobby lebenslauf publi schwerp home privatnr privatcell privadr score geschlecht mkdate chdate title_front title_rear preferred_language smsforward_copy smsforward_rec email_forward smiley_favorite motto lock_rule';
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray($limit);
+            }
+            if ($field_data) {
+                $storage2->addTabularData('user_info', $field_data, $user);
+            }
+        }
+
+        return [
+            _('Kerndaten') => $storage,
+            _('Benutzer Informationen') => $storage2,
+        ];
     }
 }

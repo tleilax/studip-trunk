@@ -124,26 +124,26 @@ use Studip\Button, Studip\LinkButton;
                         $actionMenu->addLink(
                             $controller->url_for('admin/user/edit/' . $user->user_id),
                             _('Nutzer bearbeiten'),
-                            Icon::create('edit', 'clickable', tooltip2(_('Diesen Nutzer bearbeiten')))
+                            Icon::create('edit', Icon::ROLE_CLICKABLE, tooltip2(_('Diesen Nutzer bearbeiten')))
                         );
 
                         $actionMenu->addLink(
                             $controller->url_for('profile',['username' => $user->username]),
                             _('Zum Profil'),
-                            Icon::create('person', 'clickable', ['title' => _('Zum Profil')])
+                            Icon::create('person', Icon::ROLE_CLICKABLE, tooltip2(_('Zum Profil')))
                         );
                         if ($GLOBALS['perm']->have_perm('root')) {
                             $actionMenu->addLink(
                                 $controller->url_for('admin/user/activities/' . $user->user_id, ['from_index' => 1]),
                                 _('Datei- und Aktivitätsübersicht'),
-                                Icon::create('vcard', 'clickable', tooltip2(_('Datei- und Aktivitätsübersicht'))),
+                                Icon::create('vcard', Icon::ROLE_CLICKABLE, tooltip2(_('Datei- und Aktivitätsübersicht'))),
                                 ['data-dialog' => 'size=50%']
                             );
                             if (Config::get()->LOG_ENABLE) {
                                 $actionMenu->addLink(
                                     $controller->url_for('event_log/show', ['search' => $user->username, 'type' => 'user', 'object_id' => $user->id]),
                                     _('Personeneinträge im Log'),
-                                    Icon::create('log', 'clickable', tooltip2(_('Personeneinträge im Log')))
+                                    Icon::create('log', Icon::ROLE_CLICKABLE, tooltip2(_('Personeneinträge im Log')))
                                 );
                             }
                         }
@@ -151,7 +151,7 @@ use Studip\Button, Studip\LinkButton;
                         $actionMenu->addLink(
                             $controller->url_for('messages/write', ['rec_uname' => $user->username]),
                             _('Nachricht an Nutzer verschicken'),
-                            Icon::create('mail', 'clickable', tooltip2(_('Nachricht an Nutzer verschicken'))),
+                            Icon::create('mail', Icon::ROLE_CLICKABLE, tooltip2(_('Nachricht an Nutzer verschicken'))),
                             ['data-dialog' => 'size=auto']
                         );
 
@@ -159,13 +159,13 @@ use Studip\Button, Studip\LinkButton;
                             $actionMenu->addLink(
                                 $controller->url_for('admin/user/unlock/' . $user->user_id, ['from_index' => 1]),
                                 _('Nutzeraccount entsperren'),
-                                Icon::create('lock-unlocked', 'clickable', tooltip2(_('Nutzeraccount entsperren')))
+                                Icon::create('lock-unlocked', Icon::ROLE_CLICKABLE, tooltip2(_('Nutzeraccount entsperren')))
                             );
                         } else {
                             $actionMenu->addLink(
                                 $controller->url_for('admin/user/lock_comment/' . $user->user_id, ['from_index' => 1]),
                                 _('Nutzeraccount sperren'),
-                                Icon::create('lock-locked', 'clickable', tooltip2(_('Nutzeraccount sperren'))),
+                                Icon::create('lock-locked', Icon::ROLE_CLICKABLE, tooltip2(_('Nutzeraccount sperren'))),
                                 ['data-dialog' => 'size=auto']
                             );
                         }
@@ -175,19 +175,45 @@ use Studip\Button, Studip\LinkButton;
                                 $actionMenu->addLink(
                                     $controller->url_for('admin/user/change_password/' . $user->user_id, ['from_index' => 1]),
                                     _('Neues Passwort setzen'),
-                                    Icon::create('key', 'clickable', tooltip2(_('Neues Passwort setzen')))
+                                    Icon::create('key', Icon::ROLE_CLICKABLE, tooltip2(_('Neues Passwort setzen')))
                                 );
                             }
 
                             $actionMenu->addButton(
                                 'delete_user',
                                 _('Nutzer löschen'),
-                                Icon::create('trash', 'clickable',
+                                Icon::create('trash', Icon::ROLE_CLICKABLE,
                                     tooltip2(_('Nutzer löschen')) +
                                     ['formaction' => $controller->url_for('admin/user/bulk/' . $user->user_id, ['method' => 'delete'])]
                                 )
                             );
                         }
+
+                        if (Privacy::isVisible($user_id)) {
+                            $actionMenu->addLink(
+                                $controller->url_for('privacy/index/' . $user->user_id),
+                                _('Anzeige Personendaten'),
+                                Icon::create('log', Icon::ROLE_CLICKABLE, tooltip2(_('Anzeige Personendaten'))),
+                                ['data-dialog' => 'size=auto']
+                            );
+                            $actionMenu->addLink(
+                                $controller->url_for('privacy/print/' . $user->user_id),
+                                _('Personendaten drucken'),
+                                Icon::create('print', Icon::ROLE_CLICKABLE, tooltip2(_('Personendaten drucken'))),
+                                ['class' => 'print_action', 'target' => '_blank']
+                            );
+                            $actionMenu->addLink(
+                                $controller->url_for('privacy/export/' . $user->user_id),
+                                _('Export Personendaten als CSV'),
+                                Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als CSV')))
+                            );
+                            $actionMenu->addLink(
+                                $controller->url_for('privacy/filesexport/' . $user->user_id),
+                                _('Export persönlicher Dateien als ZIP'),
+                                Icon::create('file-archive', Icon::ROLE_CLICKABLE, tooltip2(_('Export persönlicher Dateien als ZIP')))
+                            );
+                        }
+
                         ?>
                         <?= $actionMenu->render() ?>
                     </td>

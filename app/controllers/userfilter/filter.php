@@ -28,7 +28,7 @@ class Userfilter_FilterController extends AuthenticatedController
         $this->conditionFields = UserFilterField::getAvailableFilterFields();
 
         PageLayout::setTitle(_('Auswahlbedingungen'));
-        PageLayout::addSqueezePackage('userfilter');
+        PageLayout::addScript('studip-userfilter.js');
     }
 
     /**

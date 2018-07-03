@@ -195,7 +195,7 @@ class Messages extends \RESTAPI\RouteMap
         $current_user = self::currentUser();
         $message_user = $message->originator->user_id === $current_user
                       ? $message->originator
-                      : $message->receivers->findBy('user_id', $current_user);
+                      : $message->receivers->findOneBy('user_id', $current_user);
 
         if (!$message_user) {
             $this->error(401);
