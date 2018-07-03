@@ -852,6 +852,10 @@ abstract class RouteMap
     {
         $path = realpath($_path);
 
+        if (!file_exists($path)) {
+            $this->notFound('File to send does not exist');
+        }
+
         if (isset($opts['type'])) {
             $this->contentType($opts['type']);
         } else if (!isset($this->response['Content-Type'])) {
