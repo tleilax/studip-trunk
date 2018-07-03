@@ -1,5 +1,4 @@
 <? use Studip\Button, Studip\LinkButton; ?>
-<h1><?= _('Modulsuche') ?></h1>
 <div style="padding:2em; text-align:center; vertical-align: middle; background-color: #e7ebf1; margin-bottom: 20px;">
     <form action="<?= $controller->link_for('/index') ?>" method="post">
         <?= CSRFProtection::tokenTag() ?>

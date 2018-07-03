@@ -1,6 +1,8 @@
 <?= $this->render_partial('search/breadcrumb') ?>
-<h1><?= _('Studiengang') ?>: <?= htmlReady($studiengang->getDisplayName(ModuleManagementModel::DISPLAY_ABSCHLUSS)) ?></h1>
 <table class="default nohover">
+    <caption>
+        <?= _('Studiengang') ?>: <?= htmlReady($studiengang->getDisplayName(ModuleManagementModel::DISPLAY_ABSCHLUSS)) ?>
+    </caption>
     <thead>
         <tr>
             <th><?= _('Fächer') ?></th>

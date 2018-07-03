@@ -28,7 +28,7 @@ class SearchNavigation extends Navigation
     {
         parent::__construct(_('Suche'));
 
-        $this->setImage(Icon::create('search', 'navigation', ["title" => _('Suche')]));
+        $this->setImage(Icon::create('search', 'navigation', ['title' => _('Suche')]));
     }
 
     /**
@@ -38,42 +38,37 @@ class SearchNavigation extends Navigation
     public function initSubNavigation()
     {
         parent::initSubNavigation();
-
-        // browse courses
-        $navigation = new Navigation(_('Veranstaltungen'), 'dispatch.php/search/courses');
-        $this->addSubNavigation('courses', $navigation);
-
-        // search modules
-        if (MVV::isVisibleSearch()) {
-            $navigation = new Navigation(_('Modulverzeichnis'));
-            $navigation->addSubNavigation('modulsuche',
-                    new Navigation(_('Module'),
-                    'dispatch.php/search/module'));
-            $navigation->addSubNavigation('angebot',
-                    new Navigation(_('Studienangebot'),
-                    'dispatch.php/search/angebot'));
-            $navigation->addSubNavigation('studiengaenge',
-                    new Navigation(_('Studiengänge'),
-                    'dispatch.php/search/studiengaenge'));
-            Navigation::addSubNavigation('module', $navigation);
-        }
         
-        // search archive
-        $navigation = new Navigation(_('Archiv'), 'dispatch.php/search/archive');
-        $this->addSubNavigation('archive', $navigation);
+        // browse courses
+        // get first search option
+        $navigation_option = SemBrowse::getSearchOptionNavigation('sidebar');
+        
+        if ($navigation_option) {
+            $navigation = new Navigation(_('Veranstaltungen'),
+                    $navigation_option->getURL());
+            foreach (array_keys(Config::get()->COURSE_SEARCH_NAVIGATION_OPTIONS) as $name) {
+                $navigation_option = SemBrowse::getSearchOptionNavigation('sidebar', $name);
+                if ($navigation_option) {
+                    $navigation->addSubNavigation($name, $navigation_option);
+                }
+            }
 
-        // search users
-        $navigation = new Navigation(_('Personen'), 'browse.php');
-        $this->addSubNavigation('users', $navigation);
+            $this->addSubNavigation('courses', $navigation);
+        }
 
-        // browse institutes
-        $navigation = new Navigation(_('Einrichtungen'), 'institut_browse.php');
-        $this->addSubNavigation('institutes', $navigation);
+        
+        if ($GLOBALS['user']->id != 'nobody') {
+            // search archive
+            $navigation = new Navigation(_('Archiv'), 'dispatch.php/search/archive');
+            $this->addSubNavigation('archive', $navigation);
 
-        // browse resources
-        if (get_config('RESOURCES_ENABLE')) {
-            $navigation = new Navigation(_('Ressourcen'), 'resources.php', array('view' => 'search', 'reset' => 'TRUE'));
-            $this->addSubNavigation('resources', $navigation);
+            // search users
+            $navigation = new Navigation(_('Personen'), 'browse.php');
+            $this->addSubNavigation('users', $navigation);
+
+            // browse institutes
+            $navigation = new Navigation(_('Einrichtungen'), 'institut_browse.php');
+            $this->addSubNavigation('institutes', $navigation);
         }
     }
 }

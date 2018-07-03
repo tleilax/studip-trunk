@@ -43,9 +43,9 @@ class StudipSemTreeViewSimple
     /**
     * constructor
     *
-    * @access public
     */
-    function __construct($start_item_id = "root", $sem_number = false, $sem_status, $visible_only = false){
+    public function __construct($start_item_id = "root", $sem_number = false, $sem_status, $visible_only = false)
+    {
         $this->start_item_id = ($start_item_id) ? $start_item_id : "root";
         $this->root_content = $GLOBALS['UNI_INFO'];
         $args = null;
@@ -63,30 +63,58 @@ class StudipSemTreeViewSimple
         }
     }
 
-    function showSemTree(){
-        echo "\n<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">";
-        echo "\n<tr><td class=\"table_row_odd\" align=\"left\" valign=\"top\" style=\"font-size:10pt;\">"
-            . "<div style=\"font-size:10pt;margin-left:10px\"><b>" . _("Studienbereiche"). ":</b><br>". $this->getSemPath();
+    public function showSemTree($start_id = null)
+    {
+        echo '
+            <table style="width:100%;">
+                <tr>
+                    <td style="text-align:left; vertical-align:top; font-size:10pt;">
+                        <div style="font-size:10pt; margin-left:10px">
+                            <b>' .
+                                _('Studienbereiche') . '
+                            </b><br>' .
+                $this->getSemPath($start_id);
         if ($this->tree->getValue($this->start_item_id, 'info')) {
-            echo '<div class="sem_path_info">' . formatReady($this->tree->getValue($this->start_item_id, 'info')) . '</div>';
+            echo '
+                            <div class="sem_path_info">' .
+                        formatReady($this->tree->getValue($this->start_item_id, 'info')) .
+                            '</div>';
         }
-        echo "</div></td>";
-        echo "<td nowrap class=\"table_row_odd\" align=\"right\" valign=\"top\" style=\"padding-top: 1em;\">";
-        if ($this->start_item_id != "root"){
-            echo "\n<a href=\"" .URLHelper::getLink($this->getSelf("start_item_id={$this->tree->tree_data[$this->start_item_id]['parent_id']}", false)) . "\">".
-            Icon::create('arr_2left', 'clickable')->asImg(['class' => 'text-top', 'title' =>_('eine Ebene zurück')]). "</a>";
+        echo '
+                        </div>
+                    </td>
+                    <td nowrap style="text-align:right; vertical-align:top; padding-top: 1em;">';
+        if ($this->start_item_id != 'root') {
+            echo '
+                        <a href="' .
+                        URLHelper::getLink($this->getSelf('start_item_id=' .
+                                $this->tree->tree_data[$this->start_item_id]['parent_id'], false)) .
+                        '>' .
+                        Icon::create('arr_2left', 'clickable')->asImg(['class' => 'text-top', 'title' =>_('eine Ebene zurück')]) .
+                        '</a>';
         } else {
-            echo "&nbsp;";
+            echo '&nbsp;';
         }
-        echo "</td></tr>";
-        echo "\n<tr><td class=\"table_row_even\" colspan=\"2\" align=\"center\" valign=\"center\">";
+        echo '
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align:center; vertical-align:center;">';
         $num_all_entries = $this->showKids($this->start_item_id);
-        echo "\n</td></tr><tr><td class=\"table_row_odd\" colspan=\"2\" align=\"left\" valign=\"center\">";
+        echo '
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan=\"2\" style="text-align:left; vertical-align:center;">';
         $this->showContent($this->start_item_id, $num_all_entries);
-        echo "\n</td></tr></table>";
+        echo '
+                    </td>
+                </tr>
+            </table>';
     }
 
-    function showKids($item_id){
+    public function showKids($item_id)
+    {
         $num_kids = $this->tree->getNumKids($item_id);
         $all_kids = $this->tree->getKids($item_id);
         $kids = array();
@@ -123,7 +151,7 @@ class StudipSemTreeViewSimple
         return $num_all_entries;
     }
 
-    function getInfoIcon($item_id)
+    public function getInfoIcon($item_id)
     {
         if ($item_id === 'root') {
             $info = $this->root_content;
@@ -134,7 +162,8 @@ class StudipSemTreeViewSimple
         return $ret;
     }
 
-    function showContent($item_id, $num_all_entries){
+    public function showContent($item_id, $num_all_entries)
+    {
         echo "\n<div align=\"center\" style=\"margin-left:10px;margin-top:10px;margin-bottom:10px;font-size:10pt\">";
         if ($item_id != "root"){
             if ($this->tree->hasKids($item_id) && $num_all_entries){
@@ -172,7 +201,8 @@ class StudipSemTreeViewSimple
         echo "\n</div>";
     }
 
-    function getSemPath(){
+    public function getSemPath()
+    {
 
         if ($parents = $this->tree->getParents($this->start_item_id)){
             for($i = count($parents)-1; $i >= 0; --$i){
@@ -196,7 +226,8 @@ class StudipSemTreeViewSimple
     /**
      * @return string url NOT escaped
      */
-    function getSelf($param = "", $with_start_item = true){
+    public function getSelf($param = "", $with_start_item = true)
+    {
         $url_params = (($with_start_item) ? "start_item_id=" . $this->start_item_id . "&" : "") . $param ;
         return URLHelper::getURL('?' . $url_params);
     }

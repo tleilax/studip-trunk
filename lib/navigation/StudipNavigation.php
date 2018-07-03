@@ -62,6 +62,10 @@ class StudipNavigation extends Navigation
 
             // avatar menu
             $this->addSubNavigation('avatar', new AvatarNavigation());
+        } else if ($user->id == 'nobody'
+                && Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY) {
+            // search page
+            $this->addSubNavigation('search', new SearchNavigation());
         }
 
         // tools page

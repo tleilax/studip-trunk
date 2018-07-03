@@ -95,14 +95,14 @@
             <? endif; ?>
             <th <? if ($type === 2): ?> colspan="3" <? endif; ?> ><?= _('Semesterveranstaltungen') ?></th>
             <? if ($type === 1): ?>
-                <th><?= _('Prüfungsleistung') ?></th>    
+                <th><?= _('Prüfungsleistung') ?></th>
             <? endif; ?>
         </tr>
         <? foreach ($modulTeile as $modul_teil): ?>
             <tr>
                 <? if ($type === 1): ?>
-                <td>  
-                    <b> <?= htmlReady($modul_teil['name']) ?> </b> 
+                <td>
+                    <b> <?= htmlReady($modul_teil['name']) ?> </b>
                     <? if (mb_strlen($modul_teil['kommentar']) > 0): ?>
                     <?= $modul_teil['kommentar'] ? '<br>(' . formatReady($modul_teil['kommentar']) . ')' : '' ?>
                     <? endif; ?>
@@ -118,7 +118,7 @@
                             <?= formatReady($gruppe['alt_texte']) ?>
                         <? endif; ?>
                         <? if (count($gruppe['courses'])) : ?>
-                        <ul>  
+                        <ul>
                         <? foreach ($gruppe['courses'] as $course): ?>
                             <li>
                                 <a href="<?= URLHelper::getLink('dispatch.php/course/details', ['sem_id' => $course->id]) ?>">
@@ -126,6 +126,30 @@
                                 </a>
                                 <? if ($course['visible'] != 1) : ?>
                                 <em><?= _('[versteckt]') ?></em>
+                                <? endif; ?>
+                                <? if (Config::get()->COURSE_SEARCH_SHOW_ADMISSION_STATE) : ?>
+                                    <? switch (SemBrowse::getStatusCourseAdmission($course->id, $course->admission_prelim)) :
+                                        case 1:
+                                            echo Icon::create('span-2quarter', Icon::ROLE_STATUS_YELLOW, [
+                                                'alt'   => _('Eingeschränkter Zugang'),
+                                                'title' => _('Eingeschränkter Zugang'),
+                                                'style' => 'vertical-align: text-bottom',
+                                            ]);
+                                            break;
+                                        case 2:
+                                            echo Icon::create('span-empty', Icon::ROLE_STATUS_RED, [
+                                                'alt'   => _('Kein Zugang'),
+                                                'title' => _('Kein Zugang'),
+                                                'style' => 'vertical-align: text-bottom',
+                                            ]);
+                                            break;
+                                        default:
+                                            echo Icon::create('span-full', Icon::ROLE_STATUS_GREEN, [
+                                                'alt'   => _('Uneingeschränkter Zugang'),
+                                                'title' => _('Uneingeschränkter Zugang'),
+                                                'style' => 'vertical-align: text-bottom',
+                                            ]);
+                                    endswitch; ?>
                                 <? endif; ?>
                             </li>
                         <? endforeach; ?>
@@ -137,7 +161,7 @@
                     <td>
                         <? if (mb_strlen($modul_teil['pruef_vorleistung']) > 0) : ?>
                             <b><?= _('Prüfungsvorleistung') ?>:</b> <?= htmlReady($modul_teil['pruef_vorleistung']) ?>
-                        
+
                         <? endif; ?>
                         <? if (mb_strlen($modul_teil['pruef_leistung']) > 0) : ?>
                             <b><?= _('Prüfungsform') ?>:</b> <br/><?= htmlReady($modul_teil['pruef_leistung']) ?> (<?= ($modul_teil['anteil_note'] ? '(' . htmlReady($modul_teil['anteil_note']) . '%)' : '') ?>

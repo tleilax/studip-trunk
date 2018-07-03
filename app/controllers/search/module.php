@@ -21,9 +21,10 @@ class Search_ModuleController extends MVVController
 
     public function before_filter(&$action, &$args)
     {
+        $this->allow_nobody = Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY;
+        
         parent::before_filter($action, $args);
-        // set navigation
-        Navigation::activateItem('/search/module/modulsuche');
+        
         $this->drill_down_type = Request::option('type');
         $this->drill_down_id = Request::option('id');
         $this->sterm = Request::get('sterm');
@@ -40,9 +41,24 @@ class Search_ModuleController extends MVVController
                 URLHelper::bindLinkParam('id', $this->drill_down_id);
             }
         }
+        
+        // set navigation
+        Navigation::activateItem('/search/courses/module');
+        
+        //set title
+        PageLayout::setTitle(_('Modulverzeichnis - Modulsuche'));
+        
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
-        $this->setSidebar();
+        
+        $views = new ViewsWidget();
+        $views->addLink(_('Modulsuche'), $this->url_for('search/module'))
+                ->setActive();
+        $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'));
+        $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'));
+        $views->addLink(_('Fach-Abschlusskombinationen'), $this->url_for('search/stgtable'));
+        
+        $sidebar->addWidget($views);
     }
 
     protected function isVisible()
@@ -56,9 +72,6 @@ class Search_ModuleController extends MVVController
 
     public function index_action()
     {
-        //set title
-        PageLayout::setTitle(_('Suche nach Modulen'));
-
         $template = $this->get_template_factory()
                 ->open('search/module/_infobox_info');
 
@@ -205,13 +218,13 @@ class Search_ModuleController extends MVVController
         }
 
         $this->module = [];
-        if (count($this->search_result['Modul'])) {
-            $this->count = count($this->search_result['Modul']);
+        if (is_array($this->search_result['Modul'])
+                && count($this->search_result['Modul'])) {
             if (!empty($this->drill_down_type) && !empty($this->drill_down_id)) {
                 $this->search_result['Modul'] = $this->filter_modules(
                         $this->search_result['Modul'], $this->drill_down_type, $this->drill_down_id);
-                $this->count = count($this->search_result['Modul']);
             }
+            $this->count = count($this->search_result['Modul']);
             $this->module = Modul::getAllEnriched('code, bezeichnung', 'ASC',
                     self::$items_per_page,
                     self::$items_per_page * (($this->page ?: 1) - 1),
@@ -472,7 +485,7 @@ class Search_ModuleController extends MVVController
 
     private function drilldown_institutes($modul_ids)
     {
-        if (count($modul_ids)) {
+        if (is_array($modul_ids) && count($modul_ids)) {
             $fabs = array();
             foreach ($modul_ids as $modul_id) {
                 $modul = Modul::find($modul_id);
@@ -487,7 +500,7 @@ class Search_ModuleController extends MVVController
 
     private function drilldown_faecher($modul_ids)
     {
-        if (count($modul_ids)) {
+        if (is_array($modul_ids) && count($modul_ids)) {
             return Fach::findPublicByModule($modul_ids);
         }
         return array();
@@ -495,7 +508,7 @@ class Search_ModuleController extends MVVController
 
     private function drilldown_studiengaenge($modul_ids)
     {
-        if (count($modul_ids)) {
+        if (is_array($modul_ids) && count($modul_ids)) {
             return Studiengang::findByModule($modul_ids);
         }
         return array();
