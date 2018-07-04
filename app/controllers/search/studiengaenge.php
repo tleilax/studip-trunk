@@ -43,7 +43,7 @@ class Search_StudiengaengeController extends MVVController
         PageLayout::setTitle(_('Modulverzeichnis - Studiengänge'));
     }
 
-    protected function isVisible()
+    protected static function IsVisible()
     {
         return MVV::isVisibleSearch();
     }

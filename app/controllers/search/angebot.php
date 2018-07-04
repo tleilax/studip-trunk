@@ -43,7 +43,7 @@ class Search_AngebotController extends MVVController
         $this->action = $action;
     }
 
-    protected function isVisible()
+    protected static function IsVisible()
     {
         return MVV::isVisibleSearch();
     }
