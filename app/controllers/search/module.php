@@ -61,7 +61,7 @@ class Search_ModuleController extends MVVController
         $sidebar->addWidget($views);
     }
 
-    protected function isVisible()
+    protected static function IsVisible()
     {
         return MVV::isVisibleSearch();
     }
