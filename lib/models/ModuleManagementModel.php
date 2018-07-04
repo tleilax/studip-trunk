@@ -215,7 +215,7 @@ abstract class ModuleManagementModel extends SimpleORMap
             throw new Exception(sprintf(
                 'Permission denied! The user is not allowed to create/delete a relation %s::%s.',
                 get_class($relation_object), $relation_name));
-        } elseif (true ||$relation_object->isDirty()) {
+        } elseif ($relation_object->isDirty()) {
             if ($relation_object instanceof ModuleManagementModel) {
                 $relation_object->verifyPermission($user_id);
             } elseif (!$perm->haveFieldPerm($relation_name, MvvPerm::PERM_WRITE, $user_id)) {
