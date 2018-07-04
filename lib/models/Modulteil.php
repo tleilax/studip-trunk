@@ -202,14 +202,9 @@ class Modulteil extends ModuleManagementModelTreeItem
         $copy->setNew(true);
         $copy->setNewId();
 
-        $deskriptoren = [];
-        foreach ($this->deskriptoren as $deskriptor) {
-            $cloned_deskriptor = clone $deskriptor;
-            $cloned_deskriptor->setNewId();
-            $cloned_deskriptor->setNew(true);
-            $deskriptoren[] = $cloned_deskriptor;
-        }
-        $copy->deskriptoren = SimpleORMapCollection::createFromArray($deskriptoren);
+        $copy->deskriptoren= clone $this->deskriptoren;
+        $copy->deskriptoren->setNewId();
+        $copy->deskriptoren->setNew(true);
 
         $languages = [];
         foreach ($this->languages as $language) {

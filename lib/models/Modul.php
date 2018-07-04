@@ -517,18 +517,15 @@ class Modul extends ModuleManagementModelTreeItem
         $copy->flexnow_modul = '';
         if ($this->responsible_institute) {
             $copy->responsible_institute = clone $this->responsible_institute;
+            $copy->responsible_institute->modul_id = $copy->id;
             $copy->responsible_institute->setNew(true);
         }
-        $deskriptoren = [];
-        foreach ($this->deskriptoren as $deskriptor) {
-            $cloned_deskriptor = clone $deskriptor;
-            $cloned_deskriptor->modul_id = $copy->id;
-            $cloned_deskriptor->setNewId();
-            $cloned_deskriptor->setNew(true);
-            $deskriptoren[] = $cloned_deskriptor;
-        }
-        $copy->deskriptoren = SimpleORMapCollection::createFromArray($deskriptoren);
-
+        
+        $copy->deskriptoren = clone $this->deskriptoren;
+        $copy->deskriptoren->modul_id = $copy->id;
+        $copy->deskriptoren->setNewId();
+        $copy->deskriptoren->setNew(true);
+        
         $institutes = [];
         foreach ($this->assigned_institutes as $assigned_institute) {
             $cloned_inst = clone $assigned_institute;
