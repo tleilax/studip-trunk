@@ -34,10 +34,7 @@ class AddActivities extends Migration
 
         //CHECK IF API IS ENABLED
         if (!Config::get()->API_ENABLED) {
-            Config::get()->store('API_ENABLED',
-                            array('value' => '1',
-                                  'section' => 'global',
-                                  'comment' => ''));
+            $db->exec("UPDATE `config` SET `value` = '1' WHERE `field` = 'API_ENABLED'");
         }
         //SET PERMISSION FOR ROUTE
         $permissions = RESTAPI\ConsumerPermissions::get('global');

@@ -7,6 +7,7 @@ class ShowAdressees extends Migration
             'name'        => 'SHOW_ADRESSEES_LIMIT',
             'description' => 'Ab wievielen Adressaten dürfen diese aus datenschutzgründen nicht mehr angezeigt werden in einer empfangenen Nachricht?',
             'section'     => 'global',
+            'range'       => 'global',
             'type'        => 'string',
             'value'       => '20'
         )
@@ -20,7 +21,8 @@ class ShowAdressees extends Migration
     public function up()
     {
         foreach ($this->options as $option) {
-            Config::get()->create($option['name'], $option);
+            DBManager::get()->execute("INSERT IGNORE INTO `config` (`field`, `value`, `type`, `range`, `section`, `mkdate`, `chdate`, `description`) VALUES (:name, :value, :type, :range, :section, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)",
+                $option);
         }
 
         DBManager::get()->exec("

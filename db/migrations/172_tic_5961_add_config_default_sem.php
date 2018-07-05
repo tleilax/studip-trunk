@@ -9,18 +9,24 @@ class Tic5961AddConfigDefaultSem extends Migration
 
     function up()
     {
-        Config::get()->create('MY_COURSES_DEFAULT_CYCLE', array(
+        DBManager::get()->execute("
+                INSERT IGNORE INTO `config`
+                    (`config_id`, `field`, `value`, `is_default`, `type`, `range`, `section`, `mkdate`, `chdate`, `description`)
+                VALUES
+                    (MD5(:name), :name, :value, 1, :type, :range, :section, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)
+                ", array(
+            'name'        => 'MY_COURSES_DEFAULT_CYCLE',
             'value'       => 'last',
-            'is_default'  => '1',
             'type'        => 'string',
             'range'       => 'global',
             'section'     => 'MeineVeranstaltungen',
             'description' => 'Standardeinstellung für den Semester-Filter, falls noch keine Auswahl getätigt wurde. (all, future, current, last)',
-        ));
+            )
+        );
     }
 
     function down()
     {
-        Config::get()->delete('MY_COURSES_DEFAULT_CYCLE');
+        DBManager::get()->exec("DELETE FROM config WHERE `field` = 'MY_COURSES_DEFAULT_CYCLE'");
     }
 }
