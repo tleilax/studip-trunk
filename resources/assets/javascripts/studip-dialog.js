@@ -281,7 +281,6 @@
                       || $(element).filter('a,button').text();
         options.method = 'get';
         options.data   = {};
-        options.processData = true;
 
         var url,
             fd;
