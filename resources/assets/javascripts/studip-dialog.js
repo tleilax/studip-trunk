@@ -281,8 +281,10 @@
                       || $(element).filter('a,button').text();
         options.method = 'get';
         options.data   = {};
+        options.processData = true;
 
-        var url;
+        var url,
+            fd;
 
         // Predefine options
         if ($(element).is('form,button,input')) {
@@ -301,6 +303,23 @@
                 options.data.push($(element).data().triggeredBy);
             }
             $(element).closest('form').removeData('formaction');
+
+            if ($(element).closest('form').attr('enctype') === 'multipart/form-data') {
+                options.processData = false;
+
+                fd = new FormData();
+                options.data.forEach(item => fd.set(item.name, item.value));
+
+                $(element).closest('form').find('input[type=file]').each(function () {
+                    var name = $(this).attr('name'),
+                        i;
+                    for (i = 0; i < this.files.length; i += 1) {
+                        fd.append(name, this.files[i]);
+                    }
+                });
+
+                options.data = fd;
+            }
         } else {
             url = $(element).attr('href');
         }
@@ -331,7 +350,10 @@
             url: url,
             type: (options.method || 'get').toUpperCase(),
             data: options.data || {},
-            headers: {'X-Dialog': true}
+            headers: {'X-Dialog': true},
+            cache: false,
+            contentType: (options.hasOwnProperty('processData') && !options.processData) ? false : 'application/x-www-form-urlencoded; charset=UTF-8',
+            processData: options.hasOwnProperty('processData') ? options.processData : true
         }).done(function (response, status, xhr) {
             var advance = true;
 
