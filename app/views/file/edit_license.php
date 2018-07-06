@@ -10,7 +10,7 @@
 
     <div data-dialog-button>
         <?= Studip\Button::create(_('Speichern')) ?>
-        <?= Studip\LinkButton::create(
+        <?= Studip\LinkButton::createCancel(
             _('Abbrechen'),
             $controller->url_for((in_array($folder->range_type, ['course', 'institute']) ? $folder->range_type . '/' : '') . 'files/index/' . $folder->id)
         ) ?>
