@@ -30,12 +30,13 @@ class ActivityObserver
         \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','FileRefDidDelete');
 
         //Notifications for NewsProvider
-        \NotificationCenter::addObserver('\Studip\Activity\NewsProvider', 'postActivity','NewsDidStore');
+        \NotificationCenter::addObserver('\Studip\Activity\NewsProvider', 'postActivity','StudipNewsDidCreate');
 
         //Notifications for WikiProvider
         \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidCreate');
         \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidDelete');
-        \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidUpdate');
+        //this is rather pointless and annoying
+        //\NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidUpdate');
 
         //Notifications for ScheduleProvider (Course)
         \NotificationCenter::addObserver('\Studip\Activity\ScheduleProvider', 'postActivity','CourseDidChangeSchedule');
