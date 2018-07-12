@@ -172,7 +172,7 @@ class ForumEntry  implements PrivacyObject
         $text = kill_format($text);
 
         // find stuff which is enclosed between to colons
-        preg_match('/:.*:/U', $text, $matches);
+        preg_match('/' . SmileyFormat::REGEXP . '/U', $text, $matches);
 
         // remove the match if it is a smiley
         foreach ($matches as $match) {
