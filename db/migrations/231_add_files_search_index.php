@@ -45,33 +45,34 @@ class AddFilesSearchIndex extends Migration
         $dbm = \DBManager::get();
         $dbm->execute(
             'CREATE TABLE IF NOT EXISTS `files_search_index` (
-             FTS_DOC_ID BIGINT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
-             `file_ref_id` varchar(32) NOT NULL,
-             `text` text NOT NULL,
+             `FTS_DOC_ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+             `file_ref_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+             `text` text COLLATE utf8mb4_unicode_ci NOT NULL,
              `relevance` float NOT NULL,
+             PRIMARY KEY (`FTS_DOC_ID`),
              KEY `file_ref_id` (`file_ref_id`),
              FULLTEXT KEY `text` (`text`)
-             ) ENGINE='.$engine.' ROW_FORMAT=DYNAMIC'
+            ) ENGINE=' . $engine . ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC'
         );
         $dbm->execute('
             CREATE TABLE IF NOT EXISTS `files_search_attributes` (
-            `id` char(32) NOT NULL,
-            `file_ref_user_id` char(32) NOT NULL,
-            `file_ref_mkdate` int(10) UNSIGNED NOT NULL,
-            `file_ref_chdate` int(10) UNSIGNED NOT NULL,
-            `folder_id` char(32) NOT NULL,
-            `folder_range_id` char(32) NOT NULL,
-            `folder_range_type` char(32) NOT NULL,
-            `folder_type` varchar(255) NOT NULL,
-            `course_status` tinyint(4) UNSIGNED DEFAULT NULL,
-            `semester_start` int(20) UNSIGNED DEFAULT NULL,
-            `semester_end` int(20) UNSIGNED DEFAULT NULL,
-            PRIMARY KEY (`id`),
-            KEY `folder_range_id` (`folder_range_id`),
-            KEY `folder_range_type` (`folder_range_type`),
-            KEY `semester_start` (`semester_start`),
-            KEY `semester_end` (`semester_end`)
-            ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;
+             `id` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+             `file_ref_user_id` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+             `file_ref_mkdate` int(10) unsigned NOT NULL,
+             `file_ref_chdate` int(10) unsigned NOT NULL,
+             `folder_id` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+             `folder_range_id` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+             `folder_range_type` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+             `folder_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+             `course_status` tinyint(4) unsigned DEFAULT NULL,
+             `semester_start` int(20) unsigned DEFAULT NULL,
+             `semester_end` int(20) unsigned DEFAULT NULL,
+             PRIMARY KEY (`id`),
+             KEY `folder_range_id` (`folder_range_id`),
+             KEY `folder_range_type` (`folder_range_type`),
+             KEY `semester_start` (`semester_start`),
+             KEY `semester_end` (`semester_end`)
+            ) ENGINE=' . $engine . ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC
         ');
     }
 

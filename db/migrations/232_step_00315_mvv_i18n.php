@@ -118,7 +118,7 @@ class Step00315MvvI18n extends Migration
         // mvv_dokument_zuord
 
         // add an own primary key to simplify i18n (used as foreign key in i18n)
-        $db->execute("ALTER TABLE `mvv_dokument_zuord` ADD `dokument_zuord_id` VARCHAR(32) NOT NULL FIRST");
+        $db->execute("ALTER TABLE `mvv_dokument_zuord` ADD `dokument_zuord_id` VARCHAR(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL FIRST");
         $db->execute("ALTER TABLE `mvv_dokument_zuord` DROP PRIMARY KEY, ADD UNIQUE (`dokument_id`, `range_id`, `object_type`) USING BTREE");
         $dokument_zuordnungen = $db->query("SELECT * FROM `mvv_dokument_zuord` WHERE 1");
         $is_unique = $db->prepare("SELECT `dokument_zuord_id` FROM `mvv_dokument_zuord` WHERE `dokument_zuord_id` = ?");
@@ -256,7 +256,7 @@ class Step00315MvvI18n extends Migration
         // mvv_stgteilabschnitt_modul
 
         // add an own primary key to simplify i18n (used as foreign key in i18n)
-        $db->execute("ALTER TABLE `mvv_stgteilabschnitt_modul` ADD `abschnitt_modul_id` VARCHAR(32) NOT NULL FIRST");
+        $db->execute("ALTER TABLE `mvv_stgteilabschnitt_modul` ADD `abschnitt_modul_id` VARCHAR(32)  CHARACTER SET latin1 COLLATE latin1_bin NOT NULL FIRST");
         $db->execute("ALTER TABLE `mvv_stgteilabschnitt_modul` DROP PRIMARY KEY, ADD UNIQUE (`abschnitt_id`, `modul_id`) USING BTREE");
         $abschnitt_modul = $db->query("SELECT * FROM `mvv_stgteilabschnitt_modul` WHERE 1");
         $is_unique = $db->prepare("SELECT `abschnitt_modul_id` FROM `mvv_stgteilabschnitt_modul` WHERE `abschnitt_modul_id` = ?");
@@ -338,14 +338,14 @@ class Step00315MvvI18n extends Migration
 
         // make datafields i18ed
         $db->exec("ALTER TABLE datafields
-            CHANGE type type ENUM('bool','textline','textlinei18n','textarea',
+            CHANGE `type` `type` ENUM('bool','textline','textlinei18n','textarea',
                 'textareai18n','textmarkup','textmarkupi18n','selectbox',
                 'date','time','email','phone','radio','combo','link','selectboxmultiple')
-            NOT NULL DEFAULT 'textline'");
+            CHARACTER SET latin1 COLLATE latin1_bin NOT NULL DEFAULT 'textline'");
+        $db->execute("ALTER TABLE `datafields_entries` '
+                . 'ADD `lang` VARCHAR(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL DEFAULT '' AFTER `sec_range_id`");
         $db->execute('ALTER TABLE `datafields_entries` '
-                . 'ADD `lang` VARCHAR(32) NULL DEFAULT NULL AFTER `sec_range_id`');
-        $db->execute('ALTER TABLE `datafields_entries` '
-                . 'DROP PRIMARY KEY, ADD PRIMARY KEY (`datafield_id`, `range_id`, `sec_range_id`, `lang`) USING BTREE');
+                . 'DROP PRIMARY KEY, ADD PRIMARY KEY (`datafield_id`, `range_id`, `sec_range_id`, `lang`)');
 
         SimpleORMap::expireTableScheme();
 
