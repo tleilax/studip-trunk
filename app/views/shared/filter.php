@@ -11,7 +11,7 @@
     <label>
         <?= $semester_caption ?: _('Semester:') ?><br>
         <select name="semester_filter" class="sidebar-selectlist submit-upon-select">
-            <option value="all"<?= (!$sem['semester_id'] ? ' selected' : '') ?>><?= _('Alle Semester') ?></option>
+            <option value="all"<?= (!$selected_semester ? ' selected' : '') ?>><?= _('Alle Semester') ?></option>
             <? foreach ($semester as $sem) : ?>
             <option value="<?= $sem['semester_id'] ?>"<?= ($sem['semester_id'] == $selected_semester ? ' selected' : '') ?>><?= htmlReady($sem['name']) ?></option>
             <? endforeach; ?>
