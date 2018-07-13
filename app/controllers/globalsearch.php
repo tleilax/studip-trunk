@@ -69,20 +69,20 @@ class GlobalSearchController extends AuthenticatedController
                              * We found more results than needed,
                              * add "more" link for full search.
                              */
-                            if (count($result[$id]['content']) >= Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
+                            if (isset($result[$id]['content'])
+                                && count($result[$id]['content']) >= Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE)
+                            {
                                 $result[$id]['more'] = true;
                                 $result[$id]['fullsearch'] = $classes[$id]->getSearchURL($search) ?: '';
                             }
 
-                            //if (count($result[$id]['content']) < Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
-                                $arg = $data['type'] && count($data) == 2 ? $data['id'] : $data;
+                            $arg = $data['type'] && count($data) == 2 ? $data['id'] : $data;
 
-                                // Filter item and add to result if necessary.
-                                if ($item = $classes[$id]->filter($arg, $search)) {
-                                    $result[$id]['name'] = $classes[$id]->getName();
-                                    $result[$id]['content'][] = $item;
-                                }
-                            //}
+                            // Filter item and add to result if necessary.
+                            if ($item = $classes[$id]->filter($arg, $search)) {
+                                $result[$id]['name'] = $classes[$id]->getName();
+                                $result[$id]['content'][] = $item;
+                            }
                         }
                     }
                 }
