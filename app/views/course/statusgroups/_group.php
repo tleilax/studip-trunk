@@ -89,6 +89,8 @@
                                                 $group->id))
                                   ->addQuickfilter(_('Veranstaltungsteilnehmende'),
                                                 $allmembers ? $allmembers->pluck('user_id') : array())
+                                  ->addQuickfilter(_('Teilnehmende ohne Gruppenzuordnung'),
+                                      $nogroupmembers)
                           )
                           ->conditionAll(!$is_locked)
                           ->addLink(

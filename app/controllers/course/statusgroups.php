@@ -162,23 +162,22 @@ class Course_StatusgroupsController extends AuthenticatedController
                 'joinable' => false
             ];
 
+            $nogroupmembers = DBManager::get()->fetchFirst("SELECT user_id
+                FROM seminar_user
+                WHERE `Seminar_id` = :course AND NOT EXISTS (
+                    SELECT `user_id` FROM `statusgruppe_user`
+                    WHERE `statusgruppe_id` IN (:groups) AND `user_id` = seminar_user.`user_id`)",
+                [
+                    'course' => $this->course_id,
+                    'groups' => array_map(function ($g) { return $g->id; }, $groups)
+                ]);
+
+
+            $this->nogroupmembers = $nogroupmembers;
+
             if ($this->sort_group == 'nogroup') {
-                $nogroupmembers = DBManager::get()->fetchAll("SELECT seminar_user.*,
-                    aum.vorname,aum.nachname,aum.email,
-                    aum.username,ui.title_front,ui.title_rear
-                    FROM seminar_user
-                    LEFT JOIN auth_user_md5 aum USING (user_id)
-                    LEFT JOIN user_info ui USING (user_id)
-                    WHERE `Seminar_id` = :course AND NOT EXISTS (
-                        SELECT `user_id` FROM `statusgruppe_user`
-                        WHERE `statusgruppe_id` IN (:groups) AND `user_id` = seminar_user.`user_id`)",
-                    [
-                        'course' => $this->course_id,
-                        'groups' => array_map(function ($g) { return $g->id; }, $groups)
-                    ], 'CourseMember::buildExisting');
 
-                $members = new SimpleCollection($nogroupmembers);
-
+                $members = $this->allmembers->findby('user_id', $nogroupmembers);
                 $groupdata['members'] = StatusgroupsModel::sortGroupMembers($members, $this->sort_by, $this->order);
 
                 $groupdata['load'] = true;

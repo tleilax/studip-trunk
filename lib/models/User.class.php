@@ -190,6 +190,7 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
     /**
      * Returns user object including user_info
      *
+     * @param string $id
      * @return User User
      */
     public static function findFull($id)
@@ -202,6 +203,23 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
         if ($data) {
             return self::buildExisting($data);
         }
+    }
+
+    /**
+     * Returns user objects including user_info
+     *
+     * @param array $ids
+     * @param string $order_by
+     * @return User[] User
+     */
+    public static function findFullMany($ids, $order_by = '')
+    {
+        $sql = "SELECT *
+                FROM auth_user_md5
+                LEFT JOIN user_info USING (user_id)
+                WHERE user_id IN (?) " . $order_by;
+        $data = DbManager::get()->fetchAll($sql, array($ids), 'User::buildExisting');
+        return $data;
     }
 
     /**
