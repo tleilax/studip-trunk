@@ -82,8 +82,9 @@
                 <? if ($perm->haveFieldPerm('copy_module', MvvPerm::PERM_CREATE)) : ?>
                     <? $actionMenu->addLink(
                         $controller->url_for('/copy_form', $modul->id),
-                        _('Modul kopieren'),
-                        Icon::create('files', 'clickable', ['title' => _('Modul kopieren')])
+                            _('Modul kopieren'),
+                            Icon::create('files', 'clickable', ['title' => _('Modul kopieren')]),
+                            ['data-dialog' => '']
                     ) ?>
                 <? endif; ?>
                 <? if ($perm->havePermCreate()) : ?>
