@@ -367,7 +367,7 @@ class Admin_UserController extends AuthenticatedController
             foreach (words('Vorname Nachname auth_plugin visible') as $param) {
                 if (Request::get($param)) $editUser['auth_user_md5.' . $param] = Request::get($param);
             }
-            foreach (words('title_front title_rear geschlecht') as $param) {
+            foreach (words('title_front title_rear geschlecht preferred_language') as $param) {
                 if (Request::get($param) !== null) $editUser['user_info.' . $param] = Request::get($param);
             }
             //change username
@@ -565,7 +565,7 @@ class Admin_UserController extends AuthenticatedController
         }
 
 
-        $this->prelim = $this->user->auth_plugin === 'preliminary';
+        $this->prelim = $this->user->auth_plugin === null;
         if ($this->prelim) {
             $this->available_auth_plugins['preliminary'] = _('vorläufig');
         }
@@ -626,7 +626,8 @@ class Admin_UserController extends AuthenticatedController
             'Email'       => Request::get('Email'),
             'auth_plugin' => Request::get('auth_plugin'),
             'institute'   => Request::option('institute'),
-        ];
+            'preferred_language' => Request::get('preferred_language')
+            ];
 
         //save new user
         if (Request::submitted('speichern')) {
@@ -651,6 +652,7 @@ class Admin_UserController extends AuthenticatedController
                 'user_info.title_front'     => $this->user['title_front'],
                 'user_info.title_rear'      => $this->user['title_rear'],
                 'user_info.geschlecht'      => $this->user['geschlecht'],
+                'user_info.preferred_language' => $this->user['preferred_language'],
             ];
 
             //create new user
@@ -1540,7 +1542,7 @@ class Admin_UserController extends AuthenticatedController
             )->asDialog('size=auto');
         }
 
-        if ($this->user->auth_plugin !== 'preliminary' && ($GLOBALS['perm']->have_perm('root') || $GLOBALS['perm']->is_fak_admin() || !in_array($this->user->perms, words('root admin')))) {
+        if ($this->user->auth_plugin !== null && ($GLOBALS['perm']->have_perm('root') || $GLOBALS['perm']->is_fak_admin() || !in_array($this->user->perms, words('root admin')))) {
             if (!StudipAuthAbstract::CheckField('auth_user_md5.password', $this->user->auth_plugin)) {
                 $user_actions->addLink(_('Neues Passwort setzen'),
                     $this->url_for('admin/user/change_password/' . $this->user->user_id),

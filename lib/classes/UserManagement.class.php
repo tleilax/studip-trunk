@@ -406,9 +406,10 @@ class UserManagement
         }
 
         // include language-specific subject and mailbody
-        $user_language = getUserLanguagePath($this->user_data['auth_user_md5.user_id']); // user has been just created, so we will get DEFAULT_LANGUAGE
+        $user_language = $this->user_data['user_info.preferred_language'] ?: Config::get()->DEFAULT_LANGUAGE;
+
         $Zeit=date("H:i:s, d.m.Y",time());
-        include("locale/$user_language/LC_MAILS/create_mail.inc.php");
+        include("locale/" . $GLOBALS['INSTALLED_LANGUAGES'][$user_language]['path'] . "/LC_MAILS/create_mail.inc.php");
 
         // send mail
         StudipMail::sendMessage($this->user_data['auth_user_md5.Email'],$subject, $mailbody);
@@ -872,7 +873,7 @@ class UserManagement
         $user_folder = Folder::findTopFolder($this->user->id);
         $this->msg .= "info§" . _("Persönlicher Dateibereich gelöscht.") . "§";
         $user_folder->delete();
-        
+
         // delete documents of this user
         if ($delete_documents) {
             $db_filecount = FileRef::deleteBySQL('user_id = ?', [$this->user_data['auth_user_md5.user_id']]);

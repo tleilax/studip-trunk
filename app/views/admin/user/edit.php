@@ -176,6 +176,21 @@ use Studip\Button, Studip\LinkButton;
                 <? endif; ?>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <label for="preferred_language"><?= _('Sprache')  ?>:</label>
+                </td>
+                <td colspan="2">
+                    <select name="preferred_language" class="size-s">
+                        <? foreach ($GLOBALS['INSTALLED_LANGUAGES'] as $key => $language): ?>
+                            <option value="<?= $key ?>"
+                                <? if ($user->preferred_language == $key) echo 'selected'; ?>>
+                                <?= $language['name'] ?>
+                            </option>
+                        <? endforeach; ?>
+                    </select>
+                </td>
+            </tr>
         </tbody>
         <tbody>
             <tr class="header-row">
