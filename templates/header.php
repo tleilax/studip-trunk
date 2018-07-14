@@ -155,7 +155,7 @@ if (isset($_COOKIE['navigation-length'])) {
             <input type="checkbox" id="header-sink">
             <label for="header-sink">
                 <a class="canvasready" href="#">
-                    <?= Icon::create('mobile-sidebar', 'navigation')->asImg(28, [
+                    <?= Icon::create('action', 'navigation')->asImg(28, [
                         'class'  => 'headericon original',
                         'title'  => '',
                         'alt'    => '',
