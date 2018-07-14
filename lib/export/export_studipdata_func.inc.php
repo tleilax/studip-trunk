@@ -863,7 +863,7 @@ function export_datafields($range_id, $childgroup_tag, $childobject_tag, $object
                     continue;
                 }
             }
-            if ($entry->isVisible(null, false) && $entry->getDisplayValue()) {
+            if ($entry->isVisible(null, false) && ($entry->getDisplayValue() || $only_these)) {
                 if (!$d_fields) $ret .= xml_open_tag( $childgroup_tag );
                 $ret .= xml_open_tag($childobject_tag , $entry->getName());
                 $ret .= xml_escape($entry->getDisplayValue(false));
