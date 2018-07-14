@@ -55,7 +55,7 @@ abstract class BaseWidget extends \Widgets\Widget
     {
         $list = function ($element) {
             $action = new WidgetAction(_('Listenansicht im Dialog'));
-            $action->setIcon(Icon::create('maximize-1', Icon::ROLE_CLICKABLE, ['size' => 20]));
+            $action->setIcon(Icon::create('maximize', Icon::ROLE_CLICKABLE, ['size' => 20]));
             $action->setCallback([$this, 'getListTemplate']);
             $action->setAttributes(
                 [
