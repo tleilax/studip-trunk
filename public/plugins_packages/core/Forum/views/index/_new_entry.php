@@ -40,7 +40,7 @@
 
                     <?= Studip\LinkButton::create(_('Vorschau'), "javascript:STUDIP.Forum.preview('new_entry', 'new_entry_preview');", array('tabindex' => '5', 'class' => 'js')) ?>
                     <? if (Config::get()->FORUM_ANONYMOUS_POSTINGS): ?>
-                        <div style="float: left; margin-top: 14px; margin-left: 14px;">    
+                        <div style="float: left; margin-top: 14px; margin-left: 14px;">
                             <label><?= _('Anonym') ?>
                                 <input type="checkbox" name="anonymous" value="1">
                             </label>
@@ -51,7 +51,9 @@
         </div>
         <dl class="postprofile">
             <dt>
-                <?= $this->render_partial('index/_smiley_favorites', array('textarea_id' => 'new_entry')) ?>
+                <? if (!Config::get()->WYSIWYG): ?>
+                    <?= $this->render_partial('index/_smiley_favorites', array('textarea_id' => 'new_entry')) ?>
+                <? endif; ?>
             </dt>
         </dl>
 

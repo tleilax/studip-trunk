@@ -162,7 +162,9 @@
     <span data-edit-topic="<?= $post['topic_id'] ?>" <?= $edit_posting == $post['topic_id'] ? '' : 'style="display: none;"' ?>>
         <dl class="postprofile">
             <dt>
-                <?= $this->render_partial('index/_smiley_favorites', array('textarea_id' => $post['topic_id'])) ?>
+                <? if (!Config::get()->WYSIWYG): ?>
+                    <?= $this->render_partial('index/_smiley_favorites', array('textarea_id' => $post['topic_id'])) ?>
+                <? endif; ?>
             </dt>
         </dl>
     </span>
