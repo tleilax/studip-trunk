@@ -212,6 +212,9 @@ class ParticipantRestrictedAdmission extends AdmissionRule
         if (!$data['enable_FCFS'] && (!$data['distributiondate'] || $ddate < (time() + $this->minimum_timespan_to_distribution_time*60))) {
             $errors[] = sprintf(_('Bitte geben Sie für die Platzverteilung ein Datum an, das weiter in der Zukunft liegt. Das frühestmögliche Datum ist %s.'), strftime('%x %R', time() + $this->minimum_timespan_to_distribution_time*60));
         }
+        if ($data['enable_FCFS'] && $data['distributiondate']) {
+            $errors[] = _('Sie können kein Datum für die automatische Platzverteilung einstellen und gleichzeitig die automatische Platzverteilung ausschalten.');
+        }
         return $errors;
     }
 
