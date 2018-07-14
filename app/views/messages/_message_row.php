@@ -1,7 +1,7 @@
 <tr id="message_<?= $message->getId() ?>" class="<?= $message->isRead() || $message['autor_id'] === $GLOBALS['user']->id ? "" : "unread" ?>">
     <td class="hidden-small-down"><input type="checkbox" name="bulk[]" value="<?= htmlReady($message->getId()) ?>"></td>
     <td><?= $message->getNumAttachments() ? Icon::create('staple', 'info', ["title" => _("Mit Anhang")])->asImg(20) : "" ?></td>
-    <td><?= $message->originator->answered ? Icon::create('outbox', 'info', ["title" => _("Beantwortet")])->asImg(20) : "" ?></td>
+    <td><?= $message->isAnswered($GLOBALS['user']->id) ? Icon::create('outbox', 'info', ["title" => _("Beantwortet")])->asImg(20) : "" ?></td>
     <td class="title">
         <a href="<?= URLHelper::getLink("dispatch.php/messages/read/".$message->getId()) ?>" data-dialog>
             <?= $message['subject'] ? htmlReady($message['subject']) : htmlReady(mila($message['message'], 40)) ?>
@@ -38,7 +38,7 @@
             <?= htmlReady(get_fullname($message['autor_id'])) ?>
         </a>
     <? endif; ?>
-    </td> 
+    </td>
     <td><?= date("d.m.Y H:i", $message['mkdate']) ?></td>
     <td class="tag-container hidden-small-down">
     <? foreach ($message->getTags() as $tag) : ?>

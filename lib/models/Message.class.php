@@ -201,10 +201,25 @@ class Message extends SimpleORMap implements PrivacyObject
         return $changed;
     }
 
+    public function markAsAnswered($user_id)
+    {
+        $mu = MessageUser::findOneBySQL("message_id = ? AND user_id = ? AND snd_rec IN('rec','snd')", array($this->id, $user_id));
+        if ($mu) {
+            $mu->answered = 1;
+            return $mu->store();
+        }
+    }
+
     public function isRead($user_id = null)
     {
         $user_id || $user_id = $GLOBALS['user']->id;
         return (bool)MessageUser::countBySQL("message_id = ? AND user_id = ? AND snd_rec IN('rec','snd') AND readed = 1", array($this->message_id, $user_id));
+    }
+
+    public function isAnswered($user_id = null)
+    {
+        $user_id || $user_id = $GLOBALS['user']->id;
+        return (bool)MessageUser::countBySQL("message_id = ? AND user_id = ? AND snd_rec IN('rec','snd') AND answered = 1", array($this->message_id, $user_id));
     }
 
     public static function send($sender, $recipients, $subject, $message)

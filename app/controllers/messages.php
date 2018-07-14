@@ -568,8 +568,7 @@ class MessagesController extends AuthenticatedController {
             if (Request::option('answer_to')) {
                 $old_message = Message::find(Request::option('answer_to'));
                 if ($old_message) {
-                    $old_message->originator->answered = 1;
-                    $old_message->store();
+                    $old_message->markAsAnswered($GLOBALS['user']->id);
                 }
             }
             PageLayout::postMessage(MessageBox::success(_("Nachricht wurde verschickt.")));
