@@ -1448,7 +1448,7 @@ class Admin_CoursesController extends AuthenticatedController
             $element = new SelectElement(
                 $class_id,
                 $class['name'],
-                $selected == $class_id
+                $selected === $class_id
             );
             $list->addElement(
                 $element->setAsHeader(),
