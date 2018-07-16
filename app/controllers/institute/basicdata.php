@@ -34,7 +34,6 @@ class Institute_BasicdataController extends AuthenticatedController
     public function index_action($i_id = false)
     {
         PageLayout::setTitle(_('Verwaltung der Grunddaten'));
-        Navigation::activateItem('/admin/institute/details');
 
         PageLayout::addSqueezePackage('avatar');
 
@@ -42,6 +41,7 @@ class Institute_BasicdataController extends AuthenticatedController
         $i_view = $i_id ?: Request::option('i_view', Context::getId());
 
         if (!$i_view) {
+            Navigation::activateItem('/admin/institute/details');
             require_once 'lib/admin_search.inc.php';
 
             // This search just died a little inside, so it should be safe to
@@ -49,6 +49,9 @@ class Institute_BasicdataController extends AuthenticatedController
             return;
         } elseif ($i_view === 'new') {
             closeObject();
+            Navigation::activateItem('/admin/institute/create');
+        } else {
+            Navigation::activateItem('/admin/institute/details');
         }
 
         //  allow only inst-admin and root to view / edit

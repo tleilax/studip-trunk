@@ -6,8 +6,8 @@
         <legend><?= _('Verwaltung der Einrichtungsgrunddaten') ?></legend>
 
         <label class="col-3">
-            <?= _('Name') ?>
-            <?= I18N::input('Name', $institute->Name, LockRules::Check($institute->id, 'name') ? array('readonly' => true, 'disabled' => true) : []); ?>
+            <span class="required"><?= _('Name') ?></span>
+            <?= I18N::input('Name', $institute->Name, LockRules::Check($institute->id, 'name') ? ['readonly' => true, 'disabled' => true] : ['required' => true]); ?>
         </label>
 
         <label class="col-3">
