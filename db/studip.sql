@@ -1017,7 +1017,7 @@ CREATE TABLE `datafields_entries` (
   `mkdate` int(20) unsigned DEFAULT NULL,
   `chdate` int(20) unsigned DEFAULT NULL,
   `sec_range_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL DEFAULT '',
-  `lang` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `lang` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL DEFAULT '',
   PRIMARY KEY (`datafield_id`,`range_id`,`sec_range_id`,`lang`) USING BTREE,
   KEY `range_id` (`range_id`,`datafield_id`),
   KEY `datafield_id_2` (`datafield_id`,`sec_range_id`),
@@ -1589,13 +1589,13 @@ DROP TABLE IF EXISTS `files_search_attributes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `files_search_attributes` (
-  `id` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `file_ref_user_id` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `id` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+  `file_ref_user_id` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `file_ref_mkdate` int(10) unsigned NOT NULL,
   `file_ref_chdate` int(10) unsigned NOT NULL,
-  `folder_id` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `folder_range_id` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `folder_range_type` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `folder_id` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+  `folder_range_id` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+  `folder_range_type` char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `folder_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `course_status` tinyint(4) unsigned DEFAULT NULL,
   `semester_start` int(20) unsigned DEFAULT NULL,
@@ -1617,7 +1617,7 @@ DROP TABLE IF EXISTS `files_search_index`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `files_search_index` (
   `FTS_DOC_ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `file_ref_id` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_ref_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `text` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `relevance` float NOT NULL,
   PRIMARY KEY (`FTS_DOC_ID`),
@@ -2324,7 +2324,7 @@ DROP TABLE IF EXISTS `mvv_dokument_zuord`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mvv_dokument_zuord` (
-  `dokument_zuord_id` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dokument_zuord_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `dokument_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `range_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `object_type` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -2773,7 +2773,7 @@ DROP TABLE IF EXISTS `mvv_stgteilabschnitt_modul`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mvv_stgteilabschnitt_modul` (
-  `abschnitt_modul_id` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `abschnitt_modul_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `abschnitt_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `modul_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `flexnow_modul` varchar(250) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
