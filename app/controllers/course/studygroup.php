@@ -162,31 +162,6 @@ class Course_StudygroupController extends AuthenticatedController
     }
 
     /**
-     * displays a form for creating studygroups
-     *
-     * @return void
-     */
-    public function new_action()
-    {
-        PageLayout::setHelpKeyword('Basis.StudiengruppenAnlegen');
-        closeObject();
-
-        PageLayout::setTitle(_("Studiengruppe anlegen"));
-        Navigation::activateItem('/community/studygroups/new');
-        $this->terms             = Config::Get()->STUDYGROUP_TERMS;
-        $this->available_modules = StudygroupModel::getInstalledModules();
-        $this->available_plugins = StudygroupModel::getInstalledPlugins();
-        $this->modules           = new Modules();
-        $this->groupaccess       = $this->flash['request']['groupaccess'];
-        foreach ($GLOBALS['SEM_CLASS'] as $key => $sem_class) {
-            if ($sem_class['studygroup_mode']) {
-                $this->sem_class = $sem_class;
-                break;
-            }
-        }
-    }
-
-    /**
      * @addtogroup notifications
      *
      * Creating a new studygroup triggers a StudygroupDidCreate

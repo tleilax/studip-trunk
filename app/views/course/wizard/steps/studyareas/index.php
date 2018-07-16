@@ -1,3 +1,6 @@
+<legend>
+    <?= _('Studienbereiche') ?>
+</legend>
 <div id="assigned">
     <h2>
         <span class="required">
@@ -17,11 +20,6 @@
             </ul>
         </li>
     </ul>
-    <? if(!$values['locked']) : ?>
-        <div data-dialog-button class="hidden-no-js">
-            <?= Studip\Button::createAccept(_('Speichern')) ?>
-        </div>
-    <? endif ?>
 </div>
 <? if (!$values['locked']) : ?>
     <div id="studyareas" data-ajax-url="<?= $ajax_url ?>"

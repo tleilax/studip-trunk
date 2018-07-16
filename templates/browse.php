@@ -8,9 +8,9 @@ use Studip\Button, Studip\LinkButton;
     <?= CSRFProtection::tokenTag() ?>
     <!-- form zur wahl der institute -->
     <fieldset>
-
+        <legend><?= _('Personensuche') ?></legend>
         <!-- form zur freien Suche -->
-        <label>
+        <label class="col-3">
             <?= _('Name:') ?>
             <?= QuickSearch::get('name', $search_object)
                 ->setInputStyle('width: 400px')
@@ -22,7 +22,7 @@ use Studip\Button, Studip\LinkButton;
         </label>
 
         <? if (count($institutes)): ?>
-            <label>
+            <label class="col-3">
                 <?= _('Einrichtung:') ?>
 
                 <select name="inst_id" style="min-width: 400px;">
@@ -38,7 +38,7 @@ use Studip\Button, Studip\LinkButton;
 
         <!-- form zur wahl der seminare -->
         <? if ($courses && count($courses)): ?>
-            <label>
+            <label class="col-3">
                 <?= _('Veranstaltungen:') ?>
                 <select name="sem_id" style="min-width: 400px;">
                     <option value="0">&nbsp;</option>

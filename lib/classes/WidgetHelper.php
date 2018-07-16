@@ -58,7 +58,7 @@ class WidgetHelper
 
     /**
      * storeNewPositions - stores new Widget positions for a given user
-     * 
+     *
      * @param array ids of widgets to be stored
      *
      * @return void
@@ -68,13 +68,13 @@ class WidgetHelper
         $db = DBManager::get();
         $oldWidget = $db->fetchOne("SELECT position,col FROM widget_user WHERE id = ? AND range_id = ?", array($widget, $GLOBALS['user']->id));
         if ($oldWidget) {
-            
+
             // Push all entries in the new column one position away
             $db->execute("UPDATE widget_user SET position = position + 1 WHERE range_id = ? AND col = ? AND position >= ?", array($GLOBALS['user']->id, $column, $position));
-            
+
             // Insert element
             $db->execute("UPDATE widget_user SET position = ?, col = ? WHERE id = ? ", array($position, $column, $widget));
-            
+
             // Move positions in old column
             $db->execute("UPDATE widget_user SET position = position - 1 WHERE col = ? AND range_id = ? AND position > ?", array($oldWidget['col'], $GLOBALS['user']->id, $oldWidget['position']));
         }
@@ -82,9 +82,9 @@ class WidgetHelper
 
     /**
      * addInitialPositons - adds the global widget default settings to an user setting
-     * 
+     *
      * @param string $col
-     * @param array $ids of widgets 
+     * @param array $ids of widgets
      * @param string $range_id
      *
      * @return void
@@ -105,9 +105,9 @@ class WidgetHelper
      * storeInitialPositions - stores the global widget default for a given perm
      *
      * @param string $col
-     * @param array $ids of widgets 
+     * @param array $ids of widgets
      * @param string $perm
-     * 
+     *
      * @return boolean success
      */
      static function storeInitialPositions($col, $ids, $perm)
@@ -136,10 +136,10 @@ class WidgetHelper
                  . "WHERE perm = ? "
                  . "ORDER BY col ASC, position ASC", array($perm));
      }
-     
+
      /**
       * Sets the current setting of a user as the default for a usergroup
-      * 
+      *
       * @param string $range_id The range id of the user that defines the setting
       * @param string $group The usergroup
       */
@@ -159,9 +159,9 @@ class WidgetHelper
 
     /**
      * getUserWidgets - retrieves the widget settings for a given user
-     * 
-     * @param string $id 
-     * 
+     *
+     * @param string $id
+     *
      * @return array $widgets
      */
     static function getUserWidgets($id, $col = 0)
@@ -202,7 +202,7 @@ class WidgetHelper
      *
      * @param string $id user_id
      * @param string $pluginName
-     * 
+     *
      * @return object UserConfig
      */
     static function getWidgetUserConfig($id, $pluginName)
@@ -257,10 +257,10 @@ class WidgetHelper
 
     /**
      * getWidgetName - retrieves the name of a given widget
-     * 
+     *
      * @param string $id - widget_id
-     * 
-     * @return string widget_name 
+     *
+     * @return string widget_name
      */
     static function getWidgetName($id)
     {
@@ -280,7 +280,7 @@ class WidgetHelper
      * getWidget - retrieves an instance of a given widget / portal plugin
      *
      * @param string $pluginid
-     * 
+     *
      * @return object widget
      */
     static function getWidget($pluginid)
@@ -338,7 +338,7 @@ class WidgetHelper
         $statement = DBManager::get()->prepare($query);
         $statement->bindValue(':user_id', $user_id);
         $statement->bindValue(':widget', $widget);
-        
+
         try {
             $statement->execute();
             return (bool)$statement->fetchColumn();

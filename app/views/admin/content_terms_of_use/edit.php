@@ -39,9 +39,9 @@
             <input type="number" name="position" value="<?= htmlReady($entry->position) ?>">
         </label>
         <label>
-            <?= _('Standardlizenz bei neuen Dateien') ?>
             <input type="checkbox" name="is_default" value="1"
                    <? if ($entry->is_default) echo 'checked'; ?>>
+           <?= _('Standardlizenz bei neuen Dateien') ?>
         </label>
         <label>
             <?= _('Beschreibung') ?>
@@ -53,11 +53,11 @@
         </label>
     </fieldset>
 
-    <div data-dialog-button>
+    <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern')) ?>
         <?= Studip\LinkButton::createCancel(
             _('Abbrechen'),
             $controller->url_for('admin/content_terms_of_use/index')
         ) ?>
-    </div>
+    </footer>
 </form>

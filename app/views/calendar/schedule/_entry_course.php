@@ -6,53 +6,69 @@ use Studip\Button, Studip\LinkButton;
 $sem = Seminar::getInstance($show_entry['id']);
 
 ?>
-<form action="<?= $controller->url_for('calendar/schedule/editseminar/'. $show_entry['id'] .'/'. $show_entry['cycle_id'] ) ?>" method="post" name="edit_entry" style="padding-left: 10px; padding-top: 10px; margin-right: 10px;">
+<form class="default" action="<?= $controller->url_for('calendar/schedule/editseminar/'. $show_entry['id'] .'/'. $show_entry['cycle_id'] ) ?>" method="post" name="edit_entry">
     <?= CSRFProtection::tokenTag() ?>
-    <b><?= _("Farbe des Termins") ?>:</b>
-    <? foreach ($GLOBALS['PERS_TERMIN_KAT'] as $data) : ?>
-    <span style="background-color: <?= $data['color'] ?>; vertical-align: middle; padding: 3px">
-        <input type="radio" name="entry_color" value="<?= $data['color'] ?>" <?= ($data['color'] == $show_entry['color']) ? 'checked="checked"' : '' ?>>
-    </span>
-    <? endforeach ?>
+    <fieldset>
+        <legend>
+            <?= _('Stundenplaneintrag') ?>
+        </legend>
 
-    <br><br>
+        <section>
+            <b><?= _("Farbe des Termins") ?></b><br>
+            <? foreach ($GLOBALS['PERS_TERMIN_KAT'] as $data) : ?>
+            <span style="background-color: <?= $data['color'] ?>; vertical-align: middle; padding: 3px">
+                <input type="radio" name="entry_color" value="<?= $data['color'] ?>" <?= ($data['color'] == $show_entry['color']) ? 'checked="checked"' : '' ?>>
+            </span>
+            <? endforeach ?>
+        </section>
 
-    <? if ($show_entry['type'] == 'virtual') : ?>
-        <span style="color: red; font-weight: bold"><?= _("Dies ist lediglich eine vorgemerkte Veranstaltung") ?></span><br><br>
-    <? endif ?>
+        <? if ($show_entry['type'] == 'virtual') : ?>
+            <section>
+                <span style="color: red; font-weight: bold"><?= _("Dies ist lediglich eine vorgemerkte Veranstaltung") ?></span><br><br>
+            </section>
+        <? endif ?>
 
-    <b><?= _("Veranstaltungsnummer") ?>:</b>
-    <?= htmlReady($sem->getNumber()) ?><br><br>
+        <section>
+            <b><?= _("Veranstaltungsnummer") ?></b><br>
+            <?= htmlReady($sem->getNumber()) ?>
+        </section>
 
-    <b><?= _("Name") ?>:</b>
-    <?= htmlReady($sem->getName()) ?><br><br>
+        <section>
+            <b><?= _("Name") ?></b><br>
+            <?= htmlReady($sem->getName()) ?>
+        </section>
 
 
-    <b><?= _("Dozenten") ?>:</b>
-    <? $pos = 0;foreach ($sem->getMembers('dozent') as $dozent) :
-        if ($pos > 0) echo ', ';
-        ?><a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $dozent['username']) ?>"><?= htmlReady($dozent['fullname']) ?></a><?
-        $pos++;
-    endforeach ?>
-    <br><br>
+        <section>
+            <b><?= _("Dozenten") ?></b><br>
+            <? $pos = 0;foreach ($sem->getMembers('dozent') as $dozent) :
+                if ($pos > 0) echo ', ';
+                ?><a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $dozent['username']) ?>"><?= htmlReady($dozent['fullname']) ?></a><?
+                $pos++;
+            endforeach ?>
+        </section>
 
-    <b><?= _("Veranstaltungszeiten") ?>:</b><br>
-    <?= $sem->getDatesHTML(array('show_room' => true)) ?><br>
+        <section>
+            <b><?= _("Veranstaltungszeiten") ?></b><br>
+            <?= $sem->getDatesHTML(array('show_room' => true)) ?><br>
+        </section>
 
-    <?= Icon::create('link-intern', 'clickable')->asImg() ?>
-    <? if ($show_entry['type'] == 'virtual') : ?>
-    <a href="<?= URLHelper::getLink('dispatch.php/course/details/?sem_id='. $show_entry['id']) ?>"><?=_("Zur Veranstaltung") ?></a><br>
-    <? else : ?>
-    <a href="<?= URLHelper::getLink('seminar_main.php?auswahl='. $show_entry['id']) ?>"><?=_("Zur Veranstaltung") ?></a><br>
-    <? endif ?>
-    <br>
+        <section>
+            <?= Icon::create('link-intern', 'clickable')->asImg() ?>
+            <? if ($show_entry['type'] == 'virtual') : ?>
+                <a href="<?= URLHelper::getLink('dispatch.php/course/details/?sem_id='. $show_entry['id']) ?>"><?=_("Zur Veranstaltung") ?></a><br>
+            <? else : ?>
+                <a href="<?= URLHelper::getLink('seminar_main.php?auswahl='. $show_entry['id']) ?>"><?=_("Zur Veranstaltung") ?></a><br>
+            <? endif ?>
+        </section>
+    </fieldset>
 
-    <div style="text-align: center" data-dialog-button>
+    <footer data-dialog-button>
         <?= Button::createAccept(_('Speichern'), array('style' => 'margin-right: 20px')) ?>
 
         <? if (!$show_entry['visible']) : ?>
             <?= LinkButton::create(_('Einblenden'),
-                                   $controller->url_for('calendar/schedule/bind/'. $show_entry['id'] .'/'. $show_entry['cycle_id'] .'/'. '?show_hidden=1'), 
+                                   $controller->url_for('calendar/schedule/bind/'. $show_entry['id'] .'/'. $show_entry['cycle_id'] .'/'. '?show_hidden=1'),
                                    array('style' => 'margin-right: 20px')) ?>
         <? else : ?>
             <?= LinkButton::create($show_entry['type'] == 'virtual' ? _('Löschen') : _('Ausblenden'),

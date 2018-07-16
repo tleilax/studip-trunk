@@ -29,19 +29,14 @@ use Studip\Button, Studip\LinkButton;
         <?= MessageBox::info(_("Sie können die Studiengruppen nicht deaktivieren, solange noch welche in Stud.IP vorhanden sind!")) ?>
     <? endif; ?>
     <br>
-<?php endif;?>
-<form action="<?= $controller->url_for('course/studygroup/savemodules') ?>" method="post">
+<? endif;?>
+<form class="default" action="<?= $controller->url_for('course/studygroup/savemodules') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <!-- Title -->
-<table class="default">
-    <tr>
-        <th colspan="2"> <b><?= _("Einrichtungszuordnung") ?></b> </th>
-    </tr>
-    <tr>
-        <td>
+    <fieldset>
+        <legend><?= _("Einrichtungszuordnung") ?></legend>
+        <label>
             <?= _("Alle Studiengruppen werden folgender Einrichtung zugeordnet:") ?><br>
-        </td>
-        <td>
             <select name="institute" class="nested-select">
             <? if (!Config::getInstance()->getValue('STUDYGROUPS_ENABLE')):?>
                 <option value="" class="is-placeholder">
@@ -61,33 +56,19 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach; ?>
             <? endforeach; ?>
             </select>
-        </td>
-    </tr>
-</table>
+        </label>
+    </fieldset>
 
-<br>
-
-<!-- Title -->
-<table class="default">
-    <tr>
-        <th colspan="2"> <b><?= _("Nutzungsbedingugen") ?></b> </th>
-    </tr>
-    <tr>
-        <td colspan="2">
-        <?= _("Geben Sie hier Nutzungsbedingungen für die Studiengruppen ein. ".
-                "Diese müssen akzeptiert werden, bevor eine Studiengruppe angelegt werden kann.") ?>
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2" class="blank">
-        <br>
-        <textarea name="terms" style="width: 90%" rows="10" style='align:middle;'><?= htmlReady($terms) ?></textarea>
-        <br>
-        </td>
-    </tr>
-</table>
-<p style="text-align: center">
-    <br>
-    <?= Button::createAccept(_("Speichern"), 'speichern') ?>
-</p>
+    <!-- Title -->
+    <fieldset>
+        <legend><?= _("Nutzungsbedingugen") ?></legend>
+        <label>
+            <?= _("Geben Sie hier Nutzungsbedingungen für die Studiengruppen ein. ".
+                    "Diese müssen akzeptiert werden, bevor eine Studiengruppe angelegt werden kann.") ?>
+            <textarea name="terms" style="width: 90%" rows="10" style='align:middle;'><?= htmlReady($terms) ?></textarea>
+        </label>
+    </fieldset>
+    <footer>
+        <?= Button::createAccept(_("Speichern"), 'speichern') ?>
+    </footer>
 </form>

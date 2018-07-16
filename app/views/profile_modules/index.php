@@ -1,5 +1,5 @@
 <?php use Studip\Button, Studip\LinkButton;?>
-<form action="<?= $controller->url_for('profilemodules/update', compact('username')) ?>" method="post">
+<form action="<?= $controller->url_for('profilemodules/update', compact('username')) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
     <input name="uebernehmen" value="1" type="hidden">
     <table class="default nohover plus" id="profile_modules">
@@ -214,7 +214,7 @@
 
                         <!-- helplink -->
                         <? if (isset($info['helplink'])) : ?>
-                        <a class="helplink" href="<?= htmlReady($info['helplink']) ?>">...mehr</a>
+                        <a class="helplink" href=" <?= htmlReady($info['helplink']) ?> ">...mehr</a>
                         <? endif ?>
 
                     </div>

@@ -9,7 +9,7 @@
 
 <p><?= _('Sie können hier einen Teil der Logging-Funktionen direkt verändern.') ?></p>
 
-<form action="<?= $controller->url_for('event_log/save/'.urlencode($edit_id)) ?>" method="POST">
+<form action="<?= $controller->url_for('event_log/save/'.urlencode($edit_id)) ?>" method="POST" class="default">
 <?= CSRFProtection::tokenTag() ?>
 
   <table class="default">

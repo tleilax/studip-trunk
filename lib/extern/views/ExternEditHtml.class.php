@@ -40,6 +40,7 @@
 
 require_once "lib/extern/views/ExternEditGeneric.class.php";
 
+
 class ExternEditHtml extends ExternEditGeneric {
 
     function __construct (&$config, $form_values = "", $faulty_values = "",
@@ -59,21 +60,19 @@ class ExternEditHtml extends ExternEditGeneric {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr><td{$this->width_1}>";
-        $out .= "<font size=\"2\">";
+        $out = "<label $invalidClass for=\"$form_name\">";
         $out .= _("Zeilenhöhe:");
-        $out .= "</font></td>\n";
-        $out .= "<td{$this->width_2} nowrap=\"nowrap\"><input type=\"text\" name=\"$form_name\" size=\"3\"";
-        $out .= " maxlength=\"3\" value=\"$value\"><font size=\"2\">&nbsp;Pixel&nbsp; \n";
-        $out .= "</font>";
         $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
+        $out .= "</label>";
+
+        $out .= "<section class=\"hgroup\">";
+        $out .= "<label>";
+        $out .= "<input type=\"text\" name=\"$form_name\" size=\"3\"";
+        $out .= " maxlength=\"3\" class=\"no-hint \" value=\"$value\">&nbsp;Pixel";
+        $out .= "</label>";
+        $out .= "</section>";
 
         return $out;
     }
@@ -90,21 +89,17 @@ class ExternEditHtml extends ExternEditGeneric {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr><td{$this->width_1}>";
-        $out .= "<font size=\"2\">";
+        $out = "<label $invalidClass for=\"$form_name\">";
         $out .= _("Rahmendicke:");
-        $out .= "</font></td>\n";
-        $out .= "<td{$this->width_2} nowrap=\"nowrap\"><input type=\"text\" name=\"$form_name\" size=\"2\"";
-        $out .= " maxlength=\"2\" value=\"$value\"><font size=\"2\">&nbsp;Pixel&nbsp; \n";
-        $out .= "</font>";
         $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
+
+        $out .= "<section class=\"hgroup\">";
+        $out .= "<input type=\"text\" name=\"$form_name\" size=\"2\"";
+        $out .= " maxlength=\"2\" class=\"no-hint size-s \" value=\"$value\">&nbsp;Pixel";
+        $out .= "</section>";
+        $out .= "</label>";
 
         return $out;
     }
@@ -295,19 +290,15 @@ class ExternEditHtml extends ExternEditGeneric {
                             "tomato" => "#FF6347", "turquoise" => "#40E0D0", "violet" => "#EE82EE",
                             "wheat" => "#F5DEB3", "whitesmoke" => "#F5F5F5", "yellowgreen" => "#9ACD32");
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr><td{$this->width_1}>";
-        $out .= "<font size=\"2\">$title</font></td>\n";
-        $out .= "<td{$this->width_2} nowrap=\"nowrap\">\n";
-        $out .= "<input type=\"text\" name=\"$form_name\" size=\"20\"";
-        $out .= " maxlength=\"20\" value=\"$value\">&nbsp; &nbsp;\n";
+        $out = "<label $invalidClass for=\"_${form_name}\">$title";
+        $out .= tooltipIcon($info);
+        $out .= "<section class=\"hgroup\">";
+        $out .= "<input type=\"text\" name=\"$form_name\" class=\"no-hint\" ";
+        $out .= " maxlength=\"20\" value=\"$value\">\n";
 
-        $out .= "<select name=\"_{$form_name}\" ";
+        $out .= "<select name=\"_{$form_name}\"";
         $out .= "onChange=\"document.edit_form.{$form_name}.value=document.edit_form._{$form_name}.";
         $out .= "options[document.edit_form._{$form_name}.selectedIndex].value;\" ";
         $out .= " class=\"nested-select\">\n";
@@ -318,15 +309,15 @@ class ExternEditHtml extends ExternEditGeneric {
                 $out .= "<option ";
             }
             if (!$color_value) {
-                $out .= ' class="is-placeholder"';
+                $out .= ' class="is-placeholder" ';
             }
             $out .= "data-text-color=\"$color_value\" value=\"$color_value\">";
             $out .= $color_name . "</option>";
         }
-        $out .= "</select>\n";
+        $out .= "</select>";
 
-        $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
+        $out .= "</section>";
+        $out .= "</label>";
 
         return $out;
     }
@@ -343,21 +334,16 @@ class ExternEditHtml extends ExternEditGeneric {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr><td{$this->width_1}>";
-        $out .= "<font size=\"2\">";
+        $out = "<label $invalidClass>";
         $out .= _("Cellpadding:");
-        $out .= "</font></td>\n";
-        $out .= "<td{$this->width_2} nowrap=\"nowrap\"><input type=\"text\" name=\"$form_name\" size=\"2\"";
-        $out .= " maxlength=\"2\" value=\"$value\"><font size=\"2\">&nbsp;Pixel&nbsp; \n";
-        $out .= "</font>";
         $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
+        $out .= "<section class=\"hgroup\">";
+        $out .= "<input type=\"text\" name=\"$form_name\" size=\"2\"";
+        $out .= " maxlength=\"2\" class=\"no-hint size-s \" value=\"$value\">&nbsp;Pixel";
+        $out .= "</section>";
+        $out .= "</label>";
 
         return $out;
     }
@@ -374,21 +360,16 @@ class ExternEditHtml extends ExternEditGeneric {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr><td{$this->width_1}>";
-        $out .= "<font size=\"2\">";
+        $out = "<label ".$invalidClass.">";
         $out .= _("Cellspacing:");
-        $out .= "</font></td>\n";
-        $out .= "<td{$this->width_2} nowrap=\"nowrap\"><input type=\"text\" name=\"$form_name\" size=\"2\"";
-        $out .= " maxlength=\"2\" value=\"$value\"><font size=\"2\">&nbsp;Pixel&nbsp; \n";
-        $out .= "</font>";
         $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
+        $out .= "<section class=\"hgroup\">";
+        $out .= "<input type=\"text\" name=\"$form_name\" size=\"2\"";
+        $out .= " maxlength=\"2\" class=\"no-hint size-s\" value=\"$value\">&nbsp;Pixel";
+        $out .= "</section>";
+        $out .= "</label>";
 
         return $out;
     }
@@ -411,32 +392,32 @@ class ExternEditHtml extends ExternEditGeneric {
             $value = mb_substr($value, 0, -1);
         }
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr><td{$this->width_1}><font size=\"2\">";
+        $out = "<label $invalidClass for=\"$form_name\">";
         $out .= _("Breite:");
-        $out .= "</font></td>\n";
-        $out .= "<td{$this->width_2} nowrap=\"nowrap\"><input type=\"text\" name=\"$form_name\" size=\"3\"";
-        $out .= " maxlength=\"3\" value=\"$value\">&nbsp; &nbsp;\n";
+        $out .= tooltipIcon($info);
+        $out .= "</label>";
 
+        $out .= "<section class=\"hgroup\">";
+        $out .= "<input type=\"text\" name=\"$form_name\" size=\"3\"";
+        $out .= " maxlength=\"3\" class=\"no-hint size-s\" value=\"$value\">&nbsp;\n";
+
+        $out .= "<label $invalidClass>";
         $out .= "<input type=\"radio\" name=\"{$form_name}pp\" value=\"%\"";
         if ($value_pp == "%")
             $out .= " checked=\"checked\"";
-        $out .= "><font size=\"2\">";
+        $out .= ">";
         $out .= _("Prozent");
-        $out .= "&nbsp; &nbsp;</font><input type=\"radio\" name=\"";
+        $out .= "</label><label $invalidClass>";
+        $out .= "<input type=\"radio\" name=\"";
         $out .= $form_name . "pp\" value=\"\"";
         if ($value_pp == "")
             $out .= " checked=\"checked\"";
-        $out .= "><font size=\"2\">";
+        $out .= ">";
         $out .= _("Pixel");
-        $out .= "&nbsp; &nbsp;</font>\n";
-        $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
+        $out .= "</label>";
+        $out .= "</section>";
 
         return $out;
     }
@@ -459,16 +440,12 @@ class ExternEditHtml extends ExternEditGeneric {
             "right" => _("rechtsbündig"),
           "center" => _("zentriert")
         );
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr><td{$this->width_1}><font size=\"2\">";
-        $out .= _("horizontale Ausrichtung:");
-        $out .= "</font></td>\n";
-        $out .= "<td{$this->width_2} nowrap=\"nowrap\"><select name=\"$form_name\" size=\"1\">\n";
+        $out = "<label $invalidClass>";
+        $out .= _("horizontale Ausrichtung:")."\n";
+        $out .= tooltipIcon($info);
+        $out .= "<select name=\"$form_name\" size=\"1\">\n";
         foreach ($align_types as $align_type => $align_name) {
             if ($value == $align_type)
                 $out .= "<option selected=\"selected\" ";
@@ -477,13 +454,12 @@ class ExternEditHtml extends ExternEditGeneric {
             $out .= "value=\"$align_type\">";
             $out .= $align_name . "</option>";
         }
-        $out .= "</select>\n";
-        $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
+        $out .= "</select>";
+        $out .= "</label>";
 
         return $out;
     }
-
+    
     /**
     * Prints out a form for entering the vertikal alignment of a html-element (e.g. &lt;td&gt;, &lt;table&gt;).
     *
@@ -502,16 +478,11 @@ class ExternEditHtml extends ExternEditGeneric {
             "bottom" => _("untenbündig"),
           "center" => _("zentriert")
         );
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr><td{$this->width_1}><font size=\"2\">";
-        $out .= _("vertikale Ausrichtung:");
-        $out .= "</font></td>\n";
-        $out .= "<td{$this->width_2} nowrap=\"nowrap\"><select name=\"$form_name\" size=\"1\">\n";
+        $out = "<label $invalidClass>";
+        $out .= _("vertikale Ausrichtung:")."\n";
+        $out .= "<select name=\"$form_name\" size=\"1\">\n";
         foreach ($valign_types as $valign_type => $valign_name) {
             if ($value == $valign_type)
                 $out .= "<option selected=\"selected\" ";
@@ -520,9 +491,8 @@ class ExternEditHtml extends ExternEditGeneric {
             $out .= "value=\"$valign_type\">";
             $out .= $valign_name . "</option>";
         }
-        $out .= "</select>\n";
-        $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
+        $out .= "</select>";
+        $out .= "</label>";
 
         return $out;
     }

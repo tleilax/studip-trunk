@@ -5,12 +5,12 @@
     <fieldset>
         <legend><?= _('Verwaltung der Einrichtungsgrunddaten') ?></legend>
 
-        <label>
+        <label class="col-3">
             <?= _('Name') ?>
             <?= I18N::input('Name', $institute->Name, LockRules::Check($institute->id, 'name') ? array('readonly' => true, 'disabled' => true) : []); ?>
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Fakultät') ?>
 
         <? if (count($institute->sub_institutes) > 0): ?>
@@ -44,7 +44,7 @@
         <? endif; ?>
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Bezeichnung') ?>
 
             <select name="type" id="type" <?= LockRules::Check($institute->id, 'type') ? 'readonly disabled' : '' ?> >
@@ -56,44 +56,44 @@
            </select>
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Straße') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'strasse') ? 'readonly disabled' : '' ?> id="strasse" name="strasse"
+            <input type="text" <?= LockRules::Check($institute->id, 'strasse') ? 'readonly disabled' : '' ?> id="strasse" name="strasse"
                    value="<?= htmlReady(Request::get('strasse', $institute->strasse)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Ort') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'plz') ? 'readonly disabled' : '' ?> id="plz" name="plz"
+            <input type="text" <?= LockRules::Check($institute->id, 'plz') ? 'readonly disabled' : '' ?> id="plz" name="plz"
                    value="<?= htmlReady(Request::get('plz', $institute->plz)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Telefonnummer') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'telefon') ? 'readonly disabled' : '' ?> id="telefon" name="telefon"
+            <input type="text" <?= LockRules::Check($institute->id, 'telefon') ? 'readonly disabled' : '' ?> id="telefon" name="telefon"
                    value="<?= htmlReady(Request::get('telefon', $institute->telefon)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Faxnummer') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'fax') ? 'readonly disabled' : '' ?> id="fax" name="fax"
+            <input type="text" <?= LockRules::Check($institute->id, 'fax') ? 'readonly disabled' : '' ?> id="fax" name="fax"
                    value="<?= htmlReady(Request::get('fax', $institute->fax)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('E-Mail-Adresse') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'email') ? 'readonly disabled' : '' ?> id="email" name="email"
+            <input type="text" <?= LockRules::Check($institute->id, 'email') ? 'readonly disabled' : '' ?> id="email" name="email"
                    value="<?= htmlReady(Request::get('email', $institute->email)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Homepage') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'url') ? 'readonly disabled' : '' ?> id="home" name="home"
+            <input type="text" <?= LockRules::Check($institute->id, 'url') ? 'readonly disabled' : '' ?> id="home" name="home"
                    value="<?= htmlReady(Request::get('home', $institute->url)) ?>">
         </label>
 
     <? if (get_config('LITERATURE_ENABLE') && $institute->is_fak): // choose preferred lit plugin ?>
-        <label>
+        <label class="col-3">
             <?= _('Bevorzugter Bibliothekskatalog') ?>
             <select id="lit_plugin_name" name="lit_plugin_name">
             <? foreach (StudipLitSearch::GetAvailablePlugins() as $name => $title): ?>
@@ -106,7 +106,7 @@
     <? endif; ?>
 
     <? if ($GLOBALS['perm']->have_perm('root')): // Select lockrule to apply ?>
-        <label>
+        <label class="col-3">
             <?= _('Sperrebene') ?>
             <select id="lock_rule" name="lock_rule">
                 <option value="">&nbsp;</option>
@@ -120,11 +120,9 @@
     <? endif; ?>
 
     <? foreach ($datafields as $key => $datafield): ?>
-        <label style="color: <?= $datafield['color'] ?>">
-            <?= htmlReady($datafield['title']) ?>
-
+        <div class="col-3" style="vertical-align: top">
             <?= $datafield['value'] ?>
-        </label>
+        </div>
     <? endforeach; ?>
     </fieldset>
 

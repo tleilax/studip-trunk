@@ -10,14 +10,23 @@
                     <?= $this->render_partial('news/_commentbox', compact('index', 'comment')) ?>
                 <? endforeach; ?>
                 <? if (!$nobody) : ?>
-                    <form action="<?= ContentBoxHelper::href($new->id, array('comments' => 1)) ?>" method="POST">
+                    <form action="<?= ContentBoxHelper::href($new->id, array('comments' => 1)) ?>" method="POST" class="default" style="text-align: left;">
                         <?= CSRFProtection::tokenTag() ?>
                         <input type="hidden" name="comsubmit" value="<?= $new['news_id'] ?>">
-                        <textarea class="add_toolbar wysiwyg" name="comment_content" style="width:100%" rows="8"
-                                  placeholder="<?= _('Geben Sie hier Ihren Kommentar ein!') ?>"></textarea>
-                        <div style="text-align: center;">
+                        <fieldset>
+                            <legend>
+                                <?= _('Kommentieren') ?>
+                            </legend>
+                            <label>
+                                <textarea class="add_toolbar wysiwyg" name="comment_content" style="width:70%" rows="8"
+                                          cols="38" wrap="virtual"
+                                          placeholder="<?= _('Geben Sie hier Ihren Kommentar ein!') ?>"></textarea>
+                            </label>
+                        </fieldset>
+
+                        <footer>
                             <?= Studip\Button::createAccept(_('Absenden')) ?>
-                        </div>
+                        </footer>
                     </form>
                 <? endif ?>
             <? else: ?>

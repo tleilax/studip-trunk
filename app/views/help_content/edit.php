@@ -34,11 +34,11 @@
             <textarea cols="60" rows="5" name="help_content_content"
                       placeholder="<?= _('Bitte geben Sie den Text ein') ?>"><?= $help_content->content ? htmlReady($help_content->content) : '' ?></textarea>
         </label>
-
-        <footer data-dialog-button="1">
-            <?= Button::create(_('Speichern'), 'save_help_content', ['data-dialog' => '']) ?>
-            <?= Button::createAccept(_('Speichern'), 'save_help_content') ?>
-            <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('help_content/admin_overview'), []) ?>
-        </footer>
     </fieldset>
+
+    <footer data-dialog-button="1">
+        <?= Button::create(_('Speichern'), 'save_help_content', ['data-dialog' => '']) ?>
+        <?= Button::createAccept(_('Speichern'), 'save_help_content') ?>
+        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('help_content/admin_overview'), []) ?>
+    </footer>
 </form>

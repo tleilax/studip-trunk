@@ -69,7 +69,7 @@ class ExternEditModule extends ExternEditHtml {
         if (!is_array($hide))
             $hide = array();
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
         $out .= "<tr>\n";
         $out .= "<td><font size=\"2\"><b>" . _("Datenfeld") . "</b></font></td>\n";
         if (!in_array('aliases', $hide))
@@ -158,7 +158,6 @@ class ExternEditModule extends ExternEditHtml {
                 }
            }
 
-            $out .= "</tr>\n";
         }
 
         // width in pixels or percent
@@ -182,7 +181,7 @@ class ExternEditModule extends ExternEditHtml {
             $out .= "$error_sign</td></tr>\n";
         }
 
-        $out .= "</table>\n</td></tr>\n";
+        $out .= "</table>\n";
 
         return $out;
     }
@@ -194,7 +193,7 @@ class ExternEditModule extends ExternEditHtml {
         $sort = $this->getValue("sort");
 
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
         $out .= "<tr>\n";
         $out .= "<td><font size=\"2\"><b>" . _("Datenfeld") . "</b></font></td>\n";
         $out .= "<td><font size=\"2\"><b>" . _("Sortierung") . "</b></font></td>\n";
@@ -223,7 +222,7 @@ class ExternEditModule extends ExternEditHtml {
             }
         }
 
-        $out .= "</table>\n</td></tr>\n";
+        $out .= "</table>\n";
 
         return $out;
     }
@@ -271,7 +270,7 @@ class ExternEditModule extends ExternEditHtml {
             }
         }
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
         $out .= "<tr>\n";
         $out .= "<td width=\"42%\"><font size=\"2\"><b>" . _("Gruppenname") . "</b></font></td>\n";
         $out .= "<td width=\"48%\"><font size=\"2\"><b>" . _("alternativer Gruppenname") . "</b></font></td>\n";
@@ -308,7 +307,7 @@ class ExternEditModule extends ExternEditHtml {
             $i++;
         }
 
-        $out .= "</table>\n</td></tr>\n";
+        $out .= "</table>\n";
 
         return $out;
     }
@@ -335,7 +334,7 @@ class ExternEditModule extends ExternEditHtml {
         }
 
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
         $out .= "<tr>\n";
         $out .= "<td><font size=\"2\"><b>" . _("Datenfeld") . "</b></font></td>\n";
         $out .= "<td><font size=\"2\"><b>" . _("Überschrift") . "</b></font></td>\n";
@@ -405,7 +404,7 @@ class ExternEditModule extends ExternEditHtml {
             }
         }
 
-        $out .= "</table>\n</td></tr>\n";
+        $out .= "</table>\n";
         $out .= "<input type=\"hidden\" name=\"count_semtypes\" value=\"$i\">\n";
 
         // update order
@@ -468,7 +467,7 @@ class ExternEditModule extends ExternEditHtml {
     }
 
     function editMarkerDescription ($markers, $new_datafields = FALSE) {
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\" style=\"font-size: 0.7em\">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\" style=\"font-size: 0.7em\">\n";
         $out .= "<tr>\n";
         $out .= '<td><font size="2"><b>' . _("Marker") . "</b></font></td>\n";
         $out .= '<td><font size="2"><b>' . _("Beschreibung") . "</b></font></td>\n";
@@ -526,7 +525,7 @@ class ExternEditModule extends ExternEditHtml {
             $out .= "<tr>\n";
             $out .= '<td colspan="2" align="center">' . Button::create(_('Aktualisieren')). "</td></tr>\n";
         }
-        $out .= "</table></td></tr>\n";
+        $out .= "</table>\n";
 
         return $out;
     }

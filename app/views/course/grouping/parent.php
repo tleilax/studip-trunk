@@ -1,5 +1,7 @@
 <? if ($parent) : ?>
-    <form class="default" method="post" action="<?= $controller->url_for('course/grouping/unassign_parent') ?>">
+<form class="default" method="post" action="<?= $controller->url_for('course/grouping/unassign_parent') ?>">
+    <fieldset>
+        <legend><?= _('Veranstaltung zuordnen') ?></legend>
         <section>
             <p>
                 <?= sprintf(
@@ -14,20 +16,29 @@
                 ) ?>
             </p>
         </section>
-        <footer>
-            <?= Studip\Button::createCancel(_('Zuordnung aufheben'), 'unassign') ?>
-        </footer>
-    </form>
+    </fieldset>
+
+    <footer>
+        <?= Studip\Button::createCancel(_('Zuordnung aufheben'), 'unassign') ?>
+    </footer>
+</form>
 <? else : ?>
-    <p>
-        <?= _('Diese Veranstaltung ist noch keiner Hauptveranstaltung zugeordnet.') ?>
-    </p>
-    <form class="default" method="post" action="<?= $controller->url_for('course/grouping/assign_parent') ?>">
-        <section>
+<form class="default" method="post" action="<?= $controller->url_for('course/grouping/assign_parent') ?>">
+    <fieldset>
+        <legend><?= _('Veranstaltung zuordnen') ?></legend>
+
+        <p>
+            <?= _('Diese Veranstaltung ist noch keiner Hauptveranstaltung zugeordnet.') ?>
+        </p>
+
+        <label>
+            <?= _('Veranstaltung') ?>
             <?= $search->render() ?>
-        </section>
-        <footer>
-            <?= Studip\Button::createAccept(_('Zuordnen'), 'assign') ?>
-        </footer>
-    </form>
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Studip\Button::createAccept(_('Zuordnen'), 'assign') ?>
+    </footer>
+</form>
 <? endif ?>

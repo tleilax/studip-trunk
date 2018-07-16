@@ -1197,35 +1197,22 @@ if ((Request::submitted('lock_sent'))) {
         $statement = DBManager::get()->prepare($query);
 
         $lock_id = Request::optionArray('lock_id');
+        $locks = Request::getArray('lock');
+
         foreach ($lock_id as $key=>$id) {
             $illegal_begin = FALSE;
             $illegal_end = FALSE;
 
             //checkdates
-            $lock_begin_year  = Request::optionArray('lock_begin_year');
-            $lock_begin_month = Request::optionArray('lock_begin_month');
-            $lock_begin_day   = Request::optionArray('lock_begin_day');
-            $lock_begin_hour  = Request::optionArray('lock_begin_hour');
-            $lock_begin_min   = Request::optionArray('lock_begin_min');
 
-            $lock_end_year  = Request::optionArray('lock_end_year');
-            $lock_end_month = Request::optionArray('lock_end_month');
-            $lock_end_day   = Request::optionArray('lock_end_day');
-            $lock_end_hour  = Request::optionArray('lock_end_hour');
-            $lock_end_min   = Request::optionArray('lock_end_min');
-
-            if (!check_date($lock_begin_month[$key], $lock_begin_day[$key], $lock_begin_year[$key], $lock_begin_hour[$key], $lock_begin_min[$key])) {
+            if (!$lock_begin = strtotime($locks['begin'][$key])) {
                 //$msg->addMsg(2);
                 $illegal_begin=TRUE;
-            } else {
-                $lock_begin = mktime($lock_begin_hour[$key],$lock_begin_min[$key],0,$lock_begin_month[$key], $lock_begin_day[$key], $lock_begin_year[$key]);
             }
 
-            if (!check_date($lock_end_month[$key], $lock_end_day[$key], $lock_end_year[$key], $lock_end_hour[$key], $lock_end_min[$key])) {
+            if (!$lock_end = strtotime($locks['end'][$key])) {
                 //$msg -> addMsg(3);
                 $illegal_end=TRUE;
-            } else {
-                $lock_end = mktime($lock_end_hour[$key],$lock_end_min[$key],0,$lock_end_month[$key], $lock_end_day[$key], $lock_end_year[$key]);
             }
 
             if ((!$illegal_begin) && (!$illegal_end) && ($lock_begin < $lock_end)) {

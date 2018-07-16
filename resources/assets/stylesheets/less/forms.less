@@ -3,6 +3,31 @@ form.default {
     @max-width-m: 48em;
     @max-width-l: 100%;
 
+    div.select2-wrapper {
+        display: block ! important;
+    }
+
+    section {
+        padding-top: 1.5ex;
+
+        label:first-of-type {
+            margin-top: 0px;
+        }
+    }
+
+    ol.default {
+        padding-left: 20px;
+
+        li {
+            padding: 2px 0px;
+        }
+    }
+
+    span.empty {
+        color: @light-gray-color-40;
+        font-style: italic;
+    }
+
     input[type=date], input[type=email], input[type=number],
     input[type=password], input[type=text], input[type=time], input[type=url], input[type=tel],
     textarea, select {
@@ -36,7 +61,7 @@ form.default {
         }
     }
 
-    input[type=date], input[type=number], input[type=time], input[type=tel]  {
+    input[type=date], input[type=number], input[type=time], input[type=tel]:not(.size-m)  {
         max-width: @max-width-s;
     }
 
@@ -46,36 +71,54 @@ form.default {
 
     label:not(.undecorated) {
         display: block;
-        margin-top: 1ex;
+        margin-top: 1.5ex;
         max-width: 100%;
         text-indent: 0.25ex;
+        font-weight: bold;
+        vertical-align: top;
 
         input[type=date], input[type=email], input[type=number],
         input[type=password], input[type=text], input[type=time], input[type=tel], input[type=url],
         textarea, select {
             display: block;
-            margin-top: 1ex;
+            margin-top: 0.5ex;
         }
     }
 
-    // TODO: How is 15% percent related to anything column-wise?
-    label.col-2, label.col-3, label.col-4 {
-//        .flex-align-self(flex-end);
+    .label-text {
+        display: inline-block;
+        font-weight: bold;
+        text-indent: 0.25ex;
+    }
+
+    /* we have to use specific css selectors, otherwise the settings are
+       overwritten by other rules  */
+    label.col-1, label.col-2, label.col-3, label.col-4, label.col-5,
+    div.col-1, div.col-2, div.col-3, div.col-4, div.col-5,
+    section.col-1, section.col-2, section.col-3, section.col-4, section.col-5 {
         display: inline-block;
         padding-right: 1em;
-        vertical-align: bottom;
+        vertical-align: top;
     }
-    label.col-2 {
-//        flex: 1 0 30%;
-        min-width: 30%;
+
+    label.col-1, div.col-1, section.col-1 {
+        min-width: 14%;
     }
-    label.col-3 {
-//        flex: 1 0 45%;
+
+    label.col-2, div.col-2, section.col-2 {
+        min-width: 29%;
+    }
+
+    label.col-3, div.col-3, section.col-3 {
         min-width: 45%;
     }
-    label.col-4 {
-//        flex: 1 0 60%;
+
+    label.col-4, div.col-4, section.col-4 {
         min-width: 60%;
+    }
+
+    label.col-5, div.col-5, section.col-5 {
+        min-width: 75%;
     }
 
     fieldset {
@@ -101,11 +144,7 @@ form.default {
             margin: 0 -11px;
             padding: 0;
             text-indent: 10px;
-            width: calc(100% + 22px);
-        }
-
-        > :first-child:not(legend), > legend + * {
-            margin-top: 10px;
+            width: calc(100% + 23px);
         }
     }
 
@@ -115,6 +154,22 @@ form.default {
             content: "*";
             color: red;
         }
+    }
+
+    input[type=checkbox] {
+        vertical-align: bottom;
+    }
+
+    input[type=radio] {
+        vertical-align: text-bottom;
+    }
+
+    select[disabled] {
+        background-color: @dark-gray-color-15;
+    }
+
+    .tooltip.tooltip-icon::before {
+        vertical-align: text-bottom;
     }
 
     footer {
@@ -153,10 +208,47 @@ form.default {
         }
     }
 
+    label.with-action {
+        span:first-of-type {
+            display: block;
+        }
+
+        > input[type=image], > img {
+            vertical-align: text-bottom;
+            margin-left: 5px;
+        }
+
+        input[type=date], input[type=email], input[type=number],
+        input[type=password], input[type=text], input[type=time], input[type=url], input[type=tel],
+        textarea, select {
+            max-width: calc(@max-width-m - 2em);
+            width: calc(100% - 2em);
+            display: inline-block;
+
+            .transition(all 0.3s ease-out);
+
+            &:focus {
+                border-color: @brand-color-dark;
+            }
+
+            &.size-s {
+                max-width: calc(@max-width-s - 2em);
+            }
+
+            &.size-m {
+            }
+
+            &.size-l {
+                max-width: calc(@max-width-l - 2em);
+            }
+        }
+    }
+
     // Group elements in a row
     .hgroup, .hgroup-btn {
         .flex();
-        .flex-align-items(flex-end);
+        .flex-align-items(center);
+        .flex-wrap(wrap);
         max-width: @max-width-m;
 
         &.size-s {
@@ -265,6 +357,29 @@ form.default {
             margin: 0;
         }
     }
+
+    .invalid {
+        border: 2px dotted red ! important;
+    } // an invalid form entry
+
+    .invalid_message {
+        display: none;
+        font-weight: bold;
+        color: red;
+    }
+
+    .select2-container {
+        margin-top: 0.5ex;
+    }
+}
+
+form.narrow {
+    label.col-1, label.col-2, label.col-3, label.col-4, label.col-5,
+    div.col-1, div.col-2, div.col-3, div.col-4, div.col-5,
+    section.col-1, section.col-2, section.col-3, section.col-4, section.col-5
+    {
+        padding-right: 0px;
+    }
 }
 
 .studip-checkbox {
@@ -280,4 +395,31 @@ form.default {
     &:indeterminate + label {
         .icon('before', 'checkbox-indeterminate', 'clickable', 16, 5px);
     }
+}
+
+// give forms some optimized styling for very narrow screen sizes
+.media-breakpoint-tiny-down({
+    form.default {
+        label.col-1, div.col-1, section.col-1,
+        label.col-2, div.col-2, section.col-2,
+        label.col-3, div.col-3, section.col-3,
+        label.col-4, div.col-4, section.col-4,
+        label.col-5, div.col-5, section.col-5 {
+            min-width: 100%;
+        }
+    }
+});
+
+table.hide_datafield_title {
+    .datafield_title {
+        display: none;
+    }
+}
+
+.content-title {
+    background-color: transparent;
+    padding-top: 0px;
+    color: @base-gray;
+    font-size: 1.4em;
+    text-align: left;
 }

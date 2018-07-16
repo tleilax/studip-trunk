@@ -89,13 +89,14 @@ class ResourcesBrowse {
     {
         ?>
         <fieldset>
-            <label>
-                <?= _('Bezeichnung') . ":"; ?>
-                <input name="search_exp" type="text" placeholder="<?= _('Ressource suchen') ?>" autofocus
+            <legend><?= _('Ressource suchen') ?></legend>
+            <label class="col-3">
+                <?= _('Bezeichnung')?>
+                <input name="search_exp" type="text" placeholder="<?= _('Name der Ressource') ?>" autofocus
                        value="<? echo htmlReady(stripslashes($this->searchArray["search_exp"])); ?>">
             </label>
-            <label>
-                <?= _('Freie Suche') . ":"; ?>
+            <label class="col-3">
+                <?= _('Freie Suche') ?>
                 <select>
                     <option value="0" selected><?=htmlReady(Config::get()->UNI_NAME_CLEAN)?></option>
                     <?if ($this->open_object){

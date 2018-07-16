@@ -1,6 +1,9 @@
 <?php use Studip\Button, Studip\LinkButton; ?>
 <!--h2><?= _('Lernmodule hinzufügen / entfernen') ?></h2-->
+
 <? if ($elearning_active) : ?>
+    <?=ELearningUtils::getCMSSelectbox(_("Um Lernmodule hinzuzufügen, wählen Sie ein angebundenes System aus:"))?>
+
     <? if (!count($content_modules)) : ?>
         <? if (count($course_output['courses'])) : ?>
             <?=$course_output['text']?><br>
@@ -37,7 +40,7 @@
             <? if ($anker_target == "search") : ?>
                 <a name='anker'></a>
             <? endif ?>
-            <?=ELearningUtils::getHeader(_("Suche")) ?>
+
             <?=ELearningUtils::getSearchfield(
                         sprintf(_("Um im System %s nach Lernmodulen zu suchen, geben Sie einen Suchbegriff ein:"),
                         $cms_name))?>
@@ -136,5 +139,4 @@
             <a name='anker'></a>
         <? endif ?>
     <? endif ?>
-    <?=ELearningUtils::getCMSSelectbox(_("Um Lernmodule hinzuzufügen, wählen Sie ein angebundenes System aus:"))?>
-<? endif?>
+<? endif ?>

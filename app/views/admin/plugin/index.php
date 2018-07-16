@@ -17,7 +17,7 @@ use Studip\Button, Studip\LinkButton;
         )
     ]) ?>
 <? else: ?>
-    <form action="<?= $controller->url_for('admin/plugin/save') ?>" method="post">
+    <form action="<?= $controller->url_for('admin/plugin/save') ?>" method="post" class="default">
         <?= CSRFProtection::tokenTag() ?>
         <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
         <input type="hidden" name="plugin_filter" value="<?= $plugin_filter ?>">

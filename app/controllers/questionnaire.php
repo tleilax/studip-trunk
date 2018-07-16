@@ -1,6 +1,5 @@
 <?php
 
-require_once 'authenticated_controller.php';
 require_once 'lib/classes/QuestionType.interface.php';
 
 class QuestionnaireController extends AuthenticatedController

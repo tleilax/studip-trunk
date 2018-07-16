@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for('admin/semester/delete/bulk') ?>" method="post">
+<form action="<?= $controller->url_for('admin/semester/delete/bulk') ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
 <table class="default" id="semesters">
@@ -78,8 +78,10 @@
             <? else: ?>
                 <?= Icon::create('trash', 'clickable', ['title' => _('Semester löschen')])
                         ->asInput(array(
-                            'formaction' => $controller->url_for('admin/semester/delete/'.$semester->id),
-                            'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'))) ?>
+                            'formaction'   => $controller->url_for('admin/semester/delete/'.$semester->id),
+                            'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'),
+                            'style'        => 'vertical-align: bottom'
+                        )) ?>
             <? endif; ?>
             </td>
         </tr>
@@ -89,8 +91,7 @@
     <tfoot>
         <tr>
             <td colspan="7">
-                <?= _('Markierte Einträge') ?>
-                <?= Studip\Button::create(_('Löschen'), 'delete', array(
+                <?= Studip\Button::create(_('Markierte Einträge löschen'), 'delete', array(
                         'data-confirm' => _('Sollen die Semester wirklich gelöscht werden?')
                 )) ?>
             </td>

@@ -68,10 +68,10 @@ jQuery(function ($) {
     </table>
 <? endif; ?>
 
-<div data-dialog-button>
+<footer data-dialog-button>
     <?= Studip\LinkButton::create(
         _('Zurück'),
         $controller->url_for('file/choose_destination/' . $options['copymode'], $options),
         ['data-dialog' => 'size=auto']
     ) ?>
-</div>
+</footer>

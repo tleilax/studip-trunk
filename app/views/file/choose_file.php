@@ -160,7 +160,7 @@ if (Request::get('to_plugin')) {
     $options['to_plugin'] = Request::get('to_plugin');
 }
 ?>
-<div data-dialog-button>
+<footer data-dialog-button>
     <?= Studip\LinkButton::create(
         _('Zurück'),
         $controller->url_for('/add_files_window/' . Request::get('to_folder_id'), $options),
@@ -173,4 +173,4 @@ if (Request::get('to_plugin')) {
         ['form' => 'file_search']
     ) ?>
 <? endif ?>
-</div>
+</footer>

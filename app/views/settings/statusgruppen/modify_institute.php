@@ -47,16 +47,18 @@ $entries = (array)DataFieldEntry::getDataFieldEntries([$user->user_id, $inst_id]
                value="<?= htmlReady($institute['fax']) ?>"
                 <? if ($locked) echo 'disabled'; ?>>
     </label>
+
     <? foreach ($entries as $id => $entry): ?>
+        <? if (!$entry->isEditable() || $locked): ?>
         <label>
             <?= $entry->getName() ?>
-            <? if (!$entry->isEditable() || $locked): ?>
-                <?= $entry->getDisplayValue() ?>
-            <? else: ?>
-                <?= $entry->getHTML('datafields') ?>
-            <? endif; ?>
+            <?= $entry->getDisplayValue() ?>
         </label>
+        <? else: ?>
+            <?= $entry->getHTML('datafields') ?>
+        <? endif; ?>
     <? endforeach; ?>
+
     <label>
 
         <? if ($institute['externdefault']) : ?>
@@ -66,20 +68,16 @@ $entries = (array)DataFieldEntry::getDataFieldEntries([$user->user_id, $inst_id]
             <input type="checkbox" id="default_institute" name="default_institute" value="1"
                     <? if ($institute['externdefault']) echo 'checked'; ?>>
         <? endif; ?>
-        <?= _('Standard-Adresse:') ?>
-        <dfn>
-            <?= _('Angaben, die im Adressbuch und auf den externen '
-                  . 'Seiten als Standard benutzt werden.') ?>
-        </dfn>
+        <?= _('Standard-Adresse') ?>
+        <?= tooltipIcon(_('Angaben, die im Adressbuch und auf den externen '
+              . 'Seiten als Standard benutzt werden.')) ?>
     </label>
     <label>
         <input type="checkbox" name="invisible" id="invisible" value="1"
                 <? if ($institute['visible'] != 1) echo 'checked'; ?>>
-        <?= _('Einrichtung nicht auf der Profilseite:'); ?>
-        <dfn>
-            <?= _('Die Angaben zu dieser Einrichtung werden nicht '
-                  . 'auf Ihrer Profilseite und in Adressbüchern ausgegeben.') ?>
-        </dfn>
+        <?= _('Einrichtung nicht auf der Profilseite'); ?>
+        <?= tooltipIcon(_('Die Angaben zu dieser Einrichtung werden nicht '
+              . 'auf Ihrer Profilseite und in Adressbüchern ausgegeben.')) ?>
     </label>
     <footer>
         <?= Button::createAccept(_('Änderungen speichern'), 'speichern') ?>

@@ -1,4 +1,4 @@
-<form method="post">
+<form method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
         <caption>
@@ -27,12 +27,13 @@
                         <?= htmlReady($rule['description']) ?>
                     </td>
                     <td class="actions">
-                        <a href="<?=$controller->url_for('admin/specification/edit/'.$rule['lock_id']) ?>">
+                        <a href="<?=$controller->url_for('admin/specification/edit/'.$rule['lock_id']) ?>" style="vertical-align: bottom">
                             <?= Icon::create('edit', 'clickable', ['title' => _('Regel bearbeiten')])->asImg() ?>
                         </a>
                         <?=Icon::create('trash', 'clickable', tooltip2(_('Regel löschen')))->asInput([
                             'formaction'   => $controller->url_for('admin/specification/delete/' . $rule['lock_id']),
-                            'data-confirm' => sprintf(_('Wollen Sie die Regel "%s" wirklich löschen?'), $rule['name'])
+                            'data-confirm' => sprintf(_('Wollen Sie die Regel "%s" wirklich löschen?'), $rule['name']),
+                            'style'        => 'vertical-align: bottom'
                         ])?>
                     </td>
                 </tr>

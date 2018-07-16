@@ -1,5 +1,6 @@
 <form class="default" action="<?= $controller->url_for('course/wizard/process', $stepnumber, $temp_id) ?>" method="post">
-    <h1><?= _('Anlegen der Veranstaltung') ?></h1>
+<fieldset>
+    <legend><?= _('Anlegen der Veranstaltung') ?></legend>
 
 <? if ($dialog) : ?>
     <?= MessageBox::info(
@@ -36,6 +37,7 @@
         <input type="hidden" name="dialog" value="1">
     <? endif ?>
     </section>
+</fieldset>
 
     <footer data-dialog-button>
     <? if ($_SESSION['coursewizard'][$this->temp_id]['batchcreate']) : ?>

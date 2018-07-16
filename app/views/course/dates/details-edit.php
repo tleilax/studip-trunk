@@ -2,9 +2,10 @@
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
-        <legend><?= _('Art des Termins') ?></legend>
+        <legend><?= _('Termin bearbeiten') ?></legend>
 
         <label>
+            <?= _('Art des Termins') ?>
             <select name="dateType" <?=$metadata_locked ? 'disabled' : ''?>>>
             <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val): ?>
                 <option value="<?= htmlReady($key) ?>" <? if ($date->date_typ == $key) echo 'selected'; ?>>
@@ -13,10 +14,10 @@
             <? endforeach; ?>
             </select>
         </label>
-    </fieldset>
 
-    <fieldset>
-        <legend><?= _('Themen') ?></legend>
+        <label for="new_topic">
+            <?= _('Themen') ?>
+        </label>
 
         <ul class="themen-list">
         <? foreach ($date->topics as $topic) : ?>
@@ -24,14 +25,16 @@
         <? endforeach ?>
         </ul>
 
-        <label class="undecorated packed">
+        <section class="hgroup">
             <input type="text" name="new_topic" id="new_topic"
                    placeholder="<?= _('Thema suchen oder neu anlegen') ?>">
+
             <?= Studip\Button::create(
                 _('Thema hinzufügen'), 'add_topic',
                 ['onclick' => 'STUDIP.Dates.addTopic(); return false;']
             ) ?>
-        </label>
+        </section>
+
     </fieldset>
 
 <? if (count($teachers) > 1): ?>
@@ -138,18 +141,18 @@
             <?= Studip\Button::createAccept(_('Speichern')); ?>
         <? endif; ?>
         <? if (!$dates_locked): ?>
-        <?= Studip\LinkButton::create(
-            _('Termin bearbeiten'),
-            $controller->url_for('course/timesrooms', ['raumzeitFilter' => 'all'])
-        ) ?>
-    <? endif; ?>
-    <? if (!$cancelled_dates_locked): ?>
-        <?= Studip\LinkButton::create(
-            _('Ausfallen lassen'),
-            $controller->url_for('course/cancel_dates', ['termin_id' => $date->id]),
-            ['data-dialog' => '']
-        ) ?>
-    <? endif ?>
+            <?= Studip\LinkButton::create(
+                _('Termin bearbeiten'),
+                $controller->url_for('course/timesrooms', ['raumzeitFilter' => 'all'])
+            ) ?>
+        <? endif; ?>
+        <? if (!$cancelled_dates_locked): ?>
+            <?= Studip\LinkButton::create(
+                _('Ausfallen lassen'),
+                $controller->url_for('course/cancel_dates', ['termin_id' => $date->id]),
+                ['data-dialog' => '']
+            ) ?>
+        <? endif ?>
     </footer>
 </form>
 

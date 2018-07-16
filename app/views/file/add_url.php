@@ -27,12 +27,13 @@
             <?= _('Link über Proxy')?>
         </label>
     </fieldset>
-    <div data-dialog-button>
+
+    <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern'), 'store') ?>
         <?= Studip\LinkButton::createCancel(
             _('Zurück'),
             $controller->url_for('/add_files_window/' . Request::option('to_folder_id'), $options),
             ['data-dialog' => '']
         ) ?>
-    </div>
+    </footer>
 </form>

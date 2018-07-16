@@ -1,6 +1,6 @@
 <? use Studip\Button; ?>
 
-<form action="<?= $controller->url_for('admin/cronjobs/tasks/bulk', $page) ?>" method="post">
+<form action="<?= $controller->url_for('admin/cronjobs/tasks/bulk', $page) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
 <table class="default cronjobs">
@@ -68,18 +68,17 @@
     <? endif; ?>
 <? endfor; ?>
     </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="3">
-                <select name="action" data-activates=".cronjobs button[name=bulk]">
-                    <option value="">- <?= _('Aktion auswählen') ?></option>
-                    <option value="activate"><?= _('Aktivieren') ?></option>
-                    <option value="deactivate"><?= _('Deaktivieren') ?></option>
-                    <option value="delete"><?= _('Löschen') ?></option>
-                </select>
-                <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
-            </td>
-            <td colspan="3" style="text-align: right; vertical-align: middle;">
+</table>
+    <footer>
+        <select name="action" data-activates=".cronjobs button[name=bulk]">
+            <option value="">- <?= _('Aktion auswählen') ?></option>
+            <option value="activate"><?= _('Aktivieren') ?></option>
+            <option value="deactivate"><?= _('Deaktivieren') ?></option>
+            <option value="delete"><?= _('Löschen') ?></option>
+        </select>
+        <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
+
+        <section style="float: right">
             <?
                 $pagination = $GLOBALS['template_factory']->open('shared/pagechooser');
                 $pagination->set_attributes(array(
@@ -90,8 +89,7 @@
                 ));
                 echo $pagination->render();
             ?>
-            </td>
-        </tr>
-    </tfoot>
+        </section>
+    </footer>
 </table>
 </form>

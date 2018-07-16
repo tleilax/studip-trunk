@@ -99,14 +99,14 @@ use Studip\Button, Studip\LinkButton;
 
     <? if ($object_typ === 'user') :?>
         <label>
-            <?= _('Systemfeld') ?>
-            <?= tooltipIcon(_('Nur für die Person selbst sichtbar, wenn der '
-                            . 'benötigte Status zum Bearbeiten oder die '
-                            . 'Sichtbarkeit ausreichend ist')) ?>
-
             <input type="hidden" name="system" value="0">
             <input type="checkbox" name="system" value="1"
                    <? if ($this->flash['request']['system']) echo 'checked'; ?>>
+
+           <?= _('Systemfeld') ?>
+           <?= tooltipIcon(_('Nur für die Person selbst sichtbar, wenn der '
+                           . 'benötigte Status zum Bearbeiten oder die '
+                           . 'Sichtbarkeit ausreichend ist')) ?>
         </label>
     <? endif; ?>
 
@@ -114,16 +114,16 @@ use Studip\Button, Studip\LinkButton;
             <?= _('Position') ?>
 
             <input type="text" name="priority"
-                   maxlength="10" size="2"
+                   maxlength="10" size="2" class="size-s"
                    value="<?= htmlReady($this->flash['request']['priority']) ?>">
         </label>
 
     <? if ($object_typ === 'sem'): ?>
         <label>
-            <?= _('Pflichtfeld') ?>
-
             <input type="checkbox" name="is_required" value="true"
                    <? if ($this->flash['request']['is_required']) echo 'checked'; ?>>
+
+           <?= _('Pflichtfeld') ?>
         </label>
 
         <label>
@@ -135,10 +135,10 @@ use Studip\Button, Studip\LinkButton;
     <? endif; ?>
     <? if ($object_typ === 'user'): ?>
         <label>
-            <?= _('Mögliche Bedingung für Anmelderegel') ?>
-
             <input type="checkbox" name="is_userfilter" value="1"
                    <? if ($this->flash['request']['is_userfilter']) echo 'checked'; ?>>
+
+           <?= _('Mögliche Bedingung für Anmelderegel') ?>
         </label>
     <? endif; ?>
     </fieldset>

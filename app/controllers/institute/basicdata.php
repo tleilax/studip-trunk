@@ -56,9 +56,13 @@ class Institute_BasicdataController extends AuthenticatedController
             throw new AccessDeniedException();
         }
 
-        // Change header_line if open object
-        if ($i_view !== 'new') {
+        //Change header_line if open object
+        $header_line = null;
+        if (Context::get())
+        {
             $header_line = Context::getHeaderLine();
+        }
+        if ($header_line) {
             PageLayout::setTitle($header_line . ' - ' . PageLayout::getTitle());
         }
 
@@ -93,7 +97,6 @@ class Institute_BasicdataController extends AuthenticatedController
                 }
                 $datafields[] = array(
                     'color' => $color,
-                    'title' => $entry->getName(),
                     'value' => ($GLOBALS['perm']->have_perm($entry->isEditable())
                                 && !LockRules::Check($institute['Institut_id'], $entry->getId()))
                              ? $entry->getHTML('datafields')

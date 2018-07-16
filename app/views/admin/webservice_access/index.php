@@ -2,7 +2,7 @@
 # Lifter010: TODO
 ?>
 <h3><?=_("Liste der Zugriffsregeln")?></h3>
-<form action="<?=$controller->url_for('admin/webservice_access/update#edit')?>" method="post">
+<form action="<?=$controller->url_for('admin/webservice_access/update#edit')?>" method="post" class="default">
 <?=CSRFProtection::tokenTag()?>
 <table class="default">
 <tr>

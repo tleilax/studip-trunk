@@ -9,7 +9,7 @@
         </h1>
         <nav>
         <? if ($perm): ?>
-            <a href="<?= $controller->link_for('news/edit_news/new/' . $range); ?>" rel="get_dialog">
+            <a href="<?= $controller->link_for('news/edit_news/new/' . $range); ?>" data-dialog="size=auto">
                 <?= Icon::create('add', 'clickable')->asImg(); ?>
             </a>
         <? endif; ?>

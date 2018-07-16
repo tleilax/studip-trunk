@@ -203,7 +203,9 @@ class Course_BasicdataController extends AuthenticatedController
                         'must' =>  $datenfeld->isRequired(),
                         'name' => "datafield_".$datenfeld->getID(),
                         'type' => "datafield",
-                        'html_value' => $datenfeld->getHTML("datafields"),
+                        'html_value' => $datenfeld->getHTML("datafields", array(
+                            'tooltip' => $desc
+                        )),
                         'display_value' => $datenfeld->getDisplayValue(),
                         'locked' => $locked,
                         'description' => $desc

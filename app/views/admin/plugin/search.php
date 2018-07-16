@@ -3,19 +3,31 @@
 use Studip\Button, Studip\LinkButton;
 
 ?>
-<form action="<?= $controller->url_for('admin/plugin/search') ?>" method="post" style="float: right;">
+<form action="<?= $controller->url_for('admin/plugin/search') ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <?= _('Suche nach Plugins:') ?>
-    <input name="search" type="text" size="20" value="<?= htmlReady($search) ?>">
-    <?= Button::create(_('Suchen'), 'suchen', ['title' => _('Suche starten')])?>
-    &nbsp;
-    <?= LinkButton::create(_('Zurücksetzen'), $controller->url_for('admin/plugin/search'), array('title' => _('Suche zurücksetzen')))?>
+
+    <fieldset>
+        <legend>
+            <?= _('Plugins suchen') ?>
+        </legend>
+
+        <label>
+            <?= _('Pluginname') ?>
+            <input name="search" type="text" size="20" value="<?= htmlReady($search) ?>">
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Button::create(_('Suchen'), 'suchen', ['title' => _('Suche starten')])?>
+        <?= LinkButton::create(_('Zurücksetzen'), $controller->url_for('admin/plugin/search'), array('title' => _('Suche zurücksetzen')))?>
+    </footer>
 </form>
 
 
 <? if (empty($search_results)): ?>
     <?= MessageBox::info(_('Es wurden keine Plugins gefunden.')) ?>
 <? else: ?>
+    <br>
     <table class="default nohover">
         <caption>
         <? if ($search === null): ?>
@@ -132,16 +144,23 @@ use Studip\Button, Studip\LinkButton;
 <? endif; ?>
 
 <? if (Config::get()->PLUGINS_UPLOAD_ENABLE): ?>
-    <h3>
-        <?= _('Plugin als ZIP-Datei hochladen') ?>
-    </h3>
-
-    <form action="<?= $controller->url_for('admin/plugin/install') ?>" enctype="multipart/form-data" method="post">
+    <form action="<?= $controller->url_for('admin/plugin/install') ?>" enctype="multipart/form-data" method="post" class="default">
         <?= CSRFProtection::tokenTag() ?>
-        <?= _('Plugin-Datei:') ?>
-        <input name="upload_file" type="file" size="40">
-        <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
-        <?= Button::create(_('Hinzufügen'), 'hinzufuegen', ['title' => _('neues Plugin installieren')])?>
+        <fieldset>
+            <legend>
+                <?= _('Plugin als ZIP-Datei hochladen') ?>
+            </legend>
+
+            <label class="file-upload">
+                <?= _('Plugin-Datei auswählen') ?>
+                <input name="upload_file" type="file" size="40">
+                <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
+            </label>
+        </fieldset>
+
+        <footer>
+            <?= Button::create(_('Hinzufügen'), 'hinzufuegen', ['title' => _('Neues Plugin installieren')])?>
+        </footer>
     </form>
 <? endif ?>

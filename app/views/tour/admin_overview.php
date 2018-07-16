@@ -1,7 +1,7 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <?= $delete_question ?>
 
-<form action="<?= $controller->url_for('tour/admin_overview') ?>" id="admin_tour_form" method="POST">
+<form action="<?= $controller->url_for('tour/admin_overview') ?>" id="admin_tour_form" method="POST" class="default">
     <input type="hidden" name="tour_filter" value="set">
     <input type="hidden" name="tour_filter_term" value="<?= htmlReady($tour_searchterm) ?>">
     <?= CSRFProtection::tokenTag(); ?>

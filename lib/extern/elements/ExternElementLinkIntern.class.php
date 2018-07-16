@@ -5,9 +5,9 @@
 # Lifter010: TODO
 /**
 * ExternElementLinkIntern.class.php
-* 
-* 
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <thienel@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -19,7 +19,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ExternElementLinkIntern.class.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -51,44 +51,44 @@ class ExternElementLinkIntern extends ExternElement {
     function __construct($config = "") {
         if ($config)
             $this->config = $config;
-        
+
         $this->name = "LinkIntern";
         $this->real_name = _("Links");
         $this->description = _("Eigenschaften der Schrift für Links.");
     }
-    
+
     /**
-    * 
+    *
     */
     function toStringEdit ($post_vars = "", $faulty_values = "",
             $edit_form = "", $anker = "") {
-        
+
         $out = "";
         $table = "";
         if ($edit_form == "")
             $edit_form = new ExternEditModule($this->config, $post_vars, $faulty_values, $anker);
-        
+
         $edit_form->setElementName($this->getName());
         $element_headline = $edit_form->editElementHeadline($this->real_name,
                 $this->config->getName(), $this->config->getId(), TRUE, $anker);
-        
+
         $attributes = array("font_size", "font_face", "font_color", "font_class", "font_style",
             "a_class", "a_style");
         $headlines = array("font" => _("Schriftformatierung"),
                 "a" => _("Linkformatierung"));
         $content_table = $edit_form->getEditFormContent($attributes, $headlines);
         $content_table .= $edit_form->editBlankContent();
-        
+
         $this->toStringConfigSelector($edit_form, $content_table);
-                
+
         $submit = $edit_form->editSubmit($this->config->getName(),
                 $this->config->getId(), $this->getName());
         $out = $edit_form->editContent($content_table, $submit);
         $out .= $edit_form->editBlank();
-        
+
         return $element_headline . $out;
     }
-    
+
     function toStringConfigSelector (&$edit_form, &$content_table) {
         global $EXTERN_MODULE_TYPES;
         $headline = $edit_form->editHeadline(_("Verlinkung zum Modul"));
@@ -114,41 +114,39 @@ class ExternElementLinkIntern extends ExternElement {
             }
         }
         $table = $edit_form->editOptionGeneric('config', $title, $info, $values, $names);
-        
+
         $title = _("SRI-Link:");
         $info = _("Wenn Sie die SRI-Schnittstelle benutzen, müssen Sie hier die vollständige URL (mit http://) der Seite angeben, in der das Modul, das durch den Link aufgerufen wird, eingebunden ist. Lassen Sie dieses Feld unbedingt leer, falls Sie die SRI-Schnittstelle nicht nutzen.");
         $table .= $edit_form->editTextfieldGeneric("srilink", $title, $info, 50, 250);
-        
+
         $title = _("Extern-Link:");
         $info = _("Wenn Sie die SRI-Schnittstelle nicht benutzen, können Sie hier die vollständige URL (mit http://) der Seite angeben, in der das Modul, das durch den Link aufgerufen wird, eingebunden wird. Lassen Sie dieses Feld unbedingt leer, falls Sie die SRI-Schnittstelle nutzen.");
         $table .= $edit_form->editTextfieldGeneric("externlink", $title, $info, 50, 250);
-        
+
         $content_table .= $edit_form->editContentTable($headline, $table);
         $content_table .= $edit_form->editBlankContent();
     }
-    
+
     function checkValues ($attribute, $value) {
         if ($attribute == "srilink") {
             return preg_match("|^https?://.*$|i", $value);
         }
     }
-    
+
     function toString ($args = null) {
-        $link = $this->createUrl($args);
+        $link = $this->createUrl('', $args);
         // to set the color of the font in the style-attribute of the a-tag
         if ($color = $this->config->getValue($this->name, "font_color")) {
             $this->config->setValue($this->name, "a_style", "color:$color;"
                     . $this->config->getValue($this->name, "a_style"));
         }
-        
+
         if ($font_attr = $this->config->getAttributes($this->name, "font"))
             $out = "<font$font_attr>" . $args["content"] . "</font>";
         else
             $out = $args["content"];
         $out = "<a href=\"$link\"" . $this->config->getAttributes($this->name, "a") . ">" . $out . "</a>";
-        
+
         return $out;
     }
 }
-
-?>

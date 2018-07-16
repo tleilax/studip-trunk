@@ -317,11 +317,11 @@ STUDIP.Forum = {
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/coreforum/index/update_entry/' + topic_id + '?cid=' + STUDIP.Forum.seminar_id), {
             type: 'POST',
             data: jQuery('form[data-topicid='+ topic_id +']').serializeObject(),
-            
+
             error: function(data) {
                 alert('Server meldet: ' + data.statusText);
             },
-            
+
             success: function (data) {
                 var json = jQuery.parseJSON(data);
                 // set the new name and content
@@ -363,22 +363,29 @@ STUDIP.Forum = {
 
     newEntry: function() {
         jQuery('#new_entry_button').hide();
-        jQuery('#new_entry_box').show();
-        jQuery('body').animate({scrollTop: jQuery('#new_entry_box').offset().top - 40}, 'slow');
-        jQuery('html').animate({scrollTop: jQuery('#new_entry_box').offset().top - 40}, 'slow');
+
+        jQuery('body').animate({scrollTop: jQuery('div.forum_new_entry').offset().top - 40}, 'slow');
+        jQuery('html').animate({scrollTop: jQuery('div.forum_new_entry').offset().top - 40}, 'slow');
     },
 
-    cancelNewEntry: function() {
+    cancelNewEntry: function(callback) {
         $(window).off('beforeunload');
 
+        if ($('div.forum_new_entry').length) {
+            STUDIP.Dialog.confirm(
+                'Sind sie sicher, dass Sie ihren bisherigen Beitrag verwerfen wollen?'.toLocaleString(),
+                function() {
+                    $('div.forum_new_entry').remove();
+                    callback();
+                },
+                function() {}
+            );
+        } else {
+            callback();
+        }
+
         jQuery('#new_entry_button').show();
-        jQuery('#new_entry_box').hide();
 
-        jQuery('#new_entry_box textarea, #new_entry_box input[name=name]').val('');
-
-        // hide and clear preview-window (if any);
-        jQuery('#new_entry_preview').parent().hide();
-        jQuery('#new_entry_preview').html('');
         return false;
     },
 
@@ -387,10 +394,16 @@ STUDIP.Forum = {
             return STUDIP.Forum.warning_text;
         });
 
-        // move the new-entry-boy to the end of the page (may be displaced by citing-attempts)
-        jQuery('#new_entry_box').insertAfter('#new_entry_button');
+        if (!$('div[data-id=global]').length) {
+            STUDIP.Forum.cancelNewEntry(function() {
+                var tmpl = STUDIP.Forum.getTemplate('new_entry_box');
+                jQuery('#new_entry_button').parent().append(tmpl({
+                    topic_id: 'global'
+                }));
 
-        STUDIP.Forum.newEntry();
+                STUDIP.Forum.newEntry();
+            });
+        }
     },
 
     citeEntry: function(topic_id) {
@@ -398,32 +411,40 @@ STUDIP.Forum = {
             return STUDIP.Forum.warning_text;
         });
 
-        // hide and clear preview-window (if any);
-        jQuery('#new_entry_preview').parent().hide();
-        jQuery('#new_entry_preview').html('');
+        /* Only recreate input-form, if it is different than the current one */
+        if (!$('div[data-id=' + topic_id + ']').length) {
+            STUDIP.Forum.cancelNewEntry(function() {
+                var tmpl = STUDIP.Forum.getTemplate('new_entry_box');
+                $('#forumposting_'+ topic_id).parent().append(tmpl({
+                    topic_id: topic_id
+                }));
 
-        // watch out for anonymous postings
-        var anonymous = jQuery('.anonymous_post[data-profile=' + topic_id + ']').length > 0;
+                // watch out for anonymous postings
+                var anonymous = jQuery('.anonymous_post[data-profile=' + topic_id + ']').length > 0;
 
-        if (anonymous) {
-            var name = "Anonym".toLocaleString();
-        } else {
-            var name = jQuery('span.username[data-profile=' + topic_id + ']').text().trim();
+                if (anonymous) {
+                    var name = "Anonym".toLocaleString();
+                } else {
+                    var name = jQuery('span.username[data-profile=' + topic_id + ']').text().trim();
+                }
+
+                // add content from cited posting in [quote]-tags
+                var originalContent = jQuery(
+                    'span[data-edit-topic=' + topic_id +'] textarea[name=content]'
+                ).val();
+
+                var content = STUDIP.Forum.quote(originalContent, name);
+
+                var box = jQuery('div.forum_new_entry[data-id=' + topic_id + ']');
+                $(box).find('textarea').val(content);
+                $(box).insertAfter('form[data-topicid=' + topic_id + ']');
+                $(box).addClass('cite_box');
+
+                $(box).find('input[type=hidden][name=parent]').val(topic_id);
+
+                STUDIP.Forum.newEntry();
+            });
         }
-
-        // add content from cited posting in [quote]-tags
-        var originalContent = jQuery(
-            'span[data-edit-topic=' + topic_id +'] textarea[name=content]'
-        ).val();
-
-        var content = STUDIP.Forum.quote(originalContent, name);
-
-        jQuery('#new_entry_box textarea').val(content);
-        jQuery('#new_entry_box').insertAfter('form[data-topicid=' + topic_id + ']');
-        jQuery('#new_entry_box').addClass('cite_box');
-
-        jQuery('input[type=hidden][name=parent]').val(topic_id);
-        STUDIP.Forum.newEntry();
     },
 
     quote: function(text, name) {
@@ -733,7 +754,7 @@ STUDIP.Forum = {
         jQuery('.closeButtons').attr('onclick', 'STUDIP.Forum.openThreadFromThread("' + topic_id + '", '+ page +'); return false;');
         jQuery('.closeButtons').closest("li").css('background-image', "url(" + STUDIP.ASSETS_URL + 'images/icons/blue/lock-unlocked.svg' + ")");
         jQuery('.hideWhenClosed').hide();
-        
+
         STUDIP.Forum.cancelNewEntry();
 
         STUDIP.Forum.closeThread(topic_id, topic_id, page, true);

@@ -28,7 +28,7 @@
     </div>
 </div>
 
-<div data-dialog-button>
+<footer data-dialog-button>
 <? if ($previous_file_ref_id): ?>
     <?= Studip\LinkButton::create(
         _('<< Vorherige Datei'),
@@ -56,4 +56,4 @@
         $file_ref->getDownloadURL('force_download')
     ) ?>
 <? endif; ?>
-</div>
+</footer>

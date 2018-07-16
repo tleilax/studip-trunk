@@ -1,3 +1,13 @@
+<label>
+    <span class="datafield_title <?= $model->is_required ? 'required' : '' ?>">
+        <?= htmlReady($model->name) ?>
+    </span>
+
+    <? if ($tooltip): ?>
+        <?= tooltipIcon($tooltip, $important ?: false) ?>
+    <? endif; ?>
+</label>
+
 <div style="white-space: nowrap;">
     <input type="text" name="<?= $name ?>[<?= $model->id ?>][]"
            class="no-hint"

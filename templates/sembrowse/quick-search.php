@@ -2,22 +2,26 @@
 SkipLinks::addIndex(_('Suchformular'), 'search_sem_qs', 100);
 ?>
 
-<?= $search_obj->getFormStart(URLHelper::getLink(), [ 'class' => 'default' ]) ?>
+<?= $search_obj->getFormStart(URLHelper::getLink(), ['class' => 'default']) ?>
 
 <fieldset>
+    <legend>
+        <?= $GLOBALS['SEM_CLASS'][$_SESSION['sem_portal']["bereich"]]["description"]
+                ?: _('Suche nach Veranstaltungen') ?>
+    </legend>
 
-    <label>
+    <label class="col-3">
         <?= _('Suchbegriff') ?>
         <?= $quicksearch->render() ?>
     </label>
 
-    <label>
+    <label class="col-3">
         <?= _('Suchen in') ?>
         <?= $search_obj->getSearchField('qs_choose', [ 'id' => 'search_sem_qs_choose' ]) ?>
     </label>
 
     <? if ($sem_browse_data['level'] === 'vv'): ?>
-        <label>
+        <label class="col-3">
             <?= _('in') ?>
             <?= $search_obj->getSearchField('scope_choose', [ 'id' => 'search_sem_scope_choose' ] ,$sem_tree->start_item_id) ?>
             <input type="hidden" name="level" value="vv">
@@ -25,12 +29,13 @@ SkipLinks::addIndex(_('Suchformular'), 'search_sem_qs', 100);
     <? endif; ?>
 
     <? if ($sem_browse_data['level'] === 'ev'): ?>
-        <label>
+        <label class="col-3">
             <?=  _('in') ?>:
             <?= $search_obj->getSearchField('range_choose', [ 'id' => 'search_sem_range_choose', ], $range_tree->start_item_id) ?>
             <input type="hidden" name="level" value="ev">
         </label>
     <? endif; ?>
+
     <input type="hidden" name="search_sem_sem" value="<?= htmlReady($_SESSION['sem_browse_data']['default_sem']) ?>">
 </fieldset>
 

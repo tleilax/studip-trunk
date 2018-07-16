@@ -53,7 +53,7 @@
                         $controller->url_for('/approve/' . $modul->id),
                         _('Modul genehmigen'),
                         Icon::create('accept', 'clickable', ['title' => _('Modul genehmigen')]),
-                        ['data-dialog' => 'size=auto;buttons=false']
+                        ['data-dialog' => 'size=auto;']
                     ) ?>
                 <? endif; ?>
                 <? if ($perm->havePermRead()) : ?>

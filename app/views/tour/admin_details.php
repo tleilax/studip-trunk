@@ -77,14 +77,16 @@
 
     <? endif ?>
 
-        <p><?= _('Geltungsbereich (Nutzendenstatus):') ?></p>
-    <? foreach (['autor', 'tutor', 'dozent', 'admin', 'root'] as $role) : ?>
+    <section>
+        <?= _('Geltungsbereich (Nutzendenstatus):') ?>
+        <? foreach (['autor', 'tutor', 'dozent', 'admin', 'root'] as $role) : ?>
         <label>
             <input type="checkbox" name="tour_roles[]" value="<?= $role ?>"
                    <? if (mb_strpos($tour->roles, $role) !== false) echo 'checked'; ?>>
             <?=$role ?>
         </label>
-    <? endforeach ?>
+        <? endforeach ?>
+    </section>
 
         <!--label for="tour_audience" class="caption">
         <?= _('Bedingung') ?>

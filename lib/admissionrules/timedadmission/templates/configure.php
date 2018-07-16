@@ -1,32 +1,44 @@
 <h3><?= $rule->getName() ?></h3>
 <label for="message" class="caption">
     <?= _('Nachricht bei fehlgeschlagener Anmeldung') ?>:
+    <textarea name="message" rows="4" cols="50"><?= $rule->getMessage() ?></textarea>
 </label>
-<textarea name="message" rows="4" cols="50"><?= $rule->getMessage() ?></textarea>
-<br/>
+
 <label for="startdate" class="caption">
     <?= _('Start des Anmeldezeitraums') ?>:
 </label>
-<div class="form_group">
-    <input type="text" size="8" maxlength="10" name="startdate" 
-        id="startdate" value="<?= $rule->getStartTime() ? 
+<label class="col-1">
+    <?= _('Datum') ?>
+    <input type="text" maxlength="10" name="startdate"
+        class="size-s no-hint" placeholder="tt.mm.jjjj"
+        id="startdate" value="<?= $rule->getStartTime() ?
         date('d.m.Y', $rule->getStartTime()) : '' ?>" data-max-date=""/>
-    &nbsp;&nbsp;
-    <input type="text" name="starttime" id="starttime" size="4"
+</label>
+<label class="col-1">
+    <?= _('Uhrzeit') ?>
+    <input type="text" name="starttime" id="starttime"
+        class="size-s no-hint" placeholder="ss:mm"
         value="<?= $rule->getStartTime() ? date('H:i', $rule->getStartTime()) : '' ?>"/>
-</div>
-<br/>
+</label>
+
 <label for="enddate" class="caption">
     <?= _('Ende des Anmeldezeitraums') ?>:
 </label>
-<div class="form_group">
-    <input type="text" size="8" maxlength="10" name="enddate" 
-        id="enddate" value="<?= $rule->getEndTime() ? 
+
+<label class="col-1">
+    <?= _('Datum') ?>
+    <input type="text" maxlength="10" name="enddate"
+        class="size-s no-hint" placeholder="tt.mm.jjjj"
+        id="enddate" value="<?= $rule->getEndTime() ?
         date('d.m.Y', $rule->getEndTime()) : '' ?>" data-min-date=""/>
-    &nbsp;&nbsp;
-    <input type="text" name="endtime" id="endtime" size="4"
+</label>
+<label class="col-1">
+    <?= _('Uhrzeit') ?>
+    <input type="text" name="endtime" id="endtime"
+        class="size-s no-hint" placeholder="ss:mm"
         value="<?= $rule->getEndTime() ? date('H:i', $rule->getEndTime()) : '' ?>"/>
-</div>
+</label>
+
 <script>
     $('#startdate').datepicker();
     $('#starttime').timepicker();

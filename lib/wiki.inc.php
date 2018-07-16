@@ -940,9 +940,6 @@ function wikiSinglePageHeader($wikiData, $keyword) {
 **/
 function wikiEdit($keyword, $wikiData, $user_id, $backpage=NULL)
 {
-    showPageFrameStart();
-    wikiSinglePageHeader($wikiData, $keyword);
-    begin_blank_table();
     if (!$wikiData) {
         $body = "";
         $version = 0;
@@ -972,13 +969,7 @@ function wikiEdit($keyword, $wikiData, $user_id, $backpage=NULL)
     $template->version  = $version;
     $template->lastpage = $lastpage;
     $template->body     = $body;
-    $cont = $template->render();
-
-    printcontent(0, 0, $cont, '');
-
-    end_blank_table();
-    echo "</td>"; // end of content area
-    showPageFrameEnd();
+    echo $template->render();
 
     // help texts
     Helpbar::get()->ignoreDatabaseContents();

@@ -1,12 +1,10 @@
 <? use Studip\Button; ?>
 
-<h3 style="text-align: center;"><?= _('Meine Einrichtungen:') ?></h3>
+<h2><?= _('Meine Einrichtungen:') ?></h2>
 
-<? if ($allow_change['in']): ?>
-<form action="<?= $controller->url_for('settings/studies/store_in') ?>" method="post">
+<form action="<?= $controller->url_for('settings/studies/store_in') ?>" method="post" class="default">
     <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
-<? endif; ?>
 
     <table class="default" id="select_institute">
         <colgroup>
@@ -48,56 +46,62 @@
                 </td>
             </tr>
         <? endforeach; ?>
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="2">
-                <? if ($allow_change['in']): ?>
-                    <label for="select_new_inst">
-                        <?= _('Um sich einer Einrichtung zuzuordnen, wählen '
-                              . 'Sie die entsprechende Einrichtung aus der folgenden Liste aus:') ?>
-                    </label>
-                    <br>
-                    <br>
 
-                    <a name="einrichtungen"></a>
-                    <select name="new_inst" id="new_inst" class="nested-select">
-                        <option value="" class="is-placeholder">
-                            <?= _('-- Bitte Einrichtung auswählen --') ?>
-                        </option>
-                        <? foreach ($available_institutes as $i) : ?>
-                            <? if (InstituteMember::countBySql('user_id = ? AND institut_id = ?', [$user->user_id, $i['Institut_id']]) == 0
-                                   && (!($i['is_fak'] && $user->perms == 'admin') || $GLOBALS['perm']->have_perm('root'))
-                            ): ?>
-                                <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>"
-                                        value="<?= htmlReady($i['Institut_id']) ?>">
-                                    <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
-                                </option>
-                            <? else: ?>
-                                <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>" disabled>
-                                    <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
-                                </option>
-                            <? endif; ?>
-                        <? endforeach; ?>
-                    </select>
-                    <br>
-                    <br>
-
-                    <?= _('Wenn Sie aus Einrichtungen wieder ausgetragen werden möchten, '
-                          . 'markieren Sie die entsprechenden Felder in der linken Tabelle.') ?><br>
-                    <?= _('Mit einem Klick auf <b>Übernehmen</b> werden die gewählten Änderungen durchgeführt.') ?>
-                    <br>
-                    <br>
-
+        <? if (count($institutes) !== 0 && $allow_change['in']): ?>
+        <tr>
+            <td colspan="2" style="padding: 0px; text-align: right;">
+                <footer>
                     <?= Button::create(_('Übernehmen'), 'store_in', ['title' => _('Änderungen übernehmen')]) ?>
-                <? else: ?>
-                    <?= _('Die Informationen zu Ihrer Einrichtung werden vom System verwaltet, '
-                          . 'und können daher von Ihnen nicht geändert werden.') ?>
-                <? endif; ?>
-                </td>
-            </tr>
-        </tfoot>
+                </footer>
+            </td>
+        </tr>
+        <? endif ?>
+        </tbody>
     </table>
+</form>
+
+<? if ($allow_change['in']): ?>
+<form action="<?= $controller->url_for('settings/studies/store_in') ?>" method="post" class="default">
+    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <?= CSRFProtection::tokenTag() ?>
+    <fieldset>
+        <legend><?= _('Einrichtung hinzufügen') ?></legend>
+
+        <a name="einrichtungen"></a>
+
+        <label for="select_new_inst">
+            <?= _('Um sich einer Einrichtung zuzuordnen, wählen '
+                  . 'Sie die entsprechende Einrichtung aus der folgenden Liste aus:') ?>
+
+            <select name="new_inst" id="new_inst" class="nested-select">
+                <option value="" class="is-placeholder">
+                    <?= _('-- Bitte Einrichtung auswählen --') ?>
+                </option>
+                <? foreach ($available_institutes as $i) : ?>
+                    <? if (InstituteMember::countBySql('user_id = ? AND institut_id = ?', [$user->user_id, $i['Institut_id']]) == 0
+                           && (!($i['is_fak'] && $user->perms == 'admin') || $GLOBALS['perm']->have_perm('root'))
+                    ): ?>
+                        <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>"
+                                value="<?= htmlReady($i['Institut_id']) ?>">
+                            <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
+                        </option>
+                    <? else: ?>
+                        <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>" disabled>
+                            <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
+                        </option>
+                    <? endif; ?>
+                <? endforeach; ?>
+            </select>
+        </label>
+    </fieldset>
+    <footer>
+        <?= Button::create(_('Übernehmen'), 'store_in', ['title' => _('Änderungen übernehmen')]) ?>
+    </footer>
+</form>
+<? else: ?>
+    <?= _('Die Informationen zu Ihrer Einrichtung werden vom System verwaltet, '
+          . 'und können daher von Ihnen nicht geändert werden.') ?>
+<? endif; ?>
 
 <? if ($allow_change['in']): ?>
 </form>

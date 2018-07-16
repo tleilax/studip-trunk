@@ -200,9 +200,9 @@ class ExternElementMainLecturestable extends ExternElementMain {
         $values = "1";
         $names = "";
         $table .= $edit_form->editCheckboxGeneric("addinfo", $title, $info, $values, $names);
-        
-        $title = _("Spaltenüberschriften<br>wiederholen:");
-        $info = _("Wiederholung der Spaltenberschriften ber oder unter der Gruppierungszeile.");
+
+        $title = _("Spaltenüberschriften wiederholen:");
+        $info = _("Wiederholung der Spaltenüberschriften über oder unter der Gruppierungszeile.");
         $values = array("above", "beneath", "");
         $names = array(_("über"), _("unter Gruppierungszeile"), _("keine"));
         $table .= $edit_form->editRadioGeneric("repeatheadrow", $title, $info, $values, $names);

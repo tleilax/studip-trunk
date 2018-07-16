@@ -51,7 +51,7 @@ class Admin_ContentTermsOfUseController extends AuthenticatedController
             _('Eintrag hinzufügen'),
             $this->url_for('admin/content_terms_of_use/add'),
             Icon::create('add', 'clickable')
-        )->asDialog();
+        )->asDialog('size=auto');
         Sidebar::get()->addWidget($actions);
 
         //load all ContentTermsOfUse entries:

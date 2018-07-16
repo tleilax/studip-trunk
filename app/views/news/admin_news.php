@@ -31,14 +31,14 @@
                    value="<?= htmlReady($news_searchterm) ?>">
         </label>
 
-        <label class="col-2">
+        <label class="col-1">
             <?= _('Anzeige von') ?>
             <input class="has-date-picker" type="text" name="news_startdate"
                    aria-label="<?= _('Ankündigungen anzeigen, die ab diesem Datum sichtbar sind') ?>"
                    value="<? if ($news_startdate) echo date('d.m.Y', $news_startdate); ?>">
         </label>
 
-        <label class="col-2">
+        <label class="col-1">
             <?= _('Anzeige bis') ?>
             <input class="has-date-picker" type="text" name="news_enddate"
                    aria-label="<?= _('Ankündigungen anzeigen, die vor diesem Datum sichtbar sind') ?>"
@@ -119,13 +119,13 @@
                                 $controller->url_for('news/edit_news/' . $news['object']->news_id),
                                 _('Ankündigung bearbeiten'),
                                 Icon::create('edit', 'clickable'),
-                                ['rel' => 'get_dialog', 'target' => '_blank']
+                                ['data-dialog' => 'size=auto', 'target' => '_blank']
                             );
                             $menu->addLink(
                                 $controller->url_for('news/edit_news/new/template/' . $news['object']->news_id),
                                 _('Kopieren, um neue Ankündigung zu erstellen'),
                                 Icon::create('news+export', 'clickable'),
-                                ['rel' => 'get_dialog', 'target' => '_blank']
+                                ['data-dialog' => 'size=auto', 'target' => '_blank']
                             );
                             if ($news['object']->havePermission('unassign', $news['range_id'])) {
                                 $menu->addButton(

@@ -1,6 +1,8 @@
-<form name="write_message" action="<?= URLHelper::getLink("dispatch.php/messages/send") ?>" method="post" style="margin-left: auto; margin-right: auto;" data-dialog data-secure="#adressees > li:eq(1), .files > li:eq(1)">
+<form class="default" name="write_message" action="<?= URLHelper::getLink("dispatch.php/messages/send") ?>" method="post" style="margin-left: auto; margin-right: auto;" data-dialog data-secure="#adressees > li:eq(1), .files > li:eq(1)">
     <input type="hidden" name="message_id" id="message_id" value="<?= htmlReady($default_message->id) ?>">
     <input type="hidden" name="answer_to" value="<?= htmlReady($answer_to) ?>">
+    <fieldset>
+        <legend><?= _('Neue Nachricht') ?></legend>
     <div>
         <label for="user_id_1"><h4><?= _("An") ?></h4></label>
         <ul class="list-csv" id="adressees">
@@ -94,6 +96,7 @@
                     <strong><?= _("Optionen") ?></strong>
                 </a>
             </li>
+            <? if (!\Studip\Markup::editorEnabled()) : ?>
             <li>
                 <a href="" onClick="STUDIP.Messages.toggleSetting('preview'); STUDIP.Messages.previewComposedMessage(); return false;">
                     <?= Icon::create('visibility-visible', 'clickable')->asImg(40) ?>
@@ -101,6 +104,7 @@
                     <strong><?= _("Vorschau") ?></strong>
                 </a>
             </li>
+            <? endif ?>
         </ul>
     </div>
 
@@ -151,34 +155,27 @@
     </div>
     <div id="settings" style="display: none;">
         <h4><?= _("Optionen") ?></h4>
-        <table class="" style="width: 100%">
-            <tbody>
-                <tr>
-                    <td>
-                        <label for="message_mail"><strong><?= _("Immer per Mail weiterleiten") ?></strong></label>
-                    </td>
-                    <td>
-                        <input type="checkbox" name="message_mail" id="message_mail" value="1"<?= $mailforwarding ? " checked" : "" ?>>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="show_adressees"><strong><?= _("Sollen die Adressaten für die Empfänger sichtbar sein?") ?></strong></label>
-                    </td>
-                    <td>
-                        <input type="checkbox" name="show_adressees" id="show_adressees" value="1"<?= $show_adressees ? " checked" : "" ?>>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <label for="message_mail">
+            <input type="checkbox" name="message_mail" id="message_mail" value="1"<?= $mailforwarding ? " checked" : "" ?>>
+            <?= _("Immer per E-Mail weiterleiten") ?>
+        </label>
+
+        <label for="show_adressees">
+            <input type="checkbox" name="show_adressees" id="show_adressees" value="1"<?= $show_adressees ? " checked" : "" ?>>
+            <?= _("Sollen die Adressaten für die Empfänger sichtbar sein?") ?>
+        </label>
     </div>
+    </fieldset>
+
+    <? if (!\Studip\Markup::editorEnabled()) : ?>
     <div id="preview" style="display: none;">
         <h4><?= _("Vorschau") ?></h4>
         <p class="message_body"></p>
     </div>
+    <? endif ?>
 
-    <div style="text-align: center;" data-dialog-button>
+    <footer data-dialog-button>
         <?= \Studip\Button::create(_('Abschicken'), null, array('onclick' => "STUDIP.Messages.checkAdressee();")) ?>
-    </div>
+    </footer>
 
 </form>

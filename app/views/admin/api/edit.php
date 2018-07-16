@@ -1,15 +1,17 @@
 <? use Studip\Button, Studip\LinkButton; ?>
-<h1 class="hide-in-dialog">
-<? if ($consumer->id): ?>
-    <?= sprintf(
-        _('Registrierten Konsumenten "%s" bearbeiten'),
-        htmlReady($consumer->title)
-    ) ?>
-<? else: ?>
-    <?= _('Neuen Konsumenten registrieren') ?>
-<? endif; ?>
-</h1>
 
+<? if ($consumer->id): ?>
+    <h1>
+        <?= sprintf(
+            _('Registrierte Applikation "%s" bearbeiten'),
+            htmlReady($consumer->title)
+        ) ?>
+    </h1>
+<? else: ?>
+    <h1 class="hide-in-dialog">
+        <?= _('Neue Applikation registrieren') ?>
+    </h1>
+<? endif; ?>
 
 <form class="settings default"
       action="<?= $controller->url_for('admin/api/edit', $consumer->id) ?>" method="post">
@@ -83,9 +85,9 @@
         <legend><?= _('Applikation-Details') ?></legend>
 
         <label for="commercial">
-            <?= _('Kommerziell') ?>
             <input type="checkbox" class="switch" id="commercial" name="commercial" value="1"
                     <?= $consumer->commercial ? 'checked' : '' ?>>
+            <?= _('Kommerziell') ?>
         </label>
 
         <label for="description">

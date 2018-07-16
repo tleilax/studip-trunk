@@ -154,8 +154,8 @@ class ExternElementMainPersons extends ExternElementMain {
         $names = array(_("keine Auswahl"), _("Meyer, P."), _("Peter Meyer"), _("Meyer, Peter"),
                 _("Dr. Peter Meyer"), _("Meyer, Peter, Dr."));
         $table = $edit_form->editOptionGeneric("nameformat", $title, $info, $values, $names);
-        
-        $title = _("Spaltenüberschriften<br>wiederholen:");
+
+        $title = _("Spaltenüberschriften wiederholen:");
         $info = _("Wiederholung der Spaltenüberschriften über oder unter der Gruppierungszeile.");
         $values = array("above", "beneath", "");
         $names = array(_("über"), _("unter Gruppenname"), _("keine"));

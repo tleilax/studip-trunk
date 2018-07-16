@@ -32,9 +32,9 @@ use Studip\Button, Studip\LinkButton;
         </label>
         <? if ($item->object_type !== 'moduldeskriptor' && $item->object_type !== 'modulteildeskriptor') : ?>
         <label>
-            <?= _('Standardwert') ?>
-
-            <?= str_replace('['.$datafield_id.']', '', $datafield_entry->getHTML('default_value')) ?>
+            <?= str_replace('['.$datafield_id.']', '', $datafield_entry->getHTML('default_value', array(
+                'tooltip' => _('Hier können Sie den Standardwert für dieses Datenfeld festlegen.')
+            ))) ?>
         </label>
         <? endif; ?>
         <label>
@@ -62,7 +62,7 @@ use Studip\Button, Studip\LinkButton;
             </select>
         <? elseif ($item->object_type === 'moduldeskriptor'): ?>
             <?= _('Sprache') ?>:
-            
+
             <select multiple name="object_class[]" id="object_class" required>
                 <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle (mehrsprachige Eingabe bei Feldtyp textline, textarea, textmarkup)') ?></option>
             <? foreach ((array) $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'] as $key => $value) : ?>
@@ -73,7 +73,7 @@ use Studip\Button, Studip\LinkButton;
             </select>
         <? elseif ($item->object_type === 'modulteildeskriptor'): ?>
             <?= _('Sprache') ?>:
-            
+
             <select multiple name="object_class[]" id="object_class" required>
                 <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle (mehrsprachige Eingabe)') ?></option>
             <? foreach ((array) $GLOBALS['MVV_MODULTEIL_DESKRIPTOR']['SPRACHE']['values'] as $key => $value) : ?>
@@ -149,10 +149,9 @@ use Studip\Button, Studip\LinkButton;
 
     <? if ($item->object_type === 'sem') : ?>
         <label>
-            <?= _('Eintrag verpflichtend') ?>:
-
             <input type="checkbox" name="is_required" id="is_required" value="1"
                    <? if ($item->is_required) echo 'checked'; ?>>
+           <?= _('Eintrag verpflichtend') ?>
         </label>
 
         <label>
@@ -161,7 +160,7 @@ use Studip\Button, Studip\LinkButton;
             <textarea name="description" id="description"><?= htmlReady($item->description) ?></textarea>
         </label>
     <? endif; ?>
-    
+
     <? if ($item->object_type === 'user'): ?>
         <label>
             <?= _('Mögliche Bedingung für Anmelderegel') ?>:

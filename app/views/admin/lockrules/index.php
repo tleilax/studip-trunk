@@ -2,7 +2,7 @@
 # Lifter010: TODO
 ?>
 
-<form method="post">
+<form method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
         <caption>
@@ -46,7 +46,10 @@
                         <? else : ?>
                             <? $msg = sprintf(_('Möchten Sie die Ebene %s löschen?'), $rule->name) ?>
                         <? endif ?>
-                        <?= Icon::create('trash', 'clickable', ['title' => _('Diese Regel löschen')])->asInput(array('data-confirm'=>$msg,'formaction'=>$controller->url_for('admin/lockrules/delete/'.$rule->lock_id))) ?>
+                        <?= Icon::create('trash', 'clickable', [
+                                'title' => _('Diese Regel löschen'),
+                                'style' => 'vertical-align: middle'
+                            ])->asInput(array('data-confirm'=>$msg,'formaction'=>$controller->url_for('admin/lockrules/delete/'.$rule->lock_id))) ?>
                     </td>
                 </tr>
             <? endforeach; ?>
@@ -60,5 +63,3 @@
         </tbody>
     </table>
 </form>
-
-

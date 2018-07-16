@@ -348,7 +348,7 @@ class NewsController extends StudipController
         }
         // open / close category
         foreach($this->news_isvisible as $category => $value) {
-            if (Request::submitted('toggle_' . $category) || Request::get($category . '_js')) {
+            if (Request::get($category . '_js') == 'toggle') {
                 $this->news_isvisible[$category] = !$this->news_isvisible[$category];
                 $this->anker = $category;
             }
@@ -613,7 +613,7 @@ class NewsController extends StudipController
             _('Ankündigung erstellen'),
             $this->url_for('news/edit_news/new'),
             Icon::create('news+add', 'clickable'),
-            ['rel' => 'get_dialog', 'target' => '_blank']
+            ['data-dialog' => 'size=auto', 'target' => '_blank']
         );
         $this->sidebar->addWidget($widget);
     }

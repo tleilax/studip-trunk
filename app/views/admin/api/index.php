@@ -1,7 +1,7 @@
 <? if (!empty($consumers)): ?>
-<form action="#" method="post">
+<form action="#" method="post" class="default">
 <table class="default">
-    <caption><?= _('Registrierte Konsumenten') ?></caption>
+    <caption><?= _('Registrierte Applikationen') ?></caption>
     <thead>
         <tr>
             <th><?= ('Aktiv') ?></th>
@@ -53,6 +53,7 @@
                     'formaction'   => $controller->url_for('admin/api/delete/', $consumer->id),
                     'title'        => sprintf(_('Applikation "%s" entfernen'), $consumer->title),
                     'data-confirm' => '',
+                    'style'        => 'vertical-align: middle'
                 ]) ?>
             </td>
         </tr>

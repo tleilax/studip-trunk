@@ -67,7 +67,8 @@
         </label>
 
     </fieldset>
-    <div data-dialog-button>
+
+    <footer data-dialog-button>
         <?= \Studip\Button::create(_("Speichern"), 'questionnaire_store') ?>
-    </div>
+    </footer>
 </form>

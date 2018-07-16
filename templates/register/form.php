@@ -110,11 +110,11 @@ jQuery(document).ready(function() {
                    required maxlength="63">
         </label>
 
-        <label for="gender">
+        <div>
             <?= _('Geschlecht') ?>
-        </label>
+        </div>
 
-        <section class="hgroup">
+        <section class="hgroup" id="gender">
             <label>
                 <input type="radio" <? if (!$geschlecht) echo 'checked' ?> name="geschlecht" value="0">
                 <?= _("unbekannt") ?>
@@ -130,6 +130,7 @@ jQuery(document).ready(function() {
                 <?= _("weiblich") ?>
             </label>
         </section>
+
 
         <label for="email">
             <?= _('E-Mail') ?>

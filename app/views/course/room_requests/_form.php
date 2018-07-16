@@ -188,6 +188,7 @@ if ($request_resource_id = $request->getResourceId()) :
                 </div>
             <? $match_found = $match_found || $selected;
                 endforeach ?>
+
             </div>
             <?= Studip\Button::create(_("Raum als Wunschraum auswählen"), 'send_room') ?>
             <?= Studip\Button::create(_("neue Suche starten"), 'reset_room_search') ?>

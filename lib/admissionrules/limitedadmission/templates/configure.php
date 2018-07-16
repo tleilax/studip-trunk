@@ -2,6 +2,6 @@
 <?= $tpl ?>
 <br/>
 <label for="maxnumber" class="caption">
-    <?= _('Maximale Anzahl erlaubter Anmeldungen') ?>:
+    <span class="required"><?= _('Maximale Anzahl erlaubter Anmeldungen') ?></span>
+    <input type="number" name="maxnumber" size="4" min="1" value="<?= $rule->getMaxNumber() ?>" required/>
 </label>
-<input type="number" name="maxnumber" size="4" min="1" value="<?= $rule->getMaxNumber() ?>" required/>

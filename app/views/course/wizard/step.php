@@ -1,6 +1,9 @@
 <? if ($content) : ?>
     <form class="default course-wizard-step-<?= $stepnumber ?>" action="<?= $controller->url_for('course/wizard/process', $stepnumber, $temp_id) ?>" method="post" data-secure>
+        <fieldset>
         <?= $content ?>
+        </fieldset>
+
         <footer data-dialog-button>
             <input type="hidden" name="step" value="<?= $stepnumber ?>">
         <? if (!$first_step): ?>

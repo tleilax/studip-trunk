@@ -7,13 +7,13 @@
         >
             <?= CSRFProtection::tokenTag() ?>
             <?= $this->render_partial('file/new_edit_folder_form.php') ?>
-            <div data-dialog-button>
+            <footer data-dialog-button>
                 <?= Studip\Button::createAccept(_('Speichern'), 'edit') ?>
                 <?= Studip\LinkButton::create(
                     _('Abbrechen'),
                     $controller->url_for((in_array($folder->range_type, ['course', 'institute']) ? $folder->range_type . '/' : '') . 'files/index/' . $folder->parent_id)
                 ) ?>
-            </div>
+            </footer>
         </form>
     </div>
 </div>

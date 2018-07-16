@@ -23,7 +23,7 @@
         </label>
     <? endif ?>
     </fieldset>
-    <div data-dialog-button>
+    <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Aktualisieren'), 'confirm') ?>
         <?= Studip\LinkButton::createCancel(
             _('Abbrechen'),
@@ -32,5 +32,5 @@
                 . 'files/index/' . $folder->parent_id
             )
         ) ?>
-    </div>
+    </footer>
 </form>

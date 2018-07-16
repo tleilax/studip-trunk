@@ -4,7 +4,7 @@ use Studip\Button, Studip\LinkButton;
 
 ?>
 <? if ($deputies): ?>
-    <form method="post" action="<?= $controller->url_for('settings/deputies/store') ?>">
+    <form method="post" action="<?= $controller->url_for('settings/deputies/store') ?>" class="default">
         <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
         <?= CSRFProtection::tokenTag() ?>
 
@@ -37,17 +37,19 @@ use Studip\Button, Studip\LinkButton;
                     </td>
                     <? if ($edit_about_enabled): ?>
                         <td align="center">
-                            <label>
-                                <input type="radio" name="edit_about[<?= $deputy['user_id'] ?>]" value="1"
-                                    <? if ($deputy['edit_about']) echo 'checked'; ?>>
-                                <?= _('ja') ?>
-                            </label>
+                            <div class="hgroup">
+                                <label>
+                                    <input type="radio" name="edit_about[<?= $deputy['user_id'] ?>]" value="1"
+                                        <? if ($deputy['edit_about']) echo 'checked'; ?>>
+                                    <?= _('ja') ?>
+                                </label>
 
-                            <label>
-                                <input type="radio" name="edit_about[<?= $deputy['user_id'] ?>]" value="0"
-                                    <? if (!$deputy['edit_about']) echo 'checked'; ?>>
-                                <?= _('nein') ?>
-                            </label>
+                                <label>
+                                    <input type="radio" name="edit_about[<?= $deputy['user_id'] ?>]" value="0"
+                                        <? if (!$deputy['edit_about']) echo 'checked'; ?>>
+                                    <?= _('nein') ?>
+                                </label>
+                            </div>
                         </td>
                     <? endif; ?>
                     <td align="center">

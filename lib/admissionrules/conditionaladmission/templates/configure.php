@@ -6,7 +6,7 @@ use Studip\Button, Studip\LinkButton;
 <?= $tpl ?>
 <br>
 <label for="conditionlist" class="caption">
-    <?= _('Anmeldebedingungen') ?>:
+    <span class="required"><?= _('Anmeldebedingungen') ?></span>
 </label>
 
 <br>

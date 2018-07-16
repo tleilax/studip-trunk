@@ -5,48 +5,29 @@
     $availableIcons = array (1=>"cont_res1.gif",2=> "cont_res2.gif",3=> "cont_res3.gif", 4=>"cont_res4.gif",5=> "cont_res5.gif");
 ?>
 
-<form method="POST" action="<?= URLHelper::getLink() ?>#a">
+<form method="POST" action="<?= URLHelper::getLink() ?>#a" class="default">
 <?= CSRFProtection::tokenTag() ?>
 
-<table class="default" style="margin: 0 1%; width: 98%;">
-    <colgroup>
-        <col width="4%">
-        <col width="16%">
-        <col width="80%">
-    </colgroup>
-    <thead>
-        <tr>
-            <th>&nbsp;</th>
-            <th colspan="2"><?= _('Neuen Typ anlegen') ?></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <label for="new_type"><?= _('Name') ?></label>
-            </td>
-            <td>
-                <input type="text" id="new_type" name="add_type"
-                       size="50" maxlength="255"
-                       placeholder="&lt;<?= _('bitte geben Sie hier den Namen ein') ?>&gt;">
-                <br>
-                <label>
-                    <input type="checkbox" name="resource_is_room">
-                    <?= _('Ressourcen-Typ wird als Raum behandelt') ?>
-                </label>
-            </td>
-        </tr>
-    </tbody>
-    <tfoot>
-        <tr>
-            <td class="table_footer">&nbsp;</td>
-            <td colspan="2" class="table_footer">
-                <?= Button::create(_('Anlegen'), '_add_type') ?>
-            </td>
-        </tr>
-    </tfoot>
-</table>
+    <fieldset>
+        <legend><?= _('Neuen Typ anlegen') ?></legend>
+
+        <label for="new_type">
+            <?= _('Name') ?>
+
+            <input type="text" id="new_type" name="add_type"
+                   size="50" maxlength="255"
+                   placeholder="&lt;<?= _('bitte geben Sie hier den Namen ein') ?>&gt;">
+        </label>
+
+        <label>
+            <input type="checkbox" name="resource_is_room">
+            <?= _('Ressourcen-Typ wird als Raum behandelt') ?>
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Button::create(_('Anlegen'), '_add_type') ?>
+    </footer>
 </form>
 
 

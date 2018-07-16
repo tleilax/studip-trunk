@@ -9,8 +9,6 @@
  * the License, or (at your option) any later version.
  */
 
-require_once 'app/controllers/questionnaire.php';
-
 class EvaluationsWidget extends StudIPPlugin implements PortalPlugin
 {
     public function getPluginName()

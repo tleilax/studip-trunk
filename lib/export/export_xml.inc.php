@@ -120,9 +120,9 @@ if ($o_mode === 'file' || $o_mode === 'choose') {
     if ($object_counter<1) {
         $xml_export_text = _("Es wurden keine Daten gefunden!");
         $export_error = _("Es wurden keine Daten gefunden! Die übergebene ID ist mit keinen Veranstaltungs- / Personendaten verbunden.");
-        $export_pagecontent .= "<br><br><br><center>"
+        $export_pagecontent .= "<form class=\"default\"><footer>"
                             . LinkButton::create('<< ' .  _('Zurück'), URLHelper::getURL("", array('range_id' => $range_id, 'ex_type' => $ex_type, 'ex_sem' => $ex_sem, 'o_mode' => 'start')))
-                            . "</center>";
+                            . "</footer></form>";
         $export_error_num ++;
 
     } else {
@@ -133,7 +133,7 @@ if ($o_mode === 'file' || $o_mode === 'choose') {
             $export_msg = sprintf(_("%s Objekte wurden verarbeitet.") . " ", $object_counter);
         }
 
-        $export_pagecontent .= "<form method=\"POST\" action=\"" . URLHelper::getLink() . "\">";
+        $export_pagecontent .= "<form class=\"default\" method=\"POST\" action=\"" . URLHelper::getLink() . "\">";
         $export_pagecontent .= CSRFProtection::tokenTag();
         $export_pagecontent .= "<input type=\"hidden\" name=\"page\" value=\"2\">";
         $export_pagecontent .= "<input type=\"hidden\" name=\"format\" value=\"" . htmlReady($format) . "\">";
@@ -146,7 +146,7 @@ if ($o_mode === 'file' || $o_mode === 'choose') {
         $export_pagecontent .= "<input type=\"hidden\" name=\"range_id\" value=\"" . htmlReady($range_id) . "\">";
         $export_pagecontent .= "<input type=\"hidden\" name=\"xslt_filename\" value=\"" . htmlReady($xslt_filename) . "\">";
 
-        $export_weiter_button = "<br><br><center>" . Button::create('<< ' . _('Zurück'), 'back') . "</center></form>";
+        $export_weiter_button = "<footer>" . Button::create('<< ' . _('Zurück'), 'back') . "</footer></form>";
         $xml_printimage = '<a href="'. FileManager::getDownloadLinkForTemporaryFile($xml_file_id, $xml_filename) .  '">';
         $xml_printimage.= Icon::create($export_icon['xml'], 'clickable');
         $xml_printimage.= '</a>';

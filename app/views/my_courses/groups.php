@@ -1,4 +1,4 @@
-<form method="post" action="<?= $controller->url_for('my_courses/store_groups/'.$studygroups) ?>">
+<form method="post" action="<?= $controller->url_for('my_courses/store_groups/'.$studygroups) ?>" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <table class="default collapsable">
@@ -56,4 +56,3 @@
         </div>
     </div>
 </form>
-

@@ -1,13 +1,16 @@
 <form class="default" method="post" action="<?= URLHelper::getLink(); ?>">
     <input type="hidden" name="myCoursesOnly" value="<?= Request::get('myCoursesOnly') ?>">
     <fieldset>
-        <label>
-            <?= _('Name der Veranstaltung') . ':'; ?>
+        <legend>
+            <?= _('Suche im Veranstaltungsarchiv') ?>
+        </legend>
+        <label class="col-3">
+            <?= _('Name der Veranstaltung') ?>
             <input type="text" minlength="4" name="criteria" placeholder="<?= _('Veranstaltung suchen') ?>"
                    value="<?= htmlReady($criteria) ?>" autofocus>
         </label>
-        <label>
-            <?= _('Semester') . ':'; ?>
+        <label class="col-3">
+            <?= _('Semester') ?>
             <select name="selectedSemester">
                 <option value=""
                     <?= ($selectedSemester == '') ? 'selected="selected"' : '' ?>>
@@ -21,8 +24,8 @@
                 <? endforeach ?>
             </select>
         </label>
-        <label>
-            <div style="margin-top: 1ex; margin-bottom: 1ex;"><?= _('Einrichtung') . ':'; ?></div>
+        <label class="col-3">
+            <?= _('Einrichtung') ?>
             <select name="selectedDepartment" class="nested-select">
                 <option value="" class="nested-item-header"
                     <?= ($selectedDepartment == '') ? 'selected="selected"' : '' ?>>
@@ -50,8 +53,9 @@
         <?= Studip\LinkButton::create(_('Zurücksetzen'), URLHelper::getURL('dispatch.php/search/archive')) ?>
     </footer>
 </form>
+
 <? if ($foundCourses) : ?>
-    
+    <br>
     <table class="default withdetails">
         <tr>
             <th><?= _('Name') ?></th>
@@ -77,7 +81,7 @@
                     <?= Icon::create('info-circle', 'clickable')->asImg('16px') ?>
                 </a>
                 <? endif ?>
-                
+
                 <? if ($course->archiv_protected_file_id and in_array(archiv_check_perm($course->id), ['tutor', 'dozent', 'admin'])): ?>
                 <a href="<?= FileManager::getDownloadLinkForArchivedCourse($course, true) ?>">
                     <?= Icon::create('file-archive', 'clickable')->asImg('16px') ?>

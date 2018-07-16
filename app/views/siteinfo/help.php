@@ -1,7 +1,7 @@
 <?
 # Lifter010: TODO
 ?>
-<div style="width:90%;background-color:#DEE2E8;padding:10px;">
+<div style="background-color:#DEE2E8; padding:10px;">
     <h3><?= _('Verfügbares Markup')?></h3>
     <p><?= sprintf(_('Zusätzlich zu den üblichen %sSchnellformatierungen%s und dem Wiki-Markup ist folgendes Markup verfügbar:'), '<a href="http://hilfe.studip.de/index.php/Basis/VerschiedenesFormat">', '</a>')?></p>
     <dl>

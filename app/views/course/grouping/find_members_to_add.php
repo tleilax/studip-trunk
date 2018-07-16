@@ -1,5 +1,9 @@
-<?= $search->render(); ?>
+
 <form class="default" action="<?= $controller->url_for('course/grouping/add_members') ?>" method="post">
+    <label>
+        <?= $search->render(); ?>
+    </label>
+
     <section>
         <ul id="persons-to-add">
         </ul>

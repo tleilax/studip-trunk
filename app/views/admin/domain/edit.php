@@ -4,7 +4,7 @@ use Studip\Button, Studip\LinkButton;
 
 ?>
 
-<form action="<?= $controller->url_for('admin/domain/save') ?>" method="POST">
+<form action="<?= $controller->url_for('admin/domain/save') ?>" method="POST" class="default">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
         <caption>

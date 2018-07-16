@@ -151,7 +151,7 @@ use Studip\Button;
                     <? $i += 1; endforeach; ?>
             <? else : ?>
                 <tr>
-                    <td colspan="5" style="text-align: center;">
+                    <td colspan="5">
                         <?= _('Es sind keine weiteren Berechtigungen eingetragen') ?>
                     </td>
                 </tr>
@@ -159,13 +159,13 @@ use Studip\Button;
             </tbody>
             <tfoot>
             <tr>
-                <td colspan="2"></td>
-                <td colspan="3">
+                <td colspan="5">
                     <label>
                         <input type="checkbox" name="change_lockable" <? if ($resObject->isLockable()) echo 'checked'; ?>>
                         <?= _('Blockierung') ?>
                         <?= tooltipIcon(_('Diesen Raum bei globaler Blockierung gegen eine Bearbeitung durch lokale Administratoren und andere Personen sperren')) ?>
                     </label>
+                    <br>
                     <strong><?= _('Aktueller Zustand') ?></strong>:
                     <? if ($resObject->isLockable()): ?>
                         <?= _('Raum <span style="text-decoration: underline">kann</span> blockiert werden') ?>

@@ -162,7 +162,7 @@ $templateTr = new HTML ("tr");
 $templateTd = new HTML ("td");
 $templateTd->addAttr ("colspan", "7");
 
-$b = new HTML ("b");
+$b = new HTML ("h2");
 $b->addContent(_("Eigene Evaluationsvorlagen:"));
 $templateTd->addContent ($b);
 $templateTr->addContent ($templateTd);
@@ -219,12 +219,6 @@ if( empty($openID) ) {
 /* ------------------------------------------------------------- end: header */
 
 $table->addContent ($lib->createClosingRow());
-$tr = new HTML ("tr");
-$td = new HTML ("td");
-$td->addAttr ("class", "table_row_even");
-$td->addContent (new HTMLempty ("br"));
-$tr->addContent($td);
-$table->addContent($tr);
 /* ---------------------------------------------------------- end: templates */
 
 
@@ -232,16 +226,9 @@ $table->addContent($tr);
 $tr = new HTML ("tr");
 $td = new HTML ("td");
 $td->addAttr ("class", "blank");
-$td->addContent (new HTMLempty ("br"));
-$line = new HTMLempty ("hr");
-$line->addAttr ("size", "1");
-$line->addAttr ("noshade", "noshade");
-#$td->addContent ($line);
-$td->addContent (new HTMLempty ("br"));
-$headline = new HTML ("h3");
-$headline->addAttr("class","eval");
-$headline->addContent(_("Evaluationen"));
-$td->addContent($headline);
+
+
+
 
 if ($lib->db->getGlobalPerm() != "autor") {
    $td->addContent ($lib->createShowRangeForm ());
@@ -251,6 +238,7 @@ if ($lib->db->getGlobalPerm() != "autor") {
    $td->addContent (new HTMLempty ("br"));
 }
 $td->addContent (new HTMLempty ("br"));
+
 
 $tr->addContent ($td);
 $table->addContent ($tr);

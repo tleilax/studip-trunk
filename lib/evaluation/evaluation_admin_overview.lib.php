@@ -562,68 +562,19 @@ class EvalOverview {
         $table->addAttr("cellpadding", "5");
         $table->addAttr("width", "100%");
 
-        $tr = new HTML("tr");
-
         /* create new ---------------------------------------------------------- */
-        $td = new HTML("td");
-        $td->addAttr("class", "table_row_even");
-        $td->addAttr("valign", "top");
-        $td->addAttr("width", "100%");
-
-        $td->addHTMLContent($safeguard);
-        $td->addContent(new HTMLempty("br"));
-
-        $td->addContent(EvalOverview::createNewEvalForm());
-        $tr->addContent($td);
+        $actions = new ActionsWidget();
+        $actions->addLink(_('Neue Evaluationsvorlage'),
+                          URLHelper::getLink('?rangeID=' . $_SESSION['rangeID'] .'&page=edit&newButton=1'),
+                          Icon::create('add', 'clickable'));
+        Sidebar::get()->addWidget($actions);
         /* ----------------------------------------------------- end: create new */
-
-        /* Show logo ----------------------------------------------------------- */
-        $td = new HTML("td");
-        $td->addAttr("align", "right");
-        $td->addAttr("class", "table_row_even");
-        $td->addAttr("valign", "top");
-        $rows = 5;
-        if ($foundTable)
-            $rows++;
-        /* ----------------------------------------------------------- end: logo */
-
-        $table->addContent($tr);
-
-        /* show range ---------------------------------------------------------- */
-        /*
-          if ($this->db->getGlobalPerm() != "autor") {
-          $tr = new HTML ("tr");
-          $td = new HTML ("td");
-          $td->addAttr ("class", "content_body");
-          $td->addContent (" ");
-          $tr->addContent ($td);
-          $table->addContent ($tr);
-
-          $tr = new HTML ("tr");
-          $td = new HTML ("td");
-          $td->addAttr ("class", "table_row_odd");
-          $td->addAttr ("valign", "top");
-          $td->addContent (new HTMLempty ("br"));
-          $td->addContent (EvalOverview::createShowRangeForm ());
-          $tr->addContent ($td);
-          $table->addContent ($tr);
-          }
-         */
-        /* ----------------------------------------------------- end: show range */
 
         /* search template ----------------------------------------------------- */
         $tr = new HTML("tr");
         $td = new HTML("td");
-        $td->addAttr("class", "content_body");
-        $td->addAttr("valign", "top");
-        $td->addContent(" ");
-        $tr->addContent($td);
-        $table->addContent($tr);
-        $tr = new HTML("tr");
-        $td = new HTML("td");
         $td->addAttr("class", "table_row_odd");
         $td->addAttr("valign", "top");
-        $td->addContent(new HTMLempty("br"));
         $td->addContent(EvalOverview::createSearchTemplateForm());
         $tr->addContent($td);
         $table->addContent($tr);
@@ -660,6 +611,9 @@ class EvalOverview {
         $tr = new HTML("tr");
         $td = new HTML("td");
         $td->addAttr("class", "blank");
+
+        $tr->addHTMLContent($safeguard);
+
         $td->addContent($table);
         $tr->addContent($td);
         /* --------------------------------------------------------- end: result */
@@ -670,67 +624,22 @@ class EvalOverview {
     /**
      *
      */
-    function createNewEvalForm() {
-        $currentRangeID = $_SESSION['rangeID'];
-
-        $form = new HTML("form");
-        $form->addAttr("method", "post");
-        $form->addAttr("action", URLHelper::getLink());
-        $form->addHTMLContent(CSRFProtection::tokenTag());
-
-        $hidden = new HTMLempty("input");
-        $hidden->addAttr("type", "hidden");
-        $hidden->addAttr("name", "page");
-        $hidden->addAttr("value", "edit");
-        $form->addContent($hidden);
-
-        $form->addContent(_("Eine neue Evaluationsvorlage "));
-
-        /*
-          $select = new HTML ("select");
-          $select->addAttr ("name", "rangeID");
-          $select->addAttr ("style", "vertical-align:middle;");
-
-          $rangeIDs = $this->db->getValidRangeIDs ($this->perm,
-          $this->user,
-          $currentRangeID);
-          foreach ($rangeIDs as $rangeID => $object) {
-          $option = new HTML ("option");
-          if ($currentRangeID == $rangeID)
-          $option->addAttr ("selected", "selected");
-          $option->addAttr ("value", $rangeID);
-          $option->addContent ($object["name"]);
-          $select->addContent ($option);
-          }
-         */
-        /* --------------------------------------------------------------------- */
-
-#$form->addContent ($select);
-        $form->addContent(Button::create(_('Erstellen'), 'newButton', array('title' => _('Neue Evaluation erstellen'))));
-        $input = new HTMLempty("input");
-        $input->addAttr("type", "hidden");
-        $input->addAttr("name", "rangeID");
-        $input->addAttr("value", $currentRangeID);
-        $form->addContent($input);
-        $form->addContent(new HTMLempty("br"));
-        $form->addContent(new HTMLempty("br"));
-
-        return $form;
-    }
-
-    /**
-     *
-     */
     function createShowRangeForm() {
 
         $currentRangeID = $_SESSION['rangeID'];
 
         $form = new HTML("form");
+        $form->addAttr('class', 'default');
         $form->addAttr("method", "post");
         $form->addAttr("action", URLHelper::getLink());
         $form->addHTMLContent(CSRFProtection::tokenTag());
 
-        $form->addContent(_("Evaluationen aus dem Bereich "));
+        $form->addHTMLContent('<fieldset>');
+
+        $headline = new HTML ("legend");
+        $headline->addAttr("class","eval");
+        $headline->addContent(_("Evaluationen"));
+        $form->addContent($headline);
 
         $select = new HTML("select");
         $select->addAttr("name", "rangeID");
@@ -756,24 +665,28 @@ class EvalOverview {
         }
         /* --------------------------------------------------------------------- */
 
+        $form->addHTMLContent('<label>');
+        $form->addContent(_("Evaluationen aus folgendem Bereich anzeigen"));
         $form->addContent($select);
+        $form->addHTMLContent('</label>');
         $form->addContent(" ");
         $form->addContent(Button::create(_('Anzeigen'), array('title' => _('Evaluationen aus gewähltem Bereich anzeigen'))));
-        $form->addContent(new HTMLempty("br"));
         $form->addContent(new HTMLempty("br"));
 
         /* search field for showing ranges (admin/root) */
         if ($GLOBALS["perm"]->have_perm("admin")) {
-            $form->addContent(_("Nach weiteren Bereichen suchen:"));
+            $form->addHTMLContent('<label>');
+            $form->addContent(_("Nach weiteren Bereichen suchen"));
             $input = new HTMLEmpty("input");
             $input->addAttr("type", "text");
             $input->addAttr("name", "search");
             $input->addAttr("size", "30");
             $form->addContent($input);
+            $form->addHTMLContent('</label>');
             $form->addContent(Button::create(_('Suchen'), 'search_showrange_button', array('title' => _('Weitere Bereiche suchen'))));
-            $form->addContent(new HTMLempty("br"));
-            $form->addContent(new HTMLempty("br"));
         }
+
+        $form->addHTMLContent('</fieldset>');
 
         return $form;
     }
@@ -783,11 +696,17 @@ class EvalOverview {
      */
     function createSearchTemplateForm() {
         $form = new HTML("form");
+        $form->addAttr('class', 'default');
         $form->addAttr("method", "post");
         $form->addAttr("action", URLHelper::getLink("?rangeID=" . $_SESSION["rangeID"]));
         $form->addHTMLContent(CSRFProtection::tokenTag());
 
-        $form->addContent(_("Öffentliche Evaluationsvorlage suchen: "));
+        $form->addHTMLContent('<fieldset><legend>');
+        $form->addContent(_("Öffentliche Evaluationsvorlage suchen"));
+        $form->addHTMLContent('</legend>');
+
+        $form->addHTMLContent('<label>');
+        $form->addContent(_("Name der Vorlage"));
 
         $input = new HTMLempty("input");
         $input->addAttr("type", "text");
@@ -796,10 +715,11 @@ class EvalOverview {
         $input->addAttr("style", "vertical-align:middle;");
 
         $form->addContent($input);
+        $form->addHTMLContent('</label>');
 
+        $form->addHTMLContent('</fieldset><footer>');
         $form->addContent(Button::create(_('Suchen'), 'search_template_button', array('title' => _('Öffentliche Vorlage suchen'))));
-        $form->addContent(new HTMLempty("br"));
-        $form->addContent(new HTMLempty("br"));
+        $form->addHTMLContent('</footer>');
 
         return $form;
     }
@@ -1091,8 +1011,9 @@ class EvalOverview {
 
             case "delete_request":
 
-                if ($no_permission_msg)
+                if ($no_permission_msg) {
                     return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht gelöscht."));
+                }
 
                 $text = $eval->isTemplate() ? sprintf(_("Die Evaluationsvorlage <b>%s </b>wirklich löschen?"), $evalName) : sprintf(_("Die Evaluation <b>%s </b>wirklich löschen?"), $evalName);
                 $safeguard .= $this->createSafeguard("ausruf", $text, "delete_request", $evalID, $showrangeID, $referer);
@@ -1510,8 +1431,9 @@ class EvalOverview {
             $return["msg"] = $safeguard;
             $return["option"] = DISCARD_OPENID;
             return $return;
-        } else
+        } else {
             return $safeguard;
+        }
     }
 
 // callSafeguard

@@ -32,11 +32,11 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
 <? else: ?>
     <? foreach ($attributes as $attribute): ?>
         <label>
-            <?= htmlReady($attribute['title']) ?>
+            <span <?= $attribute['must'] ? 'class="required"' : '' ?>>
+                <?= htmlReady($attribute['title']) ?>
+            </span>
             <?= $attribute['description'] ? tooltipIcon($attribute['description']) : '' ?>
-        <? if ($attribute['must']): ?>
-            <em class="required"></em>
-        <? endif; ?>
+
             <?= $this->render_partial("course/basicdata/_input", array('input' => $attribute)) ?>
         </label>
     <? endforeach; ?>
@@ -63,10 +63,10 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
 <? else: ?>
     <? foreach ($institutional as $inst): ?>
         <label>
-            <?= htmlReady($inst['title']) ?>
-        <? if ($inst['must']): ?>
-            <em class="required"></em>
-        <? endif; ?>
+            <span <?= $inst['must'] ? 'class="required"' : '' ?>>
+                <?= htmlReady($inst['title']) ?>
+            </span>
+
         <? if ($inst['type'] === 'select' && !$inst['choices'][$inst['value']]): ?>
             <? $name = get_object_name($inst['value'], 'inst'); ?>
              <?= htmlReady($name['name']) ?>
@@ -297,16 +297,21 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
         <?= MessageBox::info(_('Fehlende Datenzeilen')) ?>
 <? else: ?>
     <? foreach ($descriptions as $description): ?>
+        <? if ($description['type'] == 'datafield'): ?>
+            <?= $this->render_partial('course/basicdata/_input', array('input' => $description)) ?>
+        <? else : ?>
         <label>
-            <?= $description['title'] ?>
-            <? if ($description['must']): ?>
-                <em class="required"></em>
-            <? endif; ?>
+            <span <?= $description['must'] ? 'class="required"' : '' ?>>
+                <?= $description['title'] ?>
+            </span>
+            
             <? if ($description['type'] === 'datafield' && $description['description']) : ?>
                 <?= tooltipIcon($description['description'])?>
             <? endif?>
+
             <?= $this->render_partial('course/basicdata/_input', array('input' => $description)) ?>
         </label>
+        <? endif ?>
     <? endforeach; ?>
 <? endif; ?>
     </fieldset>

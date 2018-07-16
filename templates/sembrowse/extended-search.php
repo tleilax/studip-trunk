@@ -8,57 +8,63 @@ SkipLinks::addLink(
 );
 ?>
 
-<?= $search_obj->getFormStart(URLHelper::getLink('?send=yes'), [ 'class' => 'default' ]) ?>
+<?= $search_obj->getFormStart(URLHelper::getLink('?send=yes'), ['class' => 'default']) ?>
+
 <fieldset>
-    <label for="search_sem_title"><?= _('Titel') ?>
-    <?= $search_obj->getSearchField('title', [
-            'id' => 'search_sem_title'
-    ]) ?>
+    <legend>
+        <?= _('Erweiterte Suche') ?>
+    </legend>
+
+    <label class="col-3">
+        <?= _('Titel') ?>
+        <?= $search_obj->getSearchField('title') ?>
     </label>
-    <label for="search_sem_number"><?= _('Nummer') ?>
-    <?= $search_obj->getSearchField('number', [
-        'id' => 'search_sem_number'
-    ]) ?>
+
+    <label class="col-3">
+        <?= _('Untertitel') ?>
+        <?= $search_obj->getSearchField('sub_title') ?>
     </label>
-    <label for="search_sem_sub_title"><?= _('Untertitel') ?>
-    <?= $search_obj->getSearchField('sub_title', [
-            'id' => 'search_sem_sub_title'
-    ]) ?>
+
+    <label class="col-3">
+        <?= _('Nummer') ?>
+        <?= $search_obj->getSearchField('number') ?>
     </label>
-    <label for="search_sem_type"><?= _('Typ') ?>
-    <?= $search_obj->getSearchField('type', ['id' => 'search_sem_type']) ?>
+
+    <label class="col-3">
+        <?= _('Kommentar') ?>
+        <?= $search_obj->getSearchField('comment') ?>
     </label>
-    <label for="search_sem_comment"><?=  _('Kommentar') ?>
-    <?= $search_obj->getSearchField('comment', [
-            'id' => 'search_sem_comment'
-    ]) ?>
+
+    <label class="col-3">
+        <?= _('Lehrende') ?>
+        <?= $search_obj->getSearchField('lecturer') ?>
     </label>
-    <label for="search_sem_lecturer"><?= _('Lehrende') ?>
-    <?= $search_obj->getSearchField('lecturer', [
-            'id' => 'search_sem_lecturer'
-    ]) ?>
+
+    <? if ($show_class): ?>
+    <label class="col-3">
+        <?= _('Bereich') ?>
+        <?= $search_obj->getSearchField('scope') ?>
     </label>
-<? if ($show_class): ?>
-    <label for="search_sem_scope"><?= _('Bereich') ?>
-    <?= $search_obj->getSearchField('scope', [
-        'id' => 'search_sem_scope'
-    ]) ?>
+    <? endif; ?>
+
+    <label class="col-2">
+        <?= _('Typ') ?>
+        <?= $search_obj->getSearchField('type') ?>
     </label>
-<? endif; ?>
-    <label for="search_sem_combination"><?= _('Verknüpfung') ?>
-    <?= $search_obj->getSearchField('combination', ['id' => 'search_sem_combination']) ?>
+
+    <label class="col-2">
+        <?= _('Verknüpfung') ?>
+        <?= $search_obj->getSearchField('combination') ?>
     </label>
 </fieldset>
 
 <footer>
-    <span class="button-group">
-        <?= $search_obj->getSearchButton() ?>
-        <?= Studip\LinkButton::create(
-            _('Zurücksetzen'),
-            URLHelper::getURL('?cmd=xts&level=f&reset_all=1'),
-            ['title' => _('Zurücksetzen')]
-        ) ?>
-    </span>
+    <?= $search_obj->getSearchButton() ?>
+    <?= Studip\LinkButton::createCancel(
+        _('Zurücksetzen'),
+        URLHelper::getURL('?cmd=xts&level=f&reset_all=1'),
+        ['title' => _('Zurücksetzen')]
+    ) ?>
 </footer>
 
 <?= $search_obj->getFormEnd() ?>

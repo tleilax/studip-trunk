@@ -20,7 +20,7 @@ $folder_template = $folder->getDescriptionTemplate();
     </div>
 </div>
 
-<div data-dialog-button>
+<footer data-dialog-button>
 <? if ($folder->isEditable($GLOBALS['user']->id)) : ?>
     <?= Studip\LinkButton::create(
         _('Bearbeiten'),
@@ -34,5 +34,5 @@ $folder_template = $folder->getDescriptionTemplate();
         _('Ordner öffnen'),
         $controller->url_for('file/open_folder/' . $folder->getId())
     ) ?>
-</div>
 <? endif; ?>
+</footer>

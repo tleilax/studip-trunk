@@ -3,19 +3,26 @@
 <? $attributes['search_plugin']['class'] = 'submit-upon-select'; ?>
 <?= $search->outer_form->getFormStart(URLHelper::getLink('dispatch.php/literature/search?return_range=' . $return_range), array('class' => 'default')); ?>
 
-
-    <section>
+    <fieldset>
+        <legend>
+            <?= _('Katalog auswählen') ?>
+        </legend>
         <?= $search->outer_form->getFormFieldCaption('search_plugin', array('info' => true)); ?>
         <?= $search->outer_form->getFormField('search_plugin', $attributes['search_plugin']); ?>
-        <footer>
-            <?= $search->outer_form->getFormButton('change'); ?>
-        </footer>
-    </section>
+    </fieldset>
+
+    <footer>
+        <?= $search->outer_form->getFormButton('change'); ?>
+    </footer>
+
 
     <h2><?= _("Ausgewählter Katalog:") ?></h2>
     <p><?= $search->search_plugin->description ?></p>
 
-    <section>
+    <fieldset>
+        <legend>
+            <?= _('Im Katalog suchen') ?>
+        </legend>
         <? for ($i = 0; $i < $search->term_count; ++$i) : ?>
             <? if ($i > 0) : ?>
                 <section>
@@ -36,18 +43,18 @@
                 <?= $search->inner_form->getFormField("search_term_" . $i, $attributes['text']); ?>
             </section>
         <? endfor ?>
-        <footer>
-            <?= $search->outer_form->getFormButton('search', $attributes['button']); ?>
+    </fieldset>
 
-            <?= $search->outer_form->getFormButton('reset', $attributes['button']); ?>
+    <footer>
+        <?= $search->outer_form->getFormButton('search', $attributes['button']); ?>
 
-            <?= $search->outer_form->getFormButton('search_add'); ?>
-            <? if ($search->term_count > 1): ?>
-                <?= $search->outer_form->getFormButton('search_sub'); ?>
-            <? endif ?>
-        </footer>
+        <?= $search->outer_form->getFormButton('reset', $attributes['button']); ?>
 
-    </section>
+        <?= $search->outer_form->getFormButton('search_add'); ?>
+        <? if ($search->term_count > 1): ?>
+            <?= $search->outer_form->getFormButton('search_sub'); ?>
+        <? endif ?>
+    </footer>
 
 <?= $search->outer_form->getFormEnd(); ?>
 

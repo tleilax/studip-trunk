@@ -15,7 +15,7 @@ $default_entries = DataFieldEntry::getDataFieldEntries([$user->user_id, $inst_id
     <table class="default nohover">
         <thead>
             <tr>
-                <th colspan="4">
+                <th colspan="2">
                     <?= _('Daten für diese Funktion') ?>
                 </th>
                 <th>
@@ -26,10 +26,6 @@ $default_entries = DataFieldEntry::getDataFieldEntries([$user->user_id, $inst_id
         <tbody>
             <? foreach ($datafields as $id => $entry): ?>
                 <tr>
-                    <td>&nbsp;</td>
-                    <td align="left">
-                        <?= $entry->getName() ?>
-                    </td>
                     <? if ($entry->isEditable() && ($entry->getValue() != 'default_value') && !$locked): ?>
                         <td>
                             <?= $entry->getHTML('datafields') ?>
@@ -41,6 +37,7 @@ $default_entries = DataFieldEntry::getDataFieldEntries([$user->user_id, $inst_id
                         </td>
                     <? elseif ($entry->getValue() == 'default_value'): ?>
                         <td>
+                            <?= $entry->getName() ?><br>
                             <?= $default_entries[$id]->getDisplayValue() ?>
                         </td>
                         <td style="text-align:right">
@@ -50,7 +47,8 @@ $default_entries = DataFieldEntry::getDataFieldEntries([$user->user_id, $inst_id
                             <? endif; ?>
                         </td>
                     <? else: ?>
-                        <td colspan="2">
+                        <td>
+                            <?= $entry->getName() ?><br>
                             <?= $entry->getDisplayValue() ?>
                         </td>
                     <? endif; ?>
@@ -60,7 +58,7 @@ $default_entries = DataFieldEntry::getDataFieldEntries([$user->user_id, $inst_id
             <? endforeach; ?>
             <? if (!$locked): ?>
                 <tr>
-                    <td colspan="4" style="text-align:right">
+                    <td colspan="2" style="text-align:right">
                         <?= _('Standarddaten übernehmen:') ?>
                         <a href="<?= $controller->url_for('settings/statusgruppen/defaults', $role_id, false) ?>">
                             <?= _('keine') ?>
@@ -70,13 +68,14 @@ $default_entries = DataFieldEntry::getDataFieldEntries([$user->user_id, $inst_id
                             <?= _('alle') ?>
                         </a>
                     </td>
+                    <td></td>
                 </tr>
             <? endif; ?>
         </tbody>
         <? if (!$locked) : ?>
             <tfoot>
                 <tr>
-                    <td colspan="5" style="text-align: center">
+                    <td colspan="3">
                         <?= Button::createAccept(_('Änderungen speichern'), 'store') ?>
                     </td>
                 </tr>
@@ -84,4 +83,3 @@ $default_entries = DataFieldEntry::getDataFieldEntries([$user->user_id, $inst_id
         <? endif; ?>
     </table>
 </form>
-       

@@ -6,11 +6,7 @@
     <fieldset>
         <legend><?= _('Vorschau') ?></legend>
 
-        <label>
-            <?= $preview->getName() ?>
-            
-            <?= $preview->getHTML('dummy') ?>
-        </label>
+        <?= $preview->getHTML('dummy') ?>
     </fieldset>
 
     <footer data-dialog-button>

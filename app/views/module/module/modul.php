@@ -106,7 +106,7 @@ $translations = $deskriptor->getAvailableTranslations();
         <? if ($def_lang) : ?>
             <label id="mvv-field-modul-modul_start">
                 <?= _('von Semester:') ?>
-                <? if ($perm->haveFieldPerm('start')) : ?> 
+                <? if ($perm->haveFieldPerm('start')) : ?>
                 <select name="start" size="1">
                     <option value=""><?= _('-- Semester wählen --') ?></option>
                 <? foreach ($semester as $sem) : ?>
@@ -123,7 +123,7 @@ $translations = $deskriptor->getAvailableTranslations();
             </label>
             <label id="mvv-field-modul-modul_end">
                 <?= _('bis Semester:') ?>
-                <? if ($perm->haveFieldPerm('end')) : ?> 
+                <? if ($perm->haveFieldPerm('end')) : ?>
                 <select name="end" size="1">
                     <option value=""><?= _('unbegrenzt gültig') ?></option>
                 <? foreach ($semester as $sem) : ?>
@@ -138,7 +138,7 @@ $translations = $deskriptor->getAvailableTranslations();
                         <?= htmlReady($sem->name) ?>
                     <? else : ?>
                         <?= _('unbegrenzt gültig') ?>
-                    <? endif; ?>                    
+                    <? endif; ?>
                     <input type="hidden" name="end" value="<?= htmlReady($modul->end) ?>">
                 <? endif; ?>
             </label>
@@ -193,7 +193,7 @@ $translations = $deskriptor->getAvailableTranslations();
                         $modul->beschlussdatum ? strftime('%d.%m.%Y', $modul->beschlussdatum) : _('nicht angegeben')) ?>
             </div>
             <div id="mvv-field-modul-fassung_nr">
-                <? 
+                <?
                 if ($modul->fassung_nr) {
                     printf(
                         _('Fassung: %s. %s'),
@@ -386,9 +386,9 @@ $translations = $deskriptor->getAvailableTranslations();
         <legend><?= _('Weitere verantwortliche Personen') ?></legend>
         <label><?= _('Verantwortliche Personen') ?>
         <? if($perm_d->haveFieldPerm('verantwortlich', MvvPerm::PERM_WRITE)): ?>
-           <textarea  name="verantwortlich" id="verantwortlich" cols="25" rows="6"><?= htmlReady($deskriptor->verantwortlich) ?></textarea>            
+           <textarea  name="verantwortlich" id="verantwortlich" cols="25" rows="6"><?= htmlReady($deskriptor->verantwortlich) ?></textarea>
         <? else: ?>
-            <textarea readonly name="verantwortlich" id="verantwortlich" cols="25" rows="6"><?= htmlReady($deskriptor->verantwortlich) ?></textarea> 
+            <textarea readonly name="verantwortlich" id="verantwortlich" cols="25" rows="6"><?= htmlReady($deskriptor->verantwortlich) ?></textarea>
         <? endif; ?>
             <div>
             <?= _('Gegebenenfalls weitere Namen von verantwortlichen Personen, die keinen Account in Stud.IP haben. Oder allgemeine Angaben zur Verantwortlichkeit.') ?>
@@ -635,9 +635,7 @@ $translations = $deskriptor->getAvailableTranslations();
                 <? endif; ?>
                 <? $tdf = $df->getTypedDatafield(); ?>
                 <? if ($perm_d->haveDfEntryPerm($df, MvvPerm::PERM_WRITE)) : ?>
-                <label><?= htmlReady($tdf->getName()) ?>
                     <?= $tdf->getHTML('datafields'); ?>
-                </label>
                 <? else : ?>
                 <em><?= htmlReady($tdf->getName()) ?>:</em><br>
                 <?= $tdf->getDisplayValue() ?>

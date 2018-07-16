@@ -8,27 +8,35 @@ use Studip\Button, Studip\LinkButton;
 <? endif ?>
 
 <form action="<?= $controller->url_for('admin/plugin/save_default_activation', $plugin_id) ?>" method="post" class="default">
-    <fieldset>
-        <legend><?= _('Standard-Aktivierung in Veranstaltungen') ?>: <?= htmlReady($plugin_name) ?></legend>
-        <?= CSRFProtection::tokenTag() ?>
-        <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
-        <select name="selected_inst[]" multiple size="20" class="nested-select" style="width: 100%">
-            <? foreach ($institutes as $id => $institute): ?>
-                <option class="nested-item-header" value="<?= $id ?>" <?= in_array($id, $selected_inst) ? 'selected' : '' ?>>
-                    <?= htmlReady($institute['name']) ?>
-                </option>
+    <?= CSRFProtection::tokenTag() ?>
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
-                <? if (isset($institute['children'])): ?>
-                    <? foreach ($institute['children'] as $id => $child): ?>
-                        <option class="nested-item" value="<?= $id ?>" <?= in_array($id, $selected_inst) ? 'selected' : '' ?>>
-                            <?= htmlReady($child['name']) ?>
-                        </option>
-                    <? endforeach ?>
-                <? endif ?>
-            <? endforeach ?>
-        </select>
+    <fieldset>
+        <legend>
+            <?= _('Standard-Aktivierung in Veranstaltungen') ?>: <?= htmlReady($plugin_name) ?>
+        </legend>
+
+
+        <label>
+            <?= _('Einrichtung') ?>
+            <select name="selected_inst[]" multiple size="20" class="nested-select" style="width: 100%">
+                <? foreach ($institutes as $id => $institute): ?>
+                    <option class="nested-item-header" value="<?= $id ?>" <?= in_array($id, $selected_inst) ? 'selected' : '' ?>>
+                        <?= htmlReady($institute['name']) ?>
+                    </option>
+
+                    <? if (isset($institute['children'])): ?>
+                        <? foreach ($institute['children'] as $id => $child): ?>
+                            <option class="nested-item" value="<?= $id ?>" <?= in_array($id, $selected_inst) ? 'selected' : '' ?>>
+                                <?= htmlReady($child['name']) ?>
+                            </option>
+                        <? endforeach ?>
+                    <? endif ?>
+                <? endforeach ?>
+            </select>
+        </label>
     </fieldset>
-    
+
     <footer>
         <?= Button::create(_('Übernehmen'),'save', array('title' => _('Einstellungen speichern')))?>
         &nbsp;

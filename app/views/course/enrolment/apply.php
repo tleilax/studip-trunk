@@ -18,7 +18,7 @@
     </form>
 <? endif ?>
 <? if ($priocourses) : ?>
-    <form name="claim_admission" action="<?= $controller->link_for('/claim/' . $course_id) ?>" method="post">
+    <form name="claim_admission" action="<?= $controller->link_for('/claim/' . $course_id) ?>" method="post" class="default">
     <? if (is_array($priocourses)): ?>
         <?= $this->render_partial('course/enrolment/_priocourses.php') ?>
         <div data-dialog-button>

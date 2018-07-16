@@ -143,6 +143,7 @@ $_search_plugins = array_keys(StudipLitSearch::GetAvailablePlugins());
 if (in_array('Studip', $_search_plugins)){
     array_splice($_search_plugins,  array_search('Studip', $_search_plugins), 1);
 }
+
 $preferred_plugin = StudipLitSearch::getPreferredPlugin();
 if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
     array_splice($_search_plugins,  array_search($preferred_plugin, $_search_plugins), 1);
@@ -150,143 +151,141 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
 }
 
 ?>
-<table width="100%" cellspacing=0 cellpadding=0 border=0>
-    <tr>
-        <td class="blank" colspan=2>&nbsp;
-            <form name="choose_institute" action="<?=URLHelper::getLink('?send=1')?>" method="POST">
-            <?= CSRFProtection::tokenTag() ?>
-            <table cellpadding="0" cellspacing="0" border="0" width="99%" align="center">
-                <tr>
-                    <td class="table_row_even">
-                        <font size=-1><br><b><?=_("Bitte wählen Sie die Einrichtung und das Semester aus, für die Sie die Literaturliste anschauen wollen:")?></b><br>&nbsp; </font>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="table_row_even">
-                        <select name="_inst_id" class="nested-select">
-                    <?
-                    // Prepare inner statement that obtains all institutes
-                    // for a given faculty
-                    $query = "SELECT a.Institut_id, a.Name, COUNT(DISTINCT catalog_id) AS anzahl
+<form class="default" name="choose_institute" action="<?=URLHelper::getLink('?send=1')?>" method="POST">
+    <?= CSRFProtection::tokenTag() ?>
+
+    <fieldset>
+        <legend>
+            <?= _('Literatur anzeigen') ?>
+        </legend>
+
+        <label class="col-2">
+            Einrichtung
+            <select name="_inst_id" class="nested-select">
+                <?
+                // Prepare inner statement that obtains all institutes
+                // for a given faculty
+                $query = "SELECT a.Institut_id, a.Name, COUNT(DISTINCT catalog_id) AS anzahl
+                          FROM Institute AS a
+                          LEFT JOIN seminar_inst AS c USING (Institut_id)
+                          {$_sem_sql}
+                          LEFT JOIN lit_list_content AS e USING (list_id)
+                          WHERE fakultaets_id = ? AND a.institut_id != fakultaets_id
+                          GROUP BY a.Institut_id
+                          ORDER BY Name";
+                $institute_statement = DBManager::get()->prepare($query);
+
+                // Prepare and execute statement that obtains a list of
+                // all institutes and faculties the user has access to
+                $parameters = array();
+                if ($auth->auth['perm'] == 'root'){
+                    $query = "SELECT a.Institut_id, a.Name, 1 AS is_fak, COUNT(DISTINCT catalog_id) AS anzahl
                               FROM Institute AS a
-                              LEFT JOIN seminar_inst AS c USING (Institut_id)
+                              LEFT JOIN Institute AS b ON (a.Institut_id = b.fakultaets_id AND b.fakultaets_id != b.Institut_id)
+                              LEFT JOIN seminar_inst AS c ON (c.Institut_id = b.Institut_id)
                               {$_sem_sql}
                               LEFT JOIN lit_list_content AS e USING (list_id)
-                              WHERE fakultaets_id = ? AND a.institut_id != fakultaets_id
+                              WHERE a.Institut_id = a.fakultaets_id
                               GROUP BY a.Institut_id
                               ORDER BY Name";
-                    $institute_statement = DBManager::get()->prepare($query);
+                } elseif (!$_is_lit_admin) {
+                    $query = "SELECT a.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak,
+                                     COUNT(DISTINCT catalog_id) AS anzahl
+                              FROM user_inst AS a
+                              LEFT JOIN Institute AS b USING (Institut_id)
+                              LEFT JOIN Institute AS f ON (b.institut_id IN (f.fakultaets_id, f.Institut_id))
+                              LEFT JOIN seminar_inst AS c ON (c.Institut_id = f.Institut_id)
+                              {$_sem_sql}
+                              LEFT JOIN lit_list_content AS e USING (list_id)
+                              WHERE a.user_id = ? AND a.inst_perms = 'admin'
+                              GROUP BY a.Institut_id
+                              ORDER BY is_fak, b.Name";
+                    $parameters[] = $user->id;
+                } else {
+                    $query = "SELECT b.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak,
+                                     COUNT(DISTINCT catalog_id) AS anzahl
+                              FROM Institute AS b
+                              LEFT JOIN Institute AS f ON (b.institut_id IN (f.fakultaets_id, f.Institut_id))
+                              LEFT JOIN seminar_inst AS c ON (c.Institut_id = f.Institut_id)
+                              {$_sem_sql}
+                              LEFT JOIN lit_list_content AS e USING (list_id)
+                              WHERE b.Institut_id IN (?)
+                              GROUP BY b.Institut_id
+                              ORDER BY is_fak, b.Name";
+                    $parameters[] = $_lit_admin_ids;
+                }
+                $statement = DBManager::get()->prepare($query);
+                $statement->execute($parameters);
+                $institutes = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-                    // Prepare and execute statement that obtains a list of
-                    // all institutes and faculties the user has access to
-                    $parameters = array();
-                    if ($auth->auth['perm'] == 'root'){
-                        $query = "SELECT a.Institut_id, a.Name, 1 AS is_fak, COUNT(DISTINCT catalog_id) AS anzahl
-                                  FROM Institute AS a
-                                  LEFT JOIN Institute AS b ON (a.Institut_id = b.fakultaets_id AND b.fakultaets_id != b.Institut_id)
-                                  LEFT JOIN seminar_inst AS c ON (c.Institut_id = b.Institut_id)
-                                  {$_sem_sql}
-                                  LEFT JOIN lit_list_content AS e USING (list_id)
-                                  WHERE a.Institut_id = a.fakultaets_id
-                                  GROUP BY a.Institut_id
-                                  ORDER BY Name";
-                    } elseif (!$_is_lit_admin) {
-                        $query = "SELECT a.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak,
-                                         COUNT(DISTINCT catalog_id) AS anzahl
-                                  FROM user_inst AS a
-                                  LEFT JOIN Institute AS b USING (Institut_id)
-                                  LEFT JOIN Institute AS f ON (b.institut_id IN (f.fakultaets_id, f.Institut_id))
-                                  LEFT JOIN seminar_inst AS c ON (c.Institut_id = f.Institut_id)
-                                  {$_sem_sql}
-                                  LEFT JOIN lit_list_content AS e USING (list_id)
-                                  WHERE a.user_id = ? AND a.inst_perms = 'admin'
-                                  GROUP BY a.Institut_id
-                                  ORDER BY is_fak, b.Name";
-                        $parameters[] = $user->id;
-                    } else {
-                        $query = "SELECT b.Institut_id, b.Name, b.Institut_id = b.fakultaets_id AS is_fak,
-                                         COUNT(DISTINCT catalog_id) AS anzahl
-                                  FROM Institute AS b
-                                  LEFT JOIN Institute AS f ON (b.institut_id IN (f.fakultaets_id, f.Institut_id))
-                                  LEFT JOIN seminar_inst AS c ON (c.Institut_id = f.Institut_id)
-                                  {$_sem_sql}
-                                  LEFT JOIN lit_list_content AS e USING (list_id)
-                                  WHERE b.Institut_id IN (?)
-                                  GROUP BY b.Institut_id
-                                  ORDER BY is_fak, b.Name";
-                        $parameters[] = $_lit_admin_ids;
-                    }
-                    $statement = DBManager::get()->prepare($query);
-                    $statement->execute($parameters);
-                    $institutes = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-                    printf ("<option value=\"\" class=\"is-placeholder\">%s</option>\n", _("-- Bitte Einrichtung auswählen --"));
-                    foreach ($institutes as $institute) {
-                        printf("<option value=\"%s\" class=\"%s\" %s>%s </option>\n",
-                               $institute['Institut_id'],
-                               $institute['is_fak'] ? 'nested-item-header' : 'nested-item',
-                               $institute['Institut_id'] == Request::option('_inst_id') ? ' selected ' : '',
-                               htmlReady(mb_substr($institute['Name'], 0, 70)) . ' (' . $institute['anzahl'] . ')');
-                        if ($institute['is_fak']) {
-                            if ($institute['Institut_id'] == Request::option('_inst_id')){
-                                $_is_fak = true;
-                            }
-
-                            $institute_statement->execute(array($institute['Institut_id']));
-                            while ($row = $institute_statement->fetch(PDO::FETCH_ASSOC)) {
-                                printf("<option value=\"%s\" %s class=\"nested-item\">%s </option>\n",
-                                       $row['Institut_id'],
-                                       $row['Institut_id'] == Request::option('_inst_id') ? ' selected ' : '',
-                                       htmlReady(mb_substr($row['Name'], 0, 70)) . ' (' . $row['anzahl'] . ')');
-                            }
-                            $institute_statement->closeCursor();
+                printf ("<option value=\"\" class=\"is-placeholder\">%s</option>\n", _("-- Bitte Einrichtung auswählen --"));
+                foreach ($institutes as $institute) {
+                    printf("<option value=\"%s\" class=\"%s\" %s>%s </option>\n",
+                           $institute['Institut_id'],
+                           $institute['is_fak'] ? 'nested-item-header' : 'nested-item',
+                           $institute['Institut_id'] == Request::option('_inst_id') ? ' selected ' : '',
+                           htmlReady(mb_substr($institute['Name'], 0, 70)) . ' (' . $institute['anzahl'] . ')');
+                    if ($institute['is_fak']) {
+                        if ($institute['Institut_id'] == Request::option('_inst_id')){
+                            $_is_fak = true;
                         }
-                    }
-                    ?>
-                </select>&nbsp;
-                <select name="_semester_id" style="vertical-align:middle">
-                    <option value="all"><?=_("alle")?></option>
-                    <?
-                    foreach($_semester->getAllSemesterData() as $sem){
-                        ?>
-                        <option value="<?=$sem['semester_id']?>" <?=($sem['semester_id'] == Request::option('_semester_id') ? " selected " : "")?>><?=htmlReady($sem['name'])?></option>
-                        <?
-                    }
-                    ?>
-                </select>
-                </font>&nbsp;
-                <?= Button::create(_('Auswählen')) ?>
-                </td>
-            </tr>
-            <tr>
-                <td class="table_row_even">
-                    &nbsp;
-                </td>
-            </tr>
-        </form>
-            <form name="check_elements" action="<?=URLHelper::getLink('?cmd=check')?>" method="POST">
-            <?= CSRFProtection::tokenTag() ?>
-            <tr>
-                <td class="table_row_even" align="right">
-                    <select name="_check_plugin" style="vertical-align:middle">
-                    <?
-                    foreach($_search_plugins as $sp){
-                        ?>
-                        <option <?=($sp == $_SESSION['_check_plugin'] ? " selected " : "")?>><?=htmlReady($sp)?></option>
-                        <?
-                    }
-                    ?>
-                </select>
-                    <?= Button::create(_('Verfügbarkeit'), array('title' => _("Alle markierten Einträge im ausgewählten Katalog suchen"), 'style' => "vertical-align:middle")) ?>
-                    &nbsp;&nbsp;&nbsp;
-                    <?= LinkButton::create(_('Auswählen'), URLHelper::getURL('?cmd=markall'), array('title' => _("Alle Einträge markieren"))) ?>
-                    <br>&nbsp;
-                </td>
-            </tr>
 
-        </table>
-        <?
-    if ($_is_fak) {
+                        $institute_statement->execute(array($institute['Institut_id']));
+                        while ($row = $institute_statement->fetch(PDO::FETCH_ASSOC)) {
+                            printf("<option value=\"%s\" %s class=\"nested-item\">%s </option>\n",
+                                   $row['Institut_id'],
+                                   $row['Institut_id'] == Request::option('_inst_id') ? ' selected ' : '',
+                                   htmlReady(mb_substr($row['Name'], 0, 70)) . ' (' . $row['anzahl'] . ')');
+                        }
+                        $institute_statement->closeCursor();
+                    }
+                }
+                ?>
+            </select>
+        </label>
+
+        <label class="col-1">
+            Semester
+            <select name="_semester_id" style="vertical-align:middle">
+                <option value="all"><?=_("alle")?></option>
+                <?
+                foreach($_semester->getAllSemesterData() as $sem){
+                    ?>
+                    <option value="<?=$sem['semester_id']?>" <?=($sem['semester_id'] == Request::option('_semester_id') ? " selected " : "")?>><?=htmlReady($sem['name'])?></option>
+                    <?
+                }
+                ?>
+            </select>
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Button::create(_('Anzeigen')) ?>
+    </footer>
+</form>
+
+<br>
+<form name="check_elements" action="<?=URLHelper::getLink('?cmd=check')?>" method="POST">
+    <?= CSRFProtection::tokenTag() ?>
+    <div style="float: right; clear: both;">
+        <select name="_check_plugin" style="vertical-align:middle">
+            <?
+            foreach($_search_plugins as $sp){
+                ?>
+                <option <?=($sp == $_SESSION['_check_plugin'] ? " selected " : "")?>><?=htmlReady($sp)?></option>
+                <?
+            }
+            ?>
+        </select>
+
+        <?= Button::create(_('Verfügbarkeit'), array('title' => _("Alle markierten Einträge im ausgewählten Katalog suchen"), 'style' => "vertical-align:middle")) ?>
+
+        <span style="display: inline-block; margin-left: 1em">
+            <?= LinkButton::create(_('Auswählen'), URLHelper::getURL('?cmd=markall'), array('title' => _("Alle Einträge markieren"))) ?>
+        </span>
+    </div>
+
+    <? if ($_is_fak) {
         $sql = "SELECT f.*
                 FROM Institute AS a
                 INNER JOIN seminar_inst AS c USING (Institut_id)

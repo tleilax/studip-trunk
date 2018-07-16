@@ -1,12 +1,11 @@
 <? use Studip\Button; ?>
 
-<h3 style="text-align: center;"><?= _('Ich studiere folgende Fächer und Abschlüsse:') ?></h3>
+<h2><?= _('Ich studiere folgende Fächer und Abschlüsse:') ?></h2>
 
-<? if ($allow_change['sg']): ?>
-<form action="<?= $controller->url_for('settings/studies/store_sg') ?>" method="post">
+<form action="<?= $controller->url_for('settings/studies/store_sg') ?>" method="post" class="default">
     <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
-    <? endif; ?>
+
     <table class="default" id="select_fach_abschluss">
         <colgroup>
             <col>
@@ -97,57 +96,70 @@
                 <? endif; ?>
             </tr>
         <? endforeach; ?>
+
+        <? if (count($user->studycourses) !== 0 && $allow_change['sg']): ?>
+        <tr>
+            <td colspan="<?= $modulemanagement_enabled ? '5' : '4' ?>" style="padding: 0px; text-align: right;">
+                <footer>
+                    <?= Button::create(_('Übernehmen'), 'store_in', ['title' => _('Änderungen übernehmen')]) ?>
+                </footer>
+            </td>
+        </tr>
+        <? endif ?>
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="5">
-                    <? if ($allow_change['sg']): ?>
-                        <p>
-                            <?= _('Wählen Sie die Fächer, Abschlüsse und Fachsemester in der folgenden Liste aus:') ?>
-                        </p>
-                        <p>
-                            <a name="studiengaenge"></a>
-                            <select name="new_studiengang" id="new_studiengang"
-                                    aria-label="<?= _('-- Bitte Fach auswählen --') ?>">
-                                <option selected value="none"><?= _('-- Bitte Fach auswählen --') ?></option>
-                                <? foreach ($faecher as $fach) : ?>
-                                    <?= sprintf('<option value="%s">%s</option>', $fach->id, htmlReady(my_substr($fach->name, 0, 50))); ?>
-                                <? endforeach ?>
-                            </select>
-
-                            <a name="abschluss"></a>
-                            <select name="new_abschluss" id="new_abschluss"
-                                    aria-label="<?= _('-- Bitte Abschluss auswählen --') ?>">
-                                <option selected value="none"><?= _('-- Bitte Abschluss auswählen --') ?></option>
-                                <? foreach ($abschluesse as $abschluss) : ?>
-                                    <?= sprintf('<option value="%s">%s</option>' . "\n", $abschluss->id, htmlReady(my_substr($abschluss->name, 0, 50))); ?>
-                                <? endforeach ?>
-                            </select>
-
-                            <a name="semester"></a>
-                            <select name="fachsem" aria-label="<?= _("Bitte Fachsemester wählen") ?>">
-                                <? for ($i = 1; $i <= 50; $i += 1): ?>
-                                    <option><?= $i ?></option>
-                                <? endfor; ?>
-                            </select>
-                        </p>
-
-                        <p>
-                            <?= _('Wenn Sie einen Studiengang wieder austragen möchten, '
-                                  . 'markieren Sie die entsprechenden Felder in der oberen Tabelle.') ?>
-                            <?= _('Mit einem Klick auf <b>Übernehmen</b> werden die gewählten Änderungen durchgeführt.') ?>
-                            <br>
-                            <br>
-                            <?= Button::create(_('Übernehmen'), 'store_sg', ['title' => _('Änderungen übernehmen')]) ?>
-                        </p>
-                    <? else: ?>
-                        <?= _('Die Informationen zu Ihrem Studiengang werden vom System verwaltet, '
-                              . 'und können daher von Ihnen nicht geändert werden.') ?>
-                    <? endif; ?>
-                </td>
-            </tr>
-        </tfoot>
     </table>
-    <? if ($allow_change['sg']): ?>
 </form>
+
+
+<? if ($allow_change['sg']): ?>
+<form action="<?= $controller->url_for('settings/studies/store_sg') ?>" method="post" class="default">
+    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <?= CSRFProtection::tokenTag() ?>
+
+    <fieldset>
+        <legend>
+            <?= _('Fach / Abschluss hinzufügen') ?>
+        </legend>
+
+
+        <div>
+            <?= _('Wählen Sie die Fächer, Abschlüsse und Fachsemester in der folgenden Liste aus:') ?>
+        </div>
+        <div class="hgroup">
+            <label>
+                <select name="new_studiengang" id="new_studiengang"
+                        aria-label="<?= _('-- Bitte Fach auswählen --') ?>">
+                    <option selected value="none"><?= _('-- Bitte Fach auswählen --') ?></option>
+                    <? foreach ($faecher as $fach) : ?>
+                        <?= sprintf('<option value="%s">%s</option>', $fach->id, htmlReady(my_substr($fach->name, 0, 50))); ?>
+                    <? endforeach ?>
+                </select>
+            </label>
+
+            <label>
+                <select name="new_abschluss" id="new_abschluss"
+                        aria-label="<?= _('-- Bitte Abschluss auswählen --') ?>">
+                    <option selected value="none"><?= _('-- Bitte Abschluss auswählen --') ?></option>
+                    <? foreach ($abschluesse as $abschluss) : ?>
+                        <?= sprintf('<option value="%s">%s</option>' . "\n", $abschluss->id, htmlReady(my_substr($abschluss->name, 0, 50))); ?>
+                    <? endforeach ?>
+                </select>
+            </label>
+
+            <label>
+                <select name="fachsem" aria-label="<?= _("Bitte Fachsemester wählen") ?>" class="size-s">
+                    <? for ($i = 1; $i <= 50; $i += 1): ?>
+                        <option><?= $i ?></option>
+                    <? endfor; ?>
+                </select>
+            </label>
+        </div>
+    </fieldset>
+    <footer>
+        <?= Button::create(_('Übernehmen'), 'store_sg', ['title' => _('Änderungen übernehmen')]) ?>
+    </footer>
+</form>
+<? else: ?>
+    <?= _('Die Informationen zu Ihrem Studiengang werden vom System verwaltet, '
+          . 'und können daher von Ihnen nicht geändert werden.') ?>
 <? endif; ?>

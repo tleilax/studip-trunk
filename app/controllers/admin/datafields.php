@@ -68,12 +68,12 @@ class Admin_DatafieldsController extends AuthenticatedController
                 'usersemdata'  => DataField::getDataFields('usersemdata'),
                 'roleinstdata' => DataField::getDataFields('roleinstdata')
             );
-                       
+
             $this->datafields_list['moduldeskriptor'] =
                     DataField::getDataFields('moduldeskriptor');
             $this->datafields_list['modulteildeskriptor'] =
                     DataField::getDataFields('modulteildeskriptor');
-                    
+
         }
 
         // set variables for view
@@ -140,6 +140,7 @@ class Admin_DatafieldsController extends AuthenticatedController
         PageLayout::setTitle(_('Neues Datenfeld anlegen'));
 
         if (Request::submitted('anlegen')) {
+
             if (Request::get('datafield_name')) {
                 $datafield = new DataField();
                 $datafield->name          = Request::get('datafield_name');
@@ -180,6 +181,10 @@ class Admin_DatafieldsController extends AuthenticatedController
 
         if (!$this->object_typ) {
             $this->render_action('type_select');
+        }
+
+        if (Request::isXhr() && $this->type_name) {
+            PageLayout::setTitle(sprintf(_('Einen neuen Datentyp für die Kategorie "%s" erstellen'), $this->type_name));
         }
     }
 

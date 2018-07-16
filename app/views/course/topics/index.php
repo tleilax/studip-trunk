@@ -28,7 +28,7 @@
                 <ul class="clean">
                     <? foreach ($topic->dates as $date) : ?>
                         <li>
-                            <a href="<?= URLHelper::getLink("dispatch.php/course/dates/details/".$date->getId()) ?>" data-dialog="buttons=false">
+                            <a href="<?= URLHelper::getLink("dispatch.php/course/dates/details/".$date->getId()) ?>" data-dialog="size=auto">
                                 <?= Icon::create('date', 'clickable')->asImg(['class' => "text-bottom"]) ?>
                                 <?= htmlReady($date->getFullName()) ?>
                             </a>

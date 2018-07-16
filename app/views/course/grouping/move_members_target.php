@@ -1,16 +1,17 @@
 <form class="default" action="<?= $controller->url_for('course/grouping/move_members', $source_id) ?>" method="post">
-    <header>
-        <h1><?= _('Wohin sollen die gewählten Personen verschoben werden?') ?></h1>
-    </header>
+    <fieldset>
+        <legend><?= _('Personen verschieben') ?></legend>
 
-    <section>
-    <? foreach ($targets as $one) : ?>
-        <label>
-            <input type="radio" name="target" value="<?= $one->id ?>">
-            <?= htmlReady($one->getFullname()) ?>
-        </label>
-    <? endforeach ?>
-    </section>
+        <h2><?= _('Wohin sollen die gewählten Personen verschoben werden?') ?></h1>
+        <section>
+        <? foreach ($targets as $one) : ?>
+            <label>
+                <input type="radio" name="target" value="<?= $one->id ?>">
+                <?= htmlReady($one->getFullname()) ?>
+            </label>
+        <? endforeach ?>
+        </section>
+    </fieldset>
 
     <footer data-dialog-button>
     <? foreach ($users as $user) : ?>

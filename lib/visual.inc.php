@@ -470,7 +470,7 @@ function printhead($breite, $left, $link, $open, $new, $icon, $titel, $zusatz,
 
     if ($open == "close") {
         $print = "<td bgcolor=\"".$timecolor."\" class=\"".$class2."\" nowrap=\"nowrap\" width=\"1%\"";
-        $print .= "align=\"left\" valign=\"top\">";
+        $print .= " align=\"left\" valign=\"top\">";
     }
     else {
         $print = "<td bgcolor=\"".$timecolor."\" class=\"".$class3."\" nowrap=\"nowrap\" width=\"1%\"";
@@ -517,10 +517,15 @@ function printhead($breite, $left, $link, $open, $new, $icon, $titel, $zusatz,
 }
 
 //Ausgabe des Contents einer aufgeklappten Kopfzeile
-function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE, $addon="") {
+function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE, $addon="", $noTdTag = false) {
 
-    $print = "<td class=\"printcontent\" width=\"22\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-    $print .= "</td><td class=\"printcontent\" width=\"$breite\" valign=\"bottom\"><br>";
+    $print = "";
+    if ($noTdTag == false)
+    {
+        $print .= "<td class=\"printcontent\" width=\"22\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        $print .= "</td><td class=\"printcontent\" width=\"$breite\" valign=\"bottom\"><br>";
+    }
+
     $print .= $inhalt;
 
     if ($edit) {
@@ -539,7 +544,10 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
         $print .= "<br>";
     }
 
-    $print .= "</td>";
+    if ($noTdTag == false)
+    {
+        $print .= "</td>";
+    }
 
     if ($printout)
         echo $print;

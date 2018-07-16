@@ -47,7 +47,7 @@ $graphtypes = array(
 );
 ?>
 
-<form action="<?= URLHelper::getLink() ?>" method="post">
+<form class="default" action="<?= URLHelper::getLink() ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
 
     <input type="hidden" name="template_id" value="<?= $templates['template_id'] ?>">
@@ -90,7 +90,7 @@ $graphtypes = array(
                     <label for="<?= $type ?>"><?= htmlReady($data['title']) ?>:</label>
                 </td>
                 <td style="text-align: center;" colspan="2">
-                    <select id="<?= $type ?>" name="<?= $type ?>" style="120px">
+                    <select class="size-s" id="<?= $type ?>" name="<?= $type ?>" style="120px">
                     <? foreach ($data['options'] as $k => $v): ?>
                         <option value="<?= htmlReady($k) ?>"
                                 <? if ($templates[$type] == $k) echo "selected"; ?>>
@@ -106,7 +106,7 @@ $graphtypes = array(
         <tfoot>
             <tr>
                 <td>
-                    <?= LinkButton::create('<< ' . _('Zurück'), 
+                    <?= LinkButton::create('<< ' . _('Zurück'),
                                            URLHelper::getURL('eval_summary.php', compact('eval_id'))) ?>
                 </td>
                 <td colspan="2" style="text-align: right;">

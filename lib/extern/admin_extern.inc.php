@@ -123,7 +123,7 @@ if (Request::option('com') == 'delete') {
                 htmlReady($config->getConfigName()),
                 htmlReady($GLOBALS['EXTERN_MODULE_TYPES'][$config->getTypeName()]['name'])));
     } else {
-        echo MessageBox::erro(_("Konfiguration konnte nicht gelöscht werden"));
+        echo MessageBox::error(_("Konfiguration konnte nicht gelöscht werden"));
     }
 }
 
@@ -160,7 +160,6 @@ if (Request::option('com') == 'new' || Request::option('com') == 'edit' || Reque
         Request::option('com') == 'close' || Request::option('com') == 'store') {
 
     require_once "lib/extern/views/extern_edit_module.inc.php";
-
 
     $template = $GLOBALS['template_factory']->open('layouts/base.php');
     $template->content_for_layout = ob_get_clean();
@@ -225,38 +224,56 @@ if (isset($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][0]["module"]])) {
     $have_config = TRUE;
 }
 
-if (Request::option('com') != 'copychoose') {
-    echo "<blockquote>";
-    echo _("Neue globale Konfiguration anlegen.") . " ";
-    echo LinkButton::create(_("Neu anlegen"), URLHelper::getURL('?com=new&mod=Global'));
-    echo "</blockquote>";
-}
+$sidebar = Sidebar::get();
+
+$widget = new ActionsWidget();
+$widget->addLink(
+    _('Neue globale Konfiguration'),
+    URLHelper::getURL('?com=new&mod=Global'),
+    Icon::create('link-intern', 'clickable')
+);
+
+$sidebar->addWidget($widget);
+
+// cho LinkButton::create(_(" anlegen"), URLHelper::getURL('?com=new&mod=Global'));
 
 if ($choose_module_form != '') {
     if (Request::option('com') != 'copychoose') {
-        echo '<form method="post" action="' . URLHelper::getLink('?com=new') . '">';
+        echo '<form method="post" action="' . URLHelper::getLink('?com=new') . '" class="default">';
         echo CSRFProtection::tokenTag();
-        echo "<blockquote>";
-        $choose_module_form = "<select name=\"mod\">\n$choose_module_form</select>\n";
-        printf(_("Neue Konfiguration für Modul %s anlegen.") . " ", $choose_module_form);
-        echo Button::create(_("Neu anlegen"));
-        echo "</blockquote>\n";
-        echo "</form>\n";
+        echo "<fieldset><legend>"
+            ._("Neue Konfiguration für Modul")
+            . "</legend>\n";
+
+        echo "<label>
+                Modul
+            <select name=\"mod\" class=\"size-m\">\n$choose_module_form</select>
+            </label>\n";
+        echo "</fieldset>\n";
+        echo "<footer>" . Button::create(_("Anlegen")) . "</footer>\n";
+        echo "</form><br>\n";
 
         $conf_institutes = ExternConfig::GetInstitutesWithConfigurations(($GLOBALS['perm']->have_perm('root') && Request::option('view') == 'extern_global') ? 'global' : array('inst', 'fak'));
         if (sizeof($conf_institutes)) {
-            echo '<form method="post" action="' . URLHelper::getLink('?com=copychoose') . '">';
+            echo '<form method="post" action="' . URLHelper::getLink('?com=copychoose') . '" class="default">';
             echo CSRFProtection::tokenTag();
-            echo "<blockquote>";
-            $choose_institute_copy = "<select name=\"copychooseinst\" class=\"nested-select\">\n";
+            echo "<fieldset>";
+            echo "<legend>" . _("Konfiguration kopieren") . "</legend>";
+
+            $choose_institute_copy = "<select name=\"copychooseinst\" class=\"nested-select size-m\">\n";
             foreach ($conf_institutes as $conf_institute) {
                 $choose_institute_copy .= sprintf("<option value=\"%s\" class=\"%s\">%s</option>\n", $conf_institute['institut_id'], ($conf_institute['fakultaets_id'] == $conf_institute['institut_id'] ? 'nested-item-header' : 'nested-item'), htmlReady(mb_strlen($conf_institute['name']) > 60 ? substr_replace($conf_institute['name'], '[...]', 30, -30) : $conf_institute['name']));
             }
             $choose_institute_copy .= "</select>\n";
-            printf(_("Konfiguration aus Einrichtung %s kopieren."), $choose_institute_copy);
-            echo Button::create(_("Weiter") . " >>");
-            echo "</blockquote>\n";
-            echo "</form>\n";
+
+            echo '<label>';
+            echo _('Einrichtung');
+            echo $choose_institute_copy;
+            echo '</label>';
+            echo "</fieldset>\n";
+
+            echo "<footer>" . Button::create(_("Weiter") . " >>") . "</footer>\n";
+            echo "</form><br>\n";
         }
     } else {
         if (Request::option('com') == 'copychoose') {
@@ -276,14 +293,25 @@ if ($choose_module_form != '') {
                 }
             }
 
-            echo '<form method="post" action="' . URLHelper::getLink('?com=copyconfig') . '">';
+            echo '<form method="post" action="' . URLHelper::getLink('?com=copyconfig') . '" class="default">';
             echo CSRFProtection::tokenTag();
-            echo "<blockquote>";
-            printf(_("Konfiguration %s aus Einrichtung kopieren."), $choose_module_select . '</select>');
-            echo Button::create(_("Kopieren"));
+            echo "<fieldset>";
+            echo "<legend>" . _("Konfiguration kopieren") . "</legend>";
+
+            $iid = Request::get('copychooseinst');
+            echo '<label>' . _('Einrichtung');
+            echo '<div>' . htmlReady(get_object_name($iid, 'inst')['name']) . '</div>';
+            echo '</label>';
+            echo '<label>' . _('Konfiguration');
+            echo $choose_module_select . '</select>';
+            echo '</label>';
+            echo "</fieldset>\n";
+
+            echo "<footer>\n";
             echo LinkButton::create("<< " . _("Zurück"), URLHelper::getURL('?list=TRUE&view=extern_inst'));
-            echo "</blockquote>\n";
+            echo Button::create(_("Kopieren"));
             echo "<input type=\"hidden\" name=\"copyinstid\" value=\"" . htmlReady(Request::quoted('copychooseinst')) . "\">\n";
+            echo "</footer>\n";
             echo "</form>\n";
 
         }
@@ -406,7 +434,6 @@ if (sizeof($configurations)) {
             Icon::create('infopage'));
 
 }
-
 
 //print_footer();
 

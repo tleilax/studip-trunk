@@ -129,7 +129,7 @@ $search_object = new SQLSearch("SELECT username, CONCAT(Vorname, ' ', Nachname, 
                                 " CONCAT(Nachname, ', ', Vorname) LIKE :input OR".
                                 " username LIKE :input".
                                " HAVING visible = 1".
-                               " ORDER BY Nachname, Vorname", _('Personen suchen'), 'username');
+                               " ORDER BY Nachname, Vorname", _('Vorname, Nachname oder Nutzername'), 'username');
 
 $template->set_attribute('search_object', $search_object);
 

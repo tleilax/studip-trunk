@@ -18,7 +18,7 @@
                 <?= Studip\LinkButton::create(
                     _('Neue Nutzungsbedingungen definieren'),
                     $controller->url_for('admin/content_terms_of_use/add'),
-                    ['data-dialog' => 'reload-on-close']
+                    ['data-dialog' => 'reload-on-close;size=auto']
                 ) ?>
             </td>
         </tr>

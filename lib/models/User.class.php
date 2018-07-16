@@ -608,7 +608,8 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
         $possible_status = ['autor', 'tutor', 'dozent'];
 
         $pos = array_search($this->perms, $possible_status);
-        if ($pos) {
+
+        if ($pos !== false) {
             $allowed_status = array_slice($possible_status, 0, $pos + 1);
         }
         return $allowed_status;

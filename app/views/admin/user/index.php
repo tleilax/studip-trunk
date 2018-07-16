@@ -31,7 +31,7 @@ use Studip\Button, Studip\LinkButton;
             <input name="nachname" type="text" value="<?= htmlReady($request['nachname']) ?>">
         </label>
 
-        <label class="col-2">
+        <label class="col-1">
             <?= _('Status')?>
 
             <select name="perm">
@@ -43,10 +43,10 @@ use Studip\Button, Studip\LinkButton;
             </select>
         </label>
 
-        <label for="inactive" class="col-2">
-            <?= _('inaktiv') ?>
+        <div class="col-1">
+            <span class="label-text"><?= _('inaktiv') ?></span>
 
-            <section class="hgroup size-m">
+            <div class="hgroup">
                 <select name="inaktiv" class="size-s">
                 <? foreach(array('<=' => '>=', '=' => '=', '>' => '<', 'nie' =>_('nie')) as $i => $one): ?>
                     <option value="<?= htmlready($i) ?>" <?= ($request['inaktiv'][0] === $i) ? 'selected' : '' ?>>
@@ -55,15 +55,13 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach; ?>
                 </select>
 
-                <label>
-                    <input name="inaktiv_tage" type="number" id="inactive"
-                           value="<?= htmlReady($request['inaktiv'][1]) ?>">
-                    <?= _('Tage') ?>
-                </label>
-            </section>
-        </label>
+                <input name="inaktiv_tage" type="number" id="inactive"
+                       value="<?= htmlReady($request['inaktiv'][1]) ?>">
+                <?= _('Tage') ?>
+            </div>
+        </div>
 
-        <label class="col-2">
+        <label class="col-1">
             <input type="checkbox" name="locked" value="1" <?=  ($request['locked']) ?  'checked' : '' ?>>
             <?= _('nur gesperrt') ?>
         </label>
@@ -138,19 +136,19 @@ use Studip\Button, Studip\LinkButton;
             <?= htmlReady($datafield->name) ?>
 
         <? if ($datafield->type === 'bool'): ?>
-            <section class="hgroup size-m">
-                <label>
+            <section class="hgroup">
+                <span class="col-2">
                     <input type="radio" name="<?= $datafield->id ?>" value="" <?= (mb_strlen($request[$datafield->id]) === 0) ? 'checked' : '' ?>>
                     <?= _('egal') ?>
-                </label>
-                <label>
+                </span>
+                <span class="col-2">
                     <input type="radio" name="<?= $datafield->id ?>" value="1" <?= ($request[$datafield->id] === '1') ? 'checked' : '' ?>>
                     <?= _('ja') ?>
-                </label>
-                <label>
+                </span>
+                <span class="col-2">
                     <input type="radio" name="<?= $datafield->id ?>" value="0" <?= ($request[$datafield->id] === '0') ? 'checked' : '' ?>>
                     <?= _('nein') ?>
-                </label>
+                </span>
             </section>
         <? elseif ($datafield->type === 'selectbox' || $datafield->type === 'radio') : ?>
             <? $datafield_entry = DataFieldEntry::createDataFieldEntry($datafield);?>

@@ -172,7 +172,7 @@ if ($section === 'index' && ForumPerm::has('pdfexport', $seminar_id)) {
 </div>
 <? endif ?>
 
-<!-- Erstellen eines neuen Elements (Kateogire, Thema, Beitrag) -->
+<!-- Erstellen eines neuen Elements (Kategorie, Thema, Beitrag) -->
 <? if ($constraint['depth'] == 0) : ?>
     <div style="clear: right; text-align: center">
         <div class="button-group">
@@ -194,8 +194,8 @@ if ($section === 'index' && ForumPerm::has('pdfexport', $seminar_id)) {
 <? else : ?>
     <? if (!$flash['edit_entry'] && ForumPerm::has('add_entry', $seminar_id)) : ?>
     <? $constraint['depth'] == 1 ? $button_face = _('Neues Thema erstellen') : $button_face = _('Antworten') ?>
-    <div style="clear: right; text-align: center">
-        <div id="new_entry_button" <?= $this->flash['new_entry_title'] ? 'style="display: none"' : '' ?>>
+    <div id="new_entry_button">
+        <div style="clear: right; text-align: center">
             <div class="button-group">
                 <? if ($constraint['depth'] <= 1 || ($constraint['closed'] == 0)) : ?>
                     <?= Studip\LinkButton::create($button_face, PluginEngine::getLink('coreforum/index/new_entry/' . $topic_id),

@@ -417,7 +417,7 @@ class ConnectedCMS
     */
     function getLogo()
     {
-        return "<img src=\"" . $GLOBALS['ABSOLUTE_URI_STUDIP'] . $this->logo_file . "\">";
+        return "<img src=\"" . $this->logo_file . "\">";
     }
 
     /**

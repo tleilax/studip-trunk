@@ -656,7 +656,7 @@ function getItemContent($itemID){
     }
 
 
-    $content .= "<form action=\"".URLHelper::getLink($this->getSelf("item_id={$itemID}",1))
+    $content .= "<form class=\"default\" action=\"".URLHelper::getLink($this->getSelf("item_id={$itemID}",1))
             . "\" method=\"POST\" style=\"display:inline;\">\n";
     $content .= CSRFProtection::tokenTag();
 
@@ -2341,13 +2341,12 @@ function createTitleInput($mode = ROOT_BLOCK){
     $tr = new HTML ("tr");
 
     $td = new HTML ("td");
-    $td->addContent ($title_label . ":");
+    $td->addAttr('colspan', '2');
+    $label = new HTML('label');
+    $label->addContent ($title_label);
     if ($mode == QUESTION_BLOCK)
-        $td->addHTMLContent ($this->createImage(EVAL_PIC_HELP,$title_info));
+        $label->addHTMLContent ($this->createImage(EVAL_PIC_HELP,$title_info));
 
-    $tr->addContent ($td);
-
-    $td = new HTML ("td");
 
     $input = new HTMLempty ("input");
     $input->addAttr ("type","text");
@@ -2356,19 +2355,20 @@ function createTitleInput($mode = ROOT_BLOCK){
     $input->addAttr ("size","60");
     $input->addAttr ("style","vertical-align:middle; width: 100%;");
 
-    $td->addContent ($input);
+    $label->addContent($input);
+
+    $td->addContent($label);
     $tr->addContent ($td);
     $table->addContent ($tr);
 
     $tr = new HTML ("tr");
 
     $td = new HTML ("td");
-    $td->addContent ($text_label . ":");
-    $td->addHTMLContent ($this->createImage(EVAL_PIC_HELP, $text_info));
+    $td->addAttr('colspan', '2');
 
-    $tr->addContent ($td);
-
-    $td = new HTML ("td");
+    $label = new HTML('label');
+    $label->addContent ($text_label);
+    $label->addHTMLContent ($this->createImage(EVAL_PIC_HELP, $text_info));
 
     $textarea = "<br><textarea class=\"add_toolbar wysiwyg\" name=\"text\" rows=\"4\" "
         . "style=\"vertical-align:top; width: 100%;\">";
@@ -2377,8 +2377,10 @@ function createTitleInput($mode = ROOT_BLOCK){
             : "";
     $textarea .= "</textarea>";
 
-    $td->addHTMLContent ($textarea);
-    $td->setTextareaCheck ();
+    $label->addHTMLContent($textarea);
+    $label->setTextareaCheck();
+
+    $td->addContent($label);
     $tr->addContent ($td);
     $table->addContent ($tr);
 
@@ -2439,7 +2441,6 @@ function createGlobalFeatures (){
 
     $b = new HTML ("b");
     $b->addContent (_("Globale Eigenschaften"));
-    $b->addContent (":");
 
     $td->addContent ($b);
     $tr->addContent ($td);
@@ -2448,35 +2449,40 @@ function createGlobalFeatures (){
     $tr = new HTML ("tr");
 
     $td = new HTML ("td");
-    $td->addAttr ("style","border-bottom:0px dotted black;");
-    $td->addContent (_("Die Auswertung der Evaluation läuft"));
-    $td->addContent (":");
+    $td->addAttr('colspan', '2');
 
-    $tr->addContent ($td);
+    $div = new HTML('div');
+    $div->addContent (_("Die Auswertung der Evaluation läuft"));
 
-    $td = new HTML ("td");
-    $td->addAttr ("style","border-bottom:0px dotted black;");
+    $td->addContent($div);
 
+    $section = new HTML('section');
+    $section->addAttr('class', 'hgroup');
+
+    $l1 = new HTML('label');
     $input = new HTMLempty ("input");
     $input->addAttr ("type","radio");
     $input->addAttr ("value","1");
     $input->addAttr ("name","anonymous");
     if ($this->tree->eval->isAnonymous())
         $input->addAttr ("checked","checked");
+    $l1->addContent($input);
+    $l1->addContent(_("anonym"));
 
+    $l2 = new HTML('label');
     $input2 = new HTMLempty ("input");
     $input2->addAttr ("type","radio");
     $input2->addAttr ("value","0");
     $input2->addAttr ("name","anonymous");
     if (!$this->tree->eval->isAnonymous())
         $input2->addAttr ("checked","checked");
+    $l2->addContent($input2);
+    $l2->addContent(_("personalisiert"));
 
-    $td->addContent ($input);
-    $td->addContent (_("anonym"));
-    $td->addContent (new HTMLempty ("br"));
-    $td->addContent ($input2);
-    $td->addContent (_("personalisiert"));
+    $section->addContent($l1);
+    $section->addContent($l2);
 
+    $td->addContent($section);
     $tr->addContent ($td);
     $table->addContent ($tr);
 
@@ -3119,7 +3125,7 @@ function createTemplateSelection ( $selected = NULL ){
 
     $select = new HTML ("select");
     $select->addAttr ("name","templateID");
-    $select->addAttr ("style","vertical-align:middle;");
+    $select->addAttr ("style","vertical-align:middle; max-width: 250px;");
 
     $option = new HTML ("option");
     $option->addAttr ("value","");

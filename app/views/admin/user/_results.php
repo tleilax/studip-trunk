@@ -6,7 +6,7 @@ use Studip\Button, Studip\LinkButton;
 
 <br>
 
-<form action="<?= $controller->url_for('admin/user/bulk') ?>" method="post" data-dialog="size=auto">
+<form action="<?= $controller->url_for('admin/user/bulk') ?>" method="post" data-dialog="size=auto" class="default">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
         <caption>
@@ -224,13 +224,14 @@ use Studip\Button, Studip\LinkButton;
         <tfoot>
             <tr>
                 <td colspan="11" align="right">
-                    <input class="middle" type="checkbox" name="check_all" title="<?= _('Alle Benutzer auswählen') ?>"
-                           data-proxyfor=".check_all" data-activates=".bulkAction">
-                    <select name="method" class="bulkAction" required>
-                        <option value=""><?= _('Bitte wählen') ?></option>
-                        <option value="send_message"><?= _('Nachricht senden') ?></option>
-                        <option value="delete"><?= _('Löschen') ?></option>
-                    </select>
+                        <input style="vertical-align: middle" type="checkbox" name="check_all" title="<?= _('Alle Benutzer auswählen') ?>"
+                               data-proxyfor=".check_all" data-activates=".bulkAction">
+                        <select name="method" class="bulkAction size-s" required>
+                            <option value=""><?= _('Bitte wählen') ?></option>
+                            <option value="send_message"><?= _('Nachricht senden') ?></option>
+                            <option value="delete"><?= _('Löschen') ?></option>
+                        </select>
+
                     <?= Button::create(_('Ausführen'),
                             ['title' => _('Ausgewählte Aktion ausführen'),
                              'class' => 'bulkAction']) ?>

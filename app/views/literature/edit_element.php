@@ -1,7 +1,8 @@
 <section id="lit_edit_element">
     <?= $form->getFormStart(URLHelper::getLink('dispatch.php/literature/edit_element?_catalog_id=' . $catalog_id),
         array('class' => 'default', 'data-dialog' => '')) ?>
-    <h1><?= ($element->isNewEntry()) ? _("Neuer Eintrag") : _('Eintrag') ?></h1>
+    <fieldset>
+        <legend><?= ($element->isNewEntry()) ? _("Neuer Eintrag") : _('Eintrag') ?></legend>
 
 
     <? if (!$element->isNewEntry()) : ?>
@@ -23,28 +24,30 @@
 
     <? foreach ($element->fields as $field_name => $field_detail) : ?>
         <? if ($field_detail['caption']) : ?>
-            <section <?= ($field_detail['mandatory']) ? 'class="required"' : '' ?>>
-                <label for="<?= $field_name ?>" class="caption">
-                    <?= $field_detail['caption'] ?>
-                    <?= $form->getFormFieldInfo($field_name) ?>
-                </label>
+            <label>
+                <span <?= ($field_detail['mandatory']) ? 'class="required"' : '' ?>>
+                <?= $field_detail['caption'] ?></span>
+                <?= $form->getFormFieldInfo($field_name) ?>
 
-                <?
-                $element_attributes = $attributes[$form->form_fields[$field_name]['type']];
-                if (!$element->isChangeable()) {
-                    $attributes['readonly'] = 'readonly';
-                    $attributes['disabled'] = 'disabled';
-                }
-                ?>
-                <?= $form->getFormField($field_name, $element_attributes) ?>
-                <? if ($field_name == 'lit_plugin') : ?>
-                    <p>
-                        <?= (($link = $element->getValue('external_link'))) ? formatReady('=) [Link zum Katalog]' . $link) : _('(Kein Link zum Katalog vorhanden.)') ?>
-                    </p>
-                <? endif ?>
-            </section>
+
+            <?
+            $element_attributes = $attributes[$form->form_fields[$field_name]['type']];
+            if (!$element->isChangeable()) {
+                $attributes['readonly'] = 'readonly';
+                $attributes['disabled'] = 'disabled';
+            }
+            ?>
+            <?= $form->getFormField($field_name, $element_attributes) ?>
+            </label>
+
+            <? if ($field_name == 'lit_plugin') : ?>
+                <p>
+                    <?= (($link = $element->getValue('external_link'))) ? formatReady('=) [Link zum Katalog]' . $link) : _('(Kein Link zum Katalog vorhanden.)') ?>
+                </p>
+            <? endif ?>
         <? endif ?>
     <? endforeach ?>
+    </fieldset>
 
 
     <footer class="submit_wrapper" data-dialog-button="1">
@@ -67,8 +70,8 @@
         <? endif ?>
     </footer>
 
-    <?= $form->getFormEnd(); ?>
-</section>
+<?= $form->getFormEnd(); ?>
+
 <? if ($reload && $return_range) : ?>
     <script>
         jQuery('#lit_edit_element').parent().dialog({

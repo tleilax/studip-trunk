@@ -4,7 +4,7 @@
 ?>
 
 <h3><?= _('Parameter') ?></h3>
-<ul>
+<ul class="clean">
 <? foreach ($task->parameters as $key => $data): ?>
     <li class="<? if ($data['status'] === 'mandatory') echo 'required'; ?> parameter">
     <? if ($data['type'] === 'boolean'): ?>
@@ -21,7 +21,7 @@
         <? if ($data['status'] !== 'mandatory'): ?>
             [<?= _('optional') ?>]
         <? endif; ?>
-        </label>
+
     <? endif; ?>
     <? if ($data['type'] === 'string'): ?>
         <input type="text" name="parameters[<?= $task->task_id ?>][<?= htmlReady($key) ?>]"
@@ -54,6 +54,7 @@
         <? endforeach; ?>
         </select>
     <? endif; ?>
+        </label>
     </li>
 <? endforeach; ?>
 </ul>

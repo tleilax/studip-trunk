@@ -83,7 +83,5 @@ if ($input['type'] === 'nested-select'): ?>
 endif;
 
 if ($input['type'] === 'datafield'): ?>
-    <div style="padding-right:0.5em;">
         <?= $input['locked'] ? $input['display_value'] : $input['html_value'] ?>
-    </div>
 <? endif;

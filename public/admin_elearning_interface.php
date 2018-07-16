@@ -115,9 +115,9 @@ if (Config::get()->ELEARNING_INTERFACE_ENABLE)
         echo "</table>";
         echo "<br>\n";
         echo ELearningUtils::getCMSHeader($connected_cms[$cms_select]->getName());
-        echo "<form method=\"POST\" action=\"" . URLHelper::getLink() . "\">\n";
+        echo "<form method=\"POST\" action=\"" . URLHelper::getLink() . "\" class=\"default\">\n";
         echo CSRFProtection::tokenTag();
-        echo "<br>\n";
+        echo '<fieldset>';
         if (ELearningUtils::isCMSActive($cms_select))
         {
             $status_info = "active";
@@ -143,18 +143,21 @@ if (Config::get()->ELEARNING_INTERFACE_ENABLE)
                 echo Button::create(_('Aktivieren'), 'activate');
             }
         }
+        echo '</fieldset>';
         echo "<input type=\"HIDDEN\" name=\"cms_select\" value=\"" . $cms_select . "\">\n";
         echo "</form>";
         echo "<br>\n";
 
-        echo "<form method=\"POST\" action=\"" . URLHelper::getURL() . "\">\n";
+        echo "<form method=\"POST\" action=\"" . URLHelper::getURL() . "\" class=\"default\">\n";
         echo CSRFProtection::tokenTag();
+        echo '<fieldset>';
         if ($error_count == 0)
         {
             echo ELearningUtils::getHeader(_("Einstellungen"));
             echo "<br>\n";
             $connected_cms[$cms_select]->getPreferences();
         }
+        echo '</fieldset>';
         echo "<input type=\"hidden\" name=\"cms_select\" value=\"" . $cms_select . "\">\n";
         echo "</form>";
 
@@ -187,7 +190,7 @@ if (Config::get()->ELEARNING_INTERFACE_ENABLE)
 else
 {
     PageLayout::postError(_("Die Schnittstelle für die Integration von Lernmodulen ist nicht aktiviert.
-    Damit Lernmodule verwendet werden können, muss die Verbindung zu einem LCM-System in der Konfigurationsdatei von Stud.IP hergestellt werden. 
+    Damit Lernmodule verwendet werden können, muss die Verbindung zu einem LCM-System in der Konfigurationsdatei von Stud.IP hergestellt werden.
     Wenden Sie sich bitte an den/die AdministratorIn."), [_("E-Learning-Schnittstelle nicht eingebunden")]);
 
 }

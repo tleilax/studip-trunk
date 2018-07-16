@@ -25,13 +25,13 @@
                 'selected_terms_of_use_id'     => $file_ref->content_terms_of_use_id,
             ]) ?>
 
-            <div data-dialog-button>
+            <footer data-dialog-button>
                 <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
                 <?= Studip\LinkButton::createCancel(
                     _('Abbrechen'),
                     $controller->url_for((in_array($folder->range_type, ['course', 'institute']) ? $folder->range_type . '/' : '') . 'files/index/' . $folder->id)
                 ) ?>
-            </div>
+            </footer>
         </form>
     </div>
 </div>

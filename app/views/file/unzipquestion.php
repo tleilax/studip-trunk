@@ -8,8 +8,8 @@
 
     <?= _('Soll diese ZIP-Datei entpackt werden?') ?>
 
-    <div data-dialog-button>
+    <footer data-dialog-button>
         <?= Studip\Button::create(_('Entpacken'), 'unzip') ?>
         <?= Studip\Button::create(_('Nicht Entpacken'), 'dontunzip') ?>
-    </div>
+    </footer>
 </form>

@@ -224,17 +224,18 @@ if ($flash['error']) {
         </label>
         <textarea cols="60" rows="3" name="infotext"><?= $courseset ? htmlReady($courseset->getInfoText()) : '' ?></textarea>
     </fieldset>
-        <div class="submit_wrapper" data-dialog-button>
-            <?= CSRFProtection::tokenTag() ?>
-            <?= Button::createAccept(_('Speichern'), 'submit', $instant_course_set_view ? array('data-dialog' => '') : array()) ?>
-            <?php if (Request::option('is_copy')) : ?>
-                <?= LinkButton::createCancel(_('Abbrechen'),
-                    URLHelper::getURL('dispatch.php/admission/courseset/delete/' . $courseset->getId(),
-                    array('really' => 1))) ?>
-            <?php else : ?>
-                <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
-            <?php endif ?>
-        </div>
+
+    <footer class="submit_wrapper" data-dialog-button>
+        <?= CSRFProtection::tokenTag() ?>
+        <?= Button::createAccept(_('Speichern'), 'submit', $instant_course_set_view ? array('data-dialog' => '') : array()) ?>
+        <?php if (Request::option('is_copy')) : ?>
+            <?= LinkButton::createCancel(_('Abbrechen'),
+                URLHelper::getURL('dispatch.php/admission/courseset/delete/' . $courseset->getId(),
+                array('really' => 1))) ?>
+        <?php else : ?>
+            <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admission/courseset')) ?>
+        <?php endif ?>
+    </footer>
 
 </form>
 <? if (Request::get('is_copy')) :?>

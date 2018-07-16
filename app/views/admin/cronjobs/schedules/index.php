@@ -1,83 +1,64 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 
-<form action="<?= $controller->url_for('admin/cronjobs/schedules/filter') ?>"
+<form class="default" action="<?= $controller->url_for('admin/cronjobs/schedules/filter') ?>"
       method="post" class="cronjob-filters">
-<table class="default">
-    <colgroup>
-        <col width="33.3%">
-        <col width="33.4%">
-        <col width="33.3%">
-    </colgroup>
-    <thead>
-        <tr>
-            <th>
-                <?= _('Darstellung einschränken') ?>
-            </th>
-            <th colspan="2">
+    <fieldset>
+        <legend>
+            <?= _('Darstellung einschränken') ?>
             <? if ($total_filtered != $total): ?>
                 <?= sprintf(_('Passend: %u von %u Cronjobs'), $total_filtered, $total) ?>
             <? endif; ?>
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-                <label for="type"><?= _('Typ') ?></label>
-                <select name="filter[type]" id="type" class="submit-upon-select">
-                    <option value=""><?= _('Alle Cronjobs anzeigen') ?></option>
-                    <option value="once" <? if ($filter['type'] === 'once') echo 'selected'; ?>>
-                        <?= _('Nur einmalige Cronjobs anzeigen') ?>
-                    </option>
-                    <option value="periodic" <? if ($filter['type'] === 'periodic') echo 'selected'; ?>>
-                        <?= _('Nur regelmässige Cronjobs anzeigen') ?>
-                    </option>
-                </select>
-            </td>
-            <td>
-                <label for="task_id"><?= _('Aufgabe') ?></label>
-                <select name="filter[task_id]" id="task_id" class="submit-upon-select">
-                    <option value=""><?= _('Alle Cronjobs anzeigen') ?></option>
+        </legend>
+        <label class="col-2">
+            <?= _('Typ') ?>
+            <select name="filter[type]" id="type" class="submit-upon-select">
+                <option value=""><?= _('Alle Cronjobs anzeigen') ?></option>
+                <option value="once" <? if ($filter['type'] === 'once') echo 'selected'; ?>>
+                    <?= _('Nur einmalige Cronjobs anzeigen') ?>
+                </option>
+                <option value="periodic" <? if ($filter['type'] === 'periodic') echo 'selected'; ?>>
+                    <?= _('Nur regelmässige Cronjobs anzeigen') ?>
+                </option>
+            </select>
+        </label>
+        <label class="col-2">
+            <?= _('Aufgabe') ?>
+            <select name="filter[task_id]" id="task_id" class="submit-upon-select">
+                <option value=""><?= _('Alle Cronjobs anzeigen') ?></option>
                 <? foreach ($tasks as $task): ?>
                     <option value="<?= $task->task_id ?>" <? if ($filter['task_id'] === $task->task_id) echo 'selected'; ?>>
                         <?= htmlReady($task->name) ?>
                     </option>
                 <? endforeach; ?>
-                </select>
-            </td>
-            <td>
-                <label for="status"><?= _('Status') ?></label>
-                <select name="filter[status]" id="status" class="submit-upon-select">
-                    <option value=""><?= _('Alle Cronjobs anzeigen') ?></option>
-                    <option value="active" <? if ($filter['status'] === 'active') echo 'selected'; ?>>
-                        <?= _('Nur aktive Cronjobs anzeigen') ?>
-                    </option>
-                    <option value="inactive" <? if ($filter['status'] === 'inactive') echo 'selected'; ?>>
-                        <?= _('Nur deaktivierte Cronjobs anzeigen') ?>
-                    </option>
-                </select>
-            </td>
-        </tr>
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="3">
-                <noscript>
-                    <?= Button::create(_('Filtern')) ?>
-                </noscript>
-
-            <? if (!empty($filter)): ?>
-                <?= LinkButton::createCancel(_('Zurücksetzen'),
-                                             $controller->url_for('admin/cronjobs/schedules/filter'),
-                                             array('title' => _('Filter zurücksetzen'))) ?>
-            <? endif; ?>
-            </td>
-        </tr>
-    </tfoot>
-</table>
+            </select>
+        </label>
+        <label class="col-2">
+            <?= _('Status') ?>
+            <select name="filter[status]" id="status" class="submit-upon-select">
+                <option value=""><?= _('Alle Cronjobs anzeigen') ?></option>
+                <option value="active" <? if ($filter['status'] === 'active') echo 'selected'; ?>>
+                    <?= _('Nur aktive Cronjobs anzeigen') ?>
+                </option>
+                <option value="inactive" <? if ($filter['status'] === 'inactive') echo 'selected'; ?>>
+                    <?= _('Nur deaktivierte Cronjobs anzeigen') ?>
+                </option>
+            </select>
+        </label>
+    </fieldset>
+    <footer>
+        <noscript>
+            <?= Button::create(_('Filtern')) ?>
+        </noscript>
+        <? if (!empty($filter)): ?>
+            <?= LinkButton::createCancel(_('Zurücksetzen'),
+                $controller->url_for('admin/cronjobs/schedules/filter'),
+                array('title' => _('Filter zurücksetzen'))) ?>
+        <? endif; ?>
+    </footer>
 </form>
+<!--  -->
 
-<form action="<?= $controller->url_for('admin/cronjobs/schedules/bulk', $page) ?>" method="post">
+<form class="default" action="<?= $controller->url_for('admin/cronjobs/schedules/bulk', $page) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
 
 <table class="default cronjobs">
@@ -158,30 +139,27 @@
     <? endif; ?>
 <? endfor; ?>
     </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="2">
-                <select name="action" data-activates=".cronjobs button[name=bulk]">
-                    <option value="">- <?= _('Aktion auswählen') ?></option>
-                    <option value="activate"><?= _('Aktivieren') ?></option>
-                    <option value="deactivate"><?= _('Deaktivieren') ?></option>
-                    <option value="cancel"><?= _('Löschen') ?></option>
-                </select>
-                <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
-            </td>
-            <td colspan="8" style="text-align: right; vertical-align: middle;">
-                <?
-                    $pagination = $GLOBALS['template_factory']->open('shared/pagechooser');
-                    $pagination->set_attributes(array(
-                        'perPage'      => $max_per_page,
-                        'num_postings' => $total_filtered,
-                        'page'         => $page,
-                        'pagelink'     => $controller->url_for('admin/cronjobs/schedules/index/%u')
-                    ));
-                    echo $pagination->render();
-                ?>
-            </td>
-        </tr>
-    </tfoot>
 </table>
+
+    <footer>
+        <select name="action" data-activates=".cronjobs button[name=bulk]">
+            <option value="">- <?= _('Aktion auswählen') ?> -</option>
+            <option value="activate"><?= _('Aktivieren') ?></option>
+            <option value="deactivate"><?= _('Deaktivieren') ?></option>
+            <option value="cancel"><?= _('Löschen') ?></option>
+        </select>
+        <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
+        <section style="float: right">
+        <?
+            $pagination = $GLOBALS['template_factory']->open('shared/pagechooser');
+            $pagination->set_attributes(array(
+                'perPage'      => $max_per_page,
+                'num_postings' => $total_filtered,
+                'page'         => $page,
+                'pagelink'     => $controller->url_for('admin/cronjobs/schedules/index/%u')
+            ));
+            echo $pagination->render();
+        ?>
+        </section>
+    </footer>
 </form>

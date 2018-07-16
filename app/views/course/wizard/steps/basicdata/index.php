@@ -1,8 +1,6 @@
-<header>
-    <h1>
-        <?= _('Grunddaten') ?>
-    </h1>
-</header>
+<legend>
+    <?= _('Grunddaten') ?>
+</legend>
 <section>
     <label for="wizard-coursetype" class="required">
         <?= _('Typ') ?>
@@ -85,6 +83,8 @@
     <?php if ($values['part_inst_id_parameter']) : ?>
         <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_part_inst', "value" => '1']) ?>
     <?php endif ?>
+</section>
+<section>
     <div id="wizard-participating">
         <div class="description<?= count($values['participating']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>
@@ -97,6 +97,7 @@
         <?php endforeach ?>
     </div>
 </section>
+
 <section >
     <label for="lecturer_id_2" class="required">
         <?= _('Lehrende') ?>
@@ -107,6 +108,8 @@
     <?php if ($values['lecturer_id_parameter']) : ?>
         <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_lecturer', "value" => '1']) ?>
     <?php endif ?>
+</section>
+<section>
     <div id="wizard-lecturers" data-ajax-url="<?= $ajax_url ?>" data-default-enabled="<?= $default_deputies_enabled ?>">
         <div class="description<?= count($values['lecturers']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>
@@ -119,6 +122,7 @@
         <?php endforeach ?>
     </div>
 </section>
+
 <?php if ($dsearch) : ?>
 <section>
     <label for="deputy_id_3">
@@ -130,6 +134,8 @@
     <?php if ($values['deputy_id_parameter']) : ?>
         <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_deputy', "value" => '1']) ?>
     <?php endif ?>
+</section>
+<section>
     <div id="wizard-deputies">
         <div class="description<?= count($values['deputies']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>
@@ -145,6 +151,7 @@
     </div>
 </section>
 <?php endif ?>
+
 <section for="tutor_id_parameter">
     <label for="tutor_id_2">
         <?= _('Tutor/-in') ?>
@@ -155,6 +162,9 @@
     <?php if ($values['tutor_id_parameter']) : ?>
         <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_tutor', "value" => '1']) ?>
     <?php endif ?>
+</section>
+
+<section>
     <div id="wizard-tutors">
         <div class="description<?= count($values['tutors']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>

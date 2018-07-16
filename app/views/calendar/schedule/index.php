@@ -12,10 +12,10 @@ $sidebar->addWidget($semester_widget, 'calendar/schedule/semester');
 
 $actions = new ActionsWidget();
 if (!$inst_mode) {
-    $actions->addLink(_("Neuer Eintrag"), $controller->url_for('calendar/schedule/entry'), Icon::create('date+add', 'clickable'), array('data-dialog' => ''));
+    $actions->addLink(_("Neuer Eintrag"), $controller->url_for('calendar/schedule/entry'), Icon::create('date+add', 'clickable'), array('data-dialog' => 'size=auto'));
 }
 
-$actions->addLink(_("Darstellung ändern"), $controller->url_for('calendar/schedule/settings'), Icon::create('admin', 'clickable'), array('data-dialog' => ''));
+$actions->addLink(_("Darstellung ändern"), $controller->url_for('calendar/schedule/settings'), Icon::create('admin', 'clickable'), array('data-dialog' => 'size=auto'));
 if (!$show_hidden) {
     $actions->addLink(_("Ausgeblendete Veranstaltungen anzeigen"), $controller->url_for('calendar/schedule/?show_hidden=1'), Icon::create('visibility-visible', 'clickable'));
 } else {
@@ -45,15 +45,6 @@ $sidebar->addWidget($options, 'calendar/schedule/options');
     <? endif ?>
     <?= $current_semester['name'] ?>
 </div>
-
-<? if (Request::get('show_settings')) : ?>
-    <div class="ui-widget-overlay" style="width: 100%; height: 100%; z-index: 1001;"></div>
-    <?= $this->render_partial('calendar/schedule/_dialog', array(
-        'content_for_layout' =>  $this->render_partial('calendar/schedule/settings', array(
-            'settings' => $my_schedule_settings)),
-            'title'    => _('Darstellung ändern')
-    )) ?>
-<? endif ?>
 
 <? if ($show_entry) : ?>
     <div class="ui-widget-overlay" style="width: 100%; height: 100%; z-index: 1001;"></div>

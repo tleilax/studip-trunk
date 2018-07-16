@@ -112,13 +112,13 @@ elseif (!isset($page) or ($page == 0)) // Seite 1 : Auswahl des Dateiformats
     unset($xml_printdesc);
     unset($xml_printcontent);
 
-    $export_info = _("Bitte wählen Sie, in welchem Format die Daten ausgegeben werden sollen!") . "<br>";
+    $export_info = null;
 
-    $export_pagecontent .= "<form method=\"POST\" action=\"" . URLHelper::getLink() . "\">";
+    $export_pagecontent .= "<form class=\"default\" method=\"POST\" action=\"" . URLHelper::getLink() . "\">";
+    $export_pagecontent .= "<fieldset><legend>"._("Bitte wählen Sie, in welchem Format die Daten ausgegeben werden sollen!")."</legend>";
+
     $export_pagecontent .= CSRFProtection::tokenTag();
-
-    $export_pagecontent .= "";
-    $export_pagecontent .= "<b>"._("Ausgabeformat:") .  "</b><br><select name=\"format\">";
+    $export_pagecontent .= "<label>"._("Ausgabeformat:") .  "<select name=\"format\">";
 
     while (list($key, $val) = each($output_formats))
     {
@@ -126,10 +126,11 @@ elseif (!isset($page) or ($page == 0)) // Seite 1 : Auswahl des Dateiformats
         if ($format==$key) $export_pagecontent .= " selected";
         $export_pagecontent .= ">" . $val;
     }
-    $export_pagecontent .= "</select><br>   <br><br>";
-    $export_pagecontent .= "<b>"._("Name der Datei (z.B. &raquo;Test&laquo;):")."</b><br>";
+    $export_pagecontent .= "</select></label>";
+    $export_pagecontent .= "<label>"._("Name der Datei (z.B. &raquo;Test&laquo;):");
     $export_pagecontent .= "<input type=\"text\" name=\"xslt_filename\" value=\"" . htmlReady($xslt_filename) . "\">";
-    $export_pagecontent .= "<input type=\"hidden\" name=\"page\" value=\"1\"><br><br><br>";
+    $export_pagecontent .= "</label>";
+    $export_pagecontent .= "<input type=\"hidden\" name=\"page\" value=\"1\">";
     $export_pagecontent .= "<input type=\"hidden\" name=\"o_mode\" value=\"" . htmlReady($o_mode) . "\">";
     $export_pagecontent .= "<input type=\"hidden\" name=\"range_id\" value=\"" . htmlReady($range_id) . "\">";
     $export_pagecontent .= "<input type=\"hidden\" name=\"ex_sem\" value=\"" . htmlReady($ex_sem) . "\">";
@@ -140,10 +141,11 @@ elseif (!isset($page) or ($page == 0)) // Seite 1 : Auswahl des Dateiformats
     $export_pagecontent .= "<input type=\"hidden\" name=\"choose\" value=\"" . htmlReady($choose) . "\">";
     $export_pagecontent .= "<input type=\"hidden\" name=\"xml_file_id\" value=\"" . htmlReady($xml_file_id) . "\">";
 
-    $export_weiter_button = '<br><center><div class="button-group">' . Button::create('<< ' . _('Zurück'), 'back' ) . "&nbsp;";
+    $export_pagecontent .= "</fieldset>";
+    $export_weiter_button = '<footer>' . Button::create('<< ' . _('Zurück'), 'back' );
     $export_weiter_button .= Button::create(_('Weiter') . ' >>', 'next' ) . "</div>";
 
-    $export_weiter_button .= "</center></form>";
+    $export_weiter_button .= "</footer></form>";
 
 }
 
@@ -154,40 +156,33 @@ elseif ($page == 1) // Seite 2 : Auswahl des XSLT-Scripts
         unset($choose);
     $export_pagename .= _("Auswahl des Ausgabemoduls");
 
-    $export_info = _("Wählen Sie bitte eine der folgenden XSLT-Dateien und klicken Sie auf 'weiter'");
+    $export_info = null;
 
-    $export_pagecontent .= "<form method=\"POST\" action=\"" . URLHelper::getLink() . "\">";
+    $export_pagecontent .= "<form class=\"default\" method=\"POST\" action=\"" . URLHelper::getLink() . "\">";
+    $export_pagecontent .= "<fieldset><legend>"._("Wählen Sie bitte eine der folgenden XSLT-Dateien und klicken Sie auf 'weiter'")."</legend>";
     $export_pagecontent .= CSRFProtection::tokenTag();
     $export_pagecontent .= "";
-    $export_pagecontent .= "<table class=\"default\" cellspacing=\"0\" cellpadding=\"1\" border=\"0\" width=\"100%\">";
+    $export_pagecontent .= "<table class=\"not-default\" cellspacing=\"0\" cellpadding=\"1\" border=\"0\" width=\"100%\">";
     $export_pagecontent .= "<thead>";
-    $export_pagecontent .= "<tr align=\"center\" valign=\"top\">";
-    $export_pagecontent .= "<th width=\"5%\"><b>&nbsp;</b></th>";
-    $export_pagecontent .= "<th width=\"15%\" align=\"left\">" . _("Ausgabemodul") . "</th>";
-    $export_pagecontent .= "<th width=\"80%\"><b>" . _("Beschreibung") . "</b></th>";
-    $export_pagecontent .= "</tr>";
-    $export_pagecontent .= "</thead>";
-    $export_pagecontent .= "<tbody>";
-
+    $export_pagecontent .= "<legend>" . _("Ausgabemodul") . "</legend>";
+    
     $opt_num = 0;
     while (list($key, $val) = each($xslt_files))
     {
         if ($val[$ex_type] AND $val[$format])
         {
-            $export_pagecontent .= "<tr>";
-            $export_pagecontent .= "<td>&nbsp;<input type=\"radio\" name=\"choose\" value=\"" . $key . "\"";
+            $export_pagecontent .= "<label><input type=\"radio\" name=\"choose\" value=\"" . $key . "\"";
             if (($key == $choose) OR ( ($choose == "") AND ($opt_num == 0) ) ) $export_pagecontent .= " checked";
-            $export_pagecontent .= ">&nbsp;</td>";
-            $export_pagecontent .= "<td>" . $val["name"] . "&nbsp;</td>";
-            $export_pagecontent .= "<td>" . $val["desc"] . "</td>";
-            $export_pagecontent .= "</tr>";
+            $export_pagecontent .= ">" . $val["name"];
+            $export_pagecontent .= tooltipIcon($val["desc"]);
+    
+            
+            $export_pagecontent .= "</label>";
             $opt_num++;
         }
     }
 
-    $export_pagecontent .= "</tbody>";
-    $export_pagecontent .= "</table>";
-    $export_pagecontent .= "<br>";
+    $export_pagecontent .= "</fieldset>";
     $export_pagecontent .= "<input type=\"hidden\" name=\"page\" value=\"2\">";
     $export_pagecontent .= "<input type=\"hidden\" name=\"format\" value=\"" . htmlReady($format) . "\">";
     $export_pagecontent .= "<input type=\"hidden\" name=\"o_mode\" value=\"" . htmlReady($o_mode) . "\">";
@@ -199,10 +194,10 @@ elseif ($page == 1) // Seite 2 : Auswahl des XSLT-Scripts
     $export_pagecontent .= "<input type=\"hidden\" name=\"xml_file_id\" value=\"" . htmlReady($xml_file_id) . "\">";
     $export_pagecontent .= "<input type=\"hidden\" name=\"xslt_filename\" value=\"" . htmlReady($xslt_filename) . "\">";
 
-    $export_weiter_button = '<br><center><div class="button-group">' . Button::create('<< ' . _('Zurück'), 'back' ) . "&nbsp;";
+    $export_weiter_button = '<footer>' . Button::create('<< ' . _('Zurück'), 'back' );
 
     $export_weiter_button .= Button::create(_('Weiter') . ' >>', 'next');
-    $export_weiter_button .=  "</div></center></form>";
+    $export_weiter_button .=  "</footer></form>";
 }
 
 
@@ -211,7 +206,7 @@ elseif ($page == 2)  // Seite 3 : Download der Dateien
     $export_pagename .= _("Download der Dateien");
 
     $export_info = _("Die benötigten Dateien liegen nun zum Download bereit.");
-    $export_pagecontent .= "<form method=\"POST\" action=\"" . URLHelper::getLink() . "\">";
+    $export_pagecontent .= "<form class=\"default\" method=\"POST\" action=\"" . URLHelper::getLink() . "\">";
     $export_pagecontent .= CSRFProtection::tokenTag();
 
     $xml_printimage = '<a href="'. FileManager::getDownloadLinkForTemporaryFile($xml_file_id, $xml_filename) . '">';
@@ -242,7 +237,7 @@ elseif ($page == 2)  // Seite 3 : Download der Dateien
     $export_pagecontent .= "<input type=\"hidden\" name=\"xml_file_id\" value=\"" . htmlReady($xml_file_id) . "\">";
     $export_pagecontent .= "<input type=\"hidden\" name=\"xslt_filename\" value=\"" . htmlReady($xslt_filename) . "\">";
 
-    $export_weiter_button = "<center>" . Button::create('<< ' . _('Zurück'), 'back') . "&nbsp;";
+    $export_weiter_button = "<footer>" . Button::create('<< ' . _('Zurück'), 'back');
     if (Config::get()->XSLT_ENABLE)
     {
         $export_pagecontent .= _("Um die Daten mit dem installierten XSLT-Prozessor in das gewünschte Format zu bringen, klicken Sie bitte auf 'weiter'") . "<br><br>";
@@ -251,7 +246,7 @@ elseif ($page == 2)  // Seite 3 : Download der Dateien
         $export_pagecontent .= "<br><br><br>";
     }
 
-    $export_weiter_button .= "</center></form>";
+    $export_weiter_button .= "</footer></form>";
 
     $export_pagecontent .= MessageBox::info(sprintf(
         _('Diese Seite bereitet die Datenausgabe vor. %s Schritt 3/3 %s'),

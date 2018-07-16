@@ -161,7 +161,7 @@ switch ($top_folder->range_type) {
         <?= MessageBox::error(_('Der Dateibereich ist für diese Einrichtung nicht aktiviert.')) ?>
     <? endif; ?>
 <? elseif ($top_folder->isWritable($GLOBALS['user']->id) && $top_folder->getId() !== $options['fileref_id']): ?>
-    <div data-dialog-button>
+    <footer data-dialog-button>
         <?
         if ($options['copymode'] === 'upload') {
             $buttonOptions = [
@@ -183,10 +183,10 @@ switch ($top_folder->range_type) {
             ]),
             $buttonOptions
         ) ?>
-    </div>
+    </footer>
 <? endif; ?>
 
-<div data-dialog-button>
+<footer data-dialog-button>
 <? if (Request::get('direct_parent')): ?>
     <?= Studip\LinkButton::create(
         _('Zurück'),
@@ -206,4 +206,4 @@ switch ($top_folder->range_type) {
         ['data-dialog' => '']
     ) ?>
 <? endif; ?>
-</div>
+</footer>

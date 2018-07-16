@@ -1,4 +1,6 @@
-<form action="<?= URLHelper::getLink("dispatch.php/course/topics/copy") ?>" method="post">
+<form action="<?= URLHelper::getLink("dispatch.php/course/topics/copy") ?>" method="post" class="default">
+    <fieldset>
+        <legend><?= _('Themen auswählen') ?></legend>
     <script>
         STUDIP.Topics = {
             loadTopics: function (seminar_id) {
@@ -14,19 +16,24 @@
             }
         };
     </script>
-    <div style="text-align: center;">
-        <?= Icon::create('seminar', 'clickable')->asImg(20, ['class' => "text-bottom"]) ?>
+
+    <label>
+        <?= _('Veranstaltung') ?>
+
         <?= QuickSearch::get("copy_from", $courseSearch)
             ->fireJSFunctionOnSelect("STUDIP.Topics.loadTopics")
             ->render() ?>
-    </div>
-    <div id="topiclist" style="min-height: 50px; text-align: center;">
-        <? if (Request::option("seminar_id")) : ?>
+    </label>
+
+    <div id="topiclist">
+    <? if (Request::option("seminar_id")) : ?>
         <?= $this->render_partial("_topiclist.php", array('topics' => CourseTopics::findBySeminar_id(Request::option("seminar_id")))) ?>
-        <? endif ?>
-    </div>
-    <div align="center" data-dialog-button>
-        <?= \Studip\Button::create(_("kopieren"), 'copy') ?>
+    <? endif ?>
     </div>
 
+    </fieldset>
+
+    <footer data-dialog-button>
+        <?= \Studip\Button::create(_("Kopieren"), 'copy') ?>
+    </footer>
 </form>

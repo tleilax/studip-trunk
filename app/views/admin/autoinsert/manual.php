@@ -24,17 +24,14 @@ use Studip\Button, Studip\LinkButton;
 <h2>
     <?= _('Manuelles Eintragen von Nutzergruppen in Veranstaltungen') ?>
 </h2>
-<h3>
-    <?= _('Suche nach Veranstaltungen')?>
-</h3>
-<form action="<?= $controller->url_for('admin/autoinsert/manual') ?>" method="post">
+<form class="default" action="<?= $controller->url_for('admin/autoinsert/manual') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <?= $this->render_partial("admin/autoinsert/_search.php", compact('semester_data', 'sem_search', 'sem_select')) ?>
 </form>
 
 
 <? if (count($seminar_search) > 0 and $sem_search and $sem_select): ?>
-<form action="<?= $controller->url_for('admin/autoinsert/manual') ?>" method="post">
+<form class="default" action="<?= $controller->url_for('admin/autoinsert/manual') ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="sem_search" value="<?= htmlReady($sem_search) ?>">
     <input type="hidden" name="sem_select" value="<?= htmlReady($sem_select) ?>">
@@ -173,4 +170,3 @@ $sidebar->setTitle('Manuelles Eintragen');
 $links = new ActionsWidget();
 $links->addLink(_('Übersicht'), $controller->url_for('admin/autoinsert'), Icon::create('edit', 'clickable'));
 $sidebar->addWidget($links);
-

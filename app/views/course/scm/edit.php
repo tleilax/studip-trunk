@@ -16,6 +16,9 @@ use Studip\Button,
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
+        <legend>
+            <?= _('Informationsseite') ?>
+        </legend>
         <label>
             <span class="required"><?= _('Titel') ?></span>
             <input required id="tab_name" type="text" name="tab_name"

@@ -57,10 +57,10 @@ if (Request::get('range_type')) {
     </table>
 <? endif; ?>
 
-<div data-dialog-button>
+<footer data-dialog-button>
     <?= Studip\LinkButton::create(
         _('Zurück'),
          $controller->url_for('/add_files_window/' . Request::get('to_folder_id'), $options),
          ['data-dialog' => '']
     ) ?>
-</div>
+</footer>

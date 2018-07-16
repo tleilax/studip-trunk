@@ -29,7 +29,7 @@ use Studip\Button, Studip\LinkButton;
 /**
 * Class to build Studip HTML forms
 *
-*
+* @deprecated
 *
 * @access   public
 * @author   André Noack <noack@data-quest.de>
@@ -225,12 +225,12 @@ class StudipForm {
         if($subtype !== false){
             return $this->getOneRadio($name, $attributes, ($default == $options[$subtype]['value']), $subtype);
         } else {
-            $ret = '<fieldset id="' . $attributes['id'] .'" style="border:none;padding:0px;display:inline">';
+            $ret = '<div id="' . $attributes['id'] .'"><section class="hgroup">';
             for ($i = 0; $i < count($options); ++$i){
                 $ret .= $this->getOneRadio($name, $attributes, ($default == $options[$i]['value']), $i);
                 $ret .= "\n" . $this->form_fields[$name]['separator'];
             }
-            $ret .= '</fieldset>';
+            $ret .= '</section></div>';
         }
         return $ret;
     }
@@ -269,12 +269,12 @@ class StudipForm {
 
     function getFormFieldTime($name, $attributes, $default) {
         $date_values = explode(":", $default); //hh:mm
-        $ret = '<fieldset id="' . $attributes['id'] .'" style="border:none;padding:0px;display:inline">';
+        $ret = '<div id="' . $attributes['id'] .'"><section class="hgroup">';
         unset($attributes['id']);
         $ret .= $this->getFormFieldText($name . "_hours", array_merge(array('size'=>2,'maxlength'=>2), (array)$attributes), $date_values[0]);
         $ret .= "\n" . $this->form_fields[$name]['separator'];
         $ret .= $this->getFormFieldText($name . "_minutes", array_merge(array('size'=>2,'maxlength'=>2), (array)$attributes), $date_values[1]);
-        $ret .= '</fieldset>';
+        $ret .= '</section></div>';
         return $ret;
     }
 
@@ -363,7 +363,7 @@ class StudipForm {
     }
 
     function getFormFieldCombo($name, $attributes, $default , $subtype = false){
-        $ret = '<fieldset id="' . $attributes['id'] .'" style="border:none;padding:0px;display:inline">';
+        $ret = '<div id="' . $attributes['id'] .'"><section class="hgroup">';
         unset($attributes['id']);
         $combo_text_name = $this->form_fields[$name]['text'];
         $combo_select_name = $this->form_fields[$name]['select'];
@@ -381,7 +381,7 @@ class StudipForm {
         } else {
                 $ret .= $this->getFormFieldSelect($combo_select_name, $select_attributes, $default);
         }
-        $ret .= "</fieldset>";
+        $ret .= "</section></div>";
         return $ret;
     }
 

@@ -206,34 +206,18 @@ class Calendar_ScheduleController extends AuthenticatedController
         }
 
         $error = false;
-        if (Request::int('start_hour') !== null && Request::int('day') !== null && Request::int('end_hour') !== null) {
-            $data['start']   = Request::int('start_hour') * 100;
-            $data['end']     = Request::int('end_hour')   * 100;
-            $data['day']     = Request::int('day') + 1;
 
-            // validate the submitted data
-            if ($data['start'] >= $data['end'] || Request::int('start_hour') < 0 || Request::int('start_hour') > 23
-                || Request::int('end_hour') < 0 || Request::int('end_hour') > 24) {
-                $error = true;
-            }
-        } else {
-            $data['start'] = (Request::int('entry_start_hour') * 100) + Request::int('entry_start_minute');
-            $data['end']   = (Request::int('entry_end_hour')   * 100) + Request::int('entry_end_minute');
-            $data['day']   = Request::int('entry_day');
+        $data['start'] = (int)str_replace(':', '', Request::get('entry_start'));
+        $data['end']   = (int)str_replace(':', '', Request::get('entry_end'));
+        $data['day']   = Request::int('entry_day');
 
-            if ($data['start'] >= $data['end']
-                || Request::int('entry_start_hour')   < 0 || Request::int('entry_start_hour')   > 23
-                || Request::int('entry_end_hour')     < 0 || Request::int('entry_end_hour')     > 23
-                || Request::int('entry_start_minute') < 0 || Request::int('entry_start_minute') > 59
-                || Request::int('entry_end_minute')   < 0 || Request::int('entry_end_minute')   > 59
-            ) {
-                $error = true;
-            }
+        if ($data['start'] >= $data['end'] || !Request::int('entry_day')) {
+            $error = true;
         }
 
         if ($error) {
             $this->flash['messages'] = array('error' =>
-                array(_("Eintrag konnte nicht gespeichert werden, da die Start- und/oder Endzeit ungültigt ist!"))
+                array(_("Eintrag konnte nicht gespeichert werden, da die Start- und/oder Endzeit ungültig ist!"))
              );
         } else {
             $data['title']   = Request::get('entry_title');
@@ -473,8 +457,6 @@ class Calendar_ScheduleController extends AuthenticatedController
         if (Request::isXhr()) {
             $this->response->add_header('Content-Type', 'text/html; charset=utf-8');
             $this->layout = null;
-        } else {
-            $this->redirect('calendar/schedule/index?show_settings=true');
         }
 
         $this->settings = UserConfig::get($GLOBALS['user']->id)->SCHEDULE_SETTINGS;

@@ -495,7 +495,7 @@ class StudipSemTreeViewAdmin extends TreeView
         }
         $content = "\n<table width=\"90%\" cellpadding=\"2\" cellspacing=\"2\" align=\"center\" style=\"font-size:10pt;\">";
         $content .= $this->getItemMessage($item_id);
-        $content .= "\n<tr><td style=\"font-size:10pt;\" align=\"center\">";
+        $content .= "\n<tr><td style=\"font-size:10pt;\">";
         if(!$is_not_editable){
             if ($this->isItemAdmin($item_id) ){
                 $content .= LinkButton::create(_('Neues Objekt'),
@@ -531,14 +531,15 @@ class StudipSemTreeViewAdmin extends TreeView
         if ($item_id == 'root' && $this->isItemAdmin($item_id)){
             $view = DbView::getView('sem_tree');
             $rs = $view->get_query("view:SEM_TREE_GET_LONELY_FAK");
-            $content .= "\n<p><form action=\"" . URLHelper::getLink($this->getSelf("cmd=InsertFak")) . "\" method=\"post\">"
+            $content .= "\n<p><form action=\"" . URLHelper::getLink($this->getSelf("cmd=InsertFak")) . "\" method=\"post\" class=\"default\">"
                 . CSRFProtection::tokenTag()
-                . _("Stud.IP Fakultät einfügen:")
-                . "&nbsp;\n<select style=\"width:200px;vertical-align:middle;\" name=\"insert_fak\">";
+                . '<div class="col-1"><label>'
+                . _("Stud.IP-Fakultät einfügen")
+                . "\n<select style=\"width:200px;\" name=\"insert_fak\">";
             while($rs->next_record()){
                 $content .= "\n<option value=\"" . $rs->f("Institut_id") . "\">" . htmlReady(my_substr($rs->f("Name"),0,50)) . "</option>";
             }
-            $content .= "</select>&nbsp;" . Button::create(_('Eintragen'), array('title' => _("Fakultät einfügen"))) . "</form></p>";
+            $content .= "</select></label></div><div class=\"col-1\"> " . Button::create(_('Eintragen'), array('title' => _("Fakultät einfügen"))) . "</div></form></p>";
         }
         $content .= "</td></tr></table>";
 
@@ -574,7 +575,7 @@ class StudipSemTreeViewAdmin extends TreeView
 
     function getSemDetails($snap, $item_id, $lonely_sem = false){
         $form_name = DbView::get_uniqid();
-        $content = "<form name=\"$form_name\" action=\"" . URLHelper::getLink($this->getSelf("cmd=MarkSem")) ."\" method=\"post\">
+        $content = "<form class=\"default\" name=\"$form_name\" action=\"" . URLHelper::getLink($this->getSelf("cmd=MarkSem")) ."\" method=\"post\">
         <input type=\"hidden\" name=\"item_id\" value=\"$item_id\">";
         $content .= CSRFProtection::tokenTag();
         $group_by_data = $snap->getGroupedResult("sem_number", "seminar_id");
@@ -658,61 +659,75 @@ class StudipSemTreeViewAdmin extends TreeView
         }
         $content .= "<tr><td class=\"table_row_even\" colspan=\"2\">"
             . LinkButton::create(_('Auswählen'), array('title' => _('Auswahl umkehren'), 'onClick' => 'invert_selection(\''. $form_name .'\');return false;'))
-            . "</td><td class=\"table_row_even\" align=\"right\">
-        <select name=\"sem_aktion\" style=\"font-size:8pt;vertical-align:bottom;\" " . tooltip(_("Aktion auswählen"),true) . ">
+            . "</td><td class=\"table_row_even\" align=\"right\"><div class=\"hgroup\">
+        <select name=\"sem_aktion\" style=\"margin-right: 1em;\" " . tooltip(_("Aktion auswählen"),true) . ">
         <option value=\"mark\">" . _("in Merkliste übernehmen") . "</option>";
         if (!$lonely_sem && $this->isItemAdmin($item_id)){
             $content .= "<option value=\"del_mark\">" . _("löschen und in Merkliste übernehmen") . "</option>
             <option value=\"del\">" . _("löschen") . "</option>";
         }
         $content .= "</select>" . Button::createAccept(_('OK'), array('title' => _("Gewählte Aktion starten")))
-                 . "</td></tr> </form>";
+                 . "</div></td></tr> </form>";
         return $content;
     }
 
     function getEditItemContent(){
-        $content = "\n<form name=\"item_form\" action=\"" . URLHelper::getLink($this->getSelf("cmd=InsertItem&item_id={$this->edit_item_id}")) . "\" method=\"POST\">";
-        $content .= CSRFProtection::tokenTag();
-        $content .= "\n<input type=\"HIDDEN\" name=\"parent_id\" value=\"{$this->tree->tree_data[$this->edit_item_id]['parent_id']}\">";
-        $content .= "\n<table width=\"90%\" border =\"0\" style=\"border-style: solid; border-color: #000000;  border-width: 1px;font-size: 10pt;\" cellpadding=\"2\" cellspacing=\"2\" align=\"center\">";
-        $content .=  $this->getItemMessage($this->edit_item_id,2);
-        $content .= "\n<tr><td colspan=\"2\" class=\"content_seperator\" ><b>". _("Bereich editieren") . "</b></td></tr>";
-        $content .= "\n<tr><td class=\"table_row_even\" width=\"1%\">". _("Name des Elements:") . "</td><td class=\"table_row_even\" width=\"99%\">";
-        if($this->tree->tree_data[$this->edit_item_id]['studip_object_id']){
-            $content .= htmlReady($this->tree->tree_data[$this->edit_item_id]['name']);
-        } else {
-            $content .= "<input type=\"TEXT\" name=\"edit_name\" size=\"50\" style=\"width:100%\" value=\"" . htmlReady($this->tree->tree_data[$this->edit_item_id]['name']) . "\">";
-        }
-        $content .= "</td></tr>";
-        if (count($GLOBALS['SEM_TREE_TYPES']) > 1) {
-            $content .= "<tr><td class=\"table_row_even\"  width=\"1%\">" . _("Typ des Elements:") . "</td><td class=\"table_row_even\">"
-            . "<select name=\"edit_type\">";
-            foreach($GLOBALS['SEM_TREE_TYPES'] as $sem_tree_type_key => $sem_tree_type){
-                if($sem_tree_type['editable']){
-                    $selected = $sem_tree_type_key == $this->tree->getValue($this->edit_item_id, 'type') ? 'selected' : '';
-                    $content .= '<option value="'.htmlReady($sem_tree_type_key).'"'.$selected.'>';
-                    $content .= htmlReady($sem_tree_type['name'] ? $sem_tree_type['name'] : $sem_tree_type_key);
-                    $content .= '</option>';
-                }
-            }
-            $content .= "</select></td></tr>";
-        } else { # Auswahl ausblenden, wenn nur ein Typ vorhanden
-            $content .= "<input type='hidden' name='edit_type' value='0'>";
-        }
-        $buttonlink_id = ($this->mode == "NewItem") ? $this->tree->tree_data[$this->edit_item_id]['parent_id'] : $this->edit_item_id;
-        $content .= "<tr><td class=\"table_row_even\"  width=\"1%\">" . _("Infotext:") . "</td><td class=\"table_row_even\">"
-        . "<textarea style=\"width:100%\" rows=\"5\" name=\"edit_info\" wrap=\"virtual\">" .htmlReady($this->tree->tree_data[$this->edit_item_id]['info']) . "</textarea>"
-        . "</td></tr><tr><td class=\"table_row_even\" align=\"right\" valign=\"top\" colspan=\"2\">"
-        . Button::createAccept(_('Absenden'), array('title' => _('Einstellungen übernehmen')))
-        . "&nbsp;"
-        . LinkButton::createCancel(_('Abbrechen'),
-                URLHelper::getURL($this->getSelf('cmd=Cancel&item_id='.$buttonlink_id)),
-                array('title' => _('Aktion abbrechen')))
-        . "</td></tr>";
+        ob_start();
+        ?>
+        <form name="item_form" action="<?= URLHelper::getLink($this->getSelf("cmd=InsertItem&item_id={$this->edit_item_id}")) ?>" method="POST" class="default" style="width: 90%; margin: auto;">
+            <?= CSRFProtection::tokenTag(); ?>
+            <input type="hidden" name="parent_id" value="<?= $this->tree->tree_data[$this->edit_item_id]['parent_id'] ?>">
 
-        $content .= "\n</table></form>";
+            <table style="width: 100%"><?= $this->getItemMessage($this->edit_item_id,2) ?></table>
 
-        return $content;
+            <fieldset>
+                <legend><?= _("Bereich editieren") ?></legend>
+
+                <label>
+                    <?= _("Name des Elements") ?>
+                    <input type="text" name="edit_name"
+                        <?= ($this->tree->tree_data[$this->edit_item_id]['studip_object_id']) ? 'disabled="disabled"' : '' ?>
+                           value="<?= htmlReady($this->tree->tree_data[$this->edit_item_id]['name']) ?>">
+                </label>
+
+               <? if (count($GLOBALS['SEM_TREE_TYPES']) > 1) : ?>
+               <label>
+                   <?= _("Typ des Elements") ?>
+                    <select name="edit_type">
+                    <? foreach ($GLOBALS['SEM_TREE_TYPES'] as $sem_tree_type_key => $sem_tree_type) :
+                        if ($sem_tree_type['editable']) :
+                            $selected = $sem_tree_type_key == $this->tree->getValue($this->edit_item_id, 'type') ? 'selected' : '';
+                            echo '<option value="'.htmlReady($sem_tree_type_key).'"'.$selected.'>';
+                            echo htmlReady($sem_tree_type['name'] ? $sem_tree_type['name'] : $sem_tree_type_key);
+                            echo '</option>';
+                        endif;
+                    endforeach;
+                    ?>
+                    </select>
+                </label>
+                <? else : # Auswahl ausblenden, wenn nur ein Typ vorhanden ?>
+                <input type='hidden' name='edit_type' value='0'>
+                <? endif ?>
+
+                <? $buttonlink_id = ($this->mode == "NewItem") ? $this->tree->tree_data[$this->edit_item_id]['parent_id'] : $this->edit_item_id; ?>
+
+                <label>
+                    <?= _("Infotext:") ?>
+                    <textarea rows="5" name="edit_info" wrap="virtual"><?= htmlReady($this->tree->tree_data[$this->edit_item_id]['info']) ?></textarea>
+                </label>
+            </fieldset>
+
+            <footer>
+                <?= Button::createAccept(_('Absenden'), array('title' => _('Einstellungen übernehmen'))) ?>
+                <?= LinkButton::createCancel(_('Abbrechen'),
+                    URLHelper::getURL($this->getSelf('cmd=Cancel&item_id='.$buttonlink_id)),
+                    array('title' => _('Aktion abbrechen')))
+                ?>
+            </footer>
+        </form>
+
+        <?
+        return ob_get_clean();
     }
 
 

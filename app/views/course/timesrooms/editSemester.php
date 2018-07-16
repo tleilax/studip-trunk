@@ -1,6 +1,9 @@
 <form action="<?= $controller->url_for() ?>" method="post"
       class="default" data-dialog>
     <?=CSRFProtection::tokenTag()?>
+    <fieldset>
+        <legend><?= _('Semester ändern') ?></legend>
+
         <label for="startSemester">
             <?= _('Startsemester') ?>
             <select name="startSemester" id="startSemester">
@@ -32,7 +35,9 @@
                     <?= _('Unbegrenzt') ?></option>
             </select>
         </label>
-        <footer style="margin-top: 1ex" data-dialog-button>
-            <?= Studip\Button::createAccept(_('Semester speichern'), 'save') ?>
-        </footer>
+    </fieldset>
+
+    <footer style="margin-top: 1ex" data-dialog-button>
+        <?= Studip\Button::createAccept(_('Semester speichern'), 'save') ?>
+    </footer>
 </form>

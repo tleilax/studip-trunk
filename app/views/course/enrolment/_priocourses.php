@@ -1,13 +1,15 @@
 <div id="enrollment">
     <? if ($max_limit > 1) : ?>
-        <label for="admission_user_limit"><?= _("Ich möchte folgende Anzahl an Veranstaltungen belegen:") ?></label>
-        <select name="admission_user_limit">
+        <label for="admission_user_limit">
+            <?= _("Ich möchte folgende Anzahl an Veranstaltungen belegen:") ?>
+            <select name="admission_user_limit" class="size-s">
             <? foreach (range(1, $max_limit) as $max) : ?>
                 <option <?= $user_max_limit == $max ? 'selected' : '' ?>>
                     <?= $max ?>
                 </option>
             <? endforeach ?>
-        </select>
+            </select>
+        </label>
     <? endif ?>
     <table width="100%">
         <tbody>
@@ -52,7 +54,7 @@ tatsächlich belegen wollen') ?>
                             $tooltxt));
                         ?>
                         <?php $visible = !isset($user_prio[$course->id]); ?>
-                        <li class="<?= htmlReady($course->id) ?> <?= $visible ? 'visible' : '' ?>" <?= !$visible ? 'style="display:none"' : '' ?>>
+                        <li class="<?= htmlReady($course->id) ?> <?= $visible ? 'visible' : '' ?>" <?= !$visible ? 'style="display:none"' : '' ?> data-id="<?= htmlReady($course->id) ?>">
                             <input type="checkbox" class="hidden-js" value="0" name="admission_prio[<?= $course->id ?>]">
                             <?= $prios[$course->id]['name'] . '&nbsp;' . $prios[$course->id]['info'] ?>
                         </li>
@@ -82,7 +84,7 @@ tatsächlich belegen wollen') ?>
                             ?>
                             <li class="<?= $id ?>">
                                 <?= $prios[$id]['name'] . '&nbsp;' . $prios[$id]['info'] ?>
-                                <input type="hidden" value="<?= $prio ?>" name="admission_prio[<?= $id ?>]"> <a class="<?=$id?> delete hidden-no-js" href="#"><?=
+                                <input type="hidden" value="<?= $prio ?>" name="admission_prio[<?= $id ?>]"> <a class="delete hidden-no-js" data-id="<?=$id?>" href="#"><?=
                                 Icon::create('trash', 'info')->asImg()
                                 ?></a>
                                 <?=

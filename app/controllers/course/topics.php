@@ -109,7 +109,9 @@ class Course_TopicsController extends AuthenticatedController
         $this->topic = new CourseTopic($topic_id);
         $this->dates = CourseDate::findBySeminar_id(Context::getId());
 
-        PageLayout::setTitle($topic_id ? sprintf(_('Bearbeiten: %s'), $this->topic['title']) : _("Neues Thema erstellen"));
+        if (Request::isXhr()) {
+            PageLayout::setTitle($topic_id ? sprintf(_('Bearbeiten: %s'), $this->topic['title']) : _("Neues Thema erstellen"));
+        }
     }
 
     public function allow_public_action()

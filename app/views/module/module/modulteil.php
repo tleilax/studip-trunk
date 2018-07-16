@@ -111,7 +111,7 @@ $translations = $deskriptor->getAvailableTranslations();
         <legend><?= _('Häufigkeit/Turnus') ?></legend>
         <label><?= _('Häufigkeit') ?>
         <? $semester = $modulteil->semester ? $modulteil->semester
-                : $GLOBALS['MVV_NAME_SEMESTER']['default']; ?>        
+                : $GLOBALS['MVV_NAME_SEMESTER']['default']; ?>
         <? if ($perm->haveFieldPerm('semester')): ?>
             <? if ($def_lang) : ?>
                 <select id="mvv-semester" name="semester" size="1">
@@ -391,9 +391,7 @@ $translations = $deskriptor->getAvailableTranslations();
                 <? endif; ?>
                 <? $tdf = $df->getTypedDatafield(); ?>
                 <? if ($perm_d->haveDfEntryPerm($df, MvvPerm::PERM_WRITE)) : ?>
-                <label><?= htmlReady($tdf->getName()) ?>
                     <?= $tdf->getHTML('datafields'); ?>
-                </label>
                 <? else : ?>
                 <em><?= htmlReady($tdf->getName()) ?>:</em><br>
                 <?= $tdf->getDisplayValue() ?>
