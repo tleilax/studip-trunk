@@ -43,38 +43,51 @@
         </legend>
 
         <label>
-            <?= _("Titel") ?>
+            <span class="required">
+                <?= _("Titel") ?>
+            </span>
             <input type="text" name="news_topic" class="news_topic news_prevent_submit" aria-label="<?= _('Titel der Ankündigung') ?>"
-                   value="<?= htmlReady($news['topic']) ?>">
+                   value="<?= htmlReady($news['topic']) ?>" required>
         </label>
+
         <label>
-            <?= _("Inhalt") ?>
+            <span class="required">
+                <?= _("Inhalt") ?>
+            </span>
+
             <? list ($body, $admin_msg) = explode("<admin_msg>", $news['body']); ?>
             <textarea class="news_body add_toolbar wysiwyg" name="news_body" rows="6"
                 wrap="virtual" placeholder="<?= _('Geben Sie hier den Ankündigungstext ein') ?>"
-                aria-label="<?= _('Inhalt der Ankündigung') ?>"><?= wysiwygReady($body) ?></textarea>
+                aria-label="<?= _('Inhalt der Ankündigung') ?>" required><?= wysiwygReady($body) ?></textarea>
         </label>
 
         <label class="col-1">
-            <?= _('Veröffentlichungsdatum') ?><br>
+            <span class="required">
+                <?= _('Veröffentlichungsdatum') ?>
+            </span>
+
             <input type="text" class="news_date news_prevent_submit"
                    name="news_startdate" id="news_startdate"
                    data-date-picker='{">=":"today"}'
                    value="<? if ($news['date']) echo date('d.m.Y', $news['date']); ?>"
-                   aria-label="<?= _('Einstelldatum') ?>">
+                   aria-label="<?= _('Einstelldatum') ?>" required>
         </label>
 
         <label class="col-1">
-            <?= _('Ablaufdatum') ?><br>
+            <span class="required">
+                <?= _('Ablaufdatum') ?>
+            </span>
+
             <input type="text" class="news_date news_prevent_submit"
                    name="news_enddate" id="news_enddate"
                    data-date-picker='{">=":"#news_startdate","offset":"#news_duration"}'
                    value="<? if ($news['expire']) echo date('d.m.Y', $news['date'] + $news['expire']) ?>"
-                   aria-label="<?= _('Ablaufdatum') ?>">
+                   aria-label="<?= _('Ablaufdatum') ?>" required>
         </label>
 
         <label class="col-1">
-            <?= _('Laufzeit in Tagen') ?><br>
+            <?= _('Laufzeit in Tagen') ?>
+
             <input type="number" class="news_date news_prevent_submit"
                    name="news_duration" id="news_duration"
                    value="<?= $news['expire'] ? floor($news['expire'] / (24 * 60 * 60)) : 7 ?>"
@@ -86,7 +99,7 @@
             <a name='anker'></a>
         <? endif ?>
         <label>
-            <input type="checkbox" class="studip-checkbox"
+            <input type="checkbox"
                    id="news_allow_comments" name="news_allow_comments" value="1"
                    <? if ($news['allow_comments']) echo 'checked'; ?>>
             <?= _('Kommentare zulassen') ?>
