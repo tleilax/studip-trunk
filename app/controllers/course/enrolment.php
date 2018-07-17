@@ -158,36 +158,37 @@ class Course_EnrolmentController extends AuthenticatedController
             $enrol_user = true;
         }
 
+        if (!$this->course->getSemClass()['studygroup_mode'] && $this->course->admission_prelim && $this->course->admission_prelim_txt && !Request::submitted('apply')) {
+            $this->admission_prelim_txt = $this->course->admission_prelim_txt;
+            $this->admission_prelim_comment = Config::get()->ADMISSION_PRELIM_COMMENT_ENABLE;
+            $this->admission_form = $this->render_template_as_string('course/enrolment/prelim');
+            $enrol_user = false;
+        }
+
         if ($enrol_user && $this->confirmed) {
             $course = Seminar::GetInstance($this->course_id);
             if ($course->admission_prelim) {
-                if (!$course->isStudygroup() && $course->admission_prelim_txt && !Request::submitted('apply')) {
-                    $this->admission_prelim_txt = $course->admission_prelim_txt;
-                    $this->admission_prelim_comment = Config::get()->ADMISSION_PRELIM_COMMENT_ENABLE;
-                    $this->admission_form = $this->render_template_as_string('course/enrolment/prelim');
+                if (Request::get('admission_comment')) {
+                    $admission_comment = get_fullname() . ': ' . Request::get('admission_comment');
                 } else {
-                    if (Request::get('admission_comment')) {
-                        $admission_comment = get_fullname() . ': ' . Request::get('admission_comment');
-                    } else {
-                        $admission_comment = '';
-                    }
-                    if ($course->addPreliminaryMember($user_id, $admission_comment)) {
-                        if ($course->isStudygroup()) {
-                            if (StudygroupModel::isInvited($user_id, $this->course_id)) {
-                                // an invitation exists, so accept the join request automatically
-                                $status = 'autor';
-                                StudygroupModel::accept_user(get_username($user_id), $this->course_id);
-                                StudygroupModel::cancelInvitation(get_username($user_id), $this->course_id);
-                                $success = sprintf(_("Sie wurden in die Veranstaltung %s als %s eingetragen."), htmlReady($course->getName()), get_title_for_status($status, 1, $course->status));
-                                PageLayout::postSuccess($success);
-                            } else {
-                                $success = sprintf(_("Sie wurden auf die Anmeldeliste der Studiengruppe %s eingetragen. Die Moderatoren der Studiengruppe können Sie jetzt freischalten."), htmlReady($course->getName()));
-                                PageLayout::postSuccess($success);
-                            }
+                    $admission_comment = '';
+                }
+                if ($course->addPreliminaryMember($user_id, $admission_comment)) {
+                    if ($course->isStudygroup()) {
+                        if (StudygroupModel::isInvited($user_id, $this->course_id)) {
+                            // an invitation exists, so accept the join request automatically
+                            $status = 'autor';
+                            StudygroupModel::accept_user(get_username($user_id), $this->course_id);
+                            StudygroupModel::cancelInvitation(get_username($user_id), $this->course_id);
+                            $success = sprintf(_("Sie wurden in die Veranstaltung %s als %s eingetragen."), htmlReady($course->getName()), get_title_for_status($status, 1, $course->status));
+                            PageLayout::postSuccess($success);
                         } else {
-                            $success = sprintf(_("Sie wurden in die Veranstaltung %s vorläufig eingetragen."), htmlReady($course->getName()));
+                            $success = sprintf(_("Sie wurden auf die Anmeldeliste der Studiengruppe %s eingetragen. Die Moderatoren der Studiengruppe können Sie jetzt freischalten."), htmlReady($course->getName()));
                             PageLayout::postSuccess($success);
                         }
+                    } else {
+                        $success = sprintf(_("Sie wurden in die Veranstaltung %s vorläufig eingetragen."), htmlReady($course->getName()));
+                        PageLayout::postSuccess($success);
                     }
                 }
             } else {
@@ -210,7 +211,11 @@ class Course_EnrolmentController extends AuthenticatedController
         StudipLock::release();
 
         if ($enrol_user && $this->confirmed) {
-            $this->relocate(URLHelper::getLink('seminar_main.php', ['auswahl' => $this->course_id]));
+            if ($course->admission_prelim) {
+                $this->relocate(URLHelper::getLink('dispatch.php/course/details', ['sem_id' => $this->course_id]));
+            } else {
+                $this->relocate(URLHelper::getLink('seminar_main.php', ['auswahl' => $this->course_id]));
+            }
         } elseif ($enrol_user) {
 
             PageLayout::postQuestion(
