@@ -134,11 +134,5 @@ class ProfileNavigation extends Navigation
             $this->addSubNavigation('categories', $navigation);
 
         }
-
-        //personal file area (only visible for the owner himself)
-        if ($current_user->id === $user->id && $GLOBALS['perm']->have_perm('autor')) {
-            $navigation = new Navigation(_('Meine Dateien'), 'dispatch.php/files');
-            $this->addSubNavigation('files', $navigation);
-        }
     }
 }

@@ -78,7 +78,7 @@ if ($current_folder->isFileDownloadable($file_ref->id, $GLOBALS['user']->id)) {
                 _('Ordner öffnen'),
                 Icon::create('folder-empty', Icon::ROLE_CLICKABLE, ['size' => 20])
             );
-        } elseif (Navigation::hasItem('/profile/files/flat') && Navigation::getItem('/profile/files/flat')->isActive()) {
+        } elseif (Navigation::hasItem('/files_dashboard/files/flat') && Navigation::getItem('/files_dashboard/files/flat')->isActive()) {
              $actionMenu->addLink(
                  $controller->url_for('files/index/' . $file_ref->folder_id),
                  _('Ordner öffnen'),

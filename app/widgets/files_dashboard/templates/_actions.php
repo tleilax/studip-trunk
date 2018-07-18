@@ -22,8 +22,8 @@ if (Navigation::hasItem('/course/files_new/flat')
         _('Ordner öffnen'),
         Icon::create('folder-empty', Icon::ROLE_CLICKABLE, ['size' => 20])
     );
-} elseif (Navigation::hasItem('/profile/files/flat')
-          && Navigation::getItem('/profile/files/flat')->isActive()) {
+} elseif (Navigation::hasItem('/files_dashboard/files/flat')
+          && Navigation::getItem('/files_dashboard/files/flat')->isActive()) {
     $actionMenu->addLink(
         $controller->url_for('files/index/'.$fileRef->folder_id),
         _('Ordner öffnen'),

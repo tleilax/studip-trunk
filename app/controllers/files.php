@@ -42,8 +42,8 @@ class FilesController extends AuthenticatedController
         $this->user = User::findCurrent();
         $this->last_visitdate = time();
 
-        if (Navigation::hasItem('/profile/files')) {
-            Navigation::activateItem('/profile/files');
+        if (Navigation::hasItem('/files_dashboard/files')) {
+            Navigation::activateItem('/files_dashboard/files');
         } else {
             throw new AccessDeniedException();
         }
