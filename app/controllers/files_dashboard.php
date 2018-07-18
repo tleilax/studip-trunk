@@ -65,7 +65,7 @@ class FilesDashboardController extends AuthenticatedController
     public function index_action($action = false, $widgetId = null)
     {
         Navigation::activateItem('/files_dashboard/dashboard');
-        PageLayout::setTitle(_('Dashboard des Dateimanagements'));
+        PageLayout::setTitle(_('Dateien'));
 
         $this->container = Widgets\Container::createForRange(
             $GLOBALS['user']->getAuthenticatedUser(),

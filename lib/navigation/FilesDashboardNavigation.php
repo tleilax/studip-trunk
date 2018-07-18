@@ -32,7 +32,7 @@ class FilesDashboardNavigation extends Navigation
     {
         parent::initSubNavigation();
 
-        $this->addSubNavigation('dashboard', new Navigation(_('Dashboard'), 'dispatch.php/files_dashboard'));
+        $this->addSubNavigation('dashboard', new Navigation(_('Dateien'), 'dispatch.php/files_dashboard'));
         $this->addSubNavigation('search', new Navigation(_('Suche'), 'dispatch.php/files_dashboard/search'));
     }
 }

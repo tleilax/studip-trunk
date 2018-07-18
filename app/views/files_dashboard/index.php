@@ -1,5 +1,5 @@
 <h1 class="sr-only">
-    <?= _('Dashboard des Dateimanagements')?>
+    <?= _('Dateien')?>
 </h1>
 
 <form action="<?= URLHelper::getURL('dispatch.php/files_dashboard/search') ?>"
