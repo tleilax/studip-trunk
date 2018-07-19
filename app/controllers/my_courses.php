@@ -540,7 +540,6 @@ class MyCoursesController extends AuthenticatedController
             }
 
             $this->redirect('my_courses/index');
-            return;
         }
     }
 
