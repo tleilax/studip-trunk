@@ -128,7 +128,6 @@ class Container extends SimpleORMap implements Comparable
             if ($defaults !== null) {
                 $container->parent_id = $defaults->id;
                 $container->store();
-
                 $defaults->transferElements($container);
             }
         }
@@ -568,9 +567,8 @@ class Container extends SimpleORMap implements Comparable
     public function transferElements(Container $other)
     {
         foreach ($this->elements as $element) {
-            $element = clone $element;
+            $element = Element::build($element);
             $element->id = null;
-            $element->setNew(true);
             $element->container_id = $other->id;
             $element->store();
         }
