@@ -1192,9 +1192,10 @@ class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
                         $permissions[$user_id][$this->event_id] =
                             $this->getUserCalendarPermission($user_id);
                         break;
-                    case 'course':
+                    case 'sem':
                         $permissions[$user_id][$this->event_id] =
                             $this->getCourseCalendarPermission($user_id);
+                        break;
                     case 'inst':
                     case 'fak':
                         $permissions[$user_id][$this->event_id] =
