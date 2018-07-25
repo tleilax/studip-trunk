@@ -42,7 +42,7 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
      * Pass the string containing encoded session data to the
      * constructor, the identified session variables become public members
      * of the object
-     * 
+     *
      * $session = new SessionDecoder($encoded_session_string);
      * print_r($session->my_var);
      * or
@@ -67,10 +67,10 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
         if(is_array($this->encoded_session)) {
             $this->var_names = array_keys($this->encoded_session);
         } else {
-            $this->encoded_session = array(); 
+            $this->encoded_session = array();
         }
         $this->decoded_session = array();
-        
+
         return count($this->encoded_session);
     }
 
@@ -133,10 +133,10 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
     }
 
     /**
-     * a function that returns decoded session data, 
+     * a function that returns decoded session data,
      * that seems to work in every cases,
      * even when strings contain reserved chars
-     * (c) bmorel at ssi dot fr 
+     * (c) bmorel at ssi dot fr
      * http://www.php.net/manual/en/function.session-decode.php#56106
      *
      * @param string $str
@@ -148,7 +148,7 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
         $PS_UNDEF_MARKER = '!';
         $str = (string)$str;
 
-        $endptr = mb_strlen($str);
+        $endptr = strlen($str);
         $p = 0;
 
         $items = 0;
@@ -165,8 +165,8 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
             } else {
                 $has_value = true;
             }
-             
-            $name = mb_substr($str, $p, $q - $p);
+
+            $name = substr($str, $p, $q - $p);
             $q++;
 
             $serialized = '';
@@ -181,7 +181,7 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
                             do $q++;
                             while ( ($q < $endptr) && ($str[$q] != ';') );
                             $q++;
-                            $serialized .= mb_substr($str, $p, $q - $p);
+                            $serialized .= substr($str, $p, $q - $p);
                             if ($level == 0) break 2;
                             break;
                         case 'R': /* reference  */
@@ -197,7 +197,7 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
                             for ($length=''; ($q < $endptr) && ($str[$q] != ':'); $q++) $length .= $str[$q];
                             $q+=2;
                             $q+= (int)$length + 2;
-                            $serialized .= mb_substr($str, $p, $q - $p);
+                            $serialized .= substr($str, $p, $q - $p);
                             if ($level == 0) break 2;
                             break;
                         case 'a': /* array */
@@ -206,11 +206,11 @@ class SessionDecoder implements ArrayAccess, Countable, Iterator {
                             while ( ($q < $endptr) && ($str[$q] != '{') );
                             $q++;
                             $level++;
-                            $serialized .= mb_substr($str, $p, $q - $p);
+                            $serialized .= substr($str, $p, $q - $p);
                             break;
                         case '}': /* end of array|object */
                             $q++;
-                            $serialized .= mb_substr($str, $p, $q - $p);
+                            $serialized .= substr($str, $p, $q - $p);
                             if (--$level == 0) break 2;
                             break;
                         default:
