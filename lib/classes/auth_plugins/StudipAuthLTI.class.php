@@ -16,7 +16,15 @@ class StudipAuthLTI extends StudipAuthSSO
     public $domain;
 
     /**
-     * Validate the username passed to the auth plugin.
+     * Validate the username passed to the auth plugin. Note: This implementation
+     * ignores the username parameter and always uses the data passed via the LTI
+     * parameters "lis_person_sourcedid" or "user_id".
+     *
+     * @param   string $username (ignored)
+     *
+     * @return  string  username derived from LTI parameters
+     *
+     * @throws InvalidArgumentException  if no username can be determined
      */
     public function verifyUsername($username)
     {
@@ -46,7 +54,16 @@ class StudipAuthLTI extends StudipAuthSSO
     }
 
     /**
-     * Check whether this user can be authenticated.
+     * Check whether this user can be authenticated. Since we trust the user
+     * information sent by the LTI consumer, only the OAuth signature is checked.
+     *
+     * @param   string $username account name
+     * @param   string $password (ignored)
+     *
+     * @return  bool    true if authentication succeeds
+     *
+     * @throws OAuthException2  if the signature verification failed
+     *
      */
     public function isAuthenticated($username, $password)
     {
@@ -68,7 +85,16 @@ class StudipAuthLTI extends StudipAuthSSO
     }
 
     /**
-     * Authenticate this user and handle auto enrollment.
+     * Authenticate this user and handle auto enrollment. If the URL parameter
+     * "sem_id" is set, the user is automatically redircted to the enrollment
+     * action for this course.
+     *
+     * @param   string $username the username to check
+     * @param   string $password the password (ignored)
+     *
+     * @return  mixed   if authentication succeeds: the Stud.IP user, else false
+     *
+     * @throws OAuthException2  if the signature verification failed
      */
     public function authenticateUser($username, $password)
     {
@@ -83,7 +109,7 @@ class StudipAuthLTI extends StudipAuthSSO
     }
 
     /**
-     * Return the current username.
+     * Return the current username of the pending authentication request.
      */
     public function getUser()
     {
@@ -91,7 +117,9 @@ class StudipAuthLTI extends StudipAuthSSO
     }
 
     /**
-     * Get the user domains to assign to the current user.
+     * Get the user domains to assign to the current user (if any).
+     *
+     * @return array    array of user domain names
      */
     public function getUserDomains()
     {
@@ -99,7 +127,13 @@ class StudipAuthLTI extends StudipAuthSSO
     }
 
     /**
-     * Callback that can be used in user_data_mapping array.
+     * Callback that can be used in user_data_mapping array. For LTI, this is
+     * equivalent to Request::get(), since all launch data is POST parameters.
+     * @see http://www.imsglobal.org/specs/ltiv1p1/implementation-guide
+     *
+     * @param   string  key (e.g. "lis_person_contact_email_primary")
+     *
+     * @return  string  parameter value (null if not set)
      */
     public function getUserData($key)
     {
