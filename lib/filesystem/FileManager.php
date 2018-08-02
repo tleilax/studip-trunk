@@ -185,7 +185,7 @@ class FileManager
         if ($file_id) {
             $file_name = sprintf(
                 '%s-%s.zip',
-                _('Dateisammlung'),
+                $protected_archive ? _('Geschützte Dateisammlung') : _('Dateisammlung'),
                 mb_substr($archived_course->name, 0, 200)
             );
 
