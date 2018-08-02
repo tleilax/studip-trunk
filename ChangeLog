@@ -1,3 +1,23 @@
+02.08.2018 v 3.5.7
+https://develop.studip.de/trac/query?milestone=Stud.IP+3.5.7
+- Forum auf dem Smartphone [#7036]
+- QuickSearch findet Suchklasse nicht bei Wechsel des Stud.IP-Verzeichnisses [#7287]
+- PHP7: Declaration of ExternElementLinkIntern::createUrl($args) should be compatible [#7724]
+- Anmeldeset: Fachsemester [#7801]
+- Dialog zum Bearbeiten einer Ankündigung ist rechts abgeschnitten [#8109]
+- Button "Kontingent erstellen" fehlt [#8318]
+- Nachrichten: "beantwortet" Anzeige bei Nachrichten an mehrere Empfänger falsch [#8328]
+- Fragezeichen nach "Speichern und weiter arbeiten" [#8589]
+- Rechte im Forum falsch? [#8648]
+- Sortierung des Treffersets nicht konfigurierbar [#8670]
+- URLs auf externen Seiten sind nicht entity-escaped [#8671]
+- XSS-Schwachstelle im Teminkalender [#8674]
+- Route /user/:user_id/events.ics wirft Fehler [#8675]
+- REST-API: /user/:user_id/events.ics liefert fehlerhafte ics-Datei [#8695]
+- Der Titel eines neuen Forenbeitrags wird in der Breadcrumb-Navigation abgeschnitten [#8719]
+- Veranstaltungsverwaltung Admins [#8720]
+- Einträge im Veranstaltungskalender sind nicht sichtbar [#8766]
+
 05.07.2018 v 4.1
 https://develop.studip.de/trac/query?milestone=Stud.IP+4.1
 - Handling des Datums bei Ankündiungen [#6861]
