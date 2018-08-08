@@ -20,14 +20,18 @@
         </label>
 
         <label class="col-2">
-            <?= _('Startzeit') ?>
+            <span class="required">
+                <?= _('Startzeit') ?>
+            </span>
             <input class="size-s studip-timepicker" type="text" name="start_time"
                    value="<?= htmlReady(Request::get('start_time', mb_substr($cycle->start_time, 0, 5))) ?>"
                    required placeholder="HH:mm">
         </label>
 
         <label class="col-2">
-            <?= _('Endzeit') ?>
+            <span class="required">
+                <?= _('Endzeit') ?>
+            </span>
             <input class="size-s studip-timepicker" type="text" name="end_time"
                    value="<?= htmlReady(Request::get('end_time', mb_substr($cycle->end_time, 0, 5))) ?>"
                    required placeholder="HH:mm">
