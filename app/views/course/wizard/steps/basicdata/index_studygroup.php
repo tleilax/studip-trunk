@@ -2,7 +2,12 @@
     <?= _('Grunddaten') ?>
 </legend>
 
-<label>
+<label class="col-3">
+    <span class="required"><?= _('Name') ?></span>
+    <input type="text" name="name" id="wizard-name" maxlength="254" value="<?= $values['name'] ?>" required/>
+</label>
+
+<label class="col-3">
     <span class="required"><?= _('Typ') ?></span>
     <select name="coursetype" id="wizard-coursetype">
         <?php foreach ($types as $class => $subtypes) { ?>
@@ -18,19 +23,13 @@
 </label>
 
 
-<label>
-    <span class="required"><?= _('Name') ?></span>
-    <input type="text" name="name" id="wizard-name" size="75" maxlength="254" value="<?= $values['name'] ?>" required/>
-</label>
-
-
-<label>
+<label class="col-3">
     <?= _('Beschreibung') ?>
-    <textarea name="description" id="wizard-description" cols="75" rows="4"></textarea>
+    <textarea name="description" id="wizard-description" rows="4"></textarea>
 </label>
 
 
-<label>
+<label class="col-3">
     <span class="required"><?= _('Zugang') ?></span>
 
     <select name="access" id="wizard-access">
