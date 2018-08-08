@@ -12,7 +12,7 @@
     <fieldset>
         <legend>
             <? if ($event->isNew()) : ?>
-                <?= sprintf(_('Neuen Termin anlegen am %s'), strftime('%x', $event->getStart())) ?>
+                <?= _('Neuen Termin anlegen') ?>
             <? else : ?>
                 <?= _('Termin bearbeiten') ?>
             <? endif; ?>
@@ -64,19 +64,19 @@
 
         <label>
             <span class="required">
-                <?= _('Zusammenfassung') ?>:
+                <?= _('Zusammenfassung') ?>
             </span>
 
             <input type="text" size="50" name="summary" id="summary" value="<?= htmlReady($event->getTitle()) ?>">
         </label>
 
         <label>
-            <?= _('Beschreibung') ?>:
+            <?= _('Beschreibung') ?>
             <textarea rows="2" cols="40" id="description" name="description"><?= htmlReady($event->getDescription()) ?></textarea>
         </label>
 
         <label class="col-2">
-            <?= _('Kategorie') ?>:
+            <?= _('Kategorie') ?>
             <select name="category_intern" id="category-intern" class="nested-select">
             <? foreach ($GLOBALS['PERS_TERMIN_KAT'] as $key => $category) : ?>
                 <option value="<?= $key ?>" <?= $key == $event->getCategory() ? 'selected' : '' ?> data-text-color="<?= $category['color'] ?>">
@@ -93,7 +93,7 @@
         </label>
 
         <label>
-            <?= _('Raum/Ort') ?>:
+            <?= _('Raum/Ort') ?>
             <input type="text" name="location" id="location" value="<?= htmlReady($event->getLocation()) ?>">
         </label>
 
@@ -125,7 +125,7 @@
         </label>
 
         <label>
-            <?= _('Priorität') ?>:
+            <?= _('Priorität') ?>
 
             <? $priority_names = array(_('Keine Angabe'), _('Hoch'), _('Mittel'), _('Niedrig')) ?>
             <select name="priority" id="priority" size="1">
