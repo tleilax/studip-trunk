@@ -43,7 +43,7 @@ use Studip\Button, Studip\LinkButton;
             </select>
         </label>
 
-        <div class="col-1">
+        <label class="col-1">
             <span class="label-text"><?= _('inaktiv') ?></span>
 
             <div class="hgroup">
@@ -59,9 +59,9 @@ use Studip\Button, Studip\LinkButton;
                        value="<?= htmlReady($request['inaktiv'][1]) ?>">
                 <?= _('Tage') ?>
             </div>
-        </div>
+        </label>
 
-        <label class="col-1">
+        <label class="col-1" style="padding-top: 1.8em;">
             <input type="checkbox" name="locked" value="1" <?=  ($request['locked']) ?  'checked' : '' ?>>
             <?= _('nur gesperrt') ?>
         </label>
