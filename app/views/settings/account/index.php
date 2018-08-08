@@ -29,7 +29,7 @@ $genders = [
         </legend>
         <label for="new_username">
                <span class="required">
-                    <?= _('Nutzername:') ?>
+                    <?= _('Nutzername') ?>
                </span>
             <? if ($restricted) : ?>
                 <?= tooltipIcon('Dieses Feld dürfen Sie nicht ändern, Adminzugriff ist hier nicht erlaubt!') ?>
@@ -43,7 +43,7 @@ $genders = [
         </label>
         <label class="col-3">
             <span class="required">
-                <?= _('Vorname:') ?>
+                <?= _('Vorname') ?>
             </span>
             <? if ($restricted) : ?>
                 <?= tooltipIcon('Dieses Feld dürfen Sie nicht ändern, Adminzugriff ist hier nicht erlaubt!') ?>
@@ -55,7 +55,7 @@ $genders = [
         </label>
         <label class="col-3">
             <span class="required">
-                <?= _('Nachname:') ?>
+                <?= _('Nachname') ?>
             </span>
             <? if ($restricted) : ?>
                 <?= tooltipIcon('Dieses Feld dürfen Sie nicht ändern, Adminzugriff ist hier nicht erlaubt!') ?>
@@ -67,7 +67,7 @@ $genders = [
                     <? if ($restricted || !$controller->shallChange('auth_user_md5.Nachname', 'name')) echo 'disabled'; ?>>
         </label>
         <label class="col-3">
-            <?= _('Titel:') ?>
+            <?= _('Titel') ?>
             <select id="title_front_chooser" name="title_front_chooser"
                     aria-label="<?= _('Titel auswählen') ?>"
                     data-target="#title_front"
@@ -87,7 +87,7 @@ $genders = [
                     <? if (!$controller->shallChange('user_info.title_front', 'title')) echo 'disabled'; ?>>
         </label>
         <label class="col-3">
-            <?= _('Titel nachgest.:') ?>
+            <?= _('Titel nachgest.') ?>
             <select name="title_rear_chooser" id="title_rear_chooser"
                     aria-label="<?= _('Titel nachgestellt auswählen') ?>"
                     data-target="#title_rear"
@@ -115,13 +115,13 @@ $genders = [
             <? endif ?>
         </legend>
         <label class="col-3">
-            <span class="required"><?= _('E-Mail:') ?></span>
+            <span class="required"><?= _('E-Mail') ?></span>
             <input required type="email" name="email1" id="email1"
                    value="<?= htmlReady($user['Email']) ?>"
                     <? if ($restricted || !$controller->shallChange('auth_user_md5.Email')) echo 'disabled'; ?>>
         </label>
         <label class="col-3">
-            <span class="required"><?= _('E-Mail Wiederholung:') ?></span>
+            <span class="required"><?= _('E-Mail Wiederholung') ?></span>
             <input required type="email" name="email2" id="email2"
                    value="<?= htmlReady($user['Email']) ?>"
                    data-must-equal="#email1"
