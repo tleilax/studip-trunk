@@ -404,7 +404,7 @@ class QuickSearch
      */
     public function getId()
     {
-        return $this->name . '_' . (int)self::$count_QS;
+        return "qs_".md5($this->name) . '_' . (int)self::$count_QS;
     }
 
     //////////////////////////////////////////////////////////////////////////////

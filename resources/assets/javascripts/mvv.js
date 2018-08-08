@@ -218,9 +218,10 @@ MVV.Search = {
     addSelected: function (item_id, item_name) {
         var strip_tags = /<\w+(\s+("[^"]*"|'[^']*'|[^>])+)?>|<\/\w+>/gi;
         var that = jQuery(this),
-        qs_id = that.attr('id'),
+        qs_name = that.attr('name'),
+            //QUICKSEARCHTODO
         //target_name = qs_id.slice(0, qs_id.lastIndexOf('_'));
-        target_name = qs_id.split('_')[0];
+        target_name = qs_name.split('_')[0];
         MVV.Content.addItem(target_name, item_id,
             jQuery('<div/>').html(item_name.replace(strip_tags, '')).text());
     },
