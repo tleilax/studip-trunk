@@ -38,11 +38,11 @@ class SearchNavigation extends Navigation
     public function initSubNavigation()
     {
         parent::initSubNavigation();
-        
+
         // browse courses
         // get first search option
         $navigation_option = SemBrowse::getSearchOptionNavigation('sidebar');
-        
+
         if ($navigation_option) {
             $navigation = new Navigation(_('Veranstaltungen'),
                     $navigation_option->getURL());
@@ -56,7 +56,7 @@ class SearchNavigation extends Navigation
             $this->addSubNavigation('courses', $navigation);
         }
 
-        
+
         if ($GLOBALS['user']->id != 'nobody') {
             // search archive
             $navigation = new Navigation(_('Archiv'), 'dispatch.php/search/archive');
@@ -69,6 +69,12 @@ class SearchNavigation extends Navigation
             // browse institutes
             $navigation = new Navigation(_('Einrichtungen'), 'institut_browse.php');
             $this->addSubNavigation('institutes', $navigation);
+
+            // browse resources
+            if (get_config('RESOURCES_ENABLE')) {
+                $navigation = new Navigation(_('Ressourcen'), 'resources.php', array('view' => 'search', 'reset' => 'TRUE'));
+                $this->addSubNavigation('resources', $navigation);
+            }
         }
     }
 }
