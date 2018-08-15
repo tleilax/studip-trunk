@@ -12,7 +12,11 @@
         foreach ($withAttributes as $attr_name => $attr_value) {
             print ' '.$attr_name.'="'.htmlReady($attr_value).'"';
         }
-        ?> id="<?= $id ?>"<?= $clear_input ?: '' ?> type="text" value="<?= htmlReady($defaultName) ?>" placeholder="<?= $beschriftung && !$defaultID ? htmlReady($beschriftung) : '' ?>">
+        ?> id="<?= $id ?>"<?= $clear_input ?: '' ?>
+           type="text"
+           value="<?= htmlReady($defaultName) ?>"
+           name="<?= $name ?>_parameter"
+           placeholder="<?= $beschriftung && !$defaultID ? htmlReady($beschriftung) : '' ?>">
 <? if ($withButton): ?>
     <? if ($box_align !== 'left'): ?>
         <input type="submit" value="Suche starten" name="<?= $search_button_name; ?>"></input>
