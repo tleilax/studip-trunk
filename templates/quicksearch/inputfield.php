@@ -15,7 +15,7 @@
         ?> id="<?= $id ?>"<?= $clear_input ?: '' ?>
            type="text"
            value="<?= htmlReady($defaultName) ?>"
-           name="<?= $name ?>_parameter"
+           name="<?= strpos($name, "[") === false ? $name."_parameter" : substr($name, 0, strpos($name, "["))."_parameter".substr($name, strpos($name, "[")) ?>"
            placeholder="<?= $beschriftung && !$defaultID ? htmlReady($beschriftung) : '' ?>">
 <? if ($withButton): ?>
     <? if ($box_align !== 'left'): ?>
