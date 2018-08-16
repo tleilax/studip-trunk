@@ -187,7 +187,7 @@ class HelpTour extends SimpleORMap
                   WHERE installation_id = ?
                   ORDER BY name ASC";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($GLOBALS['STUDIP_INSTALLATION_ID']));
+        $statement->execute(array(Config::get()->STUDIP_INSTALLATION_ID));
         $ret = $statement->fetchGrouped(PDO::FETCH_ASSOC);
         foreach ($ret as $index => $data) {
             $query = "SELECT tour_id AS idx, help_tours.*
@@ -203,7 +203,7 @@ class HelpTour extends SimpleORMap
                 $data['global_tour_id'],
                 $data['language'],
                 $data['studip_version'],
-                $GLOBALS['STUDIP_INSTALLATION_ID'],
+                Config::get()->STUDIP_INSTALLATION_ID,
             ]);
             $ret2 = $statement->fetchGrouped(PDO::FETCH_ASSOC);
             if (count($ret2) > 0) {

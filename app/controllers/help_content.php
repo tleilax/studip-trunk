@@ -204,7 +204,7 @@ class HelpContentController extends AuthenticatedController
         $help_content->content         = Request::get('help_content_content');
         $help_content->route           = Request::get('help_content_route');
         $help_content->author_email    = $GLOBALS['user']->Email;
-        $help_content->installation_id = $GLOBALS['STUDIP_INSTALLATION_ID'];
+        $help_content->installation_id = Config::get()->STUDIP_INSTALLATION_ID;
 
         if ($help_content->store()) {
             PageLayout::postSuccess(_('Der Hilfe-Text wurde erfolgreich gespeichert!'));

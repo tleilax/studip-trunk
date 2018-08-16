@@ -12,7 +12,7 @@ class PluginsController extends StudipController
         $output = array();
         if (Request::isPost()) {
             $plugin =  PluginManager::getInstance()->getPluginInfo($class);
-            $low_cost_secret = md5($GLOBALS['STUDIP_INSTALLATION_ID'].$plugin['id']);
+            $low_cost_secret = md5(Config::get()->STUDIP_INSTALLATION_ID.$plugin['id']);
 
             if ($plugin['automatic_update_url'] && ($low_cost_secret === Request::option("s"))) {
                 if ($plugin['automatic_update_secret'] && !$this->verify_secret($plugin['automatic_update_secret'])) {

@@ -50,7 +50,7 @@ if (!is_writeable($dump_dir)) {
 }
 
 $today = date("Ymd");
-$prefix = $STUDIP_INSTALLATION_ID ? $STUDIP_INSTALLATION_ID : 'studip';
+$prefix = Config::get()->STUDIP_INSTALLATION_ID ? Config::get()->STUDIP_INSTALLATION_ID : 'studip';
 if (!$dump_only || $dump_only == 'db') {
     $dump_db_dir = $dump_dir . '/db-' . $today;
     if (!is_dir($dump_db_dir)) {

@@ -69,7 +69,7 @@ foreach ($json as $row) {
         $query = "INSERT INTO help_content (content_id, language, label, icon, content, route, studip_version, position, custom, visible, author_id, installation_id, mkdate)
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 1, '', ?, UNIX_TIMESTAMP())";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array(md5(uniqid(rand(), true)), $argv[2], ($index == 0 ? $row['label'] : ''), ($index == 0 ? $row['icon'] : ''), $text, $row['route'], $argv[1], $count[$argv[2].$row['route']], $GLOBALS['STUDIP_INSTALLATION_ID']));
+        $statement->execute(array(md5(uniqid(rand(), true)), $argv[2], ($index == 0 ? $row['label'] : ''), ($index == 0 ? $row['icon'] : ''), $text, $row['route'], $argv[1], $count[$argv[2].$row['route']], Config::get()->STUDIP_INSTALLATION_ID));
     }
 }
 if (count($count)) {

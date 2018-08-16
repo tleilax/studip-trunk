@@ -73,12 +73,12 @@ class PmWikiConnectedLink extends ConnectedLink
               action="<?= $connected_cms[$this->cms_type]->content_module[$current_module]->link ?>">
 
             <?= CSRFProtection::tokenTag() ?>
-            <input type='hidden'    name='authid'           value='<?= $GLOBALS['auth']->auth['uname'] ?>'>
-            <input type='hidden'    name='authpw'           value='<?= $token->get_string() ?>'>
-            <input type='hidden'    name='_permission'  value='<?= $status ?>'>
-            <input type='hidden'    name='_range_id'        value='<?= $range_id ?>'>
-            <input type='hidden'    name='_server'          value='<?= $GLOBALS['STUDIP_INSTALLATION_ID'] ?>'>
-            <input type='hidden'    name='_context'         value='<?= $context ?>'>
+            <input type='hidden'    name='authid'           value='<?= htmlReady($GLOBALS['auth']->auth['uname']) ?>'>
+            <input type='hidden'    name='authpw'           value='<?= htmlReady($token->get_string()) ?>'>
+            <input type='hidden'    name='_permission'  value='<?= htmlReady($status) ?>'>
+            <input type='hidden'    name='_range_id'        value='<?= htmlReady($range_id) ?>'>
+            <input type='hidden'    name='_server'          value='<?= htmlReady(Config::get()->STUDIP_INSTALLATION_ID) ?>'>
+            <input type='hidden'    name='_context'         value='<?= htmlReady($context) ?>'>
             <?= Button::createAccept(_('Starten')) ?>
 
         </form>

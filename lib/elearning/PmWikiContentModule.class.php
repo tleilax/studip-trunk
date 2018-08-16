@@ -83,9 +83,9 @@ class PmWikiContentModule extends ContentModule
     {
         global $connected_cms, $view, $search_key, $cms_select, $current_module;
 
-        if ($GLOBALS['STUDIP_INSTALLATION_ID'])
+        if (Config::get()->STUDIP_INSTALLATION_ID)
         {
-            $username = $GLOBALS['STUDIP_INSTALLATION_ID']."#".$GLOBALS['auth']->auth['uname'];
+            $username = Config::get()->STUDIP_INSTALLATION_ID."#".$GLOBALS['auth']->auth['uname'];
         } else
         {
             $username = $GLOBALS['auth']->auth['uname'];
