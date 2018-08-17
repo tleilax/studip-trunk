@@ -54,8 +54,9 @@ function startpage_redirect($page_code) {
             }
             break;
     }
+
     page_close();
-    header ("location: $jump_page");
+    header ('Location: ' . URLHelper::getURL($jump_page));
     exit;
 }
 
