@@ -108,7 +108,7 @@ class MyCoursesController extends AuthenticatedController
             $forced_grouping = 'sem_number';
         }
 
-        if (!$group_field) {
+        if (!$group_field || !in_array($group_field, getValidGroupingFields())) {
             $group_field = 'sem_number';
         }
         if ($group_field == 'sem_number' && $forced_grouping != 'sem_number') {
