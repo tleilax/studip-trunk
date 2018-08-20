@@ -188,6 +188,7 @@ class StudipSemRangeTreeViewSimple {
         $parents = $this->tree->getParents($this->start_item_id);
         if ($parents) {
             $add_item = false;
+            $start_id = $start_id === null ? 'root' : $start_id;
             for($i = count($parents) - 1; $i >= 0; --$i) {
                 if ($add_item || $start_id == $parents[$i]) {
                     $ret .= '&nbsp;&gt;&nbsp;<a href="'
@@ -199,7 +200,7 @@ class StudipSemRangeTreeViewSimple {
                 }
             }
         }
-        if ($start_item_id == 'root') {
+        if ($this->start_item_id == 'root') {
             $ret = '&nbsp;&gt;&nbsp;<a href="'
                     . URLHelper::getLink($this->getSelf('start_item_id=root', false))
                     . '">'

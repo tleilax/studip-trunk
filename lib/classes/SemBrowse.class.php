@@ -368,7 +368,9 @@ class SemBrowse {
         } else {
             $this->printQuickSearch();
         }
-        $this->print_level();
+        $path_id = Request::option('path_id');
+        URLHelper::addLinkParam('path_id', $path_id);
+        $this->print_level($path_id);
         if ($this->show_result) {
             $this->print_result();
         }
@@ -1284,6 +1286,7 @@ class SemBrowse {
                     URLHelper::getURL('dispatch.php/search/courses',
                         [
                             'start_item_id' => $option['sem_tree_id'],
+                            'path_id'       => $option['sem_tree_id'],
                             'cmd'           => 'show_sem_range_tree',
                             'item_id'       => $option['sem_tree_id'] . '_withkids',
                             'level'         => 'vv',
@@ -1300,6 +1303,7 @@ class SemBrowse {
                     URLHelper::getURL('dispatch.php/search/courses',
                         [
                             'start_item_id' => $option['range_tree_id'],
+                            'path_id'       => $option['range_tree_id'],
                             'cmd'           => 'show_sem_range_tree',
                             'item_id'       => $option['range_tree_id'] . '_withkids',
                             'level'         => 'ev',

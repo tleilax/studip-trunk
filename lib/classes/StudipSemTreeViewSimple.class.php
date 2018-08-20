@@ -63,7 +63,7 @@ class StudipSemTreeViewSimple
         }
     }
 
-    public function showSemTree($start_id = null)
+    public function showSemTree($start_id = 'root')
     {
         echo '
             <table style="width:100%;">
@@ -201,13 +201,21 @@ class StudipSemTreeViewSimple
         echo "\n</div>";
     }
 
-    public function getSemPath()
+    public function getSemPath($start_id = null)
     {
-
-        if ($parents = $this->tree->getParents($this->start_item_id)){
-            for($i = count($parents)-1; $i >= 0; --$i){
-                $ret .= "&nbsp;&gt;&nbsp;<a href=\"" . URLHelper::getLink($this->getSelf("start_item_id={$parents[$i]}",false))
-                    . "\">" .htmlReady($this->tree->getValue($parents[$i], "name")) . "</a>";
+        $parents = $this->tree->getParents($this->start_item_id);
+        if ($parents) {
+            $add_item = false;
+            $start_id = $start_id === null ? 'root' : $start_id;
+            for($i = count($parents) - 1; $i >= 0; --$i){
+                if ($add_item || $start_id == $parents[$i]) {
+                    $ret .= "&nbsp;&gt;&nbsp;<a href=\""
+                            . URLHelper::getLink($this->getSelf("start_item_id={$parents[$i]}", false))
+                            . "\">"
+                            . htmlReady($this->tree->getValue($parents[$i], "name"))
+                            . "</a>";
+                    $add_item = true;
+                }
             }
         }
         if ($this->start_item_id == "root") {
