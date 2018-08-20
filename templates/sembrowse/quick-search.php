@@ -48,13 +48,19 @@ SkipLinks::addIndex(_('Suchformular'), 'search_sem_qs', 100);
             ],
             true
         ) ?>
+        <?
+        $option = Request::get('option');
+        $nav = SemBrowse::getSearchOptionNavigation(
+                Config::get()->COURSE_SEARCH_NAVIGATION_OPTIONS[$option]['target'], $option);
+        $url = $nav ? $nav->getUrl() :   URLHelper::getUrl('',
+                [
+                    'level' => $_SESSION['sem_browse_data']['level'],
+                    'cmd'   => 'qs'
+                ]);
+        ?>
         <?= Studip\LinkButton::create(
             _('Zurücksetzen'),
-            URLHelper::getURL('?reset_all=1',
-                    [
-                        'level' => $_SESSION['sem_browse_data']['level'],
-                        'cmd'   => 'qs'
-                    ], true),
+            URLHelper::getURL($url, ['reset_all' => 1]),
             ['title' => _('Zurücksetzen')]
         ) ?>
     </span>
