@@ -63,7 +63,7 @@ class StudipSemTreeViewSimple
         }
     }
 
-    public function showSemTree($start_id = 'root')
+    public function showSemTree($start_id = null)
     {
         echo '
             <table style="width:100%;">
