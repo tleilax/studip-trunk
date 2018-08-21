@@ -115,6 +115,8 @@ class PageLayout
         self::addStylesheet('studip-base.css', ['media' => 'screen']);
         self::addScript('studip-base.js');
 
+        self::addStylesheet('print.css', ['media' => 'print']);
+
         if (Config::get()->WYSIWYG) {
             self::addStylesheet('studip-wysiwyg.css');
             self::addScript('studip-wysiwyg.js');
