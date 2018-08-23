@@ -1,3 +1,20 @@
+23.08.2018 v 4.0.6
+https://develop.studip.de/trac/query?milestone=Stud.IP+4.0.6
+- Fehler bei der VA-Raumbuchung [#8574]
+- Zusatzangaben - Export : Fragen, die kein TN beantwortet hat, erzeugen keine Spalte [#8594]
+- Spracheinstellung kann bei Neuanlage von Nutzern nicht gewählt werden [#8619]
+- Nachrichten über neue Forenbeiträge enthalten kaputten Text [#8646]
+- CSV Export in der Nutzerverwaltung wirft Fehler "User::userdomains not found" [#8650]
+- Rest-API: /message/:message_id wirft Invalid ArgumentException [#8673]
+- web_migrate nicht aufrufbar bei Update auf 4.0/4.1 [#8694]
+- Es werden keine Aktivitäten für Ankündigungen erstellt [#8717]
+- Vorläufiger Eintrag führt sofort zu "Zugriff verweigert" Meldung [#8749]
+- Externe Seiten: Warning: Illegal string offset 'main_module' [#8752]
+- SessionDecoder scheitert, wenn nicht-ascii in session Daten enthalten ist [#8767]
+- Suche im Archiv: Geschützte Dateisammlung verbirgt die andere [#8774]
+- Hilfelaschen-Texte können nicht bearbeitet werden [#8783]
+- startpage_redirect() leitet ggf falsch weiter [#8785]
+
 02.08.2018 v 3.5.7
 https://develop.studip.de/trac/query?milestone=Stud.IP+3.5.7
 - Forum auf dem Smartphone [#7036]
