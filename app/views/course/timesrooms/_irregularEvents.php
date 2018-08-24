@@ -13,21 +13,23 @@ $room_request_filter = function ($date) {
             <?= _('Unregelmäßige Termine / Blocktermine') ?>
         </h1>
     <? if(!$locked) : ?>
-        <? $actionMenu = ActionMenu::get()?>
-        <? $actionMenu->addLink(
-            $controller->link_for('course/timesrooms/createSingleDate/' . $course->id, $linkAttributes),
-            _('Einzeltermin hinzufügen'),
-            Icon::create('date+add', 'clickable', ['title' => _('Einzeltermin hinzufügen')]),
-            ['data-dialog' => 'size=600']
-        ) ?>
+        <nav>
+            <? $actionMenu = ActionMenu::get()?>
+            <? $actionMenu->addLink(
+                $controller->link_for('course/timesrooms/createSingleDate/' . $course->id, $linkAttributes),
+                _('Einzeltermin hinzufügen'),
+                Icon::create('date+add', 'clickable', ['title' => _('Einzeltermin hinzufügen')]),
+                ['data-dialog' => 'size=600']
+            ) ?>
 
-        <? $actionMenu->addLink(
-            $controller->url_for('course/block_appointments/index/' . $course->id, $linkAttributes),
-            _('Blocktermin hinzufügen'),
-            Icon::create('timetable+add', 'clickable', ['title' => _('Blocktermin hinzufügen')]),
-            ['data-dialog' => 'size=600']
-        ) ?>
-        <?= $actionMenu->render() ?>
+            <? $actionMenu->addLink(
+                $controller->url_for('course/block_appointments/index/' . $course->id, $linkAttributes),
+                _('Blocktermin hinzufügen'),
+                Icon::create('timetable+add', 'clickable', ['title' => _('Blocktermin hinzufügen')]),
+                ['data-dialog' => 'size=600']
+            ) ?>
+            <?= $actionMenu->render() ?>
+        </nav>
     <? endif ?>
     </header>
 <? if (!empty($single_dates)): ?>
@@ -46,14 +48,14 @@ $room_request_filter = function ($date) {
                         <?= htmlReady(Semester::find($semester_id)->name) ?>
                     </a>
                 </h1>
-                <nav>
+                <section>
                     <span>
                         <?= sprintf(ngettext('%u Termin', '%u Termine', count($termine)),
                                      count($termine)) ?>
                     </span>
                 <? if (Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS): ?>
                     <span>
-                        | <?= _('Einzel-Raumanfrage') ?>:
+                        | <strong><?= _('Einzel-Raumanfrage') ?></strong>:
                     <? if ($rr_count = count($termine->filter($room_request_filter)) > 0): ?>
                         <?= sprintf(_('%u noch offen'), $rr_count) ?>
                     <? else: ?>
@@ -61,7 +63,7 @@ $room_request_filter = function ($date) {
                     <? endif; ?>
                     </span>
                 <? endif; ?>
-                </nav>
+                </section>
             </header>
             <section>
                 <table class="default nohover">
