@@ -18,8 +18,8 @@ if ($input['type'] === "number") : ?>
 
 if ($input['type'] === "textarea") : ?>
     <? if ($input['i18n']) : ?>
-    <? else : ?>
         <?= I18N::textarea($input['name'], $input['value'], $is_locked_array + $is_required_array) ?>
+    <? else : ?>
         <textarea <?=$is_locked ?> name="<?= $input['name'] ?>" <? if ($input['must']) echo 'required'; ?>><?=
             htmlReady($input['value'])
             ?></textarea>
