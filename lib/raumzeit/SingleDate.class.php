@@ -456,12 +456,69 @@ class SingleDate
         if (is_array($overlaps) && (sizeof($overlaps) > 0)) {
             $resObj = ResourceObject::Factory($roomID);
             $raum = $resObj->getFormattedLink($this->date);
-            $msg = sprintf(_("Für den Termin %s konnte der Raum %s nicht gebucht werden, da es Überschneidungen mit folgenden Terminen gibt:"), $this->toString(), $raum) . '<br>';
+            $msg = sprintf(
+                _('Für den Termin %1$s konnte der Raum %2$s nicht gebucht werden, da es Überschneidungen mit folgenden Terminen gibt:'),
+                $this->toString(),
+                $raum
+            ) . '<br>';
+            $db = DBManager::get();
+            $course_id_stmt = $db->prepare(
+                'SELECT range_id FROM termine WHERE termin_id = :termin_id'
+            );
             foreach ($overlaps as $tmp_assign_id => $val) {
-                if ($val["lock"])
-                    $msg .= sprintf(_("%s, %s Uhr bis %s, %s Uhr (Sperrzeit)") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("d.m.Y", $val["end"]), date("H:i", $val["end"]));
-                else
-                    $msg .= sprintf(_("%s von %s bis %s Uhr") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("H:i", $val["end"]));
+                if ($val["lock"]) {
+                    $msg .= sprintf(
+                        _('Vom %1$s, %2$s Uhr bis zum %3$s, %4$s Uhr (Sperrzeit)') . "\n",
+                        date("d.m.Y", $val["begin"]),
+                        date("H:i", $val["begin"]),
+                        date("d.m.Y", $val["end"]),
+                        date("H:i", $val["end"])
+                    );
+                } else {
+                    $course_data = [];
+                    $overlapping_assignment = AssignObject::Factory($tmp_assign_id);
+                    if ($overlapping_assignment) {
+                        $assignment_range_id = $overlapping_assignment->getAssignUserId();
+                        $course_id_stmt->execute(['termin_id' => $assignment_range_id]);
+                        $course_id = $course_id_stmt->fetchColumn();
+                        if ((get_object_type($course_id) == 'sem') and
+                            $GLOBALS['perm']->have_studip_perm(
+                                'dozent',
+                                $course_id,
+                                $GLOBALS['user']->id
+                            )) {
+                            $course_data['id'] = $course_id;
+                            $course_data['name'] = $overlapping_assignment->GetOwnerName();
+                        }
+                    }
+
+                    if ($course_data) {
+                        $course_link = URLHelper::getLink(
+                            'dispatch.php/course/timesrooms/index',
+                            [
+                                'cid' => $course_data['id']
+                            ]
+                        );
+                        $msg .= sprintf(
+                            _('Am %1$s von %2$s bis %3$s Uhr durch Veranstaltung %4$s') . "\n",
+                            date('d.m.Y', $val['begin']),
+                            date('H:i', $val['begin']),
+                            date('H:i', $val['end']),
+                            sprintf(
+                                '<a href="%1$s">%2$s</a>',
+                                $course_link,
+                                $course_data['name']
+                            )
+                        );
+                    } else {
+                        $msg .= sprintf(
+                            _('Am %1$s von %2$s bis %3$s Uhr') . "\n",
+                            date("d.m.Y", $val["begin"]),
+                            date("H:i", $val["begin"]),
+                            date("H:i", $val["end"])
+                        );
+                    }
+                }
             }
             $this->messages['error'][] = $msg;
 
@@ -503,12 +560,69 @@ class SingleDate
             if (is_array($overlaps) && (sizeof($overlaps) > 0)) {
                 $resObj = ResourceObject::Factory($roomID);
                 $raum = $resObj->getFormattedLink($this->date);
-                $msg = sprintf(_("Für den Termin %s konnte der Raum %s nicht gebucht werden, da es Überschneidungen mit folgenden Terminen gibt:"), $this->toString(), $raum) . '<br>';
+                $msg = sprintf(
+                    _('Für den Termin %1$s konnte der Raum %2$s nicht gebucht werden, da es Überschneidungen mit folgenden Terminen gibt:'),
+                    $this->toString(),
+                    $raum
+                ) . '<br>';
+                $db = DBManager::get();
+                $course_id_stmt = $db->prepare(
+                    'SELECT range_id FROM termine WHERE termin_id = :termin_id'
+                );
                 foreach ($overlaps as $tmp_assign_id => $val) {
-                    if ($val["lock"])
-                        $msg .= sprintf(_("%s, %s Uhr bis %s, %s Uhr (Sperrzeit)") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("d.m.Y", $val["end"]), date("H:i", $val["end"]));
-                    else
-                        $msg .= sprintf(_("%s von %s bis %s Uhr") . "\n", date("d.m.Y", $val["begin"]), date("H:i", $val["begin"]), date("H:i", $val["end"]));
+                    if ($val["lock"]) {
+                        $msg .= sprintf(
+                            _('Vom %1$s, %2$s Uhr bis zum %3$s, %4$s Uhr (Sperrzeit)') . "\n",
+                            date("d.m.Y", $val["begin"]),
+                            date("H:i", $val["begin"]),
+                            date("d.m.Y", $val["end"]),
+                            date("H:i", $val["end"])
+                        );
+                    } else {
+                        $course_data = [];
+                        $overlapping_assignment = AssignObject::Factory($tmp_assign_id);
+                        if ($overlapping_assignment) {
+                            $assignment_range_id = $overlapping_assignment->getAssignUserId();
+                            $course_id_stmt->execute(['termin_id' => $assignment_range_id]);
+                            $course_id = $course_id_stmt->fetchColumn();
+                            if ((get_object_type($course_id) == 'sem') and
+                                $GLOBALS['perm']->have_studip_perm(
+                                    'dozent',
+                                    $course_id,
+                                    $GLOBALS['user']->id
+                                )) {
+                                $course_data['id'] = $course_id;
+                                $course_data['name'] = $overlapping_assignment->GetOwnerName();
+                            }
+                        }
+
+                        if ($course_data) {
+                            $course_link = URLHelper::getLink(
+                                'dispatch.php/course/timesrooms/index',
+                                [
+                                    'cid' => $course_data['id']
+                                ]
+                            );
+                            $msg .= sprintf(
+                                _('Am %1$s von %2$s bis %3$s Uhr durch Veranstaltung %4$s') . "\n",
+                                date('d.m.Y', $val['begin']),
+                                date('H:i', $val['begin']),
+                                date('H:i', $val['end']),
+                                sprintf(
+                                    '<a href="%1$s">%2$s</a>',
+                                    $course_link,
+                                    $course_data['name']
+                                )
+                            );
+                        } else {
+                            $msg .= sprintf(
+                                _('Am %1$s von %2$s bis %3$s Uhr') . "\n",
+                                date("d.m.Y", $val["begin"]),
+                                date("H:i", $val["begin"]),
+                                date("H:i", $val["end"])
+                            );
+                        }
+                    }
                 }
                 $this->messages['error'][] = $msg;
 
