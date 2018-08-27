@@ -68,7 +68,7 @@ class Settings_PrivacyController extends Settings_SettingsController
      */
     public function global_action()
     {
-        $this->check_ticket();
+        CSRFProtection::verifySecurityToken();
 
         $visibility = Request::option('global_visibility');
 
@@ -187,7 +187,7 @@ class Settings_PrivacyController extends Settings_SettingsController
      */
     public function homepage_action()
     {
-        $this->check_ticket();
+        CSRFProtection::verifySecurityToken();
 
         // If no bulk action is performed set all visibilitysettings seperately
         if (!$this->bulk()) {
