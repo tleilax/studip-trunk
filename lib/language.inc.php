@@ -108,21 +108,43 @@ function getUserLanguage($uid)
 }
 
 /**
-* retrieves path to preferred language of user from database
-*
-* Can be used for sending language specific mails to other users.
-*
-* @access   public
-* @param        string  the user_id of the recipient (function will try to get preferred language from database)
-* @return       string  the path to the language files, given in "en"-style
-*/
+ * Retrieves the path for the preferred language of a user which is specified
+ * by his/her ID.
+ *
+ * This method can be used for sending language specific mails to other users.
+ *
+ * @access   public
+ * @param        string  the user_id of the recipient (function will try to get preferred language from database)
+ * @return       string  the path to the language files, given in "en"-style
+ */
 function getUserLanguagePath($uid)
 {
-    global $INSTALLED_LANGUAGES;
+    global $INSTALLED_LANGUAGES, $STUDIP_BASE_PATH;
 
-    $language = getUserLanguage($uid);
+    //First we get the language code in the format
+    //language_Country, e.g. de_DE:
+    $lang_code = getUserLanguage($uid);
 
-    return $INSTALLED_LANGUAGES[$language]['path'];
+    //Now we test if a directory with that language code exists
+    //in the locale directory:
+    if (is_dir($STUDIP_BASE_PATH . '/locale/' . $lang_code)) {
+        //A locale directory with a country specific translation exists.
+        //We can use the language code directly:
+        return $lang_code;
+    }
+
+    //There is no directory containing country specific translations
+    //for the language. Now we have to check if a general translation
+    //exists for the language:
+    $lang = explode('_', $lang_code)[0];
+    if (is_dir($STUDIP_BASE_PATH . '/locale/' . $lang)) {
+        //A general translation exists:
+        return $lang;
+    }
+
+    //No directory exists that has a translation for the language.
+    //Our last resort is to use the path index in $INSTALLED_LANUGAGES:
+    return $INSTALLED_LANGUAGES[$lang_code]['path'];
 }
 
 /**
