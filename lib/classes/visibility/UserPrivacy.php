@@ -30,7 +30,7 @@ class UserPrivacy
     public function __construct($userid = null)
     {
         if ($userid == null) {
-            $this->user = $GLOBALS['user'];
+            $this->user = User::findCurrent();
         } else {
             $this->user = User::find($userid);
         }
