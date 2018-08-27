@@ -1237,13 +1237,21 @@ function getShowPageInfobox($keyword, $latest_version)
     $widget->addElement($element);
     $sidebar->addWidget($widget);
 
-    // Create new wiki page
+    //Actions:
     $widget = new ActionsWidget();
     $widget->addLink(
         _('Neue Wiki-Seite anlegen'),
         URLHelper::getLink('dispatch.php/wiki/create', compact('keyword')),
         Icon::create('add'),
         ['data-dialog' => 'size=auto']
+    );
+    $widget->addLink(
+        _('Seiten importieren'),
+        URLHelper::getLink('dispatch.php/wiki/import/' . Context::getId()),
+        Icon::create('wiki+add', 'clickable'),
+        [
+            'data-dialog' => '1'
+        ]
     );
     $sidebar->addWidget($widget);
 
