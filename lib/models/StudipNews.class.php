@@ -76,8 +76,12 @@ class StudipNews extends SimpleORMap implements PrivacyObject
         $query = "SELECT news_id AS idx, news.*
                   FROM news_range
                   INNER JOIN news USING (news_id)
-                  WHERE range_id = ? {$clause}
-                  ORDER BY date DESC, chdate DESC, topic ASC";
+                  WHERE range_id = ? {$clause} ";
+        if (Config::get()->SORT_NEWS_BY_CHDATE) {
+            $query .= "ORDER BY chdate DESC, date DESC, topic ASC";
+        } else {
+            $query .= "ORDER BY date DESC, chdate DESC, topic ASC";
+        }
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($range_id));
         $ret = $statement->fetchGrouped(PDO::FETCH_ASSOC);
@@ -105,8 +109,12 @@ class StudipNews extends SimpleORMap implements PrivacyObject
     {
         $query = "SELECT news_id AS idx, news.*
                   FROM news
-                  WHERE user_id = ?
-                  ORDER BY date DESC, chdate DESC";
+                  WHERE user_id = ? ";
+        if (Config::get()->SORT_NEWS_BY_CHDATE) {
+            $query .= "ORDER BY chdate DESC, date DESC";
+        } else {
+            $query .= "ORDER BY date DESC, chdate DESC";
+        }
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($user_id));
         $ret = $statement->fetchGrouped(PDO::FETCH_ASSOC);
@@ -180,7 +188,11 @@ class StudipNews extends SimpleORMap implements PrivacyObject
                 $select_querypart   = 'CONCAT(news_id, "_studip") AS idx, range_id, news.* ';
                 $from_querypart     = 'news_range INNER JOIN news USING(news_id)';
                 $where_querypart[]  = 'range_id = ?';
-                $order_querypart    = 'news.date DESC, news.chdate DESC';
+                if (Config::get()->SORT_NEWS_BY_CHDATE) {
+                    $order_querypart = 'news.chdate DESC, news.date DESC';
+                } else {
+                    $order_querypart = 'news.date DESC, news.chdate DESC';
+                }
                 $query_vars[]       = 'studip';
                 break;
             case 'sem':
@@ -190,17 +202,29 @@ class StudipNews extends SimpleORMap implements PrivacyObject
                 $from_querypart     = 'news INNER JOIN news_range USING(news_id) INNER JOIN seminare ON Seminar_id = range_id '
                     .'LEFT JOIN semester_data sd1 ON (start_time BETWEEN sd1.beginn AND sd1.ende) '
                     .'LEFT JOIN semester_data sd2 ON (start_time + duration_time BETWEEN sd2.beginn AND sd2.ende)';
-                $order_querypart = 'seminare.Name, news.date DESC, news.chdate DESC';
+                if (Config::get()->SORT_NEWS_BY_CHDATE) {
+                    $order_querypart = 'seminare.Name, news.chdate DESC, news.date DESC';
+                } else {
+                    $order_querypart = 'seminare.Name, news.date DESC, news.chdate DESC';
+                }
                 break;
             case 'inst':
                 $select_querypart   = 'CONCAT(news_id, "_", range_id) AS idx, range_id, Institute.Name AS title, news.* ';
                 $from_querypart     = 'Institute INNER JOIN news_range ON Institut_id = range_id INNER JOIN news USING(news_id)';
-                $order_querypart    = 'Institute.Name, news.date DESC, news.chdate DESC';
+                if (Config::get()->SORT_NEWS_BY_CHDATE) {
+                    $order_querypart = 'Institute.Name, news.chdate DESC, news.date DESC';
+                } else {
+                    $order_querypart = 'Institute.Name, news.date DESC, news.chdate DESC';
+                }
                 break;
             case 'user':
                 $select_querypart   = 'CONCAT(news_id, "_", auth_user_md5.user_id) AS idx, range_id, auth_user_md5.user_id AS userid, news.* ';
                 $from_querypart     = 'auth_user_md5 INNER JOIN news_range ON auth_user_md5.user_id = range_id INNER JOIN news USING(news_id)';
-                $order_querypart    = 'auth_user_md5.Nachname, news.date DESC, news.chdate DESC';
+                if (Config::get()->SORT_NEWS_BY_CHDATE) {
+                    $order_querypart = 'auth_user_md5.Nachname, news.chdate DESC, news.date DESC';
+                } else {
+                    $order_querypart = 'auth_user_md5.Nachname, news.date DESC, news.chdate DESC';
+                }
                 break;
             default:
                 foreach (['global', 'inst', 'sem', 'user'] as $type) {
