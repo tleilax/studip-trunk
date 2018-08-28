@@ -61,6 +61,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
                         OR CONCAT_WS(' ', a.`Nachname`, a.`Vorname`) LIKE $query
                 )
                 $seminaruser
+                GROUP BY courses.Seminar_id
                 ORDER BY ABS(start_time - unix_timestamp()) ASC";
 
         if (Config::get()->IMPORTANT_SEMNUMBER) {
