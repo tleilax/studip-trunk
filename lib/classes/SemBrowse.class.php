@@ -1287,7 +1287,7 @@ class SemBrowse {
                         [
                             'start_item_id' => $option['sem_tree_id'],
                             'path_id'       => $option['sem_tree_id'],
-                            'cmd'           => 'show_sem_range_tree',
+                            'cmd'           => 'show_sem_range',
                             'item_id'       => $option['sem_tree_id'] . '_withkids',
                             'level'         => 'vv',
                             'option'        => $option_name
