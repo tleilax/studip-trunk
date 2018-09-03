@@ -1,6 +1,6 @@
 <?php
 namespace RESTAPI;
-use Request, Config;
+use Request, Config, DocBlock;
 
 /**
  * RouteMaps define and group routes to resources.
@@ -924,5 +924,92 @@ abstract class RouteMap
     public function urlf($addr_f, $format_params, $url_params = null)
     {
         return $this->url(vsprintf($addr_f, $format_params), $url_params);
+    }
+
+    /**
+     * Returns a list of all the routes this routemap provides.
+     *
+     * @param string $http_method Return only the routes for this specific
+     *                            http method (optional)
+     *
+     * @return array of all routes grouped by method
+     */
+    public function getRoutes($http_method = null)
+    {
+        $ref      = new \ReflectionClass($this);
+        $docblock = DocBlock::ofClass($this);
+        $class_conditions = $this->extractConditions($docblock);
+
+        // Create result array by creating an associative array from all
+        // supported methods as keys
+        $routes = array_fill_keys(Router::getSupportedMethods(), []);
+
+        // Restrict routes to given http method (if given)
+        if ($http_method !== null) {
+            $routes = [$http_method => []];
+        }
+
+        // Iterate through all methods of the routemap
+        foreach ($ref->getMethods() as $ref_method) {
+            // Not public? Not an api route!
+            if (!$ref_method->isPublic()) {
+                continue;
+            }
+
+            // Parse docblock
+            $docblock = DocBlock::ofMethod($ref_method->class, $ref_method->name);
+
+            // No docblock tags? Not an api route!
+            if (!$docblock->tags) {
+                continue;
+            }
+
+            // Any specific condition to consider?
+            $conditions = $this->extractConditions($docblock, $class_conditions);
+
+            // Iterate through all possible methods in order to identify
+            // any according docblock tags
+            foreach (array_keys($routes) as $http_method) {
+                if (!isset($docblock->tags[$http_method])) {
+                    continue;
+                }
+
+                // Route all defined method and uri template combinations to
+                // the according methods of the object.
+                foreach ($docblock->tags[$http_method] as $uri_template) {
+                    $routes[$http_method][$uri_template] = [
+                        'handler'     => [$this, $ref_method->name],
+                        'conditions'  => $conditions,
+                        'description' => $docblock->desc ?: false,
+                    ];
+                }
+            }
+        }
+
+        // Return all routes grouped or just the routes for the wanted method
+        return func_num_args() === 1
+             ? reset($routes)
+             : $routes;
+    }
+
+    /**
+     * Extracts defined conditions from a given docblock.
+     *
+     * @param DocBlock $docblock   DocBlock to examine
+     * @param Array    $conditions Optional array of already defined
+     *                             conditions to extend
+     * @return Array of all extracted conditions with the variable name
+     *         as key and pattern to match as value
+     */
+    protected function extractConditions($docblock, $conditions = array())
+    {
+        if (!empty($docblock->tags['condition'])) {
+            foreach ($docblock->tags['condition'] as $condition) {
+                list($var, $pattern) = explode(' ', $condition, 2);
+                $conditions[$var] = $pattern;
+            }
+        }
+
+        return $conditions;
     }
 }

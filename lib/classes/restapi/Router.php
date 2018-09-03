@@ -5,7 +5,7 @@
  * die für die RESTful Web Services von Stud.IP benötigt werden.
  */
 namespace RESTAPI;
-use DocBlock, BadMethodCallException;
+use BadMethodCallException;
 
 /**
  * Die Aufgabe des Routers ist das Anlegen und Auswerten eines
@@ -66,7 +66,19 @@ class Router
     }
 
     // All supported method need to be defined here
-    protected $supported_methods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
+    protected static $supported_methods = [
+        'get', 'post', 'put', 'delete', 'patch', 'options', 'head'
+    ];
+
+    /**
+     * Returns a list of all supported methods.
+     *
+     * @return array of methods as strings
+     */
+    public static function getSupportedMethods()
+    {
+        return self::$supported_methods;
+    }
 
     // registered routes by method and uri template
     protected $routes = array();
@@ -129,7 +141,7 @@ class Router
     {
         // Normalize method and test whether it's supported
         $request_method = mb_strtolower($request_method);
-        if (!in_array($request_method, $this->supported_methods)) {
+        if (!in_array($request_method, self::$supported_methods)) {
             throw new \Exception('Method "' . $request_method . '" is not supported.');
         }
 
@@ -181,38 +193,20 @@ class Router
                   ? 'plugin'
                   : 'core';
 
-        $docblock = DocBlock::ofClass($map);
-        $class_conditions = $this->extractConditions($docblock);
-
-        foreach ($ref->getMethods() as $ref_method) {
-            // Parse docblock
-            $docblock = DocBlock::ofMethod($ref_method->class, $ref_method->name);
-
-            // No docblock tags? Not an api route!
-            if (!$docblock->tags) {
-                continue;
-            }
-
-            // Any specific condition to consider?
-            $conditions = $this->extractConditions($docblock, $class_conditions);
-
-            // Iterate through all possible methods in order to identify
-            // any according docblock tags
-            foreach ($this->supported_methods as $http_method) {
-                if (!isset($docblock->tags[$http_method])) {
-                    continue;
-                }
-
-                // Route all defined method and uri template combinations to
-                // the according methods of the object.
-                foreach ($docblock->tags[$http_method] as $uri_template) {
-                    $handler = array($map, $ref_method->name);
-
-                    // Register (and describe) route
-                    $this->register($http_method, $uri_template, $handler, $conditions, $source);
-                    if ($docblock->desc) {
-                        $this->describe($uri_template, $docblock->desc, $http_method);
-                    }
+        foreach (self::$supported_methods as $http_method) {
+            foreach ($map->getRoutes($http_method) as $uri_template => $data) {
+                // Register (and describe) route
+                $this->register(
+                    $http_method, $uri_template,
+                    $data['handler'], $data['conditions'],
+                    $source
+                );
+                if ($data['description']) {
+                    $this->describe(
+                        $uri_template,
+                        $data['description'],
+                        $http_method
+                    );
                 }
             }
         }
@@ -372,7 +366,7 @@ class Router
 
         try {
             $response = $this->execute($route, $parameters, $request_body);
-        } catch(RouterHalt $halt) {
+        } catch (RouterHalt $halt) {
             $response = $halt->response;
         }
 
@@ -582,26 +576,5 @@ class Router
         }
 
         return array_map('strtoupper', $methods);
-    }
-
-    /**
-     * Extracts defined conditions from a given docblock.
-     *
-     * @param DocBlock $docblock   DocBlock to examine
-     * @param Array    $conditions Optional array of already defined
-     *                             conditions to extend
-     * @return Array of all extracted conditions with the variable name
-     *         as key and pattern to match as value
-     */
-    protected function extractConditions($docblock, $conditions = array())
-    {
-        if (!empty($docblock->tags['condition'])) {
-            foreach ($docblock->tags['condition'] as $condition) {
-                list($var, $pattern) = explode(' ', $condition, 2);
-                $conditions[$var] = $pattern;
-            }
-        }
-
-        return $conditions;
     }
 }
