@@ -307,7 +307,7 @@
                 options.processData = false;
 
                 fd = new FormData();
-                options.data.forEach(item => fd.set(item.name, item.value));
+                options.data.forEach(item => fd.append(item.name, item.value));
 
                 $(element).closest('form').find('input[type=file]').each(function () {
                     var name = $(this).attr('name'),
