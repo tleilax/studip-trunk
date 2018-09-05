@@ -45,11 +45,9 @@ class AddFilesSearchIndex extends Migration
         $dbm = \DBManager::get();
         $dbm->execute(
             'CREATE TABLE IF NOT EXISTS `files_search_index` (
-             `FTS_DOC_ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
              `file_ref_id` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
              `text` text COLLATE utf8mb4_unicode_ci NOT NULL,
              `relevance` float NOT NULL,
-             PRIMARY KEY (`FTS_DOC_ID`),
              KEY `file_ref_id` (`file_ref_id`),
              FULLTEXT KEY `text` (`text`)
             ) ENGINE=' . $engine . ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC'
