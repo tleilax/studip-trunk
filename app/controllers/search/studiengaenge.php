@@ -55,7 +55,7 @@ class Search_StudiengaengeController extends MVVController
         $this->abschluss_url = $this->url_for('abschlusskategorie/show/');
 
         $this->breadcrumb->init();
-        $this->breadcrumb->append(_('Studienangebot'), 'index');
+        $this->breadcrumb->append(_('Studiengänge'), 'index');
         $this->render_template('search/studiengaenge/index', $this->layout);
     }
 
@@ -346,7 +346,7 @@ class Search_StudiengaengeController extends MVVController
                 ['with_courses' => intval(!$this->with_courses)]));
             Sidebar::get()->addWidget($widget, 'with_courses');
         }
-        $this->breadcrumb->append(Studiengang::find($studiengang_id), 'verlauf');
+        $this->breadcrumb->append($this->studiengang, 'studiengang');
         $this->render_template('search/studiengaenge/verlauf', $this->layout);
     }
 
