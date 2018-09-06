@@ -60,7 +60,6 @@ class Course_EnrolmentController extends AuthenticatedController
             throw new AccessDeniedException($enrolment_info['description']);
         }
         PageLayout::setTitle($course->getFullname() . " - " . _("Veranstaltungsanmeldung"));
-        PageLayout::addScript('studip-enrolment.js');
         if (Request::submitted('cancel')) {
             $this->redirect(URLHelper::getURL('dispatch.php/course/details/', array('sem_id' => $this->course_id)));
         }

@@ -659,8 +659,8 @@ class PageLayout
      */
     public static function addSqueezePackage($package)
     {
-        $oldPackages = ["admission", "base", "enrolment", "filesdashboard", "raumzeit", "settings", "statusgroups", "subcourses", "userfilter", "widgets", "wysiwyg"];
-        $oldCssPackages = ["base", "statusgroups", "widgets", "wysiwyg"];
+        $oldPackages = ["admission", "base", "statusgroups", "wysiwyg"];
+        $oldCssPackages = ["base", "statusgroups", "wysiwyg"];
 
         // tablesorter loads on demand
 

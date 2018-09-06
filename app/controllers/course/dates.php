@@ -18,8 +18,6 @@ class Course_DatesController extends AuthenticatedController
             PageLayout::setTitle(_('Termine'));
         }
 
-        PageLayout::addScript('studip-raumzeit.js');
-
         Sidebar::get()->setImage('sidebar/date-sidebar.png');
 
         $this->show_raumzeit = $this->course->getSemClass()->offsetGet('show_raumzeit');

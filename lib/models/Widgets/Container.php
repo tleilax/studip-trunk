@@ -456,8 +456,6 @@ class Container extends SimpleORMap implements Comparable
      */
     public function render(array $variables = [])
     {
-        PageLayout::addStylesheet('studip-widgets.css');
-        PageLayout::addScript('studip-widgets.js');
         $this->setupSidebar();
 
         $variables['mode'] = self::$mode;
@@ -630,9 +628,6 @@ class Container extends SimpleORMap implements Comparable
      */
     public function renderPreview()
     {
-        PageLayout::addStylesheet('studip-widgets.css');
-        PageLayout::addScript('studip-widgets.js');
-
         return $this->getTemplate('widgets-new/preview.php')->render([
             'width'   => self::WIDTH,
             'preview' => $this->getGridForPreview(),

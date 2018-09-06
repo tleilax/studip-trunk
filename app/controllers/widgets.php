@@ -15,9 +15,6 @@ class WidgetsController extends AuthenticatedController
 
         parent::before_filter($action, $args);
 
-        PageLayout::addStylesheet('studip-widgets.css');
-        PageLayout::addScript('studip-widgets.js');
-
         $this->return_to = Request::get('return_to');
     }
 

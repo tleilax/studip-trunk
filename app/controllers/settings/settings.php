@@ -77,8 +77,6 @@ class Settings_SettingsController extends AuthenticatedController
             $this->user->auth_plugin = 'standard';
         }
 
-        PageLayout::addScript('studip-settings.js');
-
         // Show info message if user is not on his own profile
         if ($username != $GLOBALS['user']->username) {
             $message = sprintf(_('Daten von: %1$s (%2$s), Status: %3$s'),

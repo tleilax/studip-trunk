@@ -80,7 +80,6 @@ class Course_StudygroupController extends AuthenticatedController
         } else {
             PageLayout::setTitle($studygroup->getFullname() . ' - ' . _('Studiengruppendetails'));
             PageLayout::setHelpKeyword('Basis.StudiengruppenAbonnieren');
-            PageLayout::addScript('studip-enrolment.js');
 
             $stmt = DBManager::get()->prepare("SELECT * FROM admission_seminar_user"
                                               . " WHERE user_id = ? AND seminar_id = ?");

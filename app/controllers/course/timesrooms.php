@@ -51,7 +51,6 @@ class Course_TimesroomsController extends AuthenticatedController
         ];
 
         PageLayout::setHelpKeyword('Basis.Veranstaltungen');
-        PageLayout::addScript('studip-raumzeit.js');
 
         $title = _('Verwaltung von Zeiten und Räumen');
         $title = $this->course->getFullname() . ' - ' . $title;
