@@ -116,13 +116,8 @@ class ForumVisit {
             $stmt->execute(array($seminar_id, $GLOBALS['user']->id));
             $visit[$seminar_id][$GLOBALS['user']->id] = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // no entry for this seminar yet present, create a new one
+            // no entry for this seminar yet present
             if (!$visit[$seminar_id][$GLOBALS['user']->id]) { 
-                $stmt = DBManager::get()->prepare("INSERT INTO forum_visits
-                    (seminar_id, user_id, visitdate, last_visitdate) VALUES
-                    (?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())");
-                $stmt->execute(array($seminar_id, $GLOBALS['user']->id));
-            
                 // set visitdate to current time
                 $visit[$seminar_id][$GLOBALS['user']->id] = array(
                     'visit'      => time() - ForumVisit::LAST_VISIT_MAX,
