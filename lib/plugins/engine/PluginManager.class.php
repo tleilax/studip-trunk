@@ -130,25 +130,18 @@ class PluginManager
             return;
         }
 
-        $abort = false;
-
-        // call #onEnable or #onDisable
-        $plugin_class = $this->loadPluginById($id);
-        if ($plugin_class) {
-            // If onenable/-disable returns false or throws an exception,
-            // don't enable or disable the plugin
-            try {
-                $method = $enabled ? 'onEnable' : 'onDisable';
-                $result = $plugin_class->getMethod($method)->invoke(null, $id);
-                $abort  = $result === false;
-            } catch (Exception $e) {
-                $abort = true;
-            }
+        if ($info['core'] || !$this->isPluginsDisabled()) {
+            $plugin_class = $this->loadPlugin($info['class'], $info['path']);
         }
 
-        // Plugin shall not be updated
-        if (!$force && $abort) {
-            return false;
+        if ($plugin_class) {
+            $method = $enabled ? 'onEnable' : 'onDisable';
+            $result = $plugin_class->getMethod($method)->invoke(null, $id);
+
+            // if callback returns false, don't enable or disable the plugin
+            if ($result === false && !$force) {
+                return false;
+            }
         }
 
         // Update plugin
@@ -366,27 +359,6 @@ class PluginManager
         require_once $pluginfile;
 
         return new ReflectionClass($class);
-    }
-
-    /**
-     * Load a plugin class from the given plugin ID and
-     * return the ReflectionClass instance for the plugin.
-     *
-     * @param $id string  the plugin's ID
-     * @return a ReflectionClass instance of the plugin
-     */
-    private function loadPluginById ($id)
-    {
-        $plugin_info = $this->getPluginInfoById($id);
-        if (isset($plugin_info)) {
-
-            $class = $plugin_info['class'];
-            $path  = $plugin_info['path'];
-
-            return $this->loadPlugin($class, $path);
-        }
-
-        return NULL;
     }
 
     /**
