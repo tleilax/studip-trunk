@@ -95,6 +95,7 @@ class Utf8Conversion extends Migration
 
                 $query = 'ALTER TABLE `'. $data[0] .'` ';
                 $change_query = array();
+                $update_query = array();
                 $table_data = $db->query("SHOW FULL COLUMNS FROM `{$data[0]}`")->fetchAll();
 
                 foreach ($table_data as $column) {
@@ -136,17 +137,18 @@ class Utf8Conversion extends Migration
                         $comment = $column['Comment'] != '' ? ' COMMENT ' . $db->quote($column['Comment']) : '';
                         $change_query[] = ' CHANGE `'. $column[0] .'` `'. $column[0] .'` '
                            . $column[1] . ' CHARACTER SET '. $charset .' COLLATE ' . $collation . $null . $default . $extra . $comment;
-                   }
+                    }
+
+                    if ($collation && $collation !== 'latin1_bin') {
+                        $update_query[] = '`' . $column['Field'] . '` = entity_decode(`' . $column['Field'] . '`)';
+                    }
                 }
 
                 // do all changes at once, or multi-column-indexes will prevent conversion
-                $db->exec($query . implode(',', $change_query) .';');
+                $db->exec($query . implode(',', $change_query));
 
-                foreach ($table_data as $column) {
-                    if ($column['Collation']) {
-                        // convert htmlentities
-                        $db->exec("UPDATE `{$data[0]}` SET `{$column['Field']}` = entity_decode(`{$column['Field']}`)");
-                    }
+                if ($update_query) {
+                    $db->exec("UPDATE `{$data[0]}` SET " . implode(',', $update_query));
                 }
 
                 // change default encoding of table itself
