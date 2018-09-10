@@ -202,7 +202,7 @@
         </label>
     </fieldset>
 
-    <fieldset class="collapsed">
+    <fieldset class="collapsed attribute_table">
         <legend>
             <?= _("Inhaltselemente") ?>
         </legend>
@@ -222,6 +222,7 @@
         );
         ?>
         <? foreach ($container as $container_id => $container_attributes) : ?>
+
         <div container="<?= $container_id ?>" class="core_module_slot">
             <h2><?= htmlReady($container_attributes['name']) ?></h2>
             <div class="droparea limited<?= $sem_class->getSlotModule($container_id) !== null ? " full" : "" ?>">
