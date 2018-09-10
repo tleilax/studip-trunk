@@ -27,7 +27,8 @@ class DataFieldTextlinei18nEntry extends DataFieldI18NEntry
      */
     public function getHTML($name = '', $variables = [])
     {
-        $variables['id'] = $name . '_' . $this->model->id;
+        $variables['id']    = $name . '_' . $this->model->id;
+        $variables['model'] = $this->model;
 
         if ($this->isRequired()) {
             $variables['required'] = true;
