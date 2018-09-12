@@ -240,7 +240,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
                 ),
                 'img'        => FileManager::getIconForMimeType($fileref['mime_type'], 'clickable')->asImagePath(),
                 'additional' => self::mark($range ? $range->getFullname() : '', $search, false),
-                'date'       => strftime('%x %X', $fileref['chdate']),
+                'date'       => strftime('%x', $fileref['chdate']),
                 'expand'     => URLHelper::getURL(
                     "dispatch.php{$range_path}/files/index/{$fileref['folder_id']}",
                     ['cid' => $fileref['range_id']]

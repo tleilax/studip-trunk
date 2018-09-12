@@ -9,8 +9,6 @@
     position: relative;
     top: 4px;
 
-    white-space: nowrap;
-
     // Reset alignments among browsers
     > * {
         .box-sizing(border-box);
@@ -184,8 +182,7 @@
                 .flex-direction-row();
                 .flex-wrap(nowrap);
 
-                padding-top: 6px;
-                padding-bottom: 6px;
+                padding: 6px 6px 6px 0;
 
                 border-top: 1px solid @content-color-40;
                 .transition(background-color @transition-duration);
@@ -203,7 +200,7 @@
                     .flex-direction-row();
                     .flex-wrap(nowrap);
                     margin: 0;
-                    max-width: 100%;
+                    width: 100%;
                 }
 
                 .globalsearch-result-img {
@@ -218,9 +215,9 @@
 
                 .globalsearch-result-data {
                     .flex-item(1);
-                    max-width: calc(100% - 100px);
                     overflow: hidden;
-                    padding-right: 6px;
+                    margin-right: 6px;
+                    white-space: nowrap;
 
                     .globalsearch-result-title {
                         font-size: @font-size-base;
@@ -236,21 +233,14 @@
                 .globalsearch-result-time {
                     color: @dark-gray-color-80;
                     .flex-item(0);
-                    font-size: ceil((@font-size-small * 0.85));
-                    font-weight: normal;
+                    font-size: @font-size-small;
                     text-align: right;
-                    max-width: 20%;
-                    width: 60px;
+                    white-space: nowrap;
                 }
 
                 .globalsearch-result-expand {
                     flex: auto;
-                    margin-bottom: auto;
-                    margin-right: 5px;
-                    margin-top: auto;
-                    max-width: 25px;
-                    padding-right: 5px;
-                    width: 40px;
+                    margin: 20px 0 0 -32px;
 
                     a {
                         .background-icon('arr_1right', 'clickable', 24);

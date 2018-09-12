@@ -110,7 +110,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
                 '#' . $data['topic_id'], array('cid' => $data['seminar_id'], 'highlight_topic' => $data['topic_id'])
             ),
             'img'         => CourseAvatar::getAvatar($course->id)->getUrl(Avatar::MEDIUM),
-            'date'        => strftime('%x %X', $data['chdate']),
+            'date'        => strftime('%x', $data['chdate']),
             'description' => self::mark($data['content'], $search, true),
             'additional'  => htmlReady($additional),
             'expand' => URLHelper::getURL('plugins.php/coreforum/index/search', [
