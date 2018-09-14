@@ -261,7 +261,7 @@ class StudipLitListViewAdmin extends TreeView
                     . sprintf(_("Es werden insgesamt %s Einträge gelöscht!"), count($this->tree->getKidsKids($item_id)))
                     . "\n" . _("Wollen Sie diese Liste wirklich löschen?");
 
-        echo QuestionBox::create(
+        PageLayout::postQuestion(
             $question,
             URLHelper::getURL($this->getSelf("cmd=DeleteItem&item_id={$item_id}")),
             URLHelper::getURL($this->getSelf("cmd=Cancel&item_id={$item_id}"))
