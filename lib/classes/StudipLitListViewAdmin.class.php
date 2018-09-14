@@ -265,9 +265,7 @@ class StudipLitListViewAdmin extends TreeView
             $question,
             URLHelper::getURL($this->getSelf("cmd=DeleteItem&item_id={$item_id}")),
             URLHelper::getURL($this->getSelf("cmd=Cancel&item_id={$item_id}"))
-        )->render();
-
-        echo $template->render();
+        );
 
         return false;
     }
