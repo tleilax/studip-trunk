@@ -410,9 +410,9 @@ class Search_ModuleController extends MVVController
         $term = '%' . $this->sterm . '%';
         $modul_public_status = ModuleManagementModel::getPublicStatus('Modul');
         $version_public_status =
- ModuleManagementModel::getPublicStatus('StgteilVersion');
+                ModuleManagementModel::getPublicStatus('StgteilVersion');
         $studiengang_public_status =
- ModuleManagementModel::getPublicStatus('Studiengang');
+                ModuleManagementModel::getPublicStatus('Studiengang');
         if (count($modul_public_status) && count($version_public_status)
                 && count($studiengang_public_status)) {
             $query = 'SELECT DISTINCT(mm.modul_id) '
@@ -423,9 +423,9 @@ class Search_ModuleController extends MVVController
                     . 'INNER JOIN mvv_stgteilabschnitt_modul USING(abschnitt_id) '
                     . 'INNER JOIN mvv_modul mm USING(modul_id) '
                     . 'WHERE (ms.name LIKE ? OR ms.name_kurz LIKE ?) '
-                    . ' AND ms.stat IN (?) '
+                    . 'AND ms.stat IN (?) '
                     . 'AND msv.stat IN (?) AND mm.stat IN (?)';
-            $params = [$term, $term, $term, $term,
+            $params = [$term, $term,
                 $studiengang_public_status, $version_public_status,
                 $modul_public_status];
             $stmt = DBManager::get()->prepare($query);
@@ -440,9 +440,9 @@ class Search_ModuleController extends MVVController
         $ret = array();
         $modul_public_status = ModuleManagementModel::getPublicStatus('Modul');
         $version_public_status =
- ModuleManagementModel::getPublicStatus('StgteilVersion');
+                ModuleManagementModel::getPublicStatus('StgteilVersion');
         $studiengang_public_status =
- ModuleManagementModel::getPublicStatus('Studiengang');
+                ModuleManagementModel::getPublicStatus('Studiengang');
         if (count($modul_public_status) && count($version_public_status)) {
             $query = 'SELECT DISTINCT(mm.modul_id) '
                     . 'FROM fach mf INNER JOIN mvv_stgteil USING(fach_id) '
@@ -456,7 +456,7 @@ class Search_ModuleController extends MVVController
                     . 'WHERE (mf.name LIKE ? OR mf.name_kurz LIKE ?) '
                     . 'AND ms.stat IN (?) AND mm.stat IN (?) '
                     . 'AND msv.stat IN (?)';
-            $params = [$term, $term, $term, $term,
+            $params = [$term, $term,
                 $studiengang_public_status, $modul_public_status,
                 $version_public_status];
             $stmt = DBManager::get()->prepare($query);
