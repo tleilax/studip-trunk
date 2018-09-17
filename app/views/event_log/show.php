@@ -38,23 +38,22 @@ use Studip\Button, Studip\LinkButton;
         <label class="col-2">
             <?= _('Darstellung') ?>
             <select name="format">
-                <option value="compact"><?= _('Kompakt') ?></option>
-                <option value="detail"><?= _('Details') ?></option>
+                <option value="compact" <?= $format == 'compact' ? 'selected' : '' ?>><?= _('Kompakt') ?></option>
+                <option value="detail" <?= $format == 'detail' ? 'selected' : '' ?>><?= _('Details') ?></option>
             </select>
         </label>
-
-
 
         <label class="col-1">
             <?= _('Art der Einträge') ?><br>
             <select name="type" <?= isset($objects) ? 'disabled="disabled"' : ''?>>
                 <? foreach ($types as $name => $title): ?>
-                    <option value="<?= $name ?>" <?= Request::get('type') == $name ? 'selected' : ''?>><?= htmlReady($title) ?></option>
+                    <option value="<?= $name ?>" <?= $type == $name ? 'selected' : ''?>><?= htmlReady($title) ?></option>
                 <? endforeach ?>
             </select>
         </label>
 
         <? if (isset($objects)): ?>
+            <input type="hidden" name="type" value="<?= htmlReady($type) ?>">
             <input type="hidden" name="search" value="<?= htmlReady($search) ?>">
 
             <label class="col-3">
@@ -66,7 +65,6 @@ use Studip\Button, Studip\LinkButton;
                             <option value="<?= $object[0] ?>" <?= $selected ?>><?= htmlReady($object[1]) ?></option>
                         <? endforeach ?>
                     </select>
-
 
                     <a href="<?= $controller->url_for('event_log/show?action_id='.urlencode($action_id)) ?>">
                         <?= Icon::create('refresh', 'clickable', ['title' => _('neue Suche')])->asImg() ?>
