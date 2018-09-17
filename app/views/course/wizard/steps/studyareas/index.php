@@ -20,6 +20,11 @@
             </ul>
         </li>
     </ul>
+    <? if (!$values['locked']) : ?>
+        <div data-dialog-button>
+            <?= Studip\Button::createAccept(_('Speichern')) ?>
+        </div>
+    <? endif ?>
 </div>
 <? if (!$values['locked']) : ?>
     <div id="studyareas" data-ajax-url="<?= $ajax_url ?>"
