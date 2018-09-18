@@ -667,11 +667,14 @@ class PageLayout
 
         // tablesorter loads on demand
 
+        // Get software version
+        $v = StudipVersion::getStudipVersion(false);
+
         if (in_array($package, $oldPackages)) {
-            self::addScript('studip-'.$package.'.js');
+            self::addScript('studip-' . $package . '.js?v=' . $v);
         }
         if (in_array($package, $oldCssPackages)) {
-            self::addStylesheet('studip-'.$package.'.css');
+            self::addStylesheet('studip-' . $package . '.css?v=' . $v);
         }
     }
 
