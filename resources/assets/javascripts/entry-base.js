@@ -3,6 +3,7 @@ import './public-path.js'
 import "../stylesheets/studip-jquery-ui.less"
 import "highlight.js/styles/tomorrow.css"
 import "chartist/dist/chartist.css"
+import "gridstack/dist/gridstack.css"
 import "../stylesheets/studip.less"
 import "../stylesheets/widgets.less"
 

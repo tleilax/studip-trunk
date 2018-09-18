@@ -72,8 +72,6 @@ import select2 from "select2/dist/js/select2.full.js"
 
 import "sticky-kit/dist/sticky-kit.js"
 
-
-import "gridstack/dist/gridstack.css"
 import "gridstack"
 import "gridstack/dist/gridstack.jQueryUI.js"
 
