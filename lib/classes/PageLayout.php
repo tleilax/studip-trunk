@@ -86,42 +86,45 @@ class PageLayout
      */
     public static function initialize()
     {
+        // Get software version
+        $v = StudipVersion::getStudipVersion(false);
+
         // set favicon
-        self::addHeadElement('link', array('rel' => 'apple-touch-icon', 'sizes' => '180x180', 'href' => Assets::image_path('apple-touch-icon.png')));
-        self::addHeadElement('link', array('rel' => 'icon', 'type' => 'image/svg+xml', 'href' => Assets::image_path('favicon.svg')));
-        self::addHeadElement('link', array('rel' => 'icon', 'type' => 'image/png', 'sizes' => '64x64', 'href' => Assets::image_path('favicon-64x64.png')));
-        self::addHeadElement('link', array('rel' => 'icon', 'type' => 'image/png', 'sizes' => '32x32', 'href' => Assets::image_path('favicon-32x32.png')));
-        self::addHeadElement('link', array('rel' => 'icon', 'type' => 'image/png', 'sizes' => '16x16', 'href' => Assets::image_path('favicon-16x16.png')));
-        self::addHeadElement('link', array('rel' => 'manifest', 'href' => Assets::image_path('manifest.json')));
-        self::addHeadElement('link', array('rel' => 'mask-icon', 'href' => Assets::image_path('safari-pinned-tab.svg')));
-        self::addHeadElement('meta', array('name' => 'TileColor', 'content' => '#2b5797'));
-        self::addHeadElement('meta', array('name' => 'TileImage', 'content' => Assets::image_path('mstile-144x144.png')));
-        self::addHeadElement('meta', array('name' => 'msapplication-config', 'content' => Assets::image_path('browserconfig.xml')));
-        self::addHeadElement('meta', array('name' => 'theme-color', 'content' => '#ffffff'));
+        self::addHeadElement('link', ['rel' => 'apple-touch-icon', 'sizes' => '180x180', 'href' => Assets::image_path('apple-touch-icon.png')]);
+        self::addHeadElement('link', ['rel' => 'icon', 'type' => 'image/svg+xml', 'href' => Assets::image_path('favicon.svg')]);
+        self::addHeadElement('link', ['rel' => 'icon', 'type' => 'image/png', 'sizes' => '64x64', 'href' => Assets::image_path('favicon-64x64.png')]);
+        self::addHeadElement('link', ['rel' => 'icon', 'type' => 'image/png', 'sizes' => '32x32', 'href' => Assets::image_path('favicon-32x32.png')]);
+        self::addHeadElement('link', ['rel' => 'icon', 'type' => 'image/png', 'sizes' => '16x16', 'href' => Assets::image_path('favicon-16x16.png')]);
+        self::addHeadElement('link', ['rel' => 'manifest', 'href' => Assets::image_path('manifest.json')]);
+        self::addHeadElement('link', ['rel' => 'mask-icon', 'href' => Assets::image_path('safari-pinned-tab.svg')]);
+        self::addHeadElement('meta', ['name' => 'TileColor', 'content' => '#2b5797']);
+        self::addHeadElement('meta', ['name' => 'TileImage', 'content' => Assets::image_path('mstile-144x144.png')]);
+        self::addHeadElement('meta', ['name' => 'msapplication-config', 'content' => Assets::image_path('browserconfig.xml')]);
+        self::addHeadElement('meta', ['name' => 'theme-color', 'content' => '#ffffff']);
 
         // set initial width for mobile devices
-        self::addHeadElement('meta', array('name' => 'viewport', 'content' => 'width=device-width, initial-scale=1.0'));
+        self::addHeadElement('meta', ['name' => 'viewport', 'content' => 'width=device-width, initial-scale=1.0']);
 
         // include ie-specific CSS
-        self::addComment('[if IE]>' . Assets::stylesheet('ie.css', array('media' => 'screen,print')) . '<![endif]');
+        self::addComment('[if IE]>' . Assets::stylesheet('ie.css?v=' . $v, ['media' => 'screen,print']) . '<![endif]');
 
-        self::addHeadElement('link', array(
+        self::addHeadElement('link', [
             'rel'   => 'help',
             'href'  => format_help_url('Basis.VerschiedenesFormat'),
             'class' => 'text-format',
             'title' => _('Hilfe zur Textformatierung')
-        ));
+        ]);
 
-        self::addStylesheet('studip-base.css', ['media' => 'screen']);
-        self::addScript('studip-base.js');
+        self::addStylesheet('studip-base.css?v=' . $v, ['media' => 'screen']);
+        self::addScript('studip-base.js?v=' . $v);
 
-        self::addStylesheet('print.css', ['media' => 'print']);
+        self::addStylesheet('print.css?v=' . $v, ['media' => 'print']);
 
         if (Config::get()->WYSIWYG) {
-            self::addStylesheet('studip-wysiwyg.css');
-            self::addScript('studip-wysiwyg.js');
+            self::addStylesheet('studip-wysiwyg.css?v=' . $v);
+            self::addScript('studip-wysiwyg.js?v=' . $v);
         }
-        self::addScript("mathjax/MathJax.js?config=TeX-AMS_HTML,default");
+        self::addScript('mathjax/MathJax.js?config=TeX-AMS_HTML,default&v=' . $v);
     }
 
     /**
