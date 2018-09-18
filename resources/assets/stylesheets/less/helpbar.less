@@ -34,7 +34,7 @@
     }
 }
 .helpbar {
-    .box-sizing(border-box);
+    box-sizing: border-box;
 
     @border-width: 4px;
     background: #fff;
@@ -117,11 +117,11 @@
 
     width: 32px;
     text-indent: -@helpbar-width;
-    .transition(@transition);
+    transition: @transition;
 
     .helpbar-widgets {
         max-height: 0;
-        .transition(@transition);
+        transition: @transition;
         overflow: hidden;
     }
 

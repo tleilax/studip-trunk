@@ -15,8 +15,8 @@
 
 /* --- Layouts -------------------------------------------------------------- */
 #layout_page {
-    .border-radius(0 0 2px 2px);
-    .box-sizing(border-box);
+    border-radius: 0 0 2px 2px;
+    box-sizing: border-box;
     clear: both;
     margin: @page-margin;
     background-color: #fff;
@@ -36,7 +36,7 @@
 
 #layout_container {
     background-color: white;
-    .border-radius(0 0 2px 2px);
+    border-radius: 0 0 2px 2px;
     /*margin: 0;*/
     padding-top: 15px;
 }
@@ -64,7 +64,7 @@
 
 
 #layout_content {
-    .box-sizing(border-box);
+    box-sizing: border-box;
     .scrollbox-horizontal();
     padding: 0 @content-margin 20px @content-margin;
     vertical-align: top;
@@ -100,7 +100,7 @@
     color: @contrast-content-white;
     display: flex;
     padding: 2px 0px;
-    .flex-item(0,1);        // fourth row of flex-main
+    flex: 0 1 auto;        // fourth row of flex-main
     min-width: @site-width;
     width: 100%;
 }
@@ -112,79 +112,79 @@
 }
 
 #layout_wrapper {                // the main flex, dividing all elements into flexing rows
-    .flex();
-    .flex-direction-column();
-    .flex-wrap(nowrap);
-    .flex-align-content(stretch);
-    .flex-align-items(stretch);
-    .flex-justify-content();
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: stretch;
+    align-items: stretch;
+    justify-content: flex-start;
 
     min-width: @site-width;
 
     #flex-header {              // first row of flex-main
-        .flex();
-        .flex-direction-row();
-        .flex-wrap(nowrap);
-        .flex-align-content(stretch);
-        .flex-align-items(stretch);
-        .flex-justify-content();
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-content: stretch;
+        align-items: stretch;
+        justify-content: flex-start;
 
         width: 100%;
         min-width: @site-width;
 
-        .flex-item(0,1);
+        flex: 0 1 auto;
 
         #barTopMenu {                   // column 1 of flex-header
-            .flex-item(1, 1);
+            flex: 1 1 auto;
         }
 
         #barTopStudip {             // column 2 of flex-header
-            .flex-item(0, 1);
+            flex: 0 1 auto;
         }
     }
 
     #barBottomContainer {       // second row of flex-main
-        .flex-item(0, 1);
+        flex: 0 1 auto;
 
         min-width: @site-width;
         z-index: 1001; // High enough so it will be above the sidebar
     }
 
     #layout_page {              // third row of flex-main
-        .flex();
-        .flex-direction-column();
-        .flex-wrap(nowrap);
-        .flex-align-content(stretch);
-        .flex-align-items(stretch);
-        .flex-justify-content();
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-content: stretch;
+        align-items: stretch;
+        justify-content: flex-start;
 
-        .flex-item(10, 1);
+        flex: 10 1 auto;
 
         min-width: @page-width;
 
         #tabs, #tabs2 {                     // row 1 of layout_page
             min-height: 30px;
             float: none;
-            .flex-item(0,1);
+            flex: 0 1 auto;
         }
 
         #layout_container {          // row 3 of layout_page
-            .flex();
-            .flex-direction-row();
-            .flex-wrap(nowrap);
-            .flex-align-content(stretch);
-            .flex-align-items(stretch);
-            .flex-justify-content();
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-content: stretch;
+            align-items: stretch;
+            justify-content: flex-start;
 
-            .flex-item(1, 1);
+            flex: 1 1 auto;
             min-width: @page-width;
 
             #layout_content {           // column 1 of layout_container
-                .flex-item(1, 1);
+                flex: 1 1 auto;
             }
 
             #layout_sidebar {           // column 2 of layout_container
-                .flex-item(0, 1);
+                flex: 0 1 auto;
             }
 
         }
@@ -195,7 +195,7 @@
 @-moz-document url-prefix() {
     .flex-container {
         width: 100%;
-       -moz-box-sizing: border-box;
+        box-sizing: border-box;
     }
 
 }

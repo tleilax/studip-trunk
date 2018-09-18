@@ -63,17 +63,17 @@
     min-height: @height;
 
     .flash-embedder {
-        .flex();
-        .flex-justify-content(center);
-        .flex-align-items(center);
+        display: flex;
+        justify-content: center;
+        align-items: center;
         width: 100%;
         height: 100px;
         background-position: center center;
         background-repeat: no-repeat;
         background-size: 100% auto;
         .play {
-            .border-radius(100px);
-            .transition(background-color 300ms);
+            border-radius: 100px;
+            transition: background-color 300ms;
             background-color: rgba(0, 0, 0, 0.7);
             padding: 10px;
         }
@@ -86,7 +86,7 @@
     }
 
     a.info {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         color: black;
         display: block;
         word-break: normal !important;

@@ -74,7 +74,7 @@
         }
     }
 
-    .transition(padding 300ms);
+    transition: padding 300ms;
     &.resizing {
         padding-bottom: 4em;
     }
@@ -86,7 +86,7 @@
 }
 .grid-stack-item {
     .ui-resizable-handle {
-        .transition(opacity 300ms);
+        transition: opacity 300ms;
         opacity: 0.3;
     }
     &:hover .ui-resizable-handle {
@@ -94,7 +94,7 @@
     }
 
     .grid-stack > & > .ui-resizable-se {
-        .rotate(0deg);
+        transform: rotate(0deg);
         background-image: url("@{image-path}/icons/resize-2.svg");
         margin-right: 2px;
         margin-bottom: 2px;
@@ -167,20 +167,20 @@
     &:extend(.ui-widget-content all);
     &:extend(.studip-widget);
 
-    .flex();
-    .flex-align-items(stretch);
-    .flex-direction-row();
-    .flex-wrap(wrap);
+    display: flex;
+    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
 
     background: transparent;
     border: 1px solid @base-color-20;
-    .transition(border 300ms);
+    transition: border 300ms;
 
     // &:hover {
     //     border-color: @base-color;
     // }
 
-//    .transition(all 300ms);
+//    transition: all 300ms;
 
     &.may-drop {
         .widget-header,
@@ -192,16 +192,16 @@
     .widget-header {
         &:extend(.studip-widget .widget-header);
 
-        .flex-item(1, 0, 0);
+        flex: 1 0 0;
         order: 1;
         white-space: nowrap;
         z-index: 2;
     }
 
     .widget-content {
-        .box-sizing(border-box);
-        .flex-item(1, 0, 100%);
-        .transition(all 300ms);
+        box-sizing: border-box;
+        flex: 1 0 100%;
+        transition: all 300ms;
 
         background: #fff;
         order: 3;
@@ -212,15 +212,15 @@
         padding: @content-padding;
         height: calc(100% - 2em - 4px);
 
-        .transition(~"opacity 300ms, margin-top 300ms, z-index 300ms step-start");
+        transition: opacity 300ms, margin-top 300ms, z-index 300ms step-start;
     }
 
     .widget-actions {
-        .flex-item(0, 0);
+        flex: 0 0 auto;
         order: 2;
 
         display: inline-flex;
-        .flex-align-items(flex-start);
+        align-items: flex-start;
 
         list-style: none;
         margin: 0;
@@ -262,7 +262,7 @@
              opacity: 0.5;
          }
 
-         .transition(opacity 300ms);
+         transition: opacity 300ms;
          &:not(:hover) {
              opacity: 0.3;
          }
@@ -319,8 +319,8 @@
 
 // Sidebar related
 #layout-sidebar {
-    .flex();
-    .flex-align-items(flex-start);
+    display: flex;
+    align-items: flex-start;
     max-width: 270px;
 
     @distance: 270px;
@@ -328,8 +328,8 @@
 //    overflow: hidden;
 
     .sidebar-widget {
-        .box-sizing(border-box);
-        .transition(all 300ms linear);
+        box-sizing: border-box;
+        transition: all 300ms linear;
         max-height: 1000px;
         overflow: hidden;
     }
@@ -404,36 +404,36 @@
 
 // Columns
 .grid-stack .widget-columns {
-    .flex();
-    .flex-direction-row();
-    .flex-wrap(wrap);
-    .flex-align-items(flex-start);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
     width: 100%;
 
     > .widget-column {
-        .flex-item(1);
+        flex: 1;
     }
 }
 
 // Tabs
 .tabbable-widget {
-    .flex();
-    .flex-direction-column();
-    .flex-wrap(nowrap);
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
 
     height: 100%;
     margin: (-@content-padding);
     overflow: hidden;
 
     > nav {
-        .flex-item(0);
+        flex: 0;
 
-        .flex();
-        .flex-direction-row();
+        display: flex;
+        flex-direction: row;
 
         > a {
-            .flex-item(1);
-            .transition(background-color 300ms);
+            flex: 1;
+            transition: background-color 300ms;
 
             background-color: @dark-gray-color-10;
             overflow: hidden;
@@ -454,7 +454,7 @@
             }
 
             img, svg {
-                .transition(opacity 300ms);
+                transition: opacity 300ms;
             }
 
             &:not(.active):not(:hover) {
@@ -465,7 +465,7 @@
         }
     }
     > section {
-        .flex-item(1);
+        flex: 1;
 
         overflow-y: auto;
         padding: @content-padding;
@@ -481,7 +481,7 @@ table.widget-container-preview {
     width: 100%;
 
     td {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         text-align: center;
 
         &:not(.empty) {

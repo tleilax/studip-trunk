@@ -21,7 +21,7 @@
     transition: border-color 300ms ease-in-out;
 
     .widget-header {
-        .box-sizing(border-box);
+        box-sizing: border-box;
 
         background-color: @content-color-20;
         color: @brand-color-dark;
@@ -139,12 +139,12 @@
 
 // Wirklich wichtiger Code
 div.start-widgetcontainer {
-    .flex();
-    .flex-justify-content(space-between);
-    .flex-align-items(stretch);
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
 
     > ul {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         display: inline-block;
 
         list-style-type: none;
@@ -152,12 +152,12 @@ div.start-widgetcontainer {
         padding: 0;
         vertical-align: top;
         &:first-child {
-            .flex-grow(2);
+            flex-grow: 2;
             max-width: 65%;
             min-width: 65%;
         }
         &:last-child {
-            .flex-grow(1);
+            flex-grow: 1;
             margin-left: 20px;
             max-width: 33%;
             min-width: 33%;
@@ -179,7 +179,7 @@ div.edit-widgetcontainer {
 }
 div.available-widgets {
     ul {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         display: inline-block;
 
         list-style-type: none;

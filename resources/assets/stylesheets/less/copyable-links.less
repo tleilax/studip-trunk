@@ -3,27 +3,6 @@
 // time, shows the desired state for a third of the time and reverts for - you
 // guessed it - a third of the time.
 .keyframes(@name, @rules-inital, @rules-target) {
-    @-webkit-keyframes @name {
-        0%   { @rules-inital(); }
-        33%  { @rules-target(); }
-        66%  { @rules-target(); }
-        100% { @rules-inital(); }
-    }
-
-    @-moz-keyframes @name {
-        0%   { @rules-inital(); }
-        33%  { @rules-target(); }
-        66%  { @rules-target(); }
-        100% { @rules-inital(); }
-    }
-
-    @-o-keyframes @name {
-        0%   { @rules-inital(); }
-        33%  { @rules-target(); }
-        66%  { @rules-target(); }
-        100% { @rules-inital(); }
-    }
-
     @keyframes @name {
         0%   { @rules-inital(); }
         33%  { @rules-target(); }
@@ -34,8 +13,6 @@
 
 // Defines an css animation with vendor prefixes
 .animation(@arguments) {
-    -webkit-animation: @arguments;
-    -moz-animation: @arguments;
     animation: @arguments;
 }
 

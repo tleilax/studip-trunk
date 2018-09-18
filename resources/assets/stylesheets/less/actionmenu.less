@@ -91,8 +91,8 @@
     html.csstransforms & {
         .action-menu-icon div {
             .square((@icon-size / 4));
-            .translate((-(@icon-size / 8)), 0);
-            .transition(all .25s ease-in-out);
+            transform: translate((-(@icon-size / 8)), 0);
+            transition: all .25s ease-in-out;
 
             display: block;
             position: absolute;
@@ -107,7 +107,7 @@
 
             &:nth-child(2) {
                 top: (@icon-size / 2);
-                .translate((-(@icon-size / 8)), (-(@icon-size / 8)));
+                transform: translate((-(@icon-size / 8)), (-(@icon-size / 8)));
             }
 
             &:nth-child(3) {

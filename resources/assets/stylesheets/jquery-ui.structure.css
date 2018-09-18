@@ -1,5 +1,4 @@
 .ui-draggable-handle {
-	-ms-touch-action: none;
 	touch-action: none;
 }
 /* Layout helpers
@@ -95,7 +94,6 @@
 	position: absolute;
 	font-size: 0.1px;
 	display: block;
-	-ms-touch-action: none;
 	touch-action: none;
 }
 .ui-resizable-disabled .ui-resizable-handle,
@@ -159,7 +157,6 @@
 	top: -5px;
 }
 .ui-selectable {
-	-ms-touch-action: none;
 	touch-action: none;
 }
 .ui-selectable-helper {
@@ -168,7 +165,6 @@
 	border: 1px dotted black;
 }
 .ui-sortable-handle {
-	-ms-touch-action: none;
 	touch-action: none;
 }
 .ui-accordion .ui-accordion-header {
@@ -253,9 +249,6 @@
 	cursor: pointer;
 	vertical-align: middle;
 	text-align: center;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
 	user-select: none;
 
 	/* Support: IE <= 11 */
@@ -727,7 +720,6 @@ button.ui-button::-moz-focus-inner {
 	width: 1.2em;
 	height: 1.2em;
 	cursor: default;
-	-ms-touch-action: none;
 	touch-action: none;
 }
 .ui-slider .ui-slider-range {

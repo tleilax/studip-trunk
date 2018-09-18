@@ -1,6 +1,6 @@
 /* --- header.css ----------------------------------------------------------- */
 #layout_wrapper {
-    .box-sizing(border-box);
+    box-sizing: border-box;
     padding-top: @bar-bottom-container-height;
 }
 #barBottomContainer {
@@ -13,12 +13,12 @@
     width: 100%;
     position: relative;
 
-    .flex();
-    .flex-direction-row();
-    .flex-wrap(nowrap);
-    .flex-justify-content(flex-start);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
 
-    .translate(0, 0) !important; // We need !important due to the horizontal scroll handler
+    transform: translate(0, 0) !important; // We need !important due to the horizontal scroll handler
     position: fixed;
     top: 0px;
     z-index: 10000;
@@ -26,7 +26,7 @@
 }
 #barBottomLeft,
 #barTopFont {
-    .flex-item(0, 0, auto);
+    flex: 0 0 auto;
     padding: 0px 15px;
     z-index: 2;
 }
@@ -57,7 +57,7 @@
 }
 
 #barBottomright {
-    .flex-item(0, 1, auto);
+    flex: 0 1 auto;
     justify-self: flex-end;
     > ul {
         display: flex;
@@ -141,7 +141,7 @@
 }
 
 #barTopFont {
-    .flex-item(1);
+    flex: 1;
     color: @white;
     margin-left: 0px;
     z-index: 1002;

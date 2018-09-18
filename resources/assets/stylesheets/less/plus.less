@@ -40,15 +40,15 @@
         margin-left: 20px;
         width: 97%;
 
-        .flex();
-        .flex-wrap(wrap);
+        display: flex;
+        flex-wrap: wrap;
     }
 
     .screenshot_holder {
         width: 250px;
-        .flex-item(0 250px);
+        flex: 0 250px;
         margin-right: 5mm;
-        .box-sizing(border-box);
+        box-sizing: border-box;
     }
 
     .big_thumb {
@@ -72,7 +72,7 @@
     }
 
     .descriptionbox {
-        .flex-item(1 305px);
+        flex: 1 305px;
         max-width: 45em;
     }
 

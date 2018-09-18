@@ -1,6 +1,6 @@
 .smiley-tabs {
-    .flex();
-    .flex-justify-content(space-between);
+    display: flex;
+    justify-content: space-between;
     margin: 0 0 0.5em;
     line-height: 1.8em;
     width: 100%;
@@ -12,7 +12,7 @@
     li {
         &:extend(#tabs li all);
 
-        .flex-grow(1);
+        flex-grow: 1;
         display: inline-block;
         float: none;
         margin: 0;
@@ -115,7 +115,7 @@
         width: 80px;
     }
     .smiley {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         cursor: pointer;
         max-height: 80px;
         max-width: 80px;
@@ -138,8 +138,8 @@
 
         &:hover {
             background-color: fade(@active-color, 10%);
-            .border-radius(20px);
-            .box-shadow(0 -1px 4px fade(@active-color, 10%), 0 2px 5px #888);
+            border-radius: 20px;
+            box-shadow:0 -1px 4px fade(@active-color, 10%), 0 2px 5px #888;
         }
     }
 

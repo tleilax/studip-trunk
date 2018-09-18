@@ -31,7 +31,7 @@ form.default {
     input[type=date], input[type=email], input[type=number],
     input[type=password], input[type=text], input[type=time], input[type=url], input[type=tel],
     textarea, select {
-        .box-sizing(border-box);
+        box-sizing: border-box;
 
         border: 1px solid @light-gray-color-40;
         color: @dark-gray-color;
@@ -39,7 +39,7 @@ form.default {
         padding: 5px;
         vertical-align: middle;
         width: 100%;
-        .transition(all 0.3s ease-out);
+        transition: all 0.3s ease-out;
 
         &:focus {
             border-color: @brand-color-dark;
@@ -225,7 +225,7 @@ form.default {
             width: calc(100% - 2em);
             display: inline-block;
 
-            .transition(all 0.3s ease-out);
+            transition: all 0.3s ease-out;
 
             &:focus {
                 border-color: @brand-color-dark;
@@ -246,9 +246,9 @@ form.default {
 
     // Group elements in a row
     .hgroup, .hgroup-btn {
-        .flex();
-        .flex-align-items(center);
-        .flex-wrap(wrap);
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
         max-width: @max-width-m;
 
         &.size-s {
@@ -259,8 +259,8 @@ form.default {
         }
 
         > * {
-            .box-sizing(border-box);
-            .flex-item(1, 0);
+            box-sizing: border-box;
+            flex: 1 0 auto;
 
             &:not(:first-child) {
                 margin-left: 3px;
@@ -286,19 +286,19 @@ form.default {
     }
 
     .hgroup-btn {
-        .flex-align-items(baseline);
+        align-items: baseline;
         .form-control {
-            .flex-item(1);
+            flex: 1;
         }
         .button {
-            .flex-item(0);
+            flex: 0;
         }
     }
 
     // Collapsable fieldsets
     .js &.collapsable fieldset, fieldset.collapsable {
         legend {
-            .box-sizing(border-box);
+            box-sizing: border-box;
             .background-icon('arr_1down', 'clickable', 20);
             background-position: 6px center;
             background-repeat: no-repeat;
@@ -346,14 +346,14 @@ form.default {
     }
 
     label.packed {
-        .flex();
+        display: flex;
 
         > * {
-            .flex-item(1);
+            flex: 1;
             max-width: none;
         }
         button {
-            .flex-item(0, 0, auto);
+            flex: 0 0 auto;
             margin: 0;
         }
     }

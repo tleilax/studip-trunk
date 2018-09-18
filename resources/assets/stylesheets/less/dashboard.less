@@ -4,7 +4,7 @@
 
   > li {
     padding: .5em 0;
-    .flex();
+    display: flex;
   }
 
   > li:nth-child(n+2) {
@@ -14,13 +14,13 @@
 
 .document-icon {
   padding-right: 0.5em;
-  .flex-align-self(center);
+  align-self: center;
 }
 
 .document-data {
-  .flex-item(1);
-  .flex();
-  .flex-wrap(wrap);
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
 
   span {
     border-right: 1px solid #d4dbe5;
@@ -40,7 +40,7 @@
 }
 
 .document-name {
-  .flex-item(1 1 100%);
+  flex: 1 1 100%;
 }
 
 .document-chdate {
@@ -125,13 +125,13 @@
 
 form div.files-search {
   &.input-group {
-    .flex();
-    .flex-align-items(stretch);
+    display: flex;
+    align-items: stretch;
     width: 100%;
     margin-top: 1ex;
 
     input[type="text"] {
-      .flex-item(1, 1, auto);
+      flex: 1 1 auto;
       display: block;
       width: 1%;
       line-height: 1.5;
@@ -140,8 +140,8 @@ form div.files-search {
     }
 
     .input-group-append {
-      .flex-align-items(stretch);
-      .flex();
+      align-items: stretch;
+      display: flex;
 
       .button {
         margin: 0;

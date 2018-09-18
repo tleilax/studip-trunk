@@ -11,7 +11,7 @@
 #responsive-container {
     display: none;
 
-    .user-select(none);
+    user-select: none;
 
     input[type="checkbox"] {
         display: none;
@@ -39,7 +39,7 @@
         .hide-text();
         .icon('before', 'arr_1right', 'info_alt', 24);
         &:before {
-            .transition(transform 300ms);
+            transition: transform 300ms;
             vertical-align: text-bottom;
         }
 
@@ -58,8 +58,8 @@ label[for="responsive-toggle"] {
 
 #responsive-navigation {
     #gradient > .horizontal(@brand-color-darker, @brand-color-light);
-    .background-clip(content-box);
-    .transition(left 300ms);
+    background-clip: content-box;
+    transition: left 300ms;
 
 
     left: (-@responsive-menu-width - @responsive-menu-shadow-width);
@@ -72,7 +72,7 @@ label[for="responsive-toggle"] {
     bottom: 0;
     height: 100vh;
 
-    .box-sizing(border-box);
+    box-sizing: border-box;
     max-width: @responsive-menu-width;
     width: @responsive-menu-width;
     margin-bottom: @header-bar-container-height;
@@ -109,7 +109,7 @@ label[for="responsive-toggle"] {
     }
 
     ul {
-        .transition(max-height 400ms ease);
+        transition: max-height 400ms ease;
 
         max-height: 0px;
         overflow: hidden;
@@ -130,7 +130,7 @@ label[for="responsive-toggle"] {
     .csstransforms & input:checked + label {
         .icon('before', 'arr_1right', 'info_alt', 24);
         &:before {
-            .rotate(90deg);
+            transform: rotate(90deg);
         }
     }
 
@@ -200,7 +200,7 @@ label[for="responsive-toggle"] {
     }
 
     #barBottomContainer {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         height: @header-bar-container-height;
         position: fixed;
         top: 0;
@@ -210,7 +210,7 @@ label[for="responsive-toggle"] {
     }
 
     #barBottomright, #barBottomright ul {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         flex: 1;
     }
 
@@ -279,13 +279,13 @@ label[for="responsive-toggle"] {
 
     .visible-sidebar {
         right: 0 !important;
-        .transition(right 300ms);
+        transition: right 300ms;
     }
 
     #layout-sidebar {
         #gradient > .horizontal(@brand-color-light, @brand-color-darker);
-        .background-clip(content-box);
-        .transition(right 300ms);
+        background-clip: content-box;
+        transition: right 300ms;
 
         position: fixed;
         top: @header-bar-container-height;
@@ -304,7 +304,7 @@ label[for="responsive-toggle"] {
         border-left: @responsive-menu-shadow-width solid @responsive-menu-shadow-color;
 
         .sidebar {
-            .box-sizing(border-box);
+            box-sizing: border-box;
 
             &:before {
                 border: 0 !important;
@@ -355,12 +355,12 @@ label[for="responsive-toggle"] {
         padding: 0;
     }
     #search_sem_quick_search_frame {
-        .flex();
-        .flex-direction-row();
-        .flex-justify-content(flex-end);
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
 
         .quicksearchbox {
-            .transition(all 300ms);
+            transition: all 300ms;
             opacity: 0;
             max-width: 0;
         }
@@ -377,10 +377,10 @@ label[for="responsive-toggle"] {
     #barBottomright {
         ul {
             li:first-child {
-                .flex-item(1, 0, auto);
+                flex: 1 0 auto;
             }
             li#quicksearch_item {
-                .flex-item(1, 1, 100%);
+                flex: 1 1 100%;
             }
         }
     }

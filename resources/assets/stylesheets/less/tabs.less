@@ -9,7 +9,7 @@ div.clear
     line-height: 20px;
     min-height: 30px;
     float: none;
-    .flex-item(0,1);
+    flex: 0 1 auto;
     margin: 0;
     background-color: @dark-gray-color-10;
 
@@ -91,7 +91,6 @@ div.clear
 
         img {
             vertical-align: middle;
-            -webkit-filter:hue-rotate(350deg) saturate(8.7%) brightness(177.3%);
             filter: hue-rotate(350deg) saturate(8.7%) brightness(177.3%);
         }
     }
@@ -110,8 +109,8 @@ div.clear
         white-space: nowrap;
 
         ul {
-            .flex();
-            .flex-direction-column();
+            display: flex;
+            flex-direction: column;
         }
 
         a:hover {

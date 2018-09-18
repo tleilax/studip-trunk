@@ -1,6 +1,6 @@
 /* --- main navigation ----------------------------------------------------- */
 body:not(.fixed) #barTopMenu {
-    .flex-align-self(flex-end);
+    align-self: flex-end;
 
     margin: 0 0 4px 5px;
     padding: 0;
@@ -68,21 +68,20 @@ body:not(.fixed) #barTopMenu {
             white-space: nowrap;
 
             left: 50%;
-            .translate(-50%, 0);
+            transform: translate(-50%, 0);
 
             opacity: 0;
         }
     }
 
     img {
-        -webkit-filter:hue-rotate(350deg) saturate(8.7%) brightness(177.3%) !important;
         filter: hue-rotate(350deg) saturate(8.7%) brightness(177.3%) !important;
     }
 
     // Hide all navigation item title on hover and display only the currently
     // hovered one
     .navtitle {
-        .transition(opacity 300ms); // Smooth change when entering
+        transition: opacity 300ms; // Smooth change when entering
     }
     &:hover {
         > li.active .navtitle {
@@ -90,7 +89,7 @@ body:not(.fixed) #barTopMenu {
         }
         > li:hover .navtitle {
             opacity: 1;
-            .transition(opacity 0); // Quick change when leaving
+            transition: opacity 0; // Quick change when leaving
         }
     }
 
@@ -102,12 +101,10 @@ body:not(.fixed) #barTopMenu {
         }
         > a {
             img {
-                -webkit-filter:hue-rotate(0deg) saturate(100%) brightness(100%) !important;
                 filter: hue-rotate(0deg) saturate(100%) brightness(100%) !important;
 
                 filter: url('filter.svg#brightness');
                 filter: brightness(100%);
-                -webkit-filter: brightness(100%);
             }
         }
 
@@ -174,10 +171,10 @@ body:not(.fixed) #barTopMenu {
             li {
                 display: block;
                 a {
-                    .flex();
-                    .flex-direction-row();
-                    .flex-wrap(nowrap);
-                    .flex-align-items(center);
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    align-items: center;
 
                     padding: 0.5em 1em;
 
@@ -186,12 +183,12 @@ body:not(.fixed) #barTopMenu {
                     }
                 }
                 img {
-                    .flex-item(1, 0, 24px);
+                    flex: 1 0 24px;
                     .square(24px);
                     margin: 2px 0.7em 0 0;
                 }
                 .navtitle {
-                    .flex-item(1, 0, 100%);
+                    flex: 1 0 100%;
                     text-align: left;
                     white-space: nowrap;
                 }
@@ -255,8 +252,6 @@ body.fixed {
         padding: 0px;
         position: absolute;
 
-        width: -moz-fit-content;
-        width: -webkit-fit-content;
         width: fit-content;
 
         // Hide menu
@@ -264,7 +259,6 @@ body.fixed {
 
         img {
             filter: url('filter.svg#brightness'); // IE?
-            -webkit-filter: contrast(0) brightness(2); // Order is important!
             filter: contrast(0) brightness(2);
 
             .square(16px);
@@ -274,10 +268,10 @@ body.fixed {
         li {
             padding: 0.25em 15px;
             > a {
-                .flex();
-                .flex-direction-row();
-                .flex-wrap(nowrap);
-                .flex-align-items(center);
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                align-items: center;
 
                 color: @white;
             }

@@ -13,8 +13,6 @@
 
 /* configure look and feel of CKEditor's content area and toolbar */
 .animated-height-change {           /* content area in HTML source view mode */
-    -webkit-transition: height 0.2s;
-    -moz-transition: height 0.2s;
     transition: height 0.2s;
 }
 
@@ -55,15 +53,11 @@ a.cke_mathjax_doc[href] {
 .cke_combo_off a.cke_combo_button:focus,
 .cke_combo_on a.cke_combo_button:hover,
 .cke_combo_on a.cke_combo_button:focus {
-    -moz-box-shadow: none !important;
-    -webkit-box-shadow: none !important;
     box-shadow: none !important;
 }
 .cke_combo_off a.cke_combo_button:active,
 .cke_combo_on a.cke_combo_button:active,
 .cke_combo_on a.cke_combo_button {
-    -moz-box-shadow: none !important;
-    -webkit-box-shadow: none !important;
     box-shadow: none !important;
 }
 
@@ -99,19 +93,10 @@ a.cke_mathjax_doc[href] {
     border: none !important;
     border-bottom-color: transparent !important;
 
-    -moz-border-radius: 0 !important;
-    -webkit-border-radius: 0 !important;
     border-radius: 0 !important;
 
-    -moz-box-shadow: none !important;
-    -webkit-box-shadow: none !important;
     box-shadow: none !important;
 
-    background-image: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#ffffff)) !important;
-    background-image: -moz-linear-gradient(top, #ffffff, #ffffff) !important;
-    background-image: -webkit-linear-gradient(top, #ffffff, #ffffff) !important;
-    background-image: -o-linear-gradient(top, #ffffff, #ffffff) !important;
-    background-image: -ms-linear-gradient(top, #ffffff, #ffffff) !important;
     background-image: linear-gradient(to bottom, #ffffff, #ffffff) !important;
     filter: none !important;
 }

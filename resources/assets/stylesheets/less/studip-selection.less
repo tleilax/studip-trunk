@@ -1,10 +1,10 @@
 .studip-selection {
-    .flex();
-    .flex-direction-row();
-    .flex-wrap(wrap);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 
     > * {
-        .flex-item(1, 0, 100%);
+        flex: 1 0 100%;
     }
     > legend {
         margin-bottom: 0 !important;
@@ -50,7 +50,7 @@
 
     // Selected and selectable lists
     .studip-selection-image img {
-        .transition(opacity 300ms);
+        transition: opacity 300ms;
     }
 
     .studip-selection-selected .studip-selection-label {
@@ -81,7 +81,7 @@
 
     .studip-selection-selected,
     .studip-selection-selectable {
-        .flex-item(1, 1, 300px);
+        flex: 1 1 300px;
         margin-top: 0;
 
         li:hover {

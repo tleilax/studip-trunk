@@ -5,15 +5,15 @@
 }
 
 .themen-list-container {
-    .flex();
-    .flex-direction-row();
+    display: flex;
+    flex-direction: row;
 
     > * {
-        .flex-item(1);
+        flex: 1;
     }
     > a {
-        .flex-item(0);
-        .flex-align-self(flex-end);
+        flex: 0;
+        align-self: flex-end;
     }
 }
 
@@ -23,7 +23,7 @@ table.dates {
         background-color: transparent;
     }
     tr.ausfall {
-        .transition(opacity 300ms);
+        transition: opacity 300ms;
         opacity: 0.5;
 
         &:hover {

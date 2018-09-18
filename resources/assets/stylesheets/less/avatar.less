@@ -47,7 +47,7 @@ div.avatar-widget {
         margin: 0;
         padding: 0;
 
-        .transition(opacity .5s ease-in-out);
+        transition: opacity .5s ease-in-out;
         background-color: fadeout(@base-color, 33.3%);
         opacity: 0;
 
@@ -92,7 +92,7 @@ form.settings-avatar {
     }
 
     .file-upload {
-        .flex-item(1, 1);
+        flex: 1 1 auto;
         position: relative;
         top: 2em;
     }
@@ -102,8 +102,8 @@ form.settings-avatar {
     }
 
     .media-breakpoint-small-up({ .form-group {
-        .flex();
-        .flex-align-items(normal);
+        display: flex;
+        align-items: normal;
     } });
 
     .media-breakpoint-small-down({

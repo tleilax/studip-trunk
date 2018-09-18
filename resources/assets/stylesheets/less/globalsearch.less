@@ -1,5 +1,5 @@
 #quicksearch_item {
-    .flex-align-self(flex-start);
+    align-self: flex-start;
 }
 #globalsearch-searchbar {
     @width: 423px;
@@ -11,7 +11,7 @@
 
     // Reset alignments among browsers
     > * {
-        .box-sizing(border-box);
+        box-sizing: border-box;
     }
 
     // Defines the clear icon for the input
@@ -21,7 +21,7 @@
         vertical-align: middle;
 
         opacity: 0;
-        .transition(opacity @transition-duration);
+        transition: opacity @transition-duration;
     }
     &.has-value #globalsearch-clear {
         opacity: 1;
@@ -32,7 +32,7 @@
         height: 29px;
         padding-left: 5px;
         width: @hidden-width;
-        .transition(width @transition-duration);
+        transition: width @transition-duration;
     }
     &.is-visible #globalsearch-input {
         width: @width;
@@ -54,8 +54,8 @@
 
         // This is only neccessary to remove the whitespace in front of the text
         // Otherwise, the text would jump when getting replaced
-        .flex();
-        .flex-align-items(center);
+        display: flex;
+        align-items: center;
 
         + #globalsearch-hints {
             display: none;
@@ -63,7 +63,7 @@
 
         &.open {
             &::before {
-                .rotate(90deg);
+                transform: rotate(90deg);
             }
 
             + #globalsearch-hints {
@@ -110,7 +110,7 @@
         }
 
         opacity: 0;
-        .transition(opacity @transition-duration);
+        transition: opacity @transition-duration;
     }
     &.is-visible #globalsearch-list {
         opacity: 1;
@@ -155,9 +155,9 @@
                 background-color: @content-color-20;
                 color: @base-color;
 
-                .flex();
-                .flex-direction-row();
-                .flex-wrap(nowrap);
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
 
                 font-weight: bold;
                 padding: 3px;
@@ -178,14 +178,14 @@
             }
 
             section {
-                .flex();
-                .flex-direction-row();
-                .flex-wrap(nowrap);
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
 
                 padding: 6px 6px 6px 0;
 
                 border-top: 1px solid @content-color-40;
-                .transition(background-color @transition-duration);
+                transition: background-color @transition-duration;
 
                 &:hover {
                     background-color: fadeout(@light-gray-color, 80%);
@@ -196,15 +196,15 @@
                 }
 
                 & > a {
-                    .flex();
-                    .flex-direction-row();
-                    .flex-wrap(nowrap);
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: nowrap;
                     margin: 0;
                     width: 100%;
                 }
 
                 .globalsearch-result-img {
-                    .flex-item(0);
+                    flex: 0;
                     margin-left: 6px;
                     margin-right: 6px;
 
@@ -214,7 +214,7 @@
                 }
 
                 .globalsearch-result-data {
-                    .flex-item(1);
+                    flex: 1;
                     overflow: hidden;
                     margin-right: 6px;
                     white-space: nowrap;
@@ -232,7 +232,7 @@
 
                 .globalsearch-result-time {
                     color: @dark-gray-color-80;
-                    .flex-item(0);
+                    flex: 0;
                     font-size: @font-size-small;
                     text-align: right;
                     white-space: nowrap;
@@ -259,7 +259,7 @@
 
 html.responsive-display {
     #quicksearch_item {
-        .flex-align-self(center);
+        align-self: center;
     }
     #globalsearch-searchbar {
         position: static;

@@ -7,7 +7,7 @@
 .ui-dialog.ui-widget.ui-widget-content {
     border: 3px solid white;
     padding: 0;
-    .box-shadow(0px 0px 8px rgba(0,0,0,0.5));
+    box-shadow: 0px 0px 8px rgba(0,0,0,0.5);
 
     .hide-in-dialog {
         display: none;
@@ -46,7 +46,7 @@
 
             left: 50%;
             top: 50%;
-            .translate(-50%, -50%);
+            transform: translate(-50%, -50%);
 
             &:hover{
               .background-icon('decline', 'info_alt');
@@ -137,7 +137,7 @@
 
 // Centered content in dialog
 .studip-dialog-centered .ui-dialog-content {
-    .box-sizing(border-box);
+    box-sizing: border-box;
     display: table !important; // jQuery UI sets these values directly on
     width: 100% !important;    // the element, thus we need to force it!
 }
@@ -168,7 +168,7 @@
     }
 
     .ui-dialog-content {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         .background-icon('question-circle-full', 'status-yellow');
         background-position: 12px 8px;
         background-repeat: no-repeat;
@@ -206,7 +206,7 @@
 
         .next,
         .previous {
-            .transition(opacity 300ms);
+            transition: opacity 300ms;
             background-repeat: no-repeat;
             display: block;
             opacity: 0.1;
@@ -231,7 +231,7 @@
                 position: absolute;
                 left: @arrow-distance;
                 top: 50%;
-                .translate(0, -50%);
+                transform: translate(0, -50%);
                 z-index: 2;
             }
 
@@ -241,7 +241,7 @@
                 position: absolute;
                 left: 0;
                 top: 50%;
-                .translate(0, -50%);
+                transform: translate(0, -50%);
 
                 background-color: @white;
                 content: '';
@@ -259,7 +259,7 @@
                 position: absolute;
                 right: @arrow-distance;
                 top: 50%;
-                .translate(0, -50%);
+                transform: translate(0, -50%);
                 z-index: 2;
             }
 
@@ -269,7 +269,7 @@
                 position: absolute;
                 right: 0;
                 top: 50%;
-                .translate(0, -50%);
+                transform: translate(0, -50%);
 
                 background-color: @white;
                 content: '';

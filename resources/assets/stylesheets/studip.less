@@ -136,7 +136,9 @@ blockquote {
 dd { margin-left: 1.5em; }
 
 input.placeholder { opacity: 0.7; }
-.placeholder(rgba(0, 0, 0, 0.7));
+::placeholder {
+    color: rgba(0, 0, 0, 0.7);
+}
 
 table.content {
     border-collapse: collapse;
@@ -265,7 +267,7 @@ div.overdiv {
 
 /* --- Editor Toolbar ------------------------------------------------------- */
 .add_toolbar {
-    .box-sizing(border-box);
+    box-sizing: border-box;
 }
 .editor_toolbar {
     display: inline-block;
@@ -356,12 +358,12 @@ img.plugin_preview {
 .user_form { width: 250px; }
 
 .times-rooms-grid {
-    .flex();
-    .flex-wrap(wrap);
-    .flex-justify-content(space-between);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     margin: 0 -0.5em;
     section {
-        .flex-item(1);
+        flex: 1;
         min-width: 23em;
         max-width: 100%;
         padding: 0 0.5em;
@@ -378,9 +380,9 @@ img.plugin_preview {
 
 /* --- Veranstaltungsverwaltung --------------------------------------------- */
 .boxed-grid {
-    .flex();
-    .flex-wrap(wrap);
-    .flex-justify-content(space-between);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
 
     margin: 0 -0.5em;
 
@@ -391,7 +393,7 @@ img.plugin_preview {
     }
 
     li {
-        .flex-item(1 1 23em);
+        flex: 1 1 23em;
         display: block;
         min-width: 23em;
         max-width: 100%;
@@ -403,7 +405,7 @@ img.plugin_preview {
     }
 
     a {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         background-color: @content-color-20;
         border: 1px solid #D0D0D0;
         display: block;
@@ -537,7 +539,7 @@ p.info {
 /* --- institute administration ------------------------------------------- */
 .admin-institute {
     input[type=text], input[type=tel], input[type=url], input[type=email], select:first-child {
-        .box-sizing(border-box);
+        box-sizing: border-box;
         width: 98%;
     }
 }

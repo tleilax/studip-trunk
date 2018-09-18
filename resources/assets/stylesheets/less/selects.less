@@ -6,9 +6,7 @@
 
 select {
     // Reset appearance
-    .box-sizing(border-box);
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    box-sizing: border-box;
     appearance: none;
     background-color: #fff;
     font-size: 1em;
@@ -55,7 +53,7 @@ select {
 // Resets select2's styles on the hidden select element itself and
 // position it exactly over the newly created select2.
 .select2-hidden-accessible {
-    .box-sizing(border-box);
+    box-sizing: border-box;
     border: initial !important;
     clip: initial !important;
     height: initial !important;
@@ -99,11 +97,11 @@ select {
         }
 
         .select2-selection__rendered {
-            .flex();
-            .flex-direction-row();
-            .flex-wrap(nowrap);
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
             > * {
-                .flex-item(1, 1, auto);
+                flex: 1 1 auto;
             }
             .select2-selection__content {
                 order: 1;
@@ -131,11 +129,11 @@ select {
         }
 
         .select2-selection__choice {
-            .flex();
-            .flex-direction-row();
-            .flex-wrap(nowrap);
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
             > * {
-                .flex-item(1, 1, auto);
+                flex: 1 1 auto;
             }
             .select2-selection__content {
                 order: 1;

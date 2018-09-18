@@ -268,7 +268,7 @@ tr.sortable {
         &.maxed {
             input[type=email], input[type=password], input[type=tel], input[type=text], input[type=url], select, textarea {
                 &:first-child {
-                    .box-sizing(border-box);
+                    box-sizing: border-box;
                     width: 100%;
                 }
             }
@@ -506,20 +506,20 @@ table.default {
 
     > caption {
         .caption-container {
-            .flex();
-            .flex-align-items(stretch);
-            .flex-justify-content(space-between);
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
             margin-bottom: -5px;
         }
         .caption-content {
-            .flex-grow(1);
+            flex-grow: 1;
             border-right: 1px solid @brand-color-darker;
             padding-bottom: 5px;
             padding-right: 0.5em;
             margin-right: 0.5em;
         }
         .caption-actions {
-            .flex-align-self(flex-end);
+            align-self: flex-end;
         }
     }
 
@@ -562,7 +562,7 @@ table.default {
 
     &.has-form {
         input[type=text], textarea {
-            .box-sizing(border-box);
+            box-sizing: border-box;
             min-width: 200px;
             width: 100%;
         }
@@ -614,13 +614,13 @@ table.withdetails {
         display: none;
         max-height: 0px;
         overflow: hidden;
-        .transition(max-height 0.8s);
+        transition: max-height 0.8s;
     }
     tr.open + tr.details {
         display: table-row;
         max-height: 200px;
         overflow: hidden;
-        .transition(max-height 0.8s);
+        transition: max-height 0.8s;
         background-color: transparent !important;
         > td {
             padding-top: 0px;
