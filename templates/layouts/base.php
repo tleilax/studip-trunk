@@ -8,6 +8,9 @@ if ($navigation) {
     if ($subnavigation !== null) {
         $nav_links = new NavigationWidget();
         $nav_links->id = 'sidebar-navigation';
+        if (!$navigation->getImage()) {
+            $nav_links->addLayoutCSSClass('show');
+        }
         foreach ($subnavigation as $path => $nav) {
             if (!$nav->isVisible()) {
                 continue;

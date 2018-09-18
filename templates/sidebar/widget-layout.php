@@ -1,4 +1,6 @@
-<div class="<?= $base_class ?>-widget" <? if ($id) printf('id="%s"', htmlReady($id)) ?> <? if ($style) printf('style="%s"', $style) ?>>
+<div class="<?= $base_class ?>-widget<?= count($layout_css_classes) ? ' '.htmlReady(implode(" ", $layout_css_classes)) : "" ?>"
+    <? if ($id) printf('id="%s"', htmlReady($id)) ?>
+    <? if ($style) printf('style="%s"', $style) ?>>
 <? if ($title): ?>
     <div class="<?= $base_class ?>-widget-header">
     <? if ($extra): ?>
