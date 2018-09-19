@@ -55,14 +55,14 @@ STUDIP.Avatar = {
                         image.src = event.target.result;
 
                         import(/* webpackChunkName: "avatarcropper" */ 'cropperjs/dist/cropper.js')
-                            .then((cropperjs) => {
+                            .then(function (cropperjs) {
                                 var Cropper = cropperjs['default']
                                 STUDIP.Avatar.cropper = new Cropper(image, {
                                     aspectRatio: 1,
                                     viewMode: 2
                                 });
                             })
-                            .catch(error => {
+                            .catch(function (error) {
                                 console.log('An error occurred while loading the croppers lib', error);
                             });
                     }

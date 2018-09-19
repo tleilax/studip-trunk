@@ -67,10 +67,10 @@
             enhanceSortableTable: function (table) {
                 // async load the tablesorter, then enhance
                 import(/* webpackChunkName: "tablesorter" */ './tablesorter')
-                    .then(() => {
+                    .then(function () {
                         enhanceSortableTable(table)
                     })
-                    .catch(error => {
+                    .catch(function (error) {
                         console.log('An error occurred while loading the tablesorter component', error)
                     })
             }
