@@ -531,3 +531,29 @@ form.add-widget {
 .grid-stack > .grid-stack-item > .grid-stack-item-content {
     bottom: initial;
 }
+
+// temporary fix for responsive display
+html.responsive-display {
+    .grid-stack {
+        margin: 0;
+        > .grid-stack-item {
+            position: relative;
+            &[data-gs-width] {
+                width: auto;
+            }
+            &[data-gs-x] {
+                left: auto;
+            }
+
+            &:not(:last-child) {
+                margin-bottom: 1em;
+            }
+
+            > .grid-stack-item-content {
+                position: relative;
+                left: 0;
+                right: 0;
+            }
+        }
+    }
+}
