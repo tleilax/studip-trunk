@@ -55,7 +55,8 @@ STUDIP.Avatar = {
                         image.src = event.target.result;
 
                         import(/* webpackChunkName: "avatarcropper" */ 'cropperjs/dist/cropper.js')
-                            .then(({ default: Cropper }) => {
+                            .then((cropperjs) => {
+                                var Cropper = cropperjs['default']
                                 STUDIP.Avatar.cropper = new Cropper(image, {
                                     aspectRatio: 1,
                                     viewMode: 2
