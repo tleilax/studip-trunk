@@ -73,9 +73,8 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
         if ($this->flag == self::ARRAY_AS_PROPS) {
             return $this->offsetExists($key);
         }
-        if (in_array($key, $this->protectedProperties)) {
-            throw new InvalidArgumentException('$key is a protected property, use a different key');
-        }
+
+        $this->validateKeyUsage($key);
 
         return isset($this->$key);
     }
@@ -92,9 +91,9 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
         if ($this->flag == self::ARRAY_AS_PROPS) {
             return $this->offsetSet($key, $value);
         }
-        if (in_array($key, $this->protectedProperties)) {
-            throw new InvalidArgumentException('$key is a protected property, use a different key');
-        }
+
+        $this->validateKeyUsage($key);
+
         $this->$key = $value;
     }
 
@@ -109,9 +108,9 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
         if ($this->flag == self::ARRAY_AS_PROPS) {
             return $this->offsetUnset($key);
         }
-        if (in_array($key, $this->protectedProperties)) {
-            throw new InvalidArgumentException('$key is a protected property, use a different key');
-        }
+
+        $this->validateKeyUsage($key);
+
         unset($this->$key);
     }
 
@@ -128,9 +127,8 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
             $ret = $this->offsetGet($key);
             return $ret;
         }
-        if (in_array($key, $this->protectedProperties)) {
-            throw new InvalidArgumentException("{$key} is a protected property, use a different key");
-        }
+
+        $this->validateKeyUsage($key);
 
         return $this->$key;
     }
@@ -421,6 +419,13 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
                 default:
                     $this->__set($k, $v);
             }
+        }
+    }
+
+    protected function validateKeyUsage($key)
+    {
+        if (in_array($key, $this->protectedProperties)) {
+            throw new InvalidArgumentException("{$key} is a protected property, use a different key");
         }
     }
 }
