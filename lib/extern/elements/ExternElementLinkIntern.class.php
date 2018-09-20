@@ -134,7 +134,7 @@ class ExternElementLinkIntern extends ExternElement {
     }
 
     function toString ($args = null) {
-        $link = $this->createUrl('', $args);
+        $link = $this->createUrl($args);
         // to set the color of the font in the style-attribute of the a-tag
         if ($color = $this->config->getValue($this->name, "font_color")) {
             $this->config->setValue($this->name, "a_style", "color:$color;"
