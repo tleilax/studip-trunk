@@ -1,13 +1,12 @@
---- docxmlrpcs.inc ,v 1.9 2008/03/07 16:47:06 ggiunta
-+++ docxmlrpcs.inc 
-@@ -33,6 +33,18 @@
+--- docxmlrpcs.inc	2018-09-20 18:07:45.093573858 +0200
++++ docxmlrpcs.inc	2018-09-20 18:11:45.855512205 +0200
+@@ -33,6 +33,17 @@
  		/// relative path to the visual xmlrpc editing dialog
  		var $editorpath = '';
  
 +
 +		function checkAuth()
 +		{
-+		    require_once "lib/classes/WebserviceAccessRule.class.php";
 +
 +		    $rules = WebserviceAccessRule::findByApiKey($_SERVER['PHP_AUTH_PW']);
 +		    if (!count($rules)) {
@@ -19,7 +18,7 @@
  		/**
  		* Override xmlrpc_server service method:
  		*   in case of GET requests show docs about implemented methods;
-@@ -46,7 +58,8 @@
+@@ -46,7 +57,8 @@
  		{
  			if($_SERVER['REQUEST_METHOD'] != 'POST')
  			{
@@ -29,7 +28,7 @@
  				{
  					$doctype = $this->default_doctype;
  				}
-@@ -76,7 +89,8 @@
+@@ -76,7 +88,8 @@
  					&& $_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded'
  					&& isset($_POST['methodCall']))
  				{
@@ -39,7 +38,7 @@
  					{
  						$_POST['methodCall'] = stripslashes($_POST['methodCall']);
  					}
-@@ -119,6 +133,7 @@
+@@ -119,6 +132,7 @@
  				// method name decoding: is user seeking info about a single method?
  				if (isset($_GET['methodName']))
  				{
@@ -47,8 +46,27 @@
  					$opts = array('lang' => $lang, 'title' => 'Method '.$_GET['methodName']);
  					if ($editorpath != '')
  					{
-@@ -234,7 +249,493 @@
- <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+@@ -218,23 +232,509 @@
+ 
+ 	/**
+ 	* Templates used for building docs
+-	* The charset is assumed to be ISO-8859-1 for every generated html. Take care
++	* The charset is assumed to be UTF-8 for every generated html. Take care
+ 	*/
+ 	$GLOBALS['xmlrpcdocparts'] = array(
+ 		'html' => array(
+ 
+ //'httpheaders' => array(),
+ 
+-'docheader' => '<?xml version="1.0" encoding="iso-8859-1"?>
++'docheader' => '<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE html
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+ <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{$lang}" lang="{$lang}">
+ <head>
+-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
++<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
  <meta http-equiv="Content-Script-Type" content="text-javascript" />
  <meta name="generator" content="'.$GLOBALS['xmlrpcName'].'" />
 -<link rel="stylesheet" type="text/css" href="docxmlrpcs.css" />
@@ -542,4 +560,14 @@
  {$extras}
  <title>{$title}</title>
  </head>
-
+--- xmlrpc.inc	2018-09-20 18:02:22.000634736 +0200
++++ xmlrpc.inc	2018-09-20 18:12:41.615040836 +0200
+@@ -206,7 +206,7 @@
+ 	// The encoding used internally by PHP.
+ 	// String values received as xml will be converted to this, and php strings will be converted to xml
+ 	// as if having been coded with this
+-	$GLOBALS['xmlrpc_internalencoding']='ISO-8859-1';
++	$GLOBALS['xmlrpc_internalencoding']='UTF-8';
+ 
+ 	$GLOBALS['xmlrpcName']='XML-RPC for PHP';
+ 	$GLOBALS['xmlrpcVersion']='3.0.0.beta';
