@@ -42,9 +42,7 @@ class Admin_CoursesController extends AuthenticatedController
     private function getDatafieldFilters()
     {
         //first get the active datafields of the user:
-        $userConfig = UserConfig::get(User::findCurrent()->id);
-        $userSelectedElements = json_decode($userConfig->getValue('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS'), true);
-
+        $userSelectedElements = $this->getActiveElements();
         $activeDatafields = $userSelectedElements['datafields'];
 
         if (!$activeDatafields) {
@@ -172,43 +170,11 @@ class Admin_CoursesController extends AuthenticatedController
             Depending on the elements the user has selected
             some of the following elements may not be presented
             in the sidebar.
-
-            To find out what elements the user has selected we're
-            accessing the user configuration and check if the
-            right configuration keys are stored in there.
         */
-        $userConfig = UserConfig::get(User::findCurrent()->id);
-
-        $userSelectedElements = $userConfig->getValue('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS');
-
-        $visibleElements = array();
-
-        if ($userSelectedElements) {
-            /*
-                The array of user-selected elements is a JSON array:
-                Decode it and set the visibleElements array.
-            */
-            $visibleElements = json_decode($userSelectedElements, true);
-
-        } else {
-           /*
-                The user hasn't made a selection of sidebar elements.
-                So the default selection is set:
-            */
-
-            $visibleElements = [
-                'search' => true,
-                'institute' => true,
-                'semester' => true,
-                'courseType' => true,
-                'viewFilter' => true
-            ];
-        }
+        $visibleElements = $this->getActiveElements();
 
         $sidebar = Sidebar::get();
         $sidebar->setImage("sidebar/seminar-sidebar.png");
-
-        //navigation was already drawn!
 
         /*
             Order of elements:
@@ -462,68 +428,38 @@ class Admin_CoursesController extends AuthenticatedController
             $viewFilterActive = Request::get('viewFilterActive');
             $activeDatafields = Request::getArray('activeDatafields');
 
-            //echo "searchActive = " . $searchActive;
-
-            //check for the standard configuration:
-            if ($searchActive and $instituteActive and $semesterActive and $courseTypeActive
-                and (!$teacherActive) and (!$activeDatafields) and (!$actionAreaActive) and $viewFilterActive) {
-                /*
-                    It is the standard configuration:
-                    Remove the entry from the user configuration table,
-                    if it exists.
-                */
-
-                $userConfig = UserConfig::get(User::findCurrent()->id);
-                $userConfig->delete('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS');
-                $this->redirect('admin/courses/index');
-
-            } else {
-                /*
-                    It's not the standard configuration:
-                    Update or create an entry for the current user
-                    in the user configuration table.
-                */
-                $activeArray = array();
-                if ($searchActive) {
-                    $activeArray['search'] = true;
-                }
-                if ($instituteActive) {
-                    $activeArray['institute'] = true;
-                }
-                if ($semesterActive) {
-                    $activeArray['semester'] = true;
-                }
-                if ($courseTypeActive) {
-                    $activeArray['courseType'] = true;
-                }
-                if ($teacherActive) {
-                    $activeArray['teacher'] = true;
-                }
-                if ($viewFilterActive) {
-                    $activeArray['viewFilter'] = true;
-                }
-
-                if ($activeDatafields) {
-                    $activeArray['datafields'] = $activeDatafields;
-                }
-
-                //the array is filled: now convert it to JSON:
-                $activeArray = json_encode($activeArray);
-
-                //store the configuration value:
-                $userConfig = UserConfig::get(User::findCurrent()->id);
-                $success = $userConfig->store(
-                    'ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS',
-                    $activeArray
-                );
-
-
-                /*
-                    We're done: redirect to the index page
-                    to see the new sidebar in all of its glory!
-                */
-                $this->redirect('admin/courses/index');
+            /*
+                Update or create an entry for the current user
+                in the user configuration table.
+            */
+            $activeArray = array();
+            if ($searchActive) {
+                $activeArray['search'] = true;
             }
+            if ($instituteActive) {
+                $activeArray['institute'] = true;
+            }
+            if ($semesterActive) {
+                $activeArray['semester'] = true;
+            }
+            if ($courseTypeActive) {
+                $activeArray['courseType'] = true;
+            }
+            if ($teacherActive) {
+                $activeArray['teacher'] = true;
+            }
+            if ($viewFilterActive) {
+                $activeArray['viewFilter'] = true;
+            }
+
+            if ($activeDatafields) {
+                $activeArray['datafields'] = $activeDatafields;
+            }
+
+            //store the configuration value:
+            $this->setActiveElements($activeArray);
+
+            $this->redirect('admin/courses/index');
         } else {
             /*
                 The user accesses the page to check the current configuration.
@@ -531,28 +467,10 @@ class Admin_CoursesController extends AuthenticatedController
 
             $this->datafields = DataField::getDataFields('sem');
 
-
-            $userSelectedElements = UserConfig::get(User::findCurrent()->id)->getValue('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS');
-            if ($userSelectedElements) {
-                // The array of selected elements is a JSON array: decode it!
-                $this->userSelectedElements = json_decode($userSelectedElements, true);
-            } else {
-                /*
-                    The user hasn't got his own sidebar configuration:
-                    Use the default settings.
-                */
-                $this->userSelectedElements = [
-                    'search' => true,
-                    'institute' => true,
-                    'semester' => true,
-                    'courseType' => true,
-                    'viewFilter' => true
-                    ];
-            }
+            $this->userSelectedElements = $this->getActiveElements();
 
             //add the last activity for each Course object:
             $this->lastActivities = array();
-
         }
     }
 
@@ -1180,6 +1098,8 @@ class Admin_CoursesController extends AuthenticatedController
             }
         }
 
+        $active_elements = $this->getActiveElements();
+
         $filter = AdminCourseFilter::get(true);
 
         if ($params['datafields']) {
@@ -1216,23 +1136,25 @@ class Admin_CoursesController extends AuthenticatedController
             );
         }
 
-        if (is_object($this->semester)) {
+        if ($active_elements['semester'] && is_object($this->semester)) {
             $filter->filterBySemester($this->semester->getId());
         }
-        if ($params['typeFilter'] && $params['typeFilter'] !== "all") {
+        if ($active_elements['courseType'] && $params['typeFilter'] && $params['typeFilter'] !== "all") {
             list($class_filter,$type_filter) = explode('_', $params['typeFilter']);
             if (!$type_filter && !empty($GLOBALS['SEM_CLASS'][$class_filter])) {
                 $type_filter = array_keys($GLOBALS['SEM_CLASS'][$class_filter]->getSemTypes());
             }
             $filter->filterByType($type_filter);
         }
-        if ($GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT) {
+        if ($active_elements['search'] && $GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT) {
             $filter->filterBySearchString($GLOBALS['user']->cfg->ADMIN_COURSES_SEARCHTEXT);
         }
-        if ($GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER && ($GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER !== "all")) {
+        if ($active_elements['teacher'] && $GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER && ($GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER !== "all")) {
             $filter->filterByDozent($GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER);
         }
-        $filter->filterByInstitute($inst_ids);
+        if ($active_elements['institute']) {
+            $filter->filterByInstitute($inst_ids);
+        }
         if ($params['sortby'] === "status") {
             $filter->orderBy(sprintf('sem_classes.name %s, sem_types.name %s, VeranstaltungsNummer', $params['sortFlag'], $params['sortFlag'], $params['sortFlag']), $params['sortFlag']);
         } elseif ($params['sortby']) {
@@ -1560,5 +1482,52 @@ class Admin_CoursesController extends AuthenticatedController
         $GLOBALS['user']->cfg->store('MY_COURSES_ADMIN_VIEW_FILTER_ARGS', json_encode($config));
 
         return $config;
+    }
+
+    /**
+     * Returns the default element configuration.
+     *
+     * @return array containing the default element configuration
+     */
+    private function getActiveElementsDefault()
+    {
+        return [
+            'search' => true,
+            'institute' => true,
+            'semester' => true,
+            'courseType' => true,
+            'teacher' => true,
+            'viewFilter' => true
+        ];
+    }
+
+    /**
+     * Returns the active element configuration of the current user.
+     *
+     * @return array containing the active element configuration
+     */
+    private function getActiveElements()
+    {
+        $active_elements = $GLOBALS['user']->cfg->ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS;
+
+        if ($active_elements) {
+            return json_decode($active_elements, true);
+        } else {
+            return $this->getActiveElementsDefault();
+        }
+    }
+
+    /**
+     * Sets the active element configuration for the current user.
+     *
+     * @param Array $active_elements element configuration
+     */
+    private function setActiveElements($active_elements)
+    {
+        if ($active_elements == $this->getActiveElementsDefault()) {
+            $GLOBALS['user']->cfg->delete('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS');
+        } else {
+            $GLOBALS['user']->cfg->store('ADMIN_COURSES_SIDEBAR_ACTIVE_ELEMENTS', json_encode($active_elements));
+        }
     }
 }
