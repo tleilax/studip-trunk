@@ -30,10 +30,10 @@
         <? endif; ?>
         <? foreach ($user_domains as $domain): ?>
             <tr>
-                <td><?= htmlReady($domain->getName()) ?></td>
+                <td><?= htmlReady($domain->name) ?></td>
                 <td style="text-align:center">
                 <? if ($allow_change): ?>
-                    <input type="checkbox" name="userdomain_delete[]" value="<?= $domain->getID() ?>">
+                    <input type="checkbox" name="userdomain_delete[]" value="<?= $domain->id ?>">
                 <? else: ?>
                     <?= Icon::create('accept', 'inactive')->asImg(['class' => 'text-top']) ?>
                 <? endif; ?>
@@ -67,14 +67,16 @@
         <label>
             <?= _('Wählen Sie eine Nutzerdomäne aus der folgenden Liste aus:') ?>
 
-            <? if (!empty($domains)) : ?>
-                <select name="new_userdomain" id="new_userdomain">
-                    <option selected value="none"><?= _('-- Bitte Nutzerdomäne auswählen --') ?></option>
-                    <? foreach ($domains as $domain) : ?>
-                        <option value="<?= $domain->getID() ?>"><?= htmlReady(my_substr($domain->getName(), 0, 50)) ?></option>
-                    <? endforeach ?>
-                </select>
-            <? endif ?>
+        <? if (!empty($domains)) : ?>
+            <select name="new_userdomain" id="new_userdomain">
+                <option selected value="none"><?= _('-- Bitte Nutzerdomäne auswählen --') ?></option>
+                <? foreach ($domains as $domain) : ?>
+                    <option value="<?= htmlReady($domain->id) ?>">
+                        <?= htmlReady(my_substr($domain->name, 0, 50)) ?>
+                    </option>
+                <? endforeach ?>
+            </select>
+        <? endif ?>
         </label>
     </fieldset>
 

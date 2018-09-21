@@ -146,7 +146,7 @@ class Admin_UserController extends AuthenticatedController
                              'inaktiv seit'];
                 $mapper   = function ($u) {
                     $userdomains = array_map(function ($ud) {
-                        return $ud->getName();
+                        return $ud->name;
                     }, UserDomain::getUserDomainsForUser($u->id));
                     return [
                         $u['username'],
@@ -499,8 +499,7 @@ class Admin_UserController extends AuthenticatedController
 
             //change userdomain
             if (Request::get('new_userdomain', 'none') != 'none' && $editPerms[0] != 'root') {
-                $domain = new UserDomain(Request::get('new_userdomain'));
-                $domain->addUser($user_id);
+                UserDomain::find(Request::get('new_userdomain'))->addUser($user_id);
                 $result = AutoInsert::instance()->saveUser($user_id);
 
                 $details[] = _('Die Nutzerdomäne wurde hinzugefügt.');
@@ -1128,8 +1127,7 @@ class Admin_UserController extends AuthenticatedController
     public function delete_userdomain_action($user_id)
     {
         $domain_id = Request::get('domain_id');
-        $domain    = new UserDomain($domain_id);
-        $domain->removeUser($user_id);
+        UserDomain::find($domain_id)->removeUser($user_id);
         $result = AutoInsert::instance()->saveUser($user_id);
 
         $details = [];

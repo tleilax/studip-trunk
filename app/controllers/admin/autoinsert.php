@@ -62,12 +62,12 @@ class Admin_AutoinsertController extends AuthenticatedController
         $this->auto_sems = $seminare;
 
         $domains = array();
-        $domains [] = array('id'   => 'keine',
-            'name' => _('Ohne Domain'));
+        $domains[] = [
+            'id'   => 'keine',
+            'name' => _('Ohne Domäne'),
+        ];
         foreach (UserDomain::getUserDomains() as $domain) {
-            $domains[] = array(
-                'id'   => $domain->getId(),
-                'name' => $domain->getName());
+            $domains[] = $domain;
         }
 
         $this->userdomains = $domains;

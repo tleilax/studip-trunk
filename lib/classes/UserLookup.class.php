@@ -1,5 +1,4 @@
 <?php
-# Lifter010: TODO
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -142,20 +141,23 @@ final class UserLookup
             }
         }
 
-        if (($flags & self::FLAG_SORT_NAME) and !($flags & self::FLAG_RETURN_FULL_INFO)) {
-            $temp_result = self::arrayQuery("SELECT user_id FROM auth_user_md5 WHERE user_id IN (??) ORDER BY Nachname ASC, Vorname ASC", $result);
-            $result = $temp_result->fetchAll(PDO::FETCH_COLUMN);
+        if (($flags & self::FLAG_SORT_NAME) && !($flags & self::FLAG_RETURN_FULL_INFO)) {
+            $query = "SELECT user_id
+                      FROM auth_user_md5
+                      WHERE user_id IN (?)
+                      ORDER BY Nachname ASC, Vorname ASC";
+            $result = DBManager::get()->fetchFirst($query, [$result ?: '']);
         }
 
-        if (!empty($result) and ($flags & self::FLAG_RETURN_FULL_INFO)) {
-            $query = "SELECT user_id, username, Vorname, Nachname, Email, perms FROM auth_user_md5 WHERE user_id IN (??)";
+        if (!empty($result) && ($flags & self::FLAG_RETURN_FULL_INFO)) {
+            $query = "SELECT user_id, username, Vorname, Nachname, Email, perms
+                      FROM auth_user_md5
+                      WHERE user_id IN (?)";
             if ($flags & self::FLAG_SORT_NAME) {
                 $query .= " ORDER BY Nachname ASC, Vorname ASC";
             }
 
-            $temp_result = self::arrayQuery($query, $result);
-            $result = $temp_result->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
-            $result = array_map('reset', $result);
+            $result = DBManaget::get()->fetchGrouped($query, [$result ?: '']);
         }
 
         return $result;
@@ -227,31 +229,14 @@ final class UserLookup
     }
 
     /**
-     * Convenience method to query over an array via ".. WHERE x IN (<array>)".
-     * Any ?? is substituted by the array of values.
-     *
-     * @param  string $query  The query to execute
-     * @param  array  $values Array containing the values to search for
-     * @return PDOStatement   Result of the query against the db
-     */
-    protected static function arrayQuery($query, $values)
-    {
-        $values = array_unique($values);
-        $values = array_map(array(DBManager::get(), 'quote'), $values);
-        $query = str_replace('??', implode(',', $values), $query);
-
-        return DBManager::get()->query($query);
-    }
-
-    /**
      * Return all user with matching studiengang_id in $needles
      * @param  array $needles List of studiengang ids to filter against
      * @return array List of user ids matching the given filter
      */
     protected static function fachFilter($needles)
     {
-        $db_result = self::arrayQuery("SELECT user_id FROM user_studiengang WHERE fach_id IN (??)", $needles);
-        return $db_result->fetchAll(PDO::FETCH_COLUMN);
+        $query = "SELECT user_id FROM user_studiengang WHERE fach_id IN (?)";
+        return DBManager::get()->fetchFirst($query, [$needles ?: '']);
     }
 
     /**
@@ -260,9 +245,8 @@ final class UserLookup
      */
     protected static function fachValues()
     {
-        $db_result = DBManager::get()->query("SELECT fach_id, name FROM fach ORDER BY name ASC");
-        $result = $db_result->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_COLUMN);
-        return array_map('reset', $result);
+        $query = "SELECT fach_id, name FROM fach ORDER BY name ASC";
+        return DBManager::get()->fetchGrouped($query);
     }
 
     /**
@@ -272,8 +256,8 @@ final class UserLookup
      */
     protected static function abschlussFilter($needles)
     {
-        $result = self::arrayQuery("SELECT user_id FROM user_studiengang WHERE abschluss_id IN (??)", $needles);
-        return $result->fetchAll(PDO::FETCH_COLUMN);
+        $query = "SELECT user_id FROM user_studiengang WHERE abschluss_id IN (?)";
+        return DBManager::get()->fetchFirst($query, [$needles ?: '']);
     }
 
     /**
@@ -282,9 +266,8 @@ final class UserLookup
      */
     protected static function abschlussValues()
     {
-        $db_result = DBManager::get()->query("SELECT abschluss_id, name FROM abschluss ORDER BY name ASC");
-        $result = $db_result->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_COLUMN);
-        return array_map('reset', $result);
+        $query = "SELECT abschluss_id, name FROM abschluss ORDER BY name ASC";
+        return DBManager::get()->fetchGrouped($query);
     }
 
     /**
@@ -294,8 +277,8 @@ final class UserLookup
      */
     protected static function fachsemesterFilter($needles)
     {
-        $result = self::arrayQuery("SELECT user_id FROM user_studiengang WHERE semester IN (??)", $needles);
-        return $result->fetchAll(PDO::FETCH_COLUMN);
+        $query = "SELECT user_id FROM user_studiengang WHERE semester IN (?)";
+        return DBManager::get()->fetchFirst($query, [$needles ?: '']);
     }
 
     /**
@@ -305,8 +288,8 @@ final class UserLookup
      */
     protected static function fachsemesterValues()
     {
-        $db_result = DBManager::get()->query("SELECT MAX(semester) FROM user_studiengang");
-        $max = $db_result->fetchColumn();
+        $max = DBManager::get()->fetchColumn("SELECT MAX(semester) FROM user_studiengang");
+
         $values = range(1, $max);
         return array_combine($values, $values);
     }
@@ -318,8 +301,8 @@ final class UserLookup
      */
     protected static function institutFilter($needles)
     {
-        $result = self::arrayQuery("SELECT user_id FROM user_inst WHERE Institut_id IN (??)", $needles);
-        return $result->fetchAll(PDO::FETCH_COLUMN);
+        $query = "SELECT user_id FROM user_inst WHERE Institut_id IN (?)";
+        return DBManager::get()->fetchFirst($query, [$needles ?: '']);
     }
 
     /**
@@ -354,22 +337,24 @@ final class UserLookup
      */
     protected static function statusFilter($needles)
     {
-        $result = self::arrayQuery("SELECT user_id FROM auth_user_md5 WHERE perms IN (??)", $needles);
-        return $result->fetchAll(PDO::FETCH_COLUMN);
+        $query = "SELECT user_id FROM auth_user_md5 WHERE perms IN (?)";
+        return DBManager::get()->fetchFirst($query, [$needles ?: '']);
     }
 
-    protected static function domainFilter($needles){
-   $result = self::arrayQuery("SELECT user_id FROM user_userdomains WHERE userdomain_id IN (??)", $needles);
-        return $result->fetchAll(PDO::FETCH_COLUMN);
+    protected static function domainFilter($needles)
+    {
+        $query = "SELECT user_id FROM user_userdomains WHERE userdomain_id IN (?)";
+        return DBManager::get()->fetchFirst($query, [$needles ?: '']);
     }
-    protected static function domainValues(){
-     
-           $domains = array();
-        $domains ['keine']=_('Ohne Domain');
-        foreach(UserDomain::getUserDomains() as $domain){
-            $domains[$domain->getId()] = $domain->getName();
+
+    protected static function domainValues()
+    {
+        $domains = [];
+        $domains['keine']=_('Ohne Domain');
+        foreach (UserDomain::getUserDomains() as $domain) {
+            $domains[$domain->id] = $domain->name;
         }
-       
+
         return $domains;
     }
 
@@ -379,12 +364,12 @@ final class UserLookup
      */
     protected static function statusValues()
     {
-        return array(
+        return [
             'autor'  => _('Autor'),
             'tutor'  => _('Tutor'),
             'dozent' => _('Dozent'),
             'admin'  => _('Admin'),
             'root'   => _('Root'),
-        );
+        ];
     }
 }
