@@ -199,8 +199,8 @@ class ExternSemBrowse extends SemBrowse {
                 LEFT JOIN seminar_sem_tree ON (seminare.Seminar_id = seminar_sem_tree.seminar_id)
                 LEFT JOIN seminar_inst ON (seminare.Seminar_id = seminar_inst.Seminar_id) 
                 LEFT JOIN Institute ON (seminar_inst.institut_id = Institute.Institut_id) 
-                WHERE seminare.Seminar_id IN('" . join("','", array_keys($this->sem_browse_data['search_result']))
-                 . "') OR seminare.parent_course IN ('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "')
+                WHERE (seminare.Seminar_id IN('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "')
+                    OR seminare.parent_course IN ('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "'))
                  $sem_inst_query $sem_range_query $sem_types_query";
 
             $db = new DB_Seminar($query);
