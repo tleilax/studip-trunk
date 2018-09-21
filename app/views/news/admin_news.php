@@ -119,13 +119,13 @@
                                 $controller->url_for('news/edit_news/' . $news['object']->news_id),
                                 _('Ankündigung bearbeiten'),
                                 Icon::create('edit', 'clickable'),
-                                ['data-dialog' => 'size=auto', 'target' => '_blank']
+                                ['rel' => 'get_dialog', 'target' => '_blank']
                             );
                             $menu->addLink(
                                 $controller->url_for('news/edit_news/new/template/' . $news['object']->news_id),
                                 _('Kopieren, um neue Ankündigung zu erstellen'),
                                 Icon::create('news+export', 'clickable'),
-                                ['data-dialog' => 'size=auto', 'target' => '_blank']
+                                ['rel' => 'get_dialog', 'target' => '_blank']
                             );
                             if ($news['object']->havePermission('unassign', $news['range_id'])) {
                                 $menu->addButton(

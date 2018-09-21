@@ -37,7 +37,7 @@ if ($new['allow_comments']) :
 
 
 <? if ($new->havePermission('edit')): ?>
-    <a href="<?= URLHelper::getLink('dispatch.php/news/edit_news/' . $new->id) ?>" data-dialog="size=auto">
+    <a href="<?= URLHelper::getLink('dispatch.php/news/edit_news/' . $new->id) ?>" rel="get_dialog">
         <?= Icon::create('edit', 'clickable')->asImg(); ?>
     </a>
     <? if ($new->havePermission('unassign', $range)): ?>

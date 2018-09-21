@@ -46,7 +46,7 @@
             <span class="required">
                 <?= _("Titel") ?>
             </span>
-            <input type="text" name="news_topic" class="news_topic news_prevent_submit" aria-label="<?= _('Titel der Ankündigung') ?>"
+            <input type="text" name="news_topic" class="news_topic news_prevent_submit size-l" aria-label="<?= _('Titel der Ankündigung') ?>"
                    value="<?= htmlReady($news['topic']) ?>" required>
         </label>
 
@@ -56,7 +56,7 @@
             </span>
 
             <? list ($body, $admin_msg) = explode("<admin_msg>", $news['body']); ?>
-            <textarea class="news_body add_toolbar wysiwyg" name="news_body" rows="6"
+            <textarea class="news_body add_toolbar wysiwyg size-l" name="news_body" rows="6"
                 wrap="virtual" placeholder="<?= _('Geben Sie hier den Ankündigungstext ein') ?>"
                 aria-label="<?= _('Inhalt der Ankündigung') ?>" required><?= wysiwygReady($body) ?></textarea>
         </label>
@@ -68,7 +68,7 @@
 
             <input type="text" class="news_date news_prevent_submit"
                    name="news_startdate" id="news_startdate"
-                   data-date-picker='{">=":"today"}'
+                   data-date-picker='{">=":"#news_enddate"}'
                    value="<? if ($news['date']) echo date('d.m.Y', $news['date']); ?>"
                    aria-label="<?= _('Einstelldatum') ?>" required>
         </label>

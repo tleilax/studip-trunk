@@ -62,70 +62,22 @@
 
         init_dialog: function () {
             $('.add_toolbar').addToolbar();
-
-            if (document.createElement('textarea').style.resize === undefined) {
-                $('textarea.resizable').resizable({
-                    handles: 's',
-                    minHeight: 50,
-                    zIndex: 1
-                });
-            }
         },
 
-        get_dialog: function (id, route, from_x, from_y) {
+        get_dialog: function (id, route) {
             // initialize dialog
             $('body').append('<div id="' + id + '"></div>');
             $('#' + id).dialog({
                 modal: true,
-                resizable: false,
-                width: 100,
-                height: 40,
-                title: 'Dialog wird geladen...'.toLocaleString(),
-                hide: 'fadeOut',
-                // define close animation
-                beforeClose: function () {
-                    $('#' + id).dialog('widget').stop(true, true);
-                    $('#' + id).dialog('widget').animate({
-                        width: 100,
-                        height: 40,
-                        left: from_x - 50,
-                        top: $(document).scrollTop() + from_y - 20,
-                        opacity: 0
-                    }, {
-                        duration: 400,
-                        easing: 'swing'
-                    });
-                }
-            });
-            // show pre-loading dialog animation
-            $('#' + id).html('<div class="ajax_notification" style="text-align: center; padding-right: 24px; padding-top: 55px"><div class="notification"></div></div>');
-            $('#' + id).dialog('option', 'position', [from_x - 50, from_y - 20]);
-            $('#' + id).dialog('widget').css('opacity', 0);
-            $('#' + id).dialog('widget').animate({
-                width: STUDIP.News.dialog_width,
                 height: STUDIP.News.dialog_height,
-                left: (window.innerWidth / 2) - (STUDIP.News.dialog_width / 2),
-                top: $(document).scrollTop() + (window.innerHeight / 2) - (STUDIP.News.dialog_height / 2),
-                opacity: 1
-            }, {
-                duration: 400,
-                easing: 'swing'
+                width: STUDIP.News.dialog_width,
+                title: 'Dialog wird geladen...'.toLocaleString()
             });
 
             // load actual dialog content
             $.get(route, 'html').done(function (html, status, xhr) {
                 $('#' + id).dialog('option', 'title', decodeURIComponent(xhr.getResponseHeader('X-Title')));
-                $('#' + id).dialog('widget').stop(true, true);
                 // set to full size (even if dialog.close was triggered before)
-                $('#' + id).dialog('widget').animate({
-                    left: (window.innerWidth / 2) - (STUDIP.News.dialog_width / 2),
-                    top: $(document).scrollTop() + (window.innerHeight / 2) - (STUDIP.News.dialog_height / 2),
-                    opacity: 1
-                }, 0);
-                $('#' + id).dialog({
-                    height: STUDIP.News.dialog_height,
-                    width: STUDIP.News.dialog_width
-                });
                 $('#' + id).html(html);
                 $('#' + id + '_content').css({
                     height : (STUDIP.News.dialog_height - 120) + 'px',
@@ -209,9 +161,7 @@
 
         $(document).on('click', 'a[rel~="get_dialog"]', function (event) {
             event.preventDefault();
-            var from_x = $(this).position().left + ($(this).outerWidth() / 2),
-                from_y = $(this).position().top + ($(this).outerHeight() / 2) - $(document).scrollTop();
-            STUDIP.News.get_dialog('news_dialog', $(this).attr('href'), from_x, from_y);
+            STUDIP.News.get_dialog('news_dialog', $(this).attr('href'));
         });
 
         $(document).on('click', 'a[rel~="close_dialog"]', function (event) {
