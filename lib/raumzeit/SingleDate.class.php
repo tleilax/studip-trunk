@@ -446,6 +446,79 @@ class SingleDate
         return $resObj;
     }
 
+
+    protected function getOverlapMessage($assignment_id = null, $overlap_data = [])
+    {
+        if (!$assignment_id or !$overlap_data) {
+            return '';
+        }
+
+        $db = DBManager::get();
+
+        $course_id_stmt = $db->prepare(
+            'SELECT range_id FROM termine WHERE termin_id = :termin_id'
+        );
+
+        $message = '';
+
+        if ($overlap_data["lock"]) {
+            $message .= sprintf(
+                _('Vom %1$s, %2$s Uhr bis zum %3$s, %4$s Uhr (Sperrzeit)') . "\n",
+                date("d.m.Y", $overlap_data["begin"]),
+                date("H:i", $overlap_data["begin"]),
+                date("d.m.Y", $overlap_data["end"]),
+                date("H:i", $overlap_data["end"])
+            );
+        } else {
+            $course_data = [];
+            $overlapping_assignment = AssignObject::Factory($assignment_id);
+            if ($overlapping_assignment) {
+                $assignment_range_id = $overlapping_assignment->getAssignUserId();
+                $course_id_stmt->execute(['termin_id' => $assignment_range_id]);
+                $course_id = $course_id_stmt->fetchColumn();
+                if ((get_object_type($course_id) == 'sem') and
+                    $GLOBALS['perm']->have_studip_perm(
+                        'dozent',
+                        $course_id,
+                        $GLOBALS['user']->id
+                    )) {
+                    $course_data['id'] = $course_id;
+                    $course_data['name'] = $overlapping_assignment->GetOwnerName();
+                }
+            }
+
+            if ($course_data) {
+                $course_link = URLHelper::getLink(
+                    'dispatch.php/course/timesrooms/index',
+                    [
+                        'cid' => $course_data['id']
+                    ]
+                );
+                $message .= sprintf(
+                    _('Am %1$s von %2$s bis %3$s Uhr durch Veranstaltung %4$s') . "\n",
+                    date('d.m.Y', $overlap_data['begin']),
+                    date('H:i', $overlap_data['begin']),
+                    date('H:i', $overlap_data['end']),
+                    sprintf(
+                        '<a href="%1$s">%2$s</a>',
+                        $course_link,
+                        $course_data['name']
+                    )
+                );
+            } else {
+                $message .= sprintf(
+                    _('Am %1$s von %2$s bis %3$s Uhr') . "\n",
+                    date("d.m.Y", $overlap_data["begin"]),
+                    date("H:i", $overlap_data["begin"]),
+                    date("H:i", $overlap_data["end"])
+                );
+            }
+        }
+
+        return $message;
+    }
+
+
     private function insertAssign($roomID)
     {
         $createAssign = AssignObject::Factory(false, $roomID, $this->termin_id, '',
@@ -461,64 +534,8 @@ class SingleDate
                 $this->toString(),
                 $raum
             ) . '<br>';
-            $db = DBManager::get();
-            $course_id_stmt = $db->prepare(
-                'SELECT range_id FROM termine WHERE termin_id = :termin_id'
-            );
             foreach ($overlaps as $tmp_assign_id => $val) {
-                if ($val["lock"]) {
-                    $msg .= sprintf(
-                        _('Vom %1$s, %2$s Uhr bis zum %3$s, %4$s Uhr (Sperrzeit)') . "\n",
-                        date("d.m.Y", $val["begin"]),
-                        date("H:i", $val["begin"]),
-                        date("d.m.Y", $val["end"]),
-                        date("H:i", $val["end"])
-                    );
-                } else {
-                    $course_data = [];
-                    $overlapping_assignment = AssignObject::Factory($tmp_assign_id);
-                    if ($overlapping_assignment) {
-                        $assignment_range_id = $overlapping_assignment->getAssignUserId();
-                        $course_id_stmt->execute(['termin_id' => $assignment_range_id]);
-                        $course_id = $course_id_stmt->fetchColumn();
-                        if ((get_object_type($course_id) == 'sem') and
-                            $GLOBALS['perm']->have_studip_perm(
-                                'dozent',
-                                $course_id,
-                                $GLOBALS['user']->id
-                            )) {
-                            $course_data['id'] = $course_id;
-                            $course_data['name'] = $overlapping_assignment->GetOwnerName();
-                        }
-                    }
-
-                    if ($course_data) {
-                        $course_link = URLHelper::getLink(
-                            'dispatch.php/course/timesrooms/index',
-                            [
-                                'cid' => $course_data['id']
-                            ]
-                        );
-                        $msg .= sprintf(
-                            _('Am %1$s von %2$s bis %3$s Uhr durch Veranstaltung %4$s') . "\n",
-                            date('d.m.Y', $val['begin']),
-                            date('H:i', $val['begin']),
-                            date('H:i', $val['end']),
-                            sprintf(
-                                '<a href="%1$s">%2$s</a>',
-                                $course_link,
-                                $course_data['name']
-                            )
-                        );
-                    } else {
-                        $msg .= sprintf(
-                            _('Am %1$s von %2$s bis %3$s Uhr') . "\n",
-                            date("d.m.Y", $val["begin"]),
-                            date("H:i", $val["begin"]),
-                            date("H:i", $val["end"])
-                        );
-                    }
-                }
+                $msg .= $this->getOverlapMessage($tmp_assign_id, $val);
             }
             $this->messages['error'][] = $msg;
 
@@ -565,64 +582,9 @@ class SingleDate
                     $this->toString(),
                     $raum
                 ) . '<br>';
-                $db = DBManager::get();
-                $course_id_stmt = $db->prepare(
-                    'SELECT range_id FROM termine WHERE termin_id = :termin_id'
-                );
-                foreach ($overlaps as $tmp_assign_id => $val) {
-                    if ($val["lock"]) {
-                        $msg .= sprintf(
-                            _('Vom %1$s, %2$s Uhr bis zum %3$s, %4$s Uhr (Sperrzeit)') . "\n",
-                            date("d.m.Y", $val["begin"]),
-                            date("H:i", $val["begin"]),
-                            date("d.m.Y", $val["end"]),
-                            date("H:i", $val["end"])
-                        );
-                    } else {
-                        $course_data = [];
-                        $overlapping_assignment = AssignObject::Factory($tmp_assign_id);
-                        if ($overlapping_assignment) {
-                            $assignment_range_id = $overlapping_assignment->getAssignUserId();
-                            $course_id_stmt->execute(['termin_id' => $assignment_range_id]);
-                            $course_id = $course_id_stmt->fetchColumn();
-                            if ((get_object_type($course_id) == 'sem') and
-                                $GLOBALS['perm']->have_studip_perm(
-                                    'dozent',
-                                    $course_id,
-                                    $GLOBALS['user']->id
-                                )) {
-                                $course_data['id'] = $course_id;
-                                $course_data['name'] = $overlapping_assignment->GetOwnerName();
-                            }
-                        }
 
-                        if ($course_data) {
-                            $course_link = URLHelper::getLink(
-                                'dispatch.php/course/timesrooms/index',
-                                [
-                                    'cid' => $course_data['id']
-                                ]
-                            );
-                            $msg .= sprintf(
-                                _('Am %1$s von %2$s bis %3$s Uhr durch Veranstaltung %4$s') . "\n",
-                                date('d.m.Y', $val['begin']),
-                                date('H:i', $val['begin']),
-                                date('H:i', $val['end']),
-                                sprintf(
-                                    '<a href="%1$s">%2$s</a>',
-                                    $course_link,
-                                    $course_data['name']
-                                )
-                            );
-                        } else {
-                            $msg .= sprintf(
-                                _('Am %1$s von %2$s bis %3$s Uhr') . "\n",
-                                date("d.m.Y", $val["begin"]),
-                                date("H:i", $val["begin"]),
-                                date("H:i", $val["end"])
-                            );
-                        }
-                    }
+                foreach ($overlaps as $tmp_assign_id => $val) {
+                    $msg .= $this->getOverlapMessage($tmp_assign_id, $val);
                 }
                 $this->messages['error'][] = $msg;
 
