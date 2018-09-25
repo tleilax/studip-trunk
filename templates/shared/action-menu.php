@@ -22,8 +22,10 @@
                 </a>
             <? elseif ($action['type'] === 'button'): ?>
                 <? if ($action['icon']): ?>
-                    <?= $action['icon']->asInput($action['attributes'] + ['name' => $action['name'], 'title' => $action['label']]) ?>
-                    <?= htmlReady($action['label']) ?>
+                    <label class="undecorated">
+                        <?= $action['icon']->asInput($action['attributes'] + ['name' => $action['name'], 'title' => $action['label']]) ?>
+                        <?= htmlReady($action['label']) ?>
+                    </label>
                 <? else: ?>
                     <span class="action-menu-no-icon"></span>
                     <button name="<?= htmlReady($action['name']) ?>" <?= arrayToHtmlAttributes($action['attributes']) ?>>
