@@ -182,8 +182,6 @@ class Seminar_Register_Auth extends Seminar_Auth
      * @return void
      */
     public static function sendValidationMail($user){
-        global $_language_path;
-
         // if no user-object is given interpret it as a user-id
         if (is_string($user)) {
             $user = new User($user);
@@ -203,8 +201,10 @@ class Seminar_Register_Auth extends Seminar_Auth
         $mail   = new StudipMail();
         $abuse  = $mail->getReplyToEmail();
 
+        $lang_path = getUserLanguagePath($user->id);
+
         // include language-specific subject and mailbody
-        include_once("locale/$_language_path/LC_MAILS/register_mail.inc.php");
+        include_once("locale/$lang_path/LC_MAILS/register_mail.inc.php");
 
         // send the mail
         $mail->setSubject($subject)

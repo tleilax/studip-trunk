@@ -930,7 +930,7 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
 
             $activatation_url = $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'activate_email.php?uid=' . $this->user_id . '&key=' . $this->validation_key;
             // include language-specific subject and mailbody with fallback to german
-            $lang = $GLOBALS['_language_path']; // workaround
+            $lang = getUserLanguagePath($this->id);
             if($lang == '') {
                 $lang = 'de';
             }
