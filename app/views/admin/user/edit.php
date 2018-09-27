@@ -32,7 +32,7 @@ use Studip\Button, Studip\LinkButton;
             <?= _('Allgemeine Daten') ?>
         </legend>
 
-        <label class="col-3">
+        <label class="col-2">
             <span class="required">
                 <?= _('Benutzername') ?>
             </span>
@@ -45,7 +45,7 @@ use Studip\Button, Studip\LinkButton;
             <? endif ?>
         </label>
 
-        <label class="col-3">
+        <label class="col-2">
             <?= _('Globaler Status') ?>
 
             <? if (StudipAuthAbstract::CheckField('auth_user_md5.perms', $user->auth_plugin)): ?>
@@ -61,7 +61,7 @@ use Studip\Button, Studip\LinkButton;
             <? endif; ?>
         </label>
 
-        <label class="col-3">
+        <label class="col-2">
             <?= _('Sichtbarkeit') ?>
 
             <div class="hgroup">
@@ -96,34 +96,6 @@ use Studip\Button, Studip\LinkButton;
                        value="<?= htmlReady($user->nachname) ?>" required>
             <? endif ?>
         </label>
-
-        <section class="col-3">
-            <span class="label-text">
-                <?= _('Geschlecht') ?>
-            </span>
-
-            <? if (StudipAuthAbstract::CheckField('user_info.geschlecht', $user->auth_plugin) || LockRules::check($user->user_id, 'gender')): ?>
-                <br><?= !$user->geschlecht ? _('unbekannt') : ($user->geschlecht == 1 ? _('männlich') : _('weiblich')) ?>
-            <? else: ?>
-            <div class="hgroup">
-                <label>
-                    <input type="radio" name="geschlecht" value="0"
-                            <? if (!$user->geschlecht) echo 'checked'; ?>>
-                    <?= _('unbekannt') ?>
-                </label>
-                <label>
-                    <input type="radio" name="geschlecht" value="1"
-                            <? if ($user->geschlecht == 1) echo 'checked'; ?>>
-                    <?= _('männlich') ?>
-                </label>
-                <label>
-                    <input type="radio" name="geschlecht" value="2"
-                            <? if ($user->geschlecht == 2) echo 'checked'; ?>>
-                    <?= _('weiblich') ?>
-                </label>
-            </div>
-            <? endif; ?>
-        </section>
 
         <label class="col-3">
             <?= _('Titel') ?>
@@ -168,7 +140,6 @@ use Studip\Button, Studip\LinkButton;
             <? endif; ?>
         </label>
 
-
         <label class="col-3">
             <?= _('Sprache')  ?>
 
@@ -181,6 +152,34 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach; ?>
             </select>
         </label>
+
+        <section class="col-3">
+            <span class="label-text">
+                <?= _('Geschlecht') ?>
+            </span>
+
+            <? if (StudipAuthAbstract::CheckField('user_info.geschlecht', $user->auth_plugin) || LockRules::check($user->user_id, 'gender')): ?>
+                <br><?= !$user->geschlecht ? _('unbekannt') : ($user->geschlecht == 1 ? _('männlich') : _('weiblich')) ?>
+            <? else: ?>
+            <div class="hgroup">
+                <label>
+                    <input type="radio" name="geschlecht" value="0"
+                            <? if (!$user->geschlecht) echo 'checked'; ?>>
+                    <?= _('unbekannt') ?>
+                </label>
+                <label>
+                    <input type="radio" name="geschlecht" value="1"
+                            <? if ($user->geschlecht == 1) echo 'checked'; ?>>
+                    <?= _('männlich') ?>
+                </label>
+                <label>
+                    <input type="radio" name="geschlecht" value="2"
+                            <? if ($user->geschlecht == 2) echo 'checked'; ?>>
+                    <?= _('weiblich') ?>
+                </label>
+            </div>
+            <? endif; ?>
+        </section>
     </fieldset>
 
 
@@ -237,36 +236,6 @@ use Studip\Button, Studip\LinkButton;
             <? endif ?>
         </section>
 
-        <section class="col-3">
-            <span class="label-text">
-                <?= _('Zuletzt aktiv') ?>
-            </span>
-
-            <br>
-
-            <? if ($user->online->last_lifesign): ?>
-                <abbr title="<?= strftime('%x %X', $user->online->last_lifesign) ?>">
-                    <?= reltime($user->online->last_lifesign, true, 2) ?>
-                </abbr>
-            <? else: ?>
-                <?= _('nie benutzt') ?>
-            <? endif; ?>
-        </section>
-
-        <section class="col-3">
-            <span class="label-text">
-                <?= _('Registriert seit') ?>
-            </span>
-
-            <br>
-
-            <? if ($user->mkdate): ?>
-                <?= strftime('%x', $user->mkdate) ?>
-            <? else: ?>
-                <?= _('unbekannt') ?>
-            <? endif; ?>
-        </section>
-
         <label class="col-3">
             <?= _('Authentifizierung') ?>
 
@@ -297,7 +266,7 @@ use Studip\Button, Studip\LinkButton;
         <? endif ?>
 
 
-        <section class="col-3">
+        <section>
             <label for="expiration_date">
                 <?= _('Ablaufdatum') ?>
             </label>
@@ -315,6 +284,36 @@ use Studip\Button, Studip\LinkButton;
                 </label>
             </div>
         </section>
+
+        <section class="col-3">
+            <span class="label-text">
+                <?= _('Zuletzt aktiv') ?>
+            </span>
+
+            <br>
+
+            <? if ($user->online->last_lifesign): ?>
+                <abbr title="<?= strftime('%x %X', $user->online->last_lifesign) ?>">
+                    <?= reltime($user->online->last_lifesign, true, 2) ?>
+                </abbr>
+            <? else: ?>
+                <?= _('nie benutzt') ?>
+            <? endif; ?>
+        </section>
+
+        <section class="col-3">
+            <span class="label-text">
+                <?= _('Registriert seit') ?>
+            </span>
+
+            <br>
+
+            <? if ($user->mkdate): ?>
+                <?= strftime('%x', $user->mkdate) ?>
+            <? else: ?>
+                <?= _('unbekannt') ?>
+            <? endif; ?>
+        </section>
     </fieldset>
 
     <? if (in_array($user->perms, ['autor', 'tutor', 'dozent'])): ?>
@@ -328,14 +327,14 @@ use Studip\Button, Studip\LinkButton;
                 <span class="label-text"><?= _('Neuer Studiengang') ?></span>
 
                 <div class="hgroup">
-                    <select name="new_studiengang" id="new_studiengang" aria-label="<?= _('-- Bitte Fach auswählen --')?>">
+                    <select style="width: 30%" name="new_studiengang" id="new_studiengang" aria-label="<?= _('-- Bitte Fach auswählen --')?>">
                         <option selected value="none"><?= _('-- Bitte Fach auswählen --')?></option>
                         <? foreach ($faecher as $fach) :?>
                             <?= sprintf('<option value="%s">%s</option>', $fach->id, htmlReady(my_substr($fach->name, 0, 50)));?>
                         <? endforeach?>
                     </select>
 
-                    <select name="new_abschluss" id="new_abschluss" aria-label="<?= _('-- Bitte Abschluss auswählen --')?>">
+                    <select style="width: 30%" name="new_abschluss" id="new_abschluss" aria-label="<?= _('-- Bitte Abschluss auswählen --')?>">
                         <option selected value="none"><?= _('-- Bitte Abschluss auswählen --')?></option>
                         <? foreach ($abschluesse as $abschluss) :?>
                             <?= sprintf('<option value="%s">%s</option>' . "\n", $abschluss->id, htmlReady(my_substr($abschluss->name, 0, 50)));?>
