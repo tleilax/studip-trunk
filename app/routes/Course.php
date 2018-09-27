@@ -207,7 +207,7 @@ class Course extends \RESTAPI\RouteMap
         // Add group if current user is member of the group
         $json['group'] = null;
 
-        $member = $course->members->findOneBy('user_id', $GLOBALS['user']->id);
+        $member = \CourseMember::find([$course->id, $GLOBALS['user']->id]);
         if ($member) {
             $json['group'] = (int) $member->gruppe;
         }
