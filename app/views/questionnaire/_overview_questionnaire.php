@@ -1,5 +1,8 @@
 <tr id="questionnaire_<?= $questionnaire->id ?>">
     <td>
+        <input type="checkbox" name="q[]" value="<?= htmlReady($questionnaire->id) ?>">
+    </td>
+    <td>
         <a href="<?= $controller->link_for('questionnaire/evaluate/' . $questionnaire->id) ?>" data-dialog>
             <?= htmlReady($questionnaire['title']) ?>
         </a>

@@ -220,6 +220,27 @@ class QuestionnaireController extends AuthenticatedController
         }
     }
 
+    public function bulkdelete_action() {
+        if (Request::isPost()) {
+            foreach (Request::getArray("q") as $questionnaire_id) {
+                $questionnaire = new Questionnaire($questionnaire_id);
+                if ($questionnaire->isEditable()) {
+                    $questionnaire->delete();
+                }
+            }
+            PageLayout::postSuccess(_("Fragebögen wurden gelöscht."));
+            if (Request::get("range_type") === "user") {
+                $this->redirect("questionnaire/overview");
+            } elseif (Request::get("range_type") === "course") {
+                $this->redirect("questionnaire/courseoverview");
+            } elseif (Request::get("range_id") === "start") {
+                $this->redirect("start");
+            } else {
+                $this->redirect("questionnaire/overview");
+            }
+        }
+    }
+
     public function add_question_action()
     {
         if (!$GLOBALS['perm']->have_perm("autor")) {
