@@ -34,7 +34,7 @@
                 } else {
                     start    = $('#news_startdate').datepicker('getDate');
                     end      = $('#news_enddate').datepicker('getDate');
-                    duration = (end - start) / (24 * 60 * 60 * 1000);
+                    duration = Math.floor((end - start) / (24 * 60 * 60 * 1000));
                     duration = Math.max(0, duration);
 
                     $('#news_duration').val(duration);
