@@ -370,7 +370,7 @@ class Admin_CoursesController extends AuthenticatedController
             'view_filter' => $this->view_filter,
             'typeFilter'  => $config_my_course_type_filter,
             'datafields' => $this->getDatafieldFilters()
-        ));
+        ), Request::get('display') === 'all');
 
         if (in_array('contents', $this->view_filter)) {
             $this->nav_elements = MyRealmModel::calc_nav_elements(array($this->courses));
@@ -495,7 +495,7 @@ class Admin_CoursesController extends AuthenticatedController
             'sortFlag'    => 'asc',
             'typeFilter'  => $config_my_course_type_filter,
             'view_filter' => $filter_config,
-        ));
+        ), true);
 
         $view_filters = $this->getViewFilters();
 
@@ -1061,9 +1061,10 @@ class Admin_CoursesController extends AuthenticatedController
      *
      * @param Array $params Additional parameters
      * @param String $parent_id Fetch only subcourses of this parent
+     * @param display_all : boolean should we show all courses or check for a limit of 500 courses?
      * @return Array of courses
      */
-    private function getCourses($params = array())
+    private function getCourses($params = array(), $display_all = false)
     {
         // Init
         if ($GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT === "all") {
@@ -1162,7 +1163,7 @@ class Admin_CoursesController extends AuthenticatedController
         }
         $filter->storeSettings();
         $this->count_courses = $filter->countCourses();
-        if ($this->count_courses && ($this->count_courses <= $filter->max_show_courses || Request::get('display') === 'all')) {
+        if ($this->count_courses && ($this->count_courses <= $filter->max_show_courses || $display_all)) {
             $courses = $filter->getCourses();
         } else {
             return array();
