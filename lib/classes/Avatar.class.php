@@ -84,10 +84,9 @@ class Avatar {
      *
      * @return mixed     the user's avatar.
      */
-    static function getAvatar($id) {
-        $user_id = $id;
-        $username = @func_get_arg(1);
-        return new Avatar($user_id, $username);
+    static function getAvatar($id, $username = null)
+    {
+        return new Avatar($id, $username);
     }
 
     /**
@@ -143,8 +142,8 @@ class Avatar {
      *
      * @return void
      */
-    protected function __construct() {
-        list($user_id, $username) = func_get_args();
+    protected function __construct($user_id, $username)
+    {
         $this->user_id = $user_id;
         $this->username = $username;
     }
