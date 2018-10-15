@@ -142,7 +142,7 @@ class Avatar {
      *
      * @return void
      */
-    protected function __construct($user_id, $username)
+    protected function __construct($user_id, $username = null)
     {
         $this->user_id = $user_id;
         $this->username = $username;
