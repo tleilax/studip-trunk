@@ -36,7 +36,17 @@
  */
 class CycleDataDB
 {
-    function getTermine($metadate_id, $start = 0, $end = 0)
+    /**
+     * Returns sorted array of all dates belonging to the passed metadate,
+     * optionally filtered by start- and end-date
+     *
+     * @param  string  $metadate_id
+     * @param  integer $start
+     * @param  integer $end
+     *
+     * @return array
+     */
+    public static function getTermine($metadate_id, $start = 0, $end = 0)
     {
         if (($start != 0) || ($end != 0)) {
             $query = "SELECT termine.*, r.resource_id, GROUP_CONCAT(DISTINCT trp.user_id) AS related_persons, GROUP_CONCAT(DISTINCT trg.statusgruppe_id) AS related_groups
@@ -114,7 +124,17 @@ class CycleDataDB
         return ($a['date'] < $b['date']) ? -1 : 1;
     }
 
-    function deleteNewerSingleDates($metadate_id, $timestamp, $keepIssues = false)
+    /**
+     * Deletes all dates that are newer then the passed date for metadate
+     * with the passed id
+     *
+     * @param  string  $metadate_id
+     * @param  int  $timestamp
+     * @param  boolean $keepIssues
+     *
+     * @return int  number of deleted singledates
+     */
+    public static function deleteNewerSingleDates($metadate_id, $timestamp, $keepIssues = false)
     {
         $count = 0;
 
@@ -142,7 +162,17 @@ class CycleDataDB
         return $count;
     }
 
-    function getPredominantRoomDB($metadate_id, $filterStart = 0, $filterEnd = 0)
+    /**
+     * Returns the list of booked rooms ordered by number of appearance
+     * in the metadate with the passed id
+     *
+     * @param  string  $metadate_id
+     * @param  integer $filterStart
+     * @param  integer $filterEnd
+     *
+     * @return array [resource_id, number_of_appearances]
+     */
+    public static function getPredominantRoomDB($metadate_id, $filterStart = 0, $filterEnd = 0)
     {
         if (($filterStart == 0) && ($filterEnd == 0)) {
             $query = "SELECT resource_id, COUNT(resource_id) AS c
@@ -166,7 +196,17 @@ class CycleDataDB
         return $statement->fetchGrouped(PDO::FETCH_COLUMN) ?: false;
     }
 
-    function getFreeTextPredominantRoomDB($metadate_id, $filterStart = 0, $filterEnd = 0)
+    /**
+     * Returns the list of freetext rooms ordered by number of appearance
+     * in the metadate with the passed id
+     *
+     * @param  [type]  $metadate_id
+     * @param  integer $filterStart
+     * @param  integer $filterEnd
+     *
+     * @return array [freetex, number_of_appearances]
+     */
+    public static function getFreeTextPredominantRoomDB($metadate_id, $filterStart = 0, $filterEnd = 0)
     {
         if (($filterStart == 0) && ($filterEnd == 0)) {
             $query = "SELECT raum, COUNT(raum) AS c
@@ -193,10 +233,12 @@ class CycleDataDB
 
     /**
      * returns the first date for a given metadate_id as array
+     *
      * @param string $metadate_id
+     *
      * @return array
      */
-    function getFirstDate($metadate_id)
+    public static function getFirstDate($metadate_id)
     {
         $query = "SELECT *
                   FROM termine
