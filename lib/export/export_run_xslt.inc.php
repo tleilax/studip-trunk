@@ -105,7 +105,7 @@ function encode_utf8_for_rtf($utf8_text)
 
 $export_pagename = _("Download der Ausgabedatei");
 $xslt_process = false;
-$xslt_filename = mb_strlen(Request::get('xslt_filename')) ? basename(stripslashes(Request::get('xslt_filename'))) : $xslt_filename_default;
+$xslt_filename = Request::get('xslt_filename', $xslt_filename_default);
 
 if (!CheckParamRUN()) {
     PageLayout::postError(

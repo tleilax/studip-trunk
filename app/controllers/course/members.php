@@ -1539,7 +1539,7 @@ class Course_MembersController extends AuthenticatedController
                 $csvExport = export_link(
                     $this->course_id,
                     'person',
-                    htmlReady(sprintf('%s %s', $this->status_groups['autor'], $this->course_title)),
+                    sprintf('%s %s', $this->status_groups['autor'], $this->course_title),
                     'csv',
                     'csv-teiln',
                     '',
@@ -1555,7 +1555,7 @@ class Course_MembersController extends AuthenticatedController
                 $rtfExport = export_link(
                     $this->course_id,
                     'person',
-                    htmlReady(sprintf('%s %s', $this->status_groups['autor'], $this->course_title)),
+                    sprintf('%s %s', $this->status_groups['autor'], $this->course_title),
                     'rtf',
                     'rtf-teiln',
                     '',
@@ -1571,7 +1571,7 @@ class Course_MembersController extends AuthenticatedController
                     $awaiting_rtf = export_link(
                         $this->course_id,
                         'person',
-                        htmlReady(sprintf(_('Warteliste %s'), $this->course_title)),
+                        sprintf(_('Warteliste %s'), $this->course_title),
                         'rtf',
                         'rtf-warteliste',
                         $this->waiting_type,
@@ -1586,7 +1586,7 @@ class Course_MembersController extends AuthenticatedController
                     $awaiting_csv = export_link(
                         $this->course_id,
                         'person',
-                        htmlReady(sprintf(_('Warteliste %s'), $this->course_title)),
+                        sprintf(_('Warteliste %s'), $this->course_title),
                         'csv',
                         'csv-warteliste',
                         $this->waiting_type,
