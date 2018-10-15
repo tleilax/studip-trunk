@@ -84,8 +84,14 @@ class Avatar {
      *
      * @return mixed     the user's avatar.
      */
-    static function getAvatar($id, $username = null)
+    static function getAvatar($id)
     {
+        $username = null;
+
+        if (func_num_args() == 2) {
+            $username = func_get_arg(1);
+        }
+
         return new Avatar($id, $username);
     }
 
