@@ -314,8 +314,7 @@ class Course_StudygroupController extends AuthenticatedController
                 }
                 $sem->admission_binding = 0;
 
-                $semdata                     = new SemesterData();
-                $this_semester               = $semdata->getSemesterDataByDate(time());
+                $this_semester               = SemesterData::getSemesterDataByDate(time());
                 $sem->semester_start_time    = $this_semester['beginn'];
                 $sem->semester_duration_time = -1;
 

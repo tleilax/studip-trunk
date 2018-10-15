@@ -5,9 +5,9 @@
 # Lifter010: TODO
 /**
 * sri.inc.php
-* 
+*
 * The Stud.IP-remote-include interface to extern modules.
-* 
+*
 *
 * @author       Peter Thienel <pthienel@web.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -47,8 +47,7 @@ if (!ini_get('allow_url_fopen')){
 }
 // this script is included in extern.inc.php
 
-$semester = new SemesterData();
-$all_semester = $semester->getAllSemesterData();
+$all_semester = SemesterData::getAllSemesterData();
 
 if ($sri_file = @file($page_url))
     $sri_page = implode("", $sri_file);
@@ -173,17 +172,17 @@ foreach ($EXTERN_MODULE_TYPES as $type) {
         $module_obj = ExternModule::GetInstance($range_id, $module_name, $config_id, $default, $global_id);
     }
 }
-// drop URL parameters from page_url 
+// drop URL parameters from page_url
 $page_url = preg_replace('/\?.*/', '', Request::get('page_url'));
- 
-$sri_url = $module_obj->config->getValue('Main', 'sriurl'); 
 
-if (isset($sri_url)) { 
-    // drop URL parameters from sri_url 
-    $sri_url = preg_replace('/\?.*/', '', $sri_url); 
-} 
+$sri_url = $module_obj->config->getValue('Main', 'sriurl');
 
-if ($page_url != $sri_url || !sri_is_enabled($module_obj->config->range_id)) { 
+if (isset($sri_url)) {
+    // drop URL parameters from sri_url
+    $sri_url = preg_replace('/\?.*/', '', $sri_url);
+}
+
+if ($page_url != $sri_url || !sri_is_enabled($module_obj->config->range_id)) {
 
     echo $EXTERN_ERROR_MESSAGE;
     exit;

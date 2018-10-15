@@ -22,9 +22,9 @@ class Search_ModuleController extends MVVController
     public function before_filter(&$action, &$args)
     {
         $this->allow_nobody = Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY;
-        
+
         parent::before_filter($action, $args);
-        
+
         $this->drill_down_type = Request::option('type');
         $this->drill_down_id = Request::option('id');
         $this->sterm = Request::get('sterm');
@@ -41,23 +41,23 @@ class Search_ModuleController extends MVVController
                 URLHelper::bindLinkParam('id', $this->drill_down_id);
             }
         }
-        
+
         // set navigation
         Navigation::activateItem('/search/courses/module');
-        
+
         //set title
         PageLayout::setTitle(_('Modulverzeichnis - Modulsuche'));
-        
+
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
-        
+
         $views = new ViewsWidget();
         $views->addLink(_('Modulsuche'), $this->url_for('search/module'))
                 ->setActive();
         $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'));
         $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'));
         $views->addLink(_('Fach-Abschlusskombinationen'), $this->url_for('search/stgtable'));
-        
+
         $sidebar->addWidget($views);
     }
 
@@ -87,8 +87,7 @@ class Search_ModuleController extends MVVController
         }
 
         $semesterSwitch = intval(get_config('SEMESTER_TIME_SWITCH'));
-        $currentSemester = SemesterData::GetInstance()
-        ->getSemesterDataByDate(time() + $semesterSwitch * 7 * 24 * 60 * 60);
+        $currentSemester = SemesterData::getSemesterDataByDate(time() + $semesterSwitch * 7 * 24 * 60 * 60);
         $this->selected_semester = Semester::find($this->sessGet('selected_semester',
             $currentSemester['semester_id']));
 
@@ -170,7 +169,7 @@ class Search_ModuleController extends MVVController
         if (count($drill_down['institutes']['objects'])
                 || count($drill_down['studiengaenge']['objects'])
                 || count($drill_down['faecher']['objects'])) {
-            
+
             $widget = new SelectWidget(_('Studiengänge'),
                 $this->url_for('',array('sterm' => $this->sterm, 'type' => 'Studiengang')), 'id');
             $options = array(0 => 'Alle');
@@ -198,8 +197,8 @@ class Search_ModuleController extends MVVController
 
 
             $widget = new SelectWidget(_('Verantwortliche Einrichtungen'),
-                $this->url_for('',array('sterm' => $this->sterm, 'type' => 'Fachbereich')), 'id');                       
-            $widget->class = 'institute-list';    
+                $this->url_for('',array('sterm' => $this->sterm, 'type' => 'Fachbereich')), 'id');
+            $widget->class = 'institute-list';
             $options = array(0 => 'Alle');
             $widget->addElement(new SelectElement(0, _('Alle')), 'select-all');
             if(!empty($drill_down['institutes']['objects'])){
@@ -213,7 +212,7 @@ class Search_ModuleController extends MVVController
                         'select-' . $institut->name
                         );
                 }
-            }            
+            }
             $sidebar->addWidget($widget, 'institutes_filter');
         }
 
@@ -300,8 +299,7 @@ class Search_ModuleController extends MVVController
             $sem_number++;
         }
         $semesterSwitch = intval(get_config('SEMESTER_TIME_SWITCH'));
-        $currentSemester = SemesterData::GetInstance()
-                ->getSemesterDataByDate(time() + $semesterSwitch * 7 * 24 * 60 * 60);
+        $currentSemester = SemesterData::getSemesterDataByDate(time() + $semesterSwitch * 7 * 24 * 60 * 60);
         $this->selected_semester =  Semester::find($this->sessGet('selected_semester',
                 $currentSemester['semester_id']));
         $this->semester_select = array_reverse($this->semester_select);
@@ -561,8 +559,7 @@ class Search_ModuleController extends MVVController
         }
 
         $semesterSwitch = intval(get_config('SEMESTER_TIME_SWITCH'));
-        $currentSemester = SemesterData::GetInstance()
-                ->getSemesterDataByDate(time() + $semesterSwitch * 7 * 24 * 60 * 60);
+        $currentSemester = SemesterData::getSemesterDataByDate(time() + $semesterSwitch * 7 * 24 * 60 * 60);
         $this->selected_semester =  Semester::find($this->sessGet('selected_semester',
                 $currentSemester['semester_id']));
         $this->semester_select = array_reverse($this->semester_select);

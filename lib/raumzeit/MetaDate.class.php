@@ -525,8 +525,7 @@ class MetaDate
 
         $ret = array();
 
-        $semester = new SemesterData;
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
 
         // get the starting-point for creating singleDates for the choosen cycleData
         foreach ($all_semester as $val) {

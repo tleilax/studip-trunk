@@ -5,9 +5,9 @@
 # Lifter010: TODO
 /**
 * ExternSemBrowse.class.php
-* 
-* 
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <pthienel@web.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -19,7 +19,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ExternSemBrowse.class.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -41,20 +41,19 @@
 require_once 'lib/dates.inc.php';
 
 class ExternSemBrowse extends SemBrowse {
-    
+
     var $module;
     var $config;
     var $sem_types_position;
-    
+
     function __construct(&$module, $start_item_id) {
-        
+
         global $SEM_TYPE,$SEM_CLASS;
         // prevent warnings if snapshot of database is empty
         ob_start();
-        $semester = new SemesterData;
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
         array_unshift($all_semester,0);
-        
+
         $this->group_by_fields = array( array('name' => _("Semester"), 'group_field' => 'sem_number'),
                                         array('name' => _("Bereich"), 'group_field' => 'bereich'),
                                         array('name' => _("Lehrende"), 'group_field' => 'fullname', 'unique_field' => 'username'),
@@ -66,7 +65,7 @@ class ExternSemBrowse extends SemBrowse {
         $this->sem_browse_data["group_by"] = $this->config->getValue("Main", "grouping");
         $this->sem_dates = $all_semester;
         $this->sem_dates[0] = array("name" => sprintf(_("vor dem %s"),$this->sem_dates[1]['name']));
-        
+
         // reorganize the $SEM_TYPE-array
         foreach ($SEM_CLASS as $key_class => $class) {
             $i = 0;
@@ -77,12 +76,12 @@ class ExternSemBrowse extends SemBrowse {
                 }
             }
         }
-        
+
         $switch_time = mktime(0, 0, 0, date("m"),
                 date("d") + 7 * $this->config->getValue("Main", "semswitch"), date("Y"));
         // get current semester
         $current_sem = get_sem_num($switch_time) + 1;
-        
+
         switch ($this->config->getValue("Main", "semstart")) {
             case "previous" :
                 if (isset($all_semester[$current_sem - 1]))
@@ -98,30 +97,30 @@ class ExternSemBrowse extends SemBrowse {
                 if (isset($all_semester[$this->config->getValue("Main", "semstart")]))
                     $current_sem = $this->config->getValue("Main", "semstart");
         }
-        
+
         $last_sem = $current_sem + $this->config->getValue("Main", "semrange");
         if ($last_sem < $current_sem)
             $last_sem = $current_sem;
         if (!isset($all_semester[$last_sem]))
             $last_sem = sizeof($all_semester);
-        
+
         for ($i = $last_sem; $i > $current_sem; $i--)
             $this->sem_number[] = $i - 1;
-        
+
         $semclasses = $this->config->getValue("Main", "semclasses");
         foreach ($SEM_TYPE as $key => $type) {
             if (in_array($type["class"], $semclasses))
                 $this->sem_browse_data['sem_status'][] = $key;
         }
 
-        $this->get_sem_range_tree($start_item_id, true);        
+        $this->get_sem_range_tree($start_item_id, true);
     }
-    
+
     function print_result () {
         global $_fullname_sql,$SEM_TYPE,$SEM_CLASS;
 
         if (is_array($this->sem_browse_data['search_result']) && count($this->sem_browse_data['search_result'])) {
-            
+
             // show only selected subject areas
             $selected_ranges = $this->config->getValue('SelectSubjectAreas', 'subjectareasselected');
             if ($stid = Request::option('sem_tree_id')) {
@@ -143,7 +142,7 @@ class ExternSemBrowse extends SemBrowse {
             } else {
                 $sem_range_query = '';
             }
-            
+
             // show only selected SemTypes
             $selected_semtypes = $this->config->getValue('ReplaceTextSemType', 'visibility');
             if (Request::get('semstatus')) {
@@ -170,7 +169,7 @@ class ExternSemBrowse extends SemBrowse {
                 }
                 $the_tree->buildIndex();
             }
-            
+
             if (!$this->config->getValue("Main", "allseminars") && !Request::get('allseminars')) {
                 $sem_inst_query = " AND seminare.Institut_id='{$this->config->range_id}' ";
             }
@@ -182,23 +181,23 @@ class ExternSemBrowse extends SemBrowse {
             }
 
             $dbv = DbView::getView('sem_tree');
-            
+
             if (!$nameformat = $this->config->getValue("Main", "nameformat"))
                 $nameformat = "no_title_short";
-            $query = "SELECT seminare.Seminar_id, seminare.status, seminare.Name  
+            $query = "SELECT seminare.Seminar_id, seminare.status, seminare.Name
                 , seminare.Institut_id, Institute.Name AS Institut,Institute.Institut_id,
                 seminar_sem_tree.sem_tree_id AS bereich, "
                 . $_fullname_sql[$nameformat]
                 . " AS fullname, auth_user_md5.username,
-                " . $dbv->sem_number_sql . " AS sem_number, " . $dbv->sem_number_end_sql . " AS sem_number_end, " . 
+                " . $dbv->sem_number_sql . " AS sem_number, " . $dbv->sem_number_end_sql . " AS sem_number_end, " .
             " seminar_user.position AS position, seminare.parent_course, seminare.visible " .
-            " FROM seminare 
-                LEFT JOIN seminar_user ON (seminare.Seminar_id=seminar_user.Seminar_id AND seminar_user.status='dozent') 
-                LEFT JOIN auth_user_md5 USING (user_id) 
-                LEFT JOIN user_info USING (user_id) 
+            " FROM seminare
+                LEFT JOIN seminar_user ON (seminare.Seminar_id=seminar_user.Seminar_id AND seminar_user.status='dozent')
+                LEFT JOIN auth_user_md5 USING (user_id)
+                LEFT JOIN user_info USING (user_id)
                 LEFT JOIN seminar_sem_tree ON (seminare.Seminar_id = seminar_sem_tree.seminar_id)
-                LEFT JOIN seminar_inst ON (seminare.Seminar_id = seminar_inst.Seminar_id) 
-                LEFT JOIN Institute ON (seminar_inst.institut_id = Institute.Institut_id) 
+                LEFT JOIN seminar_inst ON (seminare.Seminar_id = seminar_inst.Seminar_id)
+                LEFT JOIN Institute ON (seminar_inst.institut_id = Institute.Institut_id)
                 WHERE (seminare.Seminar_id IN('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "')
                     OR seminare.parent_course IN ('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "'))
                  $sem_inst_query $sem_range_query $sem_types_query";
@@ -216,7 +215,7 @@ class ExternSemBrowse extends SemBrowse {
             }
             $group_by_data = $snap->getGroupedResult($group_field, $data_fields);
             $sem_data = $snap->getGroupedResult("Seminar_id");
-            
+
             if ($this->sem_browse_data['group_by'] == 0){
                 $group_by_duration = $snap->getGroupedResult("sem_number_end", array("sem_number","Seminar_id"));
                 foreach ($group_by_duration as $sem_number_end => $detail){
@@ -254,7 +253,7 @@ class ExternSemBrowse extends SemBrowse {
                     }
                 }
             }
-            
+
             foreach ($group_by_data as $group_field => $sem_ids){
                 foreach ($sem_ids['Seminar_id'] as $seminar_id => $foo){
                     $name = mb_strtolower(key($sem_data[$seminar_id]["Name"]));
@@ -265,20 +264,20 @@ class ExternSemBrowse extends SemBrowse {
                 }
                 uasort($group_by_data[$group_field]['Seminar_id'], 'strnatcmp');
             }
-            
+
             switch ($this->sem_browse_data["group_by"]){
                     case 0:
                     krsort($group_by_data, SORT_NUMERIC);
                     break;
-                    
+
                     case 1:
                     uksort($group_by_data, create_function('$a,$b',
                             '$the_tree = TreeAbstract::GetInstance("StudipSemTree");
                             return (int)($the_tree->tree_data[$a]["index"] - $the_tree->tree_data[$b]["index"]);
                             '));
-                            
+
                     break;
-                    
+
                     case 3:
                     if ($order = $this->module->config->getValue("ReplaceTextSemType", "order")) {
                         foreach ($order as $position) {
@@ -295,7 +294,7 @@ class ExternSemBrowse extends SemBrowse {
                                                 $SEM_TYPE[$b]["name"]." (". $SEM_CLASS[$SEM_TYPE[$b]["class"]]["name"].")");'));
                     }
                     break;
-                    
+
                     default:
                     uksort($group_by_data, 'strnatcasecmp');
                     break;
@@ -344,7 +343,7 @@ class ExternSemBrowse extends SemBrowse {
                         case 0:
                         echo $this->sem_dates[$group_field]['name'];
                         break;
-                        
+
                         case 1:
                         if ($the_tree->tree_data[$group_field]) {
                             $range_path_level = $this->config->getValue("Main", "rangepathlevel");
@@ -367,11 +366,11 @@ class ExternSemBrowse extends SemBrowse {
                             echo $this->config->getValue("Main", "textnogroups");
                         */
                         break;
-                        
+
                         case 2:
                         echo htmlReady($group_field);
                         break;
-                        
+
                         case 3:
                         $aliases_sem_type = $this->config->getValue("ReplaceTextSemType",
                                 "class_{$SEM_TYPE[$group_field]['class']}");
@@ -382,11 +381,11 @@ class ExternSemBrowse extends SemBrowse {
                                     ." (". $SEM_CLASS[$SEM_TYPE[$group_field]["class"]]["name"].")");
                         }
                         break;
-                        
+
                         case 4:
                         echo htmlReady($group_field);
                         break;
-                        
+
                     }
                     echo "</font></td></tr>";
                     if (is_array($sem_ids['Seminar_id'])) {

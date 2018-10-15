@@ -3,9 +3,9 @@
 # Lifter010: TODO
 /**
 * ExternElementMainTemplateLecturedetails.class.php
-* 
-*  
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <thienel@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -17,7 +17,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ExternElementMainLecturedetails.class.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -49,7 +49,7 @@ class ExternElementMainTemplateSemBrowse extends ExternElementMain {
         $this->description = _("In den Grundeinstellungen können Sie allgemeine Daten des Moduls ändern.");
         parent::__construct($module_name, $data_fields, $field_names, $config);
     }
-    
+
     function getDefaultConfig () {
         $config = array(
             'name' => '',
@@ -75,55 +75,54 @@ class ExternElementMainTemplateSemBrowse extends ExternElementMain {
             'maxnumberofhits' => '10',
             'maxpagesresultbrowser' => ''
         );
-        
+
         get_default_generic_datafields($config, 'sem');
-        
+
         return $config;
     }
-    
+
     function toStringEdit ($post_vars = '', $faulty_values = '', $edit_form = '', $anker = '') {
         // get semester data
-        $semester = new SemesterData();
-        $semester_data = $semester->getAllSemesterData();
-        
+        $semester_data = SemesterData::getAllSemesterData();
+
         update_generic_datafields($this->config, $this->data_fields, $this->field_names, "sem");
-        
+
         $out = '';
         $table = '';
         if ($edit_form == '') {
             $edit_form = new ExternEditModule($this->config, $post_vars, $faulty_values, $anker);
         }
-        
+
         $edit_form->setElementName($this->getName());
         $element_headline = $edit_form->editElementHeadline($this->real_name,
                 $this->config->getName(), $this->config->getId(), TRUE, $anker);
-        
+
         if ($faulty_values == '') {
             $faulty_values = array();
         }
-        
+
         $headline = $edit_form->editHeadline(_("Name der Konfiguration"));
         $table = $edit_form->editName('name');
         $content_table = $edit_form->editContentTable($headline, $table);
         $content_table .= $edit_form->editBlankContent();
-        
+
         $content_table .= $this->getSRIFormContent($edit_form, true);
-        
+
         $headline = $edit_form->editHeadline(_("Konfiguration des Moduls"));
-        
+
         $title = _("Anzeigemodus:");
         $info = _("Auswahl zwischen Einrichtungsbaum und Bereichsbaum");
         $values = array('show_sem_range', 'show_sem_range_tree');
         $names = array(_("Vorlesungsverzeichnis"), _("Einrichtungen"));
         $table = $edit_form->editRadioGeneric('mode', $title, $info, $values, $names);
-        
+
         $title = _("Gruppierung:");
         $info = _("Wählen Sie, wie die Veranstaltungen gruppiert werden sollen.");
         $values = array('0', '1', '2', '3', '4');
         $names = array(_("Semester"), _("Bereich"), _("Lehrende"),
                 _("Typ"), _("Einrichtung"));
         $table .= $edit_form->editOptionGeneric('grouping', $title, $info, $values, $names);
-        
+
         $title = _("Startsemester:");
         $info = _("Geben Sie das erste anzuzeigende Semester an. Die Angaben \"vorheriges\", \"aktuelles\" und \"nächstes\" beziehen sich immer auf das laufende Semester und werden automatisch angepasst.");
         $current_sem = get_sem_num_sem_browse();
@@ -164,7 +163,7 @@ class ExternElementMainTemplateSemBrowse extends ExternElementMain {
         }
         $values = array('', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12');
         $table .= $edit_form->editOptionGeneric('semswitch', $title, $info, $values, $names);
-        
+
         /*
         $title = _("Veranstaltungen beteiligter Institute anzeigen:");
         $info = _("Wählen Sie diese Option, um Veranstaltungen anzuzeigen, bei denen diese Einrichtung als beteiligtes Institut eingetragen ist.");
@@ -172,13 +171,13 @@ class ExternElementMainTemplateSemBrowse extends ExternElementMain {
         $names = '';
         $table .= $edit_form->editCheckboxGeneric('allseminars', $title, $info, $values, $names);
         */
-        
+
         $title = _("Bereichspfad ab Ebene:");
         $info = _("Wählen Sie, ab welcher Ebene der Bereichspfad ausgegeben werden soll.");
         $values = array('1', '2', '3', '4', '5', '6');
         $names = array('1', '2', '3', '4', '5', '6');
         $table .= $edit_form->editOptionGeneric('rangepathlevel', $title, $info, $values, $names);
-        
+
         $title = _("Anzeige von Unterebenen:");
         $info = _("Anzahl der Unterebenen des Baumes, die angezeigt werden sollen.");
         $values = array('0', '1', '2', '3', '4', '5', '6');
@@ -190,14 +189,14 @@ class ExternElementMainTemplateSemBrowse extends ExternElementMain {
             $info = _("Wird das Modul ohne weitere Parameter aufgerufen startet die Anzeige beim Root-Level (alle Fakultäten).");
             $table .= $edit_form->editCheckboxGeneric('startitem', $title, $info, 'root', '0');
         }
-        
+
         $title = _("Leere Ebenen ausblenden:");
         $info = _("Ebenen ohne Veranstaltungen und ohne Veranstaltungen in ihren Unterebenen werden nicht angezeigt.");
         $table .= $edit_form->editCheckboxGeneric('disableemptylevels', $title, $info, '1', '0');
-        
+
         $content_table .= $edit_form->editContentTable($headline, $table);
         $content_table .= $edit_form->editBlankContent();
-        
+
         $headline = $edit_form->editHeadline(_("Konfiguration der Suche"));
 
         $title = _("Sortierung des Treffersets:");
@@ -218,31 +217,31 @@ class ExternElementMainTemplateSemBrowse extends ExternElementMain {
         $content_table .= $edit_form->editBlankContent();
 
         $headline = $edit_form->editHeadline(_("Ausgabe bestimmter Veranstaltungsklassen"));
-        
+
         $names = array();
         $values = array();
         $info = _("Wählen Sie die anzuzeigenden Veranstaltungsklassen aus.");
-        
+
         foreach ($GLOBALS['SEM_CLASS'] as $key => $class) {
             $values[] = $key;
             $names[] = $class['name'];
         }
         $table = $edit_form->editCheckboxGeneric('semclasses', $names, $info, $values, "");
-        
+
         $content_table .= $edit_form->editContentTable($headline, $table);
         $content_table .= $edit_form->editBlankContent();
-        
+
         $headline = $edit_form->editHeadline(_("Textersetzungen"));
-        
+
         $titles = array(_("Semester"), _("Bereich"), _("Lehrende"), _("Typ"), _("Einrichtung"));
         $info = _("Geben Sie eine Bezeichnung für die entsprechende Gruppierungsart ein.");
         $table = $edit_form->editTextfieldGeneric('aliasesgrouping', $titles, $info, 40, 150);
-        
+
         $content_table .= $edit_form->editContentTable($headline, $table);
         $content_table .= $edit_form->editBlankContent();
-        
+
         $headline = $edit_form->editHeadline(_("Termine"));
-        
+
         $title = _("Termintypen:");
         $info = _("Wählen Sie aus, welche Termintypen angezeigt werden sollen.");
         $values = array('all', 'meeting', 'other', '');
@@ -252,36 +251,36 @@ class ExternElementMainTemplateSemBrowse extends ExternElementMain {
             $names[] = $termin_typ['name'] . ($termin_typ['sitzung'] ? ' ('._("Sitzung").')' : '');
         }
         $table = $edit_form->editOptionGeneric('selectedeventtypes', $title, $info, $values, $names, 5, true);
-        
+
         $content_table .= $edit_form->editContentTable($headline, $table);
         $content_table .= $edit_form->editBlankContent();
-        
+
         $headline = $edit_form->editHeadline(_("Weitere Angaben"));
-        
+
         $title = _("Namensformat:");
         $info = _("Wählen Sie, wie Personennamen formatiert werden sollen.");
         $values = array("", "no_title_short", "no_title", "no_title_rev", "full", "full_rev");
         $names = array(_("keine Auswahl"), _("Meyer, P."), _("Peter Meyer"), _("Meyer Peter"),
                 _("Dr. Peter Meyer"), _("Meyer, Peter, Dr."));
         $table = $edit_form->editOptionGeneric('nameformat', $title, $info, $values, $names);
-        
+
         $title = _("Sprache:");
         $info = _("Wählen Sie eine Sprache für die Datumsangaben aus.");
         $values = array("", "de_DE", "en_GB");
         $names = array(_("keine Auswahl"), _("Deutsch"), _("Englisch"));
         $table .= $edit_form->editOptionGeneric('language', $title, $info, $values, $names);
-        
+
         $content_table .= $edit_form->editContentTable($headline, $table);
         $content_table .= $edit_form->editBlankContent();
-        
+
         $submit = $edit_form->editSubmit($this->config->getName(),
                 $this->config->getId(), $this->getName());
         $out = $edit_form->editContent($content_table, $submit);
         $out .= $edit_form->editBlank();
-        
+
         return $element_headline . $out;
     }
-    
+
     function checkValue ($attribute, $value) {
         if ($attribute == 'mode') {
             if (!sizeof($_POST[$this->getName() . '_mode'])) {
@@ -316,5 +315,5 @@ class ExternElementMainTemplateSemBrowse extends ExternElementMain {
         }
         return false;
     }
-    
+
 }

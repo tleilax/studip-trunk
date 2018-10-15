@@ -279,8 +279,8 @@ function kategorien (&$module, $data, $alias_content, $text_div, $text_div_end) 
 
 function lehre (&$module, $data, $alias_content, $text_div, $text_div_end) {
     global $attr_text_td;
-    $semester = new SemesterData;
-    $all_semester = $semester->getAllSemesterData();
+
+    $all_semester = SemesterData::getAllSemesterData();
     // old hard coded $SEMESTER-array starts with index 1
     array_unshift($all_semester, 0);
 

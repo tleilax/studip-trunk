@@ -17,26 +17,26 @@
 
 class Shared_ModulController extends AuthenticatedController
 {
-    
+
     public function before_filter(&$action, &$args)
     {
         $this->allow_nobody = Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY;
-        
+
         parent::before_filter($action, $args);
     }
-    
+
     public function overview_action($modul_id, $semester_id = null)
     {
         $display_language = Request::option('display_language', $_SESSION['_language']);
         ModuleManagementModel::setLanguage($display_language);
-        
+
         $modul = Modul::find($modul_id);
         if (!$modul->hasPublicStatus()) {
             throw new AccessDeniedException();
         }
         if ($modul) {
             $this->details_id = $modul->getId();
-            
+
             $type = 1;
             if (count($modul->modulteile) == 1) {
                 $modulteil = $modul->modulteile->first();
@@ -47,20 +47,19 @@ class Shared_ModulController extends AuthenticatedController
             } else if (count($modul->modulteile) == 0) {
                 $type = 3;
             }
-            
+
             if (!$semester_id) {
                 $semesterSwitch = intval(get_config('SEMESTER_TIME_SWITCH'));
-                $currentSemester = SemesterData::GetInstance()
-                    ->getSemesterDataByDate(time() + $semesterSwitch * 7 * 24 * 60 * 60);
+                $currentSemester = SemesterData::getSemesterDataByDate(time() + $semesterSwitch * 7 * 24 * 60 * 60);
             } else {
-                $currentSemester = SemesterData::GetInstance()->getSemesterData($semester_id);
-            }    
-            
+                $currentSemester = SemesterData::getSemesterData($semester_id);
+            }
+
             $this->modulVerantwortung = array();
             foreach ($modul->assigned_users as $user) {
                 $this->modulVerantwortung[$user->gruppe][] = $user;
             }
-            
+
             $sws = 0;
             $institut = new Institute($modul->responsible_institute->institut_id);
             $modulTeileData = array();
@@ -110,7 +109,7 @@ class Shared_ModulController extends AuthenticatedController
             PageLayout::setTitle($modul->getDisplayName() . ' (' . _('Veranstaltungsübersicht') .')');
         }
     }
-    
+
     public function description_action($id)
     {
         $modul = Modul::find($id);
@@ -134,10 +133,10 @@ class Shared_ModulController extends AuthenticatedController
         } else {
             $currentSemester = Semester::find(Request::get('sem_select'));
         }
-        
+
         $display_language = Request::get('display_language', $_SESSION['_language']);
         ModuleManagementModel::setLanguage($display_language);
-        
+
         $this->semesterSelector = SemesterData::GetSemesterSelector(null, $currentSemester['semester_id'], 'semester_id', false);
         $this->modul = $modul;
         $this->pruefungsEbene = $GLOBALS['MVV_MODUL']['PRUEF_EBENE']['values'][$modul->pruef_ebene]['name'];
@@ -155,5 +154,5 @@ class Shared_ModulController extends AuthenticatedController
         $this->display_language = $display_language;
         PageLayout::setTitle($modul->getDisplayName() . ' (' . _('Vollständige Modulbeschreibung') .')');
     }
-    
+
 }

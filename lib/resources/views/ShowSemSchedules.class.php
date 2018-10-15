@@ -51,15 +51,14 @@ class ShowSemSchedules extends ShowSchedules {
 
     //Konstruktor
     function __construct($resource_id, $semester_id = null, $timespan = 'sem_time') {
-        $sem = new SemesterData();
         if (!$semester_id){
-            $this->semester = $sem->getCurrentSemesterData();
+            $this->semester = SemesterData::getCurrentSemesterData();
         } else {
-            $this->semester = $sem->getSemesterData($semester_id);
+            $this->semester = SemesterData::getSemesterData($semester_id);
         }
         $this->timespan = $timespan;
         if  ($this->timespan == 'sem_time'){
-            $next_sem = $sem->getNextSemesterData($this->semester['vorles_ende']);
+            $next_sem = SemesterData::getNextSemesterData($this->semester['vorles_ende']);
             $this->start_time = $this->semester['vorles_ende'];
             $this->end_time = is_array($next_sem) ? $next_sem['vorles_beginn'] : $this->semester['ende'];
         } else {

@@ -1351,15 +1351,11 @@ class Seminar
 
     public function setFilter($timestamp)
     {
-        global $semester;
-
         if ($timestamp == 'all') {
             $_SESSION['raumzeitFilter'] = 'all';
             $this->applyTimeFilter(0, 0);
         } else {
-            if (!$semester) $semester = new SemesterData();
-
-            $filterSemester = $semester->getSemesterDataByDate($timestamp);
+            $filterSemester = SemesterData::getSemesterDataByDate($timestamp);
             $_SESSION['raumzeitFilter'] = $filterSemester['beginn'];
             $this->applyTimeFilter($filterSemester['beginn'], $filterSemester['ende']);
         }
@@ -1492,8 +1488,7 @@ class Seminar
     {
         $i = 0;
         $first_event = FALSE;
-        $semesterData = new SemesterData();
-        $all_semester = $semesterData->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
 
         if (Config::get()->RESOURCES_HIDE_PAST_SINGLE_DATES) {
             // filtering
@@ -1933,7 +1928,7 @@ class Seminar
                 $this->createMessage(_("Dokumente und Ordner archiviert."));
             }
         }
-        
+
 
         // Freie Seite zu diesem Seminar löschen
         $query = "DELETE FROM scm WHERE range_id = ?";

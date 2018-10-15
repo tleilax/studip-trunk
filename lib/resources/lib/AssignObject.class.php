@@ -333,8 +333,7 @@ class AssignObject
 
     public function isRepeatEndSemEnd()
     {
-        $semester = new SemesterData;
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
 
         foreach ($all_semester as $a) {
             if ($this->begin >= $a['beginn'] && $this->begin <= $a['ende']) {
@@ -371,7 +370,7 @@ class AssignObject
         }
     }
 
-    
+
     /**
      * This method checks the events on conflicting holidays.
      *

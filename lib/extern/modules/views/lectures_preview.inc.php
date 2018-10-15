@@ -6,8 +6,7 @@
 
 
 global $SEM_TYPE,$SEM_CLASS ;
-$semester = new SemesterData;
-$all_semester = $semester->getAllSemesterData();
+$all_semester = SemesterData::getAllSemesterData();
 
 // reorganize the $SEM_TYPE-array
 foreach ($SEM_CLASS as $key_class => $class) {
@@ -103,7 +102,7 @@ foreach ($data_sem as $dat) {
         $group2 = htmlReady($SEM_TYPE[$dat['group']]["name"]
                 ." (". $SEM_CLASS[$SEM_TYPE[$dat['group']]["class"]]["name"].")");
     }
-    
+
     if ($group != $group2) {
         echo "\n<tr" . $this->config->getAttributes("Grouping", "tr") . ">";
         echo "<td" . $this->config->getAttributes("Grouping", "td") . ">";
@@ -112,7 +111,7 @@ foreach ($data_sem as $dat) {
         echo "\n</td></tr>\n";
         $group = $group2;
     }
-    
+
     echo "<tr" . $this->config->getAttributes("LecturesInnerTable", "tr").">";
     if ($i % 2 && $this->config->getValue("LecturesInnerTable", "td_bgcolor2_"))
         echo "<td width=\"100%\"".$this->config->getAttributes("LecturesInnerTable", "td", TRUE)."\">\n";
@@ -126,7 +125,7 @@ foreach ($data_sem as $dat) {
     echo "<a href=\"\"";
     echo $this->config->getAttributes("SemLink", "a") . ">";
     echo $dat["name"] . "</a></font></td></tr>";
-    
+
     if ($show_time || $show_lecturer) {
         echo "\n<tr" . $this->config->getAttributes("LecturesInnerTable", "tr2") . ">";
         if ($show_time) {

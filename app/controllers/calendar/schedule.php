@@ -96,18 +96,17 @@ class Calendar_ScheduleController extends AuthenticatedController
         $show_hidden = Request::int('show_hidden', 0);
 
         // load semester-data and current semester
-        $semdata = new SemesterData();
-        $this->semesters = array_reverse($semdata->getAllSemesterData());
+        $this->semesters = array_reverse(SemesterData::getAllSemesterData());
 
         if (Request::option('semester_id')) {
-            $this->current_semester = $semdata->getSemesterData(Request::option('semester_id'));
+            $this->current_semester = SemesterData::getSemesterData(Request::option('semester_id'));
             $schedule_settings['semester_id'] = Request::option('semester_id');
             UserConfig::get($user->id)->store('SCHEDULE_SETTINGS',
                 $schedule_settings);
         } else {
             $this->current_semester = $schedule_settings['semester_id'] ?
-                $semdata->getSemesterData($schedule_settings['semester_id']) :
-                $semdata->getCurrentSemesterData();
+                SemesterData::getSemesterData($schedule_settings['semester_id']) :
+                SemesterData::getCurrentSemesterData();
         }
 
         // check type-safe if days is false otherwise sunday (0) cannot be chosen

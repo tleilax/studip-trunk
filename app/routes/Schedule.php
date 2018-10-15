@@ -25,11 +25,9 @@ class Schedule extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
-        $semdata = new \SemesterData();
-
         $current_semester = isset($semester_id)
-            ? $semdata->getSemesterData($semester_id)
-            : $semdata->getCurrentSemesterData();
+            ? SemesterData::getSemesterData($semester_id)
+            : SemesterData::getCurrentSemesterData();
 
         if (!$current_semester) {
             $this->notFound('No such semester.');

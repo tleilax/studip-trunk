@@ -364,8 +364,7 @@ if ($change_object_schedules) {
         $storeAssign = true;
     }
 
-    $semester = new SemesterData;
-    $all_semester = $semester->getAllSemesterData();
+    $all_semester = SemesterData::getAllSemesterData();
     //load the object perms
     $ObjectPerms = ResourceObjectPerms::Factory(Request::option('change_schedule_resource_id'));
 
@@ -1365,8 +1364,7 @@ if ($view == "search") {
         if (Request::get('search_day_of_week')!=-1) // a day is selected. this indicates the user searches a room for the whole term
         {
             /// search whole term
-            $semesterData = new SemesterData();
-            $sel_semester = $semesterData->getSemesterData(Request::option('search_semester'));
+            $sel_semester = SemesterData::getSemesterData(Request::option('search_semester'));
             $date =  (int)$sel_semester["vorles_beginn"];
 
             $days = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
@@ -1448,7 +1446,7 @@ if ($view == "view_requests_schedule") {
         if($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]['first_event']){
             $_SESSION['resources_data']["schedule_start_time"] = $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]['first_event'];
         } else {
-            $semester_data = SemesterData::GetInstance()->getSemesterData($_SESSION['resources_data']["sem_schedule_semester_id"]);
+            $semester_data = SemesterData::getSemesterData($_SESSION['resources_data']["sem_schedule_semester_id"]);
             $_SESSION['resources_data']["schedule_start_time"] = $semester_data['vorles_beginn'];
         }
         $_SESSION['resources_data']["schedule_mode"] = "graphical";
@@ -1991,8 +1989,7 @@ if (Request::submitted('inc_request') || Request::submitted('dec_request')
         }
         $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["considered_resources"] = array();
 
-        $semester = new SemesterData;
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
 
         $reqObj = new RoomRequest($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["request_id"]);
         $semObj = Seminar::GetInstance($reqObj->getSeminarId(), true);
