@@ -851,7 +851,7 @@ class Course_StudygroupController extends AuthenticatedController
                         )->includeTicket();
                     } elseif ($action == 'remove_approved' && check_ticket(Request::get('studip_ticket'))) {
                         StudygroupModel::remove_user($user, $id);
-                        PageLayout::postSucces(sprintf(
+                        PageLayout::postSuccess(sprintf(
                             _('Der Nutzer %s wurde aus der Studiengruppe entfernt.'),
                             get_fullname_from_uname($user, 'full')
                         ));
