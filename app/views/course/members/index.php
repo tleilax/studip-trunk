@@ -1,10 +1,3 @@
-<? if(!empty($flash['delete'])) : ?>
-    <?= createQuestion2(sprintf(_('Wollen Sie die/den "%s" wirklich austragen?'), $status_groups[$flash['status']]),
-        array('users' => $flash['delete']),
-        array(),
-        $controller->url_for(sprintf('course/members/cancel_subscription/collection/%s', $flash['status']))); ?>
-<? endif ?>
-
 <? if (count($dozenten) > 0) : ?>
     <?= $this->render_partial('course/members/dozent_list') ?>
 <? endif ?>
