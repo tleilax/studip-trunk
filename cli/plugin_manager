@@ -144,9 +144,15 @@ if ($args) {
 
             foreach ($options as $option => $value) {
                 switch ($option) {
-                    case 'l': $list = $value; break;
-                    case 't': $target = ($value === false) ? null : (int) $value; break;
-                    case 'v': $verbose = $value; break;
+                    case 'l':
+                        $list = $value;
+                        break;
+                    case 't':
+                        $target = ($value === false) ? null : (int) $value;
+                        break;
+                    case 'v':
+                        $verbose = $value;
+                        break;
                 }
             }
 
@@ -155,20 +161,19 @@ if ($args) {
             $plugins = $plugin_manager->getPluginInfos();
 
             foreach ($plugins as $plugin) {
-                if (mb_strtolower($pluginname) == mb_strtolower($plugin['name'])) {
-                    $plugindir = get_config('PLUGINS_PATH') .'/'. $plugin['path'];
+                if (mb_strtolower($pluginname) === mb_strtolower($plugin['name'])) {
+                    $plugindir = Config::get()->PLUGINS_PATH . '/' . $plugin['path'];
 
                     if (is_dir($plugindir . '/migrations')) {
                         // if there are migrations, migrate
                         $schema_version = new DBSchemaVersion($plugin['name']);
-                        $migrator = new Migrator($plugindir .'/migrations', $schema_version, $verbose);
+                        $migrator = new Migrator($plugindir . '/migrations', $schema_version, $verbose);
 
                         if ($list) {
                             $migrations = $migrator->relevant_migrations($target);
 
                             foreach ($migrations as $number => $migration) {
-                                $description = $migration->description() ?
-                                    $migration->description() : '(no description)';
+                                $description = $migration->description() ?: '(no description)';
 
                                 printf("%3d %-20s %s\n", $number, get_class($migration), $description);
                             }
