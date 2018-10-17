@@ -6,7 +6,7 @@ $dialog_url = $show_raumzeit
 ?>
 <tr id="date_<?= $date->id ?>" <? if ($is_next_date) echo 'class="nextdate" title="' . _('Der nächste Termin') . '"'; ?> data-termin-id="<?= htmlReady($date->id) ?>">
     <td data-sort-value="<?= htmlReady($date->date) ?>" class="date_name">
-        <a href="<?= $dialog_url ?>" data-dialog="size=500">
+        <a href="<?= $dialog_url ?>" data-dialog>
             <?= Icon::create($icon)->asImg(['class' => 'text-bottom']) ?>
             <?= htmlReady($date->getFullname(CourseDate::FORMAT_VERBOSE)) ?>
         </a>

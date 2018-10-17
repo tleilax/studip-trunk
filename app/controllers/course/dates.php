@@ -63,7 +63,7 @@ class Course_DatesController extends AuthenticatedController
                 _('Neuer Einzeltermin'),
                 $this->url_for('course/dates/singledate'),
                 Icon::create('add')
-            )->asDialog('size=500');
+            )->asDialog();
         }
 
         if (Seminar::setInstance(new Seminar(Course::findCurrent()))->getSlotModule('documents') && CourseDateFolder::availableInRange(Course::findCurrent(), User::findCurrent()->id)) {
@@ -272,14 +272,6 @@ class Course_DatesController extends AuthenticatedController
             $template->controller = $this;
             $output['li'] = $template->render();
         }
-
-        $template = $factory->open($this->get_default_template('_topic_li'));
-        $template->topic      = $topic;
-        $template->date       = $date;
-        $template->has_access = $this->hasAccess();
-        $template->controller = $this;
-
-        $output['li'] = $template->render();
 
         $this->render_json($output);
     }
