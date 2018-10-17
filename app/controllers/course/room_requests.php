@@ -335,12 +335,11 @@ class Course_RoomRequestsController extends AuthenticatedController
                 if (count($tmp_search_result)) {
                     $timestamps = $events = array();
                     foreach ($request->getAffectedDates() as $date) {
-                        if (!isset($date->room_assignment)) {
-                            $timestamps[] = $date->date;
-                            $timestamps[] = $date->end_time;
-                            $event = new AssignEvent($date->id, $date->date, $date->end_time, null, null, '');
-                            $events[$event->getId()] = $event;
-                        }
+                        $timestamps[] = $date->date;
+                        $timestamps[] = $date->end_time;
+                        $assign_id = $date->room_assignment->id ?: $date->id;
+                        $event = new AssignEvent($assign_id, $date->date, $date->end_time, $date->room_assignment->resource_id, null);
+                        $events[$event->getId()] = $event;
                     }
                     $check_result = array();
                     if (count($events)) {
