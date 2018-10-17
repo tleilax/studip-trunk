@@ -21,7 +21,6 @@ class Migration
      */
     private $verbose;
 
-
     /**
      * Initalize a Migration object (optionally using verbose output).
      *
@@ -112,5 +111,56 @@ class Migration
         $text = sprintf('== %s: %s ', get_class($this), $message);
 
         return $this->write($text . ((mb_strlen($text)) < 79 ? str_repeat('=', 79 - mb_strlen($text)) : ''));
+    }
+
+    /**
+     * Convenience method for creating config entries.
+     *
+     * @param  string  $field       Name of the config entry
+     * @param  string  $description Description for the config entry
+     * @param  string  $type        Type of the config entry (defaults to bool)
+     * @param  boolean $value       Default value of the config entry (defaults to false)
+     * @param  array   $data        Additional data like range or section
+     * @return Config object that has been created
+     */
+    protected function createConfig($field, $description, $type = 'boolean', $value = false, array $data = [])
+    {
+        $defaults = [
+            'range'   => 'global',
+            'section' => '',
+        ];
+
+        return Config::get()->create($field, array_merge(
+            $defaults,
+            $data,
+            compact('description', 'type', 'value')
+        ));
+    }
+
+    /**
+     * Convenience method for creating user config entries.
+     *
+     * @param  string  $field       Name of the config entry
+     * @param  string  $description Description for the config entry
+     * @param  string  $type        Type of the config entry (defaults to bool)
+     * @param  boolean $value       Default value of the config entry (defaults to false)
+     * @param  array   $data        Additional data like section
+     * @return Config object that has been created
+     */
+    protected function createUserConfig($field, $description, $type = 'boolean', $value = false, array $data = [])
+    {
+        $data['range'] = 'user';
+        return $this->createConfig($field, $description, $type, $value, $data);
+    }
+
+    /**
+     * Convenience method for removing a config entry
+     *
+     * @param  string $field Name of the config entry
+     * @return int number of deleted db rows
+     */
+    protected function removeConfig($field)
+    {
+        return Config::get()->delete($field);
     }
 }
