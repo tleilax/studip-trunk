@@ -476,7 +476,7 @@ class Router
 
     private function normalizeRequestMethod($method)
     {
-        return mb_strtolower($method ?: $_SERVER['X_HTTP_REQUEST_METHOD'] ?: $_SERVER['REQUEST_METHOD'] ?: 'get');
+        return mb_strtolower($method ?: \Request::method() ?: 'get');
     }
 
     /**
