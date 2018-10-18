@@ -21,7 +21,7 @@
     <? if (isset($zuordnungen)) : ?>
     <label>
         <?= _('Zugeordnet zu Objekten:') ?>
-        <select name="zuordnung_filter" class="sidebar-selectlist" onchange="document.getElementById('index_filter').submit();">
+        <select name="zuordnung_filter" class="sidebar-selectlist submit-upon-select">
             <option value=""><?= _('Alle') ?></option>
             <? foreach ($zuordnungen as $object_type => $zuordnung) : ?>
             <option value="<?= $object_type ?>"
@@ -33,7 +33,7 @@
     <? if (isset($status)) : ?>
     <label>
         <?= _('Status:') ?><br>
-        <select name="status_filter" class="sidebar-selectlist" onchange="document.getElementById('index_filter').submit();">
+        <select name="status_filter" class="sidebar-selectlist submit-upon-select">
             <option value=""><?= _('Alle') ?></option>
             <? foreach ($status_array as $key => $stat) : ?>
             <? if ($status[$key]['count_objects']) : ?>
@@ -50,7 +50,7 @@
     <? if (isset($kategorien)) : ?>
     <label>
         <?= _('Kategorie:') ?><br>
-        <select name="kategorie_filter" class="sidebar-selectlist" onchange="document.getElementById('index_filter').submit();">
+        <select name="kategorie_filter" class="sidebar-selectlist submit-upon-select">
             <option value=""><?= _('Alle') ?></option>
             <? foreach ($kategorien as $kategorie) : ?>
             <option value="<?= $kategorie->getId() ?>"
@@ -62,7 +62,7 @@
     <? if (isset($abschluesse)) : ?>
     <label>
         <?= _('Abschluss:') ?><br>
-        <select name="abschluss_filter" class="sidebar-selectlist" onChange="document.getElementById('index_filter').submit();">
+        <select name="abschluss_filter" class="sidebar-selectlist submit-upon-select">
             <option value=""><?= _('Alle') ?></option>
             <? foreach ($abschluesse as $abschluss) : ?>
             <option value="<?= $abschluss->getId() ?>"<?= ($abschluss->getId() == $selected_abschluss ? ' selected' : '') ?>><?= htmlReady($abschluss->name) . ' (' . $abschluss->count_objects . ')' ?></option>
@@ -75,7 +75,7 @@
         <? if ($perm_institutes !== false) : ?>
         <label>
             <?= _('Verantw. Einrichtung:') ?><br>
-            <select name="institut_filter" class="sidebar-selectlist nested-select" onchange="document.getElementById('index_filter').submit();">
+            <select name="institut_filter" class="sidebar-selectlist nested-select submit-upon-select">
                 <option value=""><?= _('Alle') ?></option>
                 <? $fak = '' ?>
                 <? foreach ($institute as $institut) : ?>
@@ -101,7 +101,7 @@
         <? if ($perm_institutes !== false) : ?>
         <label>
             <?= $fachbereich_caption ?: _('Fachbereiche:') ?><br>
-            <select name="fachbereich_filter" class="sidebar-selectlist nested-select institute-list" onchange="document.getElementById('index_filter').submit();">
+            <select name="fachbereich_filter" class="sidebar-selectlist nested-select institute-list submit-upon-select">
                 <option value=""><?= _('Alle') ?></option>
                 <? foreach ($fachbereiche as $fachbereich) : ?>
                     <? if (count($perm_institutes) == 0
@@ -114,3 +114,4 @@
         <? endif; ?>
     <? endif; ?>
 </form>
+
