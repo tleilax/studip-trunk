@@ -42,7 +42,7 @@
                 <th data-sort="text" class="hidden-small-down"><?= _('Gruppen') ?></th>
             <? endif; ?>
             <th data-sort="text"><?= _('Raum') ?></th>
-            <th class="actions" atasort="false"><?= _('Aktionen') ?></th>
+            <th class="actions"><?= _('Aktionen') ?></th>
         </tr>
     </thead>
     <tbody>
@@ -82,7 +82,7 @@
             <th data-sort="text" class="hidden-small-down"><?= _('Gruppen') ?></th>
         <? endif; ?>
         <th data-sort="text"><?= _('Raum') ?></th>
-        <th class="actions" datasort="false"><?= _('Aktionen') ?></th>
+        <th class="actions"><?= _('Aktionen') ?></th>
     </tr>
     </thead>
     <tbody>
