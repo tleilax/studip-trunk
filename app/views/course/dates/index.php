@@ -24,37 +24,25 @@
 <table class="dates default sortable-table" data-sortlist="[[0, 0]]" data-table-id="<?= htmlReady($semester->id) ?>">
     <caption><?= htmlReady($semester['name']) ?></caption>
         <colgroup class="hidden-small-down">
-        <? if (count($course->statusgruppen) > 0): ?>
-            <col>
+            <col width="25%">
+            <col width="40%">
             <col width="10%">
-            <col width="20%">
-            <col width="20%">
-            <col width="20%">
+            <? if (count($course->statusgruppen) > 0): ?>
+                <col width="10%">
+            <? endif; ?>
             <col width="10%">
-        <? else: ?>
-            <col>
-            <col width="10%">
-            <col width="30%">
-            <col width="30%">
-            <col width="10%">
-        <? endif; ?>
-        <? if ($has_access): ?>
-            <col width="48px">
-        <? endif; ?>
+            <col width="5%">
         </colgroup>
     <thead>
         <tr>
             <th data-sort="htmldata"><?= _('Zeit') ?></th>
-            <th data-sort="text" class="hidden-small-down"><?= _('Typ') ?></th>
-        <? if (count($course->statusgruppen)): ?>
-            <th data-sort="text" class="hidden-small-down"><?= _('Sichtbarkeit') ?></th>
-        <? endif; ?>
             <th data-sort="text" class="hidden-small-down"><?= _('Thema') ?></th>
+            <th data-sort="text" class="hidden-small-down"><?= _('Typ') ?></th>
+            <? if (count($course->statusgruppen)): ?>
+                <th data-sort="text" class="hidden-small-down"><?= _('Gruppen') ?></th>
+            <? endif; ?>
             <th data-sort="text"><?= _('Raum') ?></th>
-            <th data-sort="htmldata"><?= _('Dateien')?></th>
-        <? if ($has_access): ?>
-            <th datasort="false"></th>
-        <? endif; ?>
+            <th class="actions" atasort="false"><?= _('Aktionen') ?></th>
         </tr>
     </thead>
     <tbody>
@@ -88,13 +76,13 @@
     <thead>
     <tr>
         <th data-sort="htmldata"><?= _('Zeit') ?></th>
+        <th data-sort="text" class="hidden-small-down"><?= _('Thema') ?></th>
         <th data-sort="text" class="hidden-small-down"><?= _('Typ') ?></th>
         <? if (count($course->statusgruppen)): ?>
-            <th data-sort="text" class="hidden-small-down"><?= _('Sichtbarkeit') ?></th>
+            <th data-sort="text" class="hidden-small-down"><?= _('Gruppen') ?></th>
         <? endif; ?>
-        <th data-sort="text" class="hidden-small-down"><?= _('Thema') ?></th>
         <th data-sort="text"><?= _('Raum') ?></th>
-        <th data-sort="htmldata"><?= _('Dateien') ?></th>
+        <th class="actions" datasort="false"><?= _('Aktionen') ?></th>
     </tr>
     </thead>
     <tbody>

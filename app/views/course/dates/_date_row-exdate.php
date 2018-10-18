@@ -8,22 +8,12 @@
         (<?= htmlReady(implode(', ', $date->dozenten->getFullname())) ?>)
     <? endif; ?>
     </td>
-    <td class="hidden-small-down"><?= htmlReady($date->getTypeName()) ?></td>
-<? if (count($course->statusgruppen) > 0) : ?>
+    <td></td>
     <td class="hidden-small-down">
-    <? if (count($date->statusgruppen) > 0) : ?>
-        <ul class="clean">
-        <? foreach ($date->statusgruppen as $statusgruppe) : ?>
-            <li><?= htmlReady($statusgruppe->name) ?></li>
-        <? endforeach ?>
-        </ul>
-    <? else : ?>
-        <?= _('alle') ?>
-    <? endif ?>
+        <?= htmlReady($date->getTypeName()) ?>
     </td>
-<? endif ?>
-    <td colspan="2"></td>
-<? if ($has_access): ?>
+    <td></td>
+    <td></td>
     <td class="actions">
         <form action="<?= $controller->url_for("course/timesrooms/undeleteSingle/{$date->id}/1") ?>" method="post">
             <?= Icon::create('trash+decline')->asInput(tooltip2(_('Termin wiederherstellen')) + [
@@ -31,5 +21,4 @@
             ]) ?>
         </form>
     </td>
-<? endif; ?>
 </tr>

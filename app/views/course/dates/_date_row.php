@@ -15,20 +15,6 @@ $dialog_url = $show_raumzeit
         (<?= htmlReady(implode(', ', $date->dozenten->getFullname())) ?>)
     <? endif; ?>
     </td>
-    <td class="hidden-small-down"><?= htmlReady($date->getTypeName()) ?></td>
-<? if (count($course->statusgruppen) > 0) : ?>
-    <td class="hidden-small-down">
-    <? if (count($date->statusgruppen) > 0) : ?>
-        <ul class="clean">
-        <? foreach ($date->statusgruppen as $statusgruppe) : ?>
-            <li><?= htmlReady($statusgruppe->name) ?></li>
-        <? endforeach ?>
-        </ul>
-    <? else : ?>
-        <?= _('alle') ?>
-    <? endif ?>
-    </td>
-<? endif ?>
     <td class="hidden-small-down">
         <div class="themen-list-container">
             <ul class="themen-list clean">
@@ -43,6 +29,21 @@ $dialog_url = $show_raumzeit
         <? endif; ?>
         </div>
     </td>
+    <td class="hidden-small-down">
+        <?= htmlReady($date->getTypeName()) ?>
+    </td>
+<? if (count($course->statusgruppen) > 0) : ?>
+    <td class="hidden-small-down">
+    <? if (count($date->statusgruppen) > 0) : ?>
+        <ul class="clean">
+        <? foreach ($date->statusgruppen as $statusgruppe) : ?>
+            <li><?= htmlReady($statusgruppe->name) ?></li>
+        <? endforeach ?>
+        </ul>
+    <? else : ?>
+        <?= _('alle') ?>
+    <? endif ?>
+    </td>
     <td>
     <? if ($date->getRoom()): ?>
         <?= $date->getRoom()->getFormattedLink() ?>
@@ -50,29 +51,26 @@ $dialog_url = $show_raumzeit
         <?= htmlReady($date->raum) ?>
     <? endif; ?>
     </td>
-    <? $filecount = count($date->getAccessibleFolderFiles($GLOBALS['user']->id)['files']); ?>
-    <td style="text-align: center" data-sort-value="<?= $filecount ?>">
-        <? if ($filecount) : ?>
-            <a href="<?=$controller->link_for('course/dates/details_files/' . $date->id)?>" data-dialog>
-                <?=Icon::create('folder-topic-full')->asImg(tooltip2(sprintf(_('%u Dateien'), $filecount))) ?>
-            </a>
-        <? endif; ?>
-    </td>
-<? if ($has_access): ?>
+<? endif ?>
     <td class="actions">
+    <? $filecount = count($date->getAccessibleFolderFiles($GLOBALS['user']->id)['files']); ?>
+    <? if ($filecount) : ?>
+        <a href="<?=$controller->link_for('course/dates/details_files/' . $date->id)?>" data-dialog>
+            <?=Icon::create('folder-topic-full')->asImg(['title' => sprintf(_('%u Dateien'), $filecount)]) ?>
+        </a>
+    <? endif; ?>
     <? if (!$dates_locked): ?>
         <a href="<?= $controller->url_for('course/timesrooms', ['raumzeitFilter' => 'all']) ?>">
-            <?= Icon::create('edit')->asImg(tooltip2(_('Termin bearbeiten'))) ?>
+            <?= Icon::create('edit')->asImg(['title' => _('Termin bearbeiten')]) ?>
         </a>
     <? endif; ?>
     <? if (!$cancelled_dates_locked): ?>
         <a href="<?= $controller->url_for('course/cancel_dates', ['termin_id' => $date->id]) ?>" data-dialog="size=auto">
-            <?= Icon::create('trash')->asImg(tooltip2(_('Termin ausfallen lassen')) + [
+            <?= Icon::create('trash')->asImg(['title' => _('Termin ausfallen lassen'),
                 'data-confirm' => _('Wollen Sie diesen Termin wirklich ausfallen lassen?')
                                   . '<br>' . implode('<br>', $date->getDeletionWarnings()),
             ]) ?>
         </a>
     <? endif; ?>
     </td>
-<? endif; ?>
 </tr>
