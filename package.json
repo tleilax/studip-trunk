@@ -16,13 +16,17 @@
     },
     "dependencies": {},
     "devDependencies": {
+        "@babel/core": "^7.1.2",
+        "@babel/plugin-syntax-dynamic-import": "^7.0.0",
+        "@babel/preset-env": "^7.1.0",
+        "@babel/register": "^7.0.0",
         "autoprefixer": "9.2.1",
+        "babel-loader": "^8.0.4",
         "blueimp-file-upload": "9.23.0",
         "chartist": "0.11.0",
         "cropperjs": "1.4.2",
         "css-loader": "1.0.0",
         "expose-loader": "0.7.5",
-        "extract-text-webpack-plugin": "^4.0.0-beta.0",
         "favico.js": "0.3.10",
         "gridstack": "0.3.0",
         "highlight.js": "9.13.1",
@@ -49,10 +53,25 @@
         "webpack-dev-server": "3.1.9",
         "webpack-merge": "4.1.4"
     },
+    "babel": {
+        "presets": [
+            [
+                "@babel/preset-env"
+            ]
+        ],
+        "plugins": [
+            "@babel/plugin-syntax-dynamic-import"
+        ]
+    },
     "browserslist": [
         "> 1%",
         "last 2 versions"
     ],
+    "eslintConfig": {
+        "env": {
+            "browser": true
+        }
+    },
     "prettier": {
         "printWidth": 120,
         "singleQuote": true,
