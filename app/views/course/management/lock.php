@@ -7,14 +7,17 @@
             <legend>
                 <?= PageLayout::getTitle() ?>
             </legend>
-            <select name="lock_sem" id="lock_sem" aria-labelledby="<?= _('Sperrebene auswählen')?>">
+
+            <label>
+                <?= _('Sperrebene') ?>
+                <select name="lock_sem" id="lock_sem" aria-labelledby="<?= _('Sperrebene auswählen')?>">
                 <? foreach ($all_lock_rules as $lock_rule) : ?>
-                    <option
-                        value="<?= $lock_rule['lock_id'] ?>" <?= $current_lock_rule->id == $lock_rule['lock_id'] ? 'selected' : '' ?>>
+                    <option value="<?= $lock_rule['lock_id'] ?>" <?= $current_lock_rule->id == $lock_rule['lock_id'] ? 'selected' : '' ?>>
                         <?= htmlReady($lock_rule['name']) ?>
                     </option>
                 <? endforeach ?>
-            </select>
+                </select>
+            </label>
         </fieldset>
         <footer data-dialog-button>
             <?= Studip\Button::createAccept(_('Speichern')) ?>
