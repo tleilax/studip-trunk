@@ -122,11 +122,13 @@ form.default {
     }
 
     fieldset {
+        @gap: 10px;
+
         box-sizing: border-box;
 
         border: solid 1px @content-color-40;
-        margin: 0 0 10px;
-        padding: 10px;
+        margin: 0 0 @gap;
+        padding: @gap;
         padding-top: 0px;
         position: relative;
 
@@ -141,9 +143,9 @@ form.default {
             font-size: 12pt;
             font-weight: bold;
             line-height: 2em;
-            margin: 0 -11px;
+            margin: 0 -11px @gap;
             padding: 0;
-            text-indent: 10px;
+            text-indent: @gap;
             width: calc(100% + 23px);
         }
     }
@@ -428,5 +430,17 @@ table.hide_datafield_title {
     .ms-selectable,
     .ms-selection {
         width: 100% ! important;
+    }
+}
+
+// Adjustments for dialog
+.ui-dialog {
+    form.default > fieldset:first-of-type:last-of-type {
+        border: 0;
+        padding: 0;
+
+        legend {
+            display: none;
+        }
     }
 }
