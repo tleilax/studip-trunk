@@ -37,8 +37,7 @@ namespace RESTAPI {
 
         require 'lib/bootstrap-api.php';
 
-        $uri    = $_SERVER['PATH_INFO'];
-        $method = $_SERVER['REQUEST_METHOD'];
+        $uri = $_SERVER['PATH_INFO'];
 
         // Check version
         if (defined('RESTAPI\\VERSION') && preg_match('~^/v(\d+)~i', $uri, $match)) {
@@ -51,25 +50,13 @@ namespace RESTAPI {
             header('X-API-Version: ' . VERSION);
         }
 
-        // Preserve request body for php < 5.6
-        // The oauth library as well as the RouteMap access php://input
-        // which will fail until PHP >= 5.6 where it becomes reusable.
-        //
-        // @todo Remove this when Stud.IP requires PHP >= 5.6
-        // @see https://develop.studip.de/trac/ticket/6358
-        if (version_compare(phpversion(), '5.6', '<')) {
-            $request_body = file_get_contents('php://input');
-        } else {
-            $request_body = null;
-        }
-
         // Get router instance
         $router = Router::getInstance();
 
-        $user_id = setupAuth($router, $request_body);
+        $user_id = setupAuth($router);
 
         // Actual dispatch
-        $response = $router->dispatch($uri, $method, $request_body);
+        $response = $router->dispatch($uri);
 
         // Tear down
         if ($user_id) {
@@ -96,10 +83,10 @@ namespace RESTAPI {
         }
     }
 
-    function setupAuth($router, $request_body)
+    function setupAuth($router)
     {
         // Detect consumer
-        $consumer = Consumer\Base::detectConsumer(null, null, $request_body);
+        $consumer = Consumer\Base::detectConsumer();
         if (!$consumer) {
             throw new RouterException(401, 'Unauthorized (no consumer)');
         }

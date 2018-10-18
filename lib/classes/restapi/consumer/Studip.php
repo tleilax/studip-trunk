@@ -15,10 +15,11 @@ class Studip extends Base
      * valid, the auth and user object have already been set up by stud.ip
      * functions, so we just need to check if these are present.
      *
+     * @param mixed $request_type Type of request (optional; defaults to any)
      * @return mixed Instance of self if authentication was detected, false
      *               otherwise
      */
-    public static function detect()
+    public static function detect($request_type = null)
     {
         if (isset($GLOBALS['auth'])
             && $GLOBALS['auth']->is_authenticated()
