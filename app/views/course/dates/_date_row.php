@@ -48,17 +48,16 @@ $dialog_url = $show_raumzeit
     <td class="actions">
         <? $actionMenu = ActionMenu::get() ?>
         <? $filecount = count($date->getAccessibleFolderFiles($GLOBALS['user']->id)['files']); ?>
-        <? if ($filecount): ?>
-            <? $actionMenu->addLink($controller->link_for('course/dates/details_files/' . $date->id),
-                                    sprintf(_('%u Dateien'), $filecount), Icon::create('folder-topic-full'), ['data-dialog' => '']) ?>
-        <? endif ?>
         <? if ($has_access): ?>
+            <? $actionMenu->addLink($dialog_url, _('Termin bearbeiten'), Icon::create('edit'), ['data-dialog' => '']) ?>
             <? $actionMenu->addLink($controller->url_for('course/dates/new_topic?termin_id=' . $date->id),
                                     _('Thema hinzufügen'), Icon::create('topic+add'), ['data-dialog' => 'size=auto']) ?>
-            <? if (!$dates_locked): ?>
-                <? $actionMenu->addLink($controller->url_for('course/timesrooms', ['raumzeitFilter' => 'all']),
-                                        _('Termin bearbeiten'), Icon::create('edit')) ?>
-            <? endif ?>
+        <? endif ?>
+        <? if ($filecount): ?>
+            <? $actionMenu->addLink($controller->link_for('course/dates/details_files/' . $date->id),
+                                    _('Dateien anzeigen'), Icon::create('folder-topic-full'), ['data-dialog' => '']) ?>
+        <? endif ?>
+        <? if ($has_access): ?>
             <? if (!$cancelled_dates_locked): ?>
                 <? $actionMenu->addLink($controller->url_for('course/cancel_dates', ['termin_id' => $date->id]),
                                         _('Termin ausfallen lassen'), Icon::create('trash'), [

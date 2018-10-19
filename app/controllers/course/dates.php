@@ -86,6 +86,15 @@ class Course_DatesController extends AuthenticatedController
         );
 
         Sidebar::get()->addWidget($actions);
+
+        if ($this->show_raumzeit && $this->hasAccess()) {
+            $actions = new LinksWidget();
+            $actions->setTitle(_('Links'));
+            $actions->addLink(_('Zeiten und Räume bearbeiten'),
+                              $this->url_for('course/timesrooms'),
+                              Icon::create('link-intern'));
+            Sidebar::get()->addWidget($actions);
+        }
     }
 
 
