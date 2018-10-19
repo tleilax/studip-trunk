@@ -21,7 +21,7 @@
 ?>
 
 <? foreach ($allSemesters as $semester): ?>
-<table class="dates default sortable-table" data-sortlist="[[0, 0]]" data-table-id="<?= htmlReady($semester->id) ?>">
+<table class="dates default sortable-table <?= $has_access ? 'has-access' : '' ?>" data-sortlist="[[0, 0]]" data-table-id="<?= htmlReady($semester->id) ?>">
     <caption><?= htmlReady($semester['name']) ?></caption>
         <colgroup class="hidden-small-down">
             <col width="25%">
