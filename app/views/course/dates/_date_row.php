@@ -16,18 +16,11 @@ $dialog_url = $show_raumzeit
     <? endif; ?>
     </td>
     <td class="hidden-small-down">
-        <div class="themen-list-container">
-            <ul class="themen-list clean">
-            <? foreach ($date->topics as $topic): ?>
-                <?= $this->render_partial('course/dates/_topic_li', compact('topic', 'date')) ?>
-            <? endforeach; ?>
-            </ul>
-        <? if ($has_access): ?>
-            <a href="<?= $controller->url_for('course/dates/new_topic?termin_id=' . $date->id) ?>" title="<?= _('Thema hinzufügen') ?>" data-dialog="size=auto">
-                <?= Icon::create('add') ?>
-            </a>
-        <? endif; ?>
-        </div>
+        <ul class="themen-list clean">
+        <? foreach ($date->topics as $topic): ?>
+            <?= $this->render_partial('course/dates/_topic_li', compact('topic', 'date')) ?>
+        <? endforeach; ?>
+        </ul>
     </td>
     <td class="hidden-small-down">
         <?= htmlReady($date->getTypeName()) ?>
@@ -44,6 +37,7 @@ $dialog_url = $show_raumzeit
         <?= _('alle') ?>
     <? endif ?>
     </td>
+<? endif ?>
     <td>
     <? if ($date->getRoom()): ?>
         <?= $date->getRoom()->getFormattedLink() ?>
@@ -51,26 +45,29 @@ $dialog_url = $show_raumzeit
         <?= htmlReady($date->raum) ?>
     <? endif; ?>
     </td>
-<? endif ?>
     <td class="actions">
-    <? $filecount = count($date->getAccessibleFolderFiles($GLOBALS['user']->id)['files']); ?>
-    <? if ($filecount) : ?>
-        <a href="<?=$controller->link_for('course/dates/details_files/' . $date->id)?>" data-dialog>
-            <?=Icon::create('folder-topic-full')->asImg(['title' => sprintf(_('%u Dateien'), $filecount)]) ?>
-        </a>
-    <? endif; ?>
-    <? if (!$dates_locked): ?>
-        <a href="<?= $controller->url_for('course/timesrooms', ['raumzeitFilter' => 'all']) ?>">
-            <?= Icon::create('edit')->asImg(['title' => _('Termin bearbeiten')]) ?>
-        </a>
-    <? endif; ?>
-    <? if (!$cancelled_dates_locked): ?>
-        <a href="<?= $controller->url_for('course/cancel_dates', ['termin_id' => $date->id]) ?>" data-dialog="size=auto">
-            <?= Icon::create('trash')->asImg(['title' => _('Termin ausfallen lassen'),
-                'data-confirm' => _('Wollen Sie diesen Termin wirklich ausfallen lassen?')
-                                  . '<br>' . implode('<br>', $date->getDeletionWarnings()),
-            ]) ?>
-        </a>
-    <? endif; ?>
+        <? $actionMenu = ActionMenu::get() ?>
+        <? $filecount = count($date->getAccessibleFolderFiles($GLOBALS['user']->id)['files']); ?>
+        <? if ($filecount): ?>
+            <? $actionMenu->addLink($controller->link_for('course/dates/details_files/' . $date->id),
+                                    sprintf(_('%u Dateien'), $filecount), Icon::create('folder-topic-full'), ['data-dialog' => '']) ?>
+        <? endif ?>
+        <? if ($has_access): ?>
+            <? $actionMenu->addLink($controller->url_for('course/dates/new_topic?termin_id=' . $date->id),
+                                    _('Thema hinzufügen'), Icon::create('topic+add'), ['data-dialog' => 'size=auto']) ?>
+            <? if (!$dates_locked): ?>
+                <? $actionMenu->addLink($controller->url_for('course/timesrooms', ['raumzeitFilter' => 'all']),
+                                        _('Termin bearbeiten'), Icon::create('edit')) ?>
+            <? endif ?>
+            <? if (!$cancelled_dates_locked): ?>
+                <? $actionMenu->addLink($controller->url_for('course/cancel_dates', ['termin_id' => $date->id]),
+                                        _('Termin ausfallen lassen'), Icon::create('trash'), [
+                                        'data-dialog' => 'size=auto',
+                                        'data-confirm' => _('Wollen Sie diesen Termin wirklich ausfallen lassen?')
+                                                          . '<br>' . implode('<br>', $date->getDeletionWarnings()),
+                                        ]) ?>
+            <? endif ?>
+        <? endif ?>
+        <?= $actionMenu->render() ?>
     </td>
 </tr>

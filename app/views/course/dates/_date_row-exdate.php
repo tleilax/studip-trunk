@@ -8,17 +8,22 @@
         (<?= htmlReady(implode(', ', $date->dozenten->getFullname())) ?>)
     <? endif; ?>
     </td>
-    <td></td>
+    <td class="hidden-small-down"></td>
     <td class="hidden-small-down">
         <?= htmlReady($date->getTypeName()) ?>
     </td>
-    <td></td>
+<? if (count($course->statusgruppen) > 0) : ?>
+    <td class="hidden-small-down"></td>
+<? endif ?>
     <td></td>
     <td class="actions">
+    <? if ($has_access && !$cancelled_dates_locked): ?>
         <form action="<?= $controller->url_for("course/timesrooms/undeleteSingle/{$date->id}/1") ?>" method="post">
-            <?= Icon::create('trash+decline')->asInput(tooltip2(_('Termin wiederherstellen')) + [
-                'data-confirm' => _('Diesen Termin wiederherstellen?'),
-            ]) ?>
+            <? $actionMenu = ActionMenu::get() ?>
+            <? $actionMenu->addButton('restore_date', _('Termin wiederherstellen'), Icon::create('trash+decline'),
+                                      ['data-confirm' => _('Diesen Termin wiederherstellen?')]) ?>
+            <?= $actionMenu->render() ?>
         </form>
+    <? endif ?>
     </td>
 </tr>
