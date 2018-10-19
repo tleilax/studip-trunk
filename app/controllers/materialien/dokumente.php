@@ -322,4 +322,37 @@ class Materialien_DokumenteController extends MVVController
         $sidebar->addWidget($widget,"filter");
     }
 
+    public function dispatch_action($class_name, $id)
+    {
+        switch (mb_strtolower($class_name)) {
+            case 'fach':
+                $this->redirect('fachabschluss/faecher/fach/' . $id);
+                break;
+            case 'abschlusskategorie':
+                $this->redirect('fachabschluss/kategorien/kategorie/' . $id);
+                break;
+            case 'abschluss':
+                $this->redirect('fachabschluss/abschluesse/abschluss/' . $id);
+                break;
+            case 'studiengangteil':
+                $this->redirect('studiengaenge/studiengangteile/stgteil/' . $id);
+                break;
+            case 'studiengang':
+                $this->redirect('studiengaenge/studiengaenge/studiengang/' . $id);
+                break;
+            case 'stgteilversion':
+                $version = StgteilVersion::get($id);
+                if ($version->isNew()) {
+                    $this->flash_set('error', dgettext('MVVPlugin', 'Unbekannte Version'));
+                    $this->redirect('studiengaenge/studiengaenge');
+                }
+                $this->redirect('studiengaenge/studiengangteile/version/'
+                        . join('/', array($version->stgteil_id,
+                            $version->getId())));
+                break;
+            default:
+                $this->redirect('studiengaenge/studiengaenge/');
+        }
+    }
+    
 }

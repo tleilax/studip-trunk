@@ -67,7 +67,6 @@ if(!empty ($_check_list))
 if(Request::option('_check_plugin'))
      $_SESSION['_check_plugin'] = Request::option('_check_plugin');
 
-$_semester = new SemesterData();
 $element = new StudipLitCatElement();
 
 if (Request::option('cmd') == 'check' && !isset($_check_list)){
@@ -249,7 +248,7 @@ if ($preferred_plugin && in_array($preferred_plugin, $_search_plugins)){
             <select name="_semester_id" style="vertical-align:middle">
                 <option value="all"><?=_("alle")?></option>
                 <?
-                foreach($_semester->getAllSemesterData() as $sem){
+                foreach(SemesterData::getAllSemesterData() as $sem){
                     ?>
                     <option value="<?=$sem['semester_id']?>" <?=($sem['semester_id'] == Request::option('_semester_id') ? " selected " : "")?>><?=htmlReady($sem['name'])?></option>
                     <?

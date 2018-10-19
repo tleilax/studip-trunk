@@ -191,8 +191,7 @@ class ExternSemBrowseTemplate extends SemBrowse {
     function __construct(&$module, $start_item_id) {
 
         global $SEM_TYPE,$SEM_CLASS;
-        $semester = new SemesterData();
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
         array_unshift($all_semester, 0);
 
         $this->group_by_fields = array( array('name' => _("Semester"), 'group_field' => 'sem_number'),

@@ -76,7 +76,7 @@
     <script>
         jQuery('#lit_edit_element').parent().dialog({
             beforeClose: function () {
-                window.location.href = "<?= URLHelper::getURL('dispatch.php/literature/edit_list?_range_id='.$return_range, array(), true)?>";
+                window.location.href = "<?= URLHelper::getURL('dispatch.php/literature/edit_list', ['_range_id' => $return_range, 'return_range' => null])?>";
             }
         });
     </script>

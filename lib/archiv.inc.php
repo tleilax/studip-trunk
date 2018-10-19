@@ -581,8 +581,7 @@ function in_archiv ($sem_id)
     $heimat_inst_id = $row['Institut_id'];
 
     //Besorgen von einzelnen Daten zu dem Seminar
-    $semester = new SemesterData;
-    $all_semester = $semester->getAllSemesterData();
+    $all_semester = SemesterData::getAllSemesterData();
     foreach ($all_semester as $sem) {
         if (($start_time >= $sem['beginn']) && ($start_time <= $sem['ende'])) {
             $semester_tmp = $sem['name'];

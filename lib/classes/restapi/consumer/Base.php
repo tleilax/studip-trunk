@@ -11,7 +11,7 @@ use PDO;
  *
  * Consumers provide means for authenticating a user and the access
  * permissions for routes are bound to specific consumers.
- * 
+ *
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @license GPL 2 or later
  * @since   Stud.IP 3.0
@@ -24,9 +24,10 @@ abstract class Base extends \SimpleORMap
      * an instance of itself if the consumer detects a valid signature
      * it can respond to.
      *
+     * @param mixed $request_type Type of request (optional; defaults to any)
      * @return mixed Detected consumer object or false
      */
-    abstract public static function detect();
+    abstract public static function detect($request_type = null);
 
     /* Concrete */
 
@@ -51,7 +52,7 @@ abstract class Base extends \SimpleORMap
      * Add a consumer type to the list of consumer types
      *
      * @param String $type  Name of the type
-     * @param String $class Associated consumer class 
+     * @param String $class Associated consumer class
      */
     public static function addType($type, $class)
     {
@@ -132,23 +133,21 @@ abstract class Base extends \SimpleORMap
      *
      * @param mixed $type Name of the type (optional; defaults to all types)
      * @param mixed $request_type Type of request (optional; defaults to any)
-     * @param mixed $request_body Request body to use (optional, should be
-     *                            removed when Stud.IP requires PHP >= 5.6)
      * @return mixed Either the detected consumer or false if no consumer
      *               was detected
      * @throws Exception if type is invalid
      */
-    public static function detectConsumer($type = null, $request_type = null, $request_body = null)
+    public static function detectConsumer($type = null, $request_type = null)
     {
         $needles = $type === null
                  ? array_keys(self::$known_types)
-                 : array($type);
+                 : [$type];
         foreach ($needles as $needle) {
             if (!isset(self::$known_types)) {
                 throw new Exception('Trying to detect consumer of unkown type "' . $needle . '"');
             }
             $consumer_class = self::$known_types[$needle];
-            if ($consumer = $consumer_class::detect($request_type, $request_body)) {
+            if ($consumer = $consumer_class::detect($request_type)) {
                 return $consumer;
             }
         }

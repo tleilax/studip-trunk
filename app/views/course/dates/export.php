@@ -17,8 +17,7 @@
         </tr>
 
         <?
-        $semester = new SemesterData();
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
 
         foreach ($dates as $date) :
             if ( ($grenze == 0) || ($grenze < $date['start']) ) {
@@ -38,8 +37,7 @@
             ?>
             <tr>
                 <td width="20%">
-                    <div><?= htmlReady($date['date'])  ?></div>
-                    <div>(<?= htmlReady($date['type']) ?>)</div>
+                    <?= htmlReady($date['date']) ?> (<?= htmlReady($date['type']) ?>)
                 </td>
                 <td width="20%"><?= htmlReady($date['title']) ?></td>
                 <td width="20%">
@@ -50,7 +48,7 @@
                     <? endif ?>
                 </td>
                 <td width="20%">
-                    <? if (count($date['groups']) && count($date['groups']) < $group_count) : ?> 
+                    <? if (count($date['groups']) && count($date['groups']) < $group_count) : ?>
                         <? foreach ($date['groups'] as $key => $statusgruppe_id) {
                             echo ($key > 0 ? ", " : "").htmlReady(Statusgruppen::find($statusgruppe_id)->name);
                         } ?>

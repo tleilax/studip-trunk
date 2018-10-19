@@ -199,7 +199,7 @@ class SemBrowse {
 
     /**
      * Returns whether the search for modules has to be displayed.
-     * 
+     *
      * @return boolean True if search for modules has to be displayed.
      */
     private function showModules()
@@ -447,7 +447,7 @@ class SemBrowse {
                         }
                     }
                 }
-                
+
                 echo '</tr></table>';
 
                 ?>
@@ -820,7 +820,7 @@ class SemBrowse {
                     continue;
                 }
 
-                $current_semester_index = SemesterData::GetInstance()->GetSemesterIndexById(Semester::findCurrent()->semester_id);
+                $current_semester_index = SemesterData::getSemesterIndexById(Semester::findCurrent()->semester_id);
                 foreach (array_keys($detail['Seminar_id']) as $seminar_id) {
                     $start_sem = key($sem_data[$seminar_id]['sem_number']);
                     if ($sem_number_end == -1) {
@@ -902,7 +902,7 @@ class SemBrowse {
      * Creates HTML code for a single course row. This has been extracted
      * into a separate function as that makes handling and outputting
      * course children easier.
-     * 
+     *
      * @param string $seminar_id a single course id to output
      * @param mixed $sem_data collected data for all found courses
      * @param bool $child call in "child mode" -> force output because here children are listed
@@ -1108,20 +1108,20 @@ class SemBrowse {
         return $row;
     }
 
-    
+
     /**
      * Returns a new navigation object corresponding to the given target and
      * name of the option. The target has two possibel values "sidebar" and
      * "course" and indicates the place where the navigation is shown.
      * The option name is the key of an entry in the array with the navigation
      * options.
-     * 
+     *
      * The navigation options are configured in the global configuration as an
      * array. For further details see documentation of entry
      * COURSE_SEARCH_NAVIGATION_OPTIONS in global configuration.
-     * 
+     *
      * This is an example with all possible options:
-     * 
+     *
      * {
      *     // "courses", "semtree" and "rangetree" are the "old" search options.
      *     // The link text is fixed.
@@ -1220,7 +1220,7 @@ class SemBrowse {
      *     }
      * }
      *
-     * 
+     *
      * @param string $target
      * @param string $option_name
      * @return \Navigation
@@ -1316,7 +1316,7 @@ class SemBrowse {
      * The class SemBrowse uses a vast number of variables stored in the
      * session. This function sets the default values or transfers some
      * of them to url parameters if a filter in the sidebar has been changed.
-     * 
+     *
      * @see SemBrowse::setClassesSelector()
      * @see SemBrowse::setSemesterSelector()
      */
@@ -1389,7 +1389,7 @@ class SemBrowse {
     /**
      * Retrieves the default semester from session or calculate it considering
      * the value from SEMESTER_TIME_SWITCH.
-     * 
+     *
      * @return Semester The semester object of the default semester.
      */
     public static function getDefaultSemester()
@@ -1408,7 +1408,7 @@ class SemBrowse {
     /**
      * Adds a widget to the sidebar to select a course class. The result set is
      * filtered by this class.
-     * 
+     *
      * @param string $submit_url The submit url.
      */
     public static function setClassesSelector($submit_url)
@@ -1427,7 +1427,7 @@ class SemBrowse {
     /**
      * Adds a widget to the sidebar to select a semester. The result set is
      * filtered by this semester.
-     * 
+     *
      * @param string $submit_url The submit url.
      */
     public static function setSemesterSelector($submit_url)

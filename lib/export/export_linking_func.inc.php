@@ -126,7 +126,6 @@ function export_link($range_id, $ex_type = "", $filename = "", $format = "", $ch
 {
     global $xslt_filename, $i_page;
 
-    $filename = preg_replace('/[\x7f-\x9f]/', '_', $filename);
     $export_string = '<a href="';
     if ($choose != "")
         $export_string .= URLHelper::getLink('export.php', array('range_id' => $range_id, 'ex_type' => $ex_type, 'xslt_filename' => $filename, 'format' => $format, 'choose' => $choose, 'o_mode' => $o_mode, 'filter' => $filter, 'jump' => $i_page));
@@ -158,15 +157,14 @@ function export_link($range_id, $ex_type = "", $filename = "", $format = "", $ch
 function export_button($range_id, $ex_type = "", $filename = "", $format = "", $choose = "", $filter = "")
 {
     global $xslt_filename, $i_page;
-    $filename = $xslt_filename;
-    $filename = preg_replace('/[\x7f-\x9f]/', '_', $filename);
+    $export_link = '';
     if ($choose != "")
         $export_link .= "export.php?range_id=$range_id&ex_type=$ex_type&xslt_filename=$filename&format=$format&choose=$choose&o_mode=processor&filter=$filter&jump=$i_page";
     elseif ($ex_type != "")
         $export_link .= "export.php?range_id=$range_id&ex_type=$ex_type&xslt_filename=$filename&o_mode=choose&filter=$filter";
     else
         $export_link .= "export.php?range_id=$range_id&o_mode=start";
-    $export_string .= LinButton::create(_('Export'), URLHelper::getURL($export_link));
+    $export_string = Studip\LinkButton::create(_('Export'), URLHelper::getURL($export_link));
     return $export_string;
 }
 

@@ -226,7 +226,7 @@ class ShowSchedulesRequests extends ShowSchedules{
             }
 
         }
-        $semester = SemesterData::getInstance()->getSemesterDataByDate($start_time);
+        $semester = SemesterData::getSemesterDataByDate($start_time);
         ?>
             <form method="POST" action="<?echo URLHelper::getLink()?>?quick_view=<?=$view?>">
         <?= CSRFProtection::tokenTag() ?>

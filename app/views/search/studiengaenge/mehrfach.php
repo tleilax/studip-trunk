@@ -6,8 +6,8 @@
     <thead>
         <tr>
             <th><?= _('Fächer') ?></th>
-        <? foreach ($teilNamen as $teilName): ?>
-            <th style="text-align: center;"><?= htmlReady($teilName) ?></th>
+        <? foreach ($studiengangTeilBezeichnungen as $teil_bezeichnung): ?>
+            <th style="text-align: center;"><?= htmlReady($teil_bezeichnung->getDisplayName()) ?></th>
         <? endforeach; ?>
         </tr>
     </thead>
@@ -17,10 +17,10 @@
             <td>
                 <?= htmlReady($fachNamen[$fach_id]) ?>
             </td>
-            <? foreach ($teilNamen as $teilId => $teilName): ?>
+            <? foreach ($studiengangTeilBezeichnungen as $teil_bezeichnung): ?>
                 <td style="text-align: center;">
-                    <? if (isset($fach[$teilId])) : ?>
-                    <a href="<?= $controller->url_for($verlauf_url, $fach[$teilId], $teilId, $studiengang_id) ?>">
+                    <? if (isset($fach[$teil_bezeichnung->id])) : ?>
+                    <a href="<?= $controller->url_for($verlauf_url, $fach[$teil_bezeichnung->id], $teil_bezeichnung->id, $studiengang_id) ?>">
                         <?= Icon::create('info-circle-full', 'clickable', array('title' => _('Studienverlaufsplan anzeigen')))->asImg(); ?>
                     </a>
                     <? endif; ?>

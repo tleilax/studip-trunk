@@ -68,7 +68,8 @@
             <? if (!$is_locked) : ?>
                 <td>
                     <input aria-label="<?= sprintf(_('%s auswählen'), _('Vorläufig akzeptierte/n NutzerIn')) ?>"
-                           type="checkbox" name="accepted[<?= $accept['user_id'] ?>]" value="1">
+                           type="checkbox" name="accepted[<?= $accept['user_id'] ?>]" value="1"
+                           <? if (isset($flash['checked']) && in_array($accept['user_id'], $flash['checked'])) echo 'checked'; ?>>
                 </td>
             <? endif ?>
                 <td style="text-align: right"><?= sprintf('%02u', ++$nr) ?></td>

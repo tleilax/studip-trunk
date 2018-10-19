@@ -314,8 +314,7 @@ class Course_StudygroupController extends AuthenticatedController
                 }
                 $sem->admission_binding = 0;
 
-                $semdata                     = new SemesterData();
-                $this_semester               = $semdata->getSemesterDataByDate(time());
+                $this_semester               = SemesterData::getSemesterDataByDate(time());
                 $sem->semester_start_time    = $this_semester['beginn'];
                 $sem->semester_duration_time = -1;
 
@@ -851,7 +850,7 @@ class Course_StudygroupController extends AuthenticatedController
                         )->includeTicket();
                     } elseif ($action == 'remove_approved' && check_ticket(Request::get('studip_ticket'))) {
                         StudygroupModel::remove_user($user, $id);
-                        PageLayout::postSucces(sprintf(
+                        PageLayout::postSuccess(sprintf(
                             _('Der Nutzer %s wurde aus der Studiengruppe entfernt.'),
                             get_fullname_from_uname($user, 'full')
                         ));

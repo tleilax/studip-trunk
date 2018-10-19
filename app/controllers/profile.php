@@ -328,7 +328,7 @@ class ProfileController extends AuthenticatedController
         $privacy = new LinksWidget();
         $privacy->setTitle(_('Datenschutz'));
 
-        if (Privacy::isVisible($user_id)) {
+        if (Privacy::isVisible($this->current_user->user_id)) {
             $privacy->addLink(
                 _('Anzeige Personendaten'),
                 $this->url_for('privacy/index/' . $this->current_user->user_id),

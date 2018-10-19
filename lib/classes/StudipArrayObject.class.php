@@ -422,6 +422,12 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
         }
     }
 
+    /**
+     * Validates whether the given key is a protected property.
+     *
+     * @param  string $key The key to validate
+     * @throws InvalidArgumentException when key is invalid
+     */
     protected function validateKeyUsage($key)
     {
         if (in_array($key, $this->protectedProperties)) {

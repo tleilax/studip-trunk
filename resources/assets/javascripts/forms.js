@@ -136,6 +136,22 @@
     // Be aware: All select[onchange*="submit()"] will be rewritten to
     // select.submit-upon-select and have the onchange attribute removed.
     // This might lead to unexpected behaviour.
+
+    // Ensure, every .submit-upon-select has an defaultSelected option.
+    function setDefaultSelected (event) {
+        var is_dialog = event && event.hasOwnProperty('type') && event.type === 'dialog-update';
+        var target = is_dialog ? '.ui-dialog' : document;
+
+        $('.submit-upon-select', target).each(function() {
+            var has_default_selected = $('option', this).filter(function () {
+                return this.defaultSelected;
+            }).length > 0;
+            if (!has_default_selected) {
+                $('option', this).first().prop('defaultSelected', true);
+            }
+        });
+    }
+
     $(document).on('focus', 'select[onchange*="submit()"]', function () {
         $(this).removeAttr('onchange').addClass('submit-upon-select');
     }).on('click mousedown', 'select.submit-upon-select', function (event) {
@@ -160,7 +176,7 @@
             $(this).closest('form').submit();
             return false;
         }
-    });
+    }).ready(setDefaultSelected).on('dialog-update', setDefaultSelected);
 
     // simulate formaction attribute for input[type=image] in IE11
     $(document).on('click', 'input[type=image][formaction]', function () {

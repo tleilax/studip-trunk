@@ -50,11 +50,7 @@
 
     // Drag and drop support for topics in date list
     function createDraggable() {
-        $('.dates tbody tr:not(:only-child) .themen-list li > a.title:not(.draggable-topic)').each(function () {
-            if ($(this).closest('.themen-list').next('a').length === 0) {
-                return;
-            }
-
+        $('.dates.has-access tbody tr:not(:only-child) .themen-list li > a.title:not(.draggable-topic)').each(function () {
             var table_id = $(this).closest('table').data().tableId;
 
             $(this).children().addClass('draggable-topic-handle');

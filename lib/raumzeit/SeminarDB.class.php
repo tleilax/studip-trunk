@@ -38,7 +38,7 @@
 
 class SeminarDB
 {
-    function getIssues($seminar_id)
+    public static function getIssues($seminar_id)
     {
         $query = "SELECT *
                   FROM themen
@@ -49,7 +49,7 @@ class SeminarDB
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    function getSingleDates($seminar_id, $start = 0, $end = 0)
+    public static function getSingleDates($seminar_id, $start = 0, $end = 0)
     {
         $query = "SELECT termine.*, resources_assign.resource_id, GROUP_CONCAT(DISTINCT trp.user_id) AS related_persons,  GROUP_CONCAT(DISTINCT trg.statusgruppe_id) AS related_groups
                   FROM termine
@@ -85,7 +85,7 @@ class SeminarDB
         return $ret;
     }
 
-    function getStatOfNotBookedRooms($cycle_id, $seminar_id, $filterStart = 0, $filterEnd = 0)
+    public static function getStatOfNotBookedRooms($cycle_id, $seminar_id, $filterStart = 0, $filterEnd = 0)
     {
         $stat = array(
             'booked'         => 0,
@@ -144,7 +144,7 @@ class SeminarDB
         return $stat;
     }
 
-    function countRequestsForSingleDates($cycle_id, $seminar_id, $filterStart = 0, $filterEnd = 0)
+    public static function countRequestsForSingleDates($cycle_id, $seminar_id, $filterStart = 0, $filterEnd = 0)
     {
         $query = "SELECT COUNT(*)
                   FROM termine AS t
@@ -162,7 +162,7 @@ class SeminarDB
         return $statement->fetchColumn();
     }
 
-    function hasDatesOutOfDuration($start, $end, $seminar_id)
+    public static function hasDatesOutOfDuration($start, $end, $seminar_id)
     {
         $query = "SELECT COUNT(*)
                   FROM termine
@@ -172,7 +172,7 @@ class SeminarDB
         return $statement->fetchColumn();
     }
 
-    function getFirstDate($seminar_id)
+    public static function getFirstDate($seminar_id)
     {
         $termine = array();
 
@@ -197,7 +197,7 @@ class SeminarDB
         return $termine ?: false;
     }
 
-    function getNextDate($seminar_id)
+    public static function getNextDate($seminar_id)
     {
         $termin = array();
 
@@ -240,7 +240,7 @@ class SeminarDB
      * @param unknown_type $id
      * @return boolean
      */
-    function deleteRequest($id)
+    public static function deleteRequest($id)
     {
         $query = "DELETE FROM resources_requests
                   WHERE seminar_id = ?
@@ -251,7 +251,7 @@ class SeminarDB
         return true;
     }
 
-    function getDeletedSingleDates($seminar_id, $start = 0, $end = 0)
+    public static function getDeletedSingleDates($seminar_id, $start = 0, $end = 0)
     {
         $ret = array();
         if (($start != 0) || ($end != 0)) {

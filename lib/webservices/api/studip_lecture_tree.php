@@ -16,8 +16,7 @@ class StudipLectureTreeHelper
     {
         $db = DBManager::get();
 
-        $sem_data_obj = new SemesterData();
-        $semester = $sem_data_obj->getSemesterData($term_id);
+        $semester = SemesterData::getSemesterData($term_id);
 
         $stmt = $db->prepare('SELECT s.Seminar_id AS seminar_id, s.Name AS name
                               FROM seminar_sem_tree st

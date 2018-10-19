@@ -76,7 +76,8 @@
             <? if($is_tutor) :?>
                 <td>
                     <input aria-label="<?= sprintf(_('%s auswählen'), $status_groups['user']) ?>"
-                           type="checkbox" name="user[<?= $leser['user_id'] ?>]" value="1">
+                           type="checkbox" name="user[<?= $leser['user_id'] ?>]" value="1"
+                           <? if (isset($flash['checked']) && in_array($leser['user_id'], $flash['checked'])) echo 'checked'; ?>>
                 </td>
             <? endif ?>
                 <td style="text-align: right"><?= sprintf('%02u', ++$nr) ?></td>

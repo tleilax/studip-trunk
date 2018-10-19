@@ -60,13 +60,12 @@ class Calendar_InstscheduleController extends AuthenticatedController
         }
 
         // load semester-data and current semester
-        $semdata = new SemesterData();
-        $this->semesters = $semdata->getAllSemesterData();
+        $this->semesters = SemesterData::getAllSemesterData();
 
         if (Request::option('semester_id')) {
-            $this->current_semester = $semdata->getSemesterData(Request::option('semester_id'));
+            $this->current_semester = SemesterData::getSemesterData(Request::option('semester_id'));
         } else {
-            $this->current_semester = $semdata->getCurrentSemesterData();
+            $this->current_semester = SemesterData::getCurrentSemesterData();
         }
 
         $this->entries = (array)CalendarInstscheduleModel::getInstituteEntries($GLOBALS['user']->id,

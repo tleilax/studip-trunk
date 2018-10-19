@@ -8,28 +8,22 @@
         (<?= htmlReady(implode(', ', $date->dozenten->getFullname())) ?>)
     <? endif; ?>
     </td>
-    <td class="hidden-small-down"><?= htmlReady($date->getTypeName()) ?></td>
-<? if (count($course->statusgruppen) > 0) : ?>
+    <td class="hidden-small-down"></td>
     <td class="hidden-small-down">
-    <? if (count($date->statusgruppen) > 0) : ?>
-        <ul class="clean">
-        <? foreach ($date->statusgruppen as $statusgruppe) : ?>
-            <li><?= htmlReady($statusgruppe->name) ?></li>
-        <? endforeach ?>
-        </ul>
-    <? else : ?>
-        <?= _('alle') ?>
+        <?= htmlReady($date->getTypeName()) ?>
+    </td>
+<? if (count($course->statusgruppen) > 0) : ?>
+    <td class="hidden-small-down"></td>
+<? endif ?>
+    <td></td>
+    <td class="actions">
+    <? if ($has_access && !$cancelled_dates_locked): ?>
+        <form action="<?= $controller->url_for("course/timesrooms/undeleteSingle/{$date->id}/1") ?>" method="post">
+            <? $actionMenu = ActionMenu::get() ?>
+            <? $actionMenu->addButton('restore_date', _('Termin wiederherstellen'), Icon::create('trash+decline'),
+                                      ['data-confirm' => _('Diesen Termin wiederherstellen?')]) ?>
+            <?= $actionMenu->render() ?>
+        </form>
     <? endif ?>
     </td>
-<? endif ?>
-    <td colspan="2"></td>
-<? if ($has_access): ?>
-    <td class="actions">
-        <form action="<?= $controller->url_for("course/timesrooms/undeleteSingle/{$date->id}/1") ?>" method="post">
-            <?= Icon::create('trash+decline')->asInput(tooltip2(_('Termin wiederherstellen')) + [
-                'data-confirm' => _('Diesen Termin wiederherstellen?'),
-            ]) ?>
-        </form>
-    </td>
-<? endif; ?>
 </tr>

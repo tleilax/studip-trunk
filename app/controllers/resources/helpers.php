@@ -190,8 +190,7 @@ class Resources_HelpersController extends AuthenticatedController
                 $rp = get_fullname($reqObj->user_id);
 
                 // start of semester
-                $semester = new SemesterData();
-                $start = $semester->getSemesterDataByDate($semObj->semester_start_time);
+                $start = SemesterData::getSemesterDataByDate($semObj->semester_start_time);
                 $start = $start['name'];
 
                 // issued-date, last modified-date

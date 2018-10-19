@@ -194,11 +194,10 @@ class ResourcesBrowse {
             'Sunday'    => _('Sonntag'),
         ];
 
-        $semesterData = new SemesterData();
-        $all_semester = $semesterData->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
         if (!$this->searchArray['search_semester']) {
-            $current_semester = $semesterData->getCurrentSemesterData();
-            $selected_semester = $semesterData->getSemesterDataByDate(strtotime('+1 day',$current_semester['ende']));
+            $current_semester = SemesterData::getCurrentSemesterData();
+            $selected_semester = SemesterData::getSemesterDataByDate(strtotime('+1 day',$current_semester['ende']));
         } else {
             $selected_semester['semester_id'] = $this->searchArray['search_semester'];
         }

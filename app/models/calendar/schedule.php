@@ -39,8 +39,8 @@ class CalendarScheduleModel
                 WHERE id = ?");
             $stmt->execute(array($data['start'], $data['end'], $data['day'], $data['title'],
                 $data['content'], $data['color'], $data['user_id'], $data['id']));
-            
-            NotificationCenter::postNotification('ScheduleDidUpdate', $GLOBALS['user']->id, array('values' => $data)); 
+
+            NotificationCenter::postNotification('ScheduleDidUpdate', $GLOBALS['user']->id, array('values' => $data));
 
         } else {
             $stmt = DBManager::get()->prepare("INSERT INTO schedule
@@ -681,8 +681,7 @@ class CalendarScheduleModel
      */
     static function getCurrentSemester()
     {
-        $semdata = new SemesterData();
-        return $semdata->getCurrentSemesterData();
+        return SemesterData::getCurrentSemesterData();
     }
 
     /**

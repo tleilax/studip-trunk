@@ -122,7 +122,7 @@ function veranstaltung_beginn_from_metadata($reg_irreg, $sem_begin, $start_woche
         echo "<br>Fehler in dates.inc.php: veranstaltung_beginn_from_metadata() unterstuetzt nur den return mode 'int'.";
         die();
     }
-    $semester = SemesterData::GetInstance()->getSemesterDataByDate($sem_begin);
+    $semester = SemesterData::getSemesterDataByDate($sem_begin);
     $dow = date("w", $semester['vorles_beginn']);
     if ($dow <= 5)
         $corr = ($dow -1) * -1;
@@ -184,7 +184,7 @@ function shrink_dates($dates) {
             $dates[$i]["time_match"] = true;
         }
 
-        if (((date ("z", $dates[$i]["start_time"])-1) == date ("z", $dates[$i-1]["start_time"])) 
+        if (((date ("z", $dates[$i]["start_time"])-1) == date ("z", $dates[$i-1]["start_time"]))
                 || ((date ("z", $dates[$i]["start_time"]) == 0) && (date ("j", $dates[$i-1]["start_time"]) == 0))) {
             if ($dates[$i]["time_match"]) {
                 $dates[$i]["conjuncted"] = true;
@@ -277,7 +277,7 @@ Die Funktion get_sem_name gibt den Namen eines Semester, in dem ein uebergebener
 */
 
 function get_sem_name ($time) {
-    $semester = SemesterData::GetInstance()->getSemesterDataByDate($time);
+    $semester = SemesterData::getSemesterDataByDate($time);
     return $semester["name"];
 }
 
@@ -286,7 +286,7 @@ Die Funktion get_sem_num gibt die Nummer eines Semester, in dem ein uebergebener
 */
 
 function get_sem_num ($time) {
-    $all_semester = SemesterData::GetInstance()->getAllSemesterData();
+    $all_semester = SemesterData::getAllSemesterData();
     foreach ($all_semester as $key=>$val)
         if (($time >= $val["beginn"]) AND ($time <= $val["ende"]))
             return $key;
@@ -294,7 +294,7 @@ function get_sem_num ($time) {
 }
 
 function get_sem_num_sem_browse () {
-    $all_semester = SemesterData::GetInstance()->getAllSemesterData();
+    $all_semester = SemesterData::getAllSemesterData();
     $time = time();
     $ret = false;
     foreach ($all_semester as $key=>$val){
@@ -357,7 +357,7 @@ function delete_date($termin_id, $topic_delete = TRUE, $folder_move = TRUE, $sem
 
     //Deleting folders was removed since folders can't be assigned to
     //single dates, only to topics.
-    
+
     ## Und den Termin selbst loeschen
     $query = "DELETE FROM termine WHERE termin_id = ?";
     $statement = DBManager::get()->prepare($query);
@@ -491,7 +491,7 @@ function getFormattedRooms($rooms, $link = false)
     if (is_array($rooms)) {
         foreach ($rooms as $room_id => $count) {
             if ($room_id && Config::get()->RESOURCES_ENABLE) {
-                $resObj =& ResourceObject::Factory($room_id);
+                $resObj = ResourceObject::Factory($room_id);
                 if ($link) {
                     $room_list[] = $resObj->getFormattedLink(TRUE, TRUE, TRUE,
                         'view_schedule', 'no_nav', false, htmlReady($resObj->getName()));

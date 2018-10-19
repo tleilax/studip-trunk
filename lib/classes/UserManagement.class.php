@@ -1,8 +1,5 @@
 <?php
-# Lifter002: DONE - not applicable
 # Lifter007: TODO
-# Lifter003: TEST
-# Lifter010: DONE - not applicable
 /**
  * UserManagement.class.php
  *
@@ -27,94 +24,6 @@ require_once 'lib/admission.inc.php';   // remove user from waiting lists
 require_once 'lib/statusgruppe.inc.php';    // remove user from statusgroups
 require_once 'lib/messaging.inc.php';   // remove messages send or recieved by user
 require_once 'lib/object.inc.php';
-
-/**
- * Adapter to fake user_data property in UserManagement
- *
- * @author noack
- *
- */
-class UserDataAdapter implements ArrayAccess, Countable, IteratorAggregate
-{
-    private $user;
-
-    function __construct(User $user)
-    {
-        $this->user = $user;
-    }
-
-    /**
-     * @param string $offset
-     * @return string
-     */
-    function adaptOffset($offset)
-    {
-        $adapted = trim(mb_strstr($offset, '.'), '.');
-        return $adapted ?: $offset;
-    }
-
-    /**
-    * ArrayAccess: Check whether the given offset exists.
-    */
-    function offsetExists($offset)
-    {
-
-        return $this->user->offsetExists($this->adaptOffset($offset));
-    }
-
-    /**
-     * ArrayAccess: Get the value at the given offset.
-     */
-    function offsetGet($offset)
-    {
-        return $this->user->offsetGet($this->adaptOffset($offset));
-    }
-
-    /**
-     * ArrayAccess: Set the value at the given offset.
-     */
-    function offsetSet($offset, $value)
-    {
-        return $this->user->offsetSet($this->adaptOffset($offset), $value);
-    }
-
-    /**
-     * ArrayAccess: unset the value at the given offset.
-     */
-    function offsetUnset($offset)
-    {
-        return $this->user->offsetUnset($this->adaptOffset($offset));
-    }
-
-    /**
-     * @see Countable::count()
-     */
-    function count()
-    {
-        return $this->user->count();
-    }
-
-    /**
-     * @see IteratorAggregate::getIterator()
-     */
-    function getIterator()
-    {
-        return $this->user->getIterator();
-    }
-
-    /**
-      * @param array $data
-      * @param bool $reset
-      */
-    function setData($data, $reset = false)
-    {
-        $adapted_data = array();
-        foreach ($data as $k => $v) {
-            $adapted_data[$this->adaptOffset($k)] = $v;
-        }
-        $this->user->setData($adapted_data, $reset);
-    }
-}
 
 /**
  * UserManagement.class.php
@@ -144,24 +53,23 @@ class UserManagement
     * Constructor
     *
     * Pass nothing to create a new user, or the user_id from an existing user to change or delete
-    * @access   public
     * @param    string  $user_id    the user which should be retrieved
     */
-    function __construct($user_id = FALSE)
+    public function __construct($user_id = FALSE)
     {
         $this->validator = new email_validation_class;
         $this->validator->timeout = 10;                 // How long do we wait for response of mailservers?
         $this->getFromDatabase($user_id);
     }
 
-    function __get($attr)
+    public function __get($attr)
     {
         if ($attr === 'user_data') {
             return $this->user_data;
         }
     }
 
-    function __set($attr, $value)
+    public function __set($attr, $value)
     {
         if ($attr === 'user_data') {
             if (!is_array($value)) {
@@ -174,10 +82,9 @@ class UserManagement
     /**
     * load user data from database into internal array
     *
-    * @access   private
     * @param    string  $user_id    the user which should be retrieved
     */
-    function getFromDatabase($user_id)
+    public function getFromDatabase($user_id)
     {
         $this->user = User::toObject($user_id);
         if (!$this->user) {
@@ -192,7 +99,7 @@ class UserManagement
     * @access   private
     * @return   bool all data stored?
     */
-    function storeToDatabase()
+    private function storeToDatabase()
     {
         if ($this->user->isNew()) {
             if ($this->user->store()) {
@@ -276,25 +183,26 @@ class UserManagement
         }
 
         $changed = $this->user->store();
-        return (bool)$changed;
+        return (bool) $changed;
     }
 
 
     /**
     * generate a secure password of $length characters [a-z0-9]
     *
-    * @access   private
     * @param    integer $length number of characters
     * @return   string password
     */
-    function generate_password($length) {
-        mt_srand((double)microtime()*1000000);
-        for ($i=1;$i<=$length;$i++) {
+    public function generate_password($length)
+    {
+        mt_srand((double)microtime() * 1000000);
+        for ($i = 1; $i <= $length; $i++) {
             $temp = mt_rand() % 36;
-            if ($temp < 10)
+            if ($temp < 10) {
                 $temp += 48;     // 0 = chr(48), 9 = chr(57)
-            else
+            } else {
                 $temp += 87;     // a = chr(97), z = chr(122)
+            }
             $pass .= chr($temp);
         }
         return $pass;
@@ -304,11 +212,11 @@ class UserManagement
     /**
     * Check if Email-Adress is valid and reachable
     *
-    * @access   private
     * @param    string  Email-Adress to check
     * @return   bool Email-Adress valid and reachable?
     */
-    function checkMail($Email) {
+    private function checkMail($Email)
+    {
         // Adress correkt?
         if (!$this->validator->ValidateEmailAddress($Email)) {
             $this->msg .= "error§" . _("E-Mail-Adresse syntaktisch falsch!") . "§";
@@ -329,11 +237,11 @@ class UserManagement
     /**
     * Create a new studip user with the given parameters
     *
-    * @access   public
     * @param    array   structure: array('string table_name.field_name'=>'string value')
     * @return   bool Creation successful?
     */
-    function createNewUser($newuser) {
+    public function createNewUser($newuser)
+    {
         global $perm;
 
         // Do we have permission to do so?
@@ -423,11 +331,11 @@ class UserManagement
     /**
      * Create a new preliminary studip user with the given parameters
      *
-     * @access   public
      * @param    array   structure: array('string table_name.field_name'=>'string value')
      * @return   bool Creation successful?
      */
-    function createPreliminaryUser($newuser) {
+    public function createPreliminaryUser($newuser)
+    {
         global $perm;
 
         $this->getFromDatabase(null);
@@ -486,11 +394,11 @@ class UserManagement
     /**
     * Change an existing studip user according to the given parameters
     *
-    * @access   public
     * @param    array   structure: array('string table_name.field_name'=>'string value')
     * @return   bool Change successful?
     */
-    function changeUser($newuser) {
+    public function changeUser($newuser)
+    {
         global $perm;
 
         // Do we have permission to do so?
@@ -694,7 +602,6 @@ class UserManagement
         return TRUE;
     }
 
-
     private function logInstUserDel($user_id, $condition = NULL)
     {
         $query = "SELECT Institut_id FROM user_inst WHERE user_id = ?";
@@ -708,13 +615,13 @@ class UserManagement
             StudipLog::log('INST_USER_DEL', $institute_id, $user_id);
         }
     }
+
     /**
     * Create a new password and mail it to the user
     *
-    * @access   public
     * @return   bool Password change successful?
     */
-    function setPassword()
+    public function setPassword()
     {
         global $perm;
 
@@ -766,11 +673,10 @@ class UserManagement
     /**
     * Delete an existing user from the database and tidy up
     *
-    * @access   public
     * @param    bool delete all documents belonging to the user
     * @return   bool Removal successful?
     */
-    function deleteUser($delete_documents = true)
+    public function deleteUser($delete_documents = true)
     {
         global $perm;
 
@@ -1140,7 +1046,7 @@ class UserManagement
         return $ok;
     }
 
-    function re_sort_position_in_seminar_user()
+    private function re_sort_position_in_seminar_user()
     {
         $query = "SELECT Seminar_id, position, status
                   FROM seminar_user
@@ -1162,7 +1068,7 @@ class UserManagement
     * @param string $password
     * @return bool change successful?
     */
-    function changePassword($password)
+    public function changePassword($password)
     {
         global $perm;
 

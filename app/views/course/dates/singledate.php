@@ -1,4 +1,4 @@
-<form name="single_termin" class="default" action="<?= $controller->url_for("course/dates/singledate/" . htmlReady($date->getId())) ?>" method="POST" data-dialog="size=500">
+<form name="single_termin" class="default" action="<?= $controller->url_for("course/dates/singledate/" . htmlReady($date->getId())) ?>" method="POST" data-dialog>
 <?= CSRFProtection::tokenTag()?>
     <fieldset>
     	<legend><?= _("Einzeltermin") ?></legend>
