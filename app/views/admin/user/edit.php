@@ -37,28 +37,24 @@ use Studip\Button, Studip\LinkButton;
                 <?= _('Benutzername') ?>
             </span>
 
-            <? if (StudipAuthAbstract::CheckField('auth_user_md5.username', $user->auth_plugin) || LockRules::check($user->user_id, 'username')) : ?>
-                <br><?= htmlReady($user->username) ?>
-            <? else : ?>
-                <input class="user_form" type="text" name="username" id="username"
-                       value="<?= htmlReady($user->username) ?>" required>
-            <? endif ?>
+            <input class="user_form" type="text" name="username" id="username"
+                   value="<?= htmlReady($user->username) ?>" required
+                   <?= StudipAuthAbstract::CheckField('auth_user_md5.username', $user->auth_plugin)
+                    || LockRules::check($user->user_id, 'username') ? 'disabled="disabled"' : '' ?>>
         </label>
 
         <label class="col-2">
             <?= _('Globaler Status') ?>
 
-            <? if (StudipAuthAbstract::CheckField('auth_user_md5.perms', $user->auth_plugin)): ?>
-                <br><?= htmlReady($user->perms) ?>
-            <? else: ?>
-                <select name="perms[]" id="permission">
-                    <? foreach (array_keys($GLOBALS['perm']->permissions) as $permission): ?>
-                        <option <? if ($permission === $user->perms) echo 'selected'; ?>>
-                            <?= htmlReady($permission) ?>
-                        </option>
-                    <? endforeach; ?>
-                </select>
-            <? endif; ?>
+            <select name="perms[]" id="permission"
+                <?= StudipAuthAbstract::CheckField('auth_user_md5.perms', $user->auth_plugin)
+                    ? 'disabled="disabled"' : '' ?>>
+                <? foreach (array_keys($GLOBALS['perm']->permissions) as $permission): ?>
+                    <option <? if ($permission === $user->perms) echo 'selected'; ?>>
+                        <?= htmlReady($permission) ?>
+                    </option>
+                <? endforeach; ?>
+            </select>
         </label>
 
         <label class="col-2">
@@ -76,12 +72,10 @@ use Studip\Button, Studip\LinkButton;
                 <?= _('Vorname') ?>
             </span>
 
-            <? if (StudipAuthAbstract::CheckField('auth_user_md5.Vorname', $user->auth_plugin) || LockRules::check($user->user_id, 'name')) : ?>
-                <br><?= htmlReady($user->vorname) ?>
-            <? else : ?>
-                <input class="user_form" type="text" name="Vorname" id="vorname"
-                       value="<?= htmlReady($user->vorname) ?>" required>
-            <? endif ?>
+            <input class="user_form" type="text" name="Vorname" id="vorname"
+                   value="<?= htmlReady($user->vorname) ?>" required
+                   <?= StudipAuthAbstract::CheckField('auth_user_md5.Vorname', $user->auth_plugin)
+                    || LockRules::check($user->user_id, 'name') ? 'disabled="disabled"' : '' ?>>
         </label>
 
         <label class="col-3">
@@ -89,23 +83,24 @@ use Studip\Button, Studip\LinkButton;
                 <?= _('Nachname') ?>
             </span>
 
-            <? if (StudipAuthAbstract::CheckField('auth_user_md5.Nachname', $user->auth_plugin) || LockRules::check($user->user_id, 'name')) : ?>
-                <br><?= htmlReady($user->nachname) ?>
-            <? else : ?>
-                <input class="user_form" type="text" name="Nachname" id="nachname"
-                       value="<?= htmlReady($user->nachname) ?>" required>
-            <? endif ?>
+            <input class="user_form" type="text" name="Nachname" id="nachname"
+                   value="<?= htmlReady($user->nachname) ?>" required
+                   <?= StudipAuthAbstract::CheckField('auth_user_md5.Nachname', $user->auth_plugin)
+                    || LockRules::check($user->user_id, 'name') ? 'disabled="disabled"' : '' ?>>
         </label>
 
         <label class="col-3">
             <?= _('Titel') ?>
 
+            <? $disable_field = false ?>
             <? if (StudipAuthAbstract::CheckField('user_info.title_front', $user->auth_plugin) || LockRules::check($user->user_id, 'title')): ?>
-                <br><?= htmlReady($user->title_front) ?>
-            <? else: ?>
+                <? $disable_field = true ?>
+            <? endif ?>
+
             <div class="hgroup">
                 <select name="title_front_chooser" id="title_front" class="size-s"
-                        onchange="jQuery(this).next().val(this.value);">
+                        onchange="jQuery(this).next().val(this.value);"
+                        <?= $disable_field ? 'disabled="disabled"' : '' ?>>
                 <? foreach (Config::get()->TITLE_FRONT_TEMPLATE as $title): ?>
                     <option value="<?= htmlReady($title) ?>" <? if ($title === $user->title_front) echo 'selected'; ?>>
                         <?= htmlReady($title) ?>
@@ -113,21 +108,24 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach; ?>
                 </select>
                 <input class="user_form" type="text" name="title_front"
-                       value="<?= htmlReady($user->title_front) ?>">
+                       value="<?= htmlReady($user->title_front) ?>"
+                       <?= $disable_field ? 'disabled="disabled"' : '' ?>>
            </div>
-            <? endif; ?>
         </label>
 
 
         <label class="col-3">
             <?= _('Titel nachgestellt') ?>
 
+            <? $disable_field = false ?>
             <? if (StudipAuthAbstract::CheckField('user_info.title_rear', $user->auth_plugin) || LockRules::check($user->user_id, 'title')): ?>
-                    <br><?= htmlReady($user->title_rear) ?>
-            <? else : ?>
+                <? $disable_field = true ?>
+            <? endif ?>
+
             <div class="hgroup">
                 <select name="title_rear_chooser" id="title_rear" class="size-s"
-                        onchange="jQuery(this).next().val(this.value);">
+                        onchange="jQuery(this).next().val(this.value);"
+                         <?= $disable_field ? 'disabled="disabled"' : '' ?>>
                 <? foreach (Config::get()->TITLE_REAR_TEMPLATE as $rtitle): ?>
                     <option value="<?= htmlReady($rtitle) ?>" <? if ($rtitle === $user->title_rear) echo 'selected'; ?>>
                         <?= htmlReady($rtitle) ?>
@@ -135,9 +133,9 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach; ?>
                 </select>
                 <input class="user_form" type="text" name="title_rear"
-                       value="<?= htmlReady($user->title_rear) ?>">
+                       value="<?= htmlReady($user->title_rear) ?>"
+                        <?= $disable_field ? 'disabled="disabled"' : '' ?>>
            </div>
-            <? endif; ?>
         </label>
 
         <label class="col-3">
@@ -158,27 +156,31 @@ use Studip\Button, Studip\LinkButton;
                 <?= _('Geschlecht') ?>
             </span>
 
+            <? $disable_field = false ?>
             <? if (StudipAuthAbstract::CheckField('user_info.geschlecht', $user->auth_plugin) || LockRules::check($user->user_id, 'gender')): ?>
-                <br><?= !$user->geschlecht ? _('unbekannt') : ($user->geschlecht == 1 ? _('männlich') : _('weiblich')) ?>
-            <? else: ?>
+                <? $disable_field = true ?>
+            <? endif ?>
+
             <div class="hgroup">
                 <label>
                     <input type="radio" name="geschlecht" value="0"
-                            <? if (!$user->geschlecht) echo 'checked'; ?>>
+                            <? if (!$user->geschlecht) echo 'checked'; ?>
+                             <?= $disable_field ? 'disabled="disabled"' : '' ?>>
                     <?= _('unbekannt') ?>
                 </label>
                 <label>
                     <input type="radio" name="geschlecht" value="1"
-                            <? if ($user->geschlecht == 1) echo 'checked'; ?>>
+                            <? if ($user->geschlecht == 1) echo 'checked'; ?>
+                             <?= $disable_field ? 'disabled="disabled"' : '' ?>>
                     <?= _('männlich') ?>
                 </label>
                 <label>
                     <input type="radio" name="geschlecht" value="2"
-                            <? if ($user->geschlecht == 2) echo 'checked'; ?>>
+                            <? if ($user->geschlecht == 2) echo 'checked'; ?>
+                             <?= $disable_field ? 'disabled="disabled"' : '' ?>>
                     <?= _('weiblich') ?>
                 </label>
             </div>
-            <? endif; ?>
         </section>
     </fieldset>
 
@@ -223,7 +225,8 @@ use Studip\Button, Studip\LinkButton;
             </label>
 
             <? if (StudipAuthAbstract::CheckField('auth_user_md5.Email', $auth_plugin) || LockRules::check($user->user_id, 'email')) : ?>
-                <?= htmlReady($user->email) ?>
+            <input class="user_form" type="email" name="Email" id="email"
+                   value="<?= htmlReady($user['Email']) ?>" <? if (!$prelim) echo 'required'; ?> disabled="disabled">
             <? else : ?>
                 <input class="user_form" type="email" name="Email" id="email"
                        value="<?= htmlReady($user['Email']) ?>" <? if (!$prelim) echo 'required'; ?>>
