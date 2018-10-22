@@ -40,7 +40,7 @@ use Studip\Button, Studip\LinkButton;
             <input class="user_form" type="text" name="username" id="username"
                    value="<?= htmlReady($user->username) ?>" required
                    <?= StudipAuthAbstract::CheckField('auth_user_md5.username', $user->auth_plugin)
-                    || LockRules::check($user->user_id, 'username') ? 'disabled="disabled"' : '' ?>>
+                    || LockRules::check($user->user_id, 'username') ? 'readonly="readonly"' : '' ?>>
         </label>
 
         <label class="col-2">
@@ -75,7 +75,7 @@ use Studip\Button, Studip\LinkButton;
             <input class="user_form" type="text" name="Vorname" id="vorname"
                    value="<?= htmlReady($user->vorname) ?>" required
                    <?= StudipAuthAbstract::CheckField('auth_user_md5.Vorname', $user->auth_plugin)
-                    || LockRules::check($user->user_id, 'name') ? 'disabled="disabled"' : '' ?>>
+                    || LockRules::check($user->user_id, 'name') ? 'readonly="readonly"' : '' ?>>
         </label>
 
         <label class="col-3">
@@ -86,7 +86,7 @@ use Studip\Button, Studip\LinkButton;
             <input class="user_form" type="text" name="Nachname" id="nachname"
                    value="<?= htmlReady($user->nachname) ?>" required
                    <?= StudipAuthAbstract::CheckField('auth_user_md5.Nachname', $user->auth_plugin)
-                    || LockRules::check($user->user_id, 'name') ? 'disabled="disabled"' : '' ?>>
+                    || LockRules::check($user->user_id, 'name') ? 'readonly="readonly"' : '' ?>>
         </label>
 
         <label class="col-3">
@@ -109,7 +109,7 @@ use Studip\Button, Studip\LinkButton;
                 </select>
                 <input class="user_form" type="text" name="title_front"
                        value="<?= htmlReady($user->title_front) ?>"
-                       <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                       <?= $disable_field ? 'readonly="readonly"' : '' ?>>
            </div>
         </label>
 
@@ -134,7 +134,7 @@ use Studip\Button, Studip\LinkButton;
                 </select>
                 <input class="user_form" type="text" name="title_rear"
                        value="<?= htmlReady($user->title_rear) ?>"
-                        <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                        <?= $disable_field ? 'readonly="readonly"' : '' ?>>
            </div>
         </label>
 
@@ -165,19 +165,19 @@ use Studip\Button, Studip\LinkButton;
                 <label>
                     <input type="radio" name="geschlecht" value="0"
                             <? if (!$user->geschlecht) echo 'checked'; ?>
-                             <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                             <?= $disable_field ? 'readonly="readonly"' : '' ?>>
                     <?= _('unbekannt') ?>
                 </label>
                 <label>
                     <input type="radio" name="geschlecht" value="1"
                             <? if ($user->geschlecht == 1) echo 'checked'; ?>
-                             <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                             <?= $disable_field ? 'readonly="readonly"' : '' ?>>
                     <?= _('männlich') ?>
                 </label>
                 <label>
                     <input type="radio" name="geschlecht" value="2"
                             <? if ($user->geschlecht == 2) echo 'checked'; ?>
-                             <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                             <?= $disable_field ? 'readonly="readonly"' : '' ?>>
                     <?= _('weiblich') ?>
                 </label>
             </div>
@@ -226,7 +226,7 @@ use Studip\Button, Studip\LinkButton;
 
             <? if (StudipAuthAbstract::CheckField('auth_user_md5.Email', $auth_plugin) || LockRules::check($user->user_id, 'email')) : ?>
             <input class="user_form" type="email" name="Email" id="email"
-                   value="<?= htmlReady($user['Email']) ?>" <? if (!$prelim) echo 'required'; ?> disabled="disabled">
+                   value="<?= htmlReady($user['Email']) ?>" <? if (!$prelim) echo 'required'; ?> readonly="readonly">
             <? else : ?>
                 <input class="user_form" type="email" name="Email" id="email"
                        value="<?= htmlReady($user['Email']) ?>" <? if (!$prelim) echo 'required'; ?>>
@@ -415,7 +415,7 @@ use Studip\Button, Studip\LinkButton;
                         <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
                     </option>
                 <? else: ?>
-                    <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>" disabled>
+                    <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>" readonly>
                         <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
                     </option>
                 <? endif; ?>
@@ -468,7 +468,7 @@ use Studip\Button, Studip\LinkButton;
                         <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
                     </option>
                 <? else: ?>
-                    <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>" disabled>
+                    <option class="<?= $i['is_fak'] ? 'nested-item-header' : 'nested-item' ?>" readonly>
                         <?= htmlReady(my_substr($i['Name'], 0, 70)) ?>
                     </option>
                 <? endif; ?>
