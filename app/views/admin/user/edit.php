@@ -49,7 +49,7 @@ use Studip\Button, Studip\LinkButton;
             <?= _('Globaler Status') ?>
 
             <? if (StudipAuthAbstract::CheckField('auth_user_md5.perms', $user->auth_plugin)): ?>
-                <?= htmlReady($user->perms) ?>
+                <br><?= htmlReady($user->perms) ?>
             <? else: ?>
                 <select name="perms[]" id="permission">
                     <? foreach (array_keys($GLOBALS['perm']->permissions) as $permission): ?>
@@ -77,7 +77,7 @@ use Studip\Button, Studip\LinkButton;
             </span>
 
             <? if (StudipAuthAbstract::CheckField('auth_user_md5.Vorname', $user->auth_plugin) || LockRules::check($user->user_id, 'name')) : ?>
-                <?= htmlReady($user->vorname) ?>
+                <br><?= htmlReady($user->vorname) ?>
             <? else : ?>
                 <input class="user_form" type="text" name="Vorname" id="vorname"
                        value="<?= htmlReady($user->vorname) ?>" required>
@@ -90,7 +90,7 @@ use Studip\Button, Studip\LinkButton;
             </span>
 
             <? if (StudipAuthAbstract::CheckField('auth_user_md5.Nachname', $user->auth_plugin) || LockRules::check($user->user_id, 'name')) : ?>
-                <?= htmlReady($user->nachname) ?>
+                <br><?= htmlReady($user->nachname) ?>
             <? else : ?>
                 <input class="user_form" type="text" name="Nachname" id="nachname"
                        value="<?= htmlReady($user->nachname) ?>" required>
