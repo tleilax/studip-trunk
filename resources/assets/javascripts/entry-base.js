@@ -31,7 +31,7 @@ import "./bootstrap/tables.js" // Must be loaded before the Stud.IP helper attri
 import "./bootstrap/studip_helper_attributes.js"
 import "./bootstrap/header_magic.js"
 import "./bootstrap/header_navigation.js"
-import "./personal_notifications.js"
+import "./bootstrap/personal_notifications.js"
 import "./sidebar.js"
 import "./toolbar.js"
 import "./toolbar-buttonset.js"
