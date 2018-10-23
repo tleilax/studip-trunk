@@ -79,3 +79,14 @@ import "blueimp-file-upload"
 import "blueimp-file-upload/js/jquery.iframe-transport.js"
 
 import "./jquery/jquery.filtertable-1.5.7.js"
+
+import Toolbar from './lib/toolbar.js'
+
+$.fn.extend({
+    // Adds the toolbar to an element
+    addToolbar: function(button_set) {
+        return this.each(function() {
+            Toolbar.initialize(this, button_set);
+        });
+    }
+});
