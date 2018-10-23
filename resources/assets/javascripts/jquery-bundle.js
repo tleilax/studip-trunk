@@ -90,3 +90,8 @@ $.fn.extend({
         });
     }
 });
+
+// Create jQuery "plugin" that just reverses the elements' order. This is
+// neccessary since the navigation is built and afterwards, we need to
+// check the navigation's open status in reverse order (from bottom to top)
+jQuery.fn.reverse = [].reverse;
