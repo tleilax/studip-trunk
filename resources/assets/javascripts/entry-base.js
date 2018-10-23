@@ -27,7 +27,7 @@ import "./jquery-bundle.js"
 
 import "./init.js"
 import "./studip-ui.js"
-import "./tables.js" // Must be loaded before the Stud.IP helper attributes
+import "./bootstrap/tables.js" // Must be loaded before the Stud.IP helper attributes
 import "./studip-helper-attributes.js"
 import "./bootstrap/header_magic.js"
 import "./bootstrap/header_navigation.js"
