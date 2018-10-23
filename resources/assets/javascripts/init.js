@@ -1,7 +1,7 @@
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
-/*global window, $, jQuery, _ */
+import HeaderMagic from './lib/header_magic.js';
+import NavigationShrinker from './lib/navigation_shrinker.js';
 
-/* ------------------------------------------------------------------------
- * the global STUDIP namespace
- * ------------------------------------------------------------------------ */
-window.STUDIP = window.STUDIP || {};
+window.STUDIP = _.assign(window.STUDIP || {}, {
+    HeaderMagic,
+    NavigationShrinker
+});
