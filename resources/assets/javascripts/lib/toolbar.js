@@ -1,3 +1,5 @@
+import ToolbarButtonset from './toolbar_buttonset.js';
+
 function getElementWidth(element) {
     var proxy = null;
 
@@ -19,9 +21,7 @@ function getElementWidth(element) {
 }
 
 const Toolbar = {
-    // For better readability, the button set is externally defined in the file
-    // toolbar-buttonset.js
-    buttonSet: {},
+    buttonSet: ToolbarButtonset,
 
     // Initializes (adds) a toolbar the passed textarea element
     initialize: function(element, button_set) {
