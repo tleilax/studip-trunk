@@ -14,6 +14,7 @@ import Markup from './lib/markup.js';
 import Messages from './lib/messages.js';
 import NavigationShrinker from './lib/navigation_shrinker.js';
 import News from './lib/news.js';
+import OldUpload from './lib/old_upload.js';
 import Overlay from './lib/overlay.js';
 import parseOptions from './lib/parse_options.js';
 import PersonalNotifications from './lib/personal_notifications.js';
@@ -46,6 +47,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Messages,
     NavigationShrinker,
     News,
+    OldUpload,
     Overlay,
     parseOptions,
     PersonalNotifications,
