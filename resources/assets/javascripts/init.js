@@ -31,6 +31,7 @@ import Markup from './lib/markup.js';
 import Members from './lib/members.js';
 import Messages from './lib/messages.js';
 import MultiPersonSearch from './lib/multi_person_search.js';
+import MultiSelect from './lib/multi_select.js';
 import NavigationShrinker from './lib/navigation_shrinker.js';
 import News from './lib/news.js';
 import OldUpload from './lib/old_upload.js';
@@ -88,6 +89,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Members,
     Messages,
     MultiPersonSearch,
+    MultiSelect,
     NavigationShrinker,
     News,
     OldUpload,
