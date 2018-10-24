@@ -5,6 +5,7 @@ import Browse from './lib/browse.js';
 import Cache from './lib/cache.js';
 import Calendar from './lib/calendar.js';
 import createURLHelper from './lib/url_helper.js';
+import CSS from './lib/css.js';
 import Dialog from './lib/dialog.js';
 import Files from './lib/files.js';
 import Filesystem from './lib/filesystem.js';
@@ -42,6 +43,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Browse,
     Cache,
     Calendar,
+    CSS,
     Dialog,
     Files,
     Filesystem,
