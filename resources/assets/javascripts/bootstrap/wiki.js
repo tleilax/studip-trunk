@@ -1,6 +1,3 @@
-/*jslint browser: true, sloppy: true, unparam: true */
-/*global jQuery, STUDIP */
-
 /**
  * This file contains all wiki related javascript.
  *
@@ -12,10 +9,9 @@
  * @since     Stud.IP 3.3
  */
 
-(function ($, STUDIP) {
-    $(document).on('click', '#wiki button[name="submit-and-edit"]', function (event) {
-    var form      = $(this).closest('form'),
-        data      = {},
+$(document).on('click', '#wiki button[name="submit-and-edit"]', function(event) {
+    var form = $(this).closest('form'),
+        data = {},
         form_data,
         i,
         id,
@@ -46,13 +42,15 @@
     }
 
     // Check version
-    $.getJSON(STUDIP.URLHelper.getURL('dispatch.php/wiki/version_check/' + data.version, {
-        keyword: data.wiki
-    }))
-        .then(function (response, status, jqxhr) {
-            var error      = jqxhr.getResponseHeader('X-Studip-Error'),
+    $.getJSON(
+        STUDIP.URLHelper.getURL('dispatch.php/wiki/version_check/' + data.version, {
+            keyword: data.wiki
+        })
+    )
+        .then(function(response, status, jqxhr) {
+            var error = jqxhr.getResponseHeader('X-Studip-Error'),
                 to_confirm = jqxhr.getResponseHeader('X-Studip-Confirm'),
-                confirmed  = false;
+                confirmed = false;
             // Unrecoverable error
             if (response === false) {
                 window.alert(error);
@@ -60,7 +58,7 @@
             }
             // Saving needs confirmation (newer version available?)
             if (response === null) {
-                confirmed = window.confirm(error + "\n\n" + to_confirm);
+                confirmed = window.confirm(error + '\n\n' + to_confirm);
             } else {
                 confirmed = true;
             }
@@ -68,56 +66,61 @@
             if (confirmed) {
                 $.ajax({
                     type: (form.attr('method') || 'GET').toUpperCase(),
-                    url:  STUDIP.URLHelper.getURL('dispatch.php/wiki/store/' + data.version),
+                    url: STUDIP.URLHelper.getURL('dispatch.php/wiki/store/' + data.version),
                     data: {
                         keyword: data.wiki,
-                        body:    data.body
+                        body: data.body
                     },
                     dataType: 'json'
-                })
-                    .then(function (response) {
-                        var textarea = $('textarea[name=body]', form);
+                }).then(function(response) {
+                    var textarea = $('textarea[name=body]', form);
 
-                        // Update header info containing version and author
-                        $(form).closest('table').prev('table').find('td:last-child').html(response.zusatz);
+                    // Update header info containing version and author
+                    $(form)
+                        .closest('table')
+                        .prev('table')
+                        .find('td:last-child')
+                        .html(response.zusatz);
 
-                        // Update version field
-                        $('input[type=hidden][name=version]', form).val(response.version);
+                    // Update version field
+                    $('input[type=hidden][name=version]', form).val(response.version);
 
-                        if (wysiwyg_editor) {
-                            wysiwyg_editor.setData(response.body);
-                        } else {
-                            // Store current selection/caret position
-                            textarea.storeSelection();
+                    if (wysiwyg_editor) {
+                        wysiwyg_editor.setData(response.body);
+                    } else {
+                        // Store current selection/caret position
+                        textarea.storeSelection();
 
-                            // Update textarea, restore selection/caret position
-                            textarea.val(response.body);
-                            textarea.prop('defaultValue', textarea.val());
-                            textarea.restoreSelection();
-                            textarea.change();
-                            textarea.focus();
-                        }
+                        // Update textarea, restore selection/caret position
+                        textarea.val(response.body);
+                        textarea.prop('defaultValue', textarea.val());
+                        textarea.restoreSelection();
+                        textarea.change();
+                        textarea.focus();
+                    }
 
-                        // Remove messages (and display new messages, if any)
-                        $('#layout_content .messagebox').remove();
-                        if (response.messages !== false) {
-                            $(response.messages).prependTo('#layout_content');
-                        }
-                    });
+                    // Remove messages (and display new messages, if any)
+                    $('#layout_content .messagebox').remove();
+                    if (response.messages !== false) {
+                        $(response.messages).prependTo('#layout_content');
+                    }
+                });
             }
         })
-        .always(function () {
+        .always(function() {
             // Always hide overlay when ajax request is complete
             STUDIP.Overlay.hide();
         });
 
-        event.preventDefault();
-    });
+    event.preventDefault();
+});
 
-    $(document).on('keyup change', '#wiki textarea[name=body]', function () {
+$(document)
+    .on('keyup change', '#wiki textarea[name=body]', function() {
         // Disable "save and edit" button if text was not changed
         $('#wiki button[name="submit-and-edit"]').prop('disabled', this.value === this.defaultValue);
-    }).ready(function () {
+    })
+    .ready(function() {
         if (!STUDIP.editor_enabled) {
             // Trigger above disable mechanism only when not using wysiwyg
             $('#wiki textarea[name=body]').change();
@@ -125,5 +128,3 @@
             $(document).off('keyup change', '#wiki textarea[name=body]');
         }
     });
-
-}(jQuery, STUDIP));
