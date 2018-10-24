@@ -2,6 +2,7 @@ import createURLHelper from './lib/url_helper.js';
 import Dialog from './lib/dialog.js';
 import Files from './lib/files.js';
 import Filesystem from './lib/filesystem.js';
+import Folders from './lib/folders.js';
 import HeaderMagic from './lib/header_magic.js';
 import JSUpdater from './lib/jsupdater.js';
 import NavigationShrinker from './lib/navigation_shrinker.js';
@@ -24,6 +25,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Dialog,
     Files,
     Filesystem,
+    Folders,
     HeaderMagic,
     JSUpdater,
     NavigationShrinker,
