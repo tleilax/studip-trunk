@@ -7,6 +7,7 @@ import Folders from './lib/folders.js';
 import HeaderMagic from './lib/header_magic.js';
 import JSUpdater from './lib/jsupdater.js';
 import Markup from './lib/markup.js';
+import Messages from './lib/messages.js';
 import NavigationShrinker from './lib/navigation_shrinker.js';
 import News from './lib/news.js';
 import Overlay from './lib/overlay.js';
@@ -33,6 +34,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     HeaderMagic,
     JSUpdater,
     Markup,
+    Messages,
     NavigationShrinker,
     News,
     Overlay,
