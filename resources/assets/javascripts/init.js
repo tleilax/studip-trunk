@@ -8,6 +8,7 @@ import Browse from './lib/browse.js';
 import Cache from './lib/cache.js';
 import Calendar from './lib/calendar.js';
 import CalendarDialog from './lib/calendar_dialog.js';
+import CourseWizard from './lib/course_wizard.js';
 import createURLHelper from './lib/url_helper.js';
 import CSS from './lib/css.js';
 import Dialog from './lib/dialog.js';
@@ -57,6 +58,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Cache,
     Calendar,
     CalendarDialog,
+    CourseWizard,
     CSS,
     Dialog,
     enrollment,
