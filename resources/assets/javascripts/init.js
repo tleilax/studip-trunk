@@ -8,6 +8,7 @@ import createURLHelper from './lib/url_helper.js';
 import CSS from './lib/css.js';
 import Dialog from './lib/dialog.js';
 import enrollment from './lib/enrollment.js';
+import extractCallback from "./lib/extract_callback.js"
 import Files from './lib/files.js';
 import Filesystem from './lib/filesystem.js';
 import Folders from './lib/folders.js';
@@ -47,6 +48,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     CSS,
     Dialog,
     enrollment,
+    extractCallback,
     Files,
     Filesystem,
     Folders,
