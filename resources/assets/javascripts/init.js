@@ -1,3 +1,4 @@
+import Arbeitsgruppen from './lib/arbeitsgruppen.js';
 import createURLHelper from './lib/url_helper.js';
 import Dialog from './lib/dialog.js';
 import Files from './lib/files.js';
@@ -22,6 +23,7 @@ const URLHelper = createURLHelper(configURLHelper);
 
 window.STUDIP = _.assign(window.STUDIP || {}, {
     api,
+    Arbeitsgruppen,
     Dialog,
     Files,
     Filesystem,
