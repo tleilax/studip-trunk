@@ -1,5 +1,7 @@
+import createURLHelper from './lib/url_helper.js';
 import Dialog from './lib/dialog.js';
 import HeaderMagic from './lib/header_magic.js';
+import JSUpdater from './lib/jsupdater.js';
 import NavigationShrinker from './lib/navigation_shrinker.js';
 import Overlay from './lib/overlay.js';
 import parseOptions from './lib/parse_options.js';
@@ -9,7 +11,6 @@ import Sidebar from './lib/sidebar.js';
 import SmileyPicker from './lib/smiley_picker.js';
 import Table from './lib/table.js';
 import Toolbar from './lib/toolbar.js';
-import createURLHelper from './lib/url_helper.js';
 
 const api = new RESTAPI();
 const configURLHelper = _.get(window, 'STUDIP.URLHelper', {});
@@ -19,6 +20,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     api,
     Dialog,
     HeaderMagic,
+    JSUpdater,
     NavigationShrinker,
     Overlay,
     parseOptions,
