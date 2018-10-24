@@ -1,2 +1,2 @@
 import "./jquery/jstree/jquery.jstree.js"
-import "./admission.js"
+import "./bootstrap/admission.js"

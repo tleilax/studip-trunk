@@ -1,23 +1,22 @@
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
-/*global window, $, jQuery, _ */
-
 /* ------------------------------------------------------------------------
  * Anmeldeverfahren und -sets
  * ------------------------------------------------------------------------ */
 
-STUDIP.Admission = {
-
-    getCourses: function (targetUrl) {
+const Admission = {
+    getCourses: function(targetUrl) {
         var courseFilter = $('input[name="course_filter"]').val();
         if (courseFilter == '') {
             courseFilter = '%%%';
         }
         var data = {
-                'courses[]' : _.map($('#courselist input:checked'), 'id'),
-                'course_filter' : courseFilter,
-                'semester' : $('select[name="semester"]').val(),
-                'institutes[]' : $.merge(_.map($('input[name="institutes[]"]:hidden'), 'value'), _.map($('input[name="institutes[]"]:checked'), 'value'))
-            };
+            'courses[]': _.map($('#courselist input:checked'), 'id'),
+            course_filter: courseFilter,
+            semester: $('select[name="semester"]').val(),
+            'institutes[]': $.merge(
+                _.map($('input[name="institutes[]"]:hidden'), 'value'),
+                _.map($('input[name="institutes[]"]:checked'), 'value')
+            )
+        };
         var loading = 'Wird geladen'.toLocaleString();
         $('#instcourses').empty();
         $('<img/>', {
@@ -28,7 +27,7 @@ STUDIP.Admission = {
         return false;
     },
 
-    configureRule: function (ruleType, targetUrl, ruleId) {
+    configureRule: function(ruleType, targetUrl, ruleId) {
         var urlparts = targetUrl.split('?');
         targetUrl = urlparts[0] + '/' + ruleType;
         if (urlparts[1]) {
@@ -40,31 +39,31 @@ STUDIP.Admission = {
             width: '450',
             title: 'Anmelderegel konfigurieren'.toLocaleString(),
             id: 'configurerule',
-            data: {ruleId : ruleId, rules : _.map($('#rules input[name="rules[]"]'), 'value')},
+            data: { ruleId: ruleId, rules: _.map($('#rules input[name="rules[]"]'), 'value') }
         });
 
         return false;
     },
 
-    selectRuleType: function (source) {
+    selectRuleType: function(source) {
         STUDIP.Dialog.fromURL(source, {
             title: 'Anmelderegel konfigurieren'.toLocaleString(),
             size: 'auto',
-            data: {rules : _.map($('#rules input[name="rules[]"]'), 'value')},
+            data: { rules: _.map($('#rules input[name="rules[]"]'), 'value') },
             method: 'post',
             id: 'configurerule'
         });
         return false;
     },
 
-    saveRule: function (ruleId, targetId, targetUrl) {
+    saveRule: function(ruleId, targetId, targetUrl) {
         if ($('#action').val() !== 'cancel') {
             $.ajax({
                 type: 'post',
                 url: targetUrl,
                 data: $('#ruleform').serialize(),
                 dataType: 'html',
-                success: function (data, textStatus, jqXHR) {
+                success: function(data, textStatus, jqXHR) {
                     if (data !== '') {
                         var result = '';
                         if ($('#norules').length > 0) {
@@ -79,8 +78,8 @@ STUDIP.Admission = {
                         }
                     }
                 },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    alert('Status: ' + textStatus + "\nError: " + errorThrown);
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert('Status: ' + textStatus + '\nError: ' + errorThrown);
                 }
             });
         }
@@ -89,25 +88,24 @@ STUDIP.Admission = {
         return false;
     },
 
-    removeRule: function (targetId, containerId) {
+    removeRule: function(targetId, containerId) {
         var parent = $('#' + targetId).parent();
         $('#' + targetId).remove();
         if (parent.children('div').length === 0) {
             parent.remove();
             var norules = 'Sie haben noch keine Anmelderegeln festgelegt.'.toLocaleString();
-            $('#' + containerId).prepend('<span id="norules">' +
-                '<i>' + norules + '</i></span>');
+            $('#' + containerId).prepend('<span id="norules">' + '<i>' + norules + '</i></span>');
         }
         STUDIP.Dialogs.closeConfirmDialog();
         STUDIP.Admission.toggleNotSavedAlert();
     },
 
-    toggleRuleDescription: function (targetId) {
+    toggleRuleDescription: function(targetId) {
         $('#' + targetId).toggle();
         return false;
     },
 
-    toggleDetails: function (arrowId, detailId) {
+    toggleDetails: function(arrowId, detailId) {
         var oldSrc = $('#' + arrowId).attr('src');
         var newSrc = $('#' + arrowId).attr('rel');
         $('#' + arrowId).attr('src', newSrc);
@@ -126,15 +124,15 @@ STUDIP.Admission = {
      *                           displayed.
      * @param String saveUrl     URL to save the rule.
      */
-    checkAndSaveRule: function (ruleId, errorTarget, validateUrl, savedTarget, saveUrl) {
+    checkAndSaveRule: function(ruleId, errorTarget, validateUrl, savedTarget, saveUrl) {
         if (STUDIP.Admission.validateRuleConfig(errorTarget, validateUrl)) {
             STUDIP.Admission.saveRule(ruleId, savedTarget, saveUrl);
-            STUDIP.Dialog.close({id: 'configurerule'});
+            STUDIP.Dialog.close({ id: 'configurerule' });
         }
         return false;
     },
 
-    validateRuleConfig: function (containerId, targetUrl) {
+    validateRuleConfig: function(containerId, targetUrl) {
         var valid = true;
         var error = $.ajax({
             type: 'post',
@@ -143,11 +141,11 @@ STUDIP.Admission = {
             data: $('#ruleform').serialize(),
             dataType: 'html',
 
-            error: function (jqXHR, textStatus, errorThrown) {
-                alert('Status: ' + textStatus + "\nError: " + errorThrown);
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert('Status: ' + textStatus + '\nError: ' + errorThrown);
             }
         }).responseText;
-        error = error.replace(/(\r\n|\n|\r)/gm,'');
+        error = error.replace(/(\r\n|\n|\r)/gm, '');
         if ($.trim(error) != '') {
             $('#' + containerId).html(error);
             valid = false;
@@ -155,13 +153,14 @@ STUDIP.Admission = {
         return valid;
     },
 
-    removeUserFromUserlist: function (userId) {
+    removeUserFromUserlist: function(userId) {
         var parent = $('#user_' + userId).parent();
         $('#user_' + userId).remove();
         if (parent.children('li').length === 0) {
             var nousers = 'Sie haben noch niemanden hinzugefügt.'.toLocaleString();
-            $(parent).parent().append('<span id="nousers">' +
-                '<i>' + nousers + '</i></span>');
+            $(parent)
+                .parent()
+                .append('<span id="nousers">' + '<i>' + nousers + '</i></span>');
         }
         return false;
     },
@@ -174,55 +173,53 @@ STUDIP.Admission = {
      * @param typesData JS object with tree nodes types
      *          (@see http://www.jstree.com/documentation/types)
      */
-    makeTree: function (elementId, typesData) {
+    makeTree: function(elementId, typesData) {
         var config = {
-            'core': {
-                'animation': 100,
-                'open_parents': true,
-                'initially_open': ['root']
+            core: {
+                animation: 100,
+                open_parents: true,
+                initially_open: ['root']
             },
-            'checkbox': {
-                'real_checkboxes': true,
-                'selected_parent_open': true,
-                'override_ui': false,
-                'two_state': true
+            checkbox: {
+                real_checkboxes: true,
+                selected_parent_open: true,
+                override_ui: false,
+                two_state: true
             },
-            'plugins': [ 'html_data', 'themes', 'types', 'checkbox', 'ui' ]
+            plugins: ['html_data', 'themes', 'types', 'checkbox', 'ui']
         };
-        config.types = {'types': typesData};
-        $('#' + elementId).on('loaded.jstree', function (event, data) {
-            // Show checked checkboxes.
-            var checkedItems = $('#' + elementId).find('.jstree-checked');
-            checkedItems.removeClass('jstree-unchecked');
-            // Open parent nodes of checked nodes.
-            checkedItems.parents().each(function () {
-                data.inst.open_node(this, false, true);
-            });
-        }).jstree(config);
+        config.types = { types: typesData };
+        $('#' + elementId)
+            .on('loaded.jstree', function(event, data) {
+                // Show checked checkboxes.
+                var checkedItems = $('#' + elementId).find('.jstree-checked');
+                checkedItems.removeClass('jstree-unchecked');
+                // Open parent nodes of checked nodes.
+                checkedItems.parents().each(function() {
+                    data.inst.open_node(this, false, true);
+                });
+            })
+            .jstree(config);
     },
 
-    updateInstitutes: function (elementId, instURL, courseURL, mode) {
+    updateInstitutes: function(elementId, instURL, courseURL, mode) {
         if (elementId !== '') {
             var query = '';
-            $('.institute').each(function () {
+            $('.institute').each(function() {
                 query += '&institutes[]=' + this.value;
             });
             switch (mode) {
-            case 'delete':
-                $('#' + elementId).remove();
-                break;
-            case 'add':
-                query += '&institutes[]=' + elementId;
-                $.post(
-                    instURL,
-                    query,
-                    function (data) {
+                case 'delete':
+                    $('#' + elementId).remove();
+                    break;
+                case 'add':
+                    query += '&institutes[]=' + elementId;
+                    $.post(instURL, query, function(data) {
                         $('#institutes').html(data);
-                    }
-                );
-                break;
+                    });
+                    break;
             }
-            $('#instcourses :checked').each(function () {
+            $('#instcourses :checked').each(function() {
                 query += '&courses[]=' + this.value;
             });
             this.getCourses(courseURL);
@@ -230,7 +227,7 @@ STUDIP.Admission = {
         }
     },
 
-    checkRuleActivation: function (target) {
+    checkRuleActivation: function(target) {
         var form = $('#' + target);
         var globalActivation = form.find('input[name=enabled]');
         if (globalActivation.prop('checked')) {
@@ -246,43 +243,34 @@ STUDIP.Admission = {
         }
     },
 
-    closeDialog: function (elementId) {
+    closeDialog: function(elementId) {
         $('#' + elementId).remove();
     },
 
-    checkUncheckAll: function (inputName, mode) {
+    checkUncheckAll: function(inputName, mode) {
         switch (mode) {
-        case 'check':
-            $('input[name*="' + inputName + '"]').each(function () {
-                $(this).prop('checked', true);
-            });
-            break;
-        case 'uncheck':
-            $('input[name*="' + inputName + '"]').each(function () {
-                $(this).prop('checked', false);
-            });
-            break;
-        case 'invert':
-            $('input[name*="' + inputName + '"]').each(function () {
-                $(this).prop('checked', !$(this).prop('checked'));
-            });
-            break;
+            case 'check':
+                $('input[name*="' + inputName + '"]').each(function() {
+                    $(this).prop('checked', true);
+                });
+                break;
+            case 'uncheck':
+                $('input[name*="' + inputName + '"]').each(function() {
+                    $(this).prop('checked', false);
+                });
+                break;
+            case 'invert':
+                $('input[name*="' + inputName + '"]').each(function() {
+                    $(this).prop('checked', !$(this).prop('checked'));
+                });
+                break;
         }
         return false;
     },
 
     toggleNotSavedAlert: function() {
-      $('.hidden-alert').show();
+        $('.hidden-alert').show();
     }
-
 };
-jQuery(document).ready(function ($) {
-    $(document).on('change', 'tr.course input', function (i) {
-        STUDIP.Admission.toggleNotSavedAlert();
-    });
 
-    $('a.userlist-delete-user').on('click', function(event) {
-        $(this).closest('tr').remove();
-        return false;
-    });
-});
+export default Admission;

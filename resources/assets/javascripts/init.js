@@ -1,3 +1,4 @@
+import Admission from './lib/admission.js';
 import Arbeitsgruppen from './lib/arbeitsgruppen.js';
 import Archive from './lib/archive.js';
 import Audio from './lib/audio.js';
@@ -42,6 +43,7 @@ const configURLHelper = _.get(window, 'STUDIP.URLHelper', {});
 const URLHelper = createURLHelper(configURLHelper);
 
 window.STUDIP = _.assign(window.STUDIP || {}, {
+    Admission,
     api,
     Arbeitsgruppen,
     Archive,
