@@ -1,5 +1,6 @@
 import createURLHelper from './lib/url_helper.js';
 import Dialog from './lib/dialog.js';
+import Filesystem from './lib/filesystem.js';
 import HeaderMagic from './lib/header_magic.js';
 import JSUpdater from './lib/jsupdater.js';
 import NavigationShrinker from './lib/navigation_shrinker.js';
@@ -20,6 +21,7 @@ const URLHelper = createURLHelper(configURLHelper);
 window.STUDIP = _.assign(window.STUDIP || {}, {
     api,
     Dialog,
+    Filesystem,
     HeaderMagic,
     JSUpdater,
     NavigationShrinker,
