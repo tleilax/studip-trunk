@@ -13,6 +13,7 @@ import createURLHelper from './lib/url_helper.js';
 import CSS from './lib/css.js';
 import Dates from './lib/dates.js';
 import Dialog from './lib/dialog.js';
+import Dialogs from './lib/dialogs.js';
 import enrollment from './lib/enrollment.js';
 import extractCallback from "./lib/extract_callback.js"
 import Files from './lib/files.js';
@@ -63,6 +64,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     CSS,
     Dates,
     Dialog,
+    Dialogs,
     enrollment,
     extractCallback,
     Files,
