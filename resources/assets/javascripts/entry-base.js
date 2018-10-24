@@ -80,7 +80,7 @@ import "./studip-lightbox.js"
 import "./bootstrap/application.js"
 import "./globalsearch.js"
 import "./mvv.js"
-import "./mvv_difflog.js"
+import "./bootstrap/mvv_difflog.js"
 import "./members.js"
 
 import "./avatar.js"
