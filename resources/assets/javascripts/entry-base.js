@@ -79,7 +79,7 @@ import "./bootstrap/mvv_difflog.js"
 import "./bootstrap/members.js"
 
 import "./bootstrap/avatar.js"
-import "./studip-raumzeit.js"
+import "./bootstrap/raumzeit.js"
 import "./bootstrap/settings.js"
 import "./bootstrap/subcourses.js"
 import "./studip-widgets.js"
