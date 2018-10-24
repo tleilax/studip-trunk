@@ -1,4 +1,5 @@
 import Arbeitsgruppen from './lib/arbeitsgruppen.js';
+import Archive from './lib/archive.js';
 import Audio from './lib/audio.js';
 import Browse from './lib/browse.js';
 import Calendar from './lib/calendar.js';
@@ -31,6 +32,7 @@ const URLHelper = createURLHelper(configURLHelper);
 window.STUDIP = _.assign(window.STUDIP || {}, {
     api,
     Arbeitsgruppen,
+    Archive,
     Audio,
     Browse,
     Calendar,
