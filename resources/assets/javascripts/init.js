@@ -14,6 +14,7 @@ import CSS from './lib/css.js';
 import Dates from './lib/dates.js';
 import Dialog from './lib/dialog.js';
 import Dialogs from './lib/dialogs.js';
+import DragAndDropUpload from './lib/drag_and_drop_upload.js';
 import enrollment from './lib/enrollment.js';
 import extractCallback from "./lib/extract_callback.js"
 import Files from './lib/files.js';
@@ -65,6 +66,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Dates,
     Dialog,
     Dialogs,
+    DragAndDropUpload,
     enrollment,
     extractCallback,
     Files,
