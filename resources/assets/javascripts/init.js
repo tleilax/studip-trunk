@@ -19,6 +19,7 @@ import Overlay from './lib/overlay.js';
 import parseOptions from './lib/parse_options.js';
 import PersonalNotifications from './lib/personal_notifications.js';
 import QuickSearch from './lib/quick_search.js';
+import register from './lib/register.js';
 import RESTAPI from './lib/restapi.js';
 import Sidebar from './lib/sidebar.js';
 import SmileyPicker from './lib/smiley_picker.js';
@@ -52,6 +53,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     parseOptions,
     PersonalNotifications,
     QuickSearch,
+    register,
     RESTAPI,
     Sidebar,
     SmileyPicker,
