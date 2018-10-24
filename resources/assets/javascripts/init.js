@@ -47,6 +47,7 @@ import RESTAPI from './lib/restapi.js';
 import Schedule from './lib/schedule.js';
 import Scroll from './lib/scroll.js';
 import Sidebar from './lib/sidebar.js';
+import SkipLinks from './lib/skip_links.js';
 import SmileyPicker from './lib/smiley_picker.js';
 import study_area_selection from './lib/study_area_selection.js';
 import Table from './lib/table.js';
@@ -108,6 +109,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Schedule,
     Scroll,
     Sidebar,
+    SkipLinks,
     SmileyPicker,
     study_area_selection,
     Table,
