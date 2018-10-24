@@ -9,6 +9,7 @@ import Files from './lib/files.js';
 import Filesystem from './lib/filesystem.js';
 import Folders from './lib/folders.js';
 import HeaderMagic from './lib/header_magic.js';
+import Instschedule from './lib/instschedule.js';
 import JSUpdater from './lib/jsupdater.js';
 import Markup from './lib/markup.js';
 import Messages from './lib/messages.js';
@@ -21,6 +22,7 @@ import PersonalNotifications from './lib/personal_notifications.js';
 import QuickSearch from './lib/quick_search.js';
 import register from './lib/register.js';
 import RESTAPI from './lib/restapi.js';
+import Schedule from './lib/schedule.js';
 import Sidebar from './lib/sidebar.js';
 import SmileyPicker from './lib/smiley_picker.js';
 import study_area_selection from './lib/study_area_selection.js';
@@ -43,6 +45,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Filesystem,
     Folders,
     HeaderMagic,
+    Instschedule,
     JSUpdater,
     Markup,
     Messages,
@@ -55,6 +58,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     QuickSearch,
     register,
     RESTAPI,
+    Schedule,
     Sidebar,
     SmileyPicker,
     study_area_selection,

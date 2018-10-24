@@ -1,9 +1,5 @@
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
-/*global window, $, jQuery, _ */
-
-STUDIP.Schedule = {
-
-    inst_changed : false,
+const Schedule = {
+    inst_changed: false,
 
     /**
      * this function is called, when an entry shall be created in the calendar
@@ -13,7 +9,7 @@ STUDIP.Schedule = {
      * @param  int     the start-hour that has been clicked
      * @param  int     the end-hour that has been chosen
      */
-    newEntry: function (entry, day, start_hour, end_hour) {
+    newEntry: function(entry, day, start_hour, end_hour) {
         /*
         // do not allow creation of new entry, if one of the following popups is visible!
         if (jQuery('#edit_sem_entry').is(':visible') ||
@@ -33,15 +29,13 @@ STUDIP.Schedule = {
         this.entry = entry;
 
         if (!STUDIP.Schedule.new_entry_template) {
-            jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/entry'), function (data) {
+            jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/entry'), function(data) {
                 STUDIP.Schedule.new_entry_template = data;
                 STUDIP.Schedule.showEntryDialog(STUDIP.Schedule.new_entry_template, day, start_hour, end_hour);
             });
         } else {
             STUDIP.Schedule.showEntryDialog(STUDIP.Schedule.new_entry_template, day, start_hour, end_hour);
         }
-
-
     },
 
     /**
@@ -53,19 +47,18 @@ STUDIP.Schedule = {
      * @param  int     the start-hour that has been clicked
      * @param  int     the end-hour that has been chosen
      */
-    showEntryDialog: function(template, day, start_hour, end_hour)
-    {
+    showEntryDialog: function(template, day, start_hour, end_hour) {
         // do not open dialog, if no new-entry-marker is present
         if ($('#schedule_entry_new').length === 0) return;
 
         STUDIP.Dialog.show(template, {
-            title : 'Neuen Termin eintragen'.toLocaleString(),
+            title: 'Neuen Termin eintragen'.toLocaleString(),
             origin: this
         });
 
         $(this).on('dialog-close', function() {
             $('#schedule_entry_new').remove();
-        })
+        });
 
         // fill values of overlay
         jQuery('input[name=entry_start_hour]').val(start_hour);
@@ -73,7 +66,6 @@ STUDIP.Schedule = {
         jQuery('input[name=entry_end_hour]').val(end_hour);
         jQuery('input[name=entry_end_minute]').val('00');
         jQuery('select[name=entry_day]').val(parseInt(day) + 1);
-
     },
 
     /**
@@ -82,8 +74,7 @@ STUDIP.Schedule = {
      *
      * @return: void
      */
-    showDetails: function () {
-
+    showDetails: function() {
         // set the values for detailed view
         jQuery('select[name=entry_day]').val(Number(jQuery('#new_entry_day').val()) + 1);
         jQuery('input[name=entry_start_hour]').val(parseInt(jQuery('#new_entry_start_hour').val(), 10));
@@ -97,23 +88,27 @@ STUDIP.Schedule = {
         jQuery('#edit_entry_drag').html(jQuery('#new_entry_drag').html());
 
         // morph to the detailed view
-        jQuery('#schedule_new_entry').animate({
-            left: Math.floor(jQuery(window).width() / 4),  // for safari
-            width: '50%',
-            top: '180px'
-        }, 500, function () {
-            jQuery('#edit_entry').fadeIn(400, function () {
-                // reset the box
-                jQuery('#schedule_new_entry').css({
-                    display: 'none',
-                    left: 0,
-                    width: '400px',
-                    top: 0,
-                    height: '230px',
-                    'margin-left': 0
+        jQuery('#schedule_new_entry').animate(
+            {
+                left: Math.floor(jQuery(window).width() / 4), // for safari
+                width: '50%',
+                top: '180px'
+            },
+            500,
+            function() {
+                jQuery('#edit_entry').fadeIn(400, function() {
+                    // reset the box
+                    jQuery('#schedule_new_entry').css({
+                        display: 'none',
+                        left: 0,
+                        width: '400px',
+                        top: 0,
+                        height: '230px',
+                        'margin-left': 0
+                    });
                 });
-            });
-        });
+            }
+        );
     },
 
     /**
@@ -124,12 +119,15 @@ STUDIP.Schedule = {
      * @param  string  the cycle-id of the regular time-entry to be shown
      *                 (a seminar can have multiple of these
      */
-    showSeminarDetails: function (seminar_id, cycle_id) {
-        jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/entryajax/' + seminar_id + '/' + cycle_id), function (data) {
-            STUDIP.Dialog.show(data, {
-                title : 'Veranstaltungsdetails'.toLocaleString()
-            });
-        });
+    showSeminarDetails: function(seminar_id, cycle_id) {
+        jQuery.get(
+            STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/entryajax/' + seminar_id + '/' + cycle_id),
+            function(data) {
+                STUDIP.Dialog.show(data, {
+                    title: 'Veranstaltungsdetails'.toLocaleString()
+                });
+            }
+        );
 
         STUDIP.Calendar.click_in_progress = false;
     },
@@ -139,10 +137,10 @@ STUDIP.Schedule = {
      *
      * @param  string  the id of the schedule-entry
      */
-    showScheduleDetails: function (id) {
-        jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/entry/' + id), function (data) {
+    showScheduleDetails: function(id) {
+        jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/entry/' + id), function(data) {
             STUDIP.Dialog.show(data, {
-                title : 'Termindetails bearbeiten'.toLocaleString()
+                title: 'Termindetails bearbeiten'.toLocaleString()
             });
         });
 
@@ -154,12 +152,13 @@ STUDIP.Schedule = {
      *
      * @param  string  the id of the grouped entry to be displayed
      */
-    showInstituteDetails: function (id) {
-        jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/groupedentry/' + id + '/true'), function (data) {
+    showInstituteDetails: function(id) {
+        jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/groupedentry/' + id + '/true'), function(
+            data
+        ) {
             STUDIP.Dialog.show(data, {
-                title : 'Veranstaltungsdetails'.toLocaleString()
+                title: 'Veranstaltungsdetails'.toLocaleString()
             });
-
         });
 
         STUDIP.Calendar.click_in_progress = false;
@@ -172,14 +171,16 @@ STUDIP.Schedule = {
      * @param  string  the cycle-id of the regular time-entry to be shown
      *                 (a seminar can have multiple of these
      */
-    instSemUnbind : function (seminar_id, cycle_id) {
+    instSemUnbind: function(seminar_id, cycle_id) {
         STUDIP.Schedule.inst_changed = true;
         jQuery.ajax({
             type: 'GET',
-            url: STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/adminbind/' + seminar_id + '/' + cycle_id + '/0/true')
+            url: STUDIP.URLHelper.getURL(
+                'dispatch.php/calendar/schedule/adminbind/' + seminar_id + '/' + cycle_id + '/0/true'
+            )
         });
 
-        jQuery('#' + seminar_id + '_' + cycle_id + '_hide').fadeOut('fast', function () {
+        jQuery('#' + seminar_id + '_' + cycle_id + '_hide').fadeOut('fast', function() {
             jQuery('#' + seminar_id + '_' + cycle_id + '_show').fadeIn('fast');
         });
     },
@@ -191,14 +192,16 @@ STUDIP.Schedule = {
      * @param  string  the cycle-id of the regular time-entry to be shown
      *                 (a seminar can have multiple of these
      */
-    instSemBind : function (seminar_id, cycle_id) {
+    instSemBind: function(seminar_id, cycle_id) {
         STUDIP.Schedule.inst_changed = true;
         jQuery.ajax({
             type: 'GET',
-            url: STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/adminbind/' + seminar_id + '/' + cycle_id + '/1/true')
+            url: STUDIP.URLHelper.getURL(
+                'dispatch.php/calendar/schedule/adminbind/' + seminar_id + '/' + cycle_id + '/1/true'
+            )
         });
 
-        jQuery('#' + seminar_id + '_' + cycle_id + '_show').fadeOut('fast', function () {
+        jQuery('#' + seminar_id + '_' + cycle_id + '_show').fadeOut('fast', function() {
             jQuery('#' + seminar_id + '_' + cycle_id + '_hide').fadeIn('fast');
         });
     },
@@ -212,7 +215,7 @@ STUDIP.Schedule = {
      *
      * @return  bool  true if the visibility of one seminar hase changed, false otherwise
      */
-    hideInstOverlay: function (element) {
+    hideInstOverlay: function(element) {
         if (STUDIP.Schedule.inst_changed) {
             return true;
         }
@@ -228,12 +231,15 @@ STUDIP.Schedule = {
      *
      * @param  bool  returns true if the time is valid, false otherwise
      */
-    checkFormFields: function () {
-        if (!STUDIP.Calendar.checkTimeslot(jQuery('#schedule_entry_hours > input[name=entry_start_hour]'),
-                                           jQuery('#schedule_entry_hours > input[name=entry_start_minute]'),
-                                           jQuery('#schedule_entry_hours > input[name=entry_end_hour]'),
-                                           jQuery('#schedule_entry_hours > input[name=entry_end_minute]'))) {
-
+    checkFormFields: function() {
+        if (
+            !STUDIP.Calendar.checkTimeslot(
+                jQuery('#schedule_entry_hours > input[name=entry_start_hour]'),
+                jQuery('#schedule_entry_hours > input[name=entry_start_minute]'),
+                jQuery('#schedule_entry_hours > input[name=entry_end_hour]'),
+                jQuery('#schedule_entry_hours > input[name=entry_end_minute]')
+            )
+        ) {
             jQuery('#schedule_entry_hours').addClass('invalid');
             jQuery('#schedule_entry_hours > span[class=invalid_message]').show();
             return false;
@@ -243,17 +249,4 @@ STUDIP.Schedule = {
     }
 };
 
-STUDIP.Instschedule = {
-    /**
-     * show the details of a grouped-entry in the isntitute-calendar, containing several seminars
-     *
-     * @param  string  the id of the grouped-entry to be displayed
-     */
-    showInstituteDetails: function (id) {
-        jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/instschedule/groupedentry/' + id), function (data) {
-            STUDIP.Dialog.show(data, {
-                title : 'Detaillierte Veranstaltungsliste'.toLocaleString()
-            });
-        });
-    }
-};
+export default Schedule;
