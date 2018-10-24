@@ -11,6 +11,7 @@ import CalendarDialog from './lib/calendar_dialog.js';
 import CourseWizard from './lib/course_wizard.js';
 import createURLHelper from './lib/url_helper.js';
 import CSS from './lib/css.js';
+import Dates from './lib/dates.js';
 import Dialog from './lib/dialog.js';
 import enrollment from './lib/enrollment.js';
 import extractCallback from "./lib/extract_callback.js"
@@ -60,6 +61,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     CalendarDialog,
     CourseWizard,
     CSS,
+    Dates,
     Dialog,
     enrollment,
     extractCallback,
