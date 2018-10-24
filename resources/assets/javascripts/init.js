@@ -2,6 +2,7 @@ import Arbeitsgruppen from './lib/arbeitsgruppen.js';
 import Archive from './lib/archive.js';
 import Audio from './lib/audio.js';
 import Browse from './lib/browse.js';
+import Cache from './lib/cache.js';
 import Calendar from './lib/calendar.js';
 import createURLHelper from './lib/url_helper.js';
 import Dialog from './lib/dialog.js';
@@ -39,6 +40,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Archive,
     Audio,
     Browse,
+    Cache,
     Calendar,
     Dialog,
     Files,
