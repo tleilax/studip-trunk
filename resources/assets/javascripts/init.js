@@ -9,8 +9,11 @@ import Sidebar from './lib/sidebar.js';
 import SmileyPicker from './lib/smiley_picker.js';
 import Table from './lib/table.js';
 import Toolbar from './lib/toolbar.js';
+import createURLHelper from './lib/url_helper.js';
 
-const api = new RESTAPI()
+const api = new RESTAPI();
+const configURLHelper = _.get(window, 'STUDIP.URLHelper', {});
+const URLHelper = createURLHelper(configURLHelper);
 
 window.STUDIP = _.assign(window.STUDIP || {}, {
     api,
@@ -24,5 +27,6 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Sidebar,
     SmileyPicker,
     Table,
-    Toolbar
+    Toolbar,
+    URLHelper
 });
