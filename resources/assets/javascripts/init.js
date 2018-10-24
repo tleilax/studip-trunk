@@ -11,6 +11,7 @@ import enrollment from './lib/enrollment.js';
 import extractCallback from "./lib/extract_callback.js"
 import Files from './lib/files.js';
 import Filesystem from './lib/filesystem.js';
+import FilesDashboard from './lib/files_dashboard.js';
 import Folders from './lib/folders.js';
 import HeaderMagic from './lib/header_magic.js';
 import Instschedule from './lib/instschedule.js';
@@ -51,6 +52,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     extractCallback,
     Files,
     Filesystem,
+    FilesDashboard,
     Folders,
     HeaderMagic,
     Instschedule,
