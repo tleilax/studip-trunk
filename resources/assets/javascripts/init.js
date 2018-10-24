@@ -1,3 +1,4 @@
+import admin_sem_classes from './lib/admin_sem_classes.js';
 import Admission from './lib/admission.js';
 import Arbeitsgruppen from './lib/arbeitsgruppen.js';
 import Archive from './lib/archive.js';
@@ -57,6 +58,7 @@ const configURLHelper = _.get(window, 'STUDIP.URLHelper', {});
 const URLHelper = createURLHelper(configURLHelper);
 
 window.STUDIP = _.assign(window.STUDIP || {}, {
+    admin_sem_classes,
     Admission,
     api,
     Arbeitsgruppen,
