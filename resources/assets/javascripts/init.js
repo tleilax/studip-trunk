@@ -24,6 +24,7 @@ import Folders from './lib/folders.js';
 import Forms from './lib/forms.js';
 import GlobalSearch from './lib/global_search.js';
 import HeaderMagic from './lib/header_magic.js';
+import i18n from './lib/i18n.js';
 import Instschedule from './lib/instschedule.js';
 import JSUpdater from './lib/jsupdater.js';
 import Markup from './lib/markup.js';
@@ -79,6 +80,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Forms,
     GlobalSearch,
     HeaderMagic,
+    i18n,
     Instschedule,
     JSUpdater,
     Markup,
