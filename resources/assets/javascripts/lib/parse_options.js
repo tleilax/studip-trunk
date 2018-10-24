@@ -66,4 +66,24 @@ function parseOptions(string, needle) {
     return options;
 }
 
+/**
+ * Tries to parse a given string into it's appropriate type.
+ * Supports boolean, int and float.
+ */
+function parseValue(value) {
+    if (value.toLowerCase() === 'true') {
+        return true;
+    }
+    if (value.toLowerCase() === 'false') {
+        return false;
+    }
+    if (/^[+\-]\d+$/.test(value)) {
+        return parseInt(value, 10);
+    }
+    if (/^[+\-]\d+\.\d+$/.test(value)) {
+        return parseFloat(value, 10);
+    }
+    return value.replace(/^(["'])(.*)\1$/, '$2');
+}
+
 export default parseOptions;
