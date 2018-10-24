@@ -9,6 +9,7 @@ import PersonalNotifications from './lib/personal_notifications.js';
 import RESTAPI from './lib/restapi.js';
 import Sidebar from './lib/sidebar.js';
 import SmileyPicker from './lib/smiley_picker.js';
+import study_area_selection from './lib/study_area_selection.js';
 import Table from './lib/table.js';
 import Toolbar from './lib/toolbar.js';
 
@@ -28,6 +29,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     RESTAPI,
     Sidebar,
     SmileyPicker,
+    study_area_selection,
     Table,
     Toolbar,
     URLHelper
