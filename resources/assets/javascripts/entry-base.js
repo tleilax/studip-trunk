@@ -75,7 +75,7 @@ import "./bootstrap/application.js"
 import "./bootstrap/global_search.js"
 import "./mvv.js"
 import "./bootstrap/mvv_difflog.js"
-import "./members.js"
+import "./bootstrap/members.js"
 
 import "./bootstrap/avatar.js"
 import "./studip-raumzeit.js"

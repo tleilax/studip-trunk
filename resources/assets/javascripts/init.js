@@ -27,6 +27,7 @@ import HeaderMagic from './lib/header_magic.js';
 import Instschedule from './lib/instschedule.js';
 import JSUpdater from './lib/jsupdater.js';
 import Markup from './lib/markup.js';
+import Members from './lib/members.js';
 import Messages from './lib/messages.js';
 import NavigationShrinker from './lib/navigation_shrinker.js';
 import News from './lib/news.js';
@@ -81,6 +82,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Instschedule,
     JSUpdater,
     Markup,
+    Members,
     Messages,
     NavigationShrinker,
     News,
