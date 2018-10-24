@@ -55,6 +55,7 @@ import startpage from './lib/startpage.js';
 import study_area_selection from './lib/study_area_selection.js';
 import Table from './lib/table.js';
 import Toolbar from './lib/toolbar.js';
+import Tooltip from './lib/tooltip.js';
 import UserFilter from './lib/user_filter.js';
 import WidgetSystem from './lib/widget_system.js';
 
@@ -120,6 +121,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     study_area_selection,
     Table,
     Toolbar,
+    Tooltip,
     URLHelper,
     UserFilter,
     WidgetSystem
