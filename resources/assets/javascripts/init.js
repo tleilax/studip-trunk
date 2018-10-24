@@ -28,6 +28,7 @@ import QuickSearch from './lib/quick_search.js';
 import register from './lib/register.js';
 import RESTAPI from './lib/restapi.js';
 import Schedule from './lib/schedule.js';
+import Scroll from './lib/scroll.js';
 import Sidebar from './lib/sidebar.js';
 import SmileyPicker from './lib/smiley_picker.js';
 import study_area_selection from './lib/study_area_selection.js';
@@ -69,6 +70,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     register,
     RESTAPI,
     Schedule,
+    Scroll,
     Sidebar,
     SmileyPicker,
     study_area_selection,
