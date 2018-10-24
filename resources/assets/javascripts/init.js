@@ -34,6 +34,7 @@ import SmileyPicker from './lib/smiley_picker.js';
 import study_area_selection from './lib/study_area_selection.js';
 import Table from './lib/table.js';
 import Toolbar from './lib/toolbar.js';
+import WidgetSystem from './lib/widget_system.js';
 
 const api = new RESTAPI();
 const configURLHelper = _.get(window, 'STUDIP.URLHelper', {});
@@ -76,5 +77,6 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     study_area_selection,
     Table,
     Toolbar,
-    URLHelper
+    URLHelper,
+    WidgetSystem
 });
