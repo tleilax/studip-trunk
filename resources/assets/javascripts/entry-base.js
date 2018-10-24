@@ -79,7 +79,6 @@ import "./bootstrap/mvv_difflog.js"
 import "./members.js"
 
 import "./avatar.js"
-import "./studip-enrollment.js"
 import "./studip-filesdashboard.js"
 import "./studip-raumzeit.js"
 import "./bootstrap/settings.js"
