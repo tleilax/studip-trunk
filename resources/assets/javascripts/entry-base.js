@@ -76,7 +76,7 @@ import "./mvv.js"
 import "./bootstrap/mvv_difflog.js"
 import "./members.js"
 
-import "./avatar.js"
+import "./bootstrap/avatar.js"
 import "./studip-raumzeit.js"
 import "./bootstrap/settings.js"
 import "./bootstrap/subcourses.js"

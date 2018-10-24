@@ -2,6 +2,7 @@ import Admission from './lib/admission.js';
 import Arbeitsgruppen from './lib/arbeitsgruppen.js';
 import Archive from './lib/archive.js';
 import Audio from './lib/audio.js';
+import Avatar from './lib/avatar.js';
 import Browse from './lib/browse.js';
 import Cache from './lib/cache.js';
 import Calendar from './lib/calendar.js';
@@ -48,6 +49,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Arbeitsgruppen,
     Archive,
     Audio,
+    Avatar,
     Browse,
     Cache,
     Calendar,
