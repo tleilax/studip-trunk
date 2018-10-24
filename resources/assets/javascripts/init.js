@@ -21,6 +21,7 @@ import Files from './lib/files.js';
 import Filesystem from './lib/filesystem.js';
 import FilesDashboard from './lib/files_dashboard.js';
 import Folders from './lib/folders.js';
+import Forms from './lib/forms.js';
 import HeaderMagic from './lib/header_magic.js';
 import Instschedule from './lib/instschedule.js';
 import JSUpdater from './lib/jsupdater.js';
@@ -73,6 +74,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Filesystem,
     FilesDashboard,
     Folders,
+    Forms,
     HeaderMagic,
     Instschedule,
     JSUpdater,

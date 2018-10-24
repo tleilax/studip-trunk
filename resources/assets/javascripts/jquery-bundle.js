@@ -154,3 +154,21 @@ $.fn.extend({
         });
     }
 });
+
+$.extend($.expr[':'], {
+    invalid: function(elem, index, match) {
+        var invalids = document.querySelectorAll(':invalid'),
+            result = false,
+            len = invalids.length || 0,
+            i;
+
+        for (i = 0; i < len; i += 1) {
+            if (elem === invalids[i]) {
+                result = true;
+                break;
+            }
+        }
+
+        return result;
+    }
+});
