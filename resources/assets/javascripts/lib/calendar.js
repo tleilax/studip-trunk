@@ -1,10 +1,7 @@
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, indent: 4, onevar: false */
-/*global window, $, jQuery, _ */
-
 /* ------------------------------------------------------------------------
  * calendar gui
  * ------------------------------------------------------------------------ */
-STUDIP.Calendar = {
+const Calendar = {
     cell_height: 20,
     the_entry_content: null,
     entry: null,
@@ -13,13 +10,13 @@ STUDIP.Calendar = {
     click_in_progress: false,
 
     day_names: [
-        "Montag".toLocaleString(),
-        "Dienstag".toLocaleString(),
-        "Mittwoch".toLocaleString(),
-        "Donnerstag".toLocaleString(),
-        "Freitag".toLocaleString(),
-        "Samstag".toLocaleString(),
-        "Sonntag".toLocaleString()
+        'Montag'.toLocaleString(),
+        'Dienstag'.toLocaleString(),
+        'Mittwoch'.toLocaleString(),
+        'Donnerstag'.toLocaleString(),
+        'Freitag'.toLocaleString(),
+        'Samstag'.toLocaleString(),
+        'Sonntag'.toLocaleString()
     ],
 
     /**
@@ -31,20 +28,19 @@ STUDIP.Calendar = {
      * @param  object  the element in the dom, that has been clicked
      * @param  object  the click-event itself
      */
-    clickEngine: function (func, target, event) {
+    clickEngine: function(func, target, event) {
         event.cancelBubble = true;
         var id = jQuery(target).parent()[0].id;
-        id = id.substr(id.lastIndexOf("_") + 1);
+        id = id.substr(id.lastIndexOf('_') + 1);
         func(id);
     },
-
 
     /**
      * check, that the submited input-field cotains of a valid hour
      *
      * @param  object  the input-element to check
      */
-    validateHour: function (element) {
+    validateHour: function(element) {
         var hour = parseInt(jQuery(element).val(), 10);
 
         if (hour > 23) {
@@ -62,7 +58,7 @@ STUDIP.Calendar = {
      *
      * @param  object  the input-element to check
      */
-    validateMinute: function (element) {
+    validateMinute: function(element) {
         var minute = parseInt(jQuery(element).val(), 10);
 
         if (minute > 59) {
@@ -80,10 +76,12 @@ STUDIP.Calendar = {
      *
      * @return: bool true if selected days > 0
      */
-    validateNumberOfDays: function () {
-        var days = $("input[name='days[]']:checked").map(function () {
-            return $(this).val();
-        }).get();
+    validateNumberOfDays: function() {
+        var days = $("input[name='days[]']:checked")
+            .map(function() {
+                return $(this).val();
+            })
+            .get();
         if (days.length === 0) {
             jQuery('.settings > span[class=invalid_message]').show();
             return false;
@@ -102,12 +100,16 @@ STUDIP.Calendar = {
      *
      * @return: bool true if valid time-range, false otherwise
      */
-    checkTimeslot: function (start_hour, start_minute, end_hour, end_minute) {
-        if ((parseInt(start_hour.val(), 10) * 100) + parseInt(start_minute.val(), 10) >=
-            (parseInt(end_hour.val(), 10) * 100) + parseInt(end_minute.val(), 10)) {
+    checkTimeslot: function(start_hour, start_minute, end_hour, end_minute) {
+        if (
+            parseInt(start_hour.val(), 10) * 100 + parseInt(start_minute.val(), 10) >=
+            parseInt(end_hour.val(), 10) * 100 + parseInt(end_minute.val(), 10)
+        ) {
             return false;
         }
 
         return true;
     }
 };
+
+export default Calendar;
