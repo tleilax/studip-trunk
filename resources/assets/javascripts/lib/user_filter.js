@@ -167,4 +167,4 @@ const UserFilter = {
     }
 };
 
-export default Userfilter;
+export default UserFilter;
