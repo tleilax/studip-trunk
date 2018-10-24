@@ -97,10 +97,6 @@ if (($o_mode != "direct") AND ($o_mode != "passthrough"))
             }
             if (isset($export_weiter_button))
             {
-            ?>
-            <br>
-            <br>
-            <?
                 echo $export_weiter_button;
             }
             ?>
