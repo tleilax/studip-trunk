@@ -36,7 +36,7 @@ const Dates = {
             termin_id = $(this)
                 .closest('[data-termin-id]')
                 .data().terminId;
-        STUDIP.Dates.removeTopic(termin_id, topic_id);
+        Dates.removeTopic(termin_id, topic_id);
     },
     removeTopic: function(termin_id, topic_id) {
         $.ajax({

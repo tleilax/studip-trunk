@@ -1,4 +1,5 @@
 import ToolbarButtonset from './toolbar_buttonset.js';
+import Dialog from './dialog.js';
 
 function getElementWidth(element) {
     var proxy = null;
@@ -53,7 +54,7 @@ const Toolbar = {
                         '',
                         'Die Seite muss danach neu geladen werden, um den WYSIWYG Editor zu laden.'.toLocaleString()
                     ].join('\n');
-                    STUDIP.Dialog.confirm(question, function() {
+                    Dialog.confirm(question, function() {
                         var url = STUDIP.URLHelper.resolveURL('dispatch.php/wysiwyg/settings/users/current');
 
                         $.ajax({

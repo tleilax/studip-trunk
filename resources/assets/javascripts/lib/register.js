@@ -17,10 +17,10 @@ const register = {
     },
 
     checkusername: function() {
-        STUDIP.register.clearErrors('username');
+        register.clearErrors('username');
 
         if (jQuery('input[name=username]').val().length < 4) {
-            STUDIP.register.addError(
+            register.addError(
                 'username',
                 'Der Benutzername ist zu kurz, er sollte mindestens 4 Zeichen lang sein.'.toLocaleString()
             );
@@ -28,8 +28,8 @@ const register = {
             return false;
         }
 
-        if (STUDIP.register.re_username.test(jQuery('input[name=username]').val()) === false) {
-            STUDIP.register.addError(
+        if (register.re_username.test(jQuery('input[name=username]').val()) === false) {
+            register.addError(
                 'username',
                 'Der Benutzername enthält unzulässige Zeichen, er darf keine Sonderzeichen oder Leerzeichen enthalten.'.toLocaleString()
             );
@@ -41,11 +41,11 @@ const register = {
     },
 
     checkpassword: function() {
-        STUDIP.register.clearErrors('password');
+        register.clearErrors('password');
 
         var checked = true;
         if (jQuery('input[name=password]').val().length < 8) {
-            STUDIP.register.addError(
+            register.addError(
                 'password',
                 'Das Passwort ist zu kurz, es sollte mindestens 8 Zeichen lang sein.'.toLocaleString()
             );
@@ -56,11 +56,11 @@ const register = {
     },
 
     checkpassword2: function() {
-        STUDIP.register.clearErrors('password2');
+        register.clearErrors('password2');
 
         var checked = true;
         if (jQuery('input[name=password]').val() !== jQuery('input[name=password2]').val()) {
-            STUDIP.register.addError(
+            register.addError(
                 'password2',
                 'Das Passwort stimmt nicht mit dem Bestätigungspasswort überein!'.toLocaleString()
             );
@@ -71,11 +71,11 @@ const register = {
     },
 
     checkVorname: function() {
-        STUDIP.register.clearErrors('Vorname');
+        register.clearErrors('Vorname');
 
         var checked = true;
-        if (STUDIP.register.re_name.test(jQuery('input[name=Vorname]').val()) === false) {
-            STUDIP.register.addError('Vorname', 'Bitte geben Sie Ihren tatsächlichen Vornamen an.'.toLocaleString());
+        if (register.re_name.test(jQuery('input[name=Vorname]').val()) === false) {
+            register.addError('Vorname', 'Bitte geben Sie Ihren tatsächlichen Vornamen an.'.toLocaleString());
             document.login.Vorname.focus();
             checked = false;
         }
@@ -83,11 +83,11 @@ const register = {
     },
 
     checkNachname: function() {
-        STUDIP.register.clearErrors('Nachname');
+        register.clearErrors('Nachname');
 
         var checked = true;
-        if (STUDIP.register.re_name.test(jQuery('input[name=Nachname]').val()) === false) {
-            STUDIP.register.addError('Nachname', 'Bitte geben Sie Ihren tatsächlichen Nachnamen an.'.toLocaleString());
+        if (register.re_name.test(jQuery('input[name=Nachname]').val()) === false) {
+            register.addError('Nachname', 'Bitte geben Sie Ihren tatsächlichen Nachnamen an.'.toLocaleString());
             document.login.Nachname.focus();
             checked = false;
         }
@@ -95,7 +95,7 @@ const register = {
     },
 
     checkEmail: function() {
-        STUDIP.register.clearErrors('Email');
+        register.clearErrors('Email');
 
         var email = jQuery('input[name=Email]').val();
         (domain = jQuery('select[name=emaildomain]').val()), (checked = false);
@@ -109,7 +109,7 @@ const register = {
             .checkValidity();
 
         if (!checked) {
-            STUDIP.register.addError('Email', 'Die E-Mail-Adresse ist nicht korrekt!'.toLocaleString());
+            register.addError('Email', 'Die E-Mail-Adresse ist nicht korrekt!'.toLocaleString());
             $('#Email').focus();
         }
 

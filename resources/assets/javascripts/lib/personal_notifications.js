@@ -1,4 +1,5 @@
 import Favico from 'favico.js';
+import Cache from './cache.js';
 
 var stack = {},
     originalTitle,
@@ -42,7 +43,7 @@ function create_desktop_notification(data) {
 
 // Handler for all notifications received by an ajax request
 function process_notifications(notifications) {
-    var cache = STUDIP.Cache.getInstance('desktop.notifications'),
+    var cache = Cache.getInstance('desktop.notifications'),
         ul = $('<ul/>'),
         changed = false,
         new_stack = {};

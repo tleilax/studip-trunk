@@ -3,9 +3,9 @@ const Questionnaire = {
     periodicalPushData: function() {
         var questionnaires = {
             questionnaire_ids: [],
-            last_update: STUDIP.Questionnaire.lastUpdate
+            last_update: Questionnaire.lastUpdate
         };
-        STUDIP.Questionnaire.lastUpdate = Math.floor(Date.now() / 1000);
+        Questionnaire.lastUpdate = Math.floor(Date.now() / 1000);
         jQuery('.questionnaire_results').each(function() {
             questionnaires.questionnaire_ids.push(jQuery(this).data('questionnaire_id'));
         });

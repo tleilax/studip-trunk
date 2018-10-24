@@ -102,9 +102,9 @@ const CourseWizard = {
      * @param name Full name
      */
     addLecturer: function(id, name) {
-        STUDIP.CourseWizard.addPerson(id, name, 'lecturers', 'lecturer', 'wizard-lecturers', 'deputies');
+        CourseWizard.addPerson(id, name, 'lecturers', 'lecturer', 'wizard-lecturers', 'deputies');
         // Add deputies if applicable.
-        STUDIP.CourseWizard.addDefaultDeputies(id);
+        CourseWizard.addDefaultDeputies(id);
     },
 
     /**
@@ -113,11 +113,11 @@ const CourseWizard = {
      * @param name Full name
      */
     addDeputy: function(id, name) {
-        STUDIP.CourseWizard.addPerson(id, name, 'deputies', 'deputy', 'wizard-deputies', 'lecturers');
+        CourseWizard.addPerson(id, name, 'deputies', 'deputy', 'wizard-deputies', 'lecturers');
     },
 
     addTutor: function(id, name) {
-        STUDIP.CourseWizard.addPerson(id, name, 'tutors', 'tutor', 'wizard-tutors', 'lecturers');
+        CourseWizard.addPerson(id, name, 'tutors', 'tutor', 'wizard-tutors', 'lecturers');
     },
 
     /**
@@ -133,7 +133,7 @@ const CourseWizard = {
                 success: function(data, status, xhr) {
                     if (data.length > 0) {
                         for (var i = 0; i < data.length; i++) {
-                            STUDIP.CourseWizard.addDeputy(data[i].id, data[i].name);
+                            CourseWizard.addDeputy(data[i].id, data[i].name);
                         }
                     }
                 }
@@ -192,7 +192,7 @@ const CourseWizard = {
                     if (items.length > 0) {
                         var list = target.children('ul');
                         for (i = 0; i < items.length; i++) {
-                            list.append(STUDIP.CourseWizard.createTreeNode(items[i], assignable));
+                            list.append(CourseWizard.createTreeNode(items[i], assignable));
                         }
                     }
                     target.addClass('tree-loaded');
@@ -234,7 +234,7 @@ const CourseWizard = {
                                 .css('width', '16')
                                 .css('height', '16')
                         );
-                    STUDIP.CourseWizard.loadingOverlay($('div#studyareas ul.css-tree'));
+                    CourseWizard.loadingOverlay($('div#studyareas ul.css-tree'));
                 },
                 success: function(data, status, xhr) {
                     $('#loading-overlay').remove();
@@ -249,11 +249,11 @@ const CourseWizard = {
                         $('#studyareas li')
                             .not('.keep-node')
                             .addClass('css-tree-hidden');
-                        STUDIP.CourseWizard.buildPartialTree(items, true, '');
+                        CourseWizard.buildPartialTree(items, true, '');
                         $('#sem-tree-assign-all').removeClass('hidden-js');
                         $('li.sem-tree-root input#root').prop('checked', true);
                     } else {
-                        STUDIP.CourseWizard.resetSearch();
+                        CourseWizard.resetSearch();
                         alert($('#studyareas').data('no-search-result'));
                     }
                 },
@@ -309,7 +309,7 @@ const CourseWizard = {
                 } else {
                     var selected = false;
                 }
-                var node = STUDIP.CourseWizard.createTreeNode(items[i], assignable, selected);
+                var node = CourseWizard.createTreeNode(items[i], assignable, selected);
                 parent.children('ul').append(node);
             } else {
                 node.removeClass('css-tree-hidden');
@@ -335,7 +335,7 @@ const CourseWizard = {
             }
             parent.children('input[id="' + items[i].parent + '"]').attr('checked', true);
             if (items[i].has_children) {
-                STUDIP.CourseWizard.buildPartialTree(items[i].children, assignable, source_node);
+                CourseWizard.buildPartialTree(items[i].children, assignable, source_node);
             }
         }
         return false;
@@ -449,12 +449,12 @@ const CourseWizard = {
         $.ajax($('#studyareas').data('ajax-url'), {
             data: params,
             beforeSend: function(xhr, settings) {
-                STUDIP.CourseWizard.loadingOverlay($('div#assigned ul.css-tree'));
+                CourseWizard.loadingOverlay($('div#assigned ul.css-tree'));
             },
             success: function(data, status, xhr) {
                 $('#loading-overlay').remove();
                 var items = $.parseJSON(data);
-                STUDIP.CourseWizard.buildPartialTree(items, false, id);
+                CourseWizard.buildPartialTree(items, false, id);
                 $('.sem-tree-assigned-root').removeClass('hidden-js');
                 $('input[name="assign[' + id + ']"]').hide();
                 $('svg[name="assign[' + id + ']"]').hide();
@@ -478,7 +478,7 @@ const CourseWizard = {
             target.children('input[name="unassign[' + id + ']"]').remove();
             target.children('a').remove();
         } else {
-            STUDIP.CourseWizard.cleanupAssignTree(target);
+            CourseWizard.cleanupAssignTree(target);
         }
         $('input[name="assign[' + id + ']"]').show();
         $('svg[name="assign[' + id + ']"]').show();
@@ -493,9 +493,9 @@ const CourseWizard = {
      */
     assignAllNodes: function() {
         $('.sem-tree-result').each(function(index, element) {
-            STUDIP.CourseWizard.assignNode($(element).data('id'));
+            CourseWizard.assignNode($(element).data('id'));
         });
-        STUDIP.CourseWizard.resetSearch();
+        CourseWizard.resetSearch();
         return false;
     },
 
@@ -514,7 +514,7 @@ const CourseWizard = {
             !grandparent.hasClass('keep-node') &&
             grandparent.children('input[type="hidden"][name="studyareas[]"]').length == 0
         ) {
-            STUDIP.CourseWizard.cleanupAssignTree(element.parent().parent());
+            CourseWizard.cleanupAssignTree(element.parent().parent());
         } else {
             element.remove();
         }

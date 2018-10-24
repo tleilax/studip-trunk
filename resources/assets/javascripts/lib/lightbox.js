@@ -1,3 +1,5 @@
+import Dialog from './dialog.js';
+
 function sprintf(string) {
     var args = arguments,
         index = 1;
@@ -41,7 +43,7 @@ const Lightbox = {
 
         $(document).one('dialog-open.lightbox', $.proxy(this, 'registerEvents'));
 
-        STUDIP.Dialog.show(wrapper, {
+        Dialog.show(wrapper, {
             buttons: false,
             dialogClass: 'studip-lightbox',
             resize: false,
@@ -107,16 +109,16 @@ const Lightbox = {
     init: function() {
         // Values should match the ones in studip-dialog.js (this should be more generic)
         this.max_width = $(window).width() * 0.95;
-        this.max_height = $(window).height() * 0.9 - STUDIP.Lightbox.extra_height;
+        this.max_height = $(window).height() * 0.9 - Lightbox.extra_height;
     },
     registerEvents: function() {
         $('.studip-lightbox')
             .on('click', 'a.previous', function() {
-                STUDIP.Lightbox.show(STUDIP.Lightbox.current - 1);
+                Lightbox.show(Lightbox.current - 1);
                 return false;
             })
             .on('click', 'a.next', function() {
-                STUDIP.Lightbox.show(STUDIP.Lightbox.current + 1);
+                Lightbox.show(Lightbox.current + 1);
                 return false;
             });
 
@@ -127,7 +129,7 @@ const Lightbox = {
                 } else if (event.keyCode === 39) {
                     $('.studip-lightbox .next:visible').click();
                 } else if (event.keyCode === 27) {
-                    STUDIP.Dialog.close();
+                    Dialog.close();
                 } else {
                     return;
                 }

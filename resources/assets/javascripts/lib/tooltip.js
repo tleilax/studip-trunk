@@ -1,3 +1,5 @@
+import CSS from './css.js';
+
 /**
  * Tooltip library for Stud.IP
  *
@@ -69,13 +71,13 @@ Tooltip.getId = function() {
  * @param {int} y - Vertical offset
  */
 Tooltip.prototype.translateArrows = function(x, y) {
-    STUDIP.CSS.removeRule('#' + this.id + ':before');
-    STUDIP.CSS.removeRule('#' + this.id + ':after');
+    CSS.removeRule('#' + this.id + ':before');
+    CSS.removeRule('#' + this.id + ':after');
 
     if (x !== 0 || y !== 0) {
         var rule = 'translate(' + x + 'px, ' + y + 'px);';
-        STUDIP.CSS.addRule('#' + this.id + ':before', { transform: rule }, ['-ms-', '-webkit-']);
-        STUDIP.CSS.addRule('#' + this.id + ':after', { transform: rule }, ['-ms-', '-webkit-']);
+        CSS.addRule('#' + this.id + ':before', { transform: rule }, ['-ms-', '-webkit-']);
+        CSS.addRule('#' + this.id + ':after', { transform: rule }, ['-ms-', '-webkit-']);
     }
 };
 

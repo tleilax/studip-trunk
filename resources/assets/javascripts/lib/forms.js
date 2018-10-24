@@ -14,7 +14,7 @@ const Forms = {
             $(this).data('message', $(this).attr('title'));
         });
 
-        if (!STUDIP.Forms.initialized) {
+        if (!Forms.initialized) {
             // add invalid-handler to every input and textarea on the page
             $(document).on('invalid', 'input, textarea', function() {
                 $(this)
@@ -52,7 +52,7 @@ const Forms = {
             });
         }
 
-        STUDIP.Forms.initialized = true;
+        Forms.initialized = true;
     }
 };
 

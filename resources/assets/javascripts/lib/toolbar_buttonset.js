@@ -1,3 +1,5 @@
+import SmileyPicker from './smiley_picker.js';
+
 // Creates a wrapper function that wraps the passed string using the
 // passed prefix and suffix. If the suffix is omitted, it will be replaced
 // by the prefix.
@@ -55,7 +57,7 @@ const buttonSet = {
         smilies: {
             label: ':)',
             evaluate: function(string, textarea, button) {
-                STUDIP.SmileyPicker.toggle(button, function(code) {
+                SmileyPicker.toggle(button, function(code) {
                     textarea.replaceSelection(code + ' ');
                 });
             }

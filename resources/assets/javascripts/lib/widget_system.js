@@ -1,7 +1,39 @@
+import Dialog from './dialog.js';
+import extractCallback from './extract_callback.js';
+import { api } from './restapi.js';
+
+function makeCRCTable() {
+    var c,
+        crcTable = [],
+        n,
+        k;
+    for (n = 0; n < 256; n += 1) {
+        c = n;
+        for (k = 0; k < 8; k += 1) {
+            c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+        }
+        crcTable[n] = c;
+    }
+    return crcTable;
+}
+
+var crcTable = makeCRCTable();
+
+const crc32 = function() {
+    var crc = 0 ^ -1,
+        i;
+
+    for (i = 0; i < this.length; i += 1) {
+        crc = (crc >>> 8) ^ crcTable[(crc ^ this.charCodeAt(i)) & 0xff];
+    }
+
+    return (crc ^ -1) >>> 0;
+};
+
 var GRID_CLASSNAME = 'studip-widget-grid';
 
 var renderServerSide = function(grid, item) {
-    return STUDIP.api
+    return api
         .POST(['widgets', grid.id, item.el.data().widgetId], {
             data: {
                 x: item.x,
@@ -37,7 +69,7 @@ function WidgetSystem(id, container_element) {
 
     this.gridstack = this.grid.data('gridstack');
 
-    this.hashcode = JSON.stringify(this.serialize()).crc32();
+    this.hashcode = crc32(JSON.stringify(this.serialize()));
 
     // Store new layout after widget was dragged
     this.grid
@@ -81,7 +113,7 @@ function WidgetSystem(id, container_element) {
                         dfd0.resolve();
                     } else {
                         var question = $(event.target).data().confirm;
-                        STUDIP.Dialog.confirm(question).then(dfd0.resolve, dfd0.reject);
+                        Dialog.confirm(question).then(dfd0.resolve, dfd0.reject);
                     }
                 })
                     .done(
@@ -103,8 +135,7 @@ function WidgetSystem(id, container_element) {
                                 path.push(1);
                             }
 
-                            STUDIP.api
-                                .POST(path)
+                            api.POST(path)
                                 .then(
                                     function(response, status, jqxhr) {
                                         return $.Deferred(function(dfd) {
@@ -117,7 +148,7 @@ function WidgetSystem(id, container_element) {
                                                 result = true;
                                             if (command) {
                                                 command = decodeURIComponent(command);
-                                                callback = STUDIP.extractCallback(command);
+                                                callback = extractCallback(command);
 
                                                 if (
                                                     jqxhr.getResponseHeader('Content-Type').match(/json/) &&
@@ -183,7 +214,7 @@ WidgetSystem.prototype.getElement = function(element_id) {
 };
 
 WidgetSystem.prototype.store = function() {
-    STUDIP.api.PUT(['widgets', this.id], {
+    api.PUT(['widgets', this.id], {
         before: function() {
             var elements = this.serialize(),
                 hashcode = JSON.stringify(elements).crc32(),

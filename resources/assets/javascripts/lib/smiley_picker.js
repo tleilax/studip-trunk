@@ -19,6 +19,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
+import Dialog from './dialog.js';
 
 var initialized = false,
     picker_element = $('<div/>'),
@@ -74,7 +75,7 @@ const SmileyPicker = {
                         click: function() {
                             var url = STUDIP.URLHelper.getURL('dispatch.php/smileys');
                             picker_element.dialog('close');
-                            STUDIP.Dialog.fromURL(url);
+                            Dialog.fromURL(url);
                         }
                     },
                     {

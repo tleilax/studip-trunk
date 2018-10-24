@@ -1,3 +1,5 @@
+import Table from './table.js';
+
 const FilesDashboard = {
     /**
      * Diese Methode wird aufgerufen, sobald ein Dashboard-Widget
@@ -8,7 +10,7 @@ const FilesDashboard = {
     enhanceList: function(elementId) {
         $(document).on('dialog-open', function() {
             $('.ui-dialog table[data-element-id="' + elementId + '"]').each(function(index, element) {
-                STUDIP.Table.enhanceSortableTable(element);
+                Table.enhanceSortableTable(element);
             });
         });
     }

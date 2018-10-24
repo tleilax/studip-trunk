@@ -32,7 +32,7 @@ const admin_sem_class = {
                     jQuery(this).addClass('full');
                 }
             });
-            STUDIP.admin_sem_class.make_sortable();
+            admin_sem_class.make_sortable();
         };
         jQuery('.droparea').sortable({
             connectWith: '.droparea:not(.full)',

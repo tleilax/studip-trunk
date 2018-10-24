@@ -17,7 +17,7 @@ import Dialog from './lib/dialog.js';
 import Dialogs from './lib/dialogs.js';
 import DragAndDropUpload from './lib/drag_and_drop_upload.js';
 import enrollment from './lib/enrollment.js';
-import extractCallback from "./lib/extract_callback.js"
+import extractCallback from './lib/extract_callback.js';
 import Files from './lib/files.js';
 import Filesystem from './lib/filesystem.js';
 import FilesDashboard from './lib/files_dashboard.js';
@@ -45,7 +45,7 @@ import Questionnaire from './lib/questionnaire.js';
 import QuickSearch from './lib/quick_search.js';
 import Raumzeit from './lib/raumzeit.js';
 import register from './lib/register.js';
-import RESTAPI from './lib/restapi.js';
+import RESTAPI, { api } from './lib/restapi.js';
 import Schedule from './lib/schedule.js';
 import Scroll from './lib/scroll.js';
 import Sidebar from './lib/sidebar.js';
@@ -60,8 +60,8 @@ import Tooltip from './lib/tooltip.js';
 import Tour from './lib/tour.js';
 import UserFilter from './lib/user_filter.js';
 import WidgetSystem from './lib/widget_system.js';
+import wysiwyg from './lib/wysiwyg.js';
 
-const api = new RESTAPI();
 const configURLHelper = _.get(window, 'STUDIP.URLHelper', {});
 const URLHelper = createURLHelper(configURLHelper);
 
@@ -128,5 +128,6 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Tour,
     URLHelper,
     UserFilter,
-    WidgetSystem
+    WidgetSystem,
+    wysiwyg
 });

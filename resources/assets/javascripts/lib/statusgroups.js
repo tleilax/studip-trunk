@@ -31,7 +31,7 @@ const Statusgroups = {
                     async: false
                 }).done(function(data) {
                     $('tbody', table).html(data);
-                    STUDIP.Statusgroups.apply();
+                    Statusgroups.apply();
                 });
             }
         });

@@ -1,3 +1,6 @@
+import Calendar from './calendar.js';
+import Dialog from './dialog.js';
+
 const Schedule = {
     inst_changed: false,
 
@@ -28,13 +31,13 @@ const Schedule = {
 
         this.entry = entry;
 
-        if (!STUDIP.Schedule.new_entry_template) {
+        if (!Schedule.new_entry_template) {
             jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/entry'), function(data) {
-                STUDIP.Schedule.new_entry_template = data;
-                STUDIP.Schedule.showEntryDialog(STUDIP.Schedule.new_entry_template, day, start_hour, end_hour);
+                Schedule.new_entry_template = data;
+                Schedule.showEntryDialog(Schedule.new_entry_template, day, start_hour, end_hour);
             });
         } else {
-            STUDIP.Schedule.showEntryDialog(STUDIP.Schedule.new_entry_template, day, start_hour, end_hour);
+            Schedule.showEntryDialog(Schedule.new_entry_template, day, start_hour, end_hour);
         }
     },
 
@@ -51,7 +54,7 @@ const Schedule = {
         // do not open dialog, if no new-entry-marker is present
         if ($('#schedule_entry_new').length === 0) return;
 
-        STUDIP.Dialog.show(template, {
+        Dialog.show(template, {
             title: 'Neuen Termin eintragen'.toLocaleString(),
             origin: this
         });
@@ -123,13 +126,13 @@ const Schedule = {
         jQuery.get(
             STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/entryajax/' + seminar_id + '/' + cycle_id),
             function(data) {
-                STUDIP.Dialog.show(data, {
+                Dialog.show(data, {
                     title: 'Veranstaltungsdetails'.toLocaleString()
                 });
             }
         );
 
-        STUDIP.Calendar.click_in_progress = false;
+        Calendar.click_in_progress = false;
     },
 
     /**
@@ -139,12 +142,12 @@ const Schedule = {
      */
     showScheduleDetails: function(id) {
         jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/entry/' + id), function(data) {
-            STUDIP.Dialog.show(data, {
+            Dialog.show(data, {
                 title: 'Termindetails bearbeiten'.toLocaleString()
             });
         });
 
-        STUDIP.Calendar.click_in_progress = false;
+        Calendar.click_in_progress = false;
     },
 
     /**
@@ -156,12 +159,12 @@ const Schedule = {
         jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/schedule/groupedentry/' + id + '/true'), function(
             data
         ) {
-            STUDIP.Dialog.show(data, {
+            Dialog.show(data, {
                 title: 'Veranstaltungsdetails'.toLocaleString()
             });
         });
 
-        STUDIP.Calendar.click_in_progress = false;
+        Calendar.click_in_progress = false;
     },
 
     /**
@@ -172,7 +175,7 @@ const Schedule = {
      *                 (a seminar can have multiple of these
      */
     instSemUnbind: function(seminar_id, cycle_id) {
-        STUDIP.Schedule.inst_changed = true;
+        Schedule.inst_changed = true;
         jQuery.ajax({
             type: 'GET',
             url: STUDIP.URLHelper.getURL(
@@ -193,7 +196,7 @@ const Schedule = {
      *                 (a seminar can have multiple of these
      */
     instSemBind: function(seminar_id, cycle_id) {
-        STUDIP.Schedule.inst_changed = true;
+        Schedule.inst_changed = true;
         jQuery.ajax({
             type: 'GET',
             url: STUDIP.URLHelper.getURL(
@@ -216,24 +219,24 @@ const Schedule = {
      * @return  bool  true if the visibility of one seminar hase changed, false otherwise
      */
     hideInstOverlay: function(element) {
-        if (STUDIP.Schedule.inst_changed) {
+        if (Schedule.inst_changed) {
             return true;
         }
         jQuery(element).fadeOut('fast');
 
-        STUDIP.Calendar.click_in_progress = false;
+        Calendar.click_in_progress = false;
 
         return false;
     },
 
     /**
-     * calls STUDIP.Calendar.checkTimeslot to check that the time is valid
+     * calls Calendar.checkTimeslot to check that the time is valid
      *
      * @param  bool  returns true if the time is valid, false otherwise
      */
     checkFormFields: function() {
         if (
-            !STUDIP.Calendar.checkTimeslot(
+            !Calendar.checkTimeslot(
                 jQuery('#schedule_entry_hours > input[name=entry_start_hour]'),
                 jQuery('#schedule_entry_hours > input[name=entry_start_minute]'),
                 jQuery('#schedule_entry_hours > input[name=entry_end_hour]'),

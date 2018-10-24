@@ -1,3 +1,6 @@
+import NavigationShrinker from './navigation_shrinker.js';
+import Scroll from './scroll.js';
+
 let fold;
 let was_below_the_fold = false;
 
@@ -23,7 +26,7 @@ const scroll = function(scrolltop) {
             );
             menu.prependTo('#flex-header');
 
-            STUDIP.NavigationShrinker();
+            NavigationShrinker();
 
             $('#barTopMenu-toggle').prop('checked', false);
         }
@@ -35,10 +38,10 @@ const scroll = function(scrolltop) {
 const HeaderMagic = {
     enable() {
         fold = $('#flex-header').height();
-        STUDIP.Scroll.addHandler('header', scroll);
+        Scroll.addHandler('header', scroll);
     },
     disable() {
-        STUDIP.Scroll.removeHandler('header');
+        Scroll.removeHandler('header');
         $('body').removeClass('fixed');
     }
 };

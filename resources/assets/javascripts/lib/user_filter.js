@@ -1,12 +1,13 @@
 /* ------------------------------------------------------------------------
  * Bedingungen zur Auswahl von Stud.IP-Nutzern
  * ------------------------------------------------------------------------ */
+import Dialog from './dialog.js';
 
 const UserFilter = {
     new_group_nr: 1,
 
     configureCondition: function(targetId, targetUrl) {
-        STUDIP.Dialog.fromURL(targetUrl, {
+        Dialog.fromURL(targetUrl, {
             title: 'Bedingung konfigurieren'.toLocaleString(),
             size: Math.min(Math.round(0.9 * $(window).width()), 850) + 'x400',
             method: 'post',
@@ -71,7 +72,7 @@ const UserFilter = {
                 $('.userfilter .group_conditions').show();
             }
         });
-        STUDIP.Dialog.close({ id: 'configurecondition' });
+        Dialog.close({ id: 'configurecondition' });
     },
 
     /**
@@ -85,15 +86,15 @@ const UserFilter = {
                 .prop('checked', false)
                 .hide();
             $('.userfilter .group_conditions').after(group_template.show());
-            selected.find('input[name^=conditiongroup_]').prop('value', STUDIP.UserFilter.new_group_nr);
+            selected.find('input[name^=conditiongroup_]').prop('value', UserFilter.new_group_nr);
             $('.grouped_conditions_template:last .condition_list').append(selected);
             $('.grouped_conditions_template:last .condition_list input[name=quota]').prop(
                 'name',
-                'quota_' + STUDIP.UserFilter.new_group_nr
+                'quota_' + UserFilter.new_group_nr
             );
-            $('.grouped_conditions_template:last').prop('id', 'new_conditiongroup_' + STUDIP.UserFilter.new_group_nr);
+            $('.grouped_conditions_template:last').prop('id', 'new_conditiongroup_' + UserFilter.new_group_nr);
             $('.grouped_conditions_template:last').prop('class', 'grouped_conditions');
-            STUDIP.UserFilter.new_group_nr++;
+            UserFilter.new_group_nr++;
         }
         if ($('.userfilter .ungrouped_conditions .condition_list .condition').length == 0) {
             $('.userfilter .group_conditions').hide();
@@ -154,7 +155,7 @@ const UserFilter = {
 
     removeConditionField: function(element) {
         element.remove();
-        STUDIP.Dialogs.closeConfirmDialog();
+        Dialogs.closeConfirmDialog();
         return false;
     },
 

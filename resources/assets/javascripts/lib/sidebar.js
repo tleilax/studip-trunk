@@ -1,3 +1,5 @@
+import Scroll from './scroll.js';
+
 const Sidebar = {};
 
 Sidebar.open = function() {
@@ -19,15 +21,15 @@ Sidebar.setSticky = function(is_sticky) {
                 var stuckHandler = function(top, left) {
                     $('#layout-sidebar .sidebar').css('margin-left', -left);
                 };
-                STUDIP.Scroll.addHandler('sticky.horizontal', stuckHandler);
+                Scroll.addHandler('sticky.horizontal', stuckHandler);
                 stuckHandler(0, $(window).scrollLeft());
             })
             .on('sticky_kit:unstick sticky_kit:bottom', function() {
-                STUDIP.Scroll.removeHandler('sticky.horizontal');
+                Scroll.removeHandler('sticky.horizontal');
                 $(this).css('margin-left', 0);
             });
     } else {
-        STUDIP.Scroll.removeHandler('sticky.horizontal');
+        Scroll.removeHandler('sticky.horizontal');
         $('#layout-sidebar .sidebar')
             .trigger('sticky_kit:unstick')
             .trigger('sticky_kit:detach');

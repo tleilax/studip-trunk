@@ -1,3 +1,5 @@
+import Dialog from './dialog.js';
+
 const Instschedule = {
     /**
      * show the details of a grouped-entry in the isntitute-calendar, containing several seminars
@@ -6,7 +8,7 @@ const Instschedule = {
      */
     showInstituteDetails: function(id) {
         jQuery.get(STUDIP.URLHelper.getURL('dispatch.php/calendar/instschedule/groupedentry/' + id), function(data) {
-            STUDIP.Dialog.show(data, {
+            Dialog.show(data, {
                 title: 'Detaillierte Veranstaltungsliste'.toLocaleString()
             });
         });

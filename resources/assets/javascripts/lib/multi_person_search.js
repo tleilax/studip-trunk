@@ -5,7 +5,7 @@ const MultiPersonSearch = {
             $(this).attr('href', $(this).data('js-form'));
             // init form if it is loaded via ajax
             $(this).on('dialog-open', function(event, parameters) {
-                STUDIP.MultiPersonSearch.dialog(
+                MultiPersonSearch.dialog(
                     $(parameters.dialog)
                         .find('.mpscontainer')
                         .data('dialogname')
@@ -37,42 +37,38 @@ const MultiPersonSearch = {
             var code = e.keyCode || e.which;
             if (code == 13) {
                 e.preventDefault();
-                STUDIP.MultiPersonSearch.search();
+                MultiPersonSearch.search();
                 return false;
             }
         });
 
         $('#' + this.name + '_selectbox').change(function() {
-            STUDIP.MultiPersonSearch.count();
+            MultiPersonSearch.count();
         });
 
         $('#' + this.name + ' .quickfilter').click(function() {
-            STUDIP.MultiPersonSearch.loadQuickfilter($(this).data('quickfilter'));
+            MultiPersonSearch.loadQuickfilter($(this).data('quickfilter'));
             return false;
         });
     },
 
     loadQuickfilter: function(title) {
-        STUDIP.MultiPersonSearch.removeAllNotSelected();
+        MultiPersonSearch.removeAllNotSelected();
 
         var count = 0;
         $('#' + this.name + '_quickfilter_' + title + ' option').each(function() {
-            count += STUDIP.MultiPersonSearch.append(
+            count += MultiPersonSearch.append(
                 $(this).val(),
                 $(this).text(),
-                STUDIP.MultiPersonSearch.isAlreadyMember($(this).val())
+                MultiPersonSearch.isAlreadyMember($(this).val())
             );
         });
 
         if (count == 0) {
-            STUDIP.MultiPersonSearch.append(
-                '--',
-                ' Dieser Filter enthält keine (neuen) Personen.'.toLocaleString(),
-                true
-            );
+            MultiPersonSearch.append('--', ' Dieser Filter enthält keine (neuen) Personen.'.toLocaleString(), true);
         }
 
-        STUDIP.MultiPersonSearch.refresh();
+        MultiPersonSearch.refresh();
     },
 
     isAlreadyMember: function(user_id) {
@@ -92,20 +88,20 @@ const MultiPersonSearch = {
         $.getJSON(
             STUDIP.URLHelper.getURL('dispatch.php/multipersonsearch/ajax_search/' + this.name, { s: searchterm }),
             function(data) {
-                STUDIP.MultiPersonSearch.removeAllNotSelected();
+                MultiPersonSearch.removeAllNotSelected();
                 var searchcount = 0;
                 $.each(data, function(i, item) {
-                    searchcount += STUDIP.MultiPersonSearch.append(
+                    searchcount += MultiPersonSearch.append(
                         item.user_id,
                         item.avatar + ' -- ' + item.text,
                         item.member
                     );
                 });
-                STUDIP.MultiPersonSearch.refresh();
+                MultiPersonSearch.refresh();
 
                 if (searchcount == 0) {
-                    STUDIP.MultiPersonSearch.append('--', not_found_template({ needle: searchterm }), true);
-                    STUDIP.MultiPersonSearch.refresh();
+                    MultiPersonSearch.append('--', not_found_template({ needle: searchterm }), true);
+                    MultiPersonSearch.refresh();
                 }
             }
         );
@@ -134,7 +130,7 @@ const MultiPersonSearch = {
 
     resetSearch: function() {
         $('#' + this.name + '_searchinput').val('');
-        STUDIP.MultiPersonSearch.removeAllNotSelected();
+        MultiPersonSearch.removeAllNotSelected();
     },
 
     append: function(value, text, selected) {
@@ -151,7 +147,7 @@ const MultiPersonSearch = {
 
     refresh: function() {
         $('#' + this.name + '_selectbox').multiSelect('refresh');
-        STUDIP.MultiPersonSearch.count();
+        MultiPersonSearch.count();
     },
 
     count: function() {

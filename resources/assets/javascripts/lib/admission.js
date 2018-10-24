@@ -1,6 +1,7 @@
 /* ------------------------------------------------------------------------
  * Anmeldeverfahren und -sets
  * ------------------------------------------------------------------------ */
+import Dialog from './dialog.js';
 
 const Admission = {
     getCourses: function(targetUrl) {
@@ -34,7 +35,7 @@ const Admission = {
             targetUrl += '?' + urlparts[1];
         }
 
-        STUDIP.Dialog.fromURL(targetUrl, {
+        Dialog.fromURL(targetUrl, {
             method: 'post',
             width: '450',
             title: 'Anmelderegel konfigurieren'.toLocaleString(),
@@ -46,7 +47,7 @@ const Admission = {
     },
 
     selectRuleType: function(source) {
-        STUDIP.Dialog.fromURL(source, {
+        Dialog.fromURL(source, {
             title: 'Anmelderegel konfigurieren'.toLocaleString(),
             size: 'auto',
             data: { rules: _.map($('#rules input[name="rules[]"]'), 'value') },
@@ -83,8 +84,8 @@ const Admission = {
                 }
             });
         }
-        STUDIP.Admission.closeDialog('configurerule');
-        STUDIP.Admission.toggleNotSavedAlert();
+        Admission.closeDialog('configurerule');
+        Admission.toggleNotSavedAlert();
         return false;
     },
 
@@ -96,8 +97,8 @@ const Admission = {
             var norules = 'Sie haben noch keine Anmelderegeln festgelegt.'.toLocaleString();
             $('#' + containerId).prepend('<span id="norules">' + '<i>' + norules + '</i></span>');
         }
-        STUDIP.Dialogs.closeConfirmDialog();
-        STUDIP.Admission.toggleNotSavedAlert();
+        Dialogs.closeConfirmDialog();
+        Admission.toggleNotSavedAlert();
     },
 
     toggleRuleDescription: function(targetId) {
@@ -125,9 +126,9 @@ const Admission = {
      * @param String saveUrl     URL to save the rule.
      */
     checkAndSaveRule: function(ruleId, errorTarget, validateUrl, savedTarget, saveUrl) {
-        if (STUDIP.Admission.validateRuleConfig(errorTarget, validateUrl)) {
-            STUDIP.Admission.saveRule(ruleId, savedTarget, saveUrl);
-            STUDIP.Dialog.close({ id: 'configurerule' });
+        if (Admission.validateRuleConfig(errorTarget, validateUrl)) {
+            Admission.saveRule(ruleId, savedTarget, saveUrl);
+            Dialog.close({ id: 'configurerule' });
         }
         return false;
     },
@@ -223,7 +224,7 @@ const Admission = {
                 query += '&courses[]=' + this.value;
             });
             this.getCourses(courseURL);
-            STUDIP.Admission.toggleNotSavedAlert();
+            Admission.toggleNotSavedAlert();
         }
     },
 

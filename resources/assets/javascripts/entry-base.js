@@ -16,7 +16,6 @@ import lodash from "lodash"
 window._ = lodash
 
 import "./l10n.js"
-import "./string-crc32.js"
 
 import chartist from "chartist"
 window.Chartist = chartist

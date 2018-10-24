@@ -9,7 +9,7 @@ const SkipLinks = {
     showSkipLinkNavigation: function(event) {
         if (event.keyCode === 9) {
             //tab-key
-            STUDIP.SkipLinks.moveSkipLinkNavigationIn();
+            SkipLinks.moveSkipLinkNavigationIn();
             jQuery('.focus_box').removeClass('focus_box');
         }
     },
@@ -18,12 +18,12 @@ const SkipLinks = {
      * shows the skiplink-navigation window by moving it from the left
      */
     moveSkipLinkNavigationIn: function() {
-        if (STUDIP.SkipLinks.navigationStatus === 0) {
+        if (SkipLinks.navigationStatus === 0) {
             var VpWidth = jQuery(window).width();
             jQuery('#skip_link_navigation li:first a').focus();
             jQuery('#skip_link_navigation').css({ left: VpWidth / 2, opacity: 0 });
             jQuery('#skip_link_navigation').animate({ opacity: 1.0 }, 500);
-            STUDIP.SkipLinks.navigationStatus = 1;
+            SkipLinks.navigationStatus = 1;
         }
     },
 
@@ -31,13 +31,13 @@ const SkipLinks = {
      * removes the skiplink-navigation window by moving it out of viewport
      */
     moveSkipLinkNavigationOut: function() {
-        if (STUDIP.SkipLinks.navigationStatus === 1) {
-            jQuery(STUDIP.SkipLinks.box).hide();
+        if (SkipLinks.navigationStatus === 1) {
+            jQuery(SkipLinks.box).hide();
             jQuery('#skip_link_navigation').animate({ opacity: 0 }, 500, function() {
                 jQuery(this).css('left', '-600px');
             });
         }
-        STUDIP.SkipLinks.navigationStatus = 2;
+        SkipLinks.navigationStatus = 2;
     },
 
     getFragment: function() {
@@ -56,7 +56,7 @@ const SkipLinks = {
         jQuery('#skiplink_list').show();
         jQuery('#skip_link_navigation').attr('aria-busy', 'false');
         jQuery('#skip_link_navigation').attr('tabindex', '-1');
-        STUDIP.SkipLinks.insertHeadLines();
+        SkipLinks.insertHeadLines();
         return false;
     },
 
@@ -73,17 +73,17 @@ const SkipLinks = {
         if (id) {
             fragment = id;
         } else {
-            fragment = STUDIP.SkipLinks.getFragment();
+            fragment = SkipLinks.getFragment();
         }
-        if (jQuery('*').is(fragment) && fragment.length > 0 && fragment !== STUDIP.SkipLinks.activeElement) {
-            STUDIP.SkipLinks.moveSkipLinkNavigationOut();
+        if (jQuery('*').is(fragment) && fragment.length > 0 && fragment !== SkipLinks.activeElement) {
+            SkipLinks.moveSkipLinkNavigationOut();
             jQuery('.focus_box').removeClass('focus_box');
             jQuery(fragment).addClass('focus_box');
             jQuery(fragment)
                 .attr('tabindex', '-1')
                 .click()
                 .focus();
-            STUDIP.SkipLinks.activeElement = fragment;
+            SkipLinks.activeElement = fragment;
             return true;
         } else {
             jQuery('#skip_link_navigation li a')
@@ -134,9 +134,9 @@ const SkipLinks = {
     },
 
     initialize: function() {
-        STUDIP.SkipLinks.insertSkipLinks();
-        STUDIP.SkipLinks.injectAriaRoles();
-        STUDIP.SkipLinks.setActiveTarget();
+        SkipLinks.insertSkipLinks();
+        SkipLinks.injectAriaRoles();
+        SkipLinks.setActiveTarget();
     }
 };
 

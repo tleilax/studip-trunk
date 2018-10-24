@@ -2,8 +2,8 @@ const OldUpload = {
     upload: false,
     msg_window: null,
     upload_end: function() {
-        if (STUDIP.OldUpload.upload) {
-            STUDIP.OldUpload.msg_window.close();
+        if (OldUpload.upload) {
+            OldUpload.msg_window.close();
         }
         return;
     },
@@ -46,17 +46,17 @@ const OldUpload = {
             return false;
         }
 
-        STUDIP.OldUpload.msg_window = window.open(
+        OldUpload.msg_window = window.open(
             '',
             'messagewindow',
             'height=250,width=200,left=20,top=20,scrollbars=no,resizable=no,toolbar=no'
         );
-        STUDIP.OldUpload.msg_window.document.write(jQuery('#upload_window_template').text());
-        jQuery(STUDIP.OldUpload.msg_window.document)
+        OldUpload.msg_window.document.write(jQuery('#upload_window_template').text());
+        jQuery(OldUpload.msg_window.document)
             .find('b')
             .text(file_only);
 
-        STUDIP.OldUpload.upload = true;
+        OldUpload.upload = true;
         return true;
     }
 };

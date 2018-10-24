@@ -1,3 +1,5 @@
+import Dialog from './dialog.js';
+
 const CalendarDialog = {
     closeMps: function(form) {
         var added_users = [];
@@ -14,7 +16,7 @@ const CalendarDialog = {
         jQuery(form)
             .closest('.ui-dialog-content')
             .dialog('close');
-        STUDIP.Dialog.fromURL(jQuery('#calendar-open-manageaccess').attr('href'));
+        Dialog.fromURL(jQuery('#calendar-open-manageaccess').attr('href'));
         return false;
     },
 

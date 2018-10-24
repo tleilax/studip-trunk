@@ -10,6 +10,8 @@
  */
 
 import parseOptions from './parse_options.js';
+import extractCallback from './extract_callback.js';
+import Overlay from './overlay.js';
 
 var dialog_margin = 0;
 
@@ -161,7 +163,7 @@ Dialog.handlers.header['X-Dialog-Execute'] = function(value, options, xhr) {
     }
 
     // Find callback
-    callback = STUDIP.extractCallback(value.func, payload);
+    callback = extractCallback(value.func, payload);
 
     // Check callback
     if (typeof callback !== 'function') {
@@ -298,12 +300,10 @@ Dialog.fromURL = function(url, options) {
     }
 
     // Append overlay
-    if (STUDIP.Overlay) {
-        if (Dialog.getInstance(options.id).open) {
-            STUDIP.Overlay.show(true, Dialog.getInstance(options.id).element.parent());
-        } else {
-            STUDIP.Overlay.show(true);
-        }
+    if (Dialog.getInstance(options.id).open) {
+        Overlay.show(true, Dialog.getInstance(options.id).element.parent());
+    } else {
+        Overlay.show(true);
     }
 
     // Send ajax request
@@ -341,8 +341,8 @@ Dialog.fromURL = function(url, options) {
             }
         })
         .always(function() {
-            if (STUDIP.Overlay) {
-                STUDIP.Overlay.hide();
+            if (Overlay) {
+                Overlay.hide();
             }
         });
 

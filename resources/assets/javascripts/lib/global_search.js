@@ -44,11 +44,11 @@ const GlobalSearch = {
 
         wrapper.toggleClass('has-value', hasValue);
 
-        if (!hasValue || STUDIP.GlobalSearch.lastSearch === searchterm) {
+        if (!hasValue || GlobalSearch.lastSearch === searchterm) {
             return;
         }
 
-        STUDIP.GlobalSearch.lastSearch = searchterm;
+        GlobalSearch.lastSearch = searchterm;
 
         // Display spinner symbol, user should always see something is happening.
         wrapper.addClass('is-searching');
@@ -170,7 +170,7 @@ const GlobalSearch = {
      * Clear search term and remove results for previous search term.
      */
     resetSearch: function() {
-        STUDIP.GlobalSearch.lastSearch = null;
+        GlobalSearch.lastSearch = null;
 
         $('#globalsearch-searchbar').removeClass('is-visible has-value');
         $('#globalsearch-input').val('');
@@ -198,7 +198,7 @@ const GlobalSearch = {
         $('#globalsearch-results article#globalsearch-' + category + ' header a')
             .off('click')
             .on('click', function() {
-                STUDIP.GlobalSearch.showAllCategories(category);
+                GlobalSearch.showAllCategories(category);
                 return false;
             });
         return false;
@@ -213,7 +213,7 @@ const GlobalSearch = {
         $('#globalsearch-results article#globalsearch-' + currentCategory + ' header a')
             .off('click')
             .on('click', function() {
-                STUDIP.GlobalSearch.expandCategory(currentCategory);
+                GlobalSearch.expandCategory(currentCategory);
                 return false;
             });
         var resultCount = $('#globalsearch-results').data('results-per-type') - 1;

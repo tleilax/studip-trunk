@@ -105,3 +105,5 @@ RESTAPI.supportedMethods.forEach(function(method) {
 });
 
 export default RESTAPI;
+
+export const api = new RESTAPI();
