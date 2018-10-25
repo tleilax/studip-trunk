@@ -126,6 +126,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->semester         = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
         $this->cycle_dates      = array();
+        $matched                = [];
 
         foreach ($this->course->cycles as $cycle) {
             foreach ($cycle->getAllDates() as $val) {
@@ -149,6 +150,7 @@ class Course_TimesroomsController extends AuthenticatedController
                         if ($val->getRoom()) {
                             $this->cycle_dates[$cycle->metadate_id]['room_request'][] = $val->getRoom();
                         }
+                        $matched[] = $val->termin_id;
                     }
                 }
             }
@@ -157,7 +159,6 @@ class Course_TimesroomsController extends AuthenticatedController
         $dates = $this->course->getDatesWithExdates();
 
         $single_dates  = [];
-        $matched       = [];
         foreach ($dates as $id => $val) {
             foreach ($this->semester as $sem) {
                 if ($this->semester_filter !== 'all' && $this->semester_filter !== $sem->id) {
@@ -179,9 +180,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
         $out_of_bounds = [];
         if ($this->semester_filter === 'all') {
-            $out_of_bounds = $dates->filter(function ($date) use ($matched) {
-                return !in_array($date->id, $matched);
-            });
+            $out_of_bounds = $dates->findBy('id', $matched, '!=');
         }
 
         $this->single_dates  = $single_dates;
