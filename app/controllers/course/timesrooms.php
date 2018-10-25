@@ -261,7 +261,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         if (Config::get()->RESOURCES_ENABLE) {
-            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
         }
 
         $this->teachers          = $this->course->getMembersWithStatus('dozent');

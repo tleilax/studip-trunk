@@ -40,9 +40,10 @@
                 <select name="room_sd" style="display: inline-block; width: 50%;" class="single_room">
                     <option value=""><?= _('Wählen Sie einen Raum aus') ?></option>
                     <? foreach ($resList->resources as $room_id => $room) : ?>
-                        <option value="<?= $room_id ?>"
-                            <?= $date->room_assignment->resource_id == $room_id ? 'selected' : '' ?>>
-                            <?= $room ?>
+                        <option value="<?= $room->getId() ?>"
+                            <?= $date->room_assignment->resource_id == $room->getId() ? 'selected' : '' ?>>
+                            <?= htmlReady($room->getName()) ?>
+                            <?= sprintf(_("(%s Sitzplätze)"), $room->getSeats()) ?>
                         </option>
                     <? endforeach; ?>
                 </select>
