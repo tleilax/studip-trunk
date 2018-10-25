@@ -130,7 +130,7 @@ class Course_TimesroomsController extends AuthenticatedController
         foreach ($this->course->cycles as $cycle) {
             foreach ($cycle->getAllDates() as $val) {
                 foreach ($this->semester as $sem) {
-                    if (!($this->semester_filter == 'all' || $this->semester_filter == $sem->id)) {
+                    if ($this->semester_filter !== 'all' && $this->semester_filter !== $sem->id) {
                         continue;
                     }
 
@@ -154,12 +154,13 @@ class Course_TimesroomsController extends AuthenticatedController
             }
         }
 
-        $single_dates = array();
+        $dates = $this->course->getDatesWithExdates();
 
-        foreach ($this->course->getDatesWithExdates() as $id => $val) {
+        $single_dates  = [];
+        $matched       = [];
+        foreach ($dates as $id => $val) {
             foreach ($this->semester as $sem) {
-                if (!($this->semester_filter == 'all' || $this->semester_filter == $sem->id)
-                ) {
+                if ($this->semester_filter !== 'all' && $this->semester_filter !== $sem->id) {
                     continue;
                 }
 
@@ -171,10 +172,20 @@ class Course_TimesroomsController extends AuthenticatedController
                     $single_dates[$sem->id] = new SimpleCollection();
                 }
                 $single_dates[$sem->id]->append($val);
+
+                $matched[] = $val->id;
             }
         }
 
-        $this->single_dates = $single_dates;
+        $out_of_bounds = [];
+        if ($this->semester_filter === 'all') {
+            $out_of_bounds = $dates->filter(function ($date) use ($matched) {
+                return !in_array($date->id, $matched);
+            });
+        }
+
+        $this->single_dates  = $single_dates;
+        $this->out_of_bounds = $out_of_bounds;
     }
 
     /**

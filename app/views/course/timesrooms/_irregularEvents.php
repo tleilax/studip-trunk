@@ -32,7 +32,7 @@ $room_request_filter = function ($date) {
         </nav>
     <? endif ?>
     </header>
-<? if (!empty($single_dates)): ?>
+<? if (count($single_dates) > 0 || count($out_of_bounds) > 0): ?>
     <form class="default collapsable" action="<?= $controller->url_for('course/timesrooms/stack', $linkAttributes) ?>"
     <?= Request::isXhr() ? 'data-dialog="size=big"' : ''?> method="post">
         <?= CSRFProtection::tokenTag() ?>
@@ -89,6 +89,66 @@ $room_request_filter = function ($date) {
             </section>
         </article>
     <? endforeach; ?>
+
+    <? if (count($out_of_bounds) > 0): ?>
+        <article id="singledate-out-of-bounds" class="<?= count($single_dates) === 0 ? 'open' :  ContentBoxHelper::classes('singledate-out-of-bounds') ?>">
+            <header>
+                <h1>
+                <? if (!$locked): ?>
+                    <input type="checkbox" class="date-proxy"
+                           data-proxyfor="#singledate-out-of-bounds .ids-irregular">
+                <? endif ?>
+                    <a href="<?= ContentBoxHelper::href('singledate-out-of-bounds') ?>">
+                        <?= _('Außerhalb der vorhandenen Semester') ?>
+                    </a>
+                </h1>
+                <section>
+                    <span>
+                        <?= sprintf(
+                            ngettext('%u Termin', '%u Termine', count($out_of_bounds)),
+                            count($out_of_bounds)
+                        ) ?>
+                    </span>
+                <? if (Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS): ?>
+                    <span>
+                        | <strong><?= _('Einzel-Raumanfrage') ?></strong>:
+                    <? if ($rr_count = count($out_of_bounds->filter($room_request_filter)) > 0): ?>
+                        <?= sprintf(_('%u noch offen'), $rr_count) ?>
+                    <? else: ?>
+                        <?= _('keine offen') ?>
+                    <? endif; ?>
+                    </span>
+                <? endif; ?>
+                </section>
+            </header>
+            <section>
+                <table class="default nohover">
+                    <colgroup>
+                    <? if (!$locked) :?>
+                        <col width="30px">
+                    <? endif ?>
+                        <col width="30%">
+                        <col>
+                        <col width="20%">
+                        <col width="50px">
+                    </colgroup>
+
+                    <tbody>
+                    <? foreach ($out_of_bounds as $termin): ?>
+                        <?= $this->render_partial('course/timesrooms/_cycleRow.php', [
+                            'termin'    => $termin,
+                            'class_ids' => 'ids-irregular',
+                        ]) ?>
+                    <? endforeach; ?>
+                    </tbody>
+                </table>
+            </section>
+        <? foreach ($out_of_bounds as $date): ?>
+
+        <? endforeach; ?>
+        </article>
+    <? endif; ?>
+
     <? if(!$locked) : ?>
         <table class="default nohover">
             <colgroup>
