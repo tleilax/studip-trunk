@@ -178,13 +178,11 @@ class Course_TimesroomsController extends AuthenticatedController
             }
         }
 
-        $out_of_bounds = [];
         if ($this->semester_filter === 'all') {
-            $out_of_bounds = $dates->findBy('id', $matched, '!=');
+            $single_dates['none'] = $dates->findBy('id', $matched, '!=');
         }
 
         $this->single_dates  = $single_dates;
-        $this->out_of_bounds = $out_of_bounds;
     }
 
     /**
