@@ -110,7 +110,7 @@ class Course_ScmController extends StudipController
             PageLayout::postQuestion(
                 _('Wollen Sie diese Seite wirklich löschen?'),
                 $this->url_for("course/scm/delete/{$this->scm->id}")
-            )->includeTicket('ticket');
+            )->includeTicket('studip_ticket');
         }
 
         $this->set_title($this->scm->tab_name);
@@ -206,7 +206,7 @@ class Course_ScmController extends StudipController
      */
     public function delete_action($id)
     {
-        $ticket = Request::option('ticket');
+        $ticket = Request::option('studip_ticket');
         if ($ticket && check_ticket($ticket)) {
             $scm = new StudipScmEntry($id);
             if (!$scm->isNew() && $scm->range_id == Context::getId()){
