@@ -48,7 +48,7 @@ $room_request_filter = function ($date) {
                         <? if ($semester_id !== 'none'): ?>
                             <?= htmlReady(Semester::find($semester_id)->name) ?>
                         <? else: ?>
-                            <?= _('Außerhalb der vorhandenen Semester') ?>
+                            <?= _('Ohne Semester') ?>
                         <? endif ?>
                     </a>
                 </h1>
