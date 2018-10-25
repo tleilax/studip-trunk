@@ -179,7 +179,10 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         if ($this->semester_filter === 'all') {
-            $single_dates['none'] = $dates->findBy('id', $matched, '!=');
+            $out_of_bounds = $dates->findBy('id', $matched, '!=');
+            if (count($out_of_bounds)) {
+                $single_dates['none'] = $out_of_bounds;
+            }
         }
 
         $this->single_dates  = $single_dates;
