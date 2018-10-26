@@ -740,29 +740,37 @@ function export_pers($inst_id)
     $group_tab_zelle = 'name';
     $do_group        = true;
 
-    $data_object = xml_open_tag($xml_groupnames_person['group']);
+    // fetch all statusgroups and their hierarchical structure
+    $roles = GetRoleNames(GetAllStatusgruppen($inst_id), 0, '', true);
 
-    $query = "SELECT statusgruppen.name,aum.user_id,
-                     aum.Nachname, aum.Vorname, ui.inst_perms, ui.raum,
-                     ui.sprechzeiten, ui.Telefon, ui.Fax, aum.Email,
-                     aum.username, info.Home, info.geschlecht, info.title_front, info.title_rear
-              FROM statusgruppen
-              LEFT JOIN statusgruppe_user sgu USING(statusgruppe_id)
-              LEFT JOIN user_inst ui ON (ui.user_id = sgu.user_id AND ui.Institut_id = range_id AND ui.inst_perms!='user')
-              LEFT JOIN auth_user_md5 aum ON (ui.user_id = aum.user_id)
-              LEFT JOIN user_info info ON (ui.user_id = info.user_id)
-              WHERE range_id = ?
-              ORDER BY statusgruppen.position, sgu.position";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($inst_id));
-    while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+    // traverse and join statusgroups with memberdates
+    $rows = [];
+    foreach ($roles as $group_id => $data) {
+        $query = "SELECT statusgruppen.name, statusgruppen.statusgruppe_id, aum.user_id,
+                         aum.Nachname, aum.Vorname, ui.inst_perms, ui.raum,
+                         ui.sprechzeiten, ui.Telefon, ui.Fax, aum.Email,
+                         aum.username, info.Home, info.geschlecht, info.title_front, info.title_rear
+                  FROM statusgruppen
+                  JOIN statusgruppe_user sgu USING(statusgruppe_id)
+                  JOIN user_inst ui ON (ui.user_id = sgu.user_id AND ui.Institut_id = ? AND ui.inst_perms!='user')
+                  JOIN auth_user_md5 aum ON (ui.user_id = aum.user_id)
+                  LEFT JOIN user_info info ON (ui.user_id = info.user_id)
+                  WHERE statusgruppe_id = ?
+                  ORDER BY sgu.position";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($inst_id, $group_id));
+        $rows = array_merge($rows, $statement->fetchAll(PDO::FETCH_ASSOC));
+    }
+    // create xml-output
+    $data_object = xml_open_tag($xml_groupnames_person['group']);
+    foreach ($rows as $row) { 
         $data_found = true;
         $group_string = '';
         if ($do_group && $group != $row[$group_tab_zelle]) {
             if ($group != 'FIRSTGROUP') {
                 $group_string .= xml_close_tag($xml_groupnames_person['subgroup1']);
             }
-            $group_string .= xml_open_tag($xml_groupnames_person['subgroup1'], $row[$group_tab_zelle]);
+            $group_string .= xml_open_tag($xml_groupnames_person['subgroup1'], $roles[$row['statusgruppe_id']]);
             $group = $row[$group_tab_zelle];
         }
         $data_object .= $group_string;
