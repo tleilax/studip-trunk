@@ -85,6 +85,22 @@ class ConsumerPermissions
     }
 
     /**
+     * Convenience method for activating all routes in a route map.
+     *
+     * @param  RESTAPI\RouteMap $routemap RouteMap to activate
+     */
+    public function activateRouteMap(RouteMap $routemap)
+    {
+        foreach ($routemap->getRoutes() as $method => $routes) {
+            foreach (array_keys($routes) as $route) {
+                $this->set($route, $method, true, true);
+            }
+        }
+
+        $this->store();
+    }
+
+    /**
      * Removes stored permissions for a given route and method.
      *
      * @param String $route_id Route template
@@ -104,6 +120,22 @@ class ConsumerPermissions
         }
 
         return true;
+    }
+
+    /**
+     * Convenience method for deactivating all routes in a route map.
+     *
+     * @param RESTAPIRouteMap $routemap RouteMap to activate
+     */
+    public function deactivateRouteMap(RouteMap $routemap)
+    {
+        foreach ($routemap->getRoutes() as $method => $routes) {
+            foreach (array_keys($routes) as $route) {
+                $this->remove($route, $method);
+            }
+        }
+
+        $this->store();
     }
 
     /**
