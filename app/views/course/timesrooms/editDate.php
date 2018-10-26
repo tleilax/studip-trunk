@@ -39,13 +39,15 @@
 
                 <select name="room_sd" style="display: inline-block; width: 50%;" class="single_room">
                     <option value=""><?= _('Wählen Sie einen Raum aus') ?></option>
-                    <? foreach ($resList->resources as $room_id => $room) : ?>
-                        <option value="<?= $room->getId() ?>"
-                            <?= $date->room_assignment->resource_id == $room->getId() ? 'selected' : '' ?>>
+                    <? foreach ($resList->getRooms() as $room_id => $room) : ?>
+                        <option value="<?= $room_id ?>"
+                            <?= $date->room_assignment->resource_id == $room_id ? 'selected' : '' ?>>
                             <?= htmlReady($room->getName()) ?>
-                            <?= sprintf(_("(%s Sitzplätze)"), $room->getSeats()) ?>
+                            <? if ($room->getSeats() > 1) : ?>
+                                <?= sprintf(_('(%d Sitzplätze)'), $room->getSeats()) ?>
+                            <? endif ?>
                         </option>
-                    <? endforeach; ?>
+                    <? endforeach ?>
                 </select>
                 <?= Icon::create('room-clear', 'clickable', array('class' => "bookable_rooms_action", 'title' => _("Nur buchbare Räume anzeigen"))); ?>
             </label>

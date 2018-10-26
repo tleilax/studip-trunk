@@ -248,7 +248,7 @@ class ResourcesUserRoomsList {
     function sort(){
         if ($this->resources) 
             if ($this->return_objects)
-                usort($this->resources,"cmp_resources");
+                uasort($this->resources,"cmp_resources");
             else
                 asort ($this->resources, SORT_STRING);
     }

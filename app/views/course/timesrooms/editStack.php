@@ -7,17 +7,19 @@
     <fieldset>
         <legend><?= _('Raumangaben') ?></legend>
         <? if (Config::get()->RESOURCES_ENABLE && $resList->numberOfRooms()) : ?>
-            <? $resList->reset() ?>
             <section>
             <input type="radio" name="action" value="room" checked="checked">
             <label style="display: inline;">
                 <select name="room" style="display: inline-block; width: 50%;" onFocus="jQuery('input[type=radio][name=action][value=room]').prop('checked', 'checked')">
                     <option value="0">-- <?= _('Raum auswählen') ?> --</option>
-                    <? while ($res = $resList->next()) : ?>
-                        <option value="<?= $res['resource_id'] ?>">
-                            <?= my_substr(htmlReady($res["name"]), 0, 30) ?> <?= $seats[$res['resource_id']] ? '(' . $seats[$res['resource_id']] . ' ' . _('Sitzplätze') . ')' : '' ?>
+                    <? foreach ($resList->getRooms() as $room_id => $room) : ?>
+                        <option value="<?= $room_id ?>">
+                            <?= htmlReady($room->getName()) ?>
+                            <? if ($room->getSeats() > 1) : ?>
+                                <?= sprintf(_('(%d Sitzplätze)'), $room->getSeats()) ?>
+                            <? endif ?>
                         </option>
-                    <? endwhile; ?>
+                    <? endforeach ?>
                 </select>
                 <?= Icon::create('room-clear', 'clickable', ['title' => _("Nur buchbare Räume anzeigen")])->asImg(16, ["class" => 'bookable_rooms_action', "data-name" => 'bulk_action']) ?>
             </label>

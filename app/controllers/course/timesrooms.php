@@ -386,7 +386,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->restoreRequest(words('date start_time end_time room related_teachers related_statusgruppen freeRoomText dateType fromDialog course_type'));
 
         if (Config::get()->RESOURCES_ENABLE) {
-            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
         }
         $this->teachers = $this->course->getMembers('dozent');
         $this->groups   = Statusgruppen::findBySeminar_id($this->course->id);
@@ -526,7 +526,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->cycle_id = $cycle_id;
         $this->teachers = $this->course->getMembers('dozent');
         $this->gruppen  = Statusgruppen::findBySeminar_id($this->course->id);
-        $this->resList  = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        $this->resList  = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
         $this->render_template('course/timesrooms/editStack');
     }
 
