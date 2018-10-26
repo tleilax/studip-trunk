@@ -1,23 +1,14 @@
 <?php
-# Lifter002: DONE - not applicable
-# Lifter003: TEST
 # Lifter007: TEST
-# Lifter010: DONE - not applicable
-/*
- * db_schema_version.php - database backed schema versions
- * Copyright (C) 2007  Elmar Ludwig
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- */
-
-require_once 'schema_version.php';
 
 /**
+ * db_schema_version.php - database backed schema versions
+ *
  * Implementation of SchemaVersion interface using a database table.
  *
+ * @author    Elmar Ludwig
+ * @copyright 2007 Elmar Ludwig
+ * @license    GPL2 or any later version
  * @package migrations
  */
 class DBSchemaVersion extends SchemaVersion
@@ -25,7 +16,6 @@ class DBSchemaVersion extends SchemaVersion
     /**
      * domain name of schema version
      *
-     * @access private
      * @var string
      */
     private $domain;
@@ -33,7 +23,6 @@ class DBSchemaVersion extends SchemaVersion
     /**
      * current schema version number
      *
-     * @access private
      * @var int
      */
     private $version;
@@ -44,7 +33,7 @@ class DBSchemaVersion extends SchemaVersion
      *
      * @param string $domain domain name (optional)
      */
-    function __construct($domain = 'studip')
+    public function __construct($domain = 'studip')
     {
         $this->domain = $domain;
         $this->version = 0;
@@ -56,24 +45,20 @@ class DBSchemaVersion extends SchemaVersion
      *
      * @return string domain name
      */
-    function get_domain ()
+    public function get_domain()
     {
         return $this->domain;
     }
 
     /**
      * Initialize the current schema version.
-     *
-     * @access private
      */
     private function init_schema_info ()
     {
         $query = "SELECT version FROM schema_version WHERE domain = ?";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array(
-            $this->domain
-        ));
-        $this->version = (int)$statement->fetchColumn();
+        $statement->execute([$this->domain]);
+        $this->version = (int) $statement->fetchColumn();
     }
 
     /**
@@ -81,7 +66,7 @@ class DBSchemaVersion extends SchemaVersion
      *
      * @return int schema version
      */
-    function get ()
+    public function get()
     {
         return $this->version;
     }
@@ -91,7 +76,7 @@ class DBSchemaVersion extends SchemaVersion
      *
      * @param int $version new schema version
      */
-    function set ($version)
+    public function set($version)
     {
         $this->version = (int) $version;
 
@@ -99,11 +84,14 @@ class DBSchemaVersion extends SchemaVersion
                   VALUES (?, ?)
                   ON DUPLICATE KEY UPDATE version = VALUES(version)";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array(
+        $statement->execute([
             $this->domain,
             $this->version
-        ));
-        NotificationCenter::postNotification('SchemaVersionDidUpdate', $this->domain, $version); 
-
+        ]);
+        NotificationCenter::postNotification(
+            'SchemaVersionDidUpdate',
+            $this->domain,
+            $version
+        );
     }
 }
