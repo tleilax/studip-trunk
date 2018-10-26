@@ -104,7 +104,7 @@
         // Initialize all datepickers that not yet been initialized (e.g. in dialogs)
         init: function () {
             $(this.selector).filter(function () {
-                return $(this).data().datePickerInit === undefined;
+                return $(this).data('date-picker-init') === undefined;
             }).each(function () {
                 $(this).data('date-picker-init', true).datepicker();
             });
@@ -237,7 +237,7 @@
         // Initialize all datetimepickers that not yet been initialized (e.g. in dialogs)
         init: function () {
             $(this.selector).filter(function () {
-                return $(this).data().dateTimePickerInit === undefined;
+                return $(this).data('datetime-picker-init') === undefined;
             }).each(function () {
                 $(this).data('datetime-picker-init', true).datetimepicker();
             });
@@ -366,12 +366,7 @@
             STUDIP.UI.DateTimepicker.refresh();
         },
         onSelect: function (value, instance) {
-            var changed = value !== instance.lastVal;
-
-            STUDIP.UI.Datepicker.refresh();
-            STUDIP.UI.DateTimepicker.refresh();
-
-            if (changed) {
+            if (value !== instance.lastVal) {
                 $(this).change();
             }
         }

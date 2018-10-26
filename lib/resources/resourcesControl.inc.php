@@ -180,7 +180,7 @@ if ((getGlobalPerms($user->id) == 'admin') || ($perm->have_perm('root'))) {
 Belegungen exportieren, views: export_list
 /*****************************************************************************/
 if (Request::submitted('export_list')) {
-    require_once $RELATIVE_PATH_RESOURCES . '/views/ShowSchedules.class.php';
+    require_once 'lib/resources/views/ShowSchedules.class.php';
     if ($_SESSION['resources_data']['actual_object']) {
         $ViewSchedules=new ShowSchedules($_SESSION['resources_data']['actual_object']);
         $ViewSchedules->setStartTime($_SESSION['resources_data']['schedule_start_time']);

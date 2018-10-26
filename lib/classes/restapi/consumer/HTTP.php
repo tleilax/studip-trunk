@@ -16,13 +16,14 @@ class HTTP extends Base
      * The only supported authentication for now is via the url:
      *
      * http://username:password@host/path?query
-     * 
+     *
+     * @param mixed $request_type Type of request (optional; defaults to any)
      * @return mixed Instance of self if authentication was detected, false
      *               otherwise
      * @throws RouterException if authentication fails
      * @todo Integrate and test HTTP_AUTHORIZATION header authentication
      */
-    public static function detect()
+    public static function detect($request_type = null)
     {
         if (isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])
             || (false && isset($_SERVER['HTTP_AUTHORIZATION'])))

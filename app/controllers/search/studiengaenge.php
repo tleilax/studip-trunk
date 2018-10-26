@@ -119,59 +119,37 @@ class Search_StudiengaengeController extends MVVController
 
     private function mehrfach($studiengang_id)
     {
-        $studiengang = Studiengang::find($studiengang_id);
+        $faecher = Fach::findByStudiengang($this->studiengang->id);
+        $this->studiengangTeilBezeichnungen = $this->studiengang->stgteil_bezeichnungen;
 
-        $status_filter = [];
-        foreach ($GLOBALS['MVV_STUDIENGANG']['STATUS']['values'] as $key => $status) {
-            if ($status['public']) {
-                $status_filter[] = $key;
-            }
-        }
-
-        if (!$studiengang || !in_array($studiengang->stat, $status_filter)) {
-            PageLayout::postError( _('Unbekannter Studiengang.'));
-            $this->relocate($this->url_for('/index'));
-            return null;
-        }
-
-        $faecher = Fach::findByStudiengang($studiengang->getId());
-        $studiengangTeilBezeichnungen = $studiengang->stgteil_bezeichnungen;
-
-        $punkte = array();
-        $fachNamen = array();
-        $teilNamen = array();
+        $this->data = array();
+        $this->fachNamen = array();
         foreach ($faecher as $fach) {
-            $fachNamen[$fach->id] = $fach->getDisplayName();
-            $punkte[$fach->id] = array();
-            foreach ($studiengangTeilBezeichnungen as $studiengangTeilBezeichnung) {
+            $this->fachNamen[$fach->id] = $fach->getDisplayName();
+            $this->data[$fach->id] = array();
+            foreach ($this->studiengangTeilBezeichnungen as $studiengangTeilBezeichnung) {
 
                 $schnittpunkte = StudiengangTeil::findByStudiengangStgteilBez(
-                        $studiengang->getId(), $studiengangTeilBezeichnung->getId());
+                        $this->studiengang->id, $studiengangTeilBezeichnung->id);
 
                 foreach ($schnittpunkte as $schnittpunkt) {
                     $versionen = StgteilVersion::findByStgteil($schnittpunkt->id)->filter(
                         function ($version) {
                             return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
                         });
-                    if ($schnittpunkt->fach_id === $fach->getId() && count($versionen) > 0) {
-                        $teilNamen[$studiengangTeilBezeichnung->id] = $studiengangTeilBezeichnung->getDisplayName();
-                        $punkte[$fach->id][$studiengangTeilBezeichnung->id] = $schnittpunkt->getId();
+                    if ($schnittpunkt->fach_id === $fach->id && count($versionen) > 0) {
+                        $this->data[$fach->id][$studiengangTeilBezeichnung->id] = $schnittpunkt->id;
                     }
                 }
             }
         }
 
-        $this->studiengang_id = $studiengang->id;
-        $this->data = $punkte;
-        $this->fachNamen = $fachNamen;
-        $this->teilNamen = $teilNamen;
-
         if (!$this->verlauf_url) {
             $this->verlauf_url = '/verlauf';
         }
 
-        if(count($studiengang->stgteil_assignments) == 1) {
-            foreach($studiengang->stgteil_assignments as $assignment) {
+        if(count($this->studiengang->stgteil_assignments) == 1) {
+            foreach($this->studiengang->stgteil_assignments as $assignment) {
                 $url = $this->verlauf_url . '/' . $assignment->stgteil_id . '/'. $assignment->stgteil_bez_id . '/' . $assignment->studiengang_id;
                 $response = $this->relay($url);
                 $this->content = $response->body;

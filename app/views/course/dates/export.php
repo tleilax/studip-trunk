@@ -37,8 +37,7 @@
             ?>
             <tr>
                 <td width="20%">
-                    <div><?= htmlReady($date['date'])  ?></div>
-                    <div>(<?= htmlReady($date['type']) ?>)</div>
+                    <?= htmlReady($date['date']) ?> (<?= htmlReady($date['type']) ?>)
                 </td>
                 <td width="20%"><?= htmlReady($date['title']) ?></td>
                 <td width="20%">

@@ -6,7 +6,7 @@ $dialog_url = $show_raumzeit
 ?>
 <tr id="date_<?= $date->id ?>" <? if ($is_next_date) echo 'class="nextdate" title="' . _('Der nächste Termin') . '"'; ?> data-termin-id="<?= htmlReady($date->id) ?>">
     <td data-sort-value="<?= htmlReady($date->date) ?>" class="date_name">
-        <a href="<?= $dialog_url ?>" data-dialog="size=500">
+        <a href="<?= $dialog_url ?>" data-dialog>
             <?= Icon::create($icon)->asImg(['class' => 'text-bottom']) ?>
             <?= htmlReady($date->getFullname(CourseDate::FORMAT_VERBOSE)) ?>
         </a>
@@ -15,7 +15,16 @@ $dialog_url = $show_raumzeit
         (<?= htmlReady(implode(', ', $date->dozenten->getFullname())) ?>)
     <? endif; ?>
     </td>
-    <td class="hidden-small-down"><?= htmlReady($date->getTypeName()) ?></td>
+    <td class="hidden-small-down">
+        <ul class="themen-list clean">
+        <? foreach ($date->topics as $topic): ?>
+            <?= $this->render_partial('course/dates/_topic_li', compact('topic', 'date')) ?>
+        <? endforeach; ?>
+        </ul>
+    </td>
+    <td class="hidden-small-down">
+        <?= htmlReady($date->getTypeName()) ?>
+    </td>
 <? if (count($course->statusgruppen) > 0) : ?>
     <td class="hidden-small-down">
     <? if (count($date->statusgruppen) > 0) : ?>
@@ -29,20 +38,6 @@ $dialog_url = $show_raumzeit
     <? endif ?>
     </td>
 <? endif ?>
-    <td class="hidden-small-down">
-        <div class="themen-list-container">
-            <ul class="themen-list clean">
-            <? foreach ($date->topics as $topic): ?>
-                <?= $this->render_partial('course/dates/_topic_li', compact('topic', 'date')) ?>
-            <? endforeach; ?>
-            </ul>
-        <? if ($has_access): ?>
-            <a href="<?= $controller->url_for('course/dates/new_topic?termin_id=' . $date->id) ?>" title="<?= _('Thema hinzufügen') ?>" data-dialog="size=auto">
-                <?= Icon::create('add') ?>
-            </a>
-        <? endif; ?>
-        </div>
-    </td>
     <td>
     <? if ($date->getRoom()): ?>
         <?= $date->getRoom()->getFormattedLink() ?>
@@ -50,29 +45,28 @@ $dialog_url = $show_raumzeit
         <?= htmlReady($date->raum) ?>
     <? endif; ?>
     </td>
-    <? $filecount = count($date->getAccessibleFolderFiles($GLOBALS['user']->id)['files']); ?>
-    <td style="text-align: center" data-sort-value="<?= $filecount ?>">
-        <? if ($filecount) : ?>
-            <a href="<?=$controller->link_for('course/dates/details_files/' . $date->id)?>" data-dialog>
-                <?=Icon::create('folder-topic-full')->asImg(tooltip2(sprintf(_('%u Dateien'), $filecount))) ?>
-            </a>
-        <? endif; ?>
-    </td>
-<? if ($has_access): ?>
     <td class="actions">
-    <? if (!$dates_locked): ?>
-        <a href="<?= $controller->url_for('course/timesrooms', ['raumzeitFilter' => 'all']) ?>">
-            <?= Icon::create('edit')->asImg(tooltip2(_('Termin bearbeiten'))) ?>
-        </a>
-    <? endif; ?>
-    <? if (!$cancelled_dates_locked): ?>
-        <a href="<?= $controller->url_for('course/cancel_dates', ['termin_id' => $date->id]) ?>" data-dialog="size=auto">
-            <?= Icon::create('trash')->asImg(tooltip2(_('Termin ausfallen lassen')) + [
-                'data-confirm' => _('Wollen Sie diesen Termin wirklich ausfallen lassen?')
-                                  . '<br>' . implode('<br>', $date->getDeletionWarnings()),
-            ]) ?>
-        </a>
-    <? endif; ?>
+        <? $actionMenu = ActionMenu::get() ?>
+        <? $filecount = count($date->getAccessibleFolderFiles($GLOBALS['user']->id)['files']); ?>
+        <? if ($has_access): ?>
+            <? $actionMenu->addLink($dialog_url, _('Termin bearbeiten'), Icon::create('edit'), ['data-dialog' => '']) ?>
+            <? $actionMenu->addLink($controller->url_for('course/dates/new_topic?termin_id=' . $date->id),
+                                    _('Thema hinzufügen'), Icon::create('topic+add'), ['data-dialog' => 'size=auto']) ?>
+        <? endif ?>
+        <? if ($filecount): ?>
+            <? $actionMenu->addLink($controller->link_for('course/dates/details_files/' . $date->id),
+                                    _('Dateien anzeigen'), Icon::create('folder-topic-full'), ['data-dialog' => '']) ?>
+        <? endif ?>
+        <? if ($has_access): ?>
+            <? if (!$cancelled_dates_locked): ?>
+                <? $actionMenu->addLink($controller->url_for('course/cancel_dates', ['termin_id' => $date->id]),
+                                        _('Termin ausfallen lassen'), Icon::create('trash'), [
+                                        'data-dialog' => 'size=auto',
+                                        'data-confirm' => _('Wollen Sie diesen Termin wirklich ausfallen lassen?')
+                                                          . '<br>' . implode('<br>', $date->getDeletionWarnings()),
+                                        ]) ?>
+            <? endif ?>
+        <? endif ?>
+        <?= $actionMenu->render() ?>
     </td>
-<? endif; ?>
 </tr>

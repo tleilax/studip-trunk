@@ -60,7 +60,14 @@ module.exports = {
             }
           }
         ]
-      }
+      },
+        {
+            test: /\.js$/,
+            exclude: /node_modules|ckeditor/,
+            use: {
+                loader: 'babel-loader'
+            }
+        }
     ]
   },
   plugins: [
