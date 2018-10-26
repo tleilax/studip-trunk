@@ -741,7 +741,7 @@ function export_pers($inst_id)
     $do_group        = true;
 
     // fetch all statusgroups and their hierarchical structure
-    $roles = GetRoleNames(GetAllStatusgruppen($inst_id), 0, '', true);
+    $roles = GetRoleNames(GetAllStatusgruppen($inst_id), 0, '', true) ?: [];
 
     // traverse and join statusgroups with memberdates
     $rows = [];
