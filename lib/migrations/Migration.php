@@ -168,20 +168,36 @@ class Migration
      * Convenience method for activating all routes in a route map.
      *
      * @param  RESTAPI\RouteMap $routemap RouteMap to activate
-     * @param  string           $method   Optional method (defaults to null=all)
      */
-    protected function activateRouteMap(RESTAPI\RouteMap $routemap, $method = null)
+    protected function activateRouteMap(RESTAPI\RouteMap $routemap)
     {
         $permissions = RESTAPI\ConsumerPermissions::get('global');
 
-        $routes = $method === null
-                ? [$method => $routemap->getRoutes($method)]
-                : $routemap->getRoutes();
-
-        foreach ($routes as $method => $r) {
-            foreach (array_keys($r) as $route) {
+        foreach ($routemap->getRoutes() as $method => $routes) {
+            foreach (array_keys($routes) as $route) {
                 $permissions->set($route, $method, true, true);
             }
         }
+
+        $permissions->store();
+    }
+
+    /**
+     * Convenience method for deactivating all routes in a route map.
+     *
+     * @param RESTAPIRouteMap $routemap RouteMap to activate
+     */
+    protected function deactivateRouteMap(RESTAPI\RouteMap $routemap)
+    {
+        $permissions = RESTAPI\ConsumerPermissions::get('global');
+
+        foreach ($routemap->getRoutes() as $method => $routes) {
+            foreach (array_keys($routes) as $route) {
+                $permissions->remove($route, $method);
+            }
+        }
+
+
+        $permissions->store();
     }
 }
