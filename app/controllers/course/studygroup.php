@@ -152,7 +152,7 @@ class Course_StudygroupController extends AuthenticatedController
             $ashare = new ShareWidget();
             $ashare->addCopyableLink(
                 _('Link zu dieser Studiengruppe kopieren'),
-                $this->link_for("course/studygroup/details/{$studygroup->id}"),
+                $this->link_for("course/studygroup/details/{$studygroup->id}", ['cid' => null]),
                 Icon::create('group')
             );
             $sidebar->addWidget($ashare);
