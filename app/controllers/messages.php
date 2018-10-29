@@ -350,9 +350,17 @@ class MessagesController extends AuthenticatedController {
                     $this->default_message['message'] = quotes_encode($old_message['message']);
                 }
                 $this->default_message['subject'] = mb_substr($old_message['subject'], 0, 4) === "RE: " ? $old_message['subject'] : "RE: ".$old_message['subject'];
-                $user = new MessageUser();
-                $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
-                $this->default_message->receivers[] = $user;
+                if ($old_message['autor_id'] !== $GLOBALS['user']->id) {
+                    $user = new MessageUser();
+                    $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
+                    $this->default_message->receivers[] = $user;
+                } else {
+                    foreach ($old_message->receivers as $old_receivers) {
+                        $user = new MessageUser();
+                        $user->setData(array('user_id' => $old_receivers['user_id'], 'snd_rec' => "rec"));
+                        $this->default_message->receivers[] = $user;
+                    }
+                }
                 $this->answer_to = $old_message->id;
             } else {
                 //message shall be forwarded
