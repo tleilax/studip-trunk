@@ -11,8 +11,6 @@
  * the License, or (at your option) any later version.
  */
 
-require_once 'lib/migrations/db_schema_version.php';
-require_once 'lib/migrations/migrator.php';
 
 /**
  * Model code for plugin administration tasks.

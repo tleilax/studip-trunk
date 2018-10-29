@@ -48,7 +48,6 @@ class Seminar_User
                 $stmt->execute(array($this->id));
                 return $stmt->fetchColumn();
             } catch (PDOException $e) {
-                require_once 'lib/migrations/db_schema_version.php';
                 $version = new DBSchemaVersion('studip');
                 if ($version->get() < 98) {
                     Log::ALERT('Seminar_User::set_last_action() failed. Check migration no. 98!');
@@ -77,7 +76,6 @@ class Seminar_User
                 $stmt->bindValue(':time_delta', time() - $timestamp, PDO::PARAM_INT);
                 $stmt->execute();
             } catch (PDOException $e) {
-                require_once 'lib/migrations/db_schema_version.php';
                 $version = new DBSchemaVersion('studip');
                 if ($version->get() < 98) {
                     Log::ALERT('Seminar_User::set_last_action() failed. Check migration no. 98!');

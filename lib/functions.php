@@ -721,7 +721,6 @@ function get_users_online_count($active_time = 10)
         try {
             $statement->execute([time() - $active_time * 60]);
         } catch (PDOException $e) {
-            require_once 'lib/migrations/db_schema_version.php';
             $version = new DBSchemaVersion('studip');
             if ($version->get() < 98) {
                 Log::ALERT('get_users_online_count() failed. Check migration no. 98!');
