@@ -37,18 +37,18 @@ use Studip\Button, Studip\LinkButton;
                 <?= _('Benutzername') ?>
             </span>
 
-            <input class="user_form" type="text" name="username" id="username"
+            <input class="user_form" type="text" id="username"
                    value="<?= htmlReady($user->username) ?>" required
                    <?= StudipAuthAbstract::CheckField('auth_user_md5.username', $user->auth_plugin)
-                    || LockRules::check($user->user_id, 'username') ? 'disabled="disabled"' : '' ?>>
+                    || LockRules::check($user->user_id, 'username') ? 'readonly' : 'name="username"' ?>>
         </label>
 
         <label class="col-2">
             <?= _('Globaler Status') ?>
 
-            <select name="perms[]" id="permission"
+            <select id="permission"
                 <?= StudipAuthAbstract::CheckField('auth_user_md5.perms', $user->auth_plugin)
-                    ? 'disabled="disabled"' : '' ?>>
+                    ? 'readonly' : 'name="perms[]"' ?>>
                 <? foreach (array_keys($GLOBALS['perm']->permissions) as $permission): ?>
                     <option <? if ($permission === $user->perms) echo 'selected'; ?>>
                         <?= htmlReady($permission) ?>
@@ -72,10 +72,10 @@ use Studip\Button, Studip\LinkButton;
                 <?= _('Vorname') ?>
             </span>
 
-            <input class="user_form" type="text" name="Vorname" id="vorname"
+            <input class="user_form" type="text" id="vorname"
                    value="<?= htmlReady($user->vorname) ?>" required
                    <?= StudipAuthAbstract::CheckField('auth_user_md5.Vorname', $user->auth_plugin)
-                    || LockRules::check($user->user_id, 'name') ? 'disabled="disabled"' : '' ?>>
+                    || LockRules::check($user->user_id, 'name') ? 'readonly' : 'name="Vorname"' ?>>
         </label>
 
         <label class="col-3">
@@ -83,10 +83,10 @@ use Studip\Button, Studip\LinkButton;
                 <?= _('Nachname') ?>
             </span>
 
-            <input class="user_form" type="text" name="Nachname" id="nachname"
+            <input class="user_form" type="text" id="nachname"
                    value="<?= htmlReady($user->nachname) ?>" required
                    <?= StudipAuthAbstract::CheckField('auth_user_md5.Nachname', $user->auth_plugin)
-                    || LockRules::check($user->user_id, 'name') ? 'disabled="disabled"' : '' ?>>
+                    || LockRules::check($user->user_id, 'name') ? 'readonly' : 'name="Nachname"' ?>>
         </label>
 
         <label class="col-3">
@@ -98,18 +98,18 @@ use Studip\Button, Studip\LinkButton;
             <? endif ?>
 
             <div class="hgroup">
-                <select name="title_front_chooser" id="title_front" class="size-s"
+                <select id="title_front" class="size-s"
                         onchange="jQuery(this).next().val(this.value);"
-                        <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                        <?= $disable_field ? 'readonly' : 'name="title_front_chooser"' ?>>
                 <? foreach (Config::get()->TITLE_FRONT_TEMPLATE as $title): ?>
                     <option value="<?= htmlReady($title) ?>" <? if ($title === $user->title_front) echo 'selected'; ?>>
                         <?= htmlReady($title) ?>
                     </option>
                 <? endforeach; ?>
                 </select>
-                <input class="user_form" type="text" name="title_front"
+                <input class="user_form" type="text"
                        value="<?= htmlReady($user->title_front) ?>"
-                       <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                       <?= $disable_field ? 'readonly' : 'name="title_front"' ?>>
            </div>
         </label>
 
@@ -123,18 +123,18 @@ use Studip\Button, Studip\LinkButton;
             <? endif ?>
 
             <div class="hgroup">
-                <select name="title_rear_chooser" id="title_rear" class="size-s"
+                <select id="title_rear" class="size-s"
                         onchange="jQuery(this).next().val(this.value);"
-                         <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                         <?= $disable_field ? 'readonly' : 'name="title_rear_chooser"' ?>>
                 <? foreach (Config::get()->TITLE_REAR_TEMPLATE as $rtitle): ?>
                     <option value="<?= htmlReady($rtitle) ?>" <? if ($rtitle === $user->title_rear) echo 'selected'; ?>>
                         <?= htmlReady($rtitle) ?>
                     </option>
                 <? endforeach; ?>
                 </select>
-                <input class="user_form" type="text" name="title_rear"
+                <input class="user_form" type="text"
                        value="<?= htmlReady($user->title_rear) ?>"
-                        <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                        <?= $disable_field ? 'readonly' : 'name="title_rear"' ?>>
            </div>
         </label>
 
@@ -163,21 +163,21 @@ use Studip\Button, Studip\LinkButton;
 
             <div class="hgroup">
                 <label>
-                    <input type="radio" name="geschlecht" value="0"
+                    <input type="radio" value="0"
                             <? if (!$user->geschlecht) echo 'checked'; ?>
-                             <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                             <?= $disable_field ? 'readonly' : 'name="geschlecht"' ?>>
                     <?= _('unbekannt') ?>
                 </label>
                 <label>
-                    <input type="radio" name="geschlecht" value="1"
+                    <input type="radio" value="1"
                             <? if ($user->geschlecht == 1) echo 'checked'; ?>
-                             <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                             <?= $disable_field ? 'readonly' : 'name="geschlecht"' ?>>
                     <?= _('männlich') ?>
                 </label>
                 <label>
-                    <input type="radio" name="geschlecht" value="2"
+                    <input type="radio" value="2"
                             <? if ($user->geschlecht == 2) echo 'checked'; ?>
-                             <?= $disable_field ? 'disabled="disabled"' : '' ?>>
+                            <?= $disable_field ? 'readonly' : 'name="geschlecht"' ?>>
                     <?= _('weiblich') ?>
                 </label>
             </div>
@@ -211,7 +211,7 @@ use Studip\Button, Studip\LinkButton;
            </label>
 
            <label class="col-1">
-                <?= Icon::create('accept', 'accept')->asImg(16, [
+                <?= Icon::create('accept', 'accept')->asImg([
                     'id'    => 'pw_success',
                     'style' => 'display: none',
                 ]) ?>
@@ -225,8 +225,8 @@ use Studip\Button, Studip\LinkButton;
             </label>
 
             <? if (StudipAuthAbstract::CheckField('auth_user_md5.Email', $auth_plugin) || LockRules::check($user->user_id, 'email')) : ?>
-            <input class="user_form" type="email" name="Email" id="email"
-                   value="<?= htmlReady($user['Email']) ?>" <? if (!$prelim) echo 'required'; ?> disabled="disabled">
+                <input class="user_form" type="email" id="email"
+                       value="<?= htmlReady($user['Email']) ?>" <? if (!$prelim) echo 'required'; ?> readonly>
             <? else : ?>
                 <input class="user_form" type="email" name="Email" id="email"
                        value="<?= htmlReady($user['Email']) ?>" <? if (!$prelim) echo 'required'; ?>>
@@ -387,7 +387,7 @@ use Studip\Button, Studip\LinkButton;
                     <? endif; ?>
 
                     <a href="<?= $controller->url_for('admin/user/delete_studycourse/' . $user->user_id . '/' . $usc->fach_id . '/' . $usc->abschluss_id) ?>">
-                        <?= Icon::create('trash', 'clickable')->asImg([
+                        <?= Icon::create('trash')->asImg([
                             'class' => 'text-bottom',
                             'title' => _('Diesen Studiengang löschen'),
                         ]) ?>
@@ -432,7 +432,7 @@ use Studip\Button, Studip\LinkButton;
 
                     <? if ($GLOBALS['perm']->have_studip_perm('admin', $inst_membership->institut_id)) : ?>
                         <a href="<?= $controller->url_for('admin/user/delete_institute/' . $user->user_id . '/' . $inst_membership->institut_id) ?>">
-                            <?= Icon::create('trash', 'clickable')->asImg([
+                            <?= Icon::create('trash')->asImg([
                                 'class' => 'text-bottom',
                                 'title' => _('Diese Einrichtung löschen'),
                             ]) ?>
@@ -487,13 +487,13 @@ use Studip\Button, Studip\LinkButton;
                     <? if ($GLOBALS['perm']->have_studip_perm("admin", $inst_membership->institut_id)) : ?>
                         <a data-dialog="size=auto"
                            href="<?= $controller->url_for('admin/user/edit_institute/' . $user->user_id . '/' . $inst_membership->institut_id) ?>">
-                            <?= Icon::create('edit', 'clickable')->asImg([
+                            <?= Icon::create('edit')->asImg([
                                 'class' => 'text-bottom',
                                 'title' => _('Diese Einrichtung bearbeiten'),
                             ]) ?>
                         </a>
                         <a href="<?= $controller->url_for('admin/user/delete_institute/' . $user->user_id . '/' . $inst_membership->institut_id) ?>">
-                            <?= Icon::create('trash', 'clickable')->asImg([
+                            <?= Icon::create('trash')->asImg([
                                 'class' => 'text-bottom',
                                 'title' => _('Diese Einrichtung löschen'),
                             ]) ?>
@@ -534,7 +534,7 @@ use Studip\Button, Studip\LinkButton;
                     <?= htmlReady($domain->getName()) ?>
 
                     <a href="<?= $controller->url_for('admin/user/delete_userdomain/' . $user->user_id . '?domain_id=' . $domain->getID()) ?>">
-                        <?= Icon::create('trash', 'clickable')->asImg([
+                        <?= Icon::create('trash')->asImg([
                             'class' => 'text-bottom',
                             'title' => _('Aus dieser Nutzerdomäne austragen'),
                         ]) ?>
