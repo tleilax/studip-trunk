@@ -1,3 +1,5 @@
+import QRCodeGenerator from "../vendor/qrcode-04f46c6.js"
+
 const QRCode = {
     show: function() {
         jQuery('#qr_code').remove();
@@ -7,7 +9,7 @@ const QRCode = {
         jQuery('#qr_code').append("<div class='url'/>");
         jQuery('#qr_code').append("<div class='description'/>");
 
-        var code = new QRCode(jQuery('#qr_code .code')[0], {
+        var code = new QRCodeGenerator(jQuery('#qr_code .code')[0], {
             text: jQuery(this).attr('href'),
             width: 1280,
             height: 1280,
