@@ -255,8 +255,8 @@ class Course_LtiController extends StudipController
                 $options['custom_parameters'] = $custom_parameters;
             }
 
-            if (isset($item['presentationDocumentTarget'])) {
-                $options['document_target'] = $item['presentationDocumentTarget'];
+            if (isset($item['placementAdvice']['presentationDocumentTarget'])) {
+                $options['document_target'] = $item['placementAdvice']['presentationDocumentTarget'];
             }
 
             $lti_data->options = $options;
