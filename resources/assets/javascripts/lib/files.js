@@ -39,19 +39,17 @@ const Files = {
         $('.file_upload_window .errorbox').hide();
         $('.file_upload_window .messagebox').hide();
         $.each(filelist, function(index, file) {
-            if (file.size > 0) {
-                if (Files.validateUpload(file)) {
-                    data.append('file[]', file, file.name);
-                    $('<li/>')
-                        .text(file.name)
-                        .appendTo('.file_upload_window .filenames');
-                    files += 1;
-                } else {
-                    $('.file_upload_window .errorbox').show();
-                    $('.file_upload_window .errorbox .errormessage').text(
-                        'Datei ist zu groß oder hat eine nicht erlaubte Endung.'.toLocaleString()
-                    );
-                }
+            if (Files.validateUpload(file)) {
+                data.append('file[]', file, file.name);
+                $('<li/>')
+                    .text(file.name)
+                    .appendTo('.file_upload_window .filenames');
+                files += 1;
+            } else {
+                $('.file_upload_window .errorbox').show();
+                $('.file_upload_window .errorbox .errormessage').text(
+                    'Datei ist zu groß oder hat eine nicht erlaubte Endung.'.toLocaleString()
+                );
             }
         });
         if ($('.file_uploader').length > 0) {
