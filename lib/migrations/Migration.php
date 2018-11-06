@@ -90,7 +90,7 @@ class Migration
      *
      * @param string $text text to print
      */
-    private function write($text = '')
+    protected function write($text = '')
     {
         if ($this->verbose) {
             echo "{$text}\n";
@@ -103,7 +103,7 @@ class Migration
      *
      * @param string $format,... printf-style format string and parameters
      */
-    private function announce($format /* , ... */)
+    protected function announce($format /* , ... */)
     {
         # format message
         $args = func_get_args();
