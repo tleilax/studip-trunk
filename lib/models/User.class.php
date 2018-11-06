@@ -302,7 +302,7 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
     public static function search($attributes)
     {
         $params = [];
-
+        
         $query = "SELECT au.*,ui.*
                   FROM auth_user_md5 au
                   LEFT JOIN datafields_entries de ON (de.range_id = au.user_id)
@@ -342,6 +342,11 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
         //locked user
         if ((int)$attributes['locked'] == 1) {
             $query .= "AND au.locked = 1 ";
+        }
+        
+        // show only users who are not lecturers
+        if((int)$attributes['show_only_not_lectures'] === 1) {
+            $query .= "AND au.user_id NOT IN (SELECT user_id FROM seminar_user WHERE status ='dozent') ";
         }
 
         //inactivity
@@ -392,6 +397,7 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
         }
 
         $query .= " GROUP BY au.user_id ";
+        
         //sortieren
         switch ($attributes['sort']) {
             case "perms":
