@@ -65,6 +65,11 @@ use Studip\Button, Studip\LinkButton;
             <input type="checkbox" name="locked" value="1" <?=  ($request['locked']) ?  'checked' : '' ?>>
             <?= _('nur gesperrt') ?>
         </label>
+        
+        <label>
+            <input type="checkbox" name="show_only_not_lectures" value="1"  <?=  ($request['show_only_not_lectures']) ?  'checked' : '' ?>>
+            <?= _('Nur Personen anzeigen, die in keiner Veranstaltung Lehrende sind')?>
+        </label>
     </fieldset>
 
     <fieldset class="collapsable <?= (!$advanced) ?  'collapsed' : '' ?>">
