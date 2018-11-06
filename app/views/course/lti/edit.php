@@ -6,8 +6,10 @@
         </legend>
 
         <label>
-            <?= _('Titel') ?>
-            <input type="text" name="title" value="<?= htmlReady($lti_data->title) ?>">
+            <span class="required">
+                <?= _('Titel') ?>
+            </span>
+            <input type="text" name="title" value="<?= htmlReady($lti_data->title) ?>" required>
         </label>
 
         <label>

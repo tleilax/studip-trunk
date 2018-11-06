@@ -14,9 +14,11 @@ Helpbar::get()->addPlainText('', _('Auf dieser Seite können Sie die Ergebnisse 
     </caption>
 
     <thead>
-        <tr>
-            <th>
-                <?= _('Teilnehmende') ?>
+        <tr class="sortable">
+            <th class="<?= $desc ? 'sortdesc' : 'sortasc' ?>">
+                <a href="<?= $controller->url_for('course/lti/grades', ['desc' => !$desc]) ?>">
+                    <?= _('Teilnehmende') ?>
+                </a>
             </th>
             <? foreach ($lti_data_array as $lti_data): ?>
                 <th style="text-align: right;">
@@ -27,7 +29,7 @@ Helpbar::get()->addPlainText('', _('Auf dieser Seite können Sie die Ergebnisse 
     </thead>
 
     <tbody>
-        <? foreach (CourseMember::findByCourseAndStatus($this->course_id, 'autor') as $member): ?>
+        <? foreach ($members as $member): ?>
             <tr>
                 <td>
                     <?= htmlReady($member->nachname) ?>, <?= htmlReady($member->vorname) ?>

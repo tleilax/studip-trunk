@@ -38,9 +38,7 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
      */
     public function getIconNavigation($course_id, $last_visit, $user_id)
     {
-        $lti_data = LtiData::findByCourseAndPosition($course_id, 0);
-        $title = $lti_data->title ?: _('LTI-Tool');
-
+        $title = CourseConfig::get($course_id)->LTI_TOOL_TITLE;
         $changed = LtiData::countBySQL('course_id = ? AND chdate > ?', [$course_id, $last_visit]);
         $icon = Icon::create('link-extern', $changed ? 'new' : 'inactive');
 
@@ -55,8 +53,7 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
      */
     public function getTabNavigation($course_id)
     {
-        $lti_data = LtiData::findByCourseAndPosition($course_id, 0);
-        $title = $lti_data->title ?: _('LTI-Tool');
+        $title = CourseConfig::get($course_id)->LTI_TOOL_TITLE;
         $grades = LtiData::countBySQL('course_id = ?', [$course_id]);
 
         $navigation = new Navigation($title);

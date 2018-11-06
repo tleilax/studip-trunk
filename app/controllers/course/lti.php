@@ -31,17 +31,15 @@ class Course_LtiController extends StudipController
         $this->course_id = Context::getId();
         $this->edit_perm = $GLOBALS['perm']->have_studip_perm('tutor', $this->course_id);
 
-        if (in_array($action, ['move', 'edit', 'save', 'delete', 'export_grades']) && !$this->edit_perm) {
+        if (!in_array($action, ['index', 'iframe', 'grades']) && !$this->edit_perm) {
             throw new AccessDeniedException(_('Sie besitzen keine Berechtigung, um LTI-Tools zu konfigurieren.'));
         }
-
-        $lti_data = LtiData::findByCourseAndPosition($this->course_id, 0);
-        $title = $lti_data->title ?: _('LTI-Tool');
 
         if ($action !== 'grades') {
             Navigation::activateItem('/course/lti/index');
         }
 
+        $title = CourseConfig::get($this->course_id)->LTI_TOOL_TITLE;
         PageLayout::setTitle(Context::getHeaderLine() . ' - ' . $title);
     }
 
@@ -64,6 +62,28 @@ class Course_LtiController extends StudipController
         $this->signature   = Request::get('signature');
 
         $this->set_layout(null);
+    }
+
+    /**
+     * Edit the course settings.
+     */
+    public function config_action()
+    {
+        $this->title = CourseConfig::get($this->course_id)->LTI_TOOL_TITLE;
+    }
+
+    /**
+     * Save the course settings.
+     */
+    public function save_config_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+
+        $title = trim(Request::get('title'));
+        CourseConfig::get($this->course_id)->store('LTI_TOOL_TITLE', $title);
+
+        PageLayout::postSuccess(_('Die Einstellungen wurden gespeichert.'));
+        $this->redirect('course/lti');
     }
 
     /**
@@ -144,7 +164,7 @@ class Course_LtiController extends StudipController
         $lti_data->options = $options;
         $lti_data->store();
 
-        PageLayout::postMessage(MessageBox::success(_('Der Abschnitt wurde gespeichert.')));
+        PageLayout::postSuccess(_('Der Abschnitt wurde gespeichert.'));
         $this->redirect('course/lti');
     }
 
@@ -160,7 +180,7 @@ class Course_LtiController extends StudipController
         $lti_data = LtiData::findByCourseAndPosition($this->course_id, $position);
         $lti_data->delete();
 
-        PageLayout::postMessage(MessageBox::success(_('Der Abschnitt wurde gelöscht.')));
+        PageLayout::postSuccess(_('Der Abschnitt wurde gelöscht.'));
         $this->redirect('course/lti');
     }
 
@@ -471,7 +491,14 @@ class Course_LtiController extends StudipController
 
         $this->lti_data_array = LtiData::findByCourse_id($this->course_id, 'ORDER BY position');
 
-        if (!$this->edit_perm) {
+        if ($this->edit_perm) {
+            $this->desc = Request::int('desc');
+            $this->members = CourseMember::findByCourseAndStatus($this->course_id, 'autor');
+
+            if ($this->desc) {
+                $this->members = array_reverse($this->members);
+            }
+        } else {
             $this->render_action('grades_user');
         }
     }

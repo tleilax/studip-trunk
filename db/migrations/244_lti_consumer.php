@@ -69,6 +69,17 @@ class LtiConsumer extends Migration
         $sql = "INSERT INTO roles_plugins (roleid, pluginid) SELECT roleid, ? FROM roles WHERE system = 'y'";
         $db->execute($sql, [$db->lastInsertId()]);
 
+        // install config settings
+        $stmt = $db->prepare('INSERT INTO config (field, value, type, `range`, mkdate, chdate, description)
+                              VALUES (:name, :value, :type, :range, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), :description)');
+        $stmt->execute(array(
+            'name'        => 'LTI_TOOL_TITLE',
+            'description' => 'Voreinstellung für den Titel des Reiters "LTI-Tool" im Kurs.',
+            'range'       => 'course',
+            'type'        => 'string',
+            'value'       => 'LTI-Tool'
+        ));
+
         // migrate data from alija plugin
         $result = $db->query("SHOW TABLES LIKE 'alija_grade'");
 
@@ -83,6 +94,9 @@ class LtiConsumer extends Migration
     function down()
     {
         $db = DBManager::get();
+
+        $db->exec("DELETE config, config_values FROM config LEFT JOIN config_values USING(field)
+                   WHERE field = 'LTI_TOOL_TITLE'");
 
         $db->exec("DELETE plugins, roles_plugins FROM plugins LEFT JOIN roles_plugins USING(pluginid)
                    WHERE pluginclassname = 'LtiToolModule'");

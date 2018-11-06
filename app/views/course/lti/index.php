@@ -1,6 +1,7 @@
 <?
 if ($this->edit_perm) {
     $widget = new ActionsWidget();
+    $widget->addLink(_('Einstellungen'), $controller->url_for('course/lti/config'), Icon::create('admin'), ['data-dialog' => 'size=auto']);
     $widget->addLink(_('Abschnitt hinzufügen'), $controller->url_for('course/lti/edit/'), Icon::create('add'), ['data-dialog' => '']);
     if ($this->tools) {
         $widget->addLink(_('Link aus LTI-Tool einfügen'), $controller->url_for('course/lti/add_link'), Icon::create('add'), ['data-dialog' => 'size=auto']);
@@ -34,12 +35,12 @@ Helpbar::get()->addPlainText('', _('Auf dieser Seite können Sie externe Anwendu
                     <form action="" method="POST">
                         <?= CSRFProtection::tokenTag() ?>
                         <? if ($lti_data->position > 0): ?>
-                            <?= Icon::create('arr_2up')->asInput([
+                            <?= Icon::create('arr_2up', 'sort')->asInput([
                                 'formaction' => $controller->url_for('course/lti/move/' . $lti_data->position . '/up')
                             ]) ?>
                         <? endif ?>
                         <? if ($lti_data->position < count($lti_data_array) - 1): ?>
-                            <?= Icon::create('arr_2down')->asInput([
+                            <?= Icon::create('arr_2down', 'sort')->asInput([
                                 'formaction' => $controller->url_for('course/lti/move/' . $lti_data->position . '/down')
                             ]) ?>
                         <? endif ?>

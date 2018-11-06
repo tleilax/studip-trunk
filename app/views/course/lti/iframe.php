@@ -11,7 +11,7 @@
 
     <input type="hidden" name="oauth_signature" value="<?= $signature ?>">
     <noscript>
-        <?= Studip\Button::create(_('Anwendung starten'), 'oauth_signature', ['value' => $signature]) ?>
+        <button><?= _('Anwendung starten') ?></button>
     </noscript>
 </form>
 </body>
