@@ -182,7 +182,7 @@ class Admin_UserController extends AuthenticatedController
         if ($advanced
             || !empty($search_datafields)
             || (!empty($request)
-                && ($request['auth_plugins'] || $request['userdomains'] || $request['degree'] || $request['institute'] || $request['studycourse'])
+                && ($request['auth_plugins'] || $request['userdomains'] || $request['degree'] || $request['institute'] || $request['studycourse'] || $request['show_only_not_lectures'])
             )
         ) {
             $this->advanced = true;
