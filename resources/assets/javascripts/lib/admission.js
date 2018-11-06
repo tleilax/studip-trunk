@@ -2,6 +2,7 @@
  * Anmeldeverfahren und -sets
  * ------------------------------------------------------------------------ */
 import Dialog from './dialog.js';
+import Dialogs from './dialogs.js';
 
 const Admission = {
     getCourses: function(targetUrl) {
