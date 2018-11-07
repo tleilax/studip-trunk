@@ -17,20 +17,7 @@
  */
 class DataFieldTextmarkupi18nEntry extends DataFieldTextareai18nEntry
 {
-
-    /**
-     * Returns the input elements as html for this datafield
-     *
-     * @param String $name      Name prefix of the associated input
-     * @param Array  $variables Additional variables
-     * @return String containing the required html
-     */
-    public function getHTML($name = '', $variables = [])
-    {
-        $variables['class'] = 'wysiwyg add_toolbar';
-
-        return parent::getHTML($name, $variables);
-    }
+    protected $template = 'textmarkupi18n.php';
 
     /**
      * Sets the value from a post request

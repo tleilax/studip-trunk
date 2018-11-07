@@ -17,25 +17,5 @@
  */
 class DataFieldTextlinei18nEntry extends DataFieldI18NEntry
 {
-
-    /**
-     * Returns the input elements as html for this datafield
-     *
-     * @param String $name      Name prefix of the associated input
-     * @param Array  $variables Additional variables
-     * @return String containing the required html
-     */
-    public function getHTML($name = '', $variables = [])
-    {
-        $variables['id'] = $name . '_' . $this->model->id;
-
-        if ($this->isRequired()) {
-            $variables['required'] = true;
-        }
-
-        $variables['locale_names'] = $this->getLocaleNames($name);
-
-        return I18N::input($name, $this->getValue(), $variables);
-    }
-
+    protected $template = 'textlinei18n.php';
 }
