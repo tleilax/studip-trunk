@@ -184,7 +184,7 @@ function setTempLanguage ($uid = FALSE, $temp_language = "") {
 */
 function restoreLanguage() {
     global $_language_domain;
-    setLocaleEnv($_SESSION['_language'], $_language_domain);
+    setLocaleEnv($_SESSION['_language'] ?: Config::get()->DEFAULT_LANGUAGE, $_language_domain);
 }
 
 /**
@@ -200,7 +200,6 @@ function restoreLanguage() {
 */
 function setLocaleEnv($language, $language_domain = ''){
     putenv("LANG=$language.UTF-8");
-    putenv("LANGUAGE=$language.UTF-8");
     putenv("LC_ALL=$language.UTF-8");
     $ret = setlocale(LC_ALL, '');
     setlocale(LC_NUMERIC, 'C');
