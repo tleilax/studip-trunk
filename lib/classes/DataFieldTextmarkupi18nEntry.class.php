@@ -28,7 +28,6 @@ class DataFieldTextmarkupi18nEntry extends DataFieldTextareai18nEntry
     public function getHTML($name = '', $variables = [])
     {
         $variables['class'] = 'wysiwyg add_toolbar';
-        $variables['model'] = $this->model;
 
         return parent::getHTML($name, $variables);
     }
