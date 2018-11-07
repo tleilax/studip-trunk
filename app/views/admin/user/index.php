@@ -168,7 +168,8 @@ use Studip\Button, Studip\LinkButton;
     <? endforeach; ?>
 
         <label>
-            <input type="checkbox" name="show_only_not_lectures" value="1"  <?=  ($request['show_only_not_lectures']) ?  'checked' : '' ?>>
+            <input type="checkbox" name="show_only_not_lectures" value="1"
+                   <? if ($request['show_only_not_lectures']) echo 'checked'; ?>>
             <?= _('Nur Personen anzeigen, die in keiner Veranstaltung Lehrende sind')?>
         </label>
     </fieldset>
