@@ -26,9 +26,9 @@
         </div>
     <? else : ?>
         <? if (!$already_claimed) :?>
-                <?= \Studip\Button::createAccept(_("Zur Platzverteilung anmelden"), 'claim', array('data-dialog' => 'size=big')); ?>
+            <?= Studip\Button::createAccept(_("Zur Platzverteilung anmelden"), 'claim', array('data-dialog' => 'size=big')); ?>
         <? else : ?>
-                <?= \Studip\Button::createCancel(_("Von der Platzverteilung abmelden"), 'claim', array('data-dialog' => 'size=big')); ?>
+            <?= Studip\Button::createCancel(_("Von der Platzverteilung abmelden"), 'claim', array('data-dialog' => 'size=big')); ?>
         <? endif ?>
         <input type="hidden" name="courseset_claimed" value="<?= ($already_claimed ? '0' : '1') ?>" >
         <div>

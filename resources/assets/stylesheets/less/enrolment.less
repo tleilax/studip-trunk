@@ -1,55 +1,115 @@
-#enrollment ul{
-    list-style: none inside;
-    margin:0px;
-    border-top:1px solid #1E3E70;
-    padding:0px;
-    cursor:move;
-}
-#enrollment ul li{
-    padding:5px;
-    border-bottom:1px solid #1E3E70;
+#enrollment {
+    ul {
+        border-top: 1px solid @base-color;
+        list-style: none inside;
+        margin: 0px;
+        overflow-x: auto;
+        padding: 0px;
 
-}
-#selected-courses li {
-    list-style-type: decimal;
-}
-#enrollment ul li.empty{
-    cursor: no-drop;
-    list-style-type: none;
-}
-#enrollment input[name="filter"]{
-    margin-bottom:20px;
-}
-#enrollment ul{
-    max-height: 200px;
-    overflow-x: auto;
-}
-#enrollment .ui-draggable.ui-draggable-dragging,#enrollment .ui-sortable-helper{
-    background-color: #CED8F2;
-    padding:5px;
-    border:1px solid #1E3E70;
-    list-style: none inside;
-    width:auto;
-}
-#enrollment ul li.ui-sortable-helper {
-    list-style-type: none;
-}
-#enrollment .ui-sortable-helper .delete{
-    display:none;
-}
-#enrollment ul li .delete{
-    cursor:pointer;
-    float:right;
-}
-#enrollment ul li .delete:after{
-    clear:both;
-}
-#enrollment ul#avaliable-courses li.visible:hover,#enrollment ul#selected-courses li:hover{background-color: #CED8F2;}
-#enrollment ul#avaliable-courses li.visible:nth-child(even),#enrollment ul#selected-courses li:nth-child(even){background-color: #F8F8F8;}
-#enrollment ul#avaliable-courses li.visible:nth-child(odd),#enrollment ul#selected-courses li:nth-child(odd){ background-color: #EEEEEE;}
-#enrollment .ui-state-highlight{
-    padding:10px;
-    background:#CB1800;
-    border:0px;
-    height: 30px;
+        .media-breakpoint-medium-up({
+            max-height: 200px;
+        });
+
+        li {
+            border-bottom: 1px solid @base-color;
+            padding: 5px;
+
+            &.ui-draggable.ui-draggable-handle {
+                cursor: move;
+            }
+
+            .actions {
+                cursor: pointer;
+                float: right;
+                white-space: nowrap;
+            }
+
+            &::after {
+                content: '';
+                display: block;
+                clear: both;
+            }
+        }
+
+        &.ui-sortable li.empty {
+            cursor: no-drop;
+        }
+    }
+
+    li.empty:not(:only-child) {
+        display: none;
+    }
+
+    #available-courses li.visible,
+    #selected-courses li {
+        &:hover {
+            background-color: @base-color-20;
+        }
+    }
+
+    #available-courses li.ui-draggable.ui-draggable-dragging,
+    #selected-courses li.ui-sortable-helper {
+        background-color: @base-color-20;
+        border: 1px solid @base-color;
+        list-style: none inside;
+        padding: 5px;
+        width: auto;
+    }
+
+    #available-courses li:not(.visible) {
+        display: none;
+    }
+
+    #selected-courses li {
+        list-style-type: decimal;
+
+        &.ui-sortable-placeholder,
+        &.empty {
+            list-style-type: none;
+        }
+
+        &.ui-sortable-placeholder {
+            background-color: @yellow-20;
+        }
+    }
+
+    .ui-sortable-helper .delete {
+        display:none;
+    }
+
+    input[name="filter"] {
+        margin-bottom: 20px;
+    }
+
+    .ui-state-highlight {
+        background: @red;
+        border: 0;
+        height: 30px;
+        padding: 10px;
+    }
+
+    // Show available and selected courses next to each others
+    .priority-lists {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+
+        .available,
+        .selected {
+            flex: 1;
+        }
+        .available {
+            margin-right: 0.5em;
+        }
+        .selected {
+            margin-left: 0.5em;
+        }
+        //
+        // .available #available-courses,
+        // .selected #selected-courses {
+        //     position: sticky;
+        //     top: 0;
+        // }
+    }
 }
