@@ -34,11 +34,13 @@
 
 #layout_footer,
 #barBottomright {
-    a {
+    > ul > li > a {
         color: @contrast-content-white;
         margin: 0 6px;
         text-decoration: none;
-        &:hover { color: @contrast-content-hovergray; }
+        &:hover {
+            color: @contrast-content-hovergray;
+        }
     }
 }
 
