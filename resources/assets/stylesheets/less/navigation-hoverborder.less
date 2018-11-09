@@ -66,10 +66,10 @@ body:not(.fixed) #barTopMenu {
             line-height: 25px;
         }
         &.current {
-            .border-beneath('dark', 2px, 2px);
+            .border-beneath('dark', -2px, 2px);
         }
         &:not(.current) {
-            .border-beneath('light', 2px, 2px);
+            .border-beneath('light', -2px, 2px);
             &:not(:hover)::after {
                 .border-shrink();
             }
