@@ -308,7 +308,7 @@
         <h1><?= _('Veranstaltungsort') ?> / <?= _('Veranstaltungszeiten')?></h1>
     </header>
     <section>
-        <?= $sem->getDatesTemplate('dates/seminar_html_location', array('ort' => $course->ort)) ?>
+        <?= $sem->getDatesTemplate('dates/seminar_html_location', array('ort' => $course->ort, 'disable_list_shrinking' => true)) ?>
     </section>
 </article>
 <? if ($this->studymodules) : ?>
