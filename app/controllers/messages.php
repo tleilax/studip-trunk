@@ -893,7 +893,7 @@ class MessagesController extends AuthenticatedController {
                 _('Neue Nachricht schreiben'),
                 $this->url_for('messages/write'),
                 Icon::create('mail+add'),
-                ['data-dialog' => 'width=650;height=600']
+                ['data-dialog' => 'width=700;height=700']
             );
         }
         if ($action !== 'sent' && MessageUser::hasUnreadByUserId($GLOBALS['user']->id)) {

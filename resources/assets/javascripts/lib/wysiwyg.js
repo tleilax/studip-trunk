@@ -193,7 +193,7 @@ function replaceTextarea(textarea) {
         extraPlugins:
             'codemirror,confighelper,magicline,studip-floatbar,studip-quote,studip-upload,studip-settings,emojione' +
             (extraPlugins ? ',' + extraPlugins : ''),
-        removePlugins: removePlugins ? removePlugins : '',
+        removePlugins: removePlugins ? removePlugins : textarea.closest('.ui-dialog').length ? 'autogrow' : '',
         enterMode: CKEDITOR.ENTER_BR,
         mathJaxLib: STUDIP.URLHelper.getURL('assets/javascripts/mathjax/MathJax.js?config=TeX-AMS_HTML,default'),
         studipUpload_url: STUDIP.URLHelper.getURL('dispatch.php/wysiwyg/upload'),
