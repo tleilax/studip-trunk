@@ -75,8 +75,7 @@ class Markup
      */
     public static function isHtml($text)
     {
-        return \Config::get()->WYSIWYG &&
-            (self::hasHtmlMarker($text) || self::isHtmlFallback($text));
+        return self::hasHtmlMarker($text);
     }
 
     /**
