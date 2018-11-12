@@ -443,6 +443,39 @@ function export_sem($inst_id, $ex_sem_id = 'all')
                     $data_object .= xml_tag($val, 'n.a.');
                 }
                 $data_object .= xml_close_tag($xml_groupnames_lecture['childgroup3']);
+            } elseif ($key == 'lvgruppe' && $SEM_CLASS[$SEM_TYPE[$row['status']]['class']]['module']) {
+                $data_object .= xml_open_tag($xml_groupnames_lecture['childgroup3a']);
+                ModuleManagementModelTreeItem::setObjectFilter('Modul', function ($modul) use ($sem_obj) {
+                        // check for public status
+                        if (!$GLOBALS['MVV_MODUL']['STATUS']['values'][$modul->stat]['public']) {
+                            return false;
+                        }
+                        $modul_start = Semester::find($modul->start)->beginn ?: 0;
+                        $modul_end = Semester::find($modul->end)->beginn ?: PHP_INT_MAX;
+                        return $sem_obj->start_time <= $modul_end &&
+                               ($modul_start <= $sem_obj->start_time + $sem_obj->duration_time || $sem_obj->duration_time == -1);
+                    });
+                ModuleManagementModelTreeItem::setObjectFilter('StgteilVersion', function ($version) {
+                        return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
+                    });
+                $trail_classes = array('StgteilabschnittModul', 'Studiengang');
+                $mvv_object_paths = MvvCourse::get($sem_obj->id)->getTrails($trail_classes);
+                $mvv_paths = array();
+
+                foreach ($mvv_object_paths as $mvv_object_path) {
+                    // show only complete paths
+                    if (count($mvv_object_path) == 2) {
+                        $mvv_object_names = array();
+                        foreach ($mvv_object_path as $mvv_object) {
+                            $mvv_object_names[] = $mvv_object->getDisplayName();
+                        }
+                        $mvv_paths[] = implode(' > ', $mvv_object_names);
+                    }
+                }
+                foreach (array_unique_recursive($mvv_paths, SORT_REGULAR) as $mvv_path) {
+                    $data_object .= xml_tag($val, $mvv_path);
+                }
+                $data_object .= xml_close_tag($xml_groupnames_lecture['childgroup3a']);
             } elseif ($key == 'admission_turnout') {
                     $data_object .= xml_open_tag($val, $row['admission_type'] ? _('max.') : _('erw.'));
                     $data_object .= $row[$key];

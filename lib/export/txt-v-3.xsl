@@ -134,6 +134,11 @@ Bereich:
 <xsl:for-each select="bereiche/bereich"><xsl:value-of select="."/><xsl:text>
 </xsl:text></xsl:for-each>
 		</xsl:if>
+		<xsl:if test="lvgruppen">
+Module: 
+<xsl:for-each select="lvgruppen/lvgruppe"><xsl:value-of select="."/><xsl:text>
+</xsl:text></xsl:for-each>
+		</xsl:if>
 <xsl:if test="datenfelder">
 <xsl:for-each select="datenfelder/datenfeld">
 <xsl:value-of select="@key"/>: <xsl:value-of select="."/>

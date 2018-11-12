@@ -427,6 +427,18 @@
 				</td>
 			</tr>
 		</xsl:if>
+		<xsl:if test="lvgruppen">
+			<tr>
+				<td bgcolor="#EEEEEE">
+					<b>Module: </b>
+				</td>
+				<td bgcolor="#EEEEEE">
+					<xsl:for-each select="lvgruppen/lvgruppe">
+						<xsl:value-of select="."/><br/>
+					</xsl:for-each>
+				</td>
+			</tr>
+		</xsl:if>
 		<xsl:if test="datenfelder">
 			<xsl:for-each select="datenfelder/datenfeld">
 			<tr>
