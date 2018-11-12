@@ -453,7 +453,7 @@ function export_sem($inst_id, $ex_sem_id = 'all')
                         $modul_start = Semester::find($modul->start)->beginn ?: 0;
                         $modul_end = Semester::find($modul->end)->beginn ?: PHP_INT_MAX;
                         return $sem_obj->start_time <= $modul_end &&
-                               ($modul_start <= $sem_obj->start_time + $sem_obj->duration_time || $sem_obj->duration_time == -1);
+                               ($modul_start <= $sem_obj->start_time + $sem_obj->duration_time || $sem_obj->duration_time == -1);
                     });
                 ModuleManagementModelTreeItem::setObjectFilter('StgteilVersion', function ($version) {
                         return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
