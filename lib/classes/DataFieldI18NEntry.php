@@ -74,6 +74,20 @@ abstract class DataFieldI18NEntry extends DataFieldEntry
     }
 
     /**
+     * Returns the input elements as html for this datafield
+     *
+     * @param String $name      Name prefix of the associated input
+     * @param Array  $variables Additional variables
+     * @return String containing the required html
+     */
+    public function getHTML($name = '', $variables = array())
+    {
+        $variables['locale_names'] = $this->getLocaleNames($name);
+
+        return parent::getHTML($name, $variables);
+    }
+
+    /**
      * Sets the value from a post request
      *
      * @param mixed $submitted_value The value from request

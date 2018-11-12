@@ -114,7 +114,7 @@ class Admin_UserController extends AuthenticatedController
             $request['order']      = $this->order;
             $empty_search          = $request['perm'] === 'alle';
 
-            foreach (words('username vorname nachname email inaktiv locked datafields inaktiv_tage institute studycourse degree userdomains auth_plugins') as $value) {
+            foreach (words('username vorname nachname email inaktiv locked show_only_not_lectures datafields inaktiv_tage institute studycourse degree userdomains auth_plugins') as $value) {
                 if (!empty($request[$value])) {
                     $empty_search = false;
                     break;
@@ -182,7 +182,7 @@ class Admin_UserController extends AuthenticatedController
         if ($advanced
             || !empty($search_datafields)
             || (!empty($request)
-                && ($request['auth_plugins'] || $request['userdomains'] || $request['degree'] || $request['institute'] || $request['studycourse'])
+                && ($request['auth_plugins'] || $request['userdomains'] || $request['degree'] || $request['institute'] || $request['studycourse'] || $request['show_only_not_lectures'])
             )
         ) {
             $this->advanced = true;

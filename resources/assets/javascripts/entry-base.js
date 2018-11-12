@@ -1,5 +1,8 @@
 import './public-path.js'
 
+// promise polyfill needed for IE11 to load tablesorter
+import 'es6-promise/auto'
+
 import "../stylesheets/studip-jquery-ui.less"
 import "highlight.js/styles/tomorrow.css"
 import "chartist/dist/chartist.css"

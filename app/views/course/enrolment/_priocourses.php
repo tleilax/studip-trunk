@@ -1,121 +1,134 @@
+<?php
+$prios = [];
+foreach ($priocourses as $prio => $course) {
+    $name = $course->name;
+    if (Config::get()->IMPORTANT_SEMNUMBER) {
+        $name = $course->veranstaltungsnummer . ' ' . $name;
+    }
+    $tooltxt   = [];
+    $tooltxt[] = $course->veranstaltungsnummer;
+    $tooltxt[] = $course->name;
+    $tooltxt[] = implode(', ', $course->members->findBy('status', 'dozent')->orderBy('position')->limit(3)->pluck('Nachname'));
+    $tooltxt[] = implode('; ', $course->cycles->toString());
+
+    $prios[$course->id] = [
+        'name'     => $name,
+        'info'     => implode("\n", $tooltxt),
+        'selected' => isset($user_prio[$course->id]),
+    ];
+}
+
+asort($user_prio);
+?>
+
 <div id="enrollment">
-    <? if ($max_limit > 1) : ?>
-        <label for="admission_user_limit">
-            <?= _("Ich möchte folgende Anzahl an Veranstaltungen belegen:") ?>
-            <select name="admission_user_limit" class="size-s">
-            <? foreach (range(1, $max_limit) as $max) : ?>
-                <option <?= $user_max_limit == $max ? 'selected' : '' ?>>
-                    <?= $max ?>
-                </option>
-            <? endforeach ?>
-            </select>
-        </label>
-    <? endif ?>
-    <table width="100%">
-        <tbody>
-        <tr>
-            <td colspan="3">
-                    <span class="hidden-no-js">
-                        <?= _('Ziehen Sie die in Frage kommenden Veranstaltungen auf die rechte Seite
-und ordnen Sie sie dort in der Reihenfolge der von Ihnen gewünschten
-Priorität an. Sie können mehr Veranstaltungen nach rechts ziehen als Sie
-tatsächlich belegen wollen') ?>
+<? if ($max_limit > 1): ?>
+    <label for="admission_user_limit">
+        <?= _('Ich möchte folgende Anzahl an Veranstaltungen belegen:') ?>
+        <select name="admission_user_limit" class="size-s">
+        <? foreach (range(1, $max_limit) as $max) : ?>
+            <option <? if ($user_max_limit == $max) echo 'selected'; ?>>
+                <?= $max ?>
+            </option>
+        <? endforeach ?>
+        </select>
+    </label>
+<? endif; ?>
+
+    <p class="hidden-medium-down">
+        <?= _('Ziehen Sie die in Frage kommenden Veranstaltungen auf die rechte Seite '
+            . 'und ordnen Sie sie dort in der Reihenfolge der von Ihnen gewünschten '
+            . 'Priorität an. Sie können mehr Veranstaltungen nach rechts ziehen als Sie '
+            . 'tatsächlich belegen wollen.') ?>
+    </p>
+    <p class="hidden-medium-up">
+        <?= _('Sortieren Sie die in Frage kommenden Veranstaltungen auf die rechte Seite '
+            . 'und ordnen Sie sie dort in der Reihenfolge der von Ihnen gewünschten '
+            . 'Priorität an. Sie können mehr Veranstaltungen nach rechts zuweisen als Sie '
+            . 'tatsächlich belegen wollen.') ?>
+    </p>
+
+    <section class="priority-lists">
+
+        <div class="available">
+            <h3> <?= _("Verfügbare Veranstaltungen") ?></h3>
+            <input type="text" name="filter" placeholder="<?= _('Filter') ?>">
+
+            <ul id="available-courses">
+            <? foreach ($prios as $course_id => $data): ?>
+                <li <? if (!$data['selected']) echo 'class="visible"'; ?> data-id="<?= htmlReady($course_id) ?>">
+                    <?= htmlReady($data['name'])  ?>
+                <? if ($data['info']): ?>
+                    <?= tooltipIcon($data['info']) ?>
+                <? endif; ?>
+                    <div class="actions hidden-medium-up">
+                        <?= Icon::create('accept')->asInput([
+                            'name'  => 'admission_prio[' . htmlReady($course_id)  . ']',
+                            'type'  => 'submit',
+                            'value' => 0,
+                        ]) ?>
+                    </div>
+                </li>
+            <? endforeach; ?>
+            </ul>
+        </div>
+
+        <div class="selected">
+            <h3><?= _('Ausgewählte Veranstaltungen') ?></h3>
+            <input type="text" name="filter" placeholder="<?= _('Filter') ?>">
+            <ul id="selected-courses">
+                <li class="empty">
+                    <span class="hidden-medium-up">
+                        <?= _('Die gewünschten Veranstaltungen links auswählen') ?>
                     </span>
-                    <span class="hidden-js">
-                        <?= _('Sortieren Sie die in Frage kommenden Veranstaltungen auf die rechte Seite
-und ordnen Sie sie dort in der Reihenfolge der von Ihnen gewünschten
-Priorität an. Sie können mehr Veranstaltungen nach rechts zuweisen als Sie
-tatsächlich belegen wollen') ?>
+                    <span class="hidden-medium-down">
+                        <?= _('Gewünschte Veranstaltungen hierhin ziehen') ?>
                     </span>
-            </td>
-        </tr>
-        <tr>
-            <td valign="top">
-                <h3> <?= _("Verfügbare Veranstaltungen") ?></h3>
-                <input type="text" class="hidden-no-js" name="filter" placeholder="<?= _('Filter') ?>">
+                </li>
+            <? foreach ($user_prio as $id => $prio): ?>
+                <li data-id="<?= htmlReady($id) ?>">
+                    <?= htmlReady($prios[$id]['name']) ?>
+                <? if ($data['info']): ?>
+                    <?= tooltipIcon($prios[$id]['info']) ?>
+                <? endif; ?>
 
-                <ul id="avaliable-courses">
-                    <?php $prios = array(); ?>
-                    <?php foreach ($priocourses as $prio => $course): ?>
-                        <?php
-                        $name = $course->name;
-                        if (get_config('IMPORTANT_SEMNUMBER')) {
-                            $name = $course->veranstaltungsnummer . ' ' . $name;
-                        }
-                        $prios[$course->id]['name'] = htmlReady(my_substr($name, 0, 50));
-                        $tooltxt                    = array();
-                        $tooltxt[]                  = $course->veranstaltungsnummer;
-                        $tooltxt[]                  = $course->name;
-                        $tooltxt[]                  = join(', ',
-                            $course->members->findBy('status', 'dozent')->orderBy('position')->limit(3)->pluck('Nachname'));
-                        $tooltxt[]                  = join('; ',
-                            $course->cycles->toString());
-                        $prios[$course->id]['info'] = tooltipicon(join("\n",
-                            $tooltxt));
-                        ?>
-                        <?php $visible = !isset($user_prio[$course->id]); ?>
-                        <li class="<?= htmlReady($course->id) ?> <?= $visible ? 'visible' : '' ?>" <?= !$visible ? 'style="display:none"' : '' ?> data-id="<?= htmlReady($course->id) ?>">
-                            <input type="checkbox" class="hidden-js" value="0" name="admission_prio[<?= $course->id ?>]">
-                            <?= $prios[$course->id]['name'] . '&nbsp;' . $prios[$course->id]['info'] ?>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            </td>
-            <td align="center">
+                    <input type="hidden" value="<?= $prio ?>" name="admission_prio[<?= htmlReady($id) ?>]">
 
-                <?=
-                Icon::create('arr_2right', 'sort')->asInput(["type" => 'submit', "class" => 'hidden-js'])
-                ?>
+                    <div class="actions">
+                    <? if ($prio != 1): ?>
+                        <?= Icon::create('arr_1up', Icon::ROLE_SORT)->asInput([
+                            'name'  => 'admission_prio_order_up[' . htmlReady($id) . ']',
+                            'type'  => 'submit',
+                            'class' => 'hidden-medium-up delete',
+                        ]) ?>
+                    <? endif; ?>
 
+                    <? if ($prio != count($user_prio)): ?>
+                        <?= Icon::create('arr_1down', Icon::ROLE_SORT)->asInput([
+                            'name'  => 'admission_prio_order_down[' . htmlReady($id) . ']',
+                            'type'  => 'submit',
+                            'class' => 'hidden-medium-up delete',
+                        ])?>
+                    <? endif; ?>
 
-            </td>
-            <td valign="top">
-                <h3><?= _("Ausgewählte Veranstaltungen") ?></h3>
-                <input type="text" class="hidden-no-js" name="filter" placeholder="<?= _('Filter') ?>">
-                <ul id="selected-courses">
-                    <?php $hasUserPrios = count($user_prio) > 0 ?>
+                        <?= Icon::create('trash')->asInput([
+                            'name'  => 'admission_prio_delete[' . htmlReady($id) . ']',
+                            'type'  => 'submit',
+                            'class' => 'delete',
+                        ]) ?>
+                    </div>
+                </li>
+            <? endforeach; ?>
+            </ul>
+        </div>
 
-                    <li class="empty" <?= $hasUserPrios ? 'style="display:none"' : '' ?>><?= _('Gewünschte Veranstaltungen hierhin ziehen') ?></li>
-                    <?php
-                    asort($user_prio);
-
-                    if ($hasUserPrios):
-                        foreach ($user_prio as $id => $prio):
-                            ?>
-                            <li class="<?= $id ?>">
-                                <?= $prios[$id]['name'] . '&nbsp;' . $prios[$id]['info'] ?>
-                                <input type="hidden" value="<?= $prio ?>" name="admission_prio[<?= $id ?>]"> <a class="delete hidden-no-js" data-id="<?=$id?>" href="#"><?=
-                                Icon::create('trash', 'info')->asImg()
-                                ?></a>
-                                <?=
-                                Icon::create('trash', 'info')->asInput(["name" => 'admission_prio_delete['.$id.']', "type" => 'submit', "class" => 'hidden-js delete'])
-                                ?>
-
-                                <?php if ($prio != 1): ?>
-                                    <?=
-                                    Icon::create('arr_1up', 'sort')->asInput(["name" => 'admission_prio_order_up['.$id.']', "type" => 'submit', "class" => 'hidden-js delete'])
-                                    ?>
-                                <?php endif; ?>
-                                <?php if ($prio != count($user_prio)): ?>
-                                    <?=
-                                    Icon::create('arr_1down', 'sort')->asInput(["name" => 'admission_prio_order_down['.$id.']', "type" => 'submit', "class" => 'hidden-js delete'])
-                                    ?>
-                                <?php endif; ?>
-                            </li>
-                        <?php
-                        endforeach;
-                    endif;
-                    ?>
-                </ul>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    <div class="icons" style="display: none">
-    <a class="delete" href="#">
-        <?= Icon::create('trash', 'info')->asImg() ?>
-    </a>
-    </div>
-
-
+    </section>
 </div>
+
+<script type="text/x-template" id="delete-icon-template">
+    <div class="actions">
+        <a class="delete" href="#">
+            <?= Icon::create('trash') ?>
+        </a>
+    </div>
+</script>

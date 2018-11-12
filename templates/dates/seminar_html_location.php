@@ -39,25 +39,28 @@ endforeach;
 
 // condense irregular dates by room
 if (is_array($dates['irregular'])) foreach ($dates['irregular'] as $date) :
-    if ($date['resource_id']) :
+    if (isset($date['resource_id'])) :
         $output_dates[$date['resource_id']][] = $date;
-    elseif ($date['raum']) :
+    elseif (!empty($date['raum'])) :
         $output_dates[$date['raum']][] = $date;
+    else :
+        $output_dates[_('k.A.')][]  = $date['tostring'];
     endif;
 endforeach;
 
-
 // now shrink the dates for each room/freetext and add them to the output
 if (is_array($output_dates)) foreach ($output_dates as $dates) :
-    if ($dates[0]['resource_id']) :
+    if (isset($dates[0]['resource_id'])) :
         $resObj = ResourceObject::Factory($dates[0]['resource_id']);
         if ($link) {
             $output[$resObj->getFormattedLink(true, true, true)][] = implode('<br>', shrink_dates($dates));
         } else {
             $output[htmlReady($resObj->getName())][] = implode('<br>', shrink_dates($dates));
         }
-    elseif ($dates[0]['raum']) :
+    elseif (isset($dates[0]['raum'])) :
         $output['(' . htmlReady($dates[0]['raum']) . ')'][] = implode('<br>', shrink_dates($dates));
+    else :
+        $output[_('k.A.')][] = implode('<br>', $dates);
     endif;
 endforeach;
 ?>
@@ -73,7 +76,7 @@ endforeach;
             <td>
                 <? $dates = implode('<br>', $dates) ?>
 
-                <? if (mb_strlen($dates) > 222) : ?>
+                <? if (mb_strlen($dates) > 222 && !$disable_list_shrinking) : ?>
                     <?= mb_substr($dates, 0, 228) ?>
                     <div class="more-location-dates-infos" style="display:none">
                         <?= $dates ?>

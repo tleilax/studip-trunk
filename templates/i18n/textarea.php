@@ -1,14 +1,3 @@
-<label>
-<? if ($attributes['model']) : ?>
-    <span class="datafield_title <?= $attributes['model']->is_required ? 'required' : '' ?>">
-        <?= htmlReady($attributes['model']->name) ?>
-    </span>
-
-    <? if ($attributes['model']->description): ?>
-        <?= tooltipIcon($attributes['model']->description, $important ?: false) ?>
-    <? endif; ?>
-<? endif ?>
-
 <? foreach ($languages as $locale => $lang): ?>
     <?
         $attr = $attributes;
@@ -40,4 +29,3 @@
         ><?= $wysiwyg ? wysiwygReady($text) : htmlReady($text) ?></textarea>
     </div>
 <? endforeach; ?>
-</label>
