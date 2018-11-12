@@ -493,7 +493,7 @@ class ResourceObject
 
     public function isDeletable()
     {
-        return !$this->isParent() && !$this->isAssigned();
+        return $GLOBALS['perm']->have_perm('root') || (!$this->isParent() && !$this->isAssigned());
     }
 
     public function isParent()
@@ -548,12 +548,16 @@ class ResourceObject
         return $this->lockable;
     }
 
-    public function flushProperties()
+    public function flushProperties($id='')
     {
+        if (!$id) {
+            $id = $this->id;
+        }
+
         $query = "DELETE FROM resources_objects_properties
                   WHERE resource_id = ?";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->id));
+        $statement->execute(array($id));
         return $statement->rowCount() > 0;
     }
 
@@ -809,7 +813,7 @@ class ResourceObject
         $statement->execute(array($id));
 
         while ($resource_id = $statement->fetchColumn()) {
-            $this->deleteResourceRecursive($resource_id, $recursive);
+            $this->deleteResourceRecursive($resource_id);
         }
 
         $this->deleteAllAssigns($id);

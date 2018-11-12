@@ -259,11 +259,17 @@ if ($kill_object) {
     $ObjectPerms = ResourceObjectPerms::Factory($kill_object);
     if ($ObjectPerms->getUserPerm () == "admin") {
         $killObject = ResourceObject::Factory($kill_object);
-        if ($killObject->delete())
-            $msg -> addMsg(7);
-        $_SESSION['resources_data']["view"]="resources";
-        $view = $_SESSION['resources_data']["view"];
-        unset($_SESSION['resources_data']['actual_object']);
+        if (!Request::int('kill_confirm')) {
+            $message = sprintf(_('Wollen Sie die Ressource "%s" wirklich löschen?'), htmlReady($killObject->getName()));
+            PageLayout::postQuestion($message, URLHelper::getURL('', ['kill_object' => $kill_object, 'kill_confirm' => 1]));
+        } else {
+            if ($killObject->delete()) {
+                $msg->addMsg(7);
+            }
+            $_SESSION['resources_data']["view"]="resources";
+            $view = $_SESSION['resources_data']["view"];
+            unset($_SESSION['resources_data']['actual_object']);
+        }
     } else {
         $msg->addMsg(1);
     }
