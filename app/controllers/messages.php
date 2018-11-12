@@ -166,10 +166,10 @@ class MessagesController extends AuthenticatedController {
         PageLayout::setTitle(_('Neue Nachricht schreiben'));
 
         //the message-ID for the new message:
-        $this->message_id = Request::option("message_id") ?: md5(uniqid("neWMesSagE"));
+        $this->message_id = Request::option('message_id') ?: md5(uniqid('neWMesSagE'));
 
 
-        $this->to = array();
+        $this->to = [];
         $this->default_message = new Message();
         $this->default_message->setId($this->default_message->getNewId());
 
@@ -178,17 +178,17 @@ class MessagesController extends AuthenticatedController {
 
 
         //check if a receiver is given:
-        if (Request::username("rec_uname")) {
+        if (Request::username('rec_uname')) {
             $user = new MessageUser();
-            $user->setData(array('user_id' => get_userid(Request::username("rec_uname")), 'snd_rec' => "rec"));
+            $user->setData(['user_id' => get_userid(Request::username('rec_uname')), 'snd_rec' => 'rec']);
             $this->default_message->receivers[] = $user;
         }
 
         //check if a list of receivers is given:
-        if (Request::getArray("rec_uname")) {
-            foreach (Request::usernameArray("rec_uname") as $username) {
+        if (Request::getArray('rec_uname')) {
+            foreach (Request::usernameArray('rec_uname') as $username) {
                 $user = new MessageUser();
-                $user->setData(array('user_id' => get_userid($username), 'snd_rec' => "rec"));
+                $user->setData(['user_id' => get_userid($username), 'snd_rec' => 'rec']);
                 $this->default_message->receivers[] = $user;
             }
         }
@@ -350,9 +350,17 @@ class MessagesController extends AuthenticatedController {
                     $this->default_message['message'] = quotes_encode($old_message['message']);
                 }
                 $this->default_message['subject'] = mb_substr($old_message['subject'], 0, 4) === "RE: " ? $old_message['subject'] : "RE: ".$old_message['subject'];
-                $user = new MessageUser();
-                $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
-                $this->default_message->receivers[] = $user;
+                if ($old_message['autor_id'] !== $GLOBALS['user']->id) {
+                    $user = new MessageUser();
+                    $user->setData(array('user_id' => $old_message['autor_id'], 'snd_rec' => "rec"));
+                    $this->default_message->receivers[] = $user;
+                } else {
+                    foreach ($old_message->receivers as $old_receivers) {
+                        $user = new MessageUser();
+                        $user->setData(array('user_id' => $old_receivers['user_id'], 'snd_rec' => "rec"));
+                        $this->default_message->receivers[] = $user;
+                    }
+                }
                 $this->answer_to = $old_message->id;
             } else {
                 //message shall be forwarded
@@ -430,14 +438,14 @@ class MessagesController extends AuthenticatedController {
                 $this->default_message['message'] = $message;
             }
         }
-        if (Request::get("default_body")) {
+        if (Request::get('default_body')) {
             if (Studip\Markup::editorEnabled()) {
                 $this->default_message['message'] = Studip\Markup::markupToHtml(Request::get("default_body"));
             } else {
                 $this->default_message['message'] = Studip\Markup::removeHtml(Request::get("default_body"));
             }
         }
-        if (Request::get("default_subject")) {
+        if (Request::get('default_subject')) {
             $this->default_message['subject'] = Request::get("default_subject");
         }
         $settings = UserConfig::get($GLOBALS['user']->id)->MESSAGING_SETTINGS;
@@ -531,10 +539,26 @@ class MessagesController extends AuthenticatedController {
             }
         }
 
+        // Create search object for multi person search
+        $vis_query = get_vis_query();
+        $query = "SELECT DISTINCT
+                    auth_user_md5.user_id,
+                    {$GLOBALS['_fullname_sql']['full_rev']} AS fullname,
+                    username,
+                    perms
+                  FROM auth_user_md5
+                  LEFT JOIN user_info USING (user_id)
+                  WHERE (
+                      username LIKE :input
+                      OR CONCAT(Vorname, ' ', Nachname) LIKE :input
+                      OR CONCAT(Nachname, ' ', Vorname) LIKE :input
+                      OR CONCAT(Nachname, ', ', Vorname) LIKE :input
+                    )
+                    AND {$vis_query}
+                  ORDER BY Nachname ASC, Vorname ASC";
+        $this->mp_search_object = new SQLSearch($query, _('Nutzer suchen'), 'user_id');
 
-        NotificationCenter::postNotification("DefaultMessageForComposerCreated", $this->default_message);
-
-
+        NotificationCenter::postNotification('DefaultMessageForComposerCreated', $this->default_message);
     }
 
     /**
@@ -869,7 +893,7 @@ class MessagesController extends AuthenticatedController {
                 _('Neue Nachricht schreiben'),
                 $this->url_for('messages/write'),
                 Icon::create('mail+add'),
-                ['data-dialog' => 'width=650;height=600']
+                ['data-dialog' => 'width=700;height=700']
             );
         }
         if ($action !== 'sent' && MessageUser::hasUnreadByUserId($GLOBALS['user']->id)) {

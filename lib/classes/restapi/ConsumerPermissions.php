@@ -20,7 +20,7 @@ class ConsumerPermissions
      */
     public static function get($consumer_id = null)
     {
-        static $cache = array();
+        static $cache = [];
         if (!isset($cache[$consumer_id])) {
             $cache[$consumer_id] = new self($consumer_id);
         }
@@ -29,7 +29,7 @@ class ConsumerPermissions
     }
 
     private $consumer_id;
-    private $permissions = array();
+    private $permissions = [];
 
     /**
      * Creates the actual permission object (for a certain consumer).
@@ -71,7 +71,7 @@ class ConsumerPermissions
             if (!$overwrite) {
                 return false;
             }
-            $this->permissions[$route_id] = array();
+            $this->permissions[$route_id] = [];
         }
 
         // overwrite only if globally allowed
@@ -79,9 +79,63 @@ class ConsumerPermissions
             return false;
         }
 
-        $this->permissions[$route_id][$method] = (bool)$granted;
+        $this->permissions[$route_id][$method] = (bool) $granted;
 
         return true;
+    }
+
+    /**
+     * Convenience method for activating all routes in a route map.
+     *
+     * @param  RESTAPI\RouteMap $routemap RouteMap to activate
+     */
+    public function activateRouteMap(RouteMap $routemap)
+    {
+        foreach ($routemap->getRoutes() as $method => $routes) {
+            foreach (array_keys($routes) as $route) {
+                $this->set($route, $method, true, true);
+            }
+        }
+
+        $this->store();
+    }
+
+    /**
+     * Removes stored permissions for a given route and method.
+     *
+     * @param String $route_id Route template
+     * @param String $method HTTP method
+     * @return bool
+     */
+    public function remove($route_id, $method)
+    {
+        if (!isset($this->permissions[$route_id][$method])) {
+            return false;
+        }
+
+        unset($this->permissions[$route_id][$method]);
+
+        if (count($this->permission[$route_id]) === 0) {
+            unset($this->permissions[$route_id]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Convenience method for deactivating all routes in a route map.
+     *
+     * @param RESTAPIRouteMap $routemap RouteMap to activate
+     */
+    public function deactivateRouteMap(RouteMap $routemap)
+    {
+        foreach ($routemap->getRoutes() as $method => $routes) {
+            foreach (array_keys($routes) as $route) {
+                $this->remove($route, $method);
+            }
+        }
+
+        $this->store();
     }
 
     /**
@@ -147,7 +201,7 @@ class ConsumerPermissions
 
         foreach ($this->permissions as $route_id => $methods) {
             foreach ($methods as $method => $granted) {
-                $granted = (int)!empty($granted);
+                $granted = (int) !empty($granted);
                 $result = $result && $statement->execute();
             }
         }

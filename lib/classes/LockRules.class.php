@@ -173,6 +173,7 @@ class LockRules {
         $attributes['sem']['tutor'] = array('name' => _("Tutor/-innen"), 'group' => 'personnel');
         $attributes['sem']['institut_id'] = array('name' => _("Heimateinrichtung"), 'group' => 'personnel');
         $attributes['sem']['sem_tree'] = array('name' => _("Studienbereiche"), 'group' => 'personnel');
+        $attributes['sem']['mvv_lvgruppe'] = array('name' => _("Modulzuordnung"), 'group' => 'personnel');
         $attributes['sem']['participants'] = array('name' => _("Personen hinzufügen/löschen"), 'group' => 'personnel');
         $attributes['sem']['groups'] = array('name' => _("Gruppen hinzufügen/löschen"), 'group' => 'personnel');
         $attributes['sem']['sonstiges'] = array('name' => _("Sonstiges"), 'group' => 'misc');

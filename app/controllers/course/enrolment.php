@@ -27,7 +27,7 @@ class Course_EnrolmentController extends AuthenticatedController
     /**
      * common tasks for all actions
      */
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
         $this->course_id = $args[0];
@@ -68,7 +68,7 @@ class Course_EnrolmentController extends AuthenticatedController
     /**
      * A person applies for a course.
      */
-    function apply_action()
+    public function apply_action()
     {
         if (Request::submitted('decline')) {
             $this->relocate(URLHelper::getLink('dispatch.php/course/details', ['sem_id' => $this->course_id]));
@@ -233,11 +233,12 @@ class Course_EnrolmentController extends AuthenticatedController
     /**
      * Prioritize courses.
      */
-    function claim_action()
+    public function claim_action()
     {
         CSRFProtection::verifyUnsafeRequest();
         $user_id = $GLOBALS['user']->id;
         $courseset = CourseSet::getSetForCourse($this->course_id);
+        $anchor = '';
         if ($courseset->isSeatDistributionEnabled() && !count($courseset->checkAdmission($user_id, $this->course_id))) {
             if ($limit = $courseset->getAdmissionRule('LimitedAdmission')) {
                 $admission_user_limit = Request::int('admission_user_limit');
@@ -250,7 +251,7 @@ class Course_EnrolmentController extends AuthenticatedController
                     return $a > 0 ? $a : ++$max_prio;
                 }, $admission_prio);
                 if (count(array_unique($admission_prio)) != count(Request::getArray('admission_prio'))) {
-                    PageLayout::postMessage(MessageBox::info(_("Sie dürfen jede Priorität nur einmal auswählen. Überprüfen Sie bitte Ihre Auswahl!")));
+                    PageLayout::postInfo(_('Sie dürfen jede Priorität nur einmal auswählen. Überprüfen Sie bitte Ihre Auswahl!'));
                 }
                 $old_prio_count = AdmissionPriority::unsetAllPrioritiesForUser($courseset->getId(), $user_id);
                 if ($order_up = key(Request::getArray('admission_prio_order_up'))) {
@@ -268,33 +269,34 @@ class Course_EnrolmentController extends AuthenticatedController
                 if ($delete = key(Request::getArray('admission_prio_delete'))) {
                     unset($admission_prio[$delete]);
                     $changed = 1;
-                    $admission_prio = array_map(function ($a) {
-                        static $c = 1;
-                        return $c++;
-                    }, $admission_prio);
+                    $admission_prio = array_combine(
+                        array_keys($admission_prio),
+                        range(1, count($admission_prio))
+                    );
                 }
                 foreach ($admission_prio as $course_id => $p) {
                     $changed += AdmissionPriority::setPriority($courseset->getId(), $user_id, $course_id, $p);
                 }
                 if ($changed || ($old_prio_count && !count($admission_prio))) {
                     if (count(AdmissionPriority::getPrioritiesByUser($courseset->getId(), $user_id))) {
-                        PageLayout::postMessage(MessageBox::success(_("Ihre Priorisierung wurde gespeichert.")));
+                        $anchor = '#enrollment';
+                        PageLayout::postSuccess(_('Ihre Priorisierung wurde gespeichert.'));
                     } else {
-                        PageLayout::postMessage(MessageBox::success(_("Ihre Anmeldung zur Platzvergabe wurde zurückgezogen.")));
+                        PageLayout::postSuccess(_('Ihre Anmeldung zur Platzvergabe wurde zurückgezogen.'));
                     }
                 }
             } else {
                 if (Request::int('courseset_claimed')) {
                     if (AdmissionPriority::setPriority($courseset->getId(), $user_id, $this->course_id, 1)) {
-                        PageLayout::postMessage(MessageBox::success(_("Ihre Anmeldung zur Platzvergabe wurde gespeichert.")));
+                        PageLayout::postSuccess(_('Ihre Anmeldung zur Platzvergabe wurde gespeichert.'));
                     }
                 } else {
                     if (AdmissionPriority::unsetPriority($courseset->getId(), $user_id, $this->course_id)) {
-                        PageLayout::postMessage(MessageBox::success(_("Ihre Anmeldung zur Platzvergabe wurde zurückgezogen.")));
+                        PageLayout::postSuccess(_('Ihre Anmeldung zur Platzvergabe wurde zurückgezogen.'));
                     }
                 }
             }
         }
-        $this->redirect($this->url_for('/apply/' . $this->course_id));
+        $this->redirect($this->url_for("/apply/{$this->course_id}{$anchor}"));
     }
 }

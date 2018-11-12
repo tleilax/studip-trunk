@@ -181,7 +181,7 @@ class ShowThread extends ShowTreeRow {
                     $edit .= LinkButton::create(_('Verschieben'), URLHelper::getURL('?pre_move_object=' . $resObject->id));
                 }
 
-                if (!$weitere && $perms == "admin" && $resObject->isDeletable()) {
+                if ($perms == "admin" && $resObject->isDeletable()) {
                     $edit .= LinkButton::create(_('Löschen'), '?kill_object=' . $resObject->id);
                 }
             }

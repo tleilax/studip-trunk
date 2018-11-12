@@ -5,7 +5,7 @@
     <fieldset>
         <legend><?= _('Verwaltung der Einrichtungsgrunddaten') ?></legend>
 
-        <label class="col-3">
+        <label class="col-6">
             <span class="required"><?= _('Name') ?></span>
             <?= I18N::input('Name', $institute->Name, LockRules::Check($institute->id, 'name') ? ['readonly' => true, 'disabled' => true] : ['required' => true]); ?>
         </label>
@@ -14,7 +14,8 @@
             <?= _('Fakultät') ?>
 
         <? if (count($institute->sub_institutes) > 0): ?>
-            <small>
+            <br>
+            <small style="font-weight: normal;">
                 <?= _('Diese Einrichtung hat den Status einer Fakultät.') ?><br>
                 <?= sprintf(_('Es wurden bereits %u andere Einrichtungen zugeordnet.'), count($institute->sub_institutes)) ?>
             </small>

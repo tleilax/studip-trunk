@@ -39,10 +39,10 @@
 
 use Studip\Button, Studip\LinkButton;
 
-$perm->check("tutor");
+$perm->check('tutor');
 
 require_once 'lib/export/export_xslt_vars.inc.php';   // Liste der XSLT-Skripts
-require_once ('lib/dates.inc.php');   // Datumsfunktionen
+require_once 'lib/dates.inc.php';   // Datumsfunktionen
 
 /**
 * Checks given parameters
@@ -158,14 +158,11 @@ elseif ($page == 1) // Seite 2 : Auswahl des XSLT-Scripts
 
     $export_info = null;
 
-    $export_pagecontent .= "<form class=\"default\" method=\"POST\" action=\"" . URLHelper::getLink() . "\">";
-    $export_pagecontent .= "<fieldset><legend>"._("Wählen Sie bitte eine der folgenden XSLT-Dateien und klicken Sie auf 'weiter'")."</legend>";
+    $export_pagecontent .= '<form class="default" method="POST" action="' . URLHelper::getLink() . '">';
+    $export_pagecontent .= '<fieldset><legend>' . _('Ausgabemodul') . '</legend>';
     $export_pagecontent .= CSRFProtection::tokenTag();
     $export_pagecontent .= "";
-    $export_pagecontent .= "<table class=\"not-default\" cellspacing=\"0\" cellpadding=\"1\" border=\"0\" width=\"100%\">";
-    $export_pagecontent .= "<thead>";
-    $export_pagecontent .= "<legend>" . _("Ausgabemodul") . "</legend>";
-    
+
     $opt_num = 0;
     while (list($key, $val) = each($xslt_files))
     {
@@ -175,29 +172,29 @@ elseif ($page == 1) // Seite 2 : Auswahl des XSLT-Scripts
             if (($key == $choose) OR ( ($choose == "") AND ($opt_num == 0) ) ) $export_pagecontent .= " checked";
             $export_pagecontent .= ">" . $val["name"];
             $export_pagecontent .= tooltipIcon($val["desc"]);
-    
-            
+
+
             $export_pagecontent .= "</label>";
             $opt_num++;
         }
     }
 
-    $export_pagecontent .= "</fieldset>";
-    $export_pagecontent .= "<input type=\"hidden\" name=\"page\" value=\"2\">";
-    $export_pagecontent .= "<input type=\"hidden\" name=\"format\" value=\"" . htmlReady($format) . "\">";
-    $export_pagecontent .= "<input type=\"hidden\" name=\"o_mode\" value=\"" . htmlReady($o_mode) . "\">";
-    $export_pagecontent .= "<input type=\"hidden\" name=\"ex_type\" value=\"" . htmlReady($ex_type) . "\">";
-    $export_pagecontent .= "<input type=\"hidden\" name=\"ex_sem\" value=\"" . htmlReady($ex_sem) . "\">";
+    $export_pagecontent .= '</fieldset>';
+    $export_pagecontent .= '<input type="hidden" name="page" value="2">';
+    $export_pagecontent .= '<input type="hidden" name="format" value="' . htmlReady($format) . '">';
+    $export_pagecontent .= '<input type="hidden" name="o_mode" value="' . htmlReady($o_mode) . '">';
+    $export_pagecontent .= '<input type="hidden" name="ex_type" value="' . htmlReady($ex_type) . '">';
+    $export_pagecontent .= '<input type="hidden" name="ex_sem" value="' . htmlReady($ex_sem) . '">';
     foreach(array_keys($ex_sem_class) as $semclassid){
-        $export_pagecontent .= "<input type=\"hidden\" name=\"ex_sem_class[". htmlReady($semclassid) ."]\" value=\"1\">";
-    }   $export_pagecontent .= "<input type=\"hidden\" name=\"range_id\" value=\"" . htmlReady($range_id) . "\">";
-    $export_pagecontent .= "<input type=\"hidden\" name=\"xml_file_id\" value=\"" . htmlReady($xml_file_id) . "\">";
-    $export_pagecontent .= "<input type=\"hidden\" name=\"xslt_filename\" value=\"" . htmlReady($xslt_filename) . "\">";
+        $export_pagecontent .= '<input type="hidden" name="ex_sem_class['. htmlReady($semclassid) . ']" value="1">';
+    }   $export_pagecontent .= '<input type="hidden" name="range_id" value="' . htmlReady($range_id) . '">';
+    $export_pagecontent .= '<input type="hidden" name="xml_file_id" value="' . htmlReady($xml_file_id) . '">';
+    $export_pagecontent .= '<input type="hidden" name="xslt_filename" value="' . htmlReady($xslt_filename) . '">';
 
     $export_weiter_button = '<footer>' . Button::create('<< ' . _('Zurück'), 'back' );
 
     $export_weiter_button .= Button::create(_('Weiter') . ' >>', 'next');
-    $export_weiter_button .=  "</footer></form>";
+    $export_weiter_button .=  '</footer></form>';
 }
 
 

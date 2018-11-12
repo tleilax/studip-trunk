@@ -126,11 +126,12 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->semester         = array_reverse(Semester::getAll());
         $this->current_semester = Semester::findCurrent();
         $this->cycle_dates      = array();
+        $matched                = [];
 
         foreach ($this->course->cycles as $cycle) {
             foreach ($cycle->getAllDates() as $val) {
                 foreach ($this->semester as $sem) {
-                    if (!($this->semester_filter == 'all' || $this->semester_filter == $sem->id)) {
+                    if ($this->semester_filter !== 'all' && $this->semester_filter !== $sem->id) {
                         continue;
                     }
 
@@ -149,17 +150,18 @@ class Course_TimesroomsController extends AuthenticatedController
                         if ($val->getRoom()) {
                             $this->cycle_dates[$cycle->metadate_id]['room_request'][] = $val->getRoom();
                         }
+                        $matched[] = $val->termin_id;
                     }
                 }
             }
         }
 
-        $single_dates = array();
+        $dates = $this->course->getDatesWithExdates();
 
-        foreach ($this->course->getDatesWithExdates() as $id => $val) {
+        $single_dates  = [];
+        foreach ($dates as $id => $val) {
             foreach ($this->semester as $sem) {
-                if (!($this->semester_filter == 'all' || $this->semester_filter == $sem->id)
-                ) {
+                if ($this->semester_filter !== 'all' && $this->semester_filter !== $sem->id) {
                     continue;
                 }
 
@@ -171,10 +173,19 @@ class Course_TimesroomsController extends AuthenticatedController
                     $single_dates[$sem->id] = new SimpleCollection();
                 }
                 $single_dates[$sem->id]->append($val);
+
+                $matched[] = $val->id;
             }
         }
 
-        $this->single_dates = $single_dates;
+        if ($this->semester_filter === 'all') {
+            $out_of_bounds = $dates->findBy('id', $matched, '!=');
+            if (count($out_of_bounds)) {
+                $single_dates['none'] = $out_of_bounds;
+            }
+        }
+
+        $this->single_dates  = $single_dates;
     }
 
     /**
@@ -261,7 +272,7 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         if (Config::get()->RESOURCES_ENABLE) {
-            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
         }
 
         $this->teachers          = $this->course->getMembersWithStatus('dozent');
@@ -375,7 +386,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->restoreRequest(words('date start_time end_time room related_teachers related_statusgruppen freeRoomText dateType fromDialog course_type'));
 
         if (Config::get()->RESOURCES_ENABLE) {
-            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+            $this->resList = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
         }
         $this->teachers = $this->course->getMembers('dozent');
         $this->groups   = Statusgruppen::findBySeminar_id($this->course->id);
@@ -515,7 +526,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->cycle_id = $cycle_id;
         $this->teachers = $this->course->getMembers('dozent');
         $this->gruppen  = Statusgruppen::findBySeminar_id($this->course->id);
-        $this->resList  = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, false, true);
+        $this->resList  = ResourcesUserRoomsList::getInstance($GLOBALS['user']->id, true, true, true);
         $this->render_template('course/timesrooms/editStack');
     }
 

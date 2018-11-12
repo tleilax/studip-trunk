@@ -4,7 +4,7 @@
     <fieldset>
         <legend><?= _('Neue Nachricht') ?></legend>
     <div>
-        <label for="user_id_1"><h4><?= _("An") ?></h4></label>
+        <label for="user_id_1"><?= _("An") ?></label>
         <ul class="list-csv" id="adressees">
             <li id="template_adressee" style="display: none;" class="adressee">
                 <input type="hidden" name="message_to[]" value="">
@@ -22,30 +22,18 @@
             <? endforeach ?>
         </ul>
         <div class="message-search-wrapper">
-        <?= QuickSearch::get("user_id", new StandardSearch("user_id"))
-            ->fireJSFunctionOnSelect("STUDIP.Messages.add_adressee")
+        <?= QuickSearch::get('user_id', new StandardSearch('user_id'))
+            ->fireJSFunctionOnSelect('STUDIP.Messages.add_adressee')
             ->withButton()
             ->render();
 
-        $search_obj = new SQLSearch("SELECT auth_user_md5.user_id, {$GLOBALS['_fullname_sql']['full_rev']} as fullname, username, perms "
-            . "FROM auth_user_md5 "
-            . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
-            . "WHERE "
-            . "username LIKE :input OR Vorname LIKE :input "
-            . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
-            . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
-            . "OR CONCAT(Nachname,', ',Vorname) LIKE :input "
-            . "OR Nachname LIKE :input "
-            . "OR Vorname LIKE :input"
-            . " ORDER BY fullname ASC",
-            _("Nutzer suchen"), "user_id");
-        $mps = MultiPersonSearch::get("add_adressees")
+        $mps = MultiPersonSearch::get('add_adressees')
            ->setLinkText(_('Mehrere Adressaten hinzufügen'))
             //->setDefaultSelectedUser($defaultSelectedUser)
             ->setTitle(_('Mehrere Adressaten hinzufügen'))
-            ->setExecuteURL(URLHelper::getURL("dispatch.php/messages/write"))
-            ->setJSFunctionOnSubmit("STUDIP.Messages.add_adressees")
-            ->setSearchObject($search_obj);
+            ->setExecuteURL($controller->url_for('messages/write'))
+            ->setJSFunctionOnSubmit('STUDIP.Messages.add_adressees')
+            ->setSearchObject($this->mp_search_object);
         foreach (Statusgruppen::findContactGroups() as $group) {
             $mps->addQuickfilter(
                 $group['name'],
@@ -61,13 +49,13 @@
     </div>
     <div>
         <label>
-            <h4><?= _("Betreff") ?></h4>
+            <?= _("Betreff") ?>
             <input type="text" name="message_subject" style="width: 100%" required value="<?= htmlReady($default_message['subject']) ?>">
         </label>
     </div>
     <div>
         <label>
-            <h4><?= _("Nachricht") ?></h4>
+            <?= _("Nachricht") ?>
             <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar wysiwyg"><?= wysiwygReady($default_message['message'],false) ?></textarea>
         </label>
     </div>
@@ -110,7 +98,7 @@
 
 <? if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']): ?>
     <div id="attachments" style="<?= $default_attachments ? '' : 'display: none;'?>">
-        <h4><?= _("Anhänge") ?></h4>
+        <?= _("Anhänge") ?>
         <div>
             <ul class="files">
                 <li style="display: none;" class="file">
@@ -149,12 +137,12 @@
 <? endif; ?>
     <div id="tags" style="<?= Request::get("default_tags") ? "" : 'display: none; ' ?>">
         <label>
-            <h4><?= _("Schlagworte") ?></h4>
+            <?= _("Schlagworte") ?>
             <input type="text" name="message_tags" style="width: 100%" placeholder="<?= _("z.B. klausur termin statistik etc.") ?>" value="<?= htmlReady(Request::get("default_tags")) ?>">
         </label>
     </div>
     <div id="settings" style="display: none;">
-        <h4><?= _("Optionen") ?></h4>
+        <?= _("Optionen") ?>
         <label for="message_mail">
             <input type="checkbox" name="message_mail" id="message_mail" value="1"<?= $mailforwarding ? " checked" : "" ?>>
             <?= _("Immer per E-Mail weiterleiten") ?>
@@ -169,7 +157,7 @@
 
     <? if (!\Studip\Markup::editorEnabled()) : ?>
     <div id="preview" style="display: none;">
-        <h4><?= _("Vorschau") ?></h4>
+        <?= _("Vorschau") ?>
         <p class="message_body"></p>
     </div>
     <? endif ?>

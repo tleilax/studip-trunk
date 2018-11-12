@@ -6,18 +6,7 @@
  */
 class DataFieldTextmarkupEntry extends DataFieldTextareaEntry
 {
-    /**
-     * Returns the input elements as html for this datafield
-     *
-     * @param String $name      Name prefix of the associated input
-     * @param Array  $variables Additional variables
-     * @return String containing the required html
-     */
-    public function getHTML($name = '', $variables = array())
-    {
-        $this->template = 'textmarkup.php';
-        return parent::getHTML($name, $variables);
-    }
+    protected $template = 'textmarkup.php';
 
     /**
      * Sets the value from a post request

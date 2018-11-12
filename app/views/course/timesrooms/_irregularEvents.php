@@ -45,7 +45,11 @@ $room_request_filter = function ($date) {
                            data-proxyfor="#singledate-<?= $semester_id ?> .ids-irregular">
                 <? endif ?>
                     <a href="<?= ContentBoxHelper::href('singledate-' . $semester_id) ?>">
-                        <?= htmlReady(Semester::find($semester_id)->name) ?>
+                        <? if ($semester_id !== 'none'): ?>
+                            <?= htmlReady(Semester::find($semester_id)->name) ?>
+                        <? else: ?>
+                            <?= _('Ohne Semester') ?>
+                        <? endif ?>
                     </a>
                 </h1>
                 <section>

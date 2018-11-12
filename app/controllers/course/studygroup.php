@@ -152,7 +152,7 @@ class Course_StudygroupController extends AuthenticatedController
             $ashare = new ShareWidget();
             $ashare->addCopyableLink(
                 _('Link zu dieser Studiengruppe kopieren'),
-                $this->link_for("course/studygroup/details/{$studygroup->id}"),
+                $this->link_for("course/studygroup/details/{$studygroup->id}", ['cid' => null]),
                 Icon::create('group')
             );
             $sidebar->addWidget($ashare);
@@ -846,7 +846,7 @@ class Course_StudygroupController extends AuthenticatedController
                                 _('Möchten Sie wirklich den Nutzer %s aus der Studiengruppe entfernen?'),
                                 get_fullname_from_uname($user, 'full')
                             ),
-                            $this->url_for("course/studygroup/edit_members/{$id}/remove_approved")
+                            $this->url_for("course/studygroup/edit_members/{$id}/remove_approved", compact('user'))
                         )->includeTicket();
                     } elseif ($action == 'remove_approved' && check_ticket(Request::get('studip_ticket'))) {
                         StudygroupModel::remove_user($user, $id);

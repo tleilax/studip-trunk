@@ -28,6 +28,7 @@ StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/c
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/calendar');
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/exceptions');
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/filesystem');
+StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/migrations');
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/modules');
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/navigation');
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib');
@@ -55,9 +56,6 @@ StudipAutoloader::addClassLookups([
     'MyRealmModel'           => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/my_realm.php',
     'StudygroupModel'        => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/studygroup.php',
     'StudipPlugin'           => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/StudIPPlugin.class.php',
-    'Migration'              => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/migrations/migration.php',
-    'Migrator'               => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/migrations/migrator.php',
-    'DBSchemaVersion'        => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/migrations/db_schema_version.php',
     'PluginAdministration'   => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/plugin_administration.php',
     'CalendarScheduleModel'  => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/calendar/schedule.php',
     'MVVController'          => $GLOBALS['STUDIP_BASE_PATH'] . '/app/controllers/module/mvv_controller.php'

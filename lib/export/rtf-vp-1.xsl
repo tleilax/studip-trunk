@@ -243,6 +243,13 @@
 \par <xsl:value-of select="."/>
 				</xsl:for-each>
 			</xsl:if>
+			<xsl:if test="lvgruppen">
+				<xsl:text>
+\par\b Module: \b0 </xsl:text>
+				<xsl:for-each select="lvgruppen/lvgruppe">
+\par <xsl:value-of select="."/>
+				</xsl:for-each>
+			</xsl:if>
 			<xsl:if test="datenfelder">
 				<xsl:for-each select="datenfelder/datenfeld">
 					<xsl:text>

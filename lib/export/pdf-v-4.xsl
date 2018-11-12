@@ -376,6 +376,16 @@ MitarbeiterInnenliste
 				</fo:block>
 				</xsl:for-each>
 			</xsl:if>
+			<xsl:if test="lvgruppen">
+				<fo:block>
+					<fo:inline font-weight="bold">Module: </fo:inline>
+				</fo:block>
+				<xsl:for-each select="lvgruppen/lvgruppe">
+				<fo:block>
+					<xsl:value-of select="."/>
+				</fo:block>
+				</xsl:for-each>
+			</xsl:if>
 			<xsl:if test="datenfelder">
 				<xsl:for-each select="datenfelder/datenfeld">
 					<fo:block>

@@ -241,6 +241,8 @@ class Course_LvgselectorController extends AuthenticatedController
         $access_right = get_config('MVV_ACCESS_ASSIGN_LVGRUPPEN');
         if ($perm->have_perm('root')) {
             return false;
+        } else if (LockRules::Check($course_id, 'mvv_lvgruppe')) {
+            return true;
         } else {
             if ($access_right == 'fakadmin') {
                 if ($perm->have_perm('admin')) {

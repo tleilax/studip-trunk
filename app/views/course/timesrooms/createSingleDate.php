@@ -35,14 +35,16 @@
                 <?= _('Raum') ?>
                 <select name="room" style="width: calc(100% - 23px);">
                     <option value="nothing"><?= _('<em>Keinen</em> Raum buchen') ?></option>
-                    <? $resList->reset();
-                    if ($resList->numberOfRooms()) : ?>
-                        <? while ($res = $resList->next()) : ?>
-                            <option
-                                value="<?= $res['resource_id'] ?>" <?= in_array($res['resource_id'], Request::getArray('room')) ? 'selected' : '' ?>>
-                                <?= my_substr(htmlReady($res["name"]), 0, 30) ?> <?= $seats[$res['resource_id']] ? '(' . $seats[$res['resource_id']] . ' ' . _('Sitzplätze') . ')' : '' ?>
+                    <? if ($resList->numberOfRooms()) : ?>
+                        <? foreach ($resList->getRooms() as $room_id => $room) : ?>
+                            <option value="<?= $room_id ?>"
+                                <?= Request::option('room') == $room_id ? 'selected' : '' ?>>
+                                <?= htmlReady($room->getName()) ?>
+                                <? if ($room->getSeats() > 1) : ?>
+                                    <?= sprintf(_('(%d Sitzplätze)'), $room->getSeats()) ?>
+                                <? endif ?>
                             </option>
-                        <? endwhile ?>
+                        <? endforeach ?>
                     <? endif ?>
                 </select>
                 <?= Icon::create('room-clear', 'clickable',

@@ -16,14 +16,15 @@
 
 require '../lib/bootstrap.php';
 
-require_once 'lib/migrations/db_schema_version.php';
-require_once 'lib/migrations/migrator.php';
+page_open([
+    'sess' => 'Seminar_Session',
+    'auth' => 'Seminar_Auth',
+    'perm' => 'Seminar_Perm',
+    'user' => 'Seminar_User',
+]);
 
-page_open(array("sess" => "Seminar_Session", "auth" => "Seminar_Auth",
-                "perm" => "Seminar_Perm", "user" => "Seminar_User"));
-
-$auth->login_if(!$perm->have_perm("root"));
-$perm->check("root");
+$auth->login_if(!$perm->have_perm('root'));
+$perm->check('root');
 
 if (empty($_SESSION['_language'])) {
     $_SESSION['_language'] = get_accepted_languages();
@@ -31,9 +32,9 @@ if (empty($_SESSION['_language'])) {
 
 $_language_path = init_i18n($_SESSION['_language']);
 
-include 'lib/include/html_head.inc.php';
+//include 'lib/include/html_head.inc.php';
 
-$path = $GLOBALS['STUDIP_BASE_PATH'].'/db/migrations';
+$path = $GLOBALS['STUDIP_BASE_PATH'] . '/db/migrations';
 $verbose = true;
 $target = NULL;
 
@@ -57,19 +58,26 @@ if (Request::submitted('start')) {
     $migrator->migrate_to($target);
     $lock->release();
     $announcements = ob_get_clean();
-    $message = MessageBox::Success(_("Die Datenbank wurde erfolgreich migriert."), explode("\n", $announcements));
+    PageLayout::postSuccess(
+        _('Die Datenbank wurde erfolgreich migriert.'),
+        explode("\n", $announcements)
+    );
 }
 
 $current = $version->get();
 $migrations = $migrator->relevant_migrations($target);
 
+PageLayout::setTitle(_('Stud.IP Web-Migrator'));
+$widget = Sidebar::get()->addWidget(new SidebarWidget());
+$widget->setTitle(_('Aktueller Versionsstand'));
+$widget->addElement(new WidgetElement($current));
+
 $template = $template_factory->open('web_migrate');
-$template->set_attribute('current_page', _('Datenbank-Migration'));
-$template->set_attribute('current', $current);
-$template->set_attribute('target', $target);
-$template->set_attribute('migrations', $migrations);
-$template->set_attribute('lock', $lock);
-$template->set_attribute('message', $message);
+$template->current_page = _('Datenbank-Migration');
+$template->target       = $target;
+$template->migrations   = $migrations;
+$template->lock         = $lock;
+$template->set_layout($template_factory->open('layouts/base.php'));
 echo $template->render();
 
-include 'lib/include/html_end.inc.php';
+//include 'lib/include/html_end.inc.php';

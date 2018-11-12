@@ -178,6 +178,12 @@ class ExternModuleTemplateLecturedetails extends ExternModule {
         $markers['TemplateLectureData'][] = array('<!-- END RANGE-PATH -->', '');
         $markers['TemplateLectureData'][] = array('<!-- END RANGE-PATHES -->', '');
 
+        $markers['TemplateLectureData'][] = array('<!-- BEGIN MODULES -->', '');
+        $markers['TemplateLectureData'][] = array('<!-- BEGIN MODULE -->', '');
+        $markers['TemplateLectureData'][] = array('###PATH###', _('Modulzuordnungen der Veranstaltung'));
+        $markers['TemplateLectureData'][] = array('<!-- END MODULE -->', '');
+        $markers['TemplateLectureData'][] = array('<!-- END MODULES -->', '');
+
         $markers['TemplateLectureData'][] = array('<!-- END LECTUREDETAILS -->');
 
         $markers['TemplateNews'][] = array('<!-- BEGIN NEWS -->', '');
@@ -224,12 +230,6 @@ class ExternModuleTemplateLecturedetails extends ExternModule {
     function getContent ($args = NULL, $raw = FALSE) {
         $this->seminar_id = $args["seminar_id"];
         $seminar = new Seminar($this->seminar_id);
-
-        $query = "SELECT * FROM seminare WHERE Seminar_id = ?";
-        $parameters = array($this->seminar_id);
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute($parameters);
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
 
         $visible = $this->config->getValue("Main", "visible");
 
@@ -353,6 +353,40 @@ class ExternModuleTemplateLecturedetails extends ExternModule {
                 foreach ($pathes as $foo => $path) {
                     $content['LECTUREDETAILS']['RANGE-PATHES']['RANGE-PATH'][$i]['PATH'] = ExternModule::ExtHtmlReady($path);
                     $i++;
+                }
+            }
+
+            if ($seminar->getSemClass()['module']) {
+                ModuleManagementModelTreeItem::setObjectFilter('Modul', function ($modul) use ($seminar) {
+                        // check for public status
+                        if (!$GLOBALS['MVV_MODUL']['STATUS']['values'][$modul->stat]['public']) {
+                            return false;
+                        }
+                        $modul_start = Semester::find($modul->start)->beginn ?: 0;
+                        $modul_end = Semester::find($modul->end)->beginn ?: PHP_INT_MAX;
+                        return $seminar->start_time <= $modul_end &&
+                               ($modul_start <= $seminar->start_time + $seminar->duration_time || $seminar->duration_time == -1);
+                    });
+                ModuleManagementModelTreeItem::setObjectFilter('StgteilVersion', function ($version) {
+                        return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
+                    });
+                $trail_classes = array('StgteilabschnittModul', 'Studiengang');
+                $mvv_object_paths = MvvCourse::get($this->seminar_id)->getTrails($trail_classes);
+                $mvv_paths = array();
+
+                foreach ($mvv_object_paths as $mvv_object_path) {
+                    // show only complete paths
+                    if (count($mvv_object_path) == 2) {
+                        $mvv_object_names = array();
+                        foreach ($mvv_object_path as $mvv_object) {
+                            $mvv_object_names[] = $mvv_object->getDisplayName();
+                        }
+                        $mvv_paths[] = implode(' > ', $mvv_object_names);
+                    }
+                }
+
+                foreach (array_unique_recursive($mvv_paths, SORT_REGULAR) as $mvv_path) {
+                    $content['LECTUREDETAILS']['MODULES']['MODULE'][] = array('PATH' => ExternModule::ExtHtmlReady($mvv_path));
                 }
             }
 

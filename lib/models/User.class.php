@@ -344,6 +344,11 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
             $query .= "AND au.locked = 1 ";
         }
 
+        // show only users who are not lecturers
+        if ($attributes['show_only_not_lectures']) {
+            $query .= "AND au.user_id NOT IN (SELECT user_id FROM seminar_user WHERE status = 'dozent') ";
+        }
+
         //inactivity
         if (!is_null($attributes['inaktiv']) && $attributes['inaktiv'][0] != 'nie') {
             $comp = in_array(trim($attributes['inaktiv'][0]), ['=', '>', '<=']) ? $attributes['inaktiv'][0] : '=';
@@ -392,6 +397,7 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
         }
 
         $query .= " GROUP BY au.user_id ";
+
         //sortieren
         switch ($attributes['sort']) {
             case "perms":

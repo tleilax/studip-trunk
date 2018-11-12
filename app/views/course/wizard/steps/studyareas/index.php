@@ -20,9 +20,9 @@
             </ul>
         </li>
     </ul>
-    <? if (!$values['locked']) : ?>
-        <div data-dialog-button>
-            <?= Studip\Button::createAccept(_('Speichern')) ?>
+    <? if (!$stepnumber && !$values['locked']) : ?>
+        <div data-dialog-button class="hidden-no-js">
+            <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
         </div>
     <? endif ?>
 </div>
