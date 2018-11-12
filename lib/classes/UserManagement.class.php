@@ -676,7 +676,7 @@ class UserManagement
     * @param    bool delete all documents belonging to the user
     * @return   bool Removal successful?
     */
-    public function deleteUser($delete_documents = true)
+    public function deleteUser($delete_documents = true, $delete_content_from_course = true)
     {
         global $perm;
 
@@ -935,10 +935,48 @@ class UserManagement
             "DELETE FROM evalanswer_user WHERE user_id = ?",
             "DELETE FROM help_tour_user WHERE user_id = ?",
             "DELETE FROM personal_notifications_user WHERE user_id = ?",
+
+
+            //diese Daten sollen gelöscht werden
+            //"DELETE FROM comments WHERE user_id = ?",
+            //"DELETE FROM etask_task_tags WHERE user_id = ?",
+            //"DELETE FROM etask_test_tags WHERE user_id = ?",
+
+            //direkter userkontext
+            //"DELETE FROM questionnaires LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?", context spezi
+            //"DELETE FROM questionnaire_answers LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
+            //"DELETE FROM questionnaire_anonymous_answers LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
+            //"DELETE FROM questionnaire_assignments WHERE user_id = ?",
+            //"DELETE FROM etask_assignment_attempts LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
+            //"DELETE FROM etask_responses LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
+            //"DELETE FROM etask_tasks LEFT JOIN etask_test_tasks tt ON (etask_tasks.id = tt.task_id) LEFT JOIN etask_assignments ea ON (tt.`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND  user_id = ?",
+            //"DELETE FROM etask_tests LEFT JOIN etask_assignments ea ON (`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND user_id = ?",
+
         );
         foreach ($queries as $query) {
             DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
         }
+
+        // delete all remaining user data in course context if option selected
+        if ($delete_content_from_course) {
+             $queries = array(
+                //"DELETE FROM questionnaires WHERE user_id = ?", context spezi
+                //"DELETE FROM questionnaire_answers WHERE user_id = ?",
+                //"DELETE FROM questionnaire_assignments WHERE user_id = ?",
+                //"DELETE FROM questionnaire_anonymous_answers WHERE user_id = ?",
+
+                //"DELETE FROM etask_assignment_attempts WHERE user_id = ?",
+                //"DELETE FROM etask_responses WHERE user_id = ?",
+                //"DELETE FROM etask_tasks WHERE user_id = ?",
+                //"DELETE FROM etask_tests WHERE user_id = ?",
+            );
+            foreach ($queries as $query) {
+                DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
+            }
+        }
+
+        //make remaining data anonymous
+        $this->anonymize($this->user_data['auth_user_md5.user_id']);
 
         // Clean up orphaned items
         $queries = [
@@ -992,6 +1030,13 @@ class UserManagement
             $this->msg .= "info§".sprintf(_("%s Einträge in den Vertretungseinstellungen gelöscht."), $deputyEntries)."§";
         }
 
+        $plugins = PluginManager::getInstance()->getPlugins(NULL);
+        foreach ($plugins as $id => $plugin) {
+            if ($plugin instanceof PrivacyPlugin) {
+                $plugin_data = $plugin->deleteUserdata($this->user);
+            }
+        }
+
         // delete Stud.IP account
         $query = "DELETE FROM auth_user_md5 WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
@@ -1017,11 +1062,28 @@ class UserManagement
         // Trigger delete on sorm object which will fire notifications
         // TODO: Remove everything from this method that would also be
         //       deleted in User::delete()
-        $this->user->delete();
+        if ($this->user->delete()) {
+            NotificationCenter::postNotification('UserDidDelete', $this->user_data['auth_user_md5.user_id']);
+        }
 
         unset($this->user_data);
         return TRUE;
 
+    }
+
+    private function anonymize($user_id)
+    {
+            //diese sollen anonymisiert werden
+            //"wiki WHERE user_id = ?",
+            //"wiki_locks WHERE user_id = ?",
+            //"log_events WHERE user_id = ?",
+            //"log_events WHERE affected_range_id = ?",
+            //"log_events WHERE coaffected_range_id = ?",
+            //"forum_entries WHERE user_id = ?",
+            //"event_data WHERE author_id = ?",
+            //"termine WHERE author_id = ?",
+            //"ex_termine WHERE author_id = ?",
+            //"etask_responses WHERE grader_id = ?",
     }
 
     private function adminOK()

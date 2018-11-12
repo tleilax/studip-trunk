@@ -89,10 +89,14 @@ class CoreAdmin implements StudipModule {
                     }
 
                     if ((get_config('ALLOW_DOZENT_VISIBILITY') || $GLOBALS['perm']->have_perm('admin')) && !LockRules::Check($course_id, 'seminar_visibility')) {
-                        $is_visible = Course::findCurrent()->visible;
-                        $item = new Navigation(_('Sichtbarkeit ändern') . ' (' .  ($is_visible ? _('sichtbar') : _('unsichtbar')) . ')', 'dispatch.php/course/management/change_visibility');
-                        $item->setImage(Icon::create('visibility-' . ($is_visible ? 'visible' : 'invisible'), 'clickable'));
-                        $main->addSubNavigation('visibility', $item);
+                        $course = Course::findCurrent();
+                        $endsemester = Semester::findOneBySQL("beginn =?",[(intVal($course->start_time)+intVal($course->duration_time))]);
+                        if ($endsemester->visible || $course->duration_time == "-1") {
+                            $is_visible = $course->visible;
+                            $item = new Navigation(_('Sichtbarkeit ändern') . ' (' .  ($is_visible ? _('sichtbar') : _('unsichtbar')) . ')', 'dispatch.php/course/management/change_visibility');
+                            $item->setImage(Icon::create('visibility-' . ($is_visible ? 'visible' : 'invisible'), 'clickable'));
+                            $main->addSubNavigation('visibility', $item);
+                        }
                     }
                     if ($GLOBALS['perm']->have_perm('admin')) {
                         $is_locked = Course::findCurrent()->lock_rule;

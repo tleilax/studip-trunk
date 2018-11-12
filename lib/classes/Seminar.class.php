@@ -2098,7 +2098,7 @@ class Seminar
                 $this->applyTimeFilter($semester->beginn, $semester->ende);
             }
         }
-        
+
 
         $template->set_attribute('dates', $this->getUndecoratedData(isset($params['semester_id'])));
         $template->set_attribute('seminar_id', $this->getId());

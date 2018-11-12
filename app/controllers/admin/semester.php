@@ -254,4 +254,94 @@ class Admin_SemesterController extends AuthenticatedController
               ->asDialog('size=auto');
         $sidebar->addWidget($links);
     }
+
+    /**
+     * This method locks a semester or a bundle of semesters.
+     *
+     * @param string $id Id of the semester (or 'bulk' for a bulk operation)
+     */
+    public function lock_action($id)
+    {
+        $ids = $id === 'bulk'
+             ? Request::optionArray('ids')
+             : array($id);
+
+        if (count($ids)) {
+            $errors  = array();
+            $locked = 0;
+
+            $semesters = Semester::findMany($ids);
+            foreach ($semesters as $semester) {
+
+                $semester->visible = 0;
+
+                if (!$semester->store()) {
+                    $errors[] = sprintf(_('Fehler beim Sperren des Semesters "%s".'), $semester->name);
+                } else {
+
+                    $courses = Course::findBySQL("duration_time >= 0 AND (start_time+duration_time) = ?", [$semester->beginn]);
+                    foreach ($courses as $course) {
+                        $course->visible = 0;
+                        $course->store();
+                    }
+                    $locked += 1;
+                }
+            }
+
+            if (count($errors) === 1) {
+                PageLayout::postMessage(MessageBox::error($errors[0]));
+            } elseif (!empty($errors)) {
+                $message = _('Beim Sperren der Semester sind folgende Fehler aufgetreten.');
+                PageLayout::postMessage(MessageBox::error($message, $errors));
+            }
+            if ($locked > 0) {
+                $message = sprintf(_('%u Semester wurde(n) erfolgreich gesperrt.'), $locked);
+                PageLayout::postMessage(MessageBox::success($message));
+            }
+        }
+
+        $this->redirect('admin/semester');
+    }
+
+    /**
+     * This method unlocks a semester or a bundle of semesters.
+     *
+     * @param string $id Id of the semester (or 'bulk' for a bulk operation)
+     */
+    public function unlock_action($id)
+    {
+        $ids = $id === 'bulk'
+             ? Request::optionArray('ids')
+             : array($id);
+
+        if (count($ids)) {
+            $errors  = array();
+            $unlocked = 0;
+
+            $semesters = Semester::findMany($ids);
+            foreach ($semesters as $semester) {
+
+                $semester->visible = 1;
+
+                if (!$semester->store()) {
+                    $errors[] = sprintf(_('Fehler beim Entsperren des Semesters "%s".'), $semester->name);
+                } else {
+                    $unlocked += 1;
+                }
+            }
+
+            if (count($errors) === 1) {
+                PageLayout::postMessage(MessageBox::error($errors[0]));
+            } elseif (!empty($errors)) {
+                $message = _('Beim Entsperren der Semester sind folgende Fehler aufgetreten.');
+                PageLayout::postMessage(MessageBox::error($message, $errors));
+            }
+            if ($unlocked > 0) {
+                $message = sprintf(_('%u Semester wurde(n) erfolgreich entsperrt.'), $unlocked);
+                PageLayout::postMessage(MessageBox::success($message));
+            }
+        }
+
+        $this->redirect('admin/semester');
+    }
 }

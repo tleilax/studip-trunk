@@ -73,6 +73,23 @@
                 <a data-dialog="size=auto" href="<?= $controller->url_for('admin/semester/edit/' . $semester->id) ?>">
                     <?= Icon::create('edit', 'clickable', ['title' => _('Semesterangaben bearbeiten')])->asImg() ?>
                 </a>
+
+            <? if ($semester->visible): ?>
+                <?= Icon::create('lock-unlocked', 'clickable', ['title' => _('Semester sperren')])
+                        ->asInput(array(
+                            'formaction'   => $controller->url_for('admin/semester/lock/'.$semester->id),
+                            'data-confirm' => _('Soll das Semester wirklich gesperrt werden?'),
+                            'style'        => 'vertical-align: text-bottom'
+                        )) ?>
+            <? else: ?>
+                <?= Icon::create('lock-locked', 'clickable', ['title' => _('Semester entsperren')])
+                        ->asInput(array(
+                            'formaction'   => $controller->url_for('admin/semester/unlock/'.$semester->id),
+                            'data-confirm' => _('Soll das Semester wirklich entsperrt werden?'),
+                            'style'        => 'vertical-align: text-bottom'
+                        )) ?>
+            <? endif; ?>
+
             <? if ($semester->absolute_seminars_count): ?>
                 <?= Icon::create('trash', 'inactive', ['title' => _('Semester hat Veranstaltungen und kann daher nicht gelöscht werden.')])->asImg() ?>
             <? else: ?>
@@ -80,7 +97,7 @@
                         ->asInput(array(
                             'formaction'   => $controller->url_for('admin/semester/delete/'.$semester->id),
                             'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'),
-                            'style'        => 'vertical-align: bottom'
+                            'style'        => 'vertical-align: text-bottom'
                         )) ?>
             <? endif; ?>
             </td>

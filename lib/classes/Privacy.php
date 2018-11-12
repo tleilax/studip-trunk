@@ -16,21 +16,51 @@ class Privacy
     /**
      * Names of classes containing user data.
      */
-    private static $privacy_classes = [
+
+    private static $privacy_core_classes = [
         'User',
-        'BlubberPosting',
+        'DataField',
+        'DatafieldEntryModel',
+        'UserConfig',
+        'HelpTourUser',
+        'LogEvent'
+    ];
+
+    private static $privacy_date_classes = [
         'CalendarEvent',
         'EventData',
         'CourseDate',
-        'CourseExDate',
-        'DataField',
-        'DatafieldEntryModel',
-        'FileRef',
-        'ForumEntry',
+        'CourseExDate'
+    ];
+
+    private static $privacy_message_classes = [
+        'BlubberPosting',
         'StudipNews',
         'StudipComment',
         'Message',
-        'MessageUser',
+        'MessageUser'
+    ];
+
+    private static $privacy_content_classes = [
+        'FileRef',
+        'ForumEntry',
+        'WikiPage',
+        'StudipLitList'
+    ];
+
+    private static $privacy_quest_classes = [
+        'Evaluation',
+        'Questionnaire',
+        'QuestionnaireAnswer',
+        'QuestionnaireAnonymousAnswer',
+        'QuestionnaireAssignment',
+        'eTask\Attempt',
+        'eTask\Response',
+        'eTask\Task',
+        'eTask\Test'
+    ];
+
+    private static $privacy_membership_classes = [
         'Course',
         'CourseMember',
         'AdmissionApplication',
@@ -38,23 +68,10 @@ class Privacy
         'ArchivedCourseMember',
         'Statusgruppen',
         'StatusgruppeUser',
-        'UserConfig',
         'InstituteMember',
         'UserStudyCourse',
         'Fach',
-        'Abschluss',
-        'WikiPage',
-        'Evaluation',
-        'Questionnaire',
-        'QuestionnaireAnswer',
-        'QuestionnaireAssignment',
-        'eTask\Attempt',
-        'eTask\Response',
-        'eTask\Task',
-        'eTask\Test',
-        'HelpTourUser',
-        'StudipLitList',
-        'LogEvent'
+        'Abschluss'
     ];
 
     /**
@@ -66,12 +83,43 @@ class Privacy
      * @param string $user_id
      * @return array
      */
-    public static function getUserdataInformation($user_id)
+    public static function getUserdataInformation($user_id, $section = null)
     {
         $core_data = [];
         $user = User::find($user_id);
 
-        foreach (self::$privacy_classes as $privacy_class) {
+        switch ($section) {
+            case "core":
+                $privacy_classes = self::$privacy_core_classes;
+                break;
+            case "date":
+                $privacy_classes = self::$privacy_date_classes;
+                break;
+            case "message":
+                $privacy_classes = self::$privacy_message_classes;
+                break;
+            case "content":
+                $privacy_classes = self::$privacy_content_classes;
+                break;
+            case "quest":
+                $privacy_classes = self::$privacy_quest_classes;
+                break;
+            case "membership":
+                $privacy_classes = self::$privacy_membership_classes;
+                break;
+            default:
+                $privacy_classes = array_merge(
+                    self::$privacy_core_classes,
+                    self::$privacy_date_classes,
+                    self::$privacy_message_classes,
+                    self::$privacy_content_classes,
+                    self::$privacy_quest_classes,
+                    self::$privacy_membership_classes);
+        }
+
+
+
+        foreach ($privacy_classes as $privacy_class) {
             if (class_exists($privacy_class) && in_array('PrivacyObject', class_implements($privacy_class))) {
                 foreach ($privacy_class::getUserdata($user) as $label => $class_storage) {
                     if ($class_storage->hasData()) {

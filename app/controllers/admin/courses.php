@@ -732,18 +732,21 @@ class Admin_CoursesController extends AuthenticatedController
                 if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
                     $course = Course::find($course_id);
 
-                    $visibility = isset($visibilites[$course_id]) ? 1 : 0;
+                    $endsemester = Semester::findOneBySQL("beginn =?",[(intVal($course->start_time)+intVal($course->duration_time))]);
+                    if ($endsemester->visible || $course->duration_time == "-1") {
+                        $visibility = isset($visibilites[$course_id]) ? 1 : 0;
 
-                    if ((int)$course->visible == $visibility) {
-                        continue;
-                    }
+                        if ((int)$course->visible == $visibility) {
+                            continue;
+                        }
 
-                    $course->setValue('visible', $visibility);
-                    if (!$course->store()) {
-                        $errors[] = $course->name;
-                    } else {
-                        $result = true;
-                        StudipLog::log($visibility ? 'SEM_VISIBLE' : 'SEM_INVISIBLE', $course->id);
+                        $course->setValue('visible', $visibility);
+                        if (!$course->store()) {
+                            $errors[] = $course->name;
+                        } else {
+                            $result = true;
+                            StudipLog::log($visibility ? 'SEM_VISIBLE' : 'SEM_INVISIBLE', $course->id);
+                        }
                     }
                 }
             }

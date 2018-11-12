@@ -191,10 +191,10 @@ use Studip\Button, Studip\LinkButton;
 
                         if (Privacy::isVisible($user_id)) {
                             $actionMenu->addLink(
-                                $controller->url_for('privacy/index/' . $user->user_id),
+                                $controller->url_for('privacy/landing/' . $user->user_id),
                                 _('Anzeige Personendaten'),
                                 Icon::create('log', Icon::ROLE_CLICKABLE, tooltip2(_('Anzeige Personendaten'))),
-                                ['data-dialog' => 'size=auto']
+                                ['data-dialog' => 'size=medium']
                             );
                             $actionMenu->addLink(
                                 $controller->url_for('privacy/print/' . $user->user_id),

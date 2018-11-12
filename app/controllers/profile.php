@@ -331,9 +331,9 @@ class ProfileController extends AuthenticatedController
         if (Privacy::isVisible($this->current_user->user_id)) {
             $privacy->addLink(
                 _('Anzeige Personendaten'),
-                $this->url_for('privacy/index/' . $this->current_user->user_id),
+                $this->url_for('privacy/landing/' . $this->current_user->user_id),
                 Icon::create('log', Icon::ROLE_CLICKABLE, tooltip2(_('Anzeige Personendaten')))
-            )->asDialog('size=big');
+            )->asDialog('size=medium');
 
             $privacy->addLink(
                 _('Personendaten drucken'),

@@ -15,7 +15,7 @@
 
 class PrivacyController extends AuthenticatedController
 {
-    public function index_action($user_id)
+    public function index_action($user_id, $section = null)
     {
         if (!Privacy::isVisible($user_id)) {
             throw new AccessDeniedException();
@@ -23,16 +23,72 @@ class PrivacyController extends AuthenticatedController
 
         Navigation::activateItem('/profile');
         $user = User::find($user_id);
-        $this->plugins = [Privacy::getUserdataInformation($user_id)] + $this->getStoredUserDataFromPlugins($user, 'tabular');
+        if ($section) {
+            if ($section == 'plugins') {
+                $this->plugins = $this->getStoredUserDataFromPlugins($user, 'tabular');
+            } else {
+                $this->plugins = [Privacy::getUserdataInformation($user_id, $section)];
+            }
+        } else {
+            $this->plugins = [Privacy::getUserdataInformation($user_id)] + $this->getStoredUserDataFromPlugins($user, 'tabular');
+        }
+
         $this->user_id = $user_id;
+        $this->section = $section;
 
         $actions = new ActionsWidget();
         $actions->setTitle(_('Datenschutz'));
         $actions->addLink(
             _('Anzeige Personendaten'),
-            $this->url_for('privacy/index/' . $user_id),
+            $this->url_for('privacy/landing/' . $user_id),
             Icon::create('log', Icon::ROLE_CLICKABLE, tooltip2(_('Anzeige Personendaten')))
-        )->asDialog('size=big');
+        )->asDialog('size=medium');
+        $actions->addLink(
+            _('Personendaten drucken'),
+            $this->url_for('privacy/print/' . $user_id),
+            Icon::create('print', Icon::ROLE_CLICKABLE, tooltip2(_('Personendaten drucken'))),
+            ['class' => 'print_action', 'target' => '_blank']
+        );
+        $actions->addLink(
+            _('Export Personendaten als CVS'),
+            $this->url_for('privacy/export/' . $user_id),
+            Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als CVS')))
+        );
+        $actions->addLink(
+            _('Export persönlicher Dateien als ZIP'),
+            $this->url_for('privacy/filesexport/' . $user_id),
+            Icon::create('file-archive', Icon::ROLE_CLICKABLE, tooltip2(_('Export persönlicher Dateien als ZIP')))
+        );
+
+        Sidebar::Get()->addWidget($actions);
+
+
+        $exports = new ActionsWidget();
+        $exports->setTitle(_('Export'));
+        foreach ($this->plugins as $plugin_id => $plugin_data) {
+            foreach ($plugin_data as $label => $tabledata) {
+                $exports->addLink(
+                    _(htmlReady($label) . ' CSV'),
+                    $this->url_for("privacy/export2csv/{$plugin_id}/{$tabledata['table_name']}/{$user_id}"),
+                    Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(htmlReady($label) . ' CSV'))
+                );
+            }
+        }
+        Sidebar::Get()->addWidget($exports);
+    }
+
+    public function landing_action($user_id)
+    {
+        if (!Privacy::isVisible($user_id)) {
+            throw new AccessDeniedException();
+        }
+
+        Navigation::activateItem('/profile');
+        $user = User::find($user_id);
+        $this->user_id = $user_id;
+
+        $actions = new ActionsWidget();
+        $actions->setTitle(_('Datenschutz'));
         $actions->addLink(
             _('Personendaten drucken'),
             $this->url_for('privacy/print/' . $user_id),
