@@ -110,7 +110,7 @@ class Course_RoomRequestsController extends AuthenticatedController
             $request = new RoomRequest();
             $request->seminar_id = $this->course_id;
             $request->user_id = $GLOBALS['user']->id;
-            $request->setDefaultSeats($admission_turnout ?: 10);
+            $request->setDefaultSeats($admission_turnout ?: Config::get()->RESOURCES_ROOM_REQUEST_DEFAULT_SEATS);
 
             list($new_type, $id) = explode('_', Request::option('new_room_request_type'));
             if ($new_type == 'course') {
