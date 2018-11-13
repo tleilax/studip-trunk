@@ -54,6 +54,7 @@ $xml_groupnames_lecture = array(
     "childgroup2"       =>      "dozenten",
     "childobject2"      =>      "dozent",
     "childgroup3"       =>      "bereiche",
+    "childgroup3a"      =>      "lvgruppen",
     "childgroup4"       =>      "datenfelder",
     "childobject4"      =>      "datenfeld"
 );
@@ -75,6 +76,7 @@ $xml_names_lecture = array(
     "VeranstaltungsNummer"  =>      "veranstaltungsnummer",
     "ects"          =>      "ects",
     "bereich"           =>      "bereich",
+    "lvgruppe"          =>      "lvgruppe",
     "metadata_dates"    =>      array("vorbesprechung", "erstertermin", "termin"),
     "Institut_id"       => "heimateinrichtung"
 );
