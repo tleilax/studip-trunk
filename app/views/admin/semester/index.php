@@ -75,12 +75,9 @@
                 </a>
 
             <? if ($semester->visible): ?>
-                <?= Icon::create('lock-unlocked', 'clickable', ['title' => _('Semester sperren')])
-                        ->asInput(array(
-                            'formaction'   => $controller->url_for('admin/semester/lock/'.$semester->id),
-                            'data-confirm' => _('Soll das Semester wirklich gesperrt werden?'),
-                            'style'        => 'vertical-align: text-bottom'
-                        )) ?>
+                <a data-dialog="size=auto" href="<?= $controller->url_for('admin/semester/lock/'.$semester->id) ?>">
+                    <?= Icon::create('lock-unlocked', 'clickable', ['title' => _('Semester sperren')])->asImg() ?>
+                </a>
             <? else: ?>
                 <?= Icon::create('lock-locked', 'clickable', ['title' => _('Semester entsperren')])
                         ->asInput(array(

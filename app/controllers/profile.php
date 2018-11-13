@@ -349,6 +349,12 @@ class ProfileController extends AuthenticatedController
             );
 
             $privacy->addLink(
+                _('Export Personendaten als XML'),
+                $this->url_for('privacy/xml/' . $this->current_user->user_id),
+                Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als XML')))
+            );
+
+            $privacy->addLink(
                 _('Export persönlicher Dateien als ZIP'),
                 $this->url_for('privacy/filesexport/' . $this->current_user->user_id),
                 Icon::create('file-archive', Icon::ROLE_CLICKABLE, tooltip2(_('Export persönlicher Dateien als ZIP')))

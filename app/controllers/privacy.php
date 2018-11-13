@@ -55,16 +55,27 @@ class PrivacyController extends AuthenticatedController
             Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als CVS')))
         );
         $actions->addLink(
+            _('Export persönlicher Dateien als XML'),
+            $this->url_for('privacy/xml/' . $user_id),
+            Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als XML')))
+        );
+        $actions->addLink(
             _('Export persönlicher Dateien als ZIP'),
             $this->url_for('privacy/filesexport/' . $user_id),
             Icon::create('file-archive', Icon::ROLE_CLICKABLE, tooltip2(_('Export persönlicher Dateien als ZIP')))
         );
-
         Sidebar::Get()->addWidget($actions);
 
 
         $exports = new ActionsWidget();
         $exports->setTitle(_('Export'));
+
+        $exports->addLink(
+            _('Export angezeigter Dateien als XML'),
+            $this->url_for('privacy/xml/' . $user_id . ($section?'/'.$section:'')),
+            Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export angezeigter Daten als XML')))
+        );
+
         foreach ($this->plugins as $plugin_id => $plugin_data) {
             foreach ($plugin_data as $label => $tabledata) {
                 $exports->addLink(
@@ -101,11 +112,15 @@ class PrivacyController extends AuthenticatedController
             Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als CVS')))
         );
         $actions->addLink(
+            _('Export persönlicher Dateien als XML'),
+            $this->url_for('privacy/xml/' . $user_id),
+            Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als XML')))
+        );
+        $actions->addLink(
             _('Export persönlicher Dateien als ZIP'),
             $this->url_for('privacy/filesexport/' . $user_id),
             Icon::create('file-archive', Icon::ROLE_CLICKABLE, tooltip2(_('Export persönlicher Dateien als ZIP')))
         );
-
         Sidebar::Get()->addWidget($actions);
     }
 
@@ -248,6 +263,55 @@ class PrivacyController extends AuthenticatedController
         );
         $this->response->add_header('Content-Length', filesize($zipname));
         $this->render_text(file_get_contents($zipname));
+    }
+
+    /**
+     * Create a xml file with user data
+     *
+     * @param string $user_id
+     * @throws AccessDeniedException if user has no privileges
+     */
+    public function xml_action($user_id, $section = null)
+    {
+        if (!Privacy::isVisible($user_id)) {
+            throw new AccessDeniedException();
+        }
+
+        $user = User::find($user_id);
+        if ($section) {
+            if ($section == 'plugins') {
+                $this->plugins = $this->getStoredUserDataFromPlugins($user, 'tabular');
+            } else {
+                $this->plugins = [Privacy::getUserdataInformation($user_id, $section)];
+            }
+        } else {
+            $this->plugins = [Privacy::getUserdataInformation($user_id)] + $this->getStoredUserDataFromPlugins($user, 'tabular');
+        }
+
+        $xml = new SimpleXMLElement('<xml/>');
+        foreach ($this->plugins as $plugin_id => $plugin_data) {
+            foreach ($plugin_data as $label => $tabledata) {
+                if ($tabledata['table_content']) {
+                    $table = $xml->addChild('table');
+                    $table->addChild('tablename', $tabledata['table_name']);
+                    foreach ($tabledata['table_content'] as $row) {
+                        $tableentry = $table->addChild('tableentry');
+                        foreach ($row as $key => $value){
+                            $tableentry->addChild('field', $key);
+                            $tableentry->addChild('value', htmlReady($value));
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->set_content_type('text/xml');
+        $this->response->add_header(
+            'Content-disposition',
+            'attachment;' . encode_header_parameter('filename', "datenexport_{$user->username}.xml")
+        );
+        $this->render_text($xml->asXML());
+
     }
 
     /**

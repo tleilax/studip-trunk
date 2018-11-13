@@ -271,36 +271,71 @@ class Admin_SemesterController extends AuthenticatedController
             $locked = 0;
 
             $semesters = Semester::findMany($ids);
-            foreach ($semesters as $semester) {
 
-                $semester->visible = 0;
+            if (Request::submitted('confirm_lock')) {
 
-                if (!$semester->store()) {
-                    $errors[] = sprintf(_('Fehler beim Sperren des Semesters "%s".'), $semester->name);
-                } else {
-
-                    $courses = Course::findBySQL("duration_time >= 0 AND (start_time+duration_time) = ?", [$semester->beginn]);
-                    foreach ($courses as $course) {
-                        $course->visible = 0;
-                        $course->store();
-                    }
-                    $locked += 1;
+                $lock_rule = Request::get('lock_sem_all');
+                if ($lock_rule == 'none') {
+                    $lock_rule = null;
                 }
+
+                foreach ($semesters as $semester) {
+
+                    $semester->visible = 0;
+
+                    if (!$semester->store()) {
+                        $errors[] = sprintf(_('Fehler beim Sperren des Semesters "%s".'), $semester->name);
+                    } else {
+
+                        $courses = Course::findBySQL("duration_time >= 0 AND (start_time+duration_time) = ?", [$semester->beginn]);
+                        foreach ($courses as $course) {
+                            $course->visible = 0;
+                            if ($course->lock_rule != $lock_rule) {
+                                $course->setValue('lock_rule', $lock_rule);
+                            }
+                            $course->store();
+                        }
+                        $locked += 1;
+                    }
+                }
+
+                if (count($errors) === 1) {
+                    PageLayout::postMessage(MessageBox::error($errors[0]));
+                } elseif (!empty($errors)) {
+                    $message = _('Beim Sperren der Semester sind folgende Fehler aufgetreten.');
+                    PageLayout::postMessage(MessageBox::error($message, $errors));
+                }
+                if ($locked > 0) {
+                    $message = sprintf(_('%u Semester wurde(n) erfolgreich gesperrt.'), $locked);
+                    PageLayout::postMessage(MessageBox::success($message));
+                }
+
+                $this->redirect('admin/semester');
+
+            } else {
+
+                $sum_courses = 0;
+                foreach ($semesters as $semester) {
+                    $sum_courses += ($semester->continuous_seminars_count + $semester->duration_seminars_count);
+                }
+
+                PageLayout::postWarning(
+                    sprintf(_('Wollen sie wirklich %s Semester sperren?'), count($semesters)),
+                    [sprintf(_('Es werden %s Veranstaltungen geändert'), $sum_courses)]);
+
+                $this->all_lock_rules = new SimpleCollection(array_merge(
+                    array(array(
+                        'name'    => '--' . _("keine Sperrebene") . '--',
+                        'lock_id' => 'none'
+                    )),
+                    LockRule::findAllByType('sem')
+                ));
+
             }
 
-            if (count($errors) === 1) {
-                PageLayout::postMessage(MessageBox::error($errors[0]));
-            } elseif (!empty($errors)) {
-                $message = _('Beim Sperren der Semester sind folgende Fehler aufgetreten.');
-                PageLayout::postMessage(MessageBox::error($message, $errors));
-            }
-            if ($locked > 0) {
-                $message = sprintf(_('%u Semester wurde(n) erfolgreich gesperrt.'), $locked);
-                PageLayout::postMessage(MessageBox::success($message));
-            }
         }
 
-        $this->redirect('admin/semester');
+
     }
 
     /**

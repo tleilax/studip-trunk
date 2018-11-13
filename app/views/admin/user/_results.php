@@ -208,6 +208,11 @@ use Studip\Button, Studip\LinkButton;
                                 Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als CSV')))
                             );
                             $actionMenu->addLink(
+                                $controller->url_for('privacy/xml/' . $user->user_id),
+                                _('Export Personendaten als XML'),
+                                Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als XML')))
+                            );
+                            $actionMenu->addLink(
                                 $controller->url_for('privacy/filesexport/' . $user->user_id),
                                 _('Export persönlicher Dateien als ZIP'),
                                 Icon::create('file-archive', Icon::ROLE_CLICKABLE, tooltip2(_('Export persönlicher Dateien als ZIP')))

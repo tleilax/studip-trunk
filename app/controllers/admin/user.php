@@ -254,7 +254,7 @@ class Admin_UserController extends AuthenticatedController
                 $umanager->getFromDatabase($user_id);
 
                 //delete
-                if ($umanager->deleteUser(Request::option('documents', false))) {
+                if ($umanager->deleteUser(Request::option('documents', false), Request::option('coursecontent', false))) {
                     $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', mb_substr($umanager->msg, 0, -1)));
                     PageLayout::postSuccess(htmlReady(sprintf(_('"%s (%s)" wurde erfolgreich gelöscht.'), $user->getFullName(), $user->username)), $details);
                 } else {
@@ -1592,6 +1592,12 @@ class Admin_UserController extends AuthenticatedController
                 _('Export Personendaten als CSV'),
                 $this->url_for('privacy/export/' . $this->user->user_id),
                 Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als CSV')))
+            );
+
+            $privacy->addLink(
+                _('Export Personendaten als XML'),
+                $this->url_for('privacy/xml/' . $this->user->user_id),
+                Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als XML')))
             );
 
             $privacy->addLink(

@@ -17,6 +17,10 @@ use Studip\Button;
         <?= _('Dokumente löschen?') ?>
     </label>
     <label>
+        <input id="coursecontent" name="coursecontent" value="1" checked type="checkbox">
+        <?= _('veranstaltungsbezogene Inhalte löschen?') ?>
+    </label>
+    <label>
         <input id="mail" name="mail" value="1" checked type="checkbox">
         <?= _('E-Mail-Benachrichtigung verschicken?') ?>
     </label>

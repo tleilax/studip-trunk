@@ -190,6 +190,46 @@ class MyCoursesController extends AuthenticatedController
             Icon::create('studygroup+add', 'clickable'), ['data-dialog' => 'size=auto']);
         $sidebar->addWidget($setting_widget);
         $this->setGroupingSelector($this->group_field);
+
+        $export_widget = new ExportWidget();
+        $export_widget->addLink(_('Veranstaltungsübersicht exportieren'),
+                                $this->url_for('my_courses/courseexport'),
+                                Icon::create('export', 'clickable'),
+                                array('class' => 'print_action', 'target' => '_blank'));
+                                //[]);
+        $sidebar->addWidget($export_widget);
+    }
+
+    public function courseexport_action()
+    {
+        if ($GLOBALS['perm']->have_perm('admin')) {
+            throw new AccessDeniedException();
+        }
+
+        $this->sem_data = SemesterData::GetSemesterArray();
+        $this->group_field = 'sem_number';
+
+        // Needed parameters for selecting courses
+        $params = array('group_field'         => $this->group_field,
+                        'order_by'            => null,
+                        'order'               => 'asc',
+                        'studygroups_enabled' => Config::get()->MY_COURSES_ENABLE_STUDYGROUPS,
+                        'deputies_enabled'    => Config::get()->DEPUTIES_ENABLE);
+
+        $this->sem_courses  = MyRealmModel::getPreparedCourses('all', $params);
+
+        $factory = $this->get_template_factory();
+        $template = $factory->open('my_courses/courseexport');
+        $template->set_attributes($this->get_assigned_variables());
+        $template->set_attribute('image_style', 'height: 6px; width: 8px;');
+
+        $doc = new ExportPDF();
+        $doc->addPage();
+        $doc->SetFont('helvetica', '', 8);
+        $doc->writeHTML($template->render(), false, false, true);
+        $doc->Output('courseexport.pdf', 'D');
+        $this->render_nothing();
+
     }
 
     public function set_open_group_action($id)
