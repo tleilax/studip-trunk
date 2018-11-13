@@ -113,38 +113,33 @@ function getUserLanguage($uid)
  *
  * This method can be used for sending language specific mails to other users.
  *
- * @access   public
- * @param        string  the user_id of the recipient (function will try to get preferred language from database)
- * @return       string  the path to the language files, given in "en"-style
+ * @param string  the user_id of the recipient (function will try to get
+ *                preferred language from database)
+ * @return string the path to the language files, given in "en"-style
  */
 function getUserLanguagePath($uid)
 {
-    global $INSTALLED_LANGUAGES, $STUDIP_BASE_PATH;
-
-    //First we get the language code in the format
-    //language_Country, e.g. de_DE:
+    // First we get the language code in the format language_Country, e.g. de_DE
     $lang_code = getUserLanguage($uid);
 
-    //Now we test if a directory with that language code exists
-    //in the locale directory:
-    if (is_dir($STUDIP_BASE_PATH . '/locale/' . $lang_code)) {
-        //A locale directory with a country specific translation exists.
-        //We can use the language code directly:
+    // Now we test if a directory with that language code exists in the locale
+    // directory
+    if (is_dir("{$GLOBALS['STUDIP_BASE_PATH']}/locale/{$lang_code}")) {
         return $lang_code;
     }
 
-    //There is no directory containing country specific translations
-    //for the language. Now we have to check if a general translation
-    //exists for the language:
+    // There is no directory containing country specific translations for the
+    // language. Now we have to check if a general translation exists for the
+    // language
     $lang = explode('_', $lang_code)[0];
-    if (is_dir($STUDIP_BASE_PATH . '/locale/' . $lang)) {
+    if (is_dir("{$GLOBALS['STUDIP_BASE_PATH']}/locale/{$lang}")) {
         //A general translation exists:
         return $lang;
     }
 
-    //No directory exists that has a translation for the language.
-    //Our last resort is to use the path index in $INSTALLED_LANUGAGES:
-    return $INSTALLED_LANGUAGES[$lang_code]['path'];
+    // No directory exists that has a translation for the language.
+    // Our last resort is to use the path index in $INSTALLED_LANUGAGES:
+    return $GLOBALS['INSTALLED_LANGUAGES'][$lang_code]['path'];
 }
 
 /**

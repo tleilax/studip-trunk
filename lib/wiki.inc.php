@@ -1237,7 +1237,7 @@ function getShowPageInfobox($keyword, $latest_version)
     $widget->addElement($element);
     $sidebar->addWidget($widget);
 
-    //Actions:
+    // Actions:
     $widget = new ActionsWidget();
     $widget->addLink(
         _('Neue Wiki-Seite anlegen'),
@@ -1248,10 +1248,8 @@ function getShowPageInfobox($keyword, $latest_version)
     $widget->addLink(
         _('Seiten importieren'),
         URLHelper::getLink('dispatch.php/wiki/import/' . Context::getId()),
-        Icon::create('wiki+add', 'clickable'),
-        [
-            'data-dialog' => '1'
-        ]
+        Icon::create('wiki+add'),
+        ['data-dialog' => '']
     );
     $sidebar->addWidget($widget);
 

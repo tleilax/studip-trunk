@@ -120,16 +120,17 @@ class ShowThread extends ShowTreeRow {
             if (($link) && ($edit_structure_object != $resObject->id))
                 $titel = "<a href=\"$link\" class=\"tree\" >$titel</a>";
 
-            if ($resObject->getOwnerLink())
+            if ($resObject->getOwnerLink()) {
                 $zusatz=sprintf (_("verantwortlich:") . " <a href=\"%s\"><font color=\"#333399\">%s</font></a>", $resObject->getOwnerLink(), htmlReady($resObject->getOwnerName()));
-            else
+            } else {
                 $zusatz=sprintf (_("verantwortlich:") . " %s", htmlReady($resObject->getOwnerName()));
+            }
 
             $new = true;
 
             $edit .= '<div style="text-align: center"><div class="button-group">';
 
-            if ($open == 'open') {
+            if ($open === 'open') {
                 //load the perms
                 if (($ActualObjectPerms) && ($ActualObjectPerms->getId() == $resObject->getId())) {
                     $perms = $ActualObjectPerms->getUserPerm();
@@ -160,7 +161,7 @@ class ShowThread extends ShowTreeRow {
                 $edit .= LinkButton::create(_('Eigenschaften'), URLHelper::getURL('?view=view_details&show_object=' . $resObject->id));
 
 
-                if ($perms == "admin") {
+                if ($perms === 'admin') {
                     if ($resObject->isRoom()) {
                         $edit .= LinkButton::create(_('Benachrichtigung'), UrlHelper::getScriptURL('dispatch.php/resources/helpers/resource_message/' . $resObject->id), array('data-dialog' => ''));
                     }
@@ -177,11 +178,11 @@ class ShowThread extends ShowTreeRow {
 
                 if ($_SESSION['resources_data']["move_object"] == $resObject->id) {
                     $edit .= LinkButton::createCancel(_('Abbrechen'), URLHelper::getURL('?cancel_move=TRUE'));
-                } else if ($perms == "admin") {
+                } else if ($perms === 'admin') {
                     $edit .= LinkButton::create(_('Verschieben'), URLHelper::getURL('?pre_move_object=' . $resObject->id));
                 }
 
-                if ($perms == "admin" && $resObject->isDeletable()) {
+                if ($perms === 'admin' && $resObject->isDeletable()) {
                     $edit .= LinkButton::create(_('Löschen'), '?kill_object=' . $resObject->id);
                 }
             }

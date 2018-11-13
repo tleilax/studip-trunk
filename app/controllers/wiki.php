@@ -90,19 +90,15 @@ class WikiController extends AuthenticatedController
 
         $this->course_search = new QuickSearch(
             'selected_course_id',
-            new MyCoursesSearch(
-                'Seminar_id',
-                $GLOBALS['perm']->get_perm(),
-                [
-                    'userid' => $GLOBALS['user']->id,
-                    'semtypes' => SemType::getGroupingSemTypes(),
-                    'exclude' => [Context::getId()],
-                    'semesters' => $all_semester_ids
-                ]
-            )
+            new MyCoursesSearch('Seminar_id', $GLOBALS['perm']->get_perm(), [
+                'userid'    => $GLOBALS['user']->id,
+                'semtypes'  => SemType::getGroupingSemTypes(),
+                'exclude'   => [Context::getId()],
+                'semesters' => $all_semester_ids,
+            ])
         );
         $this->course_search->fireJSFunctionOnSelect(
-            "function() {jQuery(this).parents('form').submit();}"
+            "function() {jQuery(this).closest('form').submit();}"
         );
 
         //The following steps are identical for the search and the import.
@@ -114,9 +110,7 @@ class WikiController extends AuthenticatedController
             $this->selected_course = Course::find($this->selected_course_id);
 
             if (!$this->selected_course) {
-                PageLayout::postError(
-                    _('Die ausgewählte Veranstaltung wurde nicht gefunden!')
-                );
+                PageLayout::postError(_('Die ausgewählte Veranstaltung wurde nicht gefunden!'));
             }
 
             $this->wiki_pages = WikiPage::findLatestPages(
@@ -129,61 +123,43 @@ class WikiController extends AuthenticatedController
         if (Request::submitted('import')) {
             $this->selected_wiki_page_ids = Request::getArray('selected_wiki_page_ids');
             if (!$this->selected_wiki_page_ids) {
-                PageLayout::postInfo(
-                    _('Es wurden keine Wikiseiten ausgewählt!')
-                );
+                PageLayout::postInfo(_('Es wurden keine Wikiseiten ausgewählt!'));
                 return;
             }
 
             $selected_wiki_pages = [];
             foreach ($this->selected_wiki_page_ids as $id) {
                 $splitted_id = explode('_', $id);
-                $wiki_page = WikiPage::findOneBySql(
-                    'range_id = :range_id and keyword = :keyword',
-                    [
-                        'range_id' => $splitted_id[0],
-                        'keyword' => $splitted_id[1]
-                    ]
-                );
-                if ($wiki_page instanceof WikiPage) {
+                $wiki_page = WikiPage::findOneBySql('range_id = :range_id AND keyword = :keyword', [
+                    'range_id' => $splitted_id[0],
+                    'keyword'  => $splitted_id[1],
+                ]);
+                if ($wiki_page) {
                     $selected_wiki_pages[] = $wiki_page;
                 }
             }
 
             if (!$selected_wiki_pages) {
-                PageLayout::postError(
-                    _('Es wurden keine Wikiseiten gefunden!')
-                );
+                PageLayout::postError(_('Es wurden keine Wikiseiten gefunden!'));
                 return;
             }
 
             $errors = [];
             foreach ($selected_wiki_pages as $selected_page) {
                 //Check for an existing page first.
-                $new_page = WikiPage::findOneBySql(
-                    'range_id = :range_id
-                    AND
-                    keyword = :keyword',
-                    [
-                        'range_id' => $this->course->id,
-                        'keyword' => $selected_page->keyword
-                    ]
-                );
+                $new_page = WikiPage::findOneBySql('range_id = :range_id AND keyword = :keyword', [
+                    'range_id' => $this->course->id,
+                    'keyword'  => $selected_page->keyword,
+                ]);
                 if (!$new_page) {
                     $new_page = new WikiPage();
                 }
                 $new_page->range_id = $this->course->id;
-                $new_page->user_id = $selected_page->user_id;
-                $new_page->keyword = $selected_page->keyword;
-                $new_page->body = $selected_page->body;
-                $new_page->chdate = $selected_page->chdate;
-                if ($new_page->version > 0) {
-                    $new_page->version = strval(
-                        intval($new_page->version) + 1
-                    );
-                } else {
-                    $new_page->version = '1';
-                }
+                $new_page->user_id  = $selected_page->user_id;
+                $new_page->keyword  = $selected_page->keyword;
+                $new_page->body     = $selected_page->body;
+                $new_page->chdate   = $selected_page->chdate;
+                $new_page->version += 1;
 
                 if (!$new_page->store()) {
                     $errors[] = sprintf(
