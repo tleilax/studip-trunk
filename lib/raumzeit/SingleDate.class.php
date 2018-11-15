@@ -447,6 +447,25 @@ class SingleDate
     }
 
 
+    /**
+     * This method converts overlap data about an overlapping assignment
+     * to a string that can be used to output overlap information to the user.
+     * Only one overlap is converted by this method. For multiple overlaps
+     * this method must be called multiple times.
+     *
+     * @param string $assignment_id The ID of an overlapping assignment.
+     *
+     * @param array $overlap_data An associative array with data for an
+     *     overlap. The array must have the following structure:
+     *     [
+     *         'begin' => The begin timestamp of the overlap.
+     *         'end' => The end timestamp of the overlap.
+     *         'lock' => Whether the overlap is caused by a lock assignment
+     *                   (true) or not (false).
+     *     ]
+     *
+     * @return string A string representation of the overlap.
+     */
     protected function getOverlapMessage($assignment_id = null, array $overlap_data = [])
     {
         if (!$assignment_id || !$overlap_data) {

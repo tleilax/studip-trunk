@@ -503,6 +503,10 @@ class Avatar {
             return;
         }
 
+        if (exif_imagetype($filename) !== IMAGETYPE_JPEG) {
+            return;
+        }
+
         $exif = exif_read_data($filename);
         if (!$exif || !$exif['Orientation'] || $exif['Orientation'] == 1) {
             return;
