@@ -262,6 +262,8 @@ class Admin_SemesterController extends AuthenticatedController
      */
     public function lock_action($id)
     {
+        $this->id = $id;
+
         $ids = $id === 'bulk'
              ? Request::optionArray('ids')
              : array($id);
@@ -273,6 +275,11 @@ class Admin_SemesterController extends AuthenticatedController
             $semesters = Semester::findMany($ids);
 
             if (Request::submitted('confirm_lock')) {
+
+                if (Request::get('lock_enroll')) {
+                    $course_set_id = CourseSet::getGlobalLockedAdmissionSetId();
+                    $lock_enroll = true;
+                }
 
                 $lock_rule = Request::get('lock_sem_all');
                 if ($lock_rule == 'none') {
@@ -290,6 +297,9 @@ class Admin_SemesterController extends AuthenticatedController
                         $courses = Course::findBySQL("duration_time >= 0 AND (start_time+duration_time) = ?", [$semester->beginn]);
                         foreach ($courses as $course) {
                             $course->visible = 0;
+                            if ($lock_enroll) {
+                                CourseSet::addCourseToSet($course_set_id, $course->seminar_id);
+                            }
                             if ($course->lock_rule != $lock_rule) {
                                 $course->setValue('lock_rule', $lock_rule);
                             }

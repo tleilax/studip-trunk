@@ -205,6 +205,15 @@ class Admin_UserController extends AuthenticatedController
             }
             $this->render_template('admin/user/_delete.php');
             return;
+        } elseif ($action === 'anonymize') {
+            PageLayout::setTitle(_('Folgende Nutzer anonymisieren'));
+            if ($user_id) {
+                $this->users = [User::find($user_id)];
+            } else {
+                $this->users = User::findMany(Request::getArray('user_ids'));
+            }
+            $this->render_template('admin/user/_anonymize.php');
+            return;
         } elseif ($action === 'send_message') {
             $users = User::findMany(Request::getArray('user_ids'));
 
@@ -309,6 +318,113 @@ class Admin_UserController extends AuthenticatedController
                     } else {
                         $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', mb_substr($umanager->msg, 0, -1)));
                         PageLayout::postError(htmlReady(sprintf(_('Fehler! "%s (%s)" konnte nicht gelöscht werden'), $users[$i]->getFullName(), $users[$i]->username)), $details);
+                    }
+                }
+
+                //reactivate messages
+                if (!Request::int('mail')) {
+                    StudipMail::setDefaultTransporter($default_mailer);
+                }
+
+            }
+        }
+
+        //liste wieder anzeigen
+        if ($parent == 'edit') {
+            $this->redirect('admin/user/edit/' . $user_id);
+        } else {
+            $this->redirect('admin/user/' . $parent);
+        }
+    }
+
+/**
+     * Anonymize one or more users
+     *
+     * @param md5    $user_id
+     * @param string $parent redirect to this page after anonymizing users
+     */
+    public function anonymize_action($user_id = null, $parent = '')
+    {
+        //anonymize one user
+        if (!is_null($user_id)) {
+            $user = User::find($user_id);
+
+            //check user
+            if (!count($user)) {
+                PageLayout::postError(_('Fehler! Zu anonymisierende Person ist nicht vorhanden.'));
+                //antwort ja
+            } elseif (!empty($user) && Request::submitted('anonymize')) {
+                CSRFProtection::verifyUnsafeRequest();
+
+                //if anonymize user, go back to mainpage
+                $parent = '';
+
+                //deactivate message
+                if (!Request::int('mail')) {
+                    $dev_null       = new blackhole_message_class();
+                    $default_mailer = StudipMail::getDefaultTransporter();
+                    StudipMail::setDefaultTransporter($dev_null);
+                }
+                //preparing anonymize
+                $umanager = new UserManagement();
+                $umanager->getFromDatabase($user_id);
+
+                //anonymize
+                 if ($umanager->anonymizeUser(Request::option('documents', false), Request::option('coursecontent', false))) {
+                    $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', mb_substr($umanager->msg, 0, -1)));
+                    PageLayout::postSuccess(htmlReady(sprintf(_('"%s (%s)" wurde erfolgreich anonymisiert.'), $user->getFullName(), $user->username)), $details);
+                } else {
+                    $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', mb_substr($umanager->msg, 0, -1)));
+                    PageLayout::postError(htmlReady(sprintf(_('Fehler! "%s (%s)" konnte nicht anonymisiert werden.'), $user->getFullName(), $user->username)), $details);
+                }
+
+                //reavtivate messages
+                if (!Request::int('mail')) {
+                    StudipMail::setDefaultTransporter($default_mailer);
+                }
+
+                //sicherheitsabfrage
+            } elseif (!empty($user) && !Request::submitted('back')) {
+
+                $this->flash['anonymize'] = [
+                    'question' => sprintf(_('Wollen Sie "%s (%s)" wirklich anonymisieren?'), $user->getFullName(), $user->username),
+                    'action'   => ($parent != '') ? $this->url_for('admin/user/anonymize/' . $user_id . '/' . $parent) : $this->url_for('admin/user/anonymize/' . $user_id),
+                ];
+            }
+
+            //anonymize more users
+        } else {
+            $user_ids = Request::getArray('user_ids');
+
+            if (count($user_ids) == 0) {
+                PageLayout::postError(_('Bitte wählen Sie mindestens eine Person zum Anonymisieren aus.'));
+                $this->redirect('admin/user/' . $parent);
+                return;
+            }
+
+            if (Request::submitted('anonymize')) {
+                CSRFProtection::verifyUnsafeRequest();
+
+                //deactivate message
+                if (!Request::int('mail')) {
+                    $dev_null       = new blackhole_message_class();
+                    $default_mailer = StudipMail::getDefaultTransporter();
+                    StudipMail::setDefaultTransporter($dev_null);
+                }
+
+                foreach ($user_ids as $i => $user_id) {
+                    $users[$i] = User::find($user_id);
+                    //preparing anonymize
+                    $umanager = new UserManagement();
+                    $umanager->getFromDatabase($user_id);
+
+                    //anonymize
+                    if ($umanager->anonymizeUser(Request::option('documents', false))) {
+                        $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', mb_substr($umanager->msg, 0, -1)));
+                        PageLayout::postSuccess(htmlReady(sprintf(_('"%s (%s)" wurde erfolgreich anonymisiert'), $users[$i]->getFullName(), $users[$i]->username)), $details);
+                    } else {
+                        $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', mb_substr($umanager->msg, 0, -1)));
+                        PageLayout::postError(htmlReady(sprintf(_('Fehler! "%s (%s)" konnte nicht anonymisiert werden'), $users[$i]->getFullName(), $users[$i]->username)), $details);
                     }
                 }
 

@@ -674,6 +674,7 @@ class UserManagement
     * Delete an existing user from the database and tidy up
     *
     * @param    bool delete all documents belonging to the user
+    * @param    bool delete all course content belonging to the user
     * @return   bool Removal successful?
     */
     public function deleteUser($delete_documents = true, $delete_content_from_course = true)
@@ -788,36 +789,6 @@ class UserManagement
             }
         }
 
-        // kill all the ressources that are assigned to the user (and all the linked or subordinated stuff!)
-        if (Config::get()->RESOURCES_ENABLE) {
-            $killAssign = new DeleteResourcesUser($this->user_data['auth_user_md5.user_id']);
-            $killAssign->delete();
-        }
-
-        $this->re_sort_position_in_seminar_user();
-
-        // delete user from seminars (postings will be preserved)
-        $query = "DELETE FROM seminar_user WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus Veranstaltungen gelöscht."), $db_ar) . "§";
-        }
-
-        // delete user from waiting lists
-        $query = "SELECT seminar_id FROM admission_seminar_user WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        $seminar_ids = $statement->fetchAll(PDO::FETCH_COLUMN);
-
-        $query = "DELETE FROM admission_seminar_user WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus Wartelisten gelöscht."), $db_ar) . "§";
-            array_map('update_admission', $seminar_ids);
-        }
-
         // delete user from instituts
         $this->logInstUserDel($this->user_data['auth_user_md5.user_id']);
 
@@ -841,17 +812,6 @@ class UserManagement
             $this->msg .= "info§" . sprintf(_("%s Einträge aus den Zugriffsberechtigungen für das Archiv gelöscht."), $db_ar) . "§";
         }
 
-        // delete all personal news from this user
-        if (($db_ar = StudipNews::DeleteNewsByAuthor($this->user_data['auth_user_md5.user_id']))) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus den Ankündigungen gelöscht."), $db_ar) . "§";
-        }
-        if (($db_ar = StudipNews::DeleteNewsRanges($this->user_data['auth_user_md5.user_id']))) {
-            $this->msg .= "info§" . sprintf(_("%s Verweise auf Ankündigungen gelöscht."), $db_ar) . "§";
-        }
-
-        //delete entry in news_rss_range
-        StudipNews::UnsetRssId($this->user_data['auth_user_md5.user_id']);
-
         // delete 'Studiengaenge'
         $query = "DELETE FROM user_studiengang WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
@@ -860,166 +820,44 @@ class UserManagement
             $this->msg .= "info§" . sprintf(_("%s Zuordnungen zu Studiengängen gelöscht."), $db_ar) . "§";
         }
 
-        // delete all private appointments of this user
-        if (get_config('CALENDAR_ENABLE')) {
-            $appkills = CalendarEvent::deleteBySQL('range_id = ?',
-                    array($this->user_data['auth_user_md5.user_id']));
-            if ($appkills) {
-                $this->msg .= "info§" . sprintf(_("%s Einträge aus den Terminen gelöscht."), $appkills) ."§";
-            }
-            // delete membership in group calendars
-            if (get_config('CALENDAR_GROUP_ENABLE')) {
-                $membershipkills = CalendarUser::deleteBySQL('owner_id = :user_id OR user_id = :user_id',
-                        array(':user_id' => $this->user_data['auth_user_md5.user_id']));
-                if ($membershipkills) {
-                    $this->msg .= 'info§' . sprintf(_('%s Verknüpfungen mit Gruppenterminkalendern gelöscht.'));
-                }
-            }
-        }
-
-        // delete all messages send or received by this user
-        $messaging=new messaging;
-        $messaging->delete_all_messages($this->user_data['auth_user_md5.user_id']);
-
-        // delete user from all foreign adressbooks and empty own adressbook
-        $buddykills = Contact::deleteBySQL('user_id = ?', array($this->user_data['auth_user_md5.user_id']));
-        if ($buddykills > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus Adressbüchern gelöscht."), $buddykills) . "§";
-        }
-        $contactkills = Contact::deleteBySQL('owner_id = ?', array($this->user_data['auth_user_md5.user_id']));
-        if ($contactkills) {
-            $this->msg .= sprintf(_('Adressbuch mit %d Einträgen gelöscht.'), $contactkills);
-        }
-
-        // delete users groups
-        Statusgruppen::deleteBySQL('range_id = ?', array($this->user_data['auth_user_md5.user_id']));
-
-        // remove user from any groups
-        StatusgruppeUser::deleteBySQL('user_id = ?', array($this->user_data['auth_user_md5.user_id']));
-
-        // delete all blubber entrys
-        $query = "DELETE blubber, blubber_mentions, blubber_reshares, blubber_streams
-                  FROM blubber
-                  LEFT JOIN blubber_mentions USING (user_id)
-                  LEFT JOIN blubber_reshares USING (user_id)
-                  LEFT JOIN blubber_streams USING (user_id)
-                  WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Blubber gelöscht."), $db_ar) . "§";
-        }
-
         // delete the datafields
         $localEntries = DataFieldEntry::removeAll($this->user_data['auth_user_md5.user_id']);
 
-        // delete user config values
-        ConfigValue::deleteBySQL('range_id = ?', array($this->user_data['auth_user_md5.user_id']));
+        // kill all the ressources that are assigned to the user (and all the linked or subordinated stuff!)
+        if (Config::get()->RESOURCES_ENABLE) {
+            $killAssign = new DeleteResourcesUser($this->user_data['auth_user_md5.user_id']);
+            $killAssign->delete();
+        }
 
-        // delete all remaining user data
-        $queries = array(
-            "DELETE FROM kategorien WHERE range_id = ?",
-            "DELETE FROM user_info WHERE user_id = ?",
-            "DELETE FROM user_visibility WHERE user_id = ?",
-            "DELETE FROM user_online WHERE user_id = ?",
-            "DELETE FROM auto_insert_user WHERE user_id = ?",
-            "DELETE FROM roles_user WHERE userid = ?",
-            "DELETE FROM schedule WHERE user_id = ?",
-            "DELETE FROM schedule_seminare WHERE user_id = ?",
-            "DELETE FROM termin_related_persons WHERE user_id = ?",
-            "DELETE FROM user_userdomains WHERE user_id = ?",
-            "DELETE FROM priorities WHERE user_id = ?",
-            "DELETE FROM api_oauth_user_mapping WHERE user_id = ?",
-            "DELETE FROM api_user_permissions WHERE user_id = ?",
-            "DELETE FROM eval_user WHERE user_id = ?",
-            "DELETE FROM evalanswer_user WHERE user_id = ?",
-            "DELETE FROM help_tour_user WHERE user_id = ?",
-            "DELETE FROM personal_notifications_user WHERE user_id = ?",
+        $this->re_sort_position_in_seminar_user();
 
-
-            //diese Daten sollen gelöscht werden
-            //"DELETE FROM comments WHERE user_id = ?",
-            //"DELETE FROM etask_task_tags WHERE user_id = ?",
-            //"DELETE FROM etask_test_tags WHERE user_id = ?",
-
-            //direkter userkontext
-            //"DELETE FROM questionnaires LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?", context spezi
-            //"DELETE FROM questionnaire_answers LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
-            //"DELETE FROM questionnaire_anonymous_answers LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
-            //"DELETE FROM questionnaire_assignments WHERE user_id = ?",
-            //"DELETE FROM etask_assignment_attempts LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
-            //"DELETE FROM etask_responses LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
-            //"DELETE FROM etask_tasks LEFT JOIN etask_test_tasks tt ON (etask_tasks.id = tt.task_id) LEFT JOIN etask_assignments ea ON (tt.`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND  user_id = ?",
-            //"DELETE FROM etask_tests LEFT JOIN etask_assignments ea ON (`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND user_id = ?",
-
-        );
-        foreach ($queries as $query) {
-            DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
+        // delete user from seminars (postings will be preserved)
+        $query = "DELETE FROM seminar_user WHERE user_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
+        if (($db_ar = $statement->rowCount()) > 0) {
+            $this->msg .= "info§" . sprintf(_("%s Einträge aus Veranstaltungen gelöscht."), $db_ar) . "§";
         }
 
         // delete all remaining user data in course context if option selected
         if ($delete_content_from_course) {
-             $queries = array(
-                //"DELETE FROM questionnaires WHERE user_id = ?", context spezi
-                //"DELETE FROM questionnaire_answers WHERE user_id = ?",
-                //"DELETE FROM questionnaire_assignments WHERE user_id = ?",
-                //"DELETE FROM questionnaire_anonymous_answers WHERE user_id = ?",
-
-                //"DELETE FROM etask_assignment_attempts WHERE user_id = ?",
-                //"DELETE FROM etask_responses WHERE user_id = ?",
-                //"DELETE FROM etask_tasks WHERE user_id = ?",
-                //"DELETE FROM etask_tests WHERE user_id = ?",
+            $queries = array(
+                "DELETE FROM questionnaires WHERE user_id = ?",
+                "DELETE FROM questionnaire_answers WHERE user_id = ?",
+                "DELETE FROM questionnaire_assignments WHERE user_id = ?",
+                "DELETE FROM questionnaire_anonymous_answers WHERE user_id = ?",
+                "DELETE FROM etask_assignment_attempts WHERE user_id = ?",
+                "DELETE FROM etask_responses WHERE user_id = ?",
+                "DELETE FROM etask_tasks WHERE user_id = ?",
+                "DELETE FROM etask_tests WHERE user_id = ?",
             );
             foreach ($queries as $query) {
                 DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
             }
         }
 
-        //make remaining data anonymous
-        $this->anonymize($this->user_data['auth_user_md5.user_id']);
-
-        // Clean up orphaned items
-        $queries = [
-            "DELETE FROM personal_notifications WHERE personal_notification_id NOT IN (
-                SELECT personal_notification_id FROM personal_notifications_user
-            )",
-        ];
-        foreach ($queries as $query) {
-            DBManager::get()->exec($query);
-        }
-
-        object_kill_visits($this->user_data['auth_user_md5.user_id']);
-        object_kill_views($this->user_data['auth_user_md5.user_id']);
-
-        // delete picture
-        $avatar = Avatar::getAvatar($this->user_data["auth_user_md5.user_id"]);
-        if ($avatar->is_customized()) {
-            $avatar->reset();
-            $this->msg .= "info§" . _("Bild gelöscht.") . "§";
-        }
-
         // delete visibility settings
         Visibility::removeUserPrivacySettings($this->user_data['auth_user_md5.user_id']);
-
-        //delete connected users
-        if (get_config('ELEARNING_INTERFACE_ENABLE')){
-            if(ELearningUtils::initElearningInterfaces()){
-                foreach($GLOBALS['connected_cms'] as $cms){
-                    if ($cms->auth_necessary && ($cms->user instanceOf ConnectedUser)) {
-                        $user_auto_create = $cms->USER_AUTO_CREATE;
-                        $cms->USER_AUTO_CREATE = false;
-                        $userclass = mb_strtolower(get_class($cms->user));
-                        $connected_user = new $userclass($cms->cms_type, $this->user_data['auth_user_md5.user_id']);
-                        if($ok = $connected_user->deleteUser()){
-                            if($connected_user->is_connected){
-                                $this->msg .= "info§" . sprintf(_("Der verknüpfte Nutzer %s wurde im System %s gelöscht."), $connected_user->login, $connected_user->cms_type) . "§";
-                            }
-                        }
-                        $cms->USER_AUTO_CREATE = $user_auto_create;
-                    }
-                }
-            }
-        }
 
         // delete deputy entries if necessary
         $query = "DELETE FROM deputies WHERE ? IN (user_id, range_id)";
@@ -1029,6 +867,8 @@ class UserManagement
         if ($deputyEntries) {
             $this->msg .= "info§".sprintf(_("%s Einträge in den Vertretungseinstellungen gelöscht."), $deputyEntries)."§";
         }
+
+        $this->msg .= $this->deletePersonalData($this->user_data['auth_user_md5.user_id']);
 
         $plugins = PluginManager::getInstance()->getPlugins(NULL);
         foreach ($plugins as $id => $plugin) {
@@ -1071,8 +911,47 @@ class UserManagement
 
     }
 
-    private function anonymize($user_id)
+    /**
+    * Anonymize an existing user
+    *
+    * @param    bool delete all documents belonging to the user
+    * @param    bool delete all course content belonging to the user
+    * @return   bool anonymized successful?
+    */
+    public function anonymizeUser($delete_documents = true, $delete_content_from_course = true)
     {
+        global $perm;
+
+        // Do we have permission to do so?
+        if (!$perm->have_perm("admin")) {
+            $this->msg .= "error§" . _("Sie haben keine Berechtigung Accounts zu anonymisieren.") . "§";
+            return FALSE;
+        }
+
+        if (!$perm->have_perm("root")) {
+            if ($this->user_data['auth_user_md5.perms'] == "root") {
+                $this->msg .= "error§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> zu anonymisieren.") . "§";
+                return FALSE;
+            }
+            if ($this->user_data['auth_user_md5.perms'] == "admin" && !$this->adminOK()) {
+                $this->msg .= "error§" . _("Sie haben keine Berechtigung diesen Admin-Account zu anonymisieren.") . "§";
+                return FALSE;
+            }
+        }
+
+        $this->msg .= $this->deletePersonalData($this->user_data['auth_user_md5.user_id']);
+
+        if(get_config('ANONYMIZE_USERNAME')) {
+            $query = "UPDATE auth_user_md5
+                      SET username = ?, Vorname = NULL, Nachname = NULL, Email = NULL
+                      WHERE user_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array(md5($this->user_data['auth_user_md5.username']), $this->user_data['auth_user_md5.user_id']));
+            if (($db_ar = $statement->rowCount()) > 0) {
+                $msg .= "info§" . sprintf(_("%s Benutzername anonymisiert."), $db_ar) . "§";
+            }
+        }
+
             //diese sollen anonymisiert werden
             //"wiki WHERE user_id = ?",
             //"wiki_locks WHERE user_id = ?",
@@ -1084,6 +963,179 @@ class UserManagement
             //"termine WHERE author_id = ?",
             //"ex_termine WHERE author_id = ?",
             //"etask_responses WHERE grader_id = ?",
+
+        return TRUE;
+    }
+
+
+    /**
+    * Delete personal userdata
+    *
+    * @param    string $user_id    the user which should be retrieved
+    * @return   string Removal messages
+    */
+    private function deletePersonalData($user_id)
+    {
+
+        $msg = "";
+
+        // delete all blubber entrys
+        $query = "DELETE blubber, blubber_mentions, blubber_reshares, blubber_streams
+                  FROM blubber
+                  LEFT JOIN blubber_mentions USING (user_id)
+                  LEFT JOIN blubber_reshares USING (user_id)
+                  LEFT JOIN blubber_streams USING (user_id)
+                  WHERE user_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($user_id));
+        if (($db_ar = $statement->rowCount()) > 0) {
+            $msg .= "info§" . sprintf(_("%s Blubber gelöscht."), $db_ar) . "§";
+        }
+
+        // delete user from waiting lists
+        $query = "SELECT seminar_id FROM admission_seminar_user WHERE user_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($user_id));
+        $seminar_ids = $statement->fetchAll(PDO::FETCH_COLUMN);
+
+        $query = "DELETE FROM admission_seminar_user WHERE user_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($user_id));
+        if (($db_ar = $statement->rowCount()) > 0) {
+            $msg .= "info§" . sprintf(_("%s Einträge aus Wartelisten gelöscht."), $db_ar) . "§";
+            array_map('update_admission', $seminar_ids);
+        }
+
+        // delete all personal news from this user
+        if (($db_ar = StudipNews::DeleteNewsByAuthor($user_id))) {
+            $msg .= "info§" . sprintf(_("%s Einträge aus den Ankündigungen gelöscht."), $db_ar) . "§";
+        }
+        if (($db_ar = StudipNews::DeleteNewsRanges($user_id))) {
+            $msg .= "info§" . sprintf(_("%s Verweise auf Ankündigungen gelöscht."), $db_ar) . "§";
+        }
+
+        //delete entry in news_rss_range
+        StudipNews::UnsetRssId($user_id);
+
+        // delete all private appointments of this user
+        if (get_config('CALENDAR_ENABLE')) {
+            $appkills = CalendarEvent::deleteBySQL('range_id = ?',
+                    array($user_id));
+            if ($appkills) {
+                $msg .= "info§" . sprintf(_("%s Einträge aus den Terminen gelöscht."), $appkills) ."§";
+            }
+            // delete membership in group calendars
+            if (get_config('CALENDAR_GROUP_ENABLE')) {
+                $membershipkills = CalendarUser::deleteBySQL('owner_id = :user_id OR user_id = :user_id',
+                        array(':user_id' => $user_id));
+                if ($membershipkills) {
+                    $msg .= 'info§' . sprintf(_('%s Verknüpfungen mit Gruppenterminkalendern gelöscht.'));
+                }
+            }
+        }
+
+        // delete all messages send or received by this user
+        $messaging=new messaging;
+        $messaging->delete_all_messages($user_id);
+
+        // delete user from all foreign adressbooks and empty own adressbook
+        $buddykills = Contact::deleteBySQL('user_id = ?', array($user_id));
+        if ($buddykills > 0) {
+            $msg .= "info§" . sprintf(_("%s Einträge aus Adressbüchern gelöscht."), $buddykills) . "§";
+        }
+        $contactkills = Contact::deleteBySQL('owner_id = ?', array($user_id));
+        if ($contactkills) {
+            $msg .= sprintf(_('Adressbuch mit %d Einträgen gelöscht.'), $contactkills);
+        }
+
+        // delete users groups
+        Statusgruppen::deleteBySQL('range_id = ?', array($user_id));
+
+        // remove user from any groups
+        StatusgruppeUser::deleteBySQL('user_id = ?', array($user_id));
+
+        // delete user config values
+        ConfigValue::deleteBySQL('range_id = ?', array($user_id));
+
+        // delete all remaining user data
+        $queries = array(
+            "DELETE FROM kategorien WHERE range_id = ?",
+            "DELETE FROM user_info WHERE user_id = ?",
+            "DELETE FROM user_visibility WHERE user_id = ?",
+            "DELETE FROM user_online WHERE user_id = ?",
+            "DELETE FROM auto_insert_user WHERE user_id = ?",
+            "DELETE FROM roles_user WHERE userid = ?",
+            "DELETE FROM schedule WHERE user_id = ?",
+            "DELETE FROM schedule_seminare WHERE user_id = ?",
+            "DELETE FROM termin_related_persons WHERE user_id = ?",
+            "DELETE FROM user_userdomains WHERE user_id = ?",
+            "DELETE FROM priorities WHERE user_id = ?",
+            "DELETE FROM api_oauth_user_mapping WHERE user_id = ?",
+            "DELETE FROM api_user_permissions WHERE user_id = ?",
+            "DELETE FROM eval_user WHERE user_id = ?",
+            "DELETE FROM evalanswer_user WHERE user_id = ?",
+            "DELETE FROM help_tour_user WHERE user_id = ?",
+            "DELETE FROM personal_notifications_user WHERE user_id = ?",
+
+            "DELETE FROM comments WHERE user_id = ?",
+            "DELETE FROM questionnaires LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
+            "DELETE FROM questionnaire_answers LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
+            "DELETE FROM questionnaire_anonymous_answers LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
+            "DELETE FROM questionnaire_assignments WHERE user_id = ?",
+            "DELETE FROM etask_assignment_attempts LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
+            "DELETE FROM etask_responses LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
+            "DELETE FROM etask_tasks LEFT JOIN etask_test_tasks tt ON (etask_tasks.id = tt.task_id) LEFT JOIN etask_assignments ea ON (tt.`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND  user_id = ?",
+            "DELETE FROM etask_tests LEFT JOIN etask_assignments ea ON (`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND user_id = ?",
+
+            "UPDATE forum_entries SET author = '' WHERE user_id = ?",
+            "UPDATE auth_user_md5 SET visible = 'never' WHERE user_id = ?"
+        );
+        foreach ($queries as $query) {
+            DBManager::get()->execute($query, [$user_id]);
+        }
+
+        // Clean up orphaned items
+        $queries = [
+            "DELETE FROM personal_notifications WHERE personal_notification_id NOT IN (
+                SELECT personal_notification_id FROM personal_notifications_user
+            )",
+        ];
+        foreach ($queries as $query) {
+            DBManager::get()->exec($query);
+        }
+
+        object_kill_visits($user_id);
+        object_kill_views($user_id);
+
+        // delete picture
+        $avatar = Avatar::getAvatar($user_id);
+        if ($avatar->is_customized()) {
+            $avatar->reset();
+            $msg .= "info§" . _("Bild gelöscht.") . "§";
+        }
+
+        //delete connected users
+        if (get_config('ELEARNING_INTERFACE_ENABLE')){
+            if(ELearningUtils::initElearningInterfaces()){
+                foreach($GLOBALS['connected_cms'] as $cms){
+                    if ($cms->auth_necessary && ($cms->user instanceOf ConnectedUser)) {
+                        $user_auto_create = $cms->USER_AUTO_CREATE;
+                        $cms->USER_AUTO_CREATE = false;
+                        $userclass = mb_strtolower(get_class($cms->user));
+                        $connected_user = new $userclass($cms->cms_type, $user_id);
+                        if($ok = $connected_user->deleteUser()){
+                            if($connected_user->is_connected){
+                                $msg .= "info§" . sprintf(_("Der verknüpfte Nutzer %s wurde im System %s gelöscht."), $connected_user->login, $connected_user->cms_type) . "§";
+                            }
+                        }
+                        $cms->USER_AUTO_CREATE = $user_auto_create;
+                    }
+                }
+            }
+        }
+
+        return $msg;
+
     }
 
     private function adminOK()
