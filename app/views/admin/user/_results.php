@@ -187,6 +187,15 @@ use Studip\Button, Studip\LinkButton;
                                     ['formaction' => $controller->url_for('admin/user/bulk/' . $user->user_id, ['method' => 'delete'])]
                                 )
                             );
+                            $actionMenu->addButton(
+                                'delete_user',
+                                _('Nutzer anonymisieren'),
+                                Icon::create('trash', Icon::ROLE_CLICKABLE,
+                                    tooltip2(_('Nutzer anonymisieren')) +
+                                    ['formaction' => $controller->url_for('admin/user/bulk/' . $user->user_id, ['method' => 'anonymize'])]
+                                )
+                            );
+
                         }
 
                         if (Privacy::isVisible($user_id)) {
