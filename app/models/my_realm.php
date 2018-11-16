@@ -48,6 +48,10 @@ class MyRealmModel
                     FileManager::getReadableFolders(
                         Folder::findTopFolder($object_id)->getTypedFolder(), $user_id)
                 );
+
+                if (empty($readable_folders)) {
+                    return NULL;
+                }
             }
 
             $query = "SELECT COUNT(fr.id) as count,

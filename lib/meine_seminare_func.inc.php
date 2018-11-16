@@ -284,28 +284,31 @@ function get_my_obj_values (&$my_obj, $user_id)
             }
         }
     }
-    $db2->query(get_obj_clause('folders a {ON_CLAUSE} INNER JOIN file_refs fr ON (fr.folder_id=a.id)','range_id','fr.id',"(fr.chdate > IFNULL(b.visitdate, $threshold) AND fr.user_id !='$user_id')", 'documents', false, (count($readable_folders) ? "AND a.id IN('".join("','", array_keys($readable_folders))."')" : ""), false, $user_id, 'fr.chdate'));
-    while($db2->next_record()) {
-        $object_id = $db2->f('object_id');
-        if ($my_obj[$object_id]["modules"]["documents"]) {
-            $my_obj[$object_id]["neuedokumente"] = $db2->f("neue");
-            $my_obj[$object_id]["dokumente"] = $db2->f("count");
-            if ($my_obj[$object_id]['last_modified'] < $db2->f('last_modified')){
-                $my_obj[$object_id]['last_modified'] = $db2->f('last_modified');
+
+    if ($GLOBALS['perm']->have_perm('admin') || !empty($readable_folders)) {
+        $db2->query(get_obj_clause('folders a {ON_CLAUSE} INNER JOIN file_refs fr ON (fr.folder_id=a.id)','range_id','fr.id',"(fr.chdate > IFNULL(b.visitdate, $threshold) AND fr.user_id !='$user_id')", 'documents', false, (count($readable_folders) ? "AND a.id IN('".join("','", array_keys($readable_folders))."')" : ""), false, $user_id, 'fr.chdate'));
+        while($db2->next_record()) {
+            $object_id = $db2->f('object_id');
+            if ($my_obj[$object_id]["modules"]["documents"]) {
+                $my_obj[$object_id]["neuedokumente"] = $db2->f("neue");
+                $my_obj[$object_id]["dokumente"] = $db2->f("count");
+                if ($my_obj[$object_id]['last_modified'] < $db2->f('last_modified')){
+                    $my_obj[$object_id]['last_modified'] = $db2->f('last_modified');
+                }
+
+                $nav = new Navigation('files');
+
+                if ($db2->f('neue')) {
+                    $nav->setURL('dispatch.php/course/files/flat');
+                    $nav->setImage(Icon::create('files+new', 'attention', ["title" => sprintf(_('%s Dokumente, %s neue'),$db2->f('count'),$db2->f('neue'))]));
+                    $nav->setBadgeNumber($db2->f('neue'));
+                } else if ($db2->f('count')) {
+                    $nav->setURL('dispatch.php/course/files/index');
+                    $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf(_('%s Dokumente'),$db2->f('count'))]));
+                }
+
+                $my_obj[$object_id]['files'] = $nav;
             }
-
-            $nav = new Navigation('files');
-
-            if ($db2->f('neue')) {
-                $nav->setURL('dispatch.php/course/files/flat');
-                $nav->setImage(Icon::create('files+new', 'attention', ["title" => sprintf(_('%s Dokumente, %s neue'),$db2->f('count'),$db2->f('neue'))]));
-                $nav->setBadgeNumber($db2->f('neue'));
-            } else if ($db2->f('count')) {
-                $nav->setURL('dispatch.php/course/files/index');
-                $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf(_('%s Dokumente'),$db2->f('count'))]));
-            }
-
-            $my_obj[$object_id]['files'] = $nav;
         }
     }
 
