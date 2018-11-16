@@ -1557,21 +1557,20 @@ class FileManager
     }
 
     /**
-     * Creates a list of unreadable subfolders of a folder.
+     * Creates a list of readable subfolders of a folder.
      *
      * @param FolderType $top_folder
      * @param string $user_id
      * @return FolderType[] assoc array ID => FolderType
      */
-    public static function getUnreadableFolders(FolderType $top_folder, $user_id)
+    public static function getReadableFolders(FolderType $top_folder, $user_id)
     {
         $folders = [];
         $array_walker = function ($top_folder) use (&$array_walker, &$folders,$user_id) {
-            if (!($top_folder->isVisible($user_id) && $top_folder->isReadable($user_id))) {
+            if ($top_folder->isVisible($user_id) && $top_folder->isReadable($user_id)) {
                 $folders[$top_folder->getId()] = $top_folder;
+                array_walk($top_folder->getSubFolders(), $array_walker);
             }
-            array_walk($top_folder->getSubFolders(), $array_walker);
-
         };
 
         $top_folders = [$top_folder];
