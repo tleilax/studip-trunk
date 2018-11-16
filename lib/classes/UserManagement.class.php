@@ -870,10 +870,19 @@ class UserManagement
 
         $this->msg .= $this->deletePersonalData($this->user_data['auth_user_md5.user_id']);
 
+        // delete all remaining user data
+        $queries = array(
+            "DELETE FROM user_userdomains WHERE user_id = ?",
+            "DELETE FROM user_info WHERE user_id = ?",
+        );
+        foreach ($queries as $query) {
+            DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
+        }
+
         $plugins = PluginManager::getInstance()->getPlugins(NULL);
         foreach ($plugins as $id => $plugin) {
             if ($plugin instanceof PrivacyPlugin) {
-                $plugin_data = $plugin->deleteUserdata($this->user);
+                $this->msg .= "info§".$plugin->deleteUserdata($this->user)."§";
             }
         }
 
@@ -1019,8 +1028,7 @@ class UserManagement
 
         // delete all private appointments of this user
         if (get_config('CALENDAR_ENABLE')) {
-            $appkills = CalendarEvent::deleteBySQL('range_id = ?',
-                    array($user_id));
+            $appkills = CalendarEvent::deleteBySQL('range_id = ?', array($user_id));
             if ($appkills) {
                 $msg .= "info§" . sprintf(_("%s Einträge aus den Terminen gelöscht."), $appkills) ."§";
             }
@@ -1060,7 +1068,6 @@ class UserManagement
         // delete all remaining user data
         $queries = array(
             "DELETE FROM kategorien WHERE range_id = ?",
-            "DELETE FROM user_info WHERE user_id = ?",
             "DELETE FROM user_visibility WHERE user_id = ?",
             "DELETE FROM user_online WHERE user_id = ?",
             "DELETE FROM auto_insert_user WHERE user_id = ?",
@@ -1068,7 +1075,6 @@ class UserManagement
             "DELETE FROM schedule WHERE user_id = ?",
             "DELETE FROM schedule_seminare WHERE user_id = ?",
             "DELETE FROM termin_related_persons WHERE user_id = ?",
-            "DELETE FROM user_userdomains WHERE user_id = ?",
             "DELETE FROM priorities WHERE user_id = ?",
             "DELETE FROM api_oauth_user_mapping WHERE user_id = ?",
             "DELETE FROM api_user_permissions WHERE user_id = ?",
@@ -1078,17 +1084,19 @@ class UserManagement
             "DELETE FROM personal_notifications_user WHERE user_id = ?",
 
             "DELETE FROM comments WHERE user_id = ?",
-            "DELETE FROM questionnaires LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
-            "DELETE FROM questionnaire_answers LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
-            "DELETE FROM questionnaire_anonymous_answers LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id LIKE qa.user_id AND qa.user_id = ?",
+            "DELETE questionnaires FROM questionnaires LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id = ?",
+            "DELETE questionnaire_answers FROM questionnaire_answers LEFT JOIN questionnaire_questions USING (`question_id`) LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id = ?",
+            "DELETE questionnaire_anonymous_answers FROM questionnaire_anonymous_answers LEFT JOIN questionnaire_assignments qa USING (`questionnaire_id`) WHERE qa.range_id = ?",
             "DELETE FROM questionnaire_assignments WHERE user_id = ?",
-            "DELETE FROM etask_assignment_attempts LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
-            "DELETE FROM etask_responses LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
-            "DELETE FROM etask_tasks LEFT JOIN etask_test_tasks tt ON (etask_tasks.id = tt.task_id) LEFT JOIN etask_assignments ea ON (tt.`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND  user_id = ?",
-            "DELETE FROM etask_tests LEFT JOIN etask_assignments ea ON (`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND user_id = ?",
+            "DELETE etask_assignment_attempts FROM etask_assignment_attempts LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
+            "DELETE etask_responses FROM etask_responses LEFT JOIN etask_assignments ea ON (`assignment_id` = ea.id) WHERE ea.range_type = 'user' AND user_id = ?",
+            "DELETE etask_tasks FROM etask_tasks LEFT JOIN etask_test_tasks tt ON (etask_tasks.id = tt.task_id) LEFT JOIN etask_assignments ea ON (tt.`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND  user_id = ?",
+            "DELETE etask_tests FROM etask_tests LEFT JOIN etask_assignments ea ON (`test_id` = ea.test_id) WHERE ea.range_type = 'user' AND user_id = ?",
 
             "UPDATE forum_entries SET author = '' WHERE user_id = ?",
-            "UPDATE auth_user_md5 SET visible = 'never' WHERE user_id = ?"
+            "UPDATE auth_user_md5 SET visible = 'never' WHERE user_id = ?",
+
+            "REPLACE INTO `user_info` (`user_id`, `hobby`, `lebenslauf`, `publi`, `schwerp`, `Home`, `privatnr`, `privatcell`, `privadr`, `score`, `geschlecht`, `mkdate`, `chdate`, `title_front`, `title_rear`, `preferred_language`, `smsforward_copy`, `smsforward_rec`, `email_forward`, `smiley_favorite`, `motto`, `lock_rule`) VALUES(?, '', '', '', '', '', '', '', '', 0, 0, 0, 0, '', '', NULL, 1, '', 0, '', '', '');"
         );
         foreach ($queries as $query) {
             DBManager::get()->execute($query, [$user_id]);

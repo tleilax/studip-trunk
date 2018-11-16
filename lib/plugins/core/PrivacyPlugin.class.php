@@ -22,5 +22,11 @@ interface PrivacyPlugin
      */
     public static function getUserdata($user);
 
+    /**
+     * Return a string with a message about removal of userdata
+     * can be either a success or error message
+     *
+     * @return string removal Message
+     */
     public static function deleteUserdata($user);
 }

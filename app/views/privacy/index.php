@@ -1,4 +1,4 @@
-<? if(empty($plugins) || empty($plugins[0])): ?>
+<? if(empty($plugins) || empty(reset($plugins))): ?>
 <?= Messagebox::info(_('In dieser Kategorie sind keine Daten vorhanden.')); ?>
 <? endif; ?>
 
