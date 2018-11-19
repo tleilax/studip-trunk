@@ -59,7 +59,7 @@
     <div data-dialog-button>
         <?= Studip\LinkButton::create(
             _('Import neu starten'),
-            URLHelper::getLink('dispatch.php/wiki/import/' . $course->id),
+            URLHelper::getURL('dispatch.php/wiki/import/' . $course->id),
             ['data-dialog' => '']
         ) ?>
     </div>
