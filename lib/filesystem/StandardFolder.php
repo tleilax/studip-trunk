@@ -106,16 +106,10 @@ class StandardFolder implements FolderType
      */
     public function isVisible($user_id)
     {
-        static $visibility_cache;
-
         $visible = $this->isVisibleNonRecursive($user_id);
 
         if ($visible && $parent_folder = $this->getParent()) {
-            if (!$visibility_cache[$parent_folder->getId()]) {
-                $visibility_cache[$parent_folder->getId()] = $parent_folder->isVisible($user_id);
-            }
-
-            return $visibility_cache[$parent_folder->getId()];
+            return $parent_folder->isVisible($user_id);
         }
 
         return $visible;
