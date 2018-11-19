@@ -178,8 +178,8 @@ class WikiController extends AuthenticatedController
                 $this->success = true;
                 PageLayout::postSuccess(
                     ngettext(
-                        'Die Wikiseite wurde importiert!',
-                        'Die Wikiseiten wurden importiert!',
+                        'Die Wikiseite wurde importiert! Sie ist unter dem Menüpunkt "Alle Seiten" erreichbar.',
+                        'Die Wikiseiten wurden importiert! Sie sind unter dem Menüpunkt "Alle Seiten" erreichbar.',
                         count($selected_wiki_pages)
                     )
                 );
