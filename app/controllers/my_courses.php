@@ -225,7 +225,7 @@ class MyCoursesController extends AuthenticatedController
 
         $doc = new ExportPDF();
         $doc->addPage();
-        $doc->SetFont('helvetica', '', 8);
+        $doc->SetFont('helvetica', '', 10);
         $doc->writeHTML($template->render(), false, false, true);
         $doc->Output('courseexport.pdf', 'D');
         $this->render_nothing();

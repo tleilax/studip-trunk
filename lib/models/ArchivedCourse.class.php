@@ -70,9 +70,10 @@ class ArchivedCourse extends SimpleORMap implements PrivacyObject
             'assoc_foreign_key' => 'Seminar_id',
         ]);
         if ($sorm) {
+            $limit = 'seminar_id name untertitel beschreibung start_time semester heimat_inst_id institute dozenten fakultaet archiv_file_id archiv_protected_file_id mkdate studienbereiche VeranstaltungsNummer';
             $field_data = [];
             foreach ($sorm as $row) {
-                $field_data[] = $row->toRawArray();
+                $field_data[] = $row->toRawArray($limit);
             }
             if ($field_data) {
                 $storage->addTabularData('archiv', $field_data, $user);

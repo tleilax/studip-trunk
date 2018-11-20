@@ -320,7 +320,13 @@ class Admin_SemesterController extends AuthenticatedController
                     PageLayout::postMessage(MessageBox::success($message));
                 }
 
-                $this->redirect('admin/semester');
+                if (Request::isDialog()) {
+                    header('X-Location: ' . $this->url_for('admin/semester'));
+                    page_close();
+                    die();
+                } else {
+                    $this->redirect('admin/semester');
+                }
 
             } else {
 
