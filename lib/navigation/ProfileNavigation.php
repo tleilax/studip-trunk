@@ -91,7 +91,7 @@ class ProfileNavigation extends Navigation
                 $navigation->addSubNavigation('studies', new Navigation(_('Studiendaten'), 'dispatch.php/settings/studies'));
             }
 
-            if ($current_user->perms != 'root') {
+            if ($current_user->perms !== 'root') {
                 if (count(UserDomain::getUserDomains())) {
                     $navigation->addSubNavigation('userdomains', new Navigation(_('Nutzerdomänen'), 'dispatch.php/settings/userdomains'));
                 }
@@ -110,11 +110,11 @@ class ProfileNavigation extends Navigation
                 $navigation->addSubNavigation('privacy', new Navigation(_('Privatsphäre'), 'dispatch.php/settings/privacy'));
                 $navigation->addSubNavigation('messaging', new Navigation(_('Nachrichten'), 'dispatch.php/settings/messaging'));
 
-                if (get_config('CALENDAR_ENABLE')) {
+                if (Config::get()->CALENDAR_ENABLE) {
                     $navigation->addSubNavigation('calendar_new', new Navigation(_('Terminkalender'), 'dispatch.php/settings/calendar'));
                 }
 
-                if (!$perm->have_perm('admin') and get_config('MAIL_NOTIFICATION_ENABLE')) {
+                if (!$perm->have_perm('admin') && Config::get()->MAIL_NOTIFICATION_ENABLE) {
                     $navigation->addSubNavigation('notification', new Navigation(_('Benachrichtigung'), 'dispatch.php/settings/notification'));
                 }
 
@@ -129,10 +129,24 @@ class ProfileNavigation extends Navigation
                 $this->addSubNavigation('settings', $navigation);
             }
 
+            // Add consultations if activated
+            if (Config::get()->CONSULTATION_ENABLED
+                && UserConfig::get($current_user->id)->CONSULTATION_ENABLED_ON_PROFILE
+                && $perm->have_perm(Config::get()->CONSULTATION_REQUIRED_PERMISSION, $current_user->id))
+            {
+                $navigation = new Navigation(_('Sprechstunden'), 'dispatch.php/consultation/overview');
+                $navigation->addSubNavigation('overview', new Navigation(_('Übersicht'), 'dispatch.php/consultation/overview'));
+
+                if ($current_user->id === $GLOBALS['user']->id || $GLOBALS['user']->perms === 'root') {
+                    $navigation->addSubNavigation('admin', new Navigation(_('Konfiguration'), 'dispatch.php/consultation/admin'));
+                }
+
+                $this->addSubNavigation('consultation', $navigation);
+            }
+
             // user defined sections
             $navigation = new Navigation(_('Kategorien'), 'dispatch.php/settings/categories');
             $this->addSubNavigation('categories', $navigation);
-
         }
     }
 }
