@@ -9,7 +9,15 @@ class ContactRework extends Migration
     public function up()
     {
         DBManager::get()->exec("DROP TABLE IF EXISTS contact_userinfo");
-        DBManager::get()->exec("ALTER TABLE contact DROP buddy, DROP contact_id, DROP INDEX owner_id, ADD PRIMARY KEY(owner_id, user_id);");
+        DBManager::get()->exec("CREATE TABLE `contact_new` (
+          `owner_id` varchar(32) NOT NULL DEFAULT '',
+          `user_id` varchar(32) NOT NULL DEFAULT '',
+          PRIMARY KEY (`owner_id`,`user_id`),
+          KEY `user_id` (`user_id`)
+        ) ENGINE=MyISAM");
+        DBManager::get()->exec("INSERT INTO `contact_new` SELECT DISTINCT `owner_id`,`user_id` FROM `contact`");
+        DBManager::get()->exec("DROP TABLE `contact`");
+        DBManager::get()->exec("RENAME TABLE `contact_new` TO `contact`");
         Config::get()->delete("FOAF_ENABLE");
         Config::get()->delete("FOAF_SHOW_IDENTITY");
         Contact::expireTableScheme();
@@ -27,6 +35,13 @@ class ContactRework extends Migration
             KEY `contact_id` (`contact_id`),
             KEY `priority` (`priority`)
         ) ENGINE=MyISAM;");
+        DBManager::get()->exec("CREATE TABLE IF NOT EXISTS `contact` (
+              `contact_id` varchar(32) NOT NULL DEFAULT '',
+              `owner_id` varchar(32) NOT NULL DEFAULT '',
+              `user_id` varchar(32) NOT NULL DEFAULT '',
+              `buddy` tinyint(4) NOT NULL DEFAULT '1',
+              `calpermission` tinyint(2) unsigned NOT NULL DEFAULT '1'
+            ) ENGINE=MyISAM;");
         DBManager::get()->exec("ALTER TABLE contact ADD COLUMN buddy tinyint(4) NOT NULL DEFAULT '1'");
     }
 
