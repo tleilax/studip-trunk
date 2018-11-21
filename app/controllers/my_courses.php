@@ -193,10 +193,13 @@ class MyCoursesController extends AuthenticatedController
 
         $export_widget = new ExportWidget();
         $export_widget->addLink(_('Veranstaltungsübersicht exportieren'),
-                                $this->url_for('my_courses/courseexport'),
-                                Icon::create('export', 'clickable'),
+                                $this->url_for('my_courses/courseexport',['modules' => '1']),
+                                Icon::create('file-pdf', 'clickable'),
                                 array('class' => 'print_action', 'target' => '_blank'));
-                                //[]);
+        $export_widget->addLink(_('Veranstaltungsübersicht ohne Module exportieren'),
+                                $this->url_for('my_courses/courseexport'),
+                                Icon::create('file-pdf', 'clickable'),
+                                array('class' => 'print_action', 'target' => '_blank'));
         $sidebar->addWidget($export_widget);
     }
 
@@ -205,6 +208,8 @@ class MyCoursesController extends AuthenticatedController
         if ($GLOBALS['perm']->have_perm('admin')) {
             throw new AccessDeniedException();
         }
+
+        $this->with_modules = Request::submitted('modules');
 
         $this->sem_data = SemesterData::GetSemesterArray();
         $this->group_field = 'sem_number';

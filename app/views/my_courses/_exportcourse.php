@@ -11,29 +11,31 @@
         );
     });
 
-    $trail_classes = array('Modulteil', 'StgteilabschnittModul', 'StgteilAbschnitt', 'StgteilVersion');
-    $mvv_object_pathes = MvvCourse::get($course['seminar_id'])->getTrails($trail_classes);
+    if($with_modules) {
+        $trail_classes = array('Modulteil', 'StgteilabschnittModul', 'StgteilAbschnitt', 'StgteilVersion');
+        $mvv_object_pathes = MvvCourse::get($course['seminar_id'])->getTrails($trail_classes);
 
-    if ($mvv_object_pathes) {
-        foreach ($mvv_object_pathes as $mvv_object_path) {
-            // show only complete pathes
-            if (count($mvv_object_path) == 4) {
-                $mvv_object_names = array();
-                $modul_id = '';
-                foreach ($mvv_object_path as $mvv_object) {
-                    if ($mvv_object instanceof StgteilabschnittModul) {
-                        $modul_id = $mvv_object->modul_id;
+        if ($mvv_object_pathes) {
+            foreach ($mvv_object_pathes as $mvv_object_path) {
+                // show only complete pathes
+                if (count($mvv_object_path) == 4) {
+                    $mvv_object_names = array();
+                    $modul_id = '';
+                    foreach ($mvv_object_path as $mvv_object) {
+                        if ($mvv_object instanceof StgteilabschnittModul) {
+                            $modul_id = $mvv_object->modul_id;
+                        }
+                        $mvv_object_names[] = $mvv_object->getDisplayName();
                     }
-                    $mvv_object_names[] = $mvv_object->getDisplayName();
+                    $mvv_pathes[] = array($modul_id => $mvv_object_names);
                 }
-                $mvv_pathes[] = array($modul_id => $mvv_object_names);
             }
+            // to prevent collisions of object ids in the tree
+            // in the case of same objects listed in more than one part
+            // of the tree
+            $id_sfx = new stdClass();
+            $id_sfx->c = 1;
         }
-        // to prevent collisions of object ids in the tree
-        // in the case of same objects listed in more than one part
-        // of the tree
-        $id_sfx = new stdClass();
-        $id_sfx->c = 1;
     }
     $sem_class = $course['sem_class'];
 ?>
@@ -47,24 +49,30 @@
 <th><?= _("Name") ?></th>
 <td><?= htmlReady($course['name']) ?></td>
 </tr>
+<? if ($course['untertitel']): ?>
 <tr>
 <th><?= _("Untertitel") ?></th>
 <td><?= htmlReady($course['untertitel']) ?></td>
 </tr>
+<? endif; ?>
+<? if ($dozenten): ?>
 <tr>
 <th><?= _("Lehrende") ?></th>
 <td><? foreach ($dozenten as $dozent): ?>
 <?= $colon ? ', ' : '' ?><?= htmlReady($dozent["fullname"]) ?><? $this->colon = true; ?>
 <? endforeach; ?></td>
 </tr>
+<? endif; ?>
+<? if ($mvv_pathes): ?>
 <tr nobr="true">
 <th><?= _("Module") ?></th>
-<td><? if ($mvv_pathes): ?>
+<td>
 <? foreach ($mvv_pathes as $i => $mvv_path) : ?>
 <span style="<?= ($i%2==1)?' background-color:#eaeaea; ':''; ?>"><?= htmlReady(implode(' > ', reset(array_values($mvv_path)))) ?></span><br>
 <? endforeach; ?>
-<? endif; ?></td>
+</td>
 </tr>
+<? endif; ?>
 </table>
 <br><br>
 
