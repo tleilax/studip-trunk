@@ -203,6 +203,9 @@ class MyCoursesController extends AuthenticatedController
         $sidebar->addWidget($export_widget);
     }
 
+    /**
+     * PDF export of course overview
+     */
     public function courseexport_action()
     {
         if ($GLOBALS['perm']->have_perm('admin')) {

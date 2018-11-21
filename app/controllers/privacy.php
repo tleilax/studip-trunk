@@ -15,6 +15,13 @@
 
 class PrivacyController extends AuthenticatedController
 {
+
+    /**
+     * Presents the userdata of given user
+     *
+     * @param string $user_id
+     * @throws AccessDeniedException if user has no privileges
+     */
     public function index_action($user_id, $section = null)
     {
         if (!Privacy::isVisible($user_id)) {
@@ -88,6 +95,12 @@ class PrivacyController extends AuthenticatedController
         Sidebar::Get()->addWidget($exports);
     }
 
+    /**
+     * Gives access to accumulated userdata or single categories
+     *
+     * @param string $user_id
+     * @throws AccessDeniedException if user has no privileges
+     */
     public function landing_action($user_id)
     {
         if (!Privacy::isVisible($user_id)) {
