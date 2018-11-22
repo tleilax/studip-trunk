@@ -9,10 +9,7 @@ class Consultations extends Migration
                     `teacher_id` CHAR(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
                     `start` INT(11) UNSIGNED NOT NULL,
                     `end` INT(11) UNSIGNED NOT NULL,
-                    `week_day` TINYINT(1) UNSIGNED NOT NULL,
                     `room` VARCHAR(128) NOT NULL,
-                    `interval` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Create consultations every nth week',
-                    `duration` TINYINT(3) UNSIGNED NOT NULL DEFAULT 15 COMMENT 'Duration of a slot',
                     `calendar_events` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Create events for slots',
                     `note` TEXT NOT NULL DEFAULT '',
                     `size` TINYINT(2) UNSIGNED NOT NULL DEFAULT 1 COMMENT 'How many people may book a slot',
@@ -74,8 +71,30 @@ class Consultations extends Migration
                     `section`, `description`,
                     `mkdate`, `chdate`
                   ) VALUES (
+                      'CONSULTATION_ALLOW_DOCENTS_RESERVING', '0', 'boolean', 'global',
+                      'Sprechstunden', 'Dozenten können sich bei anderen Dozenten anmelden',
+                      UNIX_TIMESTAMP(), UNIX_TIMESTAMP()
+                  )";
+        DBManager::get()->exec($query);
+
+        $query = "INSERT IGNORE INTO `config` (
+                    `field`, `value`, `type`, `range`,
+                    `section`, `description`,
+                    `mkdate`, `chdate`
+                  ) VALUES (
                       'CONSULTATION_ENABLED_ON_PROFILE', '0', 'boolean', 'user',
-                      '', 'Schaltet die Sprechstunden für Dozenten ein',
+                      'Sprechstunden', 'Schaltet die Sprechstunden für Dozenten ein',
+                      UNIX_TIMESTAMP(), UNIX_TIMESTAMP()
+                  )";
+        DBManager::get()->exec($query);
+
+        $query = "INSERT IGNORE INTO `config` (
+                    `field`, `value`, `type`, `range`,
+                    `section`, `description`,
+                    `mkdate`, `chdate`
+                  ) VALUES (
+                      'CONSULTATION_SEND_MESSAGES', '1', 'boolean', 'user',
+                      'Sprechstunden', 'Nachrichten empfangen üer Buchungen/Stornierungen',
                       UNIX_TIMESTAMP(), UNIX_TIMESTAMP()
                   )";
         DBManager::get()->exec($query);

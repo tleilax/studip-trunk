@@ -138,7 +138,7 @@ class ProfileNavigation extends Navigation
                 $navigation->addSubNavigation('overview', new Navigation(_('Übersicht'), 'dispatch.php/consultation/overview'));
 
                 if ($current_user->id === $GLOBALS['user']->id || $GLOBALS['user']->perms === 'root') {
-                    $navigation->addSubNavigation('admin', new Navigation(_('Konfiguration'), 'dispatch.php/consultation/admin'));
+                    $navigation->addSubNavigation('admin', new Navigation(_('Verwaltung'), 'dispatch.php/consultation/admin'));
                 }
 
                 $this->addSubNavigation('consultation', $navigation);

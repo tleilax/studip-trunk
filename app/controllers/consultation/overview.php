@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/consultation_controller.php';
+
 class Consultation_OverviewController extends AuthenticatedController
 {
     public function before_filter(&$action, &$args)
