@@ -10,8 +10,6 @@
 
 class Admin_SemClassesController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     function before_filter (&$action, &$args)
     {
         parent::before_filter($action, $args);
@@ -28,7 +26,7 @@ class Admin_SemClassesController extends AuthenticatedController
         if (count($_POST) && Request::submitted('delete') && Request::get("delete_sem_class")) {
             $sem_class = $GLOBALS['SEM_CLASS'][Request::get("delete_sem_class")];
             if ($sem_class->delete()) {
-                PageLayout::postMessage(MessageBox::success(_("Veranstaltungskategorie wurde gelöscht.")));
+                PageLayout::postMessage(MessageBox::success(_("Veranstaltungskategorie wurde gelÃ¶scht.")));
                 $GLOBALS['SEM_CLASS'] = SemClass::refreshClasses();
             }
         }
@@ -47,7 +45,7 @@ class Admin_SemClassesController extends AuthenticatedController
                 $statement = DBManager::get()->prepare(
                     "INSERT INTO sem_classes SET name = :name, mkdate = UNIX_TIMESTAMP(), chdate = UNIX_TIMESTAMP() " .
                 "");
-                NotificationCenter::postNotification('SeminarClassDidCreate', Request::get("add_name"), $GLOBALS['user']->id); 
+                NotificationCenter::postNotification('SeminarClassDidCreate', Request::get("add_name"), $GLOBALS['user']->id);
                 $statement->execute(array('name' => Request::get("add_name")));
                 $id = DBManager::get()->lastInsertId();
                 if (Request::get("add_like")) {
@@ -67,14 +65,14 @@ class Admin_SemClassesController extends AuthenticatedController
     {
         Navigation::activateItem("/admin/locations/sem_classes");
         $modules = array(
-            'CoreOverview' => array('id' => "CoreOverview", 'name' => _("Kern-Übersicht"), 'enabled' => true),
+            'CoreOverview' => array('id' => "CoreOverview", 'name' => _("Kern-Ãœbersicht"), 'enabled' => true),
             'CoreAdmin' => array('id' => "CoreAdmin", 'name' => _("Kern-Verwaltung"), 'enabled' => true),
             'CoreForum' => array('id' => "CoreForum", 'name' => _("Kern-Forum"), 'enabled' => true),
             'CoreStudygroupAdmin' => array('id' => "CoreStudygroupAdmin", 'name' => _("Studiengruppen-Verwaltung"), 'enabled' => true),
             'CoreDocuments' => array('id' => "CoreDocuments", 'name' => _("Kern-Dateibereich"), 'enabled' => true),
             'CoreSchedule' => array('id' => "CoreSchedule", 'name' => _("Kern-Termine"), 'enabled' => true),
-            'CoreParticipants' => array('id' => "CoreParticipants", 'name' => _("Kern-Teilnehmer"), 'enabled' => true),
-            'CoreStudygroupParticipants' => array('id' => "CoreStudygroupParticipants", 'name' => _("Kern-Studiengruppen-Teilnehmer"), 'enabled' => true),
+            'CoreParticipants' => array('id' => "CoreParticipants", 'name' => _("Kern-Teilnehmende"), 'enabled' => true),
+            'CoreStudygroupParticipants' => array('id' => "CoreStudygroupParticipants", 'name' => _("Kern-Studiengruppen-Teilnehmende"), 'enabled' => true),
             'CoreLiterature' => array('id' => "CoreLiterature", 'name' => _("Kern-Literatur"), 'enabled' => true),
             'CoreScm' => array('id' => "CoreScm", 'name' => _("Kern-Freie-Informationen"), 'enabled' => true),
             'CoreWiki' => array('id' => "CoreWiki", 'name' => _("Kern-Wiki"), 'enabled' => true),
@@ -97,7 +95,7 @@ class Admin_SemClassesController extends AuthenticatedController
     public function save_action()
     {
         if (count($_POST) === 0) {
-            throw new Exception("Kein Zugriff über GET");
+            throw new Exception("Kein Zugriff Ã¼ber GET");
         }
         $sem_class = $GLOBALS['SEM_CLASS'][Request::int("sem_class_id")];
         foreach (Request::getArray("core_module_slots") as $slot => $module) {
@@ -112,11 +110,8 @@ class Admin_SemClassesController extends AuthenticatedController
         $sem_class->set('title_tutor_plural', Request::get("title_tutor_plural") ? Request::get("title_tutor_plural") : null);
         $sem_class->set('title_autor', Request::get("title_autor") ? Request::get("title_autor") : null);
         $sem_class->set('title_autor_plural', Request::get("title_autor_plural") ? Request::get("title_autor_plural") : null);
-        $sem_class->set('compact_mode', Request::int("compact_mode"));
-        $sem_class->set('workgroup_mode', Request::int("workgroup_mode"));
         $sem_class->set('studygroup_mode', Request::int("studygroup_mode"));
         $sem_class->set('only_inst_user', Request::int("only_inst_user"));
-        $sem_class->set('turnus_default', Request::int("turnus_default"));
         $sem_class->set('default_read_level', Request::int("default_read_level"));
         $sem_class->set('default_write_level', Request::int("default_write_level"));
         $sem_class->set('bereiche', Request::int("bereiche"));
@@ -130,12 +125,13 @@ class Admin_SemClassesController extends AuthenticatedController
         $sem_class->set('admission_prelim_default', Request::int("admission_prelim_default"));
         $sem_class->set('admission_type_default', Request::int("admission_type_default"));
         $sem_class->set('show_raumzeit', Request::int("show_raumzeit"));
+        $sem_class->set('is_group', Request::int("is_group"));
         $sem_class->store();
         if (!count($sem_class->getSemTypes())) {
             $notice = "<br>"._("Beachten Sie, dass es noch keine Veranstaltungstypen gibt!");
         }
         $output = array(
-            'html' => (string) MessageBox::success(_("Änderungen wurden gespeichert."." ".'<a href="'.URLHelper::getLink("dispatch.php/admin/sem_classes/overview").'">'._("Zurück zur Übersichtsseite.").'</a>').$notice)
+            'html' => (string) MessageBox::success(_("Ã„nderungen wurden gespeichert."." ".'<a href="'.URLHelper::getLink("dispatch.php/admin/sem_classes/overview").'">'._("ZurÃ¼ck zur Ãœbersichtsseite.").'</a>').$notice)
         );
         $this->render_json($output);
     }
@@ -154,7 +150,7 @@ class Admin_SemClassesController extends AuthenticatedController
                 'name' => $name,
                 'sem_class' => Request::get("sem_class")
             ));
-            NotificationCenter::postNotification('SeminarTypeDidCreate', $name, $GLOBALS['user']->id); 
+            NotificationCenter::postNotification('SeminarTypeDidCreate', $name, $GLOBALS['user']->id);
             $id = DBManager::get()->lastInsertId();
             $GLOBALS['SEM_TYPE'] = SemType::refreshTypes();
             $this->sem_type = $GLOBALS['SEM_TYPE'][$id];

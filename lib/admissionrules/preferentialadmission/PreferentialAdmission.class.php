@@ -155,6 +155,18 @@ class PreferentialAdmission extends AdmissionRule
                  * Finally, set bonuses for the users affected by conditions.
                  */
                 $endbonus = $this->setSemesterBonus($courseset, $grouped, $maxbonus + 1);
+            /*
+             * No conditions given, just group all users
+             * by their semester of study.
+             */
+            } else {
+                // Build list of users by semester of study.
+                $grouped = $this->getSemesterGroups(
+                    array_keys(AdmissionPriority::getPriorities($courseset->getId())),
+                    false);
+
+                // Assign corresponding bonus to users.
+                $maxbonus = $this->setSemesterBonus($courseset, $grouped);
             }
         }
     }
@@ -180,7 +192,7 @@ class PreferentialAdmission extends AdmissionRule
     }
 
     /**
-     * Gets all users that are matched by thís rule.
+     * Gets all users that are matched by thÃ­s rule.
      *
      * @return Array An array containing IDs of users who are matched by
      *      this rule.
@@ -215,7 +227,7 @@ class PreferentialAdmission extends AdmissionRule
      */
     public static function getDescription()
     {
-        return _('Sie können hier festlegen, dass bestimmte Studiengänge, '.
+        return _('Sie kÃ¶nnen hier festlegen, dass bestimmte StudiengÃ¤nge, '.
             'Fachsemester etc. bei der Platzverteilung zu Veranstaltungen '.
             'bevorzugt behandelt werden sollen.');
     }
@@ -511,6 +523,18 @@ class PreferentialAdmission extends AdmissionRule
             $errors[] = _('Es muss mindestens eine Auswahlbedingung angegeben werden.');
         }
         return $errors;
+    }
+
+    public function __clone()
+    {
+        $this->id = md5(uniqid(get_class($this)));
+        $this->courseSetId = null;
+        $cloned_conditions = array();
+        foreach ($this->conditions as $condition) {
+            $dolly = clone $condition;
+            $cloned_conditions[$dolly->id] = $dolly;
+        }
+        $this->conditions = $cloned_conditions;
     }
 
 } /* end of class PreferentialAdmission */

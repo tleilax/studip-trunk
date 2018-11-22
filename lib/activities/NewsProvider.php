@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @author      Till Glˆggler <tgloeggl@uos.de>
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
  * @license     GPL 2 or later
  */
 
@@ -15,26 +15,26 @@ class NewsProvider implements ActivityProvider
         switch ($activity->context) {
             case 'course':
                 return array(
-                    \URLHelper::getUrl('dispatch.php/course/overview/?cid=' . $activity->context_id . '&contentbox_type=news&contentbox_open=' . $activity->object_id) => _('Ank¸ndigungen in der Veranstaltung')
+                    \URLHelper::getUrl('dispatch.php/course/overview/?cid=' . $activity->context_id . '&contentbox_type=news&contentbox_open=' . $activity->object_id) => _('Ank√ºndigungen in der Veranstaltung')
                 );
             break;
 
             case 'institute':
                 return array(
-                    \URLHelper::getUrl('dispatch.php/institute/overview?auswahl=' . $activity->context_id) => _('Ank¸ndigungen in der Einrichtung')
+                    \URLHelper::getUrl('dispatch.php/institute/overview?auswahl=' . $activity->context_id) => _('Ank√ºndigungen in der Einrichtung')
                 );
             break;
 
             case 'system':
                 return array(
-                    \URLHelper::getUrl('dispatch.php/start?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('Ank¸ndigungen auf der Startseite')
+                    \URLHelper::getUrl('dispatch.php/start?contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('Ank√ºndigungen auf der Startseite')
                 );
             break;
 
             case 'user':
                 return array(
                     \URLHelper::getUrl('dispatch.php/profile/?username='. get_username($activity->context_id)
-                        . '&contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('Ank¸ndigungen auf der Profilseite')
+                        . '&contentbox_type=news&contentbox_open='. $news->getId() .'#'. $news->getId()) => _('Ank√ºndigungen auf der Profilseite')
                 );
             break;
         }
@@ -62,26 +62,37 @@ class NewsProvider implements ActivityProvider
             $context_id = $range->range_id;
 
             switch ($range->type) {
-                case 'user':   $context = 'user';break;
-                case 'inst':   $context = 'institute';break;
-                case 'sem':    $context = 'course';break;
-                case 'global': $context = 'system'; $context_id = 'system';break;
+                case 'user':
+                    $context = 'user';
+                    break;
+                case 'inst':
+                case 'fak':
+                    $context = 'institute';
+                    break;
+                case 'sem':
+                    $context = 'course';
+                    break;
+                case 'global':
+                    $context = 'system';
+                    $context_id = 'system';
+                    break;
             }
-
-            $activity = Activity::create(
-                array(
-                    'provider'     => __CLASS__,
-                    'context'      => $context,
-                    'context_id'   => $context_id,
-                    'content'      => NULL,
-                    'actor_type'   => 'user',         // who initiated the activity?
-                    'actor_id'     => $news->user_id, // id of initiator
-                    'verb'         => 'created',      // the activity type
-                    'object_id'    => $news->id,      // the id of the referenced object
-                    'object_type'  => 'news',         // type of activity object
-                    'mkdate'       => $mkdate
-                )
-            );
+            if (isset($context)) {
+                $activity = Activity::create(
+                    array(
+                        'provider'    => __CLASS__,
+                        'context'     => $context,
+                        'context_id'  => $context_id,
+                        'content'     => null,
+                        'actor_type'  => 'user',         // who initiated the activity?
+                        'actor_id'    => $news->user_id, // id of initiator
+                        'verb'        => 'created',      // the activity type
+                        'object_id'   => $news->id,      // the id of the referenced object
+                        'object_type' => 'news',         // type of activity object
+                        'mkdate'      => $mkdate
+                    )
+                );
+            }
 
         }
     }
@@ -95,6 +106,11 @@ class NewsProvider implements ActivityProvider
     public function getActivityDetails($activity)
     {
         $news = new \StudipNews($activity->object_id);
+
+        // do not show unpublished news
+        if ($news->date > time()) {
+            return false;
+        }
 
         $activity->content = '<b>' . htmlReady($news->topic)
             .'</b><br>'. formatReady($news->body);
@@ -112,7 +128,7 @@ class NewsProvider implements ActivityProvider
      */
     public static function getLexicalField()
     {
-        return _('eine Ank¸ndigung');
+        return _('eine Ank√ºndigung');
     }
 
 }

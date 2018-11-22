@@ -4,7 +4,7 @@
 # Lifter010: TODO
 
 /*
- * Copyright (C) 2007 - André Klaßen (aklassen@uos.de)
+ * Copyright (C) 2007 - AndrÃ© KlaÃŸen (aklassen@uos.de)
  * Copyright (C) 2008 - Marcus Lunzenauer (mlunzena@uos)
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
  * @package        studip
  * @subpackage lib
  *
- * @author        André Klaßen (aklassen@uos)
+ * @author        AndrÃ© KlaÃŸen (aklassen@uos)
  * @author        Marcus Lunzenauer (mlunzena@uos)
  * @copyright (c) Authors
  * @since         1.7
@@ -84,10 +84,15 @@ class Avatar {
      *
      * @return mixed     the user's avatar.
      */
-    static function getAvatar($id) {
-        $user_id = $id;
-        $username = @func_get_arg(1);
-        return new Avatar($user_id, $username);
+    static function getAvatar($id)
+    {
+        $username = null;
+
+        if (func_num_args() == 2) {
+            $username = func_get_arg(1);
+        }
+
+        return new Avatar($id, $username);
     }
 
     /**
@@ -143,8 +148,8 @@ class Avatar {
      *
      * @return void
      */
-    protected function __construct() {
-        list($user_id, $username) = func_get_args();
+    protected function __construct($user_id, $username = null)
+    {
         $this->user_id = $user_id;
         $this->username = $username;
     }
@@ -263,16 +268,16 @@ class Avatar {
 
         try {
 
-            // Bilddatei ist zu groß
+            // Bilddatei ist zu groÃŸ
             if ($_FILES[$userfile]['size'] > self::MAX_FILE_SIZE) {
-                throw new Exception(sprintf(_("Die hochgeladene Bilddatei ist %s KB groß. Die maximale Dateigröße beträgt %s KB!"),
+                throw new Exception(sprintf(_("Die hochgeladene Bilddatei ist %s KB groÃŸ. Die maximale DateigrÃ¶ÃŸe betrÃ¤gt %s KB!"),
                                                                         round($_FILES[$userfile]['size'] / 1024),
                                                                         self::MAX_FILE_SIZE / 1024));
             }
 
-            // keine Datei ausgewählt!
+            // keine Datei ausgewÃ¤hlt!
             if (!$_FILES[$userfile]['name']) {
-                throw new Exception(_("Sie haben keine Datei zum Hochladen ausgewählt!"));
+                throw new Exception(_("Sie haben keine Datei zum Hochladen ausgewÃ¤hlt!"));
             }
 
             // get extension
@@ -296,6 +301,7 @@ class Avatar {
             // set permissions for uploaded file
             @chmod($filename, 0666 & ~umask());
 
+            $this->sanitizeOrientation($filename);
             $this->createFrom($filename);
 
             @unlink($filename);
@@ -322,8 +328,8 @@ class Avatar {
         }
 
         set_error_handler(array(__CLASS__, 'error_handler'));
-        
-        NotificationCenter::postNotification('AvatarWillCreate', $this->user_id); 
+
+        NotificationCenter::postNotification('AvatarWillCreate', $this->user_id);
         copy($filename, $this->getCustomAvatarPath(Avatar::ORIGINAL));
         $this->resize(Avatar::NORMAL, $filename);
         $this->resize(Avatar::NORMAL, $filename, true);
@@ -331,8 +337,8 @@ class Avatar {
         $this->resize(Avatar::MEDIUM, $filename, true);
         $this->resize(Avatar::SMALL,  $filename);
         $this->resize(Avatar::SMALL,  $filename, true);
-        NotificationCenter::postNotification('AvatarDidCreate', $this->user_id); 
-        
+        NotificationCenter::postNotification('AvatarDidCreate', $this->user_id);
+
         restore_error_handler();
     }
 
@@ -343,7 +349,7 @@ class Avatar {
      */
     function reset() {
         if ($this->is_customized()) {
-            NotificationCenter::postNotification('AvatarWillDelete', $this->user_id); 
+            NotificationCenter::postNotification('AvatarWillDelete', $this->user_id);
             @unlink($this->getCustomAvatarPath(Avatar::ORIGINAL));
             @unlink($this->getCustomAvatarPath(Avatar::NORMAL));
             @unlink($this->getCustomAvatarPath(Avatar::SMALL));
@@ -395,7 +401,7 @@ class Avatar {
             IMAGETYPE_JPEG => "imagecreatefromjpeg",
             IMAGETYPE_PNG    => "imagecreatefrompng");
         if (!isset($lookup[$type])) {
-            throw new Exception(_("Der Typ des Bilds wird nicht unterstützt."));
+            throw new Exception(_("Der Typ des Bilds wird nicht unterstÃ¼tzt."));
         }
         $image = $lookup[$type]($filename);
 
@@ -470,7 +476,7 @@ class Avatar {
         require_once 'lib/functions.php';
         return get_fullname($this->user_id);
     }
-    
+
     /**
      * Return if avatar is visible to the current user.
      * Also set the user_id of avatar to nobody if not visible to current user.
@@ -482,5 +488,57 @@ class Avatar {
             $this->user_id = 'nobody';
         }
         return $visible;
+    }
+
+    /**
+     * Corrects the orientation of images from iOS/OS X devices which might
+     * lead to a rotated image. EXIF information is checked and when the
+     * orientation is set by EXIF data, we rotate the image accordingly.
+     *
+     * @param string $filename Filename of the image to correct
+     */
+    protected function sanitizeOrientation($filename)
+    {
+        if (!function_exists('exif_read_data')) {
+            return;
+        }
+
+        if (exif_imagetype($filename) !== IMAGETYPE_JPEG) {
+            return;
+        }
+
+        $exif = exif_read_data($filename);
+        if (!$exif || !$exif['Orientation'] || $exif['Orientation'] == 1) {
+            return;
+        }
+
+        $degree = 0;
+        switch ($exif['Orientation']) {
+            case 3:
+                $degree = 180;
+                break;
+            case 6:
+                $degree = -90;
+                break;
+            case 8:
+                $degree = 90;
+                break;
+        }
+
+        if ($degree) {
+            $img = imagecreatefromstring(file_get_contents($filename));
+            $img = imagerotate($img, $degree, 0);
+
+            $extension = pathinfo($filename, PATHINFO_EXTENSION);
+            if ($extension === 'jpg' || $extension === 'jpg') {
+                imagejpeg($img, $filename, 95);
+            } elseif ($extension === 'gif') {
+                imagegif($img, $filename);
+            } else {
+                imagepng($img, $filename, 9);
+            }
+
+            imagedestroy($img);
+        }
     }
 }

@@ -7,7 +7,7 @@
  * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
- * @author      Till Glöggler <tgloeggl@uos.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
  * @license     http://www.gnu.org/licenses/gpl-3.0.html GPL version 3
  * @category    Stud.IP
  */
@@ -116,13 +116,8 @@ class ForumVisit {
             $stmt->execute(array($seminar_id, $GLOBALS['user']->id));
             $visit[$seminar_id][$GLOBALS['user']->id] = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // no entry for this seminar yet present, create a new one
+            // no entry for this seminar yet present
             if (!$visit[$seminar_id][$GLOBALS['user']->id]) { 
-                $stmt = DBManager::get()->prepare("INSERT INTO forum_visits
-                    (seminar_id, user_id, visitdate, last_visitdate) VALUES
-                    (?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())");
-                $stmt->execute(array($seminar_id, $GLOBALS['user']->id));
-            
                 // set visitdate to current time
                 $visit[$seminar_id][$GLOBALS['user']->id] = array(
                     'visit'      => time() - ForumVisit::LAST_VISIT_MAX,

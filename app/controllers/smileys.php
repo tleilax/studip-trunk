@@ -21,7 +21,7 @@ class SmileysController extends AuthenticatedController
 {
     const GRID_WIDTH  = 5;
     const GRID_HEIGHT = 2;
-    
+
     /**
      * Common tasks for all actions.
      */
@@ -29,7 +29,7 @@ class SmileysController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        PageLayout::setTitle(_('Smiley-Übersicht'));
+        PageLayout::setTitle(_('Smiley-Ãœbersicht'));
 
         $this->favorites_activated = SmileyFavorites::isEnabled()
                                      && $GLOBALS['user']->id != nobody;
@@ -61,7 +61,7 @@ class SmileysController extends AuthenticatedController
             $this->redirect('smileys');
         }
 
-        $title =  _('Smiley-Übersicht') . ' - ' . sprintf(_('%s Smileys vorhanden'), $this->statistics['count_all']);
+        $title =  _('Smiley-Ãœbersicht') . ' - ' . sprintf(_('%s Smileys vorhanden'), $this->statistics['count_all']);
         PageLayout::setTitle($title);
 
         $this->smileys = $this->view == 'favorites'
@@ -80,8 +80,8 @@ class SmileysController extends AuthenticatedController
             $state = $this->favorites->toggle($id);
 
             $message = $state
-                     ? _('Der Smiley wurde zu Ihren Favoriten hinzugefügt.')
-                     : _('Der Smiley gehört nicht mehr zu Ihren Favoriten.');
+                     ? _('Der Smiley wurde zu Ihren Favoriten hinzugefÃ¼gt.')
+                     : _('Der Smiley gehÃ¶rt nicht mehr zu Ihren Favoriten.');
             $msg_box = MessageBox::success($message);
         } catch (OutOfBoundsException $e) {
             $state = $this->favorites->contain($id);
@@ -93,7 +93,7 @@ class SmileysController extends AuthenticatedController
             $this->response->add_header('Content-Type', 'application/json');
             $this->render_text(json_encode(array(
                 'state'   => $state,
-                'message' => studip_utf8encode($msg_box),
+                'message' => $msg_box,
             )));
         } else {
             PageLayout::postMessage($msg_box);

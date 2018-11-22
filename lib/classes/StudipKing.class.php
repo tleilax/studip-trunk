@@ -3,7 +3,7 @@
 
 /*
  * Copyright (C) 2004 - Tobias Thelen <tthelen@uos.de>
- * Copyright (C) 2004 - Till Glöggler <tgloeggl@uos.de>
+ * Copyright (C) 2004 - Till GlÃ¶ggler <tgloeggl@uos.de>
  * Copyright (C) 2009 - Marcus Lunzenauer <mlunzena@uos.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -67,7 +67,7 @@ class StudipKing {
 
             # read cache (unserializing a cache miss - FALSE - does not matter)
             $kings = unserialize($cache->read(self::CACHE_KEY));
-            
+
             # cache miss, retrieve from database
             if ($kings === FALSE) {
                 $kings = self::get_kings_uncached();
@@ -127,13 +127,13 @@ class StudipKing {
                 }
             }
         }
-        
+
         return $kings;
     }
 
     private static function files_kings()
     {
-        return self::select_kings("SELECT user_id AS id, COUNT(*) AS num FROM dokumente GROUP BY user_id");
+        return self::select_kings("SELECT user_id AS id, COUNT(*) AS num FROM file_refs GROUP BY user_id");
     }
 
     private static function votes_kings()
@@ -159,11 +159,11 @@ class StudipKing {
     {
         $alt_text = array(
             'files'            => _('%d hochgeladene Dateien'),
-            'forum'            => _('%d Forums-Beiträge'),
-            'wiki'             => _('%d Wiki-Beiträge'),
+            'forum'            => _('%d Forums-BeitrÃ¤ge'),
+            'wiki'             => _('%d Wiki-BeitrÃ¤ge'),
             'voter'            => _('%d abgegebene Stimmen'),
             'votes'            => _('%d bekommene Stimmen'),
-            'news'             => _('%d eingestellte Ankündigungen')
+            'news'             => _('%d eingestellte AnkÃ¼ndigungen')
         );
         return sprintf($alt_text[$type], $amount);
     }

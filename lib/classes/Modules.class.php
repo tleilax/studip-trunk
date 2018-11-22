@@ -50,7 +50,6 @@ class Modules {
         'wiki' => array('id' => 8, 'const' => 'WIKI_ENABLE', 'sem' => true, 'inst' => true),
         'scm' => array('id' => 12, 'const' => 'SCM_ENABLE', 'sem' => true, 'inst' => true),
         'elearning_interface' => array('id' => 13, 'const' => 'ELEARNING_INTERFACE_ENABLE', 'sem' => true, 'inst' => true),
-        'documents_folder_permissions' => array('id' => 14, 'const' => '', 'sem' => true, 'inst' => true),
         'calendar' => array('id' => 16, 'const' => 'COURSE_CALENDAR_ENABLE', 'sem' => true, 'inst' => true),
         'resources' => array('id' => 21, 'const' => 'RESOURCES_ENABLE', 'sem' => true, 'inst' => true)
     );
@@ -89,7 +88,7 @@ class Modules {
             $modules = $this->getDefaultBinValue($range_id, $range_type, $type);
         }
         if ($range_type == 'sem') {
-            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$type]['class']];
+            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$type]['class']] ?: SemClass::getDefaultSemClass();
         } else {
             $sem_class = SemClass::getDefaultInstituteClass($type);
         }
@@ -130,7 +129,7 @@ class Modules {
         }
 
         if ($range_type == 'sem') {
-            $sem_class = $SEM_CLASS[$SEM_TYPE[$type]['class']];
+            $sem_class = $SEM_CLASS[$SEM_TYPE[$type]['class']] ?: SemClass::getDefaultSemClass();
         } else {
             $sem_class = SemClass::getDefaultInstituteClass($type);
         }

@@ -51,14 +51,14 @@ class BasicDataWizardStep implements CourseWizardStep
             // Creates a studygroup.
             if ($values['studygroup']) {
                 // Get all studygroup types.
-                if ($class['studygroup_mode']) {
+                if ($class['studygroup_mode'] && !$class['course_creation_forbidden']) {
                     $typestruct[$class['name']][] = $type;
                 }
                 // Pre-set institute for studygroup assignment.
                 $values['institute'] = Config::get()->STUDYGROUP_DEFAULT_INST;
             // Normal course.
             } else {
-                if (!$class['course_creation_forbidden']) {
+                if (!$class['course_creation_forbidden'] && !$class['studygroup_mode']) {
                     $typestruct[$class['name']][] = $type;
                 }
             }
@@ -79,9 +79,16 @@ class BasicDataWizardStep implements CourseWizardStep
         // Allow only current or future semesters for selection.
         foreach (Semester::getAll() as $s) {
             if ($s->ende >= $now) {
-                if ($s->id == $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE &&
+                if ($GLOBALS['perm']->have_perm("admin")) {
+                    if ($s->id == $GLOBALS['user']->cfg->MY_COURSES_SELECTED_CYCLE &&
                         !$values['start_time'] && Request::isXhr()) {
-                    $values['start_time'] = $s->beginn;
+                        $values['start_time'] = $s->beginn;
+                    }
+                } else {
+                    if ((time() >= $s->beginn - Config::get()->SEMESTER_TIME_SWITCH * 86400 * 7)
+                        && (time() < $s->ende - Config::get()->SEMESTER_TIME_SWITCH * 86400 * 7)) {
+                        $values['start_time'] = $s->beginn;
+                    }
                 }
                 $semesters[] = $s;
             }
@@ -93,8 +100,8 @@ class BasicDataWizardStep implements CourseWizardStep
                 $values['start_time'] = Semester::findCurrent()->beginn;
             }
         } else {
-            $message = sprintf(_('Veranstaltungen können nur ' .
-                'im aktuellen oder in zukünftigen Semestern angelegt werden. ' .
+            $message = sprintf(_('Veranstaltungen kÃ¶nnen nur ' .
+                'im aktuellen oder in zukÃ¼nftigen Semestern angelegt werden. ' .
                 'Leider wurde kein passendes Semester gefunden. Bitte wenden ' .
                 'Sie sich an [die Stud.IP-Administration]%s .'),
                 URLHelper::getLink('dispatch.php/siteinfo/show')
@@ -116,8 +123,8 @@ class BasicDataWizardStep implements CourseWizardStep
             }
         } else {
             $message = sprintf(_('Um Veranstaltungen ' .
-                'anlegen zu können, muss Ihr Account der Einrichtung, ' .
-                'für die Sie eine Veranstaltung anlegen möchten, zugeordnet ' .
+                'anlegen zu kÃ¶nnen, muss Ihr Account der Einrichtung, ' .
+                'fÃ¼r die Sie eine Veranstaltung anlegen mÃ¶chten, zugeordnet ' .
                 'werden. Bitte wenden Sie sich an [die ' .
                 'Stud.IP-Administration]%s .'),
                 URLHelper::getLink('dispatch.php/siteinfo/show')
@@ -135,7 +142,7 @@ class BasicDataWizardStep implements CourseWizardStep
             Request::getInstance()->offsetSet('part_inst_id_parameter', $values['part_inst_id_parameter']);
         }
         $instsearch = new StandardSearch('Institut_id',
-            _('Beteiligte Einrichtung hinzufügen'),
+            _('Beteiligte Einrichtung hinzufÃ¼gen'),
             'part_inst_id'
         );
         $tpl->set_attribute('instsearch', QuickSearch::get('part_inst_id', $instsearch)
@@ -202,7 +209,7 @@ class BasicDataWizardStep implements CourseWizardStep
                 Request::getInstance()->offsetSet('deputy_id_parameter', $values['deputy_id_parameter']);
             }
             $deputysearch = new PermissionSearch('user',
-                _('Vertretung hinzufügen'),
+                _('Vertretung hinzufÃ¼gen'),
                 'user_id',
                 array('permission' => 'dozent',
                     'exclude_user' => array_keys($values['deputies']))
@@ -311,6 +318,12 @@ class BasicDataWizardStep implements CourseWizardStep
         if (!trim($values['name'])) {
             $errors[] = _('Bitte geben Sie den Namen der Veranstaltung an.');
         }
+        if ($values['number'] != '') {
+            $course_number_format = Config::get()->COURSE_NUMBER_FORMAT;
+            if ($course_number_format && !preg_match('/^' . $course_number_format . '$/', $values['number'])) {
+                $errors[] = _('Die Veranstaltungsnummer hat ein ungÃ¼ltiges Format.');
+            }
+        }
         if (!$values['lecturers']) {
             $errors[] = sprintf(_('Bitte tragen Sie mindestens eine Person als %s ein.'),
                 get_title_for_status('dozent', 1, $values['coursetype']));
@@ -318,17 +331,17 @@ class BasicDataWizardStep implements CourseWizardStep
         if (!$values['lecturers'][$GLOBALS['user']->id] && !$GLOBALS['perm']->have_perm('admin')) {
             if (Config::get()->DEPUTIES_ENABLE) {
                 if (!$values['deputies'][$GLOBALS['user']->id]) {
-                    $errors[] = sprintf(_('Sie selbst müssen entweder als %s oder als Vertretung eingetragen sein.'),
+                    $errors[] = sprintf(_('Sie selbst mÃ¼ssen entweder als %s oder als Vertretung eingetragen sein.'),
                         get_title_for_status('dozent', 1, $values['coursetype']));
                 }
             } else {
-                $errors[] = sprintf(_('Sie müssen selbst als %s eingetragen sein.'),
+                $errors[] = sprintf(_('Sie mÃ¼ssen selbst als %s eingetragen sein.'),
                     get_title_for_status('dozent', 1, $values['coursetype']));
             }
         }
         if (in_array($values['coursetype'], studygroup_sem_types())) {
             if (!$values['accept']) {
-                $errors[] = _('Sie müssen die Nutzungsbedingungen akzeptieren.');
+                $errors[] = _('Sie mÃ¼ssen die Nutzungsbedingungen akzeptieren.');
             }
         }
         if ($errors) {
@@ -503,7 +516,7 @@ class BasicDataWizardStep implements CourseWizardStep
             $search = 'user';
         }
         $psearch = new PermissionSearch($search,
-            sprintf(_("%s hinzufügen"), get_title_for_status('dozent', 1, $course_type)),
+            sprintf(_("%s hinzufÃ¼gen"), get_title_for_status('dozent', 1, $course_type)),
             'user_id',
             __CLASS__ . '::lsearchHelper'
         );
@@ -513,7 +526,7 @@ class BasicDataWizardStep implements CourseWizardStep
             ->render();
 
         $tutor_psearch = new PermissionSearch($search,
-            sprintf(_("%s hinzufügen"), get_title_for_status('tutor', 1, $course_type)),
+            sprintf(_("%s hinzufÃ¼gen"), get_title_for_status('tutor', 1, $course_type)),
             'user_id',
             __CLASS__ . '::tsearchHelper'
         );

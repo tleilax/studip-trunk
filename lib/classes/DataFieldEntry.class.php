@@ -12,7 +12,11 @@ abstract class DataFieldEntry
     protected static $supported_types = array(
         'bool',
         'textline',
+        'textlinei18n',
         'textarea',
+        'textareai18n',
+        'textmarkup',
+        'textmarkupi18n',
         'selectbox',
         'selectboxmultiple',
         'date',
@@ -23,6 +27,8 @@ abstract class DataFieldEntry
         'combo',
         'link',
     );
+    
+    protected $language = '';
 
     /**
      * Returns all supported datafield types
@@ -35,6 +41,20 @@ abstract class DataFieldEntry
     }
 
     /**
+     * Returns the according class for a given type.
+     *
+     * @param String $type Type of the datafield
+     * @return String class name
+     */
+    private static function getClassForType($type)
+    {
+        if ($type === 'selectboxmultiple') {
+            return 'DataFieldSelectboxMultipleEntry';
+        }
+        return 'DataField' . ucfirst($type) . 'Entry';
+    }
+
+    /**
      * Factory method that returns the appropriate datafield object
      * for the given parameters.
      *
@@ -43,15 +63,17 @@ abstract class DataFieldEntry
      * @param mixed     $value     Value of the entry
      * @return DataFieldEntry instance of appropriate type
      */
-    public static function createDataFieldEntry(DataField $datafield, $rangeID = '', $value = '')
+    public static function createDataFieldEntry(DataField $datafield, $rangeID = '', $value = null)
     {
         $type = $datafield->type;
         if (!in_array($type, self::getSupportedTypes())) {
             return false;
         }
-
-        $entry_class = 'DataField' . ucfirst($type) . 'Entry';
-        return new $entry_class($datafield, $rangeID, $value);
+        
+        $entry_class = self::getClassForType($type);
+        $entry = new $entry_class($datafield, $rangeID, $value);
+        
+        return $entry;
     }
 
     /**
@@ -188,14 +210,15 @@ abstract class DataFieldEntry
      * Constructs this datafield
      *
      * @param DataField $datafield Underlying model
-     * @param String    $rangeID   Range id
+     * @param mixed $range_id Range id (or array with range id and secondary
+     *                        range id)
      * @param mixed     $value     Value
      */
     public function __construct(DataField $datafield = null, $rangeID = '', $value = null)
     {
         $this->model   = $datafield;
         $this->rangeID = $rangeID;
-        $this->value   = $value;
+        $this->value   = isset($value) ? $value : $datafield->default_value;
     }
 
     /**
@@ -205,16 +228,19 @@ abstract class DataFieldEntry
      */
     public function store()
     {
-        $entry = new DatafieldEntryModel(array(
+        $id = [
             $this->model->id,
-            (string)$this->getRangeID(),
-            (string)$this->getSecondRangeID(),
-        ));
+            (string) $this->getRangeID(),
+            (string) $this->getSecondRangeID(),
+            (string) $this->language
+        ];
+        $entry = new DatafieldEntryModel($id);
+        $entry->lang = (string) $this->language;
 
         $old_value = $entry->content;
         $entry->content = $this->getValue();
 
-        if ($this->isEmpty()) {
+        if ($entry->content == $this->model->default_value) {
             $result = $entry->delete();
         } else {
             $result = $entry->store();
@@ -317,7 +343,7 @@ abstract class DataFieldEntry
         $variables = array_merge(array(
             'name'  => $name,
             'model' => $this->model,
-            'value' => $this->value,
+            'value' => $this->getValue(),
         ), $variables);
 
         return $GLOBALS['template_factory']->render('datafields/' . $this->template, $variables);
@@ -363,6 +389,24 @@ abstract class DataFieldEntry
         $this->rangeID = array($this->getRangeID(), $sec_range_id);
     }
 
+    /**
+     * Sets the prefered content language if this is an i18n datafield.
+     * 
+     * @param string $language The prefered display language
+     */
+    public function setContentLanguage($language)
+    {
+        if (!Config::get()->CONTENT_LANGUAGES[$language]) {
+            throw new InvalidArgumentException('Language not configured.');
+        }
+        
+        if ($language == reset(array_keys(Config::get()->CONTENT_LANGUAGES))) {
+            $language = '';
+        }
+        
+        $this->language = $language;
+    }
+    
     /**
      * Checks if datafield is empty (was not set)
      *
@@ -454,6 +498,16 @@ abstract class DataFieldEntry
     {
         return $this->model->editAllowed($perms ?: $GLOBALS['perm']->get_perm());
     }
+    
+    /**
+     * Returns whether the datafield is an i18n field.
+     *
+     * @return boolean indicating whether the datafield is a 18n field
+     */
+    public function isI18N()
+    {
+        return mb_strpos($this->getType(), 'i18n') !== false;
+    }
 
     /**
      * Returns a human readable string describing the view permissions
@@ -463,9 +517,9 @@ abstract class DataFieldEntry
     public function getPermsDescription()
     {
         if ($this->model->view_perms === 'all') {
-            return _('sichtbar für alle');
+            return _('sichtbar fÃ¼r alle');
         }
-        return sprintf(_('sichtbar nur für Sie und alle %s'),
+        return sprintf(_('sichtbar nur fÃ¼r Sie und alle %s'),
                        $this->prettyPrintViewPerms());
     }
 

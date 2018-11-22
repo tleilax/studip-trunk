@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @copyright   2010 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -51,6 +51,10 @@ class UserInfo extends SimpleORMap
     protected static function configure($config = array())
     {
         $config['db_table'] = 'user_info';
+        $config['i18n_fields']['hobby'] = true;
+        $config['i18n_fields']['lebenslauf'] = true;
+        $config['i18n_fields']['schwerp'] = true;
+        $config['i18n_fields']['publi'] = true;
         parent::configure($config);
     }
 }

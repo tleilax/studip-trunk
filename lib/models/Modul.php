@@ -34,8 +34,9 @@ class Modul extends ModuleManagementModelTreeItem
     {
         $config['db_table'] = 'mvv_modul';
 
-        $config['has_many']['deskriptoren'] = array(
+        $config['has_one']['deskriptoren'] = array(
             'class_name' => 'ModulDeskriptor',
+            'assoc_foreign_key' => 'modul_id',
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
@@ -77,7 +78,7 @@ class Modul extends ModuleManagementModelTreeItem
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
-        $config['belongs_to']['abschnitte_modul'] = array(
+        $config['has_many']['abschnitte_modul'] = array(
             'class_name' => 'StgteilabschnittModul',
             'assoc_foreign_key' => 'modul_id',
             'order_by' => 'ORDER BY position,mkdate',
@@ -109,6 +110,8 @@ class Modul extends ModuleManagementModelTreeItem
 
         $config['alias_fields']['flexnow_id'] = 'flexnow_modul';
 
+        $config['default_values']['stat'] = $GLOBALS['MVV_MODUL']['STATUS']['default'];
+
         parent::configure($config);
     }
 
@@ -135,21 +138,23 @@ class Modul extends ModuleManagementModelTreeItem
      */
     public static function getEnriched($modul_id)
     {
-        $modul = parent::getEnrichedByQuery(
-                'SELECT mvv_modul.*, mvv_modul_deskriptor.bezeichnung AS bezeichnung, '
-                . 'COUNT(DISTINCT(mvv_modulteil.modulteil_id)) AS count_modulteile '
-                . 'FROM mvv_modul '
-                . 'LEFT JOIN mvv_modul_deskriptor '
-                . 'ON mvv_modul.modul_id = mvv_modul_deskriptor.modul_id '
-                . 'AND mvv_modul_deskriptor.sprache = ? '
-                . ' LEFT JOIN mvv_modulteil '
-                . 'ON mvv_modul.modul_id = mvv_modulteil.modul_id '
-                . 'LEFT JOIN mvv_modul_inst '
-                . 'ON mvv_modul.modul_id = mvv_modul_inst.modul_id '
-                . 'AND mvv_modul_inst.gruppe = ? '
-                . 'WHERE mvv_modul.modul_id = ?',
-                array($GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['default'],
-                    'hauptverantwortlich', $modul_id));
+        $modul = parent::getEnrichedByQuery('
+            SELECT mvv_modul.*, mvv_modul_deskriptor.bezeichnung AS bezeichnung, 
+                COUNT(DISTINCT(mvv_modulteil.modulteil_id)) AS count_modulteile 
+            FROM mvv_modul 
+                LEFT JOIN mvv_modul_deskriptor 
+                    ON mvv_modul.modul_id = mvv_modul_deskriptor.modul_id 
+                LEFT JOIN mvv_modulteil 
+                    ON mvv_modul.modul_id = mvv_modulteil.modul_id 
+                LEFT JOIN mvv_modul_inst 
+                    ON (mvv_modul.modul_id = mvv_modul_inst.modul_id 
+                        AND mvv_modul_inst.gruppe = ?) 
+            WHERE mvv_modul.modul_id = ?',
+            array(
+                'hauptverantwortlich',
+                $modul_id
+            )
+        );
 
         if (sizeof($modul)) {
             return $modul[$modul_id];
@@ -175,27 +180,28 @@ class Modul extends ModuleManagementModelTreeItem
     {
         $sortby = self::createSortStatement($sortby, $order, 'bezeichnung,chdate',
                 words('bezeichnung count_modulteile chdate'));
-        return parent::getEnrichedByQuery(
-                'SELECT mvv_modul.*, mvv_modul_deskriptor.bezeichnung AS bezeichnung, '
-                . 'COUNT(DISTINCT(mvv_modulteil.modulteil_id)) AS count_modulteile '
-                . 'FROM mvv_modul '
-                . 'LEFT JOIN mvv_modul_deskriptor '
-                . 'ON mvv_modul.modul_id = mvv_modul_deskriptor.modul_id '
-                . 'AND mvv_modul_deskriptor.sprache = '
-                . DBManager::get()->quote(
-                        $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['default'])
-                . ' LEFT JOIN mvv_modulteil '
-                . 'ON mvv_modul.modul_id = mvv_modulteil.modul_id '
-                . 'LEFT JOIN mvv_modul_inst '
-                . 'ON (mvv_modul.modul_id = mvv_modul_inst.modul_id '
-                . 'AND mvv_modul_inst.gruppe = ?) '
-                . 'LEFT JOIN semester_data start_sem '
-                . 'ON (mvv_modul.start = start_sem.semester_id) '
-                . 'LEFT JOIN semester_data end_sem '
-                . 'ON (mvv_modul.end = end_sem.semester_id) '
-                . self::getFilterSql($filter, true)
-                . "GROUP BY modul_id "
-                . 'ORDER BY ' . $sortby, array('hauptverantwortlich'), $row_count, $offset);
+        return parent::getEnrichedByQuery('
+                SELECT mvv_modul.*, mvv_modul_deskriptor.bezeichnung AS bezeichnung, 
+                    COUNT(DISTINCT(mvv_modulteil.modulteil_id)) AS count_modulteile 
+                FROM mvv_modul 
+                    LEFT JOIN mvv_modul_deskriptor 
+                        ON mvv_modul.modul_id = mvv_modul_deskriptor.modul_id 
+                LEFT JOIN mvv_modulteil 
+                    ON mvv_modul.modul_id = mvv_modulteil.modul_id 
+                LEFT JOIN mvv_modul_inst 
+                    ON (mvv_modul.modul_id = mvv_modul_inst.modul_id 
+                        AND mvv_modul_inst.gruppe = ?) 
+                LEFT JOIN semester_data start_sem 
+                    ON (mvv_modul.start = start_sem.semester_id) 
+                LEFT JOIN semester_data end_sem 
+                    ON (mvv_modul.end = end_sem.semester_id) '
+                . self::getFilterSql($filter, true) . '
+                GROUP BY modul_id 
+                ORDER BY ' . $sortby,
+            array('hauptverantwortlich'),
+            $row_count,
+            $offset
+        );
     }
 
     /**
@@ -207,15 +213,16 @@ class Modul extends ModuleManagementModelTreeItem
      */
     public static function getCount($filter = null)
     {
-        $query = 'SELECT COUNT(DISTINCT(mvv_modul.modul_id)) '
-                . 'FROM mvv_modul '
-                . 'LEFT JOIN mvv_modul_inst '
-                . 'ON mvv_modul.modul_id = mvv_modul_inst.modul_id '
-                . 'AND mvv_modul_inst.gruppe = ? '
-                . 'LEFT JOIN semester_data as start_sem '
-                . 'ON (mvv_modul.start = start_sem.semester_id)  '
-                . 'LEFT JOIN semester_data as end_sem '
-                . 'ON (mvv_modul.end = end_sem.semester_id) '
+        $query = '
+            SELECT COUNT(DISTINCT(mvv_modul.modul_id)) 
+            FROM mvv_modul 
+                LEFT JOIN mvv_modul_inst 
+                    ON (mvv_modul.modul_id = mvv_modul_inst.modul_id 
+                        AND mvv_modul_inst.gruppe = ?)
+                LEFT JOIN semester_data as start_sem 
+                    ON (mvv_modul.start = start_sem.semester_id)  
+                LEFT JOIN semester_data as end_sem 
+                    ON (mvv_modul.end = end_sem.semester_id) '
                 . self::getFilterSql($filter, true);
         $db = DBManager::get()->prepare($query);
         $db->execute(array('hauptverantwortlich'));
@@ -244,11 +251,14 @@ class Modul extends ModuleManagementModelTreeItem
     public function getChildren()
     {
         $_SESSION['MVV/Lvgruppe/trail_parent_id'] =  $this->getId();
-        return Lvgruppe::getEnrichedByQuery('SELECT ml.* '
-                . 'FROM mvv_lvgruppe ml '
-                . 'LEFT JOIN mvv_lvgruppe_modulteil USING(lvgruppe_id) '
-                . 'LEFT JOIN mvv_modulteil USING(modulteil_id) '
-                . 'WHERE modul_id = ? ', array($this->getId()));
+        return Lvgruppe::getEnrichedByQuery('
+            SELECT ml.* 
+            FROM mvv_lvgruppe ml 
+                LEFT JOIN mvv_lvgruppe_modulteil USING (lvgruppe_id) 
+                LEFT JOIN mvv_modulteil USING (modulteil_id) 
+            WHERE modul_id = ? ',
+            array($this->getId())
+        );
     }
 
     /**
@@ -267,19 +277,16 @@ class Modul extends ModuleManagementModelTreeItem
         return StgteilabschnittModul::findBySQL('modul_id = ?', [$this->id]);
     }
 
-    public function getDisplayName(/*$with_code = true, $hide_semester = false */) {
-
-        $args = func_get_args();
-        $with_code = array_key_exists(0, $args)? $args[0] : true;
-        $hide_semester = array_key_exists(1, $args)? $args[1] : false;
+    public function getDisplayName($options = self::DISPLAY_DEFAULT) {
+        $options = ($options !== self::DISPLAY_DEFAULT)
+                ? $options : self::DISPLAY_CODE;
+        $with_code = $options & self::DISPLAY_CODE;
         if ($this->isNew()) {
-            return '';
+            return parent::getDisplayName($options);
         }
-
-        $name = $with_code ? $this->code . ' - ' : '';
-        $name .= $this->getDeskriptor()->bezeichnung;
-
-        if ($hide_semester) {
+        $name = ($with_code && trim($this->code)) ? $this->code . ' - ' : '';
+        $name .= $this->deskriptoren->bezeichnung;
+        if ($options & self::DISPLAY_SEMESTER) {
             $sem_validity = $this->getDisplaySemesterValidity();
             if ($sem_validity) {
                 $name .= ', ' . $sem_validity;
@@ -301,14 +308,14 @@ class Modul extends ModuleManagementModelTreeItem
         if ($end_sem || $start_sem) {
             if ($end_sem) {
                 if ($start_sem->name == $end_sem->name) {
-                    $ret .= sprintf(_('gültig im %s'),
+                    $ret .= sprintf(_('gÃ¼ltig im %s'),
                             $start_sem->name);
                 } else {
-                    $ret .= sprintf(_('gültig %s bis %s'),
+                    $ret .= sprintf(_('gÃ¼ltig %s bis %s'),
                             $start_sem->name, $end_sem->name);
                 }
             } else {
-                $ret .= sprintf(_('gültig ab %s'), $start_sem->name);
+                $ret .= sprintf(_('gÃ¼ltig ab %s'), $start_sem->name);
             }
         }
         return $ret;
@@ -353,22 +360,16 @@ class Modul extends ModuleManagementModelTreeItem
         if (!isset($GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'][$language])) {
             $language = $this->default_language;
         }
-        $deskriptor = $this->deskriptoren->findOneBy('sprache', $language);
-        if (!$deskriptor) {
-            if (!$force_new) {
-                // no descriptor in the given language
-                // switch to default language
-                $language = $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['default'];
-            }
+        if (!$this->deskriptoren) {
             // the module is new and has no descriptor
             // return a new descriptor in the default language
             $deskriptor = new ModulDeskriptor();
             $deskriptor->setNewId();
-            $deskriptor->sprache = $language;
             $deskriptor->modul_id = $this->getId();
-            $this->deskriptoren->append($deskriptor);
+            $this->deskriptoren = $deskriptor;
         }
-        return $deskriptor;
+        
+        return $this->deskriptoren;
     }
 
     /**
@@ -506,7 +507,7 @@ class Modul extends ModuleManagementModelTreeItem
      * @param boolean $deep Copy all assigned modulteile if true
      * @return Modul A copy of this module.
      */
-    public function copy($deep = true)
+    public function copy($deep = true, $with_assignments = false)
     {
         $copy = clone $this;
         $copy->setNew(true);
@@ -516,18 +517,15 @@ class Modul extends ModuleManagementModelTreeItem
         $copy->flexnow_modul = '';
         if ($this->responsible_institute) {
             $copy->responsible_institute = clone $this->responsible_institute;
+            $copy->responsible_institute->modul_id = $copy->id;
             $copy->responsible_institute->setNew(true);
         }
-        $deskriptoren = [];
-        foreach ($this->deskriptoren as $deskriptor) {
-            $cloned_deskriptor = clone $deskriptor;
-            $cloned_deskriptor->modul_id = $copy->id;
-            $cloned_deskriptor->setNewId();
-            $cloned_deskriptor->setNew(true);
-            $deskriptoren[] = $cloned_deskriptor;
-        }
-        $copy->deskriptoren = SimpleORMapCollection::createFromArray($deskriptoren);
-
+        
+        $copy->deskriptoren = clone $this->deskriptoren;
+        $copy->deskriptoren->modul_id = $copy->id;
+        $copy->deskriptoren->setNewId();
+        $copy->deskriptoren->setNew(true);
+        
         $institutes = [];
         foreach ($this->assigned_institutes as $assigned_institute) {
             $cloned_inst = clone $assigned_institute;
@@ -550,7 +548,7 @@ class Modul extends ModuleManagementModelTreeItem
         $languages = [];
         foreach ($this->languages as $assigned_language) {
             $cloned_language = clone $assigned_language;
-            $assigned_language->setNew(true);
+            $cloned_language->setNew(true);
             $languages[] = $cloned_language;
         }
         $copy->languages = SimpleORMapCollection::createFromArray($languages);
@@ -559,11 +557,21 @@ class Modul extends ModuleManagementModelTreeItem
             $modulteile = [];
             $position = 1;
             foreach ($this->modulteile as $modulteil) {
-                $modulteil_copy = $modulteil->copy($deep);
+                $modulteil_copy = $modulteil->copy(true, $with_assignments);
                 $modulteil_copy->position = $position++;
                 $modulteile[] = $modulteil_copy;
             }
             $copy->modulteile = SimpleORMapCollection::createFromArray($modulteile);
+
+            if ($with_assignments) {
+                $abschnitte_modul = [];
+                foreach ($this->abschnitte_modul as $abschnitt_modul) {
+                    $cloned_abschnitt_modul = clone $abschnitt_modul;
+                    $cloned_abschnitt_modul->setNew(true);
+                    $abschnitte_modul[] = $cloned_abschnitt_modul;
+                }
+                $copy->abschnitte_modul = SimpleORMapCollection::createFromArray($abschnitte_modul);
+            }
         }
         return $copy;
     }
@@ -571,16 +579,22 @@ class Modul extends ModuleManagementModelTreeItem
     public static function findBySearchTerm($term, $filter = null)
     {
         $term = '%' . $term . '%';
-        return parent::getEnrichedByQuery('SELECT mm.*, '
-                . "CONCAT(mmd.bezeichnung, ' (', code, ')') AS name "
-                . 'FROM mvv_modul mm '
-                . 'LEFT JOIN mvv_modul_deskriptor mmd USING(modul_id) '
-                . 'WHERE mmd.sprache = '
-                . DBManager::get()->quote(
-                        $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['default'])
-                . ' AND (code LIKE ? OR mmd.bezeichnung LIKE ?) '
-                . 'ORDER BY name',
-                array($term, $term));
+        return parent::getEnrichedByQuery("
+                SELECT mvv_modul.*,
+                    CONCAT(mvv_modul_deskriptor.bezeichnung, ' (', code, ')') AS name
+                FROM mvv_modul
+                    LEFT JOIN mvv_modul_deskriptor USING(modul_id)
+                    LEFT JOIN mvv_modul_inst
+                        ON (mvv_modul.modul_id = mvv_modul_inst.modul_id)
+                    LEFT JOIN semester_data as start_sem
+                        ON (mvv_modul.start = start_sem.semester_id)
+                    LEFT JOIN semester_data as end_sem
+                        ON (mvv_modul.end = end_sem.semester_id)
+                WHERE (code LIKE :term OR mvv_modul_deskriptor.bezeichnung LIKE :term) "
+                . self::getFilterSql($filter) . "
+                ORDER BY name",
+                [':term' => $term]
+        );
     }
 
     /**
@@ -593,16 +607,18 @@ class Modul extends ModuleManagementModelTreeItem
      */
     public static function findByStgteilAbschnitt($abschnitt_id, $filter)
     {
-        return parent::getEnrichedByQuery(
-                'SELECT mvv_modul.* FROM mvv_modul '
-                . 'LEFT JOIN mvv_stgteilabschnitt_modul USING(modul_id) '
-                . 'LEFT JOIN semester_data start_sem '
-                . 'ON (mvv_modul.start = start_sem.semester_id) '
-                . 'LEFT JOIN semester_data end_sem '
-                . 'ON (mvv_modul.end = end_sem.semester_id) '
-                . 'WHERE mvv_stgteilabschnitt_modul.abschnitt_id = ? '
-                . self::getFilterSql($filter)
-                . ' ORDER BY position, mkdate', array($abschnitt_id));
+        return parent::getEnrichedByQuery('
+                SELECT mvv_modul.* FROM mvv_modul 
+                LEFT JOIN mvv_stgteilabschnitt_modul USING(modul_id) 
+                LEFT JOIN semester_data start_sem 
+                ON (mvv_modul.start = start_sem.semester_id) 
+                LEFT JOIN semester_data end_sem 
+                ON (mvv_modul.end = end_sem.semester_id) 
+                WHERE mvv_stgteilabschnitt_modul.abschnitt_id = ? '
+                . self::getFilterSql($filter) . '
+                ORDER BY position, mkdate',
+            array($abschnitt_id)
+        );
     }
 
     /**
@@ -626,19 +642,27 @@ class Modul extends ModuleManagementModelTreeItem
     {
         $sortby = self::createSortStatement($sortby, $order, 'chdate',
                 array('count_modulteile', 'bezeichnung'));
-        return parent::getEnrichedByQuery(
-                'SELECT mvv_modul.*, mvv_modul_deskriptor.bezeichnung, '
-                . 'COUNT(DISTINCT(mvv_modulteil.modulteil_id)) AS count_modulteile '
-                . 'FROM mvv_modul '
-                . 'LEFT JOIN mvv_modulteil '
-                . 'ON mvv_modul.modul_id = mvv_modulteil.modul_id '
-                . 'INNER JOIN mvv_modul_inst '
-                . 'ON mvv_modul.modul_id = mvv_modul_inst.modul_id '
-                . 'LEFT JOIN mvv_modul_deskriptor '
-                . 'ON mvv_modul_deskriptor.modul_id =  mvv_modul.modul_id '
-                . self::getFilterSql($filter, true)
-                . 'GROUP BY modul_id '
-                . 'ORDER BY ' . $sortby, array(), $row_count, $offset);
+        return parent::getEnrichedByQuery('
+                SELECT mvv_modul.*, mvv_modul_deskriptor.bezeichnung, 
+                    COUNT(DISTINCT(mvv_modulteil.modulteil_id)) AS count_modulteile 
+                FROM mvv_modul 
+                    LEFT JOIN mvv_modulteil 
+                        ON mvv_modul.modul_id = mvv_modulteil.modul_id 
+                    INNER JOIN mvv_modul_inst 
+                        ON mvv_modul.modul_id = mvv_modul_inst.modul_id 
+                    LEFT JOIN mvv_modul_deskriptor 
+                        ON mvv_modul_deskriptor.modul_id =  mvv_modul.modul_id 
+                    LEFT JOIN semester_data start_sem 
+                        ON (mvv_modul.start = start_sem.semester_id) 
+                    LEFT JOIN semester_data end_sem 
+                        ON (mvv_modul.end = end_sem.semester_id) '
+                . self::getFilterSql($filter, true) .'
+                GROUP BY modul_id 
+                ORDER BY ' . $sortby,
+            array(),
+            $row_count,
+            $offset
+        );
     }
 
     /**
@@ -650,12 +674,14 @@ class Modul extends ModuleManagementModelTreeItem
      */
     public static function findByLvgruppe($lvgruppe_id)
     {
-        return parent::getEnrichedByQuery('SELECT mm.* '
-                . 'FROM mvv_modul mm '
-                . 'LEFT JOIN mvv_modulteil mmt USING(modul_id) '
-                . 'LEFT JOIN mvv_lvgruppe_modulteil mlm USING(modulteil_id) '
-                . 'WHERE mlm.lvgruppe_id = ? '
-                , array($lvgruppe_id));
+        return parent::getEnrichedByQuery('
+            SELECT mm.* 
+            FROM mvv_modul mm 
+                LEFT JOIN mvv_modulteil mmt USING(modul_id) 
+                LEFT JOIN mvv_lvgruppe_modulteil mlm USING(modulteil_id) 
+            WHERE mlm.lvgruppe_id = ? ',
+            array($lvgruppe_id)
+        );
     }
 
     /**
@@ -687,17 +713,25 @@ class Modul extends ModuleManagementModelTreeItem
     {
         $sortby = Fachbereich::createSortStatement($sortby, $order, 'name',
                 array('count_objects'));
-        return Fachbereich::getEnrichedByQuery('SELECT Institute.*, '
-                . 'Institute.Name as `name`, '
-                . 'Institute.Institut_id AS institut_id, '
-                . 'COUNT(DISTINCT modul_id) as count_objects '
-                . 'FROM Institute '
-                . 'INNER JOIN mvv_modul_inst '
-                . 'ON Institute.Institut_id = mvv_modul_inst.institut_id '
-                . 'INNER JOIN mvv_modul USING(modul_id) '
-                . Fachbereich::getFilterSql($filter, true)
-                . 'GROUP BY institut_id ORDER BY ' . $sortby
-                , array(), $row_count, $offset);
+        return Fachbereich::getEnrichedByQuery('
+                SELECT Institute.*, 
+                    Institute.Name as `name`, 
+                    Institute.Institut_id AS institut_id, 
+                    COUNT(DISTINCT modul_id) as count_objects 
+                FROM Institute 
+                    INNER JOIN mvv_modul_inst 
+                        ON Institute.Institut_id = mvv_modul_inst.institut_id 
+                    INNER JOIN mvv_modul USING(modul_id) 
+                    LEFT JOIN semester_data start_sem 
+                        ON (mvv_modul.start = start_sem.semester_id) 
+                    LEFT JOIN semester_data end_sem 
+                        ON (mvv_modul.end = end_sem.semester_id) 
+                '.Fachbereich::getFilterSql($filter, true).'
+                GROUP BY institut_id ORDER BY ' . $sortby,
+                array(),
+            $row_count,
+            $offset
+        );
     }
 
     /**
@@ -710,29 +744,31 @@ class Modul extends ModuleManagementModelTreeItem
      * @return array An array with status key as key and an array of name of
      * status and number of Module with this status.
      */
-    public static function findStatusByIds($modul_ids = array())
+    public static function findStatusByIds($modul_ids = null)
     {
-        if (is_array($modul_ids) && count($modul_ids)) {
-            $stmt = DBManager::get()->prepare(
-                "SELECT IFNULL(stat, '__undefined__') AS stat, "
-                . 'COUNT(modul_id) AS count_module '
-                . 'FROM mvv_modul WHERE modul_id IN (?) '
-                . 'GROUP BY stat');
+        if (is_array($modul_ids)) {
+            $stmt = DBManager::get()->prepare("
+                SELECT IFNULL(stat, '__undefined__') AS stat, 
+                COUNT(modul_id) AS count_module 
+                FROM mvv_modul WHERE modul_id IN (?) 
+                GROUP BY stat
+            ");
             $stmt->execute(array($modul_ids));
         } else {
-            $stmt = DBManager::get()->prepare(
-                "SELECT IFNULL(stat, '__undefined__') AS stat, "
-                . 'COUNT(modul_id) AS count_module '
-                . 'FROM mvv_modul GROUP BY stat');
+            $stmt = DBManager::get()->prepare("
+                SELECT IFNULL(stat, '__undefined__') AS stat, 
+                COUNT(modul_id) AS count_module 
+                FROM mvv_modul GROUP BY stat
+            ");
             $stmt->execute();
         }
 
         $result = array();
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $status) {
             $result[$status['stat']] = array(
-                    'name' => $GLOBALS['MVV_MODUL']['STATUS']['values'][$status['stat']]['name'],
-                    'count_objects' => $status['count_module']
-                );
+                'name' => $GLOBALS['MVV_MODUL']['STATUS']['values'][$status['stat']]['name'],
+                'count_objects' => $status['count_module']
+            );
         }
         return $result;
     }
@@ -741,6 +777,7 @@ class Modul extends ModuleManagementModelTreeItem
      * Returns an array with ids of all modules found by the given filter.
      * The fields from tables mvv_modul and mvv_modul_inst are possible filter
      * options.
+     * If no filter is set an empty array will be returned.
      *
      * @see ModuleManagementModel::getFilterSql()
      * @param array $filter Key-value pairs of filed names and values
@@ -749,15 +786,26 @@ class Modul extends ModuleManagementModelTreeItem
      */
     public static function findByFilter($filter)
     {
-        if (count($filter) == 0) {
-            return array();
+        $filter_sql = self::getFilterSql($filter, true);
+        if ($filter_sql == '') {
+            return [];
         }
-        $stmt = DBManager::get()->prepare('SELECT DISTINCT modul_id '
-                . 'FROM mvv_modul LEFT JOIN mvv_modul_inst '
-                . 'USING(modul_id) '
-                . self::getFilterSql($filter, true));
+        $stmt = DBManager::get()->prepare('
+            SELECT DISTINCT mvv_modul.modul_id 
+            FROM mvv_modul 
+                LEFT JOIN mvv_modulteil 
+                    ON mvv_modul.modul_id = mvv_modulteil.modul_id 
+                LEFT JOIN mvv_modul_inst 
+                    ON (mvv_modul.modul_id = mvv_modul_inst.modul_id) 
+                LEFT JOIN semester_data start_sem 
+                    ON (mvv_modul.start = start_sem.semester_id) 
+                LEFT JOIN semester_data end_sem 
+                    ON (mvv_modul.end = end_sem.semester_id) '
+            . $filter_sql
+        );
+
         $stmt->execute();
-        return $stmt->fetchAll();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
     }
 
     /**
@@ -789,26 +837,33 @@ class Modul extends ModuleManagementModelTreeItem
         if ($only_public) {
             $public_status = ModuleManagementModel::getPublicStatus('Modul');
             if (count($public_status)) {
-                $stmt = DBManager::get()->prepare('SELECT mm.modul_id '
-                    . 'FROM mvv_modul mm '
-                    . 'INNER JOIN mvv_modul_deskriptor mmd USING(modul_id) '
-                    . 'LEFT JOIN mvv_stgteilabschnitt_modul msm ON mmd.modul_id = msm.modul_id '
-                    . 'LEFT JOIN mvv_stgteilabschnitt USING(abschnitt_id) '
-                    . 'LEFT JOIN mvv_stgteilversion msv USING(version_id) '
-                    . 'WHERE (mm.code LIKE :term OR mmd.bezeichnung LIKE :term OR '
-                    . 'msm.bezeichnung LIKE :term) '
-                    . 'AND mm.stat IN (:stat) '
-                    . 'AND msv.stat IN (:stat) '
-                    . 'GROUP BY mm.modul_id');
+                $stmt = DBManager::get()->prepare('
+                    SELECT mm.modul_id 
+                    FROM mvv_modul mm 
+                        INNER JOIN mvv_modul_deskriptor mmd USING(modul_id) 
+                        LEFT JOIN mvv_stgteilabschnitt_modul msm ON mmd.modul_id = msm.modul_id 
+                        LEFT JOIN mvv_stgteilabschnitt USING(abschnitt_id) 
+                        LEFT JOIN mvv_stgteilversion msv USING(version_id) 
+                    WHERE (
+                            mm.code LIKE :term 
+                            OR mmd.bezeichnung LIKE :term 
+                            OR msm.bezeichnung LIKE :term
+                        )
+                        AND mm.stat IN (:stat) 
+                        AND msv.stat IN (:stat) 
+                    GROUP BY mm.modul_id
+                ');
                 $stmt->execute(array(':term' => $term, ':stat' => $public_status));
                 return $stmt->fetchAll(PDO::FETCH_COLUMN);
             }
         } else {
-            $stmt = DBManager::get()->prepare('SELECT mm.modul_id '
-                . 'FROM mvv_modul mm '
-                . 'LEFT JOIN mvv_modul_deskriptor mmd USING(modul_id) '
-                . 'WHERE code LIKE :term OR mmd.bezeichnung LIKE :term '
-                . 'GROUP BY modul_id');
+            $stmt = DBManager::get()->prepare('
+                SELECT mm.modul_id 
+                FROM mvv_modul mm 
+                    LEFT JOIN mvv_modul_deskriptor mmd USING(modul_id) 
+                WHERE code LIKE :term OR mmd.bezeichnung LIKE :term 
+                GROUP BY modul_id
+            ');
             $stmt->execute(array(':term' => $term));
             return $stmt->fetchAll(PDO::FETCH_COLUMN);
         }
@@ -821,14 +876,6 @@ class Modul extends ModuleManagementModelTreeItem
         if ($this->isDirty()) {
             $messages = array();
             $rejected = false;
-            if ($this->quelle) {
-                $quelle = Modul::find($this->quelle);
-                if (is_null($quelle)) {
-                    $ret['quelle'] = true;
-                    $messages[] = _('Unbekanntes Modul als Quelle.');
-                    $rejected = true;
-                }
-            }
             if ($this->variante) {
                 $variante = Modul::find($this->variante);
                 if (is_null($variante)) {
@@ -848,7 +895,7 @@ class Modul extends ModuleManagementModelTreeItem
                 $start_sem = Semester::find($this->start);
                 if (!$start_sem) {
                     $ret['start'] = true;
-                    $messages[] = _('Ungültiges Semester.');
+                    $messages[] = _('UngÃ¼ltiges Semester.');
                     $rejected = true;
                 } else if ($this->end) {
                     $end_sem = Semester::find($this->end);
@@ -860,7 +907,7 @@ class Modul extends ModuleManagementModelTreeItem
                         }
                     } else {
                         $ret['end'] = true;
-                        $messages[] = _('Ungültiges Endsemester.');
+                        $messages[] = _('UngÃ¼ltiges Endsemester.');
                         $rejected = true;
                     }
                 }
@@ -893,23 +940,23 @@ class Modul extends ModuleManagementModelTreeItem
             if (!((preg_match('/\d{0,4}/', $this->kapazitaet)
                     && $this->kapazitaet > 0) || $this->kapazitaet === '')) {
                 $ret['kapazitaet'] = true;
-                $messages[] = _('Die Kapazität/Teilnehmerzahl des Moduls muss angegeben werden.');
+                $messages[] = _('Die KapazitÃ¤t/Teilnehmendenzahl des Moduls muss angegeben werden.');
                 $rejected = true;
             }
             if (!(preg_match('/\d{1,3}/', $this->kp) && $this->kp >= 1)) {
                 $ret['kp'] = true;
-                $messages[] = _('Die Kreditpunkte müssen angegeben werden.');
+                $messages[] = _('Die Kreditpunkte mÃ¼ssen angegeben werden.');
                 $rejected = true;
             }
             if (!(is_float($this->faktor_note * 1.0) && $this->faktor_note >= 0.1)) {
                 $ret['faktor_note'] = true;
-                $messages[] = _('Der Notenfaktor für die Endnote des Studiengangs muss angegeben werden.');
+                $messages[] = _('Der Notenfaktor fÃ¼r die Endnote des Studiengangs muss angegeben werden.');
                 $rejected = true;
             }
             if ($this->fassung_nr) {
                 if (!is_numeric($this->fassung_nr)) {
                     $ret['fassung_nr'] = true;
-                    $messages[] = _('Für Fassung bitte eine Zahl angeben.');
+                    $messages[] = _('FÃ¼r Fassung bitte eine Zahl angeben.');
                     $rejected = true;
                 }
                 if (!$GLOBALS['MVV_MODUL']['FASSUNG_TYP'][$this->fassung_typ]) {
@@ -921,9 +968,7 @@ class Modul extends ModuleManagementModelTreeItem
             if ($rejected) {
                 throw new InvalidValuesException(join("\n", $messages), $ret);
             }
-            foreach ($this->deskriptoren as $deskriptor) {
-                $deskriptor->validate();
-            }
+            $this->deskriptoren->validate();
             foreach ($this->assigned_institutes as $assigned_institute) {
                 $assigned_institute->validate();
             }
@@ -935,7 +980,7 @@ class Modul extends ModuleManagementModelTreeItem
     }
 
     /**
-    * checks if modules with public status are available
+    * Checks if modules with public status are available.
     *
     * @return boolean true if modules with public status available
     */
@@ -943,18 +988,43 @@ class Modul extends ModuleManagementModelTreeItem
     {
         $public_status = ModuleManagementModel::getPublicStatus('Modul');
         if (count($public_status)) {
-            $stmt = DBManager::get()->prepare('SELECT 1 '
-                . 'FROM mvv_modul mm '
-                . 'INNER JOIN mvv_modul_deskriptor mmd USING(modul_id) '
-                . 'INNER JOIN mvv_stgteilabschnitt_modul msm ON mmd.modul_id = msm.modul_id '
-                . 'INNER JOIN mvv_stgteilabschnitt USING(abschnitt_id) '
-                . 'INNER JOIN mvv_stgteilversion msv USING(version_id) '
-                . 'WHERE mm.stat IN (:stat) '
-                . 'AND msv.stat IN (:stat) LIMIT 1'
-                );
+            $stmt = DBManager::get()->prepare('
+                SELECT 1 
+                FROM mvv_modul mm 
+                    INNER JOIN mvv_modul_deskriptor mmd USING(modul_id) 
+                    INNER JOIN mvv_stgteilabschnitt_modul msm ON mmd.modul_id = msm.modul_id 
+                    INNER JOIN mvv_stgteilabschnitt USING(abschnitt_id) 
+                    INNER JOIN mvv_stgteilversion msv USING(version_id) 
+                WHERE mm.stat IN (:stat) 
+                    AND msv.stat IN (:stat) LIMIT 1
+            ');
             $stmt->execute(array(':term' => $term, ':stat' => $public_status));
             return (bool)$stmt->fetchColumn();
         }
         return false;
+    }
+    
+    /**
+     * Retrieves all courses this Modul is assigned by its parts and assigned
+     * LV-Gruppen.
+     * Filtered by a given semester considering the global visibility or the
+     * the visibility for a given user.
+     * 
+     * @param string $semester_id The id of a semester.
+     * @param mixed $only_visible Boolean true retrieves only visible courses, false
+     * retrieves all courses. If $only_visible is an user id it depends on the users
+     * status which courses will be retrieved.
+     * @return array An array of course data.
+     */
+    public function getAssignedCoursesBySemester($semester_id, $only_visible = true)
+    {
+        $courses = array();
+        foreach ($this->modulteile as $modulteil) {
+            $mt_courses = $modulteil->getAssignedCoursesBySemester($semester_id, $only_visible);
+            foreach ($mt_courses as $course) {
+                $courses[$course->id] = $course;
+            }
+        }
+        return $courses;
     }
 }

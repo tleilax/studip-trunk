@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @copyright   2014 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -58,9 +58,57 @@ class ResourceAssignment extends SimpleORMap
 
     function delete()
     {
-        $old_assign_object = new AssignObject($this->id);
-        $ret = parent::delete();
-        $old_assign_object->delete();
-        return $ret;
+        if (!$this->isDeleted() && !$this->isNew()) {
+            $old_assign_object = new AssignObject($this->id);
+            $ret = parent::delete();
+            $old_assign_object->delete();
+            return $ret;
+        }
+    }
+
+    function store()
+    {
+        // update start and end of assignment to match the dates start and end
+        if ($this->date) {
+            $this->begin      = $this->date->date;
+            $this->end        = $this->date->end_time;
+            $this->repeat_end = $this->date->end_time;
+        }
+
+        // create object and set (new) values
+        $assignObject = new AssignObject(array(
+            $this->id,
+            $this->resource_id,
+            $this->assign_user_id,
+            $this->user_free_name,
+            $this->begin,
+            $this->end,
+            $this->repeat_end,
+            $this->repeat_quantity,
+            $this->repeat_interval,
+            $this->repeat_month_of_year,
+            $this->repeat_day_of_month,
+            $this->repeat_week_of_month,
+            $this->repeat_day_of_week,
+            $this->comment_internal
+        ));
+
+
+        if (!$this->isNew()) {
+            // object is not new
+            $assignObject->isNewObject = false;
+
+            // set change flag if data has been changed
+            if ($this->isDirty()) {
+                $assignObject->chng_flag = true;
+            }
+        }
+
+        // speichern
+        if ($this->isDirty() || $this->isNew()) {
+            $assignObject->store();
+        }
+
+        return parent::store();
     }
 }

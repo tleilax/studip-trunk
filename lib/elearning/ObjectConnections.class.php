@@ -8,7 +8,7 @@
 *
 * This class contains methods to handle connections between stud.ip-objects and external content.
 *
-* @author   Arne Schröder <schroeder@data-quest.de>
+* @author   Arne SchrÃ¶der <schroeder@data-quest.de>
 * @access   public
 * @modulegroup  elearning_interface_modules
 * @module       ObjectConnections
@@ -24,7 +24,7 @@ class ObjectConnections
     * init class.
     * @access public
     * @param string $object_id object-id
-    */ 
+    */
     function __construct($object_id = "")
     {
         $this->id = $object_id;
@@ -41,8 +41,8 @@ class ObjectConnections
     function readData()
     {
         global $ELEARNING_INTERFACE_MODULES;
-        
-        $this->object_connections = "";
+
+        $this->object_connections = array();
 
         $query = "SELECT system_type, module_type, module_id, chdate
                   FROM object_contentmodules
@@ -66,7 +66,7 @@ class ObjectConnections
             $this->object_connections[$reference]['cms']    = $d_system_type;
             $this->object_connections[$reference]['type']   = $d_module_type;
             $this->object_connections[$reference]['id']     = $d_module_id;
-            $this->object_connections[$reference]['chdate'] = $Row['chdate'];
+            $this->object_connections[$reference]['chdate'] = $row['chdate'];
         }
 
         if ($module_count == 0) {
@@ -85,32 +85,37 @@ class ObjectConnections
     {
         return $this->object_connections;
     }
-    
+
     /**
     * get connection-status
     *
     * returns true, if object has connections
     * @access public
-    * @param string $object_id object-id (optional)
     * @return boolean connection-status
     */
-    function isConnected($object_id = NULL)
+    function isConnected()
     {
-        // function call as part of the object
-        if ($this instanceof ObjectConnections)
-        {
-            return (boolean) $this->object_connections;
-        }
-        // direct functioncall without existing instance
+        return (boolean) $this->object_connections;
+    }
+
+    /**
+     * get connection-status
+     *
+     * returns true, if object has connections
+     * @access public
+     * @param string $object_id object-id (optional)
+     * @return boolean connection-status
+     */
+    public static function isObjectConnected($object_id = null)
+    {
         if (isset($object_id)) {
             $query = "SELECT 1 FROM object_contentmodules WHERE object_id = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($object_id));
             return (bool)$statement->fetchColumn();
         }
-        return false;
     }
-    
+
     /**
     * get module-id
     *
@@ -121,7 +126,7 @@ class ObjectConnections
     * @param string $connection_cms system-type
     * @return string module-id
     */
-    function getConnectionModuleId($connection_object_id, $connection_module_type, $connection_cms)
+    public static function getConnectionModuleId($connection_object_id, $connection_module_type, $connection_cms)
     {
         $query = "SELECT module_id
                   FROM object_contentmodules
@@ -146,7 +151,7 @@ class ObjectConnections
     * @param string $connection_cms system-type
     * @return boolean successful
     */
-    function setConnection($connection_object_id, $connection_module_id, $connection_module_type, $connection_cms)
+    public static function setConnection($connection_object_id, $connection_module_id, $connection_module_type, $connection_cms)
     {
         $query = "SELECT 1
                   FROM object_contentmodules
@@ -184,10 +189,6 @@ class ObjectConnections
                 $connection_module_type
             ));
         }
-        //uargl, warum immer ich
-        if ($this instanceof ObjectConnections) {
-            $this->readData();
-        }
         return true;
     }
 
@@ -202,7 +203,7 @@ class ObjectConnections
     * @param string $connection_cms system-type
     * @return boolean successful
     */
-    function unsetConnection($connection_object_id, $connection_module_id, $connection_module_type, $connection_cms)
+    public static function unsetConnection($connection_object_id, $connection_module_id, $connection_module_type, $connection_cms)
     {
         $query = "SELECT 1
                   FROM object_contentmodules
@@ -229,16 +230,12 @@ class ObjectConnections
                 $connection_cms,
                 $connection_module_type
             ));
-            //uargl, warum immer ich
-            if ($this instanceof ObjectConnections) {
-                $this->readData();
-            }
             return true;
         }
         return false;
     }
 
-    function GetConnectedSystems($object_id)
+    public static function GetConnectedSystems($object_id)
     {
         $query = "SELECT DISTINCT system_type
                   FROM object_contentmodules
@@ -247,8 +244,8 @@ class ObjectConnections
         $statement->execute(array($object_id));
         return $statement->fetchAll(PDO::FETCH_COLUMN);
     }
-    
-    function DeleteAllConnections($object_id, $cms_type)
+
+    public static function DeleteAllConnections($object_id, $cms_type)
     {
         $query = "DELETE FROM object_contentmodules
                   WHERE object_id = ? AND system_type = ?";

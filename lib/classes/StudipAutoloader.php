@@ -5,7 +5,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @author      <mlunzena@uos.de>
  * @author      Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @copyright   2015 Stud.IP Core-Group
@@ -61,7 +61,7 @@ class StudipAutoloader
      */
     public static function register()
     {
-        spl_autoload_register(array(get_called_class(), 'loadClass'));
+        spl_autoload_register('static::loadClass');
     }
 
 
@@ -70,7 +70,7 @@ class StudipAutoloader
      */
     public static function unregister()
     {
-        spl_autoload_unregister(array(get_called_class(), 'loadClass'));
+        spl_autoload_unregister('static::loadClass');
     }
 
 
@@ -158,17 +158,35 @@ class StudipAutoloader
      */
     public static function loadClass($class)
     {
-        if (isset(self::$class_lookup[$class])) {
-            $file = self::$class_lookup[$class];
-        } else {
-            $file = self::findFile($class);
-        }
+        $file = self::lookupClass($class) ?: self::findFile($class);
 
         if ($file) {
+            self::$class_lookup[$class] = $file;
+
             include $file;
 
             return true;
         }
+    }
+
+    /**
+     * Tries to locate a class in the lookup array.
+     *
+     * @param string $class Class name
+     * @return string with filename or false
+     */
+    private static function lookupClass($class)
+    {
+        if (!isset(self::$class_lookup[$class])) {
+            return false;
+        }
+
+        $file = self::$class_lookup[$class];
+        if (file_exists($file)) {
+            return $file;
+        }
+        unset(self::$class_lookup[$class]);
+        return false;
     }
 
     /**

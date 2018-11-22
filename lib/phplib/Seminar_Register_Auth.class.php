@@ -9,7 +9,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @copyright   2000 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
@@ -25,21 +25,17 @@ class Seminar_Register_Auth extends Seminar_Auth
     /**
      *
      */
-    function auth_registerform()
+    public function auth_registerform()
     {
-        // set up dummy user environment
-        if ($GLOBALS['user']->id !== 'nobody') {
-            $GLOBALS['user'] = new Seminar_User('nobody');
-            $GLOBALS['perm'] = new Seminar_Perm();
-            $GLOBALS['auth'] = $this;
-        }
-        // set up user session
-        include 'lib/seminar_open.php';
+        $this->check_environment();
+
+        // load the default set of plugins
+        PluginEngine::loadPlugins();
 
         if (!$_COOKIE[get_class($GLOBALS['sess'])]) {
             $register_template = $GLOBALS['template_factory']->open('nocookies');
         } else {
-            $register_template = $GLOBALS['template_factory']->open('registerform');
+            $register_template = $GLOBALS['template_factory']->open('register/form');
             $register_template->set_attribute('validator', new email_validation_class());
             $register_template->set_attribute('error_msg', $this->error_msg);
             $register_template->set_attribute('username', Request::get('username'));
@@ -67,18 +63,11 @@ class Seminar_Register_Auth extends Seminar_Auth
     /**
      * @return bool|string
      */
-    function auth_doregister()
+    public function auth_doregister()
     {
-        global $_language_path;
+        $this->check_environment();
 
         $this->error_msg = "";
-
-        // check for direct link to register2.php
-        if (!$_SESSION['_language'] || $_SESSION['_language'] == "") {
-            $_SESSION['_language'] = get_accepted_languages();
-        }
-
-        $_language_path = init_i18n($_SESSION['_language']);
 
         $this->auth["uname"] = Request::username('username'); // This provides access for "crcregister.ihtml"
 
@@ -103,7 +92,7 @@ class Seminar_Register_Auth extends Seminar_Auth
         }
 
         if (!$validator->ValidateUsername($username)) {
-            $this->error_msg = $this->error_msg . _("Der gewählte Benutzername ist zu kurz!") . "<br>";
+            $this->error_msg = $this->error_msg . _("Der gewÃ¤hlte Benutzername ist zu kurz!") . "<br>";
             return false;
         } // username syntaktisch falsch oder zu kurz
         // auf doppelte Vergabe wird weiter unten getestet.
@@ -130,12 +119,12 @@ class Seminar_Register_Auth extends Seminar_Auth
         $Zeit = date("H:i:s, d.m.Y", time());
 
         if (!$validator->ValidateEmailHost($Email)) { // Mailserver nicht erreichbar, ablehnen
-            $this->error_msg = $this->error_msg . _("Der Mailserver ist nicht erreichbar, bitte überprüfen Sie, ob Sie E-Mails mit der angegebenen Adresse verschicken und empfangen können!") . "<br>";
+            $this->error_msg = $this->error_msg . _("Der Mailserver ist nicht erreichbar, bitte Ã¼berprÃ¼fen Sie, ob Sie E-Mails mit der angegebenen Adresse verschicken und empfangen kÃ¶nnen!") . "<br>";
             return false;
         } else { // Server ereichbar
             if (!$validator->ValidateEmailBox($Email)) { // aber user unbekannt. Mail an abuse!
                 StudipMail::sendAbuseMessage("Register", "Emailbox unbekannt\n\nUser: $username\nEmail: $Email\n\nIP: $REMOTE_ADDR\nZeit: $Zeit\n");
-                $this->error_msg = $this->error_msg . _("Die angegebene E-Mail-Adresse ist nicht erreichbar, bitte überprüfen Sie Ihre Angaben!") . "<br>";
+                $this->error_msg = $this->error_msg . _("Die angegebene E-Mail-Adresse ist nicht erreichbar, bitte Ã¼berprÃ¼fen Sie Ihre Angaben!") . "<br>";
                 return false;
             } else {
                 ; // Alles paletti, jetzt kommen die Checks gegen die Datenbank...
@@ -146,12 +135,12 @@ class Seminar_Register_Auth extends Seminar_Auth
 
         if ($check_uname['found']) {
             //   error_log("username schon vorhanden", 0);
-            $this->error_msg = $this->error_msg . _("Der gewählte Benutzername ist bereits vorhanden!") . "<br>";
+            $this->error_msg = $this->error_msg . _("Der gewÃ¤hlte Benutzername ist bereits vorhanden!") . "<br>";
             return false; // username schon vorhanden
         }
 
         if (count(User::findBySQL("Email LIKE " . DbManager::get()->quote($Email)))) {
-            $this->error_msg = $this->error_msg . _("Die angegebene E-Mail-Adresse wird bereits von einem anderen Benutzer verwendet. Sie müssen eine andere E-Mail-Adresse angeben!") . "<br>";
+            $this->error_msg = $this->error_msg . _("Die angegebene E-Mail-Adresse wird bereits von einem anderen Benutzer verwendet. Sie mÃ¼ssen eine andere E-Mail-Adresse angeben!") . "<br>";
             return false; // Email schon vorhanden
         }
 
@@ -172,11 +161,13 @@ class Seminar_Register_Auth extends Seminar_Auth
         if ($new_user->user_id) {
             self::sendValidationMail($new_user);
             $this->auth["perm"] = $new_user->perms;
+            $this->auth["uname"] = $new_user->username;
+            $this->auth["auth_plugin"] = $new_user->auth_plugin;
             return $new_user->user_id;
         }
     }
 
-    static function get_validation_hash($user_id)
+    public static function get_validation_hash($user_id)
     {
         return md5("$user_id:" . self::$magic);
     }
@@ -187,12 +178,10 @@ class Seminar_Register_Auth extends Seminar_Auth
      *
      * @param User $user a user-object or id of the user
      *                   to resend the validation mail for
-     * 
+     *
      * @return void
      */
     public static function sendValidationMail($user){
-        global $_language_path;
-
         // if no user-object is given interpret it as a user-id
         if (is_string($user)) {
             $user = new User($user);
@@ -212,8 +201,10 @@ class Seminar_Register_Auth extends Seminar_Auth
         $mail   = new StudipMail();
         $abuse  = $mail->getReplyToEmail();
 
+        $lang_path = getUserLanguagePath($user->id);
+
         // include language-specific subject and mailbody
-        include_once("locale/$_language_path/LC_MAILS/register_mail.inc.php");
+        include_once("locale/$lang_path/LC_MAILS/register_mail.inc.php");
 
         // send the mail
         $mail->setSubject($subject)

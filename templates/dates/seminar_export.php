@@ -13,11 +13,11 @@ if ($dates['regular']['turnus_data'] || sizeof($dates['irregular'])) :
   if (is_array($dates['regular']['turnus_data'])) foreach ($dates['regular']['turnus_data'] as $cycle) :
     $first_date = sprintf(_("ab %s"), strftime('%x', $cycle['first_date']['date']));
     if ($cycle['cycle'] == 1) :
-        $cycle_output = $cycle['tostring_short'] . ' (' . sprintf(_("zweiwöchentlich, %s"), $first_date) . ')';
+        $cycle_output = $cycle['tostring_short'] . ' (' . sprintf(_("zweiwÃ¶chentlich, %s"), $first_date) . ')';
     elseif ($cycle['cycle'] == 2) :
-        $cycle_output = $cycle['tostring_short'] . ' (' . sprintf(_("dreiwöchentlich, %s"), $first_date) . ')';
+        $cycle_output = $cycle['tostring_short'] . ' (' . sprintf(_("dreiwÃ¶chentlich, %s"), $first_date) . ')';
     else :
-      $cycle_output = $cycle['tostring_short'] . ' (' . _("wöchentlich") . ')';
+      $cycle_output = $cycle['tostring_short'] . ' (' . _("wÃ¶chentlich") . ')';
     endif;
     if ($cycle['desc'])
       $cycle_output .= ' - '. $cycle['desc'];
@@ -36,19 +36,16 @@ if ($dates['regular']['turnus_data'] || sizeof($dates['irregular'])) :
 
   echo implode(", \n", $output);
 
-  $presence_types = getPresenceTypes();
   $freetext_rooms = array();
 
   if (is_array($dates['irregular'])):
     foreach ($dates['irregular'] as $date) :
-        if (in_array($date['typ'], $presence_types) !== false) :
-            $irregular[] = $date;
-            $irregular_strings[] = $date['tostring'];
-            if ($date['resource_id']) :
-                $irregular_rooms[$date['resource_id']]++;
-            elseif ($date['raum']) :
-                $freetext_rooms['('. $date['raum'] .')']++;
-            endif;
+        $irregular[] = $date;
+        $irregular_strings[] = $date['tostring'];
+        if ($date['resource_id']) :
+            $irregular_rooms[$date['resource_id']]++;
+        elseif ($date['raum']) :
+            $freetext_rooms['('. $date['raum'] .')']++;
         endif;
     endforeach;
     unset($irregular_rooms['']);

@@ -38,7 +38,7 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
+require_once 'lib/extern/views/extern_html_templates.inc.php';
 require_once 'lib/user_visible.inc.php';
 require_once 'lib/dates.inc.php';
 
@@ -111,7 +111,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
     public function getMarkerDescription ($element_name) {
 
         $markers['TemplateMain'] = array(
-            array('__GLOBAL__', _("Globale Variablen (gültig im gesamten Template).")),
+            array('__GLOBAL__', _("Globale Variablen (gÃ¼ltig im gesamten Template).")),
             array('###CHARACTER###', ''),
             array('###INSTNAME###', ''),
             array('<!-- BEGIN PERS_BROWSER -->', ''),
@@ -134,7 +134,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
         $markers['TemplateListCharacters'] = array(
             array('<!-- BEGIN LIST_CHARACTERS -->', ''),
             array('<!-- BEGIN CHARACTER -->', ''),
-            array('###CHARACTER_USER###', _("Anfangsbuchstabe der Namen zur Verlinkung nach alpabetische Übersicht")),
+            array('###CHARACTER_USER###', _("Anfangsbuchstabe der Namen zur Verlinkung nach alpabetische Ãœbersicht")),
             array('###CHARACTER_COUNT_USER###', _("Anzahl der Personennamen mit diesem Anfangsbuchstaben")),
             array('###URL_LIST_PERSONS###', _("URL zur Personenlist mit diesem Anfangsbuchstaben")),
             array('<!-- END CHARACTER -->', ''),
@@ -173,7 +173,7 @@ class ExternModuleTemplatePersBrowse extends ExternModule {
 
     private function getContent ($args = null, $raw = false) {
         if ($raw) {
-            $this->setRawOutput();
+            self::SetRawOutput();
         }
 
         if (trim($this->config->getValue('TemplateListInstitutes', 'template'))) {

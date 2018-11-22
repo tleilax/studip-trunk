@@ -10,7 +10,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @link http://www.php.net/manual/en/class.arrayobject.php
  */
 class JSONArrayObject extends MultiDimArrayObject
@@ -23,7 +23,7 @@ class JSONArrayObject extends MultiDimArrayObject
     function __construct($input)
     {
         if (is_string($input)) {
-            $input = studip_utf8decode((array)json_decode($input, true));
+            $input = (array)json_decode($input, true);
         }
         parent::__construct($input);
     }
@@ -35,6 +35,6 @@ class JSONArrayObject extends MultiDimArrayObject
      */
     function __toString()
     {
-        return json_encode(studip_utf8encode($this->getArrayCopy()));
+        return json_encode($this->getArrayCopy());
     }
 }

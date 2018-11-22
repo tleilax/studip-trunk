@@ -1,15 +1,19 @@
 <? if (ForumPerm::has('add_category', $seminar_id)) : ?>
 <a name="create"></a>
-<form action="<?= PluginEngine::getLink('coreforum/index/add_category') ?>" method="post" id="tutorAddCategory">
+<form action="<?= PluginEngine::getLink('coreforum/index/add_category') ?>" method="post" id="tutorAddCategory" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <h2><?= _('Neue Kategorie erstellen') ?></h2>
+    <fieldset>
+        <legend><?= _('Neue Kategorie erstellen') ?></legend>
 
-    <div style="width: 100%;">
-        <span class="area_input">
-            <input type="text" size="50" placeholder="<?= _('Titel für neue Kategorie') ?>" name="category" required>
-            <?= Studip\Button::create(_('Kategorie erstellen')) ?>
-        </span>
-    </div>
+        <label>
+            <?= _('Name der Kategorie') ?>
+            <input type="text" size="50" placeholder="<?= _('Titel fÃ¼r neue Kategorie') ?>" name="category" required>
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Studip\Button::create(_('Kategorie erstellen')) ?>
+    </footer>
 </form>
 <br>
 <? endif ?>

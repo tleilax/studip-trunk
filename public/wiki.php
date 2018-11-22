@@ -51,7 +51,7 @@ if ($view=="wikiprint") {
     page_close();
     die();
 } elseif ($view=="wikiprintall") {
-    printAllWikiPages($SessSemName[1], $SessSemName['header_line']);
+    printAllWikiPages(Context::getId(), Context::getHeaderLine());
     page_close();
     die();
 } elseif ($view=="export_pdf") {
@@ -67,7 +67,7 @@ checkObjectModule("wiki"); //are we allowed to use this module here?
 object_set_visit_module("wiki");
 
 PageLayout::setHelpKeyword("Basis.Wiki"); // Hilfeseite im Hilfewiki
-PageLayout::setTitle($SessSemName["header_line"]. " - " . _("Wiki"));
+PageLayout::setTitle(Context::getHeaderLine() . " - " . _("Wiki"));
 
 if (in_array(Request::get('view'), words('listnew listall export'))) {
     Navigation::activateItem('/course/wiki/'.$view);
@@ -107,14 +107,14 @@ if ($view=="listall") {
     //
     // show one large diff-file containing all changes
     //
-    SkipLinks::addIndex(_("Seite mit �nderungen"), 'main_content', 100);
+    SkipLinks::addIndex(_("Seite mit Änderungen"), 'main_content', 100);
     showDiffs($keyword, Request::option('versionssince'));
 
 } else if ($view=="combodiff") {
     //
     // show one large diff-file containing all changes
     //
-    SkipLinks::addIndex(_("Seite mit �nderungen"), 'main_content', 100);
+    SkipLinks::addIndex(_("Seite mit Änderungen"), 'main_content', 100);
     showComboDiff($keyword);
 
 } else if ($view=="export") {
@@ -131,32 +131,47 @@ if ($view=="listall") {
     //
     // show page for editing
     //
-    if (!$perm->have_studip_perm("autor", $SessSemName[1])) {
+    if (!$perm->have_studip_perm("autor", Context::getId())) {
         throw new AccessDeniedException(_('Sie haben keine Berechtigung, Seiten zu editieren!'));
     }
 
-    // prevent malformed urls: keword must be set
+    // prevent malformed urls: keyword must be set
     if (!$keyword) {
-        throw new InvalidArgumentException(_('Es wurde keine zu editierende Seite �bergeben!'));
+        throw new InvalidArgumentException(_('Es wurde keine zu editierende Seite übergeben!'));
     }
     SkipLinks::addIndex(_("Seite bearbeiten"), 'main_content', 100);
 
     $wikiData=getWikiPage($keyword,0); // always get newest page
 
     // set lock
-    setWikiLock(null, $user->id, $SessSemName[1], $keyword);
+    setWikiLock(null, $user->id, Context::getId(), $keyword);
 
     //show form
     wikiEdit($keyword, $wikiData, $user->id);
 
 } else if ($view=='editnew') { // edit a new page
 
-    if (!$perm->have_studip_perm("autor", $SessSemName[1])) {
+    if (!$perm->have_studip_perm("autor", Context::getId())) {
         throw new AccessDeniedException(_('Sie haben keine Berechtigung, Seiten zu editieren!'));
     }
+
+    // prevent malformed urls: keyword must be set
+    if (!$keyword) {
+        throw new InvalidArgumentException(_('Es wurde keine zu editierende Seite übergeben!'));
+    }
+
+    $wikiData = getWikiPage($keyword, 0); // always get newest page
+
+    // warning in the case of an existing wiki page
+    if ($wikiData) {
+        PageLayout::postInfo(sprintf(_('Die Wiki-Seite "%s" existiert bereits. Änderungen hier überschreiben diese Seite!'), htmlReady($keyword)));
+    }
+
     // set lock
-    setWikiLock(null, $user->id, $SessSemName[1], $keyword);
-    wikiEdit($keyword, NULL, $user->id, Request::quoted('lastpage'));
+    setWikiLock(null, $user->id, Context::getId(), $keyword);
+
+    //show form
+    wikiEdit($keyword, $wikiData, $user->id, Request::quoted('lastpage'));
 
 } else {
     // Default action: Display WikiPage (+ logic for submission)
@@ -171,7 +186,7 @@ if ($view=="listall") {
         //
         // Page was edited and submitted
         //
-        submitWikiPage($keyword, $version, Studip\Markup::purifyHtml(Request::get('body')), $user->id, $SessSemName[1]);
+        submitWikiPage($keyword, $version, Studip\Markup::purifyHtml(Request::get('body')), $user->id, Context::getId());
         $version=""; // $version="" means: get latest
 
     } else if ($cmd == "abortedit") { // Editieren abgebrochen
@@ -194,7 +209,7 @@ if ($view=="listall") {
         // Delete was confirmed -> really delete
         //
 
-        $keyword=deleteWikiPage($keyword, $version, $SessSemName[1]);
+        $keyword=deleteWikiPage($keyword, $version, Context::getId());
         $version=""; // show latest version
 
     } else if ($cmd == "delete_all") {
@@ -207,7 +222,7 @@ if ($view=="listall") {
         //
         // Delete all was confirmed -> delete entire page
         //
-        $keyword=deleteAllWikiPage($keyword, $SessSemName[1]);
+        $keyword=deleteAllWikiPage($keyword, Context::getId());
         $version=""; // show latest version
     }
 

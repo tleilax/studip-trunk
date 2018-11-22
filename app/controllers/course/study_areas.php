@@ -77,14 +77,18 @@ class Course_StudyAreasController extends AuthenticatedController
                 }
                 $sidebar->addWidget($links);
                 // Entry list for admin upwards.
-                if ($GLOBALS['perm']->have_studip_perm("admin", $GLOBALS['SessionSeminar'])) {
-                    $list = new SelectorWidget();
-                    $list->setUrl("?#admin_top_links");
-                    $list->setSelectParameterName("cid");
+                if ($GLOBALS['perm']->have_studip_perm('admin', $GLOBALS['SessionSeminar'])) {
+                    $list = new SelectWidget(_('Veranstaltungen'), '?#admin_top_links', 'cid');
+
                     foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
-                        $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
+                        $list->addElement(new SelectElement(
+                            $seminar['Seminar_id'],
+                            $seminar['Name'],
+                            $seminar['Seminar_id'] === Context::getId(),
+                            $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                        ));
                     }
-                    $list->setSelection($this->course->id);
+                    $list->size = 8;
                     $sidebar->addWidget($list);
                 }
             }
@@ -150,22 +154,25 @@ class Course_StudyAreasController extends AuthenticatedController
             $studyareas = Request::getArray('studyareas');
 
             if (empty($studyareas)) {
-                PageLayout::postMessage(MessageBox::error(_('Sie müssen mindestens einen Studienbereich auswählen')));
+                PageLayout::postMessage(MessageBox::error(_('Sie mÃ¼ssen mindestens einen Studienbereich auswÃ¤hlen')));
                 $this->redirect($url);
                 return;
             }
 
-            $this->course->study_areas = SimpleORMapCollection::createFromArray(StudipStudyArea::findMany($studyareas));
             try {
                 $msg = null;
-                $this->course->store();
+
+                if (!$this->course->setStudyAreas($studyareas)) {
+                    $msg = _('Die Studienbereichszuordnung konnte nicht gespeichert werden.');
+                }
+
             } catch (UnexpectedValueException $e) {
-                $msg = $e->getMessage();
+                PageLayout::postError($e->getMessage());
             }
         }
 
         if (!$msg) {
-            PageLayout::postMessage(MessageBox::success(_('Die Studienbereichszuordnung wurde übernommen')));
+            PageLayout::postMessage(MessageBox::success(_('Die Studienbereichszuordnung wurde Ã¼bernommen.')));
         } else {
             PageLayout::postMessage(MessageBox::error($msg));
         }
@@ -174,55 +181,38 @@ class Course_StudyAreasController extends AuthenticatedController
 
     public function unassign()
     {
-        if ($this->course->study_areas) {
-            foreach ($this->course->study_areas as $area) {
-                $assigned[] = $area->sem_tree_id;
-            }
-
-            foreach (array_keys(Request::getArray('unassign')) as $remove) {
-                if (false !== ($pos = array_search($remove, $assigned))) {
-                    unset($assigned[$pos]);
-                }
+        $msg = null;
+        $assigned = $this->course->study_areas->pluck('sem_tree_id');
+        foreach (array_keys(Request::getArray('unassign')) as $remove) {
+            if (false !== ($pos = array_search($remove, $assigned))) {
+                unset($assigned[$pos]);
             }
         }
 
-        if(empty($assigned)) {
-            return _('Sie müssen mindestens einen Studienbereich auswählen');
+        if (empty($assigned)) {
+            return _('Sie mÃ¼ssen mindestens einen Studienbereich auswÃ¤hlen');
         }
-        $this->course->study_areas = SimpleORMapCollection::createFromArray(StudipStudyArea::findMany(array_values($assigned)));
 
-        try {
-            $msg = null;
-            $this->course->store();
-        } catch (UnexpectedValueException $e) {
-            $msg = $e->getMessage();
+        if (!$this->course->setStudyAreas($assigned)) {
+            $msg = _('Die Studienbereichszuordnung konnte nicht gespeichert werden.');
         }
+
         return $msg;
     }
 
     public function assign()
     {
+        $msg = null;
+        $assigned = array_keys(Request::getArray('assign'));
 
         if ($this->course->study_areas) {
-            foreach ($this->course->study_areas as $area) {
-                $assigned[] = $area->sem_tree_id;
-            }
-
-            foreach (array_keys(Request::getArray('assign')) as $new) {
-                if (!in_array($new, $assigned)) {
-                    $assigned[] = $new;
-                }
-            }
+            $assigned = array_unique(array_merge($assigned, $this->course->study_areas->pluck('sem_tree_id')));
         }
 
-        $this->course->study_areas = SimpleORMapCollection::createFromArray(StudipStudyArea::findMany($assigned));
-
-        try {
-            $msg = null;
-            $this->course->store();
-        } catch (UnexpectedValueException $e) {
-            $msg = $e->getMessage();
+        if (!$this->course->setStudyAreas($assigned)) {
+            $msg = _('Die Studienbereichszuordnung konnte nicht gespeichert werden.');
         }
+
         return $msg;
     }
 

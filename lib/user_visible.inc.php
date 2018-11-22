@@ -5,7 +5,7 @@
 # Lifter010: TODO
 /*
 user_visible.inc.php - Functions for determining a users visibility
-Copyright (C) 2004 Till Glöggler <virtuos@snowysoft.de>
+Copyright (C) 2004 Till GlÃ¶ggler <virtuos@snowysoft.de>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -180,14 +180,12 @@ function vis_chooser($vis, $new = false, $id = false) {
     }
     $txt = array();
     $txt[] = sprintf('<select name="visible"%s>', $id ? 'id="' . htmlReady($id) . '"' : '');
-    if (!$new) {
-        $txt[] = '<option value="'.$vis.'">'._("keine Änderung").'</option>';
-    }
-    $txt[] = '<option value="always">'._("immer").'</option>';
-    /* $txt[] = '<option value="yes">'._("ja").'</option>'; */
-    $txt[] = '<option value="unknown"'.(($new)? ' selected="selected"':'').'>'._("unbekannt").'</option>';
-    /* $txt[] = '<option value="no">'._("nein").'</option>'; */
-    $txt[] = '<option value="never">'._("niemals").'</option>';
+    $txt[] = '<option value="global"'.($vis === "global" ? " selected" : "").'>'._("global").'</option>';
+    $txt[] = '<option value="always"'.($vis === "always" ? " selected" : "").'>'._("immer").'</option>';
+    $txt[] = '<option value="yes"'.($vis === "yes" ? " selected" : "").'>'._("ja").'</option>';
+    $txt[] = '<option value="unknown"'.(($new || $vis === "unknown") ? ' selected="selected"':'').'>'._("unbekannt").'</option>';
+    $txt[] = '<option value="no"'.($vis === "no" ? " selected" : "").'>'._("nein").'</option>';
+    $txt[] = '<option value="never"'.($vis === "never" ? " selected" : "").'>'._("niemals").'</option>';
     $txt[] = '</select>';
     return implode("\n", $txt);
 }
@@ -221,11 +219,11 @@ function first_decision($userid) {
         return;
     }
 
-    PageLayout::setTitle(_('Bitte wählen Sie Ihren Sichtbarkeitsstatus aus!'));
+    PageLayout::setTitle(_('Bitte wÃ¤hlen Sie Ihren Sichtbarkeitsstatus aus!'));
     PageLayout::setTabNavigation(NULL);
 
     // avoid recursion when loading the header
-    $GLOBALS['USER_VISIBILITY_CHECK'] = false;
+    Config::get()->USER_VISIBILITY_CHECK = false;
 
     $template = $GLOBALS['template_factory']->open("../locale/$user_language/LC_HELP/visibility_decision.php");
     $template->set_layout('layouts/base.php');
@@ -285,7 +283,7 @@ function get_local_visibility_by_id($user_id, $context, $return_user_perm=false)
         $data[$context] = get_config(mb_strtoupper($context) . '_VISIBILITY_DEFAULT');
     }
     // Valid context given.
-    if ($data[$context]) {
+    if (isset($data[$context])) {
         // Context may not be hidden per global config setting.
         if ($NOT_HIDEABLE_FIELDS[$data['perms']][$context]) {
             $result = true;

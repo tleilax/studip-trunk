@@ -21,7 +21,6 @@
  */
 
 require_once 'lib/user_visible.inc.php';
-require_once 'lib/datei.inc.php';
 
 
 
@@ -74,13 +73,13 @@ class messaging
         if (!$statement->fetchColumn()) {
             $this->remove_message($message_id);
 
-            // StEP 155: Mail Attachments
-            $query = "SELECT dokument_id FROM dokumente WHERE range_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($message_id));
-            $document_ids = $statement->fetchAll(PDO::FETCH_COLUMN);
-
-            array_map('delete_document', $document_ids);
+            $folder = Folder::findOneBySQL(
+                "range_id = ? AND parent_id='' AND folder_type='MessageFolder'",
+                [$message_id]
+            );
+            if ($folder) {
+                $folder->delete();
+            }
         }
         return true;
     }
@@ -126,7 +125,7 @@ class messaging
             $this->delete_message($message_id, $user_id);
         }
     }
-    
+
 
     /**
      *
@@ -166,12 +165,18 @@ class messaging
         if (!$to) {
             return;
         }
+        // do not send mails when account is locked or expired
+        $expiration = UserConfig::get($receiver->id)->EXPIRATION_DATE;
+        if ($receiver->locked || ($expiration > 0 && $expiration < time())) {
+            return;
+        }
 
         $rec_fullname = $receiver->getFullName();
 
         setTempLanguage($rec_user_id);
 
-        $title = "[Stud.IP - " . $GLOBALS['UNI_NAME_CLEAN'] . "] " . kill_format(str_replace(array("\r", "\n"), '', $subject));
+        $title_prefix = Config::get()->MAIL_USE_SUBJECT_PREFIX ? '[Stud.IP - ' . Config::get()->UNI_NAME_CLEAN . '] ' : '';
+        $title = $title_prefix . kill_format(str_replace(array("\r", "\n"), '', $subject));
 
         if ($snd_user_id != "____%system%____") {
             $sender = User::find($snd_user_id);
@@ -180,10 +185,11 @@ class messaging
             $reply_to = $sender->Email;
         }
         $attachments = array();
-        if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
-            $size_of_attachments = array_sum($msg->attachments->pluck('filesize')) ?: 0;
+        if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS'] && $msg->attachment_folder) {
+            $attachments = $msg->attachment_folder->file_refs;
+            $size_of_attachments = array_sum($attachments->pluck('size')) ?: 0;
             //assume base64 takes 33% more space
-            $attachments_as_links = $size_of_attachments * 1.33 > $GLOBALS['MAIL_ATTACHMENTS_MAX_SIZE'] * 1024 * 1024;
+            $attachments_as_links = $size_of_attachments * 1.33 > $GLOBALS['MAIL_ATTACHMENTS_MAX_SIZE'] * 1048576; //1MiB = 1024 KiB = 1048576 Bytes
         }
         $template = $GLOBALS['template_factory']->open('mail/text');
         $template->set_attribute('message', kill_format($message));
@@ -225,7 +231,7 @@ class messaging
 
         if (count($attachments) && !$attachments_as_links) {
             foreach ($attachments as $attachment) {
-                $mail->addStudipAttachment($attachment['dokument_id']);
+                $mail->addStudipAttachment($attachment);
             }
         }
         if (!get_config("MAILQUEUE_ENABLE")) {
@@ -234,7 +240,7 @@ class messaging
             MailQueueEntry::add($mail, $message_id, $rec_user_id);
         }
     }
-    
+
     /**
      *
      * @param $message
@@ -248,11 +254,12 @@ class messaging
      * @param $force_email
      * @param $priority
      */
-    function insert_message($message, $rec_uname, $user_id='', $time='', $tmp_message_id='', $set_deleted='', $signature='', $subject='', $force_email='', $priority='normal', $tags = null)
+    function insert_message($message, $rec_uname, $user_id='', $time='', $tmp_message_id='', $set_deleted='', $signature='', $subject='', $force_email='', $priority='normal', $tags = null, $show_adressees = false)
     {
-        global $user;
+        // wenn keine user_id uebergeben
+        $user_id = $user_id ?: $GLOBALS['user']->id;
 
-        $my_messaging_settings = UserConfig::get($user->id)->MESSAGING_SETTINGS;
+        $my_messaging_settings = UserConfig::get($user_id)->MESSAGING_SETTINGS;
 
         // wenn kein subject uebergeben
         $subject = $subject ?: _('Ohne Betreff');
@@ -265,9 +272,6 @@ class messaging
         // wenn keine id uebergeben
         $tmp_message_id = $tmp_message_id ?: md5(uniqid('321losgehtes', true));
 
-        // wenn keine user_id uebergeben
-        $user_id = $user_id ?: $user->id;
-
         # send message now
         if ($user_id != '____%system%____')  { // real-user message
             $snd_user_id = $user_id;
@@ -279,31 +283,21 @@ class messaging
             $snd_user_id = '____%system%____';
             setTempLanguage();
             $message .= $this->sig_string;
-            $message .= _('Diese Nachricht wurde automatisch vom Stud.IP-System generiert. Sie können darauf nicht antworten.');
+            $message .= _('Diese Nachricht wurde automatisch vom Stud.IP-System generiert. Sie kÃ¶nnen darauf nicht antworten.');
 
             restoreLanguage();
         }
 
-
-        // Setzen der Message-ID als Range_ID für angehängte Dateien
-        if (isset($this->provisonal_attachment_id) && $GLOBALS['ENABLE_EMAIL_ATTACHMENTS']) {
-            $attachments = StudipDocument::findBySQL("range_id = 'provisional' AND description = ?", [$this->provisonal_attachment_id]);
-            foreach ($attachments as $attachment) {
-                $attachment->range_id = $tmp_message_id;
-                $attachment->description = '';
-                $attachment->store();
-            }
-        }
-
         // insert message
-        $query = "INSERT INTO message (message_id, autor_id, subject, message, priority, mkdate)
-                  VALUES (?, ?, ?, ?, ?, UNIX_TIMESTAMP())";
+        $query = "INSERT INTO message (message_id, autor_id, subject, message, show_adressees, priority, mkdate)
+                  VALUES (?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP())";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array(
             $tmp_message_id,
             $snd_user_id,
             $subject,
             $message,
+            (int) $show_adressees,
             $priority,
         ));
         // insert snd
@@ -359,14 +353,14 @@ class messaging
         $rec_id = array_unique($rec_id);
 
         // hier gehen wir alle empfaenger durch, schreiben das in die db und schicken eine mail
-        $query  = "INSERT INTO message_user (message_id, user_id, snd_rec, mkdate)
-                   VALUES (?, ?, 'rec', UNIX_TIMESTAMP())";
+        $query  = "INSERT INTO message_user (message_id, user_id, readed, snd_rec, mkdate)
+                   VALUES (?, ?, ?, 'rec', UNIX_TIMESTAMP())";
         $insert = DBManager::get()->prepare($query);
         $snd_name = ($user_id != '____%system%____')
             ? User::find($user_id)->getFullName() . ' (' . User::find($user_id)->username . ')'
             : 'Stud.IP-System';
         foreach ($rec_id as $one) {
-            $insert->execute(array($tmp_message_id, $one));
+            $insert->execute(array($tmp_message_id, $one, $one == $snd_user_id ? 1 : 0));
             if ($GLOBALS['MESSAGING_FORWARD_AS_EMAIL']) {
                 // mail to original receiver
                 $mailstatus_original = $this->user_wants_email($one);
@@ -386,10 +380,7 @@ class messaging
         }
 
         // Obtain all users that should receive a notification
-        $user_ids = $rec_id;
-        if (is_object($GLOBALS['user'])) {
-            $user_ids = array_diff($user_ids, array($GLOBALS['user']->id));
-        }
+        $user_ids = array_diff($rec_id, array($user_id));
 
         // Create notifications
         PersonalNotifications::add(
@@ -397,7 +388,8 @@ class messaging
             URLHelper::getUrl("dispatch.php/messages/read/$tmp_message_id", array('cid' => null)),
             sprintf(_('Sie haben eine Nachricht von %s erhalten!'), $snd_name),
             'message_'.$tmp_message_id,
-            Icon::create('mail', 'clickable')
+            Icon::create('mail', 'clickable'),
+            true
         );
 
         NotificationCenter::postNotification('MessageDidSend', $tmp_message_id, compact('user_id', 'rec_id'));

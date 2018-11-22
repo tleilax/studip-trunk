@@ -63,7 +63,7 @@ class ExternElementStudipLink extends ExternElement {
     function getDefaultConfig () {
 
         $config = array(
-            "linktext" => _("Daten ändern"),
+            "linktext" => _("Daten Ã¤ndern"),
             "imageurl" => "",
             "image" => "1",
             "align" => "left"
@@ -94,11 +94,11 @@ class ExternElementStudipLink extends ExternElement {
         $content = $edit_form->editAlign("align");
 
         $title = _("Linktext:");
-        $info = _("Geben Sie den Text für den Link ein.");
+        $info = _("Geben Sie den Text fÃ¼r den Link ein.");
         $content .= $edit_form->editTextfieldGeneric("linktext", $title, $info, 40, 150);
 
         $title = _("Bild anzeigen:");
-        $info = _("Anwählen, wenn ein Bild als Link angezeigt werden soll.");
+        $info = _("AnwÃ¤hlen, wenn ein Bild als Link angezeigt werden soll.");
         $value = "1";
         $content .= $edit_form->editCheckboxGeneric("image", $title, $info, $value, "");
 
@@ -117,23 +117,30 @@ class ExternElementStudipLink extends ExternElement {
         return  $element_headline . $out;
     }
 
-    function toString ($args) {
+    function toString ($args = null) {
         $out = "<table width=\"{$args['width']}\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n";
         $out .= "<tr>";
         $out .= "<td height=\"{$args['height']}\" width=\"100%\" align=\""
                 . $this->config->getValue($this->name, "align") . "\">\n";
         $font = "<font" . $this->config->getAttributes($this->name, "font") . ">";
-        $out .= sprintf("<a href=\"%s\"%s target=\"_blank\">%s%s</font></a>", $args['link'],
-                $this->config->getAttributes($this->name, "a"), $font,
-                $this->config->getValue($this->name, "linktext"));
+        $out .= sprintf(
+            "<a href=\"%s\"%s target=\"_blank\" rel=\"noopener noreferrer\">%s%s</font></a>",
+            $args['link'],
+            $this->config->getAttributes($this->name, "a"), $font,
+            $this->config->getValue($this->name, "linktext")
+        );
         if ($this->config->getValue($this->name, "image")) {
             if ($image_url = $this->config->getValue($this->name, "imageurl"))
                 $img = Assets::img($image_url);
             else {
                 $img = Icon::create('door-enter', 'clickable')->asImg();
             }
-            $out .= sprintf("&nbsp;<a href=\"%s\"%s target=\"_blank\">%s</a>", $args['link'],
-                    $this->config->getAttributes($this->name, "a"), $img);
+            $out .= sprintf(
+                "&nbsp;<a href=\"%s\"%s target=\"_blank\" rel=\"noopener noreferrer\">%s</a>",
+                $args['link'],
+                $this->config->getAttributes($this->name, "a"),
+                $img
+            );
         }
         $out .= "\n</td></tr></table>\n";
 

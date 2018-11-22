@@ -9,7 +9,7 @@
 *
 * This class contains methods to handle ILIAS 3 learning modules and tests.
 *
-* @author   Arne Schröder <schroeder@data-quest.de>
+* @author   Arne SchrÃ¶der <schroeder@data-quest.de>
 * @access   public
 * @modulegroup  elearning_interface_modules
 * @module       Ilias3ContentModule
@@ -93,7 +93,7 @@ class Ilias3ContentModule extends ContentModule
                 break;
             case "no_permission":
                 $this->allowed_operations = $connected_cms[$this->cms_type]->permissions->getOperationArray($operations );
-                $this->setDescription($object_data["description"] . "<br><br><i>" . _("Sie haben keine Leseberechtigung für dieses Modul.") . "</i>");
+                $this->setDescription($object_data["description"] . "<br><br><i>" . _("Sie haben keine Leseberechtigung fÃ¼r dieses Modul.") . "</i>");
                 return false;
                 break;
             case "missing_precondition":
@@ -106,7 +106,7 @@ class Ilias3ContentModule extends ContentModule
                 break;
             case "no_parent_access":
                 $this->allowed_operations = $connected_cms[$this->cms_type]->permissions->getOperationArray($operations );
-                $this->setDescription($object_data["description"] . "<br><br><i>" . _("Sie haben keinen Zugriff auf die übergeordneten Objekte dieses Moduls.") . "</i>");
+                $this->setDescription($object_data["description"] . "<br><br><i>" . _("Sie haben keinen Zugriff auf die Ã¼bergeordneten Objekte dieses Moduls.") . "</i>");
                 return false;
                 break;
             case "object_deleted":
@@ -134,7 +134,7 @@ class Ilias3ContentModule extends ContentModule
     */
     function setConnection($seminar_id)
     {
-        global $connected_cms, $messages, $SessSemName, $DEFAULT_LANGUAGE;
+        global $connected_cms, $messages;
 
         $write_permission = Request::option("write_permission");
         $write_permission_autor = Request::option("write_permission_autor");
@@ -144,7 +144,7 @@ class Ilias3ContentModule extends ContentModule
         $connected_cms[$this->cms_type]->soap_client->setCachingStatus(false);
         $connected_cms[$this->cms_type]->soap_client->clearCache();
 
-        // Check, ob Kurs in ILIAS gelöscht wurde
+        // Check, ob Kurs in ILIAS gelÃ¶scht wurde
         if (($crs_id != false) AND ($connected_cms[$this->cms_type]->soap_client->getObjectByReference($crs_id) == false))
         {
             ObjectConnections::unsetConnection($seminar_id, $crs_id, "crs", $this->cms_type);
@@ -157,9 +157,9 @@ class Ilias3ContentModule extends ContentModule
         if ($crs_id == false)
         {
 
-            $lang_array = explode("_",$DEFAULT_LANGUAGE);
+            $lang_array = explode("_",Config::get()->DEFAULT_LANGUAGE);
             $course_data["language"] = $lang_array[0];
-            $course_data["title"] = "Stud.IP-Kurs " . $SessSemName[0];
+            $course_data["title"] = "Stud.IP-Kurs " . Context::get()->Name;
             $course_data["description"] = "";
             $ref_id = $connected_cms[$this->cms_type]->main_category_node_id;
             $crs_id = $connected_cms[$this->cms_type]->soap_client->addCourse($course_data, $ref_id);

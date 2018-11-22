@@ -28,7 +28,7 @@ $cal_step_weeks = array(
 ?>
 
 <form method="post" action="<?= $controller->url_for('settings/calendar/store') ?>" class="default">
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
@@ -154,6 +154,6 @@ $cal_step_weeks = array(
             <input type="hidden" name="atime" value="<?= Request::option('atime') ?>">
         <? endif ?>
         <input type="hidden" name="view" value="calendar">
-        <?= Button::createAccept(_('Übernehmen'), array('title' => _('Änderungen übernehmen'))) ?>
+        <?= Button::createAccept(_('Ãœbernehmen'), array('title' => _('Ã„nderungen Ã¼bernehmen'))) ?>
     </footer>
 </form>

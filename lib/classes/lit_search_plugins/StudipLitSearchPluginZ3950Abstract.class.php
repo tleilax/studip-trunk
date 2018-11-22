@@ -8,7 +8,7 @@
 // StudipLitSearchPluginZ3950Abstract.class.php
 //
 //
-// Copyright (c) 2003 André Noack <noack@data-quest.de>
+// Copyright (c) 2003 AndrÃ© Noack <noack@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ require_once 'StudipLitSearchPluginAbstract.class.php';
 *
 *
 * @access   public
-* @author   André Noack <noack@data-quest.de>
+* @author   AndrÃ© Noack <noack@data-quest.de>
 * @package
 **/
 class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
@@ -57,7 +57,6 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
         // UNIMARC mapping
         $this->mapping['UNIMARC'] = array('001' => array('field' => 'accession_number', 'callback' => 'simpleMap', 'cb_args' => ''),
                                 '010' => array('field' => 'dc_identifier', 'callback' => 'simpleMap', 'cb_args' => 'ISBN: $a'),
-                                '010' => array('field' => 'dc_identifier', 'callback' => 'simpleMap', 'cb_args' => 'ISSN: $a'),
                                 '101' => array('field' => 'dc_language', 'callback' => 'simpleMap', 'cb_args' => '$a'),
                                 '200' => array('field' => 'dc_title', 'callback' => 'simpleMap', 'cb_args' => '$a $e' . chr(10) . '$f'),
                                 '210' => array( array('field' => 'dc_date', 'callback' => 'simpleMap', 'cb_args' => '$d-01-01'),
@@ -83,7 +82,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
                                                 array('field' => 'dc_date', 'callback' => 'simpleFixFieldMap', 'cb_args' => array('start'=>7,'length'=>4,'template'=>'{result}-01-01'))),
                                         '020' => array('field' => 'dc_identifier', 'callback' => 'simpleMap', 'cb_args' => 'ISBN: $a'),
                                         '245' => array('field' => 'dc_title', 'callback' => 'simpleMap', 'cb_args' => '$a $b $h'),
-                                        '260' => array('field' => 'dc_publisher', 'callback' => 'simpleMap', 'cb_args' => '$a $b'),
+                                        '264' => array('field' => 'dc_publisher', 'callback' => 'simpleMap', 'cb_args' => '$a $b'),
                                         '256' => array('field' => 'dc_description', 'callback' => 'simpleMap', 'cb_args' => '$a' . chr(10)),
                                         '300' => array('field' => 'dc_format', 'callback' => 'simpleMap', 'cb_args' => '$a $b $c $e'),
                                         '440' => array('field' => 'dc_relation', 'callback' => 'simpleMap', 'cb_args' => '$a $v'),
@@ -96,7 +95,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
                                         '610' => array('field' => 'dc_subject', 'callback' => 'simpleListMap', 'cb_args' => false),
                                         '611' => array('field' => 'dc_subject', 'callback' => 'simpleListMap', 'cb_args' => false),
                                         '630' => array('field' => 'dc_subject', 'callback' => 'simpleListMap', 'cb_args' => false),
-                                        '650' => array('field' => 'dc_subject', 'callback' => 'simpleListMap', 'cb_args' => false),
+                                        '650' => array('field' => 'dc_subject', 'callback' => 'simpleListMap', 'cb_args' => '$a'),
                                         '651' => array('field' => 'dc_subject', 'callback' => 'simpleListMap', 'cb_args' => false),
                                         '652' => array('field' => 'dc_subject', 'callback' => 'simpleListMap', 'cb_args' => false),
                                         '653' => array('field' => 'dc_subject', 'callback' => 'simpleListMap', 'cb_args' => false),
@@ -175,7 +174,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
 
     function doCheckAccession($accession_number){
         if (!$this->z_accession_bib){
-            $this->addError("error", sprintf(_("Attribut für Zugriffsnummer fehlt! (%s)"), mb_strtolower(get_class($this))));
+            $this->addError("error", sprintf(_("Attribut fÃ¼r Zugriffsnummer fehlt! (%s)"), mb_strtolower(get_class($this))));
             return false;
         }
         if (!$accession_number){
@@ -183,7 +182,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
             return false;
         }
         if (!$this->checkAccessionNumber($accession_number)){
-            $this->addError("error", sprintf(_("Zugriffsnummer hat falsches Format für diesen Katalog!")));
+            $this->addError("error", sprintf(_("Zugriffsnummer hat falsches Format fÃ¼r diesen Katalog!")));
             return false;
         }
         if(!$this->z_id){
@@ -277,7 +276,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
             $xmlrecord = new SimpleXMLElement($record);
             foreach($xmlrecord->controlfield as $field){
                 $code = (string)$field['tag'];
-                $data = studip_utf8decode((string)$field);
+                $data = (string)$field;
                 if (isset($plugin_mapping[$code])){
                     $mapping = (is_array($plugin_mapping[$code][0])) ? $plugin_mapping[$code] : array($plugin_mapping[$code]);
                     for ($j = 0; $j < count($mapping); ++$j){
@@ -292,7 +291,7 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
                 foreach($field->subfield as $subfield){
                     $subcode = (string)$subfield['code'];
                     if($subcode && !isset($data[$subcode])){
-                        $data[$subcode] =  studip_utf8decode((string)$subfield);
+                        $data[$subcode] = (string)$subfield;
                     }
                 }
                 if (isset($plugin_mapping[$code])){
@@ -399,25 +398,25 @@ class StudipLitSearchPluginZ3950Abstract extends StudipLitSearchPluginAbstract{
     }
 
     function ConvertUmlaute($text){
-        $text = str_replace("ä","ae",$text);
-        $text = str_replace("Ä","Ae",$text);
-        $text = str_replace("ö","oe",$text);
-        $text = str_replace("Ö","Oe",$text);
-        $text = str_replace("ü","ue",$text);
-        $text = str_replace("Ü","Ue",$text);
-        $text = str_replace("ß","ss",$text);
+        $text = str_replace("Ã¤","ae",$text);
+        $text = str_replace("Ã„","Ae",$text);
+        $text = str_replace("Ã¶","oe",$text);
+        $text = str_replace("Ã–","Oe",$text);
+        $text = str_replace("Ã¼","ue",$text);
+        $text = str_replace("Ãœ","Ue",$text);
+        $text = str_replace("ÃŸ","ss",$text);
 
-        $text = str_replace("É","E",$text);
-        $text = str_replace("È","E",$text);
-        $text = str_replace("Ê","E",$text);
-        $text = str_replace("á","ae",$text);
-        $text = str_replace("à","ae",$text);
-        $text = str_replace("é","e",$text);
-        $text = str_replace("è","e",$text);
-        $text = str_replace("î","i",$text);
-        $text = str_replace("í","i",$text);
-        $text = str_replace("ì","i",$text);
-        $text = str_replace("ç","c",$text);
+        $text = str_replace("Ã‰","E",$text);
+        $text = str_replace("Ãˆ","E",$text);
+        $text = str_replace("ÃŠ","E",$text);
+        $text = str_replace("Ã¡","ae",$text);
+        $text = str_replace("Ã ","ae",$text);
+        $text = str_replace("Ã©","e",$text);
+        $text = str_replace("Ã¨","e",$text);
+        $text = str_replace("Ã®","i",$text);
+        $text = str_replace("Ã­","i",$text);
+        $text = str_replace("Ã¬","i",$text);
+        $text = str_replace("Ã§","c",$text);
 
         return $text;
     }

@@ -1,5 +1,6 @@
 CKEDITOR.plugins.add('studip-settings', {
     icons: 'settings',
+    hidipi: true,
     lang: 'de,en',
     init: function (editor) {
         CKEDITOR.dialog.add(
@@ -13,7 +14,7 @@ CKEDITOR.plugins.add('studip-settings', {
         editor.ui.addButton('settings', {
             label: editor.lang['studip-settings'].buttonLabel,
             command: 'settings',
-            toolbar: 'others'
+            toolbar: 'settings'
         });
     }
 });

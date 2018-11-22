@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
- * @author      Till Glˆggler <gloeggler@elan-ev.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <gloeggler@elan-ev.de>
  * @license     GPL 2 or later
  */
 
@@ -39,8 +39,11 @@ class UserContext extends Context
 
         if (!$this->provider) {
             $this->addProvider('Studip\Activity\NewsProvider');
-            $this->addProvider('Studip\Activity\BlubberProvider');
-            $this->addProvider('Studip\Activity\MessageProvider');
+
+            if ($this->user->id === $this->observer->id) {
+                $this->addProvider('Studip\Activity\MessageProvider');
+                $this->addProvider('Studip\Activity\BlubberProvider');
+            }
 
             if (get_config('LITERATURE_ENABLE')) {
                 $this->addProvider('Studip\Activity\LiteratureProvider');
@@ -64,7 +67,7 @@ class UserContext extends Context
     */
     public function getContextType()
     {
-        return 'user';
+        return \Context::USER;
     }
 
     /**

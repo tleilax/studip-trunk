@@ -1,8 +1,6 @@
-<header>
-    <h1>
-        <?= _('Grunddaten') ?>
-    </h1>
-</header>
+<legend>
+    <?= _('Grunddaten') ?>
+</legend>
 <section>
     <label for="wizard-coursetype" class="required">
         <?= _('Typ') ?>
@@ -38,10 +36,14 @@
     <input type="text" name="name" id="wizard-name" size="75" maxlength="254" value="<?= htmlReady($values['name']) ?>"/>
 </section>
 <section>
+    <? $course_number_format_config = Config::get()->getMetadata('COURSE_NUMBER_FORMAT'); ?>
     <label for="wizard-number">
         <?= _('Veranstaltungsnummer') ?>
+        <?= $course_number_format_config['comment'] ? tooltipIcon($course_number_format_config['comment']) : '' ?>
     </label>
-    <input type="text" name="number" id="wizard-number" size="20" maxlength="99" value="<?= htmlReady($values['number']) ?>"/>
+    <? $course_number_format = Config::get()->COURSE_NUMBER_FORMAT; ?>
+    <input type="text" name="number" id="wizard-number" size="20" maxlength="99" value="<?= htmlReady($values['number']) ?>"
+     <? if ($course_number_format) : ?>pattern="<?= htmlReady($course_number_format) ?>" <? endif ?>/>
 </section>
 <section>
     <label for="wizard-description">
@@ -81,6 +83,8 @@
     <?php if ($values['part_inst_id_parameter']) : ?>
         <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_part_inst', "value" => '1']) ?>
     <?php endif ?>
+</section>
+<section>
     <div id="wizard-participating">
         <div class="description<?= count($values['participating']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>
@@ -93,6 +97,7 @@
         <?php endforeach ?>
     </div>
 </section>
+
 <section >
     <label for="lecturer_id_2" class="required">
         <?= _('Lehrende') ?>
@@ -103,6 +108,8 @@
     <?php if ($values['lecturer_id_parameter']) : ?>
         <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_lecturer', "value" => '1']) ?>
     <?php endif ?>
+</section>
+<section>
     <div id="wizard-lecturers" data-ajax-url="<?= $ajax_url ?>" data-default-enabled="<?= $default_deputies_enabled ?>">
         <div class="description<?= count($values['lecturers']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>
@@ -115,6 +122,7 @@
         <?php endforeach ?>
     </div>
 </section>
+
 <?php if ($dsearch) : ?>
 <section>
     <label for="deputy_id_3">
@@ -126,6 +134,8 @@
     <?php if ($values['deputy_id_parameter']) : ?>
         <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_deputy', "value" => '1']) ?>
     <?php endif ?>
+</section>
+<section>
     <div id="wizard-deputies">
         <div class="description<?= count($values['deputies']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>
@@ -141,6 +151,7 @@
     </div>
 </section>
 <?php endif ?>
+
 <section for="tutor_id_parameter">
     <label for="tutor_id_2">
         <?= _('Tutor/-in') ?>
@@ -151,6 +162,9 @@
     <?php if ($values['tutor_id_parameter']) : ?>
         <?= Icon::create('arr_2down', 'sort')->asInput(["name" => 'add_tutor', "value" => '1']) ?>
     <?php endif ?>
+</section>
+
+<section>
     <div id="wizard-tutors">
         <div class="description<?= count($values['tutors']) ? '' : ' hidden-js' ?>">
             <?= _('bereits zugeordnet:') ?>

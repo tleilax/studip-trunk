@@ -28,12 +28,12 @@ class Course_StudygroupController extends AuthenticatedController
             }
             PageLayout::setTitle(_("Studiengruppe bearbeiten"));
             PageLayout::setHelpKeyword('Basis.Studiengruppen');
-            PageLayout::addSqueezePackage('tablesorter');
         } else {
-            throw new Exception(_("Die von Ihnen gewählte Option ist im System nicht aktiviert."));
+            throw new Exception(_("Die von Ihnen gewÃ¤hlte Option ist im System nicht aktiviert."));
         }
 
         Sidebar::get()->setImage('sidebar/studygroup-sidebar.png');
+        $this->set_layout('course/studygroup/layout');
 
         $this->view = $this->getView($args[0]);
     }
@@ -78,21 +78,18 @@ class Course_StudygroupController extends AuthenticatedController
         if (Request::isXhr()) {
             PageLayout::setTitle(_('Studiengruppendetails'));
         } else {
-            PageLayout::setTitle(getHeaderLine($id) . ' - ' . _('Studiengruppendetails'));
+            PageLayout::setTitle($studygroup->getFullname() . ' - ' . _('Studiengruppendetails'));
             PageLayout::setHelpKeyword('Basis.StudiengruppenAbonnieren');
-            PageLayout::addSqueezePackage('enrolment');
 
             $stmt = DBManager::get()->prepare("SELECT * FROM admission_seminar_user"
                                               . " WHERE user_id = ? AND seminar_id = ?");
-            $stmt->execute(array($GLOBALS['user']->id, $id));
+            $stmt->execute([$GLOBALS['user']->id, $id]);
             $data = $stmt->fetch();
 
             if ($data['status'] == 'accepted') {
                 $membership_requested = true;
             }
-            if (StudygroupModel::isInvited($GLOBALS['user']->id, $id)) {
-                $invited = true;
-            }
+            $invited = StudygroupModel::isInvited($GLOBALS['user']->id, $id);
 
             $participant = $perm->have_studip_perm('autor', $id);
 
@@ -102,74 +99,65 @@ class Course_StudygroupController extends AuthenticatedController
                 $send_from_search_page = Request::get('send_from_search_page');
             }
 
-            $icon = Icon::create('schedule', 'clickable');
-            if ($GLOBALS['perm']->have_studip_perm('autor', $studygroup->getId()) || $membership_requested) {
-                $action = _("Persönlicher Status:");
+            $icon = Icon::create('door-enter', 'clickable');
+            if ($GLOBALS['perm']->have_studip_perm('autor', $studygroup->id) || $membership_requested) {
+                $action = _('PersÃ¶nlicher Status:');
                 if ($membership_requested) {
                     $icon = $icon->copyWithRole('info');
-                    $infotext = _("Mitgliedschaft bereits beantragt!");
+                    $infotext = _('Mitgliedschaft bereits beantragt!');
                 } else {
-                    $infolink = URLHelper::getURL('seminar_main.php?auswahl=' . $studygroup->getId());
-                    $infotext = _("Direkt zur Studiengruppe");
+                    $infolink = URLHelper::getLink('seminar_main.php', ['auswahl' => $studygroup->id]);
+                    $infotext = _('Direkt zur Studiengruppe');
                 }
             } else if ($GLOBALS['perm']->have_perm('admin')) {
-                $action   = _("Hinweis:");
-                $infotext = _('Sie sind Admin und können sich daher nicht für Studiengruppen anmelden.');
+                $action   = _('Hinweis');
+                $infotext = _('Sie sind Admin und kÃ¶nnen sich daher nicht fÃ¼r Studiengruppen anmelden.');
                 $icon     = Icon::create('decline', 'attention');
             } else {
-                $action           = _("Aktionen:");
-                $infolink         = URLHelper::getScriptURL('dispatch.php/course/enrolment/apply/' . $studygroup->getId());
-                $infolink_options = array('data-dialog' => '');
+                $action           = _('Aktionen');
+                $infolink         = $this->link_for("course/enrolment/apply/{$studygroup->id}");
+                $infolink_options = ['data-dialog' => ''];
                 // customize link text if user is invited or group access is restricted
-                if ($invited === true) {
-                    $infotext = _("Einladung akzeptieren");
+                if ($invited) {
+                    $infotext = _('Einladung akzeptieren');
                 } elseif ($studygroup->admission_prelim) {
-                    $infotext = _("Mitgliedschaft beantragen");
+                    $infotext = _('Mitgliedschaft beantragen');
                 } else {
-                    $infotext = _("Studiengruppe beitreten");
+                    $infotext = _('Studiengruppe beitreten');
                 }
             }
             $sidebar = Sidebar::get();
-            $sidebar->setTitle(_("Details"));
+            $sidebar->setTitle(_('Details'));
             $sidebar->setContextAvatar(StudygroupAvatar::getAvatar($studygroup->id));
+
             $iwidget = new SidebarWidget();
-            $iwidget->setTitle(_("Information"));
-            $iwidget->addElement(new WidgetElement(_("Hier sehen Sie weitere Informationen zur Studiengruppe. Außerdem können Sie ihr beitreten/eine Mitgliedschaft beantragen.")));
+            $iwidget->setTitle(_('Information'));
+            $iwidget->addElement(new WidgetElement(_('Hier sehen Sie weitere Informationen zur Studiengruppe. AuÃŸerdem kÃ¶nnen Sie ihr beitreten/eine Mitgliedschaft beantragen.')));
             $sidebar->addWidget($iwidget);
+
             $awidget = new LinksWidget();
             $awidget->setTitle($action);
             $awidget->addLink($infotext, $infolink, $icon, $infolink_options);
             if ($send_from_search_page) {
-                $awidget->addLink(_("zurück zur Suche"), URLHelper::getURL($send_from_search_page), Icon::create('schedule', 'info'));
+                $awidget->addLink(
+                    _('zurÃ¼ck zur Suche'),
+                    URLHelper::getURL($send_from_search_page),
+                    Icon::create('link-intern')
+                );
             }
             $sidebar->addWidget($awidget);
+
+            $this->sidebarActions = $awidget->getElements();
+
+            $ashare = new ShareWidget();
+            $ashare->addCopyableLink(
+                _('Link zu dieser Studiengruppe kopieren'),
+                $this->link_for("course/studygroup/details/{$studygroup->id}", ['cid' => null]),
+                Icon::create('group')
+            );
+            $sidebar->addWidget($ashare);
         }
         $this->studygroup = $studygroup;
-    }
-
-    /**
-     * displays a form for creating studygroups
-     *
-     * @return void
-     */
-    public function new_action()
-    {
-        PageLayout::setHelpKeyword('Basis.StudiengruppenAnlegen');
-        closeObject();
-
-        PageLayout::setTitle(_("Studiengruppe anlegen"));
-        Navigation::activateItem('/community/studygroups/new');
-        $this->terms             = Config::Get()->STUDYGROUP_TERMS;
-        $this->available_modules = StudygroupModel::getInstalledModules();
-        $this->available_plugins = StudygroupModel::getInstalledPlugins();
-        $this->modules           = new Modules();
-        $this->groupaccess       = $this->flash['request']['groupaccess'];
-        foreach ($GLOBALS['SEM_CLASS'] as $key => $sem_class) {
-            if ($sem_class['studygroup_mode']) {
-                $this->sem_class = $sem_class;
-                break;
-            }
-        }
     }
 
     /**
@@ -230,9 +218,16 @@ class Course_StudygroupController extends AuthenticatedController
             }
 
             if (is_array($results_founders)) {
-                $this->flash['success'] = sizeof($results_founders) == 1 ? sprintf(_("Es wurde %s Person gefunden:"), sizeof($results_founders)) : sprintf(_("Es wurden %s Personen gefunden:"), sizeof($results_founders));
+                PageLayout::postSuccess(sprintf(
+                    ngettext(
+                        'Es wurde %s Person gefunden:',
+                        'Es wurden %s Personen gefunden:',
+                        count($results_founders)
+                    ),
+                    count($results_founders)
+                ));
             } else {
-                $this->flash['info'] = _("Es wurden kein Personen gefunden.");
+                PageLayout::postInfo(_('Es wurden keine Personen gefunden.'));
             }
 
             $this->flash['create']                  = true;
@@ -277,16 +272,16 @@ class Course_StudygroupController extends AuthenticatedController
                     Request::get('groupname'),
                 ));
                 if ($statement->fetchColumn()) {
-                    $errors[] = _("Eine Veranstaltung/Studiengruppe mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen");
+                    $errors[] = _("Eine Veranstaltung/Studiengruppe mit diesem Namen existiert bereits. Bitte wÃ¤hlen Sie einen anderen Namen");
                 }
             }
 
             if (!Request::get('grouptermsofuse_ok')) {
-                $errors[] = _("Sie müssen die Nutzungsbedingungen durch Setzen des Häkchens bei 'Einverstanden' akzeptieren.");
+                $errors[] = _("Sie mÃ¼ssen die Nutzungsbedingungen durch Setzen des HÃ¤kchens bei 'Einverstanden' akzeptieren.");
             }
 
             if ($admin && (!is_array($founders) || !sizeof($founders))) {
-                $errors[] = _("Sie müssen mindestens einen Gruppengründer eintragen!");
+                $errors[] = _("Sie mÃ¼ssen mindestens einen GruppengrÃ¼nder eintragen!");
             }
 
             if (count($errors)) {
@@ -315,12 +310,11 @@ class Course_StudygroupController extends AuthenticatedController
                     if (Config::get()->STUDYGROUPS_INVISIBLE_ALLOWED && Request::get('groupaccess') == 'invisible') {
                         $sem->visible = 0;
                     }
-                    $sem->admission_prelim_txt = _("Die ModeratorInnen der Studiengruppe können Ihren Aufnahmewunsch bestätigen oder ablehnen. Erst nach Bestätigung erhalten Sie vollen Zugriff auf die Gruppe.");
+                    $sem->admission_prelim_txt = _("Die ModeratorInnen der Studiengruppe kÃ¶nnen Ihren Aufnahmewunsch bestÃ¤tigen oder ablehnen. Erst nach BestÃ¤tigung erhalten Sie vollen Zugriff auf die Gruppe.");
                 }
                 $sem->admission_binding = 0;
 
-                $semdata                     = new SemesterData();
-                $this_semester               = $semdata->getSemesterDataByDate(time());
+                $this_semester               = SemesterData::getSemesterDataByDate(time());
                 $sem->semester_start_time    = $this_semester['beginn'];
                 $sem->semester_duration_time = -1;
 
@@ -422,11 +416,11 @@ class Course_StudygroupController extends AuthenticatedController
 
         // if we are permitted to edit the studygroup get some data...
         if ($perm->have_studip_perm('dozent', $id)) {
+            $sem = new Seminar($id);
 
-            PageLayout::setTitle(getHeaderLine($id) . ' - ' . _('Studiengruppe bearbeiten'));
+            PageLayout::setTitle($sem->getFullname() . ' - ' . _('Studiengruppe bearbeiten'));
             Navigation::activateItem('/course/admin/main');
 
-            $sem                     = new Seminar($id);
             $this->sem_id            = $id;
             $this->sem               = $sem;
             $this->sem_class         = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$sem->status]['class']];
@@ -459,10 +453,10 @@ class Course_StudygroupController extends AuthenticatedController
             $actions->addLink(_('Neue Studiengruppe anlegen'),
                 $this->url_for('course/wizard?studygroup=1'), Icon::create('studygroup+add', 'clickable'));
             if ($GLOBALS['perm']->have_studip_perm('tutor', $id)) {
-                $actions->addLink(_('Bild ändern'),
-                    $this->url_for('course/avatar/update/' . $id), Icon::create('edit', 'clickable'));
+                $actions->addLink(_('Bild Ã¤ndern'),
+                    $this->url_for('avatar/update/course' . $id), Icon::create('edit', 'clickable'));
             }
-            $actions->addLink(_('Diese Studiengruppe löschen'),
+            $actions->addLink(_('Diese Studiengruppe lÃ¶schen'),
                 $this->url_for('course/studygroup/delete/' . $id), Icon::create('trash', 'clickable'));
 
             Sidebar::get()->addWidget($actions);
@@ -556,7 +550,7 @@ class Course_StudygroupController extends AuthenticatedController
 
                 // Success message
 
-                $this->flash['success'] .= _("Inhaltselement(e) erfolgreich deaktiviert.");
+                PageLayout::postSuccess(_('Inhaltselement(e) erfolgreich deaktiviert.'));
                 return $this->redirect('course/studygroup/edit/' . $id);
 
             } else if (Request::submitted('replace_founder')) {
@@ -585,7 +579,7 @@ class Course_StudygroupController extends AuthenticatedController
                         $id,
                     ));
                     if ($statement->fetchColumn()) {
-                        $errors[] = _("Eine Veranstaltung/Studiengruppe mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen");
+                        $errors[] = _("Eine Veranstaltung/Studiengruppe mit diesem Namen existiert bereits. Bitte wÃ¤hlen Sie einen anderen Namen");
                     }
                 }
                 if (count($errors)) {
@@ -606,7 +600,7 @@ class Course_StudygroupController extends AuthenticatedController
                         if (Config::get()->STUDYGROUPS_INVISIBLE_ALLOWED && Request::get('groupaccess') == 'invisible') {
                             $sem->visible = 0;
                         }
-                        $sem->admission_prelim_txt = _("Die ModeratorInnen der Studiengruppe können Ihren Aufnahmewunsch bestätigen oder ablehnen. Erst nach Bestätigung erhalten Sie vollen Zugriff auf die Gruppe.");
+                        $sem->admission_prelim_txt = _("Die ModeratorInnen der Studiengruppe kÃ¶nnen Ihren Aufnahmewunsch bestÃ¤tigen oder ablehnen. Erst nach BestÃ¤tigung erhalten Sie vollen Zugriff auf die Gruppe.");
                     }
 
                     // get the current bitmask
@@ -684,7 +678,7 @@ class Course_StudygroupController extends AuthenticatedController
 
         if (!$this->flash['errors'] && !$deactivate_modules && !$deactivate_plugins) {
             // Everything seems fine
-            $this->flash['success'] = _("Die Änderungen wurden erfolgreich übernommen.");
+            PageLayout::postSuccess(_('Die Ã„nderungen wurden erfolgreich Ã¼bernommen.'));
         }
         // let's go to the studygroup
         $this->redirect('course/studygroup/edit/' . $id);
@@ -700,17 +694,17 @@ class Course_StudygroupController extends AuthenticatedController
      * @return void
      *
      */
-    public function members_action()
+    public function members_action($id)
     {
-        $id = $_SESSION['SessionSeminar'];
-        PageLayout::setTitle(getHeaderLine($_SESSION['SessionSeminar']) . ' - ' . _("Teilnehmende"));
+        $sem = Course::find($id);
+        PageLayout::setTitle($sem->getFullname() . ' - ' . _('Teilnehmende'));
         Navigation::activateItem('/course/members');
         PageLayout::setHelpKeyword('Basis.StudiengruppenBenutzer');
 
         Request::set('choose_member_parameter', $this->flash['choose_member_parameter']);
 
         object_set_visit_module('participants');
-        $sem = Course::find($id);
+
 
         $this->last_visitdate   = object_get_visit($id, 'participants');
         $this->anzahl           = StudygroupModel::countMembers($id);
@@ -721,7 +715,7 @@ class Course_StudygroupController extends AuthenticatedController
         $this->tutors           = $sem->getMembersWithStatus('tutor');
         $this->autors           = $sem->getMembersWithStatus('autor');
         $this->accepted         = $sem->admission_applicants->findBy('status', 'accepted');
-        $this->sem_class        = Course::findCurrent()->getSemClass();
+        $this->sem_class        = $sem->getSemClass();
         $this->invitedMembers   = StudygroupModel::getInvitations($id);
         $this->rechte           = $GLOBALS['perm']->have_studip_perm('tutor', $id);
 
@@ -801,7 +795,7 @@ class Course_StudygroupController extends AuthenticatedController
      *
      * @return void
      */
-    public function edit_members_action($id, $action, $status = '', $studipticket = false)
+    public function edit_members_action($id, $action, $status = '')
     {
         global $perm;
 
@@ -811,42 +805,61 @@ class Course_StudygroupController extends AuthenticatedController
         if ($perm->have_studip_perm('tutor', $id)) {
 
             if (!$action) {
-                $this->flash['success'] = _("Es wurde keine korrekte Option gewählt.");
-            } elseif ($action == 'accept') {
+                PageLayout::postError(_('Es wurde keine korrekte Option gewÃ¤hlt.'));
+            } elseif ($action === 'accept') {
                 StudygroupModel::accept_user($user, $id);
-                $this->flash['success'] = sprintf(_("Der Nutzer %s wurde akzeptiert."), get_fullname_from_uname($user, 'full', true));
-            } elseif ($action == 'deny') {
+                PageLayout::postSuccess(sprintf(
+                    _('Der Nutzer %s wurde akzeptiert.'),
+                    get_fullname_from_uname($user, 'full')
+                ));
+            } elseif ($action === 'deny') {
                 StudygroupModel::deny_user($user, $id);
-                $this->flash['success'] = sprintf(_("Der Nutzer %s wurde nicht akzeptiert."), get_fullname_from_uname($user, 'full', true));
-            } elseif ($action == 'cancelInvitation') {
+                PageLayout::postInfo(sprintf(
+                    _('Der Nutzer %s wurde nicht akzeptiert.'),
+                    get_fullname_from_uname($user, 'full')
+                ));
+            } elseif ($action === 'cancelInvitation') {
                 StudygroupModel::cancelInvitation($user, $id);
-                $this->flash['success'] = sprintf(_("Die Einladung des Nutzers %s wurde gelöscht."), get_fullname_from_uname($user, 'full', true));
+                PageLayout::postSuccess(sprintf(
+                    _('Die Einladung des Nutzers %s wurde gelÃ¶scht.'),
+                    get_fullname_from_uname($user, 'full')
+                ));
             } elseif ($perm->have_studip_perm('tutor', $id)) {
                 if (!$perm->have_studip_perm('dozent', $id, get_userid($user)) || count(Course::find($id)->getMembersWithStatus('dozent')) > 1) {
                     if ($action == 'promote' && $perm->have_studip_perm('dozent', $id)) {
                         $status = $perm->have_studip_perm('tutor', $id, get_userid($user)) ? "dozent" : "tutor";
                         StudygroupModel::promote_user($user, $id, $status);
-                        $this->flash['success'] = sprintf(_("Der Status des Nutzers %s wurde geändert."), get_fullname_from_uname($user, 'full', true));
+                        PageLayout::postSuccess(sprintf(
+                            _('Der Status des Nutzers %s wurde geÃ¤ndert.'),
+                            get_fullname_from_uname($user, 'full')
+                        ));
                     } elseif ($action === "downgrade" && $perm->have_studip_perm('dozent', $id)) {
                         $status = $perm->have_studip_perm('dozent', $id, get_userid($user)) ? "tutor" : "autor";
                         StudygroupModel::promote_user($user, $id, $status);
-                        $this->flash['success'] = sprintf(_("Der Status des Nutzers %s wurde geändert."), get_fullname_from_uname($user, 'full', true));
-                    } elseif ($action == 'remove') {
-                        $this->flash['question']  = sprintf(_("Möchten Sie wirklich den Nutzer %s aus der Studiengruppe entfernen?"), get_fullname_from_uname($user, 'full', true));
-                        $this->flash['candidate'] = $user;
-                    } elseif ($action == 'remove_approved' && check_ticket($studipticket)) {
+                        PageLayout::postSuccess(sprintf(
+                            _('Der Status des Nutzers %s wurde geÃ¤ndert.'),
+                            get_fullname_from_uname($user, 'full')
+                        ));
+                    } elseif ($action === 'remove') {
+                        PageLayout::postQuestion(
+                            sprintf(
+                                _('MÃ¶chten Sie wirklich den Nutzer %s aus der Studiengruppe entfernen?'),
+                                get_fullname_from_uname($user, 'full')
+                            ),
+                            $this->url_for("course/studygroup/edit_members/{$id}/remove_approved", compact('user'))
+                        )->includeTicket();
+                    } elseif ($action == 'remove_approved' && check_ticket(Request::get('studip_ticket'))) {
                         StudygroupModel::remove_user($user, $id);
-                        $this->flash['success'] = sprintf(_("Der Nutzer %s wurde aus der Studiengruppe entfernt."), get_fullname_from_uname($user, 'full', true));
+                        PageLayout::postSuccess(sprintf(
+                            _('Der Nutzer %s wurde aus der Studiengruppe entfernt.'),
+                            get_fullname_from_uname($user, 'full')
+                        ));
                     }
                 } else {
-                    $this->flash['messages'] = array(
-                        'error' => array(
-                            'title' => _("Jede Studiengruppe muss mindestens einen Gruppengründer haben!"),
-                        ),
-                    );
+                    PageLayout::postError(_('Jede Studiengruppe muss mindestens einen GruppengrÃ¼nder haben!'));
                 }
             }
-            //Für die QuickSearch-Suche:
+            //FÃ¼r die QuickSearch-Suche:
             if (Request::get('choose_member_parameter') && Request::get('choose_member_parameter') !== _("Nutzer suchen")) {
                 $this->flash['choose_member_parameter'] = Request::get('choose_member_parameter');
             }
@@ -879,7 +892,7 @@ class Course_StudygroupController extends AuthenticatedController
             // send invite message to user
             $msg     = new Messaging();
             $sem     = new Seminar($id);
-            $message = sprintf(_("%s möchte Sie auf die Studiengruppe %s aufmerksam machen. Klicken Sie auf den untenstehenden Link, um direkt zur Studiengruppe zu gelangen.\n\n %s"),
+            $message = sprintf(_("%s mÃ¶chte Sie auf die Studiengruppe %s aufmerksam machen. Klicken Sie auf den untenstehenden Link, um direkt zur Studiengruppe zu gelangen.\n\n %s"),
                 get_fullname(), $sem->name, URLHelper::getlink("dispatch.php/course/studygroup/details/" . $id, array('cid' => NULL)));
             $subject = _("Sie wurden in eine Studiengruppe eingeladen");
             $msg->insert_message($message, get_username($receiver), '', '', '', '', '', $subject);
@@ -892,9 +905,15 @@ class Course_StudygroupController extends AuthenticatedController
 
         }
         if ($count == 1) {
-            $this->flash['success'] = sprintf(_("%s wurde in die Studiengruppe eingeladen."), $addedUsers);
+            PageLayout::postSuccess(sprintf(
+                _('%s wurde in die Studiengruppe eingeladen.'),
+                $addedUsers
+            ));
         } else if ($count >= 1) {
-            $this->flash['success'] = sprintf(_("%s wurden in die Studiengruppe eingeladen."), $addedUsers);
+            pageLayout::postSuccess(sprintf(
+                _('%s wurden in die Studiengruppe eingeladen.'),
+                $addedUsers
+            ));
         }
 
         $this->redirect($this->url_for('course/studygroup/members/' . $id, ['view' => $this->view]));
@@ -910,12 +929,12 @@ class Course_StudygroupController extends AuthenticatedController
      * @return void
      *
      */
-    public function delete_action($id, $approveDelete = false, $studipticket = false)
+    public function delete_action($id, $approveDelete = false)
     {
         global $perm;
         if ($perm->have_studip_perm('dozent', $id)) {
 
-            if ($approveDelete && check_ticket($studipticket)) {
+            if ($approveDelete && check_ticket(Request::get('studip_ticket'))) {
                 $messages = array();
                 $sem      = new Seminar($id);
                 $sem->delete();
@@ -933,13 +952,11 @@ class Course_StudygroupController extends AuthenticatedController
                 }
                 return;
             } else if (!$approveDelete) {
-                $template = $GLOBALS['template_factory']->open('shared/question');
+                PageLayout::postQuestion(
+                    _('Sind Sie sicher, dass Sie diese Studiengruppe lÃ¶schen mÃ¶chten?'),
+                    $this->url_for("course/studygroup/delete/{$id}/true")
+                )->includeTicket();
 
-                $template->set_attribute('approvalLink', $this->url_for('course/studygroup/delete/' . $id . '/true/' . get_ticket()));
-                $template->set_attribute('disapprovalLink', $this->url_for('course/studygroup/edit/' . $id));
-                $template->set_attribute('question', _("Sind Sie sicher, dass Sie diese Studiengruppe löschen möchten?"));
-
-                $this->flash['question'] = $template->render();
                 $this->redirect('course/studygroup/edit/' . $id);
                 return;
             }
@@ -971,10 +988,12 @@ class Course_StudygroupController extends AuthenticatedController
         }
         if ($this->flash['modules']) {
             foreach ($this->flash['modules'] as $module => $status) {
-                $enabled[$module] = ($status == 'on') ? true : false;
+                $enabled[$module] = $status === 'on';
             }
         }
-        if ($this->flash['terms']) $terms = $this->flash['terms'];
+        if ($this->flash['terms']) {
+            $terms = $this->flash['terms'];
+        }
 
         PageLayout::setTitle(_('Verwaltung studentischer Arbeitsgruppen'));
         Navigation::activateItem('/admin/config/studygroup');
@@ -985,7 +1004,7 @@ class Course_StudygroupController extends AuthenticatedController
 
         // set variables for view
         $this->can_deactivate = $statement->fetchColumn() == 0;
-        $this->current_page   = _("Verwaltung erlaubter Inhaltselemente und Plugins für Studiengruppen");
+        $this->current_page   = _("Verwaltung erlaubter Inhaltselemente und Plugins fÃ¼r Studiengruppen");
         $this->configured     = count(studygroup_sem_types()) > 0;
         $this->institutes     = $institutes;
         $this->default_inst   = $default_inst;
@@ -1004,7 +1023,7 @@ class Course_StudygroupController extends AuthenticatedController
         PageLayout::setHelpKeyword('Admin.Studiengruppen');
 
         if (!Request::get('institute')) {
-            $errors[] = _('Bitte wählen Sie eine Einrichtung aus, der die Studiengruppen zugeordnet werden sollen!');
+            $errors[] = _('Bitte wÃ¤hlen Sie eine Einrichtung aus, der die Studiengruppen zugeordnet werden sollen!');
         }
 
         if (!trim(Request::get('terms'))) {
@@ -1021,15 +1040,15 @@ class Course_StudygroupController extends AuthenticatedController
             $cfg = Config::get();
             if ($cfg->STUDYGROUPS_ENABLE == false && count(studygroup_sem_types()) > 0) {
                 $cfg->store("STUDYGROUPS_ENABLE", true);
-                $this->flash['success'] = _("Die Studiengruppen wurden aktiviert.");
+                PageLayout::postSuccess(_('Die Studiengruppen wurden aktiviert.'));
             }
 
             if (Request::get('institute')) {
                 $cfg->store('STUDYGROUP_DEFAULT_INST', Request::get('institute'));
                 $cfg->store('STUDYGROUP_TERMS', Request::get('terms'));
-                $this->flash['success'] = _("Die Einstellungen wurden gespeichert!");
+                PageLayout::postSuccess(_('Die Einstellungen wurden gespeichert!'));
             } else {
-                $this->flash['error'] = _("Fehler beim Speichern der Einstellung!");
+                PageLayout::postError(_('Fehler beim Speichern der Einstellung!'));
             }
         }
         $this->redirect('course/studygroup/globalmodules');
@@ -1051,12 +1070,13 @@ class Course_StudygroupController extends AuthenticatedController
         $statement->execute(array(studygroup_sem_types()));
 
         if (($count = $statement->fetchColumn()) != 0) {
-            $this->flash['messages'] = array('error' => array(
-                'title' => sprintf(_("Sie können die Studiengruppen nicht deaktivieren, da noch %s Studiengruppen vorhanden sind!"), $count),
+            PageLayout::postError(sprintf(
+                _('Sie kÃ¶nnen die Studiengruppen nicht deaktivieren, da noch %s Studiengruppen vorhanden sind!'),
+                $count
             ));
         } else {
             Config::get()->store("STUDYGROUPS_ENABLE", false);
-            $this->flash['success'] = _("Die Studiengruppen wurden deaktiviert.");
+            PageLayout::postSuccess(_('Die Studiengruppen wurden deaktiviert.'));
         }
         $this->redirect('course/studygroup/globalmodules');
     }
@@ -1073,7 +1093,7 @@ class Course_StudygroupController extends AuthenticatedController
     {
         $sem = Course::find($id);
         if (mb_strlen($sem->getFullname()) > 32) {//cut subject if to long
-            $subject = sprintf(_("[Studiengruppe: %s...]"), studip_substr($sem->getFullname(), 0, 30));
+            $subject = sprintf(_("[Studiengruppe: %s...]"), mb_substr($sem->getFullname(), 0, 30));
         } else {
             $subject = sprintf(_("[Studiengruppe: %s]"), $sem->getFullname());
         }

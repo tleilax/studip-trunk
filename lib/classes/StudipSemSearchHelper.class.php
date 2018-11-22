@@ -8,7 +8,7 @@
 // StudipSemSearchHelper.class.php
 // 
 // 
-// Copyright (c) 2003 André Noack <noack@data-quest.de>
+// Copyright (c) 2003 AndrÃ© Noack <noack@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@ class StudipSemSearchHelper {
     
     public static function GetQuickSearchFields(){
         return array(   'all' =>_("alles"),
-                        'title_lecturer_number' => _("Titel") . ',' . _("Lehrende") . ',' . _("Nummer"), 
+                        'title_lecturer_number' => _("Titel") . ', ' . _("Lehrende") . ', ' . _("Nummer"),
                         'title' => _("Titel"),
                         'sub_title' => _("Untertitel"),
                         'lecturer' => _("Lehrende"),

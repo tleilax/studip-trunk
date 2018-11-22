@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for('admin/api/permissions', $consumer_id) ?>" method="post">
+<form action="<?= $controller->url_for('admin/api/permissions', $consumer_id) ?>" method="post" class="default">
 <table class="default">
     <thead>
         <tr>
@@ -39,12 +39,12 @@
 <? endforeach; ?>
     <tfoot>
         <tr>
-            <td class="printhead">
+            <td>
                 <label>
                     <input type="checkbox" data-proxyfor="[name^=permission]:checkbox"> <?= _('Alle') ?>
                 </label>
             </td>
-            <td class="printhead" colspan="4" style="text-align: center;">
+            <td colspan="4">
                 <?= Studip\Button::createAccept(_('Speichern'), 'store') ?>
             </td>
         </tr>

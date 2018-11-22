@@ -3,42 +3,55 @@
 use Studip\Button, Studip\LinkButton;
 
 ?>
-<form action="<?= $controller->url_for('admin/plugin/search') ?>" method="post" style="float: right;">
+<form action="<?= $controller->url_for('admin/plugin/search') ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <?= _('Suche nach Plugins:') ?>
-    <input name="search" type="text" size="20" value="<?= htmlReady($search) ?>">
-    <?= Button::create(_('Suchen'), 'suchen', array('title' => _('Suche starten')))?>
-    &nbsp;
-    <?= LinkButton::create(_('Zurücksetzen'), $controller->url_for('admin/plugin/search'), array('title' => _('Suche zurücksetzen')))?>
-</form>
 
+    <fieldset>
+        <legend>
+            <?= _('Plugins suchen') ?>
+        </legend>
+
+        <label>
+            <?= _('Pluginname') ?>
+            <input name="search" type="text" size="20" value="<?= htmlReady($search) ?>">
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Button::create(_('Suchen'), 'suchen', ['title' => _('Suche starten')])?>
+        <?= LinkButton::create(_('ZurÃ¼cksetzen'), $controller->url_for('admin/plugin/search'), array('title' => _('Suche zurÃ¼cksetzen')))?>
+    </footer>
+</form>
 
 
 <? if (empty($search_results)): ?>
     <?= MessageBox::info(_('Es wurden keine Plugins gefunden.')) ?>
 <? else: ?>
-    <table class="default">
+    <br>
+    <table class="default nohover">
         <caption>
-            <? if ($search === NULL): ?>
-                <?= _('Empfohlene Plugins') ?>
-            <? else: ?>
-                <?= _('Suchergebnisse') ?>
-            <? endif ?>
+        <? if ($search === null): ?>
+            <?= _('Empfohlene Plugins') ?>
+        <? else: ?>
+            <?= _('Suchergebnisse') ?>
+        <? endif ?>
         </caption>
-        <tr>
-            <th class="plugin_image"><?= _('Bild')?></th>
-            <th><?= _('Name und Beschreibung')?></th>
-            <th><?= _('Version') ?></th>
-            <th><?= _('Bewertung') ?></th>
-            <th class="plugin_install"><?= _('Installieren') ?></th>
-        </tr>
-
+        <thead>
+            <tr>
+                <th class="plugin_image"><?= _('Bild')?></th>
+                <th><?= _('Name und Beschreibung')?></th>
+                <th><?= _('Version') ?></th>
+                <th><?= _('Bewertung') ?></th>
+                <th class="plugin_install actions"><?= _('Installieren') ?></th>
+            </tr>
+        </thead>
+        <tbody>
         <? foreach ($search_results as $name => $plugin): ?>
-            <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
+            <tr>
                 <td class="plugin_image">
                     <? if ($plugin['image']): ?>
                         <? if ($plugin['plugin_url']): ?>
-                            <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank">
+                            <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank" rel="noopener noreferrer">
                                 <img src="<?= htmlReady($plugin['image']) ?>" class="plugin_preview">
                             </a>
                         <? else: ?>
@@ -47,26 +60,40 @@ use Studip\Button, Studip\LinkButton;
                     <? endif ?>
                 </td>
                 <td>
-                    <? if ($plugin['plugin_url']): ?>
-                        <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank">
-                            <b><?= htmlReady($name) ?></b>
-                        </a>
-                    <? else: ?>
-                        <b><?= htmlReady($name) ?></b>
-                    <? endif ?>
+                <? if ($plugin['plugin_url']): ?>
+                    <a href="<?= htmlReady($plugin['plugin_url']) ?>" target="_blank" rel="noopener noreferrer">
+                        <strong><?= htmlReady($name) ?></strong>
+                    </a>
+                <? else: ?>
+                    <strong><?= htmlReady($name) ?></strong>
+                <? endif ?>
+                <? if (mb_strlen($plugin['description']) > 500) : ?>
+                <span class="plugin_description short">
+                    <div>
+                        <?= nl2br(htmlReady($plugin['description'])) ?>
+
+                        <p class="read_more"></p>
+                    </div>
+
+                    <a href="" class="read_more_link" onClick="jQuery(this).parent().toggleClass('short');return false;">
+                        <span><?= _('Weiterlesen') ?></span>
+                    </a>
+                </span>
+                <? else: ?>
                     <p>
-                        <?= htmlReady($plugin['description']) ?>
+                        <?= nl2br(htmlReady($plugin['description'])) ?>
                     </p>
+                <? endif ?>
                 </td>
                 <td>
                     <?= htmlReady($plugin['version']) ?>
                 </td>
                 <td class="plugin_score">
-                    <? for ($i = 0; $i < $plugin['score']; ++$i): ?>
-                        <?= Icon::create('star', 'inactive')->asImg() ?>
-                    <? endfor ?>
+                <? for ($i = 0; $i < $plugin['score']; ++$i): ?>
+                    <?= Icon::create('star', 'inactive')->asImg() ?>
+                <? endfor ?>
                 </td>
-                <td class="plugin_install">
+                <td class="plugin_install actions">
                     <form action="<?= $controller->url_for('admin/plugin/install') ?>" method="post">
                         <?= CSRFProtection::tokenTag() ?>
                         <input type="hidden" name="plugin_url" value="<?= htmlReady($plugin['url']) ?>">
@@ -76,56 +103,64 @@ use Studip\Button, Studip\LinkButton;
                 </td>
             </tr>
         <? endforeach ?>
+        </tbody>
     </table>
 <? endif ?>
 <? if ($unknown_plugins) : ?>
-    <h3>
-        <?= _('Im Pluginverzeichnis vorhandene Plugins registrieren') ?>
-    </h3>
     <table class="default">
-        <tr>
-            <th><?= _('Name')?></th>
-            <th><?= _('Pluginklasse')?></th>
-            <th><?= _('Version') ?></th>
-            <th><?= _('Ursprung') ?></th>
-            <th class="plugin_install"><?= _('Registrieren') ?></th>
-        </tr>
+        <caption>
+            <?= _('Im Pluginverzeichnis vorhandene Plugins registrieren') ?>
+        </caption>
+        <thead>
+            <tr>
+                <th><?= _('Name')?></th>
+                <th><?= _('Pluginklasse')?></th>
+                <th><?= _('Version') ?></th>
+                <th><?= _('Ursprung') ?></th>
+                <th class="plugin_install"><?= _('Registrieren') ?></th>
+            </tr>
+        </thead>
+        <tbody>
         <? foreach ($unknown_plugins as $n => $plugin): ?>
-        <tr class="<?= TextHelper::cycle('hover_odd', 'hover_even') ?>">
-            <td>
-                <?= htmlReady($plugin['pluginname']) ?>
-            </td>
-            <td>
-                <?= htmlReady($plugin['pluginclassname']) ?>
-            </td>
-            <td>
-                <?= htmlReady($plugin['version']) ?>
-            </td>
-            <td>
-                <?= htmlReady($plugin['origin']) ?>
-            </td>
-            <td class="plugin_install">
-                <form action="<?= $controller->url_for('admin/plugin/register/' . $n) ?>" method="post">
-                    <?= CSRFProtection::tokenTag() ?>
-                    <?= Icon::create('install', 'clickable', ['title' => _('Plugin registrieren')])->asInput(["type" => "image", "class" => "middle", "name" => "install"]) ?>
-                </form>
-            </td>
-        </tr>
+            <tr>
+                <td><?= htmlReady($plugin['pluginname']) ?></td>
+                <td><?= htmlReady($plugin['pluginclassname']) ?></td>
+                <td><?= htmlReady($plugin['version']) ?></td>
+                <td><?= htmlReady($plugin['origin']) ?></td>
+                <td class="plugin_install">
+                    <form action="<?= $controller->url_for('admin/plugin/register/' . $n) ?>" method="post">
+                        <?= CSRFProtection::tokenTag() ?>
+                        <?= Icon::create('install', 'clickable', ['title' => _('Plugin registrieren')])->asInput([
+                            'type'  => 'image',
+                            'class' => 'middle',
+                            'name'  => 'install',
+                        ]) ?>
+                    </form>
+                </td>
+            </tr>
         <? endforeach ?>
+        </tbody>
     </table>
 <? endif; ?>
-<? if (get_config('PLUGINS_UPLOAD_ENABLE')): ?>
-    <h3>
-        <?= _('Plugin als ZIP-Datei hochladen') ?>
-    </h3>
 
-    <form action="<?= $controller->url_for('admin/plugin/install') ?>" enctype="multipart/form-data" method="post">
+<? if (Config::get()->PLUGINS_UPLOAD_ENABLE): ?>
+    <form action="<?= $controller->url_for('admin/plugin/install') ?>" enctype="multipart/form-data" method="post" class="default">
         <?= CSRFProtection::tokenTag() ?>
-        <?= _('Plugin-Datei:') ?>
-        <input name="upload_file" type="file" size="40">
-        <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
-        <?= Button::create(_('Hinzufügen'), 'hinzufuegen', array('title' => _('neues Plugin installieren')))?>
+        <fieldset>
+            <legend>
+                <?= _('Plugin als ZIP-Datei hochladen') ?>
+            </legend>
+
+            <label class="file-upload">
+                <?= _('Plugin-Datei auswÃ¤hlen') ?>
+                <input name="upload_file" type="file" size="40">
+                <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
+            </label>
+        </fieldset>
+
+        <footer>
+            <?= Button::create(_('HinzufÃ¼gen'), 'hinzufuegen', ['title' => _('Neues Plugin installieren')])?>
+        </footer>
     </form>
 <? endif ?>
-

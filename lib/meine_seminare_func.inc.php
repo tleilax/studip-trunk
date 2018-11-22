@@ -95,8 +95,8 @@ function sort_groups($group_field, &$groups)
 
         case 'dozent_id':
         uksort($groups, create_function('$a,$b',
-                'return strnatcasecmp(str_replace(array("ä","ö","ü"), array("ae","oe","ue"), mb_strtolower(get_fullname($a, "no_title_short"))),
-                                    str_replace(array("ä","ö","ü"), array("ae","oe","ue"), mb_strtolower(get_fullname($b, "no_title_short"))));'));
+                'return strnatcasecmp(str_replace(array("Ã¤","Ã¶","Ã¼"), array("ae","oe","ue"), mb_strtolower(get_fullname($a, "no_title_short"))),
+                                    str_replace(array("Ã¤","Ã¶","Ã¼"), array("ae","oe","ue"), mb_strtolower(get_fullname($b, "no_title_short"))));'));
         break;
 
         default:
@@ -116,53 +116,6 @@ function sort_groups($group_field, &$groups)
         $groups[$key] = $value;
     }
     return true;
-}
-
-/**
- *
- * @param unknown_type $group_members
- * @param unknown_type $my_obj
- */
-function check_group_new($group_members, $my_obj)
-{
-    $group_last_modified = false;
-    foreach ($group_members as $member){
-        $seminar_content = $my_obj[$member['seminar_id']];
-        if ($seminar_content['visitdate'] <= $seminar_content["chdate"]
-            || $seminar_content['last_modified'] > 0){
-            $last_modified = ($seminar_content['visitdate'] <= $seminar_content["chdate"] && $seminar_content["chdate"] > $seminar_content['last_modified'] ? $seminar_content["chdate"] : $seminar_content['last_modified']);
-            if ($last_modified > $group_last_modified){
-                $group_last_modified = $last_modified;
-            }
-        }
-
-        foreach (getPluginNavigationForSeminar($member['seminar_id'], $seminar_content['visitdate']) as $navigation) {
-            if ($navigation && $navigation->isVisible(true) && $navigation->hasBadgeNumber()) {
-                if (!$group_last_modified) {
-                    $group_last_modified = time();
-                }
-            }
-        }
-    }
-
-    return $group_last_modified;
-}
-
-function getPluginNavigationForSeminar($seminar_id, $visitdate)
-{
-    static $plugin_navigation;
-
-    if (!$plugin_navigation[$seminar_id]) {
-        $plugin_navigation[$seminar_id] = array();
-        $plugins = PluginEngine::getPlugins('StandardPlugin', $seminar_id);
-        foreach ($plugins as $plugin) {
-            $nav = $plugin->getIconNavigation($seminar_id, $visitdate, $GLOBALS['user']->id);
-            if ($nav instanceof Navigation) {
-                $plugin_navigation[$seminar_id][get_class($plugin)] = $nav;
-            }
-        }
-    }
-    return $plugin_navigation[$seminar_id];
 }
 
 /**
@@ -243,7 +196,7 @@ function fill_groups(&$groups, $group_key, $group_entry)
     if (is_null($group_key)){
         $group_key = 'not_grouped';
     }
-    $group_entry['name'] = str_replace(array("ä","ö","ü"), array("ae","oe","ue"), mb_strtolower($group_entry['name']));
+    $group_entry['name'] = str_replace(array("Ã¤","Ã¶","Ã¼"), array("ae","oe","ue"), mb_strtolower($group_entry['name']));
     if (!is_array($groups[$group_key]) || (is_array($groups[$group_key]) && !in_array($group_entry, $groups[$group_key]))){
         $groups[$group_key][$group_entry['seminar_id']] = $group_entry;
         return true;
@@ -315,52 +268,51 @@ function get_obj_clause($table_name, $range_field, $count_field, $if_clause,
  */
 function get_my_obj_values (&$my_obj, $user_id)
 {
-    $threshold = ($config = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$config} days 0:00:00") : 0;
+    $threshold = object_get_visit_threshold();
 
     $db2 = new DB_seminar;
-    $db2->query("CREATE TEMPORARY TABLE IF NOT EXISTS myobj_".$user_id." ( object_id char(32) NOT NULL, PRIMARY KEY (object_id)) ENGINE = MEMORY");
+    $db2->query("CREATE TEMPORARY TABLE IF NOT EXISTS myobj_".$user_id." ( object_id char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL) ENGINE = MEMORY");
     $db2->query("REPLACE INTO  myobj_" . $user_id . " (object_id) VALUES ('" . join("'),('", array_keys($my_obj)) . "')");
 
     //dokumente
-    $unreadable_folders = array();
+    $readable_folders = array();
     if (!$GLOBALS['perm']->have_perm('admin')){
         foreach (array_keys($my_obj) as $obj_id){
-            if($my_obj[$obj_id]['modules']['documents_folder_permissions']
-            || ($my_obj[$obj_id]['obj_type'] == 'sem' && StudipDocumentTree::ExistsGroupFolders($obj_id))){
-                $must_have_perm = $my_obj[$obj_id]['obj_type'] == 'sem' ? 'tutor' : 'autor';
-                if ($GLOBALS['perm']->permissions[$my_obj[$obj_id]['status']] < $GLOBALS['perm']->permissions[$must_have_perm]){
-                    $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $obj_id,'entity_type' => $my_obj[$obj_id]['obj_type']));
-                    $unreadable_folders = array_merge((array)$unreadable_folders, (array)$folder_tree->getUnReadableFolders($user_id));
+            $must_have_perm = $my_obj[$obj_id]['obj_type'] == 'sem' ? 'tutor' : 'autor';
+            if ($GLOBALS['perm']->permissions[$my_obj[$obj_id]['status']] < $GLOBALS['perm']->permissions[$must_have_perm]) {
+                $readable_folders = array_merge((array)$readable_folders, FileManager::getReadableFolders(Folder::findTopFolder($obj_id)->getTypedFolder(), $user_id));
+            }
+        }
+    }
+
+    if ($GLOBALS['perm']->have_perm('admin') || !empty($readable_folders)) {
+        $db2->query(get_obj_clause('folders a {ON_CLAUSE} INNER JOIN file_refs fr ON (fr.folder_id=a.id)','range_id','fr.id',"(fr.chdate > IFNULL(b.visitdate, $threshold) AND fr.user_id !='$user_id')", 'documents', false, (count($readable_folders) ? "AND a.id IN('".join("','", array_keys($readable_folders))."')" : ""), false, $user_id, 'fr.chdate'));
+        while($db2->next_record()) {
+            $object_id = $db2->f('object_id');
+            if ($my_obj[$object_id]["modules"]["documents"]) {
+                $my_obj[$object_id]["neuedokumente"] = $db2->f("neue");
+                $my_obj[$object_id]["dokumente"] = $db2->f("count");
+                if ($my_obj[$object_id]['last_modified'] < $db2->f('last_modified')){
+                    $my_obj[$object_id]['last_modified'] = $db2->f('last_modified');
                 }
+
+                $nav = new Navigation('files');
+
+                if ($db2->f('neue')) {
+                    $nav->setURL('dispatch.php/course/files/flat');
+                    $nav->setImage(Icon::create('files+new', 'attention', ["title" => sprintf(_('%s Dokumente, %s neue'),$db2->f('count'),$db2->f('neue'))]));
+                    $nav->setBadgeNumber($db2->f('neue'));
+                } else if ($db2->f('count')) {
+                    $nav->setURL('dispatch.php/course/files/index');
+                    $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf(_('%s Dokumente'),$db2->f('count'))]));
+                }
+
+                $my_obj[$object_id]['files'] = $nav;
             }
         }
     }
-    $db2->query(get_obj_clause('dokumente a','Seminar_id','dokument_id',"(chdate > IFNULL(b.visitdate, $threshold) AND a.user_id !='$user_id')", 'documents', false, (count($unreadable_folders) ? "AND a.range_id NOT IN('".join("','", $unreadable_folders)."')" : ""), false, $user_id));
-    while($db2->next_record()) {
-        $object_id = $db2->f('object_id');
-        if ($my_obj[$object_id]["modules"]["documents"]) {
-            $my_obj[$object_id]["neuedokumente"] = $db2->f("neue");
-            $my_obj[$object_id]["dokumente"] = $db2->f("count");
-            if ($my_obj[$object_id]['last_modified'] < $db2->f('last_modified')){
-                $my_obj[$object_id]['last_modified'] = $db2->f('last_modified');
-            }
 
-            $nav = new Navigation('files');
-
-            if ($db2->f('neue')) {
-                $nav->setURL('folder.php?cmd=all');
-                $nav->setImage(Icon::create('files+new', 'attention', ["title" => sprintf(_('%s Dokumente, %s neue'),$db2->f('count'),$db2->f('neue'))]));
-                $nav->setBadgeNumber($db2->f('neue'));
-            } else if ($db2->f('count')) {
-                $nav->setURL('folder.php?cmd=tree');
-                $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf(_('%s Dokumente'),$db2->f('count'))]));
-            }
-
-            $my_obj[$object_id]['files'] = $nav;
-        }
-    }
-
-    //Ankündigungen
+    //AnkÃ¼ndigungen
     $db2->query(get_obj_clause('news_range a {ON_CLAUSE} LEFT JOIN news nw ON(a.news_id=nw.news_id AND UNIX_TIMESTAMP() BETWEEN date AND (date+expire))','range_id','nw.news_id',"(chdate > IFNULL(b.visitdate, $threshold) AND nw.user_id !='$user_id')",'news',false,false,'a.news_id', $user_id));
     while($db2->next_record()) {
         $object_id = $db2->f('object_id');
@@ -374,10 +326,10 @@ function get_my_obj_values (&$my_obj, $user_id)
 
         if ($db2->f('neue')) {
             $nav->setURL('?new_news=true');
-            $nav->setImage(Icon::create('news+new', 'attention', ["title" => sprintf(_('%s Ankündigungen, %s neue'),$db2->f('count'),$db2->f('neue'))]));
+            $nav->setImage(Icon::create('news+new', 'attention', ["title" => sprintf(_('%s AnkÃ¼ndigungen, %s neue'),$db2->f('count'),$db2->f('neue'))]));
             $nav->setBadgeNumber($db2->f('neue'));
         } else if ($db2->f('count')) {
-            $nav->setImage(Icon::create('news', 'inactive', ["title" => sprintf(_('%s Ankündigungen'),$db2->f('count'))]));
+            $nav->setImage(Icon::create('news', 'inactive', ["title" => sprintf(_('%s AnkÃ¼ndigungen'),$db2->f('count'))]));
         }
 
         $my_obj[$object_id]['news'] = $nav;
@@ -404,9 +356,9 @@ function get_my_obj_values (&$my_obj, $user_id)
                     $nav->setBadgeNumber($db2->f('neue'));
 
                     if ($db2->f('count') == 1) {
-                        $title = $db2->f('tab_name')._(' (geändert)');
+                        $title = $db2->f('tab_name')._(' (geÃ¤ndert)');
                     } else {
-                        $title = sprintf(_('%s Einträge, %s neue'), $db2->f('count') ,$db2->f('neue'));
+                        $title = sprintf(_('%s EintrÃ¤ge, %s neue'), $db2->f('count') ,$db2->f('neue'));
                     }
                 } else {
                     $image = Icon::create('infopage', 'inactive');
@@ -414,7 +366,7 @@ function get_my_obj_values (&$my_obj, $user_id)
                     if ($db2->f('count') == 1) {
                         $title = $db2->f('tab_name');
                     } else {
-                        $title = sprintf(_('%s Einträge'), $db2->f('count'));
+                        $title = sprintf(_('%s EintrÃ¤ge'), $db2->f('count'));
                     }
                 }
 
@@ -477,7 +429,7 @@ function get_my_obj_values (&$my_obj, $user_id)
 
                 if ($db2->f('neue')) {
                     $nav->setURL('wiki.php?view=listnew');
-                    $nav->setImage(Icon::create('wiki+new', 'attention', ["title" => sprintf(_('%s WikiSeiten, %s Änderungen'),$db2->f('count_d'),$db2->f('neue'))]));
+                    $nav->setImage(Icon::create('wiki+new', 'attention', ["title" => sprintf(_('%s WikiSeiten, %s Ã„nderungen'),$db2->f('count_d'),$db2->f('neue'))]));
                     $nav->setBadgeNumber($db2->f('neue'));
                 } else if ($db2->f('count')) {
                     $nav->setURL('wiki.php');
@@ -525,22 +477,24 @@ function get_my_obj_values (&$my_obj, $user_id)
                    COUNT(IF(
                         questionnaires.startdate < UNIX_TIMESTAMP()
                         AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
-                        AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold), 
-                        questionnaires.questionnaire_id, 
+                        AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold),
+                        questionnaires.questionnaire_id,
                         NULL
                    )) AS neue,
                    MAX(IF(
                        questionnaires.startdate < UNIX_TIMESTAMP()
                        AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
-                       AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold), 
-                       questionnaires.chdate, 
+                       AND questionnaires.chdate >= IFNULL(b.visitdate, :threshold),
+                       questionnaires.chdate,
                        0
                    )) AS last_modified
             FROM questionnaires
                 INNER JOIN questionnaire_assignments USING (questionnaire_id)
                 INNER JOIN `myobj_".$user_id."` AS my ON (my.object_id = questionnaire_assignments.range_id AND questionnaire_assignments.range_type = 'course')
                 LEFT JOIN object_user_visits b ON (b.object_id = questionnaires.questionnaire_id AND b.user_id = :user_id AND b.type = 'vote')
-            WHERE questionnaires.visible = '1'
+            WHERE questionnaires.startdate IS NOT NULL AND questionnaires.startdate < UNIX_TIMESTAMP()
+                AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP())
+
             GROUP BY my.object_id ORDER BY NULL
         ");
         $statement->execute(array(
@@ -572,10 +526,10 @@ function get_my_obj_values (&$my_obj, $user_id)
             $nav = new Navigation('vote', '#vote');
 
             if ($my_obj[$object_id]['neuevotes']) {
-                $nav->setImage(Icon::create('vote+new', 'attention', ["title" => sprintf(_('%s Fragebögen, %s neue'),$my_obj[$object_id]['votes'],$my_obj[$object_id]['neuevotes'])]));
+                $nav->setImage(Icon::create('vote+new', 'attention', ["title" => sprintf(_('%s FragebÃ¶gen, %s neue'),$my_obj[$object_id]['votes'],$my_obj[$object_id]['neuevotes'])]));
                 $nav->setBadgeNumber($my_obj[$object_id]['neuevotes']);
             } else if ($my_obj[$object_id]['votes']) {
-                $nav->setImage(Icon::create('vote', 'inactive', ["title" => sprintf(_('%s Fragebögen'),$my_obj[$object_id]['votes'])]));
+                $nav->setImage(Icon::create('vote', 'inactive', ["title" => sprintf(_('%s FragebÃ¶gen'),$my_obj[$object_id]['votes'])]));
             }
 
             $my_obj[$object_id]['vote'] = $nav;
@@ -610,7 +564,7 @@ function get_my_obj_values (&$my_obj, $user_id)
 
     // TeilnehmerInnen
     if ($GLOBALS['perm']->have_perm('tutor')) {
-        //vorläufige Teilnahme
+        //vorlÃ¤ufige Teilnahme
         $db2->query(get_obj_clause('admission_seminar_user a','seminar_id','a.user_id',
             "(mkdate > IFNULL(b.visitdate, $threshold) AND a.user_id !='$user_id')",
             'participants', false, " AND a.status='accepted' ", false, $user_id, 'mkdate'));

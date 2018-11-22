@@ -1,5 +1,6 @@
 CKEDITOR.plugins.add('studip-upload', {
     icons: 'upload',
+    hidpi: true,
     lang: 'de,en',
     init: function(editor){
         var lang = editor.lang['studip-upload'];
@@ -90,6 +91,13 @@ CKEDITOR.plugins.add('studip-upload', {
                         );
                     }
                 });
+        });
+
+        // avoid multiple uploads of the same file via drag and drop
+        editor.on('beforeDestroy', function(event){
+            if ($.fn.fileupload) {
+                $('#' + inputId).fileupload('destroy');
+            }
         });
 
         // ckeditor

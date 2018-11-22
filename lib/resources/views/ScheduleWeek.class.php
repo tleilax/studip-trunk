@@ -20,7 +20,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ScheduleWeek.class.php
-// Modul zum Erstellen grafischer Belegungspl‰ne
+// Modul zum Erstellen grafischer Belegungspl√§ne
 // Copyright (C) 2002 Cornelis Kater <ckater@gwdg.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
-require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . "/views/ScheduleView.class.php";
+require_once "lib/resources/views/ScheduleView.class.php";
 
 class ScheduleWeek extends ScheduleView
 {

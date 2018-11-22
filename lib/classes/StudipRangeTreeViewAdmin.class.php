@@ -9,7 +9,7 @@
 // StudipRangeTreeViewAdmin.class.php
 // Class to print out the "range tree"
 //
-// Copyright (c) 2002 André Noack <noack@data-quest.de>
+// Copyright (c) 2002 AndrÃ© Noack <noack@data-quest.de>
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ use Studip\Button, Studip\LinkButton;
 * it also contains all functions for administrative tasks on the tree
 *
 * @access   public
-* @author   André Noack <noack@data-quest.de>
+* @author   AndrÃ© Noack <noack@data-quest.de>
 * @package
 */
 class StudipRangeTreeViewAdmin extends TreeView{
@@ -165,7 +165,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
             $rs = $view->get_query("view:TREE_UPD_PRIO");
         }
         $this->mode = "";
-        $this->msg[$item_id] = "msg§" . (($direction == "up") ? _("Element wurde um eine Position nach oben verschoben.") : _("Element wurde um eine Position nach unten verschoben."));
+        $this->msg[$item_id] = "msgÂ§" . (($direction == "up") ? _("Element wurde um eine Position nach oben verschoben.") : _("Element wurde um eine Position nach unten verschoben."));
         return true;
     }
 
@@ -179,7 +179,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
             $this->open_ranges[$item_id] = true;
             $this->open_items[$new_item_id] = true;
             if ($this->mode != "NewItem")
-                $this->msg[$new_item_id] = "info§" . _("Wählen Sie einen Namen für dieses Element, oder verlinken Sie es mit einer Einrichtung in Stud.IP");
+                $this->msg[$new_item_id] = "infoÂ§" . _("WÃ¤hlen Sie einen Namen fÃ¼r dieses Element, oder verlinken Sie es mit einer Einrichtung in Stud.IP");
             $this->mode = "NewItem";
         }
         return false;
@@ -205,9 +205,9 @@ class StudipRangeTreeViewAdmin extends TreeView{
                     $this->search_result[$rs->f("Fakultaets_id")]['studip_object'] = "fak";
                 }
             }
-        $search_msg = "info§" . sprintf(_("Ihre Suche ergab %s Treffer."),count($this->search_result));
+        $search_msg = "infoÂ§" . sprintf(_("Ihre Suche ergab %s Treffer."),count($this->search_result));
         } else {
-            $search_msg = "error§" . _("Sie haben keinen Suchbegriff eingegeben.");
+            $search_msg = "errorÂ§" . _("Sie haben keinen Suchbegriff eingegeben.");
         }
         if ($this->mode == "NewItem"){
             Request::set('item_id', $parent_id);
@@ -226,7 +226,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
             $this->mode = "EditItem";
             $this->anchor = $item_id;
             $this->edit_item_id = $item_id;
-            $this->msg[$item_id] = "info§" . _("Wählen Sie einen Namen für dieses Element, oder verlinken Sie es mit einer Einrichtung in Stud.IP");
+            $this->msg[$item_id] = "infoÂ§" . _("WÃ¤hlen Sie einen Namen fÃ¼r dieses Element, oder verlinken Sie es mit einer Einrichtung in Stud.IP");
         }
         return false;
     }
@@ -251,7 +251,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
                     $this->mode = "";
                     $this->anchor = $item_id;
                     $this->open_items[$item_id] = true;
-                    $this->msg[$item_id] = "msg§" . _("Dieses Element wurde neu eingefügt.");
+                    $this->msg[$item_id] = "msgÂ§" . _("Dieses Element wurde neu eingefÃ¼gt.");
                 }
             }
         }
@@ -259,9 +259,9 @@ class StudipRangeTreeViewAdmin extends TreeView{
             if ($this->isParentAdmin($item_id)){
                 $affected_rows = $this->tree->UpdateItem($item_name,$studip_object,$studip_object_id,$item_id);
                 if ($affected_rows){
-                    $this->msg[$item_id] = "msg§" . _("Element wurde geändert.");
+                    $this->msg[$item_id] = "msgÂ§" . _("Element wurde geÃ¤ndert.");
                 } else {
-                    $this->msg[$item_id] = "info§" . _("Keine Veränderungen vorgenommen.");
+                    $this->msg[$item_id] = "infoÂ§" . _("Keine VerÃ¤nderungen vorgenommen.");
                 }
                 $this->mode = "";
                 $this->anchor = $item_id;
@@ -285,7 +285,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
                 while($rs->next_record()){
                     $affected_rows += $this->tree->InsertItem(DbView::get_uniqid(),$item_id,addslashes($rs->f('name')),$priority++,'inst',$rs->f('Institut_id'));
                 }
-                $this->msg[$item_id] = "msg§" . sprintf(_("%s Elemente wurden eingefügt."), $affected_rows);
+                $this->msg[$item_id] = "msgÂ§" . sprintf(_("%s Elemente wurden eingefÃ¼gt."), $affected_rows);
                 $this->mode = "";
                 $this->anchor = $item_id;
                 $this->open_items[$item_id] = true;
@@ -299,9 +299,9 @@ class StudipRangeTreeViewAdmin extends TreeView{
         $item_id = Request::option('item_id');
         if ($this->isParentAdmin($item_id)){
             $this->mode = "AssertDeleteItem";
-            $this->msg[$item_id] = "info§" ._("Sie beabsichtigen dieses Element, inklusive aller Unterelemente, zu löschen. ")
-                        . sprintf(_("Es werden insgesamt %s Elemente gelöscht!"),count($this->tree->getKidsKids($item_id))+1)
-                        . "<br>" . _("Wollen Sie diese Elemente wirklich löschen?") . "<br>"
+            $this->msg[$item_id] = "infoÂ§" ._("Sie beabsichtigen dieses Element, inklusive aller Unterelemente, zu lÃ¶schen. ")
+                        . sprintf(_("Es werden insgesamt %s Elemente gelÃ¶scht!"),count($this->tree->getKidsKids($item_id))+1)
+                        . "<br>" . _("Wollen Sie diese Elemente wirklich lÃ¶schen?") . "<br>"
                         . '<div class="button-group">'
                         . LinkButton::createAccept(_("JA"), URLHelper::getURL($this->getSelf("cmd=DeleteItem&item_id=$item_id")))
                         . LinkButton::createCancel(_("NEIN"), URLHelper::getURL($this->getSelf("cmd=Cancel&item_id=$item_id")))
@@ -320,12 +320,12 @@ class StudipRangeTreeViewAdmin extends TreeView{
             $items_to_delete[] = $item_id;
             $deleted = $this->tree->DeleteItems($items_to_delete);
             if ($deleted['items']){
-                $this->msg[$this->anchor] = "msg§" . sprintf(_("Das Element <b>%s</b> und alle Unterelemente (insgesamt %s) wurden gelöscht. "),htmlReady($item_name),$deleted['items']);
+                $this->msg[$this->anchor] = "msgÂ§" . sprintf(_("Das Element <b>%s</b> und alle Unterelemente (insgesamt %s) wurden gelÃ¶scht. "),htmlReady($item_name),$deleted['items']);
             } else {
-                $this->msg[$this->anchor] = "error§" . _("Fehler, es konnten keine Elemente gelöscht werden!");
+                $this->msg[$this->anchor] = "errorÂ§" . _("Fehler, es konnten keine Elemente gelÃ¶scht werden!");
             }
             if ($deleted['categories']){
-                $this->msg[$this->anchor] .= sprintf(_("<br>Es wurden %s Datenfelder gelöscht. "),$deleted['categories']);
+                $this->msg[$this->anchor] .= sprintf(_("<br>Es wurden %s Datenfelder gelÃ¶scht. "),$deleted['categories']);
             }
             $this->mode = "";
             $this->open_items[$this->anchor] = true;
@@ -351,9 +351,9 @@ class StudipRangeTreeViewAdmin extends TreeView{
             $view->params = array($item_id, count($this->tree->getKids($item_id)), $item_to_move);
             $rs = $view->get_query("view:TREE_MOVE_ITEM");
             if ($rs->affected_rows()){
-                    $this->msg[$item_to_move] = "msg§" . _("Element wurde verschoben.");
+                    $this->msg[$item_to_move] = "msgÂ§" . _("Element wurde verschoben.");
                 } else {
-                    $this->msg[$item_to_move] = "error§" . _("Keine Verschiebung durchgeführt.");
+                    $this->msg[$item_to_move] = "errorÂ§" . _("Keine Verschiebung durchgefÃ¼hrt.");
                 }
             }
         $this->anchor = $item_to_move;
@@ -390,7 +390,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
                 $view->params = array($i,$items_to_order[$i]);
                 $rs = $view->get_query("view:CAT_UPD_PRIO");
             }
-            $this->msg[$item_id] = "msg§" . _("Datenfelder wurden neu geordnet");
+            $this->msg[$item_id] = "msgÂ§" . _("Datenfelder wurden neu geordnet");
         }
         $this->anchor = $item_id;
         return false;
@@ -437,14 +437,14 @@ class StudipRangeTreeViewAdmin extends TreeView{
                 }
             }
             if ($updated){
-                $this->msg[$item_id] = "msg§" . sprintf(_("Es wurden %s Datenfelder aktualisiert."),$updated);
+                $this->msg[$item_id] = "msgÂ§" . sprintf(_("Es wurden %s Datenfelder aktualisiert."),$updated);
                 if ($inserted) {
-                    $this->msg[$item_id] .= _("Ein neues Datenfeld wurde eingefügt.");
+                    $this->msg[$item_id] .= _("Ein neues Datenfeld wurde eingefÃ¼gt.");
                 }
             } elseif ($inserted){
-                $this->msg[$item_id] = "msg§" . _("Ein neues Datenfeld wurde eingefügt.");
+                $this->msg[$item_id] = "msgÂ§" . _("Ein neues Datenfeld wurde eingefÃ¼gt.");
             } else {
-                $this->msg[$item_id] = "info§" . _("Keine Veränderungen vorgenommen.");
+                $this->msg[$item_id] = "infoÂ§" . _("Keine VerÃ¤nderungen vorgenommen.");
             }
         }
         $this->anchor = $item_id;
@@ -460,7 +460,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
             $view->params[0] = $cat_id;
             $rs = $view->get_query("view:CAT_DEL");
             if ($rs->affected_rows()){
-                $this->msg[$item_id] = "msg§" . _("Ein Datenfeld wurde gelöscht.");
+                $this->msg[$item_id] = "msgÂ§" . _("Ein Datenfeld wurde gelÃ¶scht.");
             }
         }
         $this->mode = "";
@@ -501,23 +501,23 @@ class StudipRangeTreeViewAdmin extends TreeView{
         if ($item_id == $this->edit_item_id )
             return $this->getEditItemContent();
         if ($item_id == $this->move_item_id){
-            $this->msg[$item_id] = "info§" . sprintf(_("Dieses Element wurde zum Verschieben markiert. Bitte wählen Sie ein Einfügesymbol %s aus, um das Element zu verschieben."), Icon::create('arr_2right', 'sort', ['title' => "Einfügesymbol"])->asImg(16, ["alt" => "Einfügesymbol"]));
+            $this->msg[$item_id] = "infoÂ§" . sprintf(_("Dieses Element wurde zum Verschieben markiert. Bitte wÃ¤hlen Sie ein EinfÃ¼gesymbol %s aus, um das Element zu verschieben."), Icon::create('arr_2right', 'sort', ['title' => "EinfÃ¼gesymbol"])->asImg(16, ["alt" => "EinfÃ¼gesymbol"]));
             }
         $content = "\n<table width=\"90%\" cellpadding=\"2\" cellspacing=\"2\" align=\"center\" style=\"font-size:10pt\">";
         $content .= $this->getItemMessage($item_id);
-        $content .= "\n<tr><td align=\"center\">";
+        $content .= "\n<tr><td>";
 
         if ($this->isItemAdmin($item_id)){
             $content .= LinkButton::create(_("Neues Objekt"),
                 URLHelper::getURL($this->getSelf("cmd=NewItem&item_id=$item_id")),
-                array('title' => _("Innerhalb dieser Ebene ein neues Element einfügen")));
+                array('title' => _("Innerhalb dieser Ebene ein neues Element einfÃ¼gen")));
         }
 
         if ($this->isParentAdmin($item_id) && $item_id !=$this->start_item_id && $item_id != "root"){
             $content .= LinkButton::create(_("Bearbeiten"),
                 URLHelper::getURL($this->getSelf("cmd=EditItem&item_id=$item_id")));
 
-            $content .= LinkButton::create(_("Löschen"),
+            $content .= LinkButton::create(_("LÃ¶schen"),
                 URLHelper::getURL($this->getSelf("cmd=AssertDeleteItem&item_id=$item_id")));
 
             if ($this->move_item_id == $item_id && $this->mode == "MoveItem"){
@@ -535,17 +535,19 @@ class StudipRangeTreeViewAdmin extends TreeView{
             if ($this->isItemAdmin($item_id)){
                 $view = DbView::getView('range_tree');
                 $rs = $view->get_query("SELECT i1.Name,i1.Institut_id,COUNT(i2.Institut_id) as num FROM Institute i1 LEFT JOIN Institute i2 ON i1.Institut_id = i2.fakultaets_id AND i2.fakultaets_id<>i2.Institut_id WHERE i1.fakultaets_id=i1.Institut_id GROUP BY i1.Institut_id ORDER BY Name");
-                $content .= "\n<tr><td align=\"center\">";
-                $content .= "\n<form action=\"" . URLHelper::getLink($this->getSelf("cmd=InsertFak")) . "\" method=\"post\">"
+                $content .= "\n<tr><td>";
+                $content .= "\n<form action=\"" . URLHelper::getLink($this->getSelf("cmd=InsertFak")) . "\" method=\"post\" class=\"default\">"
                     .  CSRFProtection::tokenTag()
-                    . _("Stud.IP Fakultät einfügen:")
-                    . "&nbsp;\n<select style=\"width:300px;vertical-align:middle;\" name=\"insert_fak\">";
+                    . '<div class="col-1"><label>'
+                    . _("Stud.IP FakultÃ¤t einfÃ¼gen:")
+                    . "\n<select style=\"width:300px;vertical-align:middle;\" name=\"insert_fak\">";
                 while($rs->next_record()){
                     $content .= "\n<option value=\"" . $rs->f("Institut_id") . "\">" . htmlReady(my_substr($rs->f("Name") . '('.$rs->f('num').')',0,60)) . "</option>";
                 }
                 $content .= "</select>"
-                    . Button::create(_("Fakultät einfügen"))
-                    ."</form>";
+                    . '</label></div><div class="col-1">'
+                    . Button::create(_("FakultÃ¤t einfÃ¼gen"))
+                    ."</div></form>";
                 $content .= " </td></tr>";
             }
             $content .= "\n<tr><td class=\"table_header_bold\" align=\"left\">" . htmlReady($this->tree->root_name) ." </td></tr>";
@@ -574,7 +576,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
         }
         $content .= "\n<div class=\"blank\" align=\"left\" style=\"font-size:10pt\"><b>" . _("Mitarbeiter:") . "</b> " . $range_object->getNumStaff() . "</b></div>";
         if ($this->isItemAdmin($item_id) && $range_object->item_data['studip_object']){
-            $content .= "\n<div class=\"blank\" align=\"center\" style=\"font-size:10pt\">";
+            $content .= "\n<div class=\"blank\">";
 
             $content .= LinkButton::create(_("Grunddaten in Stud.IP bearbeiten"), "dispatch.php/institute/basicdata/index?admin_inst_id=" . $range_object->item_data['studip_object_id']);
             $content .= "</div>";
@@ -609,7 +611,7 @@ class StudipRangeTreeViewAdmin extends TreeView{
             && ($this->move_item_id != $item_id) && ($this->tree->tree_data[$this->move_item_id]['parent_id'] != $item_id)
             && !$this->tree->isChildOf($this->move_item_id,$item_id)){
             $head .= "<a href=\"" . URLHelper::getLink($this->getSelf("cmd=DoMoveItem&item_id=$item_id")) . "\">"
-            .  Icon::create('arr_2right', 'sort', ['title' => "An dieser Stelle einfügen"])->asImg(16, ["alt" => "An dieser Stelle einfügen"])."</a>&nbsp;";
+            .  Icon::create('arr_2right', 'sort', ['title' => "An dieser Stelle einfÃ¼gen"])->asImg(16, ["alt" => "An dieser Stelle einfÃ¼gen"])."</a>&nbsp;";
         }
         $head .= parent::getItemHead($item_id);
         if ($item_id != $this->start_item_id && $this->isParentAdmin($item_id) && $item_id != $this->edit_item_id){
@@ -630,96 +632,149 @@ class StudipRangeTreeViewAdmin extends TreeView{
     }
 
     function getEditItemContent(){
-        $content = "\n<form name=\"item_form\" action=\"" . URLHelper::getLink($this->getSelf("cmd=InsertItem&item_id={$this->edit_item_id}")) . "\" method=\"POST\">";
-        $content .= CSRFProtection::tokenTag();
-        $content .= "\n<input type=\"HIDDEN\" name=\"parent_id\" value=\"{$this->tree->tree_data[$this->edit_item_id]['parent_id']}\">";
-        $content .= "\n<table width=\"90%\" border =\"0\" style=\"border-style: solid; border-color: #000000;  border-width: 1px;font-size: 10pt;\" cellpadding=\"2\" cellspacing=\"2\" align=\"center\">";
-        $content .=  $this->getItemMessage($this->edit_item_id,2);
-        $content .= "\n<tr><td colspan=\"2\" class=\"content_seperator\" ><b>". _("Element bearbeiten") . "</b></td></tr>";
-        $content .= "\n<tr><td class=\"table_row_even\" width=\"60%\">". _("Name des Elements:") . "&nbsp;"
-                . "<input type=\"TEXT\" name=\"edit_name\" size=\"50\" value=\"" . htmlReady($this->tree->tree_data[$this->edit_item_id]['name'])
-                . "\"></td><td class=\"table_row_even\" align=\"left\">";
+        ob_start();
+        ?>
+        <div style="margin: 0px 5%">
+            <form name="item_form" method="post" class="default"
+                  action="<?= URLHelper::getLink($this->getSelf("cmd=InsertItem&item_id={$this->edit_item_id}")) ?>">
+                <?= CSRFProtection::tokenTag(); ?>
 
-        $content .= Button::createAccept(_("Absenden"));
-        $content .= LinkButton::createCancel(_("Abbrechen"), URLHelper::getURL($this->getSelf("cmd=Cancel&item_id=" . ($this->mode == "NewItem" ? $this->tree->tree_data[$this->edit_item_id]['parent_id'] : $this->edit_item_id))));
+                <input type="hidden" name="parent_id" value="<?= $this->tree->tree_data[$this->edit_item_id]['parent_id'] ?>">
 
-        $content .= "</td></tr>";
-        $content .= "\n<tr><td colspan=\"2\" class=\"content_seperator\"><b>". _("Element mit einer Stud.IP-Einrichtung verlinken") . "</b></td></tr>";
-        $content .= "\n<tr><td colspan=\"2\" class=\"table_row_even\">" . _("Stud.IP-Einrichtung:") . "&nbsp;";
-        $content .= "\n<select name=\"edit_studip_object\" onChange=\"document.item_form.edit_name.value=document.item_form.edit_studip_object.options[document.item_form.edit_studip_object.selectedIndex].text;\">";
-        $content .= "\n<option value=\"none\" ";
-        $content .= ($this->tree->tree_data[$this->edit_item_id]['studip_object']) ? ">" : "selected >";
-        $content .= _("Kein Link") . "</option>";
-        if ($this->tree->tree_data[$this->edit_item_id]['studip_object']){
-            $content .= "\n<option selected value=\"". $this->tree->tree_data[$this->edit_item_id]['studip_object_id'] . ":"
-                    . $this->tree->tree_data[$this->edit_item_id]['studip_object'] ."\">"
-                    . htmlReady($this->tree->tree_data[$this->edit_item_id]['name']) ."</option>";
-        }
-        if (count($this->search_result)){
-            foreach ($this->search_result as $key => $value){
-                $content .= "\n<option value=\"" . $key . ":" . $value['studip_object'] . "\">" . $value['name'] . "</option>";
-            }
-        }
-        $content .= "</select></td></tr></form>";
-        $content .= "\n<form name=\"link_form\" action=\"" . URLHelper::getLink($this->getSelf("cmd=SearchStudIP&item_id={$this->edit_item_id}")) . "\" method=\"POST\"><tr><td class=\"table_row_even\">" . _("Stud.IP-Einrichtung suchen:") . "&nbsp;";
-        $content .= CSRFProtection::tokenTag();
-        $content .= "\n<input type=\"HIDDEN\" name=\"parent_id\" value=\"{$this->tree->tree_data[$this->edit_item_id]['parent_id']}\">";
-        $content .= "\n<input type=\"TEXT\" name=\"edit_search\" size=\"30\"></td><td class=\"table_row_even\" align=\"left\">";
+                <table>
+                    <?= $this->getItemMessage($this->edit_item_id, 2) ?>
+                </table>
 
-        $content .= Button::create(_("Suchen"));
+                <fieldset>
+                    <legend>
+                        <?= _("Element bearbeiten") ?>
+                    </legend>
 
-        $content .= "</td></tr>";
-        $content .= "\n</table>";
+                    <label>
+                        <?= _("Name des Elements") ?>
+                        <input type="text" name="edit_name" size="50"
+                               value="<?= htmlReady($this->tree->tree_data[$this->edit_item_id]['name']) ?>">
+                    </label>
+                </fieldset>
+
+                <fieldset>
+                    <legend>
+                        <?= _("Element mit einer Stud.IP-Einrichtung verlinken") ?>
+                    </legend>
+
+                    <label>
+                        <?= _("Stud.IP-Einrichtung:") ?>
+
+                        <select name="edit_studip_object" onChange="document.item_form.edit_name.value=document.item_form.edit_studip_object.options[document.item_form.edit_studip_object.selectedIndex].text;">
+                            <option value="none"
+                                <?= ($this->tree->tree_data[$this->edit_item_id]['studip_object']) ? '' : 'selected' ?>
+                            >
+                                <?= _("Kein Link") ?>
+                            </option>
+                            <? if ($this->tree->tree_data[$this->edit_item_id]['studip_object']) : ?>
+                            <option selected value="<?= $this->tree->tree_data[$this->edit_item_id]['studip_object_id']
+                                .':'. $this->tree->tree_data[$this->edit_item_id]['studip_object'] ?>"
+                            >
+                                <?= htmlReady($this->tree->tree_data[$this->edit_item_id]['name']) ?>
+                            </option>
+                            <? endif ?>
+
+                            <? if (count($this->search_result)) : ?>
+                                <? foreach ($this->search_result as $key => $value) : ?>
+                                <option value="<?= $key .':'. $value['studip_object'] ?>">
+                                    <?= $value['name'] ?>
+                                </option>
+                                <? endforeach ?>
+                            <? endif ?>
+                        </select>
+                    </label>
+
+                    <label>
+                        <?= _("Stud.IP-Einrichtung suchen:") ?>
+                        <input type="text" name="edit_search">
+                    </label>
+                </fieldset>
+
+                <footer>
+                    <?= Button::createAccept(_("Absenden")) ?>
+                    <?= Button::create(_("Suchen"), [
+                        'formaction' => URLHelper::getURL($this->getSelf("cmd=SearchStudIP&item_id={$this->edit_item_id}"))
+                    ]);  ?>
+
+                    <?= LinkButton::createCancel(_("Abbrechen"), URLHelper::getURL($this->getSelf("cmd=Cancel&item_id=" . ($this->mode == "NewItem" ? $this->tree->tree_data[$this->edit_item_id]['parent_id'] : $this->edit_item_id)))) ?>
+                </footer>
+            </form>
+        </div>
+
+        <?
+        $content .= ob_get_clean();
+        return $content;
+    }
+
+    function getEditCatContent($item_id, $cat_snap)
+    {
+        ob_start();
+        ?>
+        <form name="cat_form_<?= $item_id ?>" method="post" class="default"
+              action="<?= URLHelper::getLink($this->getSelf("cmd=UpdateCat&item_id=$item_id"))  ?>">
+            <?= CSRFProtection::tokenTag(); ?>
+
+            <? if ($cat_snap->numRows) while ($cat_snap->nextRow()) :  ?>
+                <fieldset>
+                    <legend>
+                        <!-- change position icons -->
+                        <? if ($cat_snap->pos && $cat_snap->getField("kategorie_id") != "new_entry") : ?>
+                            <a href="<?= URLHelper::getLink($this->getSelf("cmd=OrderCat&direction=up&item_id=$item_id&cat_id=" . $cat_snap->getField("kategorie_id"))) ?>">
+                                <?= Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top', 'title' => _("Datenfeld nach oben")]) ?>
+                            </a>
+                        <? endif ?>
+
+                        <? if ($cat_snap->pos != $cat_snap->numRows-1 && $cat_snap->getField("kategorie_id") != "new_entry") : ?>
+                            <a href="<?= URLHelper::getLink($this->getSelf("cmd=OrderCat&direction=down&item_id=$item_id&cat_id=" . $cat_snap->getField("kategorie_id"))) ?>">
+                                <?= Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top', 'title' => _("Datenfeld nach unten")]) ?>
+                            </a>
+                        <? endif ?>
+
+                        <?= _('Datenfeld bearbeiten') ?>
+
+                        <a href="<?= URLHelper::getURL($this->getSelf("cmd=DeleteCat&item_id=$item_id&cat_id=" . $cat_snap->getField("kategorie_id"))) ?>">
+                            <?= Icon::create('trash', 'clickable')->asImg(['class' => 'text-top', 'title' => _("Datenfeld lÃ¶schen")]) ?>
+                        </a>
+                    </legend>
+
+                    <label>
+                        <?= _('Titel') ?>
+                        <input type="text" name="cat_name[<?= $cat_snap->getField("kategorie_id") ?>]"
+                               value="<?= htmlReady($cat_snap->getField("name")) ?>">
+                        <input type="hidden" name="cat_prio[<?= $cat_snap->getField("kategorie_id") ?>]"
+                               value="<?= htmlReady($cat_snap->getField("priority")) ?>">
+                    </label>
+
+                    <label>
+                        <?= _('Inhalt') ?>
+                        <textarea name="cat_content[<?= htmlReady($cat_snap->getField("kategorie_id")) ?>]"><?= htmlReady($cat_snap->getField("content")) ?></textarea>
+                    </label>
+                </fieldset>
+            <? endwhile ?>
+
+            <footer>
+                <? if ($cat_snap->numRows) : ?>
+                <?= Button::create(_("Datenfelder speichern"), 'Ã¼bernehmen') ?>
+                <? endif ?>
+                <?= LinkButton::create(_("Neues Datenfeld anlegen"), URLHelper::getURL($this->getSelf("cmd=NewCat&item_id=$item_id"))) ?>
+            </footer>
+        </form>
+
+        <? $content .= ob_get_clean() . '</td></tr>';
 
         return $content;
     }
 
-    function getEditCatContent($item_id, $cat_snap){
-        $content = "\n<table width=\"100%\" cellspacing=\"0\" border=\"0\" style=\"font-size:10pt\"><tr><td class=\"blank\" colspan=\"2\">" . _("Neues Datenfeld anlegen") . "&nbsp;&nbsp;";
-
-        $content .= LinkButton::create(_("Neues Datenfeld anlegen"), URLHelper::getURL($this->getSelf("cmd=NewCat&item_id=$item_id")));
-
-        $content .= "</td></tr>";
-        $content .= "\n<tr><td colspan=\"2\" class=\"blank\">&nbsp;</td></tr>";
-        if ($cat_snap->numRows){
-            $content .= "\n<form name=\"cat_form_$item_id\" action=\"" . URLHelper::getLink($this->getSelf("cmd=UpdateCat&item_id=$item_id")) . "\" method=\"POST\">";
-            $content .= CSRFProtection::tokenTag();
-            while($cat_snap->nextRow()){
-                $content .= "\n<tr><td class=\"table_header_bold\"><input type=\"TEXT\" style=\"width:90%;font-size:8pt;border:0px\" size=\"30\"  name=\"cat_name[". $cat_snap->getField("kategorie_id")
-                        . "]\" value=\"" . htmlReady($cat_snap->getField("name")) . "\"><input type=\"HIDDEN\" name=\"cat_prio["
-                        . $cat_snap->getField("kategorie_id"). "]\" value=\"" . htmlReady($cat_snap->getField("priority")) . "\"></td>"
-                        . "<td class=\"table_header_bold\" width=\"10%\" align=\"right\">";
-                if ($cat_snap->pos && $cat_snap->getField("kategorie_id") != "new_entry"){
-                    $content .= "<a href=\"". URLHelper::getLink($this->getSelf("cmd=OrderCat&direction=up&item_id=$item_id&cat_id=" . $cat_snap->getField("kategorie_id")))
-                            . "\">" . Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top', 'title' => _("Datenfeld nach oben")]) .
-                            "</a>";
-                }
-                if ($cat_snap->pos != $cat_snap->numRows-1 && $cat_snap->getField("kategorie_id") != "new_entry"){
-                    $content .= "<a href=\"". URLHelper::getLink($this->getSelf("cmd=OrderCat&direction=down&item_id=$item_id&cat_id=" . $cat_snap->getField("kategorie_id")))
-                            . "\">" . Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top', 'title' => _("Datenfeld nach unten")]) .
-                            "</a>";
-                }
-                $content .= "</tr>";
-                $content .= "\n<tr><td class=\"blank\" colspan=\"2\"><textarea style=\"width:100%;font-size:8pt;border:0px;\" cols=\"60\" rows=\"2\" name=\"cat_content["
-                        . htmlReady($cat_snap->getField("kategorie_id")) . "]\" wrap=\"virtual\">"
-                        . htmlReady($cat_snap->getField("content")) . "</textarea></td></tr>";
-                $content .= "<tr><td class=\"blank\" colspan=\"2\">";
-                $content .= Button::create(_("Übernehmen"), 'übernehmen');
-                $content .= LinkButton::create(_("Datenfeld löschen"), URLHelper::getURL($this->getSelf("cmd=DeleteCat&item_id=$item_id&cat_id=" . $cat_snap->getField("kategorie_id"))));
-                $content .= "</td></tr>";
-                $content .= "\n<tr><td colspan=\"2\" class=\"blank\">&nbsp;</td></tr>";
-            }
-        $content .= "</form>";
-        } else {
-            $content .= "\n<tr><td class=\"blank\">" . _("Keine weiteren Daten vorhanden!") . "</td></tr>";
-        }
-        $content .= "</table>";
-        return $content;
-    }
-    function getItemMessage($item_id,$colspan = 1){
+    function getItemMessage($item_id, $colspan = 1)
+    {
         $content = "";
         if ($this->msg[$item_id]){
-            $msg = explode("§",$this->msg[$item_id]);
+            $msg = explode("Â§", $this->msg[$item_id]);
             $pics = array(
                 'error' => Icon::create('decline', 'attention'),
                 'info'  => Icon::create('exclaim', 'inactive'),

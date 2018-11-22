@@ -1,18 +1,18 @@
 <section class="contentbox timesrooms">
     <header>
         <h1>
-            <?= _('Regelmäßige Termine') ?>
+            <?= _('RegelmÃ¤ÃŸige Termine') ?>
         </h1>
-        <? if(!$locked) : ?>
-            <nav>
-                <a class="link-add"
-                   href="<?= $controller->link_for('course/timesrooms/createCycle', $linkAttributes) ?>"
-                   data-dialog="size=600"
-                   title="<?= _('Regelmäßigen Termin hinzufügen') ?>">
-                    <?= _('Regelmäßigen Termin hinzufügen') ?>
-                </a>
-            </nav>
-        <? endif ?>
+    <? if(!$locked) : ?>
+        <nav>
+            <a class="link-add"
+               href="<?= $controller->link_for('course/timesrooms/createCycle', $linkAttributes) ?>"
+               data-dialog="size=600"
+               title="<?= _('RegelmÃ¤ÃŸigen Termin hinzufÃ¼gen') ?>">
+                <?= _('RegelmÃ¤ÃŸigen Termin hinzufÃ¼gen') ?>
+            </a>
+        </nav>
+    <? endif ?>
     </header>
 
 <? if (!empty($cycle_dates)) : ?>
@@ -26,7 +26,7 @@
                 <header class="<?= $course->getCycleColorClass($metadate_id) ?>">
                     <h1>
                     <? if ($info = $course->getBookedRoomsTooltip($metadate_id)) : ?>
-                        <?= tooltipIcon($info); ?>
+                        <?= tooltipHtmlIcon($info) ?>
                     <? elseif ($course->getCycleColorClass($metadate_id) === 'red'): ?>
                         <?= tooltipIcon(_('Keine Raumbuchungen vorhanden')) ?>
                     <? else: ?>
@@ -37,39 +37,38 @@
                         </a>
                     </h1>
                     <section>
-                        <? if (!$locked) : ?>
-                            <span>
-                                <strong><?= _('Raum') ?></strong>:
-                            <? if (count($cycle['room_request']) > 0): ?>
-                                <?= htmlReady(array_pop($cycle['room_request'])->name)?>
-                            <? else : ?>
-                                <?= _('keiner') ?>
-                            <? endif; ?>
-                            </span>
-                            <?php if (Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS) : ?>
-                                <span>
-                                    <strong><?= _('Einzel-Raumanfrage') ?></strong>:
-                                    <?= htmlReady($course->getRequestsInfo($metadate_id)) ?>
-                                </span>
-                            <?php endif ?>
-                            
+                        <span>
+                            <strong><?= _('Raum') ?></strong>:
+                        <? if (count($cycle['room_request']) > 0): ?>
+                            <?= htmlReady(array_pop($cycle['room_request'])->name)?>
+                        <? else : ?>
+                            <?= _('keiner') ?>
+                        <? endif; ?>
+                        </span>
+                    <? if (Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS) : ?>
+                        <span>
+                            <strong><?= _('Einzel-Raumanfrage') ?></strong>:
+                            <?= htmlReady($course->getRequestsInfo($metadate_id)) ?>
+                        </span>
+                    <? endif ?>
                     </section>
-                    <? $actionMenu = ActionMenu::get()?>
-                    <? $actionMenu->addLink(
+                    <? if (!$locked) : ?>
+                    <nav>
+                        <? $actionMenu = ActionMenu::get()?>
+                        <? $actionMenu->addLink(
                             $controller->url_for('course/timesrooms/createCycle/' . $metadate_id, $linkAttributes),
                             _('Diesen Zeitraum bearbeiten'),
-                            Icon::create('edit', 'clickable', ['title' => _('Diesen Zeitraum bearbeiten')]),
-                            ['data-dialog' => 'size=600'])
-                    ?>
-                    <? $actionMenu->addButton(
+                            Icon::create('edit', 'clickable', ['title' => _('Diesen Zeitraum bearbeiten'), 'style' => 'vertical-align: middle;']),
+                            ['data-dialog' => 'size=600']
+                        ) ?>
+                        <? $actionMenu->addButton(
                             'delete_cycle',
-                            _('Diesen Zeitraum löschen'),
-                            Icon::create('trash', 'clickable',
-                                    ['title'        => _('Diesen Zeitraum löschen'),
-                                     'formaction'   => $controller->url_for('course/timesrooms/deleteCycle/' . $metadate_id, $linkAttributes),
-                                     'data-confirm' => _('Soll dieser Zeitraum wirklich gelöscht werden?')]))
-                    ?>
-                    <?= $actionMenu->render() ?>
+                            _('Diesen Zeitraum lÃ¶schen'),
+                            Icon::create('trash', 'clickable', ['title' => _('Diesen Zeitraum lÃ¶schen')]),
+                            ['formaction'   => $controller->url_for('course/timesrooms/deleteCycle/' . $metadate_id, $linkAttributes),
+                             'data-confirm' => _('Soll dieser Zeitraum wirklich gelÃ¶scht werden?')]) ?>
+                        <?= $actionMenu->render() ?>
+                    </nav>
                     <? endif ?>
                 </header>
                 <section>
@@ -86,13 +85,22 @@
                     <? foreach ($cycle['dates'] as $semester_id => $termine) : ?>
                         <thead>
                             <tr>
-                                <th colspan="<?= !$locked ? 5 : 4?>"><?= htmlReady(Semester::find($semester_id)->name) ?></th>
+                                <th colspan="<?= !$locked ? 5 : 4?>">
+                                    <label>
+                                        <? if(!$locked) : ?>
+                                            <input type="checkbox" class="date-proxy_<?= $metadate_id ?>"
+                                                   data-proxyfor="#<?= $metadate_id ?>-<?= $semester_id ?> .ids-regular"
+                                                   data-activates=".actionForAllRegular_<?= $metadate_id ?>">
+                                        <? endif ?>
+                                        <?= htmlReady(Semester::find($semester_id)->name) ?>
+                                    </label>
+                                </th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="<?= $metadate_id ?>-<?= $semester_id ?>">
                         <? foreach ($termine as $termin) : ?>
                             <?= $this->render_partial('course/timesrooms/_cycleRow.php',
-                                    array('termin' => $termin,'class_ids' => 'ids-regular_' . $metadate_id)) ?>
+                                    array('termin' => $termin, 'class_ids' => 'ids-regular')) ?>
                         <? endforeach ?>
                         </tbody>
                     <? endforeach ?>
@@ -102,19 +110,19 @@
                                     <td colspan="2">
                                         <label>
                                             <input type="checkbox"
-                                                    data-proxyfor=".ids-regular_<?=$metadate_id?>"
+                                                    data-proxyfor=".date-proxy_<?= $metadate_id ?>"
                                                     data-activates=".actionForAllRegular_<?= $metadate_id ?>">
-                                            <?= _('Alle auswählen') ?>
+                                            <?= _('Alle auswÃ¤hlen') ?>
                                         </label>
                                     </td>
                                     <td colspan="3" class="actions">
                                         <select name="method" class="datesBulkActions actionForAllRegular_<?= $metadate_id ?>">
                                             <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                                         </select>
-                                        <?= Studip\Button::create(_('Ausführen'), 'run', array(
-                                            'class' => sprintf('actionForAllRegular_%s', $metadate_id),
-                                            'data-dialog' => 'size=big',
-                                            )) ?>
+                                        <?= Studip\Button::create(_('AusfÃ¼hren'), 'run', array(
+                                                'class' => 'actionForAllRegular_' . $metadate_id,
+                                                'data-dialog' => 'size=big'
+                                        )) ?>
                                     </td>
                                 </tr>
                             </tfoot>
@@ -129,7 +137,7 @@
 <? else: ?>
     <section>
         <p class="text-center">
-            <strong><?= _('Keine regelmäßigen Termine vorhanden') ?></strong>
+            <strong><?= _('Keine regelmÃ¤ÃŸigen Termine vorhanden') ?></strong>
         </p>
     </section>
 <? endif; ?>

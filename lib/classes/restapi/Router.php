@@ -2,24 +2,24 @@
 /** @namespace RESTAPI
  *
  * Im Namensraum RESTAPI sind alle Klassen und Funktionen versammelt,
- * die für die RESTful Web Services von Stud.IP benötigt werden.
+ * die fÃ¼r die RESTful Web Services von Stud.IP benÃ¶tigt werden.
  */
 namespace RESTAPI;
-use DocBlock, BadMethodCallException;
+use BadMethodCallException;
 
 /**
  * Die Aufgabe des Routers ist das Anlegen und Auswerten eines
  * Mappings von sogenannten Routen (Tupel aus HTTP-Methode und Pfad)
  * auf Code.
  *
- * Dazu werden zunächst Routen mittels der Funktion
+ * Dazu werden zunÃ¤chst Routen mittels der Funktion
  * Router::registerRoutes registriert.
  *
  * Wenn dann ein HTTP-Request eingeht, kann mithilfe von
- * Router::dispatch und HTTP-Methode bzw. Pfad der zugehörige Code
- * gefunden und ausgeführt werden. Der Router bildet aus dem
- * Rückgabewert des Codes ein Response-Objekt, das er als Ergebnis
- * zurück meldet.
+ * Router::dispatch und HTTP-Methode bzw. Pfad der zugehÃ¶rige Code
+ * gefunden und ausgefÃ¼hrt werden. Der Router bildet aus dem
+ * RÃ¼ckgabewert des Codes ein Response-Objekt, das er als Ergebnis
+ * zurÃ¼ck meldet.
  *
  * @code
  * $router = Router::getInstance();
@@ -66,7 +66,19 @@ class Router
     }
 
     // All supported method need to be defined here
-    protected $supported_methods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
+    protected static $supported_methods = [
+        'get', 'post', 'put', 'delete', 'patch', 'options', 'head'
+    ];
+
+    /**
+     * Returns a list of all supported methods.
+     *
+     * @return array of methods as strings
+     */
+    public static function getSupportedMethods()
+    {
+        return self::$supported_methods;
+    }
 
     // registered routes by method and uri template
     protected $routes = array();
@@ -129,7 +141,7 @@ class Router
     {
         // Normalize method and test whether it's supported
         $request_method = mb_strtolower($request_method);
-        if (!in_array($request_method, $this->supported_methods)) {
+        if (!in_array($request_method, self::$supported_methods)) {
             throw new \Exception('Method "' . $request_method . '" is not supported.');
         }
 
@@ -181,38 +193,20 @@ class Router
                   ? 'plugin'
                   : 'core';
 
-        $docblock = DocBlock::ofClass($map);
-        $class_conditions = $this->extractConditions($docblock);
-
-        foreach ($ref->getMethods() as $ref_method) {
-            // Parse docblock
-            $docblock = DocBlock::ofMethod($ref_method->class, $ref_method->name);
-
-            // No docblock tags? Not an api route!
-            if (!$docblock->tags) {
-                continue;
-            }
-
-            // Any specific condition to consider?
-            $conditions = $this->extractConditions($docblock, $class_conditions);
-
-            // Iterate through all possible methods in order to identify
-            // any according docblock tags
-            foreach ($this->supported_methods as $http_method) {
-                if (!isset($docblock->tags[$http_method])) {
-                    continue;
-                }
-
-                // Route all defined method and uri template combinations to
-                // the according methods of the object.
-                foreach ($docblock->tags[$http_method] as $uri_template) {
-                    $handler = array($map, $ref_method->name);
-
-                    // Register (and describe) route
-                    $this->register($http_method, $uri_template, $handler, $conditions, $source);
-                    if ($docblock->desc) {
-                        $this->describe($uri_template, $docblock->desc, $http_method);
-                    }
+        foreach (self::$supported_methods as $http_method) {
+            foreach ($map->getRoutes($http_method) as $uri_template => $data) {
+                // Register (and describe) route
+                $this->register(
+                    $http_method, $uri_template,
+                    $data['handler'], $data['conditions'],
+                    $source
+                );
+                if ($data['description']) {
+                    $this->describe(
+                        $uri_template,
+                        $data['description'],
+                        $http_method
+                    );
                 }
             }
         }
@@ -303,7 +297,7 @@ class Router
     public function getRoutes($describe = false, $check_access = true)
     {
         $this->setupRoutes();
-        
+
         $result = array();
         foreach ($this->routes as $method => $routes) {
             foreach ($routes as $uri => $route) {
@@ -340,8 +334,6 @@ class Router
      * @param mixed  $uri     URI to dispatch (defaults to `$_SERVER['PATH_INFO']`)
      * @param String $method  Request method (defaults to the method
      *                        of the actual HTTP request or "GET")
-     * @param mixed  $request_body Request body to use (optional, should be
-     *                             removed when Stud.IP requires PHP >= 5.6)
      *
      * @return Response  a Response object containing status, headers
      *                   and body
@@ -350,10 +342,10 @@ class Router
      *                          is one, but the consumer is not
      *                          authorized to it (403)
      */
-    public function dispatch($uri = null, $method = null, $request_body = null)
+    public function dispatch($uri = null, $method = null)
     {
         $this->setupRoutes();
-        
+
         $uri = $this->normalizeDispatchURI($uri);
         $method = $this->normalizeRequestMethod($method);
 
@@ -361,12 +353,18 @@ class Router
 
         list($route, $parameters) = $this->matchRoute($uri, $method, $content_renderer);
         if (!$route) {
-            throw new RouterException(404);
+            $methods = $this->getMethodsForUri($uri);
+            if (count($methods) > 0) {
+                header('Allow: ' . implode(', ', $methods));
+                throw new RouterException(405);
+            } else {
+                throw new RouterException(404);
+            }
         }
 
         try {
-            $response = $this->execute($route, $parameters, $request_body);
-        } catch(RouterHalt $halt) {
+            $response = $this->execute($route, $parameters);
+        } catch (RouterHalt $halt) {
             $response = $halt->response;
         }
 
@@ -374,7 +372,7 @@ class Router
 
         return $response;
     }
-    
+
     /**
      * Searches and registers available routes.
      */
@@ -388,7 +386,7 @@ class Router
         $was_setup = true;
 
         // Register default routes
-        $routes = words('Activity Blubber Contacts Course Discovery Events Files Forum Messages News Schedule Semester Studip User UserConfig Wiki');
+        $routes = words('Activity Blubber Contacts Course Discovery Events FileSystem Forum Messages News Schedule Semester Studip User UserConfig Wiki');
 
         foreach ($routes as $route) {
             require_once "app/routes/$route.php";
@@ -416,12 +414,10 @@ class Router
      * @param Array $parameters the matched parameters out of
      *                          Router::matchRoute; something like:
      *                          `array('user_id' => '23a21d...e78f')`
-     * @param mixed $request_body Request body to use (optional, should be
-     *                            removed when Stud.IP requires PHP >= 5.6)
      * @return Response  the resulting Response object which is then
      *                   polished in Router::dispatch
      */
-    protected function execute($route, $parameters, $request_body = null)
+    protected function execute($route, $parameters)
     {
         $handler = $route['handler'];
 
@@ -429,7 +425,7 @@ class Router
             throw new RuntimeException("Handler is not a method.");
         }
 
-        $handler[0]->init($this, $route, $request_body);
+        $handler[0]->init($this, $route);
 
         if (method_exists($handler[0], 'before')) {
             $handler[0]->before($this, $handler, $parameters);
@@ -480,7 +476,7 @@ class Router
 
     private function normalizeRequestMethod($method)
     {
-        return mb_strtolower($method ?: $_SERVER['REQUEST_METHOD'] ?: 'get');
+        return mb_strtolower($method ?: \Request::method() ?: 'get');
     }
 
     /**
@@ -551,23 +547,30 @@ class Router
     }
 
     /**
-     * Extracts defined conditions from a given docblock.
+     * Returns all methods the given uri responds to.
      *
-     * @param DocBlock $docblock   DocBlock to examine
-     * @param Array    $conditions Optional array of already defined
-     *                             conditions to extend
-     * @return Array of all extracted conditions with the variable name
-     *         as key and pattern to match as value
+     * @param String $uri the URI to match
+     *
+     * @return array of all of responding methods
      */
-    protected function extractConditions($docblock, $conditions = array())
+    protected function getMethodsForUri($uri)
     {
-        if (!empty($docblock->tags['condition'])) {
-            foreach ($docblock->tags['condition'] as $condition) {
-                list($var, $pattern) = explode(' ', $condition, 2);
-                $conditions[$var] = $pattern;
+        $methods = [];
+
+        foreach ($this->routes as $method => $templates) {
+            foreach ($templates as $uri_template => $route) {
+                if (!isset($route['uri_template'])) {
+                    $route['uri_template'] = new UriTemplate($uri_template, $route['conditions']);
+                }
+
+                if ($route['uri_template']->match($uri)
+                    && $this->permissions->check($uri_template, $method))
+                {
+                    $methods[] = $method;
+                }
             }
         }
 
-        return $conditions;
+        return array_map('strtoupper', $methods);
     }
 }

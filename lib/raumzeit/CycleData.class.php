@@ -7,7 +7,7 @@
 // This file is part of Stud.IP
 // CycleData.class.php
 //
-// Repräsentiert ein Turnusdatum eines MetaDates
+// ReprÃ¤sentiert ein Turnusdatum eines MetaDates
 //
 // +--------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@
  * keys and the new fields from SeminarCycleDate (see CycleData::$alias)
  *
  *
- * @author      Till Glöggler <tgloeggl@uos.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
  * @version     19. Oktober 2005
  * @access      protected
  * @package     raumzeit
@@ -44,10 +44,13 @@ class CycleData
      *
      * @var array
      */
-    private $alias = array( 'start_stunde' => 'start_hour',
-                            'end_stunde' => 'end_hour',
-                            'day' => 'weekday',
-                            'desc' => 'description');
+    private $alias = array(
+        'start_stunde' => 'start_hour',
+        'end_stunde'   => 'end_hour',
+        'day'          => 'weekday',
+        'desc'         => 'description',
+        'is_visible'   => 'is_visible'
+    );
 
     /**
      * this is mostly filtered, see readSingleDates()
@@ -153,6 +156,16 @@ class CycleData
     function setDay($day)
     {
         $this->cycle_date->weekday = $day;
+    }
+
+    /**
+     * Check if there is a least one not cancelled date for this cycle data
+     *
+     * @return bool   true, if there is at least one not cancelled date
+     */
+    function getIsVisible()
+    {
+        return $this->cycle_date->is_visible;
     }
 
     function __get($field)

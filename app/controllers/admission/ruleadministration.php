@@ -15,12 +15,8 @@
  * @since       3.0
  */
 
-require_once 'app/models/rule_administration.php';
-
 class Admission_RuleAdministrationController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * @see AuthenticatedController::before_filter
      */
@@ -31,7 +27,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController
         $GLOBALS['perm']->check('root');
 
         Navigation::activateItem('/admin/config/admissionrules');
-        PageLayout::addSqueezePackage('admission');
+        PageLayout::addScript('studip-admission.js');
 
         $sidebar = Sidebar::Get();
         $sidebar->setTitle(PageLayout::getTitle() ?: _('Anmelderegeln'));
@@ -41,7 +37,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController
         $views->addLink(_('Installierte Anmelderegeln'),
             $this->url_for('admission/ruleadministration'))
             ->setActive($action === 'index');
-        $views->addLink(_('Regelkompatibilität'),
+        $views->addLink(_('RegelkompatibilitÃ¤t'),
             $this->url_for('admission/ruleadministration/compatibility'))
             ->setActive($action === 'compatibility');
         $sidebar->addWidget($views);
@@ -54,7 +50,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController
     {
         PageLayout::setTitle(_('Verwaltung von Anmelderegeln'));
 
-        $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
+        $this->ruleTypes = AdmissionRule::getAvailableAdmissionRules(false);
         // Available rule classes.
         $ruleClasses = array_map(function($s) { return mb_strtolower($s); }, array_keys($this->ruleTypes));
         // Found directories with rule definitions.
@@ -65,22 +61,22 @@ class Admission_RuleAdministrationController extends AuthenticatedController
 
     public function compatibility_action()
     {
-        PageLayout::setTitle(_('Anmelderegelkompatibilität'));
+        PageLayout::setTitle(_('AnmelderegelkompatibilitÃ¤t'));
 
-        $this->ruletypes = RuleAdministrationModel::getAdmissionRuleTypes();
+        $this->ruletypes = AdmissionRule::getAvailableAdmissionRules(false);
         $this->matrix = AdmissionRuleCompatibility::getCompatibilityMatrix();
     }
 
     /**
      * Shows where the given admission rule is activated (system wide or
      * only at specific institutes).
-     * 
+     *
      * @param String $ruleType Class name of the rule type to check.
      */
     public function check_activation_action($ruleType)
     {
-        PageLayout::setTitle(_('Verfügbarkeit der Anmelderegel'));
-        $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
+        PageLayout::setTitle(_('VerfÃ¼gbarkeit der Anmelderegel'));
+        $this->ruleTypes = AdmissionRule::getAvailableAdmissionRules(false);
         $this->type = $ruleType;
         $stmt = DBManager::get()->prepare("SELECT ai.`institute_id`
             FROM `admissionrule_inst` ai
@@ -102,7 +98,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController
 
     /**
      * (De-)Activates the given rule type for system wide usage.
-     * 
+     *
      * @param  String $ruleType the class name of the rule type to activate.
      */
     public function activate_action($ruleType)
@@ -186,7 +182,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController
             try {
                 $ruleAdmin = new RuleAdministrationModel();
                 $ruleAdmin->uninstall($ruleType);
-                PageLayout::postSuccess(_('Die Anmelderegel wurde erfolgreich gelöscht.'));
+                PageLayout::postSuccess(_('Die Anmelderegel wurde erfolgreich gelÃ¶scht.'));
             } catch (AdmissionRuleInstallationException $e) {
                 PageLayout::postError($e->getMessage());
             }
@@ -199,20 +195,24 @@ class Admission_RuleAdministrationController extends AuthenticatedController
 
     /**
      * Downloads an admission rule as ZIP file.
-     * @param String $ruleName Class name of the admission rule, is used for file name. 
-     *   
+     * @param String $ruleName Class name of the admission rule, is used for file name.
+     *
      */
     public function download_action($ruleName)
     {
-        $dirname = $GLOBALS['ABSOLUTE_PATH_STUDIP'].'admissionrules/'.
-            mb_strtolower($ruleName);
+        $dirname = $GLOBALS['STUDIP_BASE_PATH'] . '/lib/admissionrules/'.
+            mb_strtolower($ruleName) . '/';
+
         $filename = $ruleName.'.zip';
         $filepath = get_config('TMP_PATH').'/'.$filename;
 
-        create_zip_from_directory($dirname, $filepath);
+        FileArchiveManager::createArchiveFromPhysicalFolder(
+            $dirname,
+            $filepath
+        );
 
         header('Content-Type: application/zip');
-        header('Content-Disposition: attachment; filename="'.$filename.'"');
+        header('Content-Disposition: attachment; ' . encode_header_parameter('filename', $filename));
         header('Content-Length: '.filesize($filepath));
         header('Pragma: public');
 
@@ -291,14 +291,14 @@ class Admission_RuleAdministrationController extends AuthenticatedController
         }
 
         if ($success > 0 && count($fail) == 0) {
-            PageLayout::postSuccess(_('Die Einstellungen zur Regelkompatibilität wurden gespeichert.'));
+            PageLayout::postSuccess(_('Die Einstellungen zur RegelkompatibilitÃ¤t wurden gespeichert.'));
         } else if ($success > 0 && count($fail) > 0) {
             PageLayout::postWarning(_('Die Einstellungen zur '.
-                'Regelkompatibilität konnten nicht vollständig gespeichert '.
-                'werden. Es sind Probleme bei folgenden Einträgen aufgetreten:'),
+                'RegelkompatibilitÃ¤t konnten nicht vollstÃ¤ndig gespeichert '.
+                'werden. Es sind Probleme bei folgenden EintrÃ¤gen aufgetreten:'),
                 $fail);
         } else if (count($fail) > 0) {
-            PageLayout::postError(_('Die Einstellungen zur Regelkompatibilität konnten nicht gespeichert werden.'));
+            PageLayout::postError(_('Die Einstellungen zur RegelkompatibilitÃ¤t konnten nicht gespeichert werden.'));
         }
 
         $this->relocate('admission/ruleadministration/compatibility');
@@ -313,7 +313,7 @@ class Admission_RuleAdministrationController extends AuthenticatedController
     private function check_ticket()
     {
         if (!check_ticket(Request::option('ticket'))) {
-            throw new InvalidArgumentException(_('Das Ticket für diese Aktion ist ungültig.'));
+            throw new InvalidArgumentException(_('Das Ticket fÃ¼r diese Aktion ist ungÃ¼ltig.'));
         }
 
     }

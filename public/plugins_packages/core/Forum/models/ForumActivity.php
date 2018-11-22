@@ -7,7 +7,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Till Glöggler <tgloeggl@uos.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
  * @license     https://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
 
@@ -49,14 +49,14 @@ class ForumActivity
         if ($post['user_id'] == $GLOBALS['user']->id) {
             $content = sprintf(
                 _('%s hat seinen eigenen Beitrag vom %s editiert.'),
-                get_fullname($post['user_id']),
+                self::getPostUsername($post),
                 date('d.m.y, H:i', $post['mkdate'])
             );
         } else {
             $content = sprintf(
                 _('%s hat den Beitrag von %s vom %s editiert.'),
-                get_fullname($post['user_id']),
                 get_fullname($GLOBALS['user']->id),
+                self::getPostUsername($post),
                 date('d.m.y, H:i', $post['mkdate'])
             );
         }
@@ -72,19 +72,19 @@ class ForumActivity
      */
     public static function deleteEntry($event, $topic_id, $post)
     {
-        $summary = _('%s hat im Forum der Veranstaltung "%s" einen Beitrag gelöscht.');
+        $summary = _('%s hat im Forum der Veranstaltung "%s" einen Beitrag gelÃ¶scht.');
 
         if ($post['user_id'] == $GLOBALS['user']->id) {
             $content = sprintf(
-                _('%s hat seinen Beitrag vom %s gelöscht.'),
-                get_fullname($GLOBALS['user']->id),
+                _('%s hat seinen Beitrag vom %s gelÃ¶scht.'),
+                self::getPostUsername($post),
                 date('d.m.y, H:i', $post['mkdate'])
             );
         } else {
             $content = sprintf(
-                _('%s hat den Beitrag von %s vom %s gelöscht.'),
-                get_fullname($post['user_id']),
+                _('%s hat den Beitrag von %s vom %s gelÃ¶scht.'),
                 get_fullname($GLOBALS['user']->id),
+                self::getPostUsername($post),
                 date('d.m.y, H:i', $post['mkdate'])
             );
         }
@@ -104,20 +104,39 @@ class ForumActivity
 
         $obj = get_object_name($range_id, $type);
 
-        $activity = Studip\Activity\Activity::create(
-            array(
-                'provider'     => 'Studip\Activity\ForumProvider',
-                'context'      => $type === 'sem' ? 'course' : 'institute',
-                'context_id'   => $post['seminar_id'],
-                'content'      => null,
-                'actor_type'   => 'user',             // who initiated the activity?
-                'actor_id'     => $post['user_id'],   // id of initiator
-                'verb'         => $verb,              // the activity type
-                'object_id'    => $post['topic_id'],  // the id of the referenced object
-                'object_type'  => 'forum',            // type of activity object
-                'mkdate'       => $post['mkdate'] ?: time()
-            )
-        );
+        $data = [
+            'provider'     => 'Studip\Activity\ForumProvider',
+            'context'      => $type === 'sem' ? 'course' : 'institute',
+            'context_id'   => $post['seminar_id'],
+            'content'      => null,
+            'actor_type'   => 'user',             // who initiated the activity?
+            'actor_id'     => $post['user_id'],   // id of initiator
+            'verb'         => $verb,              // the activity type
+            'object_id'    => $post['topic_id'],  // the id of the referenced object
+            'object_type'  => 'forum',            // type of activity object
+            'mkdate'       => $post['mkdate'] ?: time()
+        ];
 
+        if ($post['anonymous']) {
+            $data['actor_type'] = 'anonymous';
+            $data['actor_id']   = '';
+        }
+
+        $activity = Studip\Activity\Activity::create($data);
+    }
+
+    /**
+     * Returns the poster's name for a forum post.
+     *
+     * @param array $post
+     * @return string
+     */
+    private static function getPostUsername($post)
+    {
+        if ($post['anonymous']) {
+            return _('Anonym');
+        }
+
+        return get_fullname($post['user_id']);
     }
 }

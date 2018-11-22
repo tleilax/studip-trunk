@@ -116,9 +116,8 @@ class Calendar_CalendarController extends AuthenticatedController
 
         // Remove cid
         if (Request::option('self')) {
-            URLHelper::removeLinkParam('cid');
-            unset($_SESSION['SessSemName']);
-            unset($_SESSION['SessionSeminar']);
+            Context::close();
+
             $this->redirect(URLHelper::getURL('dispatch.php/' . $this->base
                 . $default_view . '/' . $GLOBALS['user']->id, array(), true));
         } else {
@@ -238,9 +237,9 @@ class Calendar_CalendarController extends AuthenticatedController
 
       //      $default_selected_user = array($this->calendar->getRangeId());
             $this->mps = MultiPersonSearch::get('add_adressees')
-                ->setLinkText(_('Mehrere Teilnehmer hinzufügen'))
+                ->setLinkText(_('Mehrere Teilnehmende hinzufÃ¼gen'))
        //         ->setDefaultSelectedUser($default_selected_user)
-                ->setTitle(_('Mehrere Teilnehmer hinzufügen'))
+                ->setTitle(_('Mehrere Teilnehmende hinzufÃ¼gen'))
                 ->setExecuteURL($this->url_for($this->base . 'edit'))
                 ->setJSFunctionOnSubmit('STUDIP.Messages.add_adressees')
                 ->setSearchObject($search_obj);
@@ -271,7 +270,7 @@ class Calendar_CalendarController extends AuthenticatedController
                     header('X-Dialog-Close: 1');
                     exit;
                 } else {
-                    PageLayout::postMessage(MessageBox::success(_('Der Termin wurde nicht geändert.')));
+                    PageLayout::postMessage(MessageBox::success(_('Der Termin wurde nicht geÃ¤ndert.')));
                     $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
                 }
             } else {
@@ -316,7 +315,7 @@ class Calendar_CalendarController extends AuthenticatedController
                         header('X-Dialog-Close: 1');
                         exit;
                     } else {
-                        PageLayout::postMessage(MessageBox::success(_('Der Teilnahmestatus wurde nicht geändert.')));
+                        PageLayout::postMessage(MessageBox::success(_('Der Teilnahmestatus wurde nicht geÃ¤ndert.')));
                         $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
                     }
                 } else {
@@ -324,7 +323,7 @@ class Calendar_CalendarController extends AuthenticatedController
                     if ($this->event->author_id != $user->id) {
                         setTempLanguage($this->event->author_id);
                         $message = new messaging();
-                        $msg_text = sprintf(_('%s hat den Terminvorschlag für "%s" am %s von %s auf %s geändert.'),
+                        $msg_text = sprintf(_('%s hat den Terminvorschlag fÃ¼r "%s" am %s von %s auf %s geÃ¤ndert.'),
                                 get_fullname(), $this->event->getTitle(),
                                 strftime('%c', $this->event->getStart()),
                                 $this->event->toStringGroupStatus($old_status), $this->event->toStringGroupStatus());
@@ -338,7 +337,7 @@ class Calendar_CalendarController extends AuthenticatedController
                         $msg_text .= "\n\n**" . _('Beginn:') . '** ';
                         if ($this->event->isDayEvent()) {
                             $msg_text .= strftime('%x ', $this->event->getStart());
-                            $msg_text .= _('ganztägig');
+                            $msg_text .= _('ganztÃ¤gig');
                         } else {
                             $msg_text .= strftime('%c', $this->event->getStart());
                         }
@@ -356,7 +355,7 @@ class Calendar_CalendarController extends AuthenticatedController
                             $msg_text .= '**' . _('Kategorie:') . "** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringPriority()) {
-                            $msg_text .= '**' . _('Priorität:') . "** $event_data\n";
+                            $msg_text .= '**' . _('PrioritÃ¤t:') . "** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringAccessibility()) {
                             $msg_text .= '**' . _('Zugriff:') . "** $event_data\n";
@@ -375,7 +374,7 @@ class Calendar_CalendarController extends AuthenticatedController
                                         . ')';
                             }
                         }
-                        $msg_text .= '**' . _('Teilnehmer:') . '** ' . implode(', ', $member);
+                        $msg_text .= '**' . _('Teilnehmende:') . '** ' . implode(', ', $member);
                         $msg_text .= "\n\n" . _('Hier kommen Sie direkt zum Termin in Ihrem Kalender:') . "\n";
                         $msg_text .= URLHelper::getURL('dispatch.php/calendar/single/edit/'
                                 . $this->event->getAuthorId() . '/' . $this->event->event_id);
@@ -478,10 +477,10 @@ class Calendar_CalendarController extends AuthenticatedController
         }
 
         if (Request::isXhr()) {
-            $event->setTitle(studip_utf8decode(Request::get('summary', '')));
-            $event->event->description = studip_utf8decode(Request::get('description', ''));
-            $event->setUserDefinedCategories(studip_utf8decode(Request::get('categories', '')));
-            $event->event->location = studip_utf8decode(Request::get('location', ''));
+            $event->setTitle(Request::get('summary', ''));
+            $event->event->description = Request::get('description', '');
+            $event->setUserDefinedCategories(Request::get('categories', ''));
+            $event->event->location = Request::get('location', '');
         } else {
             $event->setTitle(Request::get('summary'));
             $event->event->description = Request::get('description', '');
@@ -512,7 +511,7 @@ class Calendar_CalendarController extends AuthenticatedController
             $rrule['count'] = Request::int('exp_count', 10);
         } else if ($expire == 'date') {
             if (Request::isXhr()) {
-                $exp_date = studip_utf8decode(Request::get('exp_date'));
+                $exp_date = Request::get('exp_date');
             } else {
                 $exp_date = Request::get('exp_date');
             }

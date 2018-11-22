@@ -12,14 +12,14 @@
  * Model class for blubber-postings derived from SimpleORMap.
  * Also provides a lot of static helper methods for finding and formating postings.
  */
-class BlubberPosting extends SimpleORMap {
-
+class BlubberPosting extends SimpleORMap implements PrivacyObject
+{
     //One-time variable that is set right before markup
-    static public $course_hashes = false;
+    public static $course_hashes = false;
     //One-time variable that is set right before markup
-    static public $mention_posting_id = false;
+    public static $mention_posting_id = false;
     //regexp for hashtags
-    static public $hashtags_regexp = "(^|\s)\#([\w\d_\.\-\?!\+=%]*[\w\d])";
+    public static $hashtags_regexp = "(^|\s)\#([\w\d_\.\-\?!\+=%]*[\w\d])";
 
     // Storage for formatted content for performance reasons
     protected $formatted_content = null;
@@ -29,7 +29,8 @@ class BlubberPosting extends SimpleORMap {
      * @param string $text : original text with studip-markup plus hashtags
      * @return string : formatted text
      */
-    static public function format($text) {
+    public static function format($text)
+    {
         StudipFormat::addStudipMarkup("blubberhashtag", BlubberPosting::$hashtags_regexp, null, "BlubberPosting::markupHashtags");
         $output = formatReady($text);
         StudipFormat::removeStudipMarkup("blubberhashtag");
@@ -43,7 +44,8 @@ class BlubberPosting extends SimpleORMap {
      * @param array $matches
      * @return string : marked-up text
      */
-    static public function markupHashtags($markup, $matches) {
+    public static function markupHashtags($markup, $matches)
+    {
         if (self::$course_hashes) {
             $url = URLHelper::getLink("plugins.php/Blubber/streams/forum", array('hash' => $matches[2], 'cid' => self::$course_hashes));
         } else {
@@ -60,7 +62,8 @@ class BlubberPosting extends SimpleORMap {
      * @param array $matches
      * @return string
      */
-    static public function mention($markup, $matches) {
+    public static function mention($markup, $matches)
+    {
         $mention = $matches[1];
         $posting = new BlubberPosting(self::$mention_posting_id);
         $username = stripslashes(mb_substr($mention, 1));
@@ -112,16 +115,17 @@ class BlubberPosting extends SimpleORMap {
      * in and in which blubber-plugin is activated.
      * @return array of Seminar_ids
      */
-    static public function getMyBlubberCourses() {
+    public static function getMyBlubberCourses()
+    {
         $blubber_plugin_info = PluginManager::getInstance()->getPluginInfo('Blubber');
 
         $statement = DBManager::get()->prepare(
             "SELECT seminar_user.Seminar_id " .
             "FROM seminar_user " .
                 "INNER JOIN seminare ON (seminare.Seminar_id = seminar_user.Seminar_id) " .
-                "INNER JOIN plugins_activated ON (pluginid = :blubber_id AND plugins_activated.poiid = CONCAT('sem', seminar_user.Seminar_id)) " .
+                "INNER JOIN plugins_activated ON (pluginid = :blubber_id AND plugins_activated.range_type = 'sem' AND plugins_activated.range_id = seminar_user.Seminar_id) " .
             "WHERE seminar_user.user_id = :user_id " .
-                "AND plugins_activated.state = 'on' " .
+                "AND plugins_activated.state = 1 " .
             "ORDER BY seminare.start_time ASC, seminare.name ASC " .
         "");
         $statement->execute(array('user_id' => $GLOBALS['user']->id, 'blubber_id' => $blubber_plugin_info['id']));
@@ -132,7 +136,8 @@ class BlubberPosting extends SimpleORMap {
      * Returns an array of user_ids of of all buddys I have including myself.
      * @return array of user_ids
      */
-    static public function getMyBlubberBuddys() {
+    public static function getMyBlubberBuddys()
+    {
         $statement = DBManager::get()->prepare(
             "SELECT contact.user_id " .
             "FROM contact " .
@@ -149,7 +154,8 @@ class BlubberPosting extends SimpleORMap {
      * Returns an array of all user_ids of external contacts I am following.
      * @return array of external_contact_ids
      */
-    static public function getMyExternalContacts() {
+    public static function getMyExternalContacts()
+    {
         $statement = DBManager::get()->prepare(
             "SELECT blubber_follower.external_contact_id " .
             "FROM blubber_follower " .
@@ -215,7 +221,8 @@ class BlubberPosting extends SimpleORMap {
      * turn only into tags for the whole thread.
      * @return: array of string tags (of course without the #)
      */
-    public function getTags() {
+    public function getTags()
+    {
         if ($this->isThread()) {
             $get_tags = DBManager::get()->prepare(
                 "SELECT tag " .
@@ -238,7 +245,8 @@ class BlubberPosting extends SimpleORMap {
      * in realtime.
      * @return boolean: true if something has changed, false if not
      */
-    protected function synchronizeHashtags() {
+    protected function synchronizeHashtags()
+    {
         if (!$this['root_id'] && !$this['parent_id']) {
             $this['root_id'] = $this->getId();
         }
@@ -303,7 +311,8 @@ class BlubberPosting extends SimpleORMap {
      * returns if this posting is a thread
      * @return bool : true if posting is a thread, false if it's a comment.
      */
-    public function isThread() {
+    public function isThread()
+    {
         return $this['parent_id'] === "0";
     }
 
@@ -312,7 +321,8 @@ class BlubberPosting extends SimpleORMap {
      * false if this posting is a comment.
      * @return array|boolean : array of BlubberPosting or false if posting is a comment.
      */
-    public function getChildren($offset = 0, $limit = null) {
+    public function getChildren($offset = 0, $limit = null)
+    {
         if ($this->isThread()) {
             return self::findBySQL(
                 "root_id = ? AND parent_id != '0' ORDER BY mkdate DESC ".($limit > 0 ? "LIMIT ".(int) $offset .", ".(int) $limit : ""),
@@ -328,7 +338,8 @@ class BlubberPosting extends SimpleORMap {
      * posting is a comment on its own.
      * @return integer: number of all children
      */
-    public function getNumberOfChildren() {
+    public function getNumberOfChildren()
+    {
         if ($this->isThread()) {
             $statement = DBManager::get()->prepare(
                 "SELECT COUNT(*) " .
@@ -347,7 +358,8 @@ class BlubberPosting extends SimpleORMap {
      * Deletes this posting and all regarding information.
      * @return integer: 1 if posting successfully deleted, else 0.
      */
-    public function delete() {
+    public function delete()
+    {
         $id = $this->getId();
         $root_id = $this['root_id'];
         NotificationCenter::postNotification("PostingWillDelete", $this);
@@ -384,7 +396,8 @@ class BlubberPosting extends SimpleORMap {
      * Stores the posting into database and fires notifications "PostingWillSave" and "PostingHasSaved"
      * @return integer: 1 if posting successfully stored, else 0.
      */
-    public function store() {
+    public function store()
+    {
         $is_new = $this->isNew();
 
         NotificationCenter::postNotification("PostingWillSave", $this);
@@ -401,7 +414,8 @@ class BlubberPosting extends SimpleORMap {
      * if pk consists of multiple columns, false is returned
      * @return boolean|string
      */
-    function getNewId() {
+    public function getNewId()
+    {
         $id = parent::getNewId();
         if (!$this['root_id']) {
             $this['root_id'] = $id;
@@ -416,7 +430,8 @@ class BlubberPosting extends SimpleORMap {
      * @param string/null $user_id : if null the active user is taken
      * @return boolean : true if the user is related, else false.
      */
-    public function isRelated($user_id = null) {
+    public function isRelated($user_id = null)
+    {
         $user_id or $user_id = $GLOBALS['user']->id;
         $statement = DBManager::get()->prepare(
             "SELECT 1 " .
@@ -433,7 +448,8 @@ class BlubberPosting extends SimpleORMap {
      * mentioned or to who the private blubber is visible.
      * @return boolean
      */
-    public function getRelatedUsers() {
+    public function getRelatedUsers()
+    {
         $statement = DBManager::get()->prepare(
             "SELECT blubber_mentions.user_id " .
             "FROM blubber_mentions " .
@@ -451,7 +467,8 @@ class BlubberPosting extends SimpleORMap {
      * BlubberContact-interface (see there).
      * @return \BlubberContact
      */
-    public function getUser() {
+    public function getUser()
+    {
         if ($this['external_contact']) {
             $statement = DBManager::get()->prepare(
                 "SELECT * FROM blubber_external_contact WHERE external_contact_id = ? " .
@@ -477,7 +494,8 @@ class BlubberPosting extends SimpleORMap {
      * Returns all known users that have been sharing this thread.
      * @return array of \BlubberContact
      */
-    public function getSharingUsers() {
+    public function getSharingUsers()
+    {
         if ($this['context_type'] !== "public") {
             return array();
         }
@@ -502,7 +520,8 @@ class BlubberPosting extends SimpleORMap {
      * @param int $external_user : is the user an external user?
      * @return boolean : true if reshare was successful, else false
      */
-    public function reshare($user_id = null, $external_user = 0) {
+    public function reshare($user_id = null, $external_user = 0)
+    {
         if ($this['context_type'] !== "public") {
             return false;
         }
@@ -547,13 +566,14 @@ class BlubberPosting extends SimpleORMap {
      * @param int $external_user : is the user an external user?
      * @return boolean : true if successfully deleted, false if nothing to do.
      */
-    public function unreshare($user_id = null, $external_user = 0) {
+    public function unreshare($user_id = null, $external_user = 0)
+    {
         $user_id or $user_id = $GLOBALS['user']->id;
         $unshare = DBManager::get()->prepare("
-            DELETE FROM blubber_reshares 
-            WHERE topic_id = :topic_id 
-                AND user_id = :user_id 
-                AND external_contact = :external_contact 
+            DELETE FROM blubber_reshares
+            WHERE topic_id = :topic_id
+                AND user_id = :user_id
+                AND external_contact = :external_contact
         ");
         $success = $unshare->execute(array(
             'topic_id' => $this['root_id'],
@@ -566,5 +586,28 @@ class BlubberPosting extends SimpleORMap {
             $thread->store();
         }
         return $success;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('blubber', $field_data, $user);
+            }
+        }
+        return [_('Blubber') => $storage];
     }
 }

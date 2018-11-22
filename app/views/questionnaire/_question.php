@@ -1,12 +1,8 @@
-<? if (get_class($question) !== $question['questiontype']) {
-    $class = $question['questiontype'];
-    $question = new $class($question->getId());
-} ?>
 <? $class = get_class($question) ?>
 <fieldset data-questiontype="<?= htmlReady($class) ?>" class="question <?= htmlReady(mb_strtolower($class)) ?>">
     <legend>
         <div style="float: right; padding-top: 3px; padding-right: 5px;">
-            <a href="" onClick="var that = this; STUDIP.Dialog.confirm('<?= _("Wirklich löschen?") ?>', function () { jQuery(that).closest('fieldset').remove(); }); return false;" title="<?= sprintf(_("%s löschen"), htmlReady($class::getName())) ?>">
+            <a href="" onClick="var that = this; STUDIP.Dialog.confirm('<?= _("Wirklich lÃ¶schen?") ?>', function () { jQuery(that).closest('fieldset').remove(); }); return false;" title="<?= sprintf(_("%s lÃ¶schen"), htmlReady($class::getName())) ?>">
                 <?= Icon::create("trash", "clickable")->asImg("20px", array('class' => "text-bottom")) ?>
             </a>
         </div>

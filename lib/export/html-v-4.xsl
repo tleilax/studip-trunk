@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="WINDOWS-1252"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format">
-	<xsl:output method="html" encoding="WINDOWS-1252"/>
+	<xsl:output method="html" encoding="UTF-8"/>
 	<xsl:template match="/">
 	<html>
+        <meta charset="utf-8"/>
 		<body>
 		<xsl:for-each select="studip">
 			<xsl:for-each select="institut">
@@ -12,7 +13,7 @@
 </xsl:choose>: <xsl:value-of select="name"/>
 				</h1>
 <xsl:if test="fakultaet">
-				<b>Fakultät: </b>
+				<b>FakultÃ¤t: </b>
 				<xsl:value-of select="fakultaet"/>
 				<br/>
 </xsl:if>
@@ -114,7 +115,7 @@
 					<br/>
 					<br/>
 				</xsl:for-each>
-				<font size="-1">Generiert von Stud.IP Version <xsl:value-of select="@version"/></font>	
+				<font size="-1">Generiert von Stud.IP Version <xsl:value-of select="@version"/></font>
 			</xsl:for-each>
 			</body>
 		</html>
@@ -328,6 +329,18 @@
 				</td>
 			</tr>
 		</xsl:if>
+		<xsl:if test="lvgruppen">
+			<tr>
+				<td bgcolor="#EEEEEE">
+					<b>Module: </b>
+				</td>
+				<td bgcolor="#EEEEEE">
+					<xsl:for-each select="lvgruppen/lvgruppe">
+						<xsl:value-of select="."/><br/>
+					</xsl:for-each>
+				</td>
+			</tr>
+		</xsl:if>
 		<xsl:if test="datenfelder">
 			<xsl:for-each select="datenfelder/datenfeld">
 			<tr>
@@ -347,7 +360,7 @@
 			</td>
 		</tr>
 	</xsl:for-each>
-</xsl:template>		
+</xsl:template>
   <!-- replace newline characters with <br> elements -->
   <xsl:template name="replace-newlines">
     <xsl:param name="str"/>

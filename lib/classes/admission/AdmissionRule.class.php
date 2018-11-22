@@ -128,7 +128,7 @@ abstract class AdmissionRule
     }
 
     /**
-     * Gets all users that are matched by thís rule.
+     * Gets all users that are matched by thÃ­s rule.
      *
      * @return Array An array containing IDs of users who are matched by
      *      this rule.
@@ -152,10 +152,8 @@ abstract class AdmissionRule
             " ORDER BY `id` ASC");
         while ($current = $data->fetch(PDO::FETCH_ASSOC)) {
             $className = $current['ruletype'];
-            if (is_dir($GLOBALS['STUDIP_BASE_PATH'].
-                   '/lib/admissionrules/'.mb_strtolower($className))) {
-                require_once($GLOBALS['STUDIP_BASE_PATH'].'/lib/admissionrules/'.
-                    mb_strtolower($className).'/'.$className.'.class.php');
+            if (is_dir($GLOBALS['STUDIP_BASE_PATH'] . DIRECTORY_SEPARATOR . $current['path'])) {
+                StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . DIRECTORY_SEPARATOR . $current['path']);
                 try {
                     $rule = new $className();
                     $rules[$className] = array(
@@ -207,9 +205,9 @@ abstract class AdmissionRule
      */
     public static function getDescription()
     {
-        return _("Legt eine Regel fest, die erfüllt sein muss, um sich ".
+        return _("Legt eine Regel fest, die erfÃ¼llt sein muss, um sich ".
             "erfolgreich zu einer Menge von Veranstaltungen anmelden zu ".
-            "können.");
+            "kÃ¶nnen.");
     }
 
     public function getInput()
@@ -311,7 +309,7 @@ abstract class AdmissionRule
         if ($data['end_date'] && !$data['end_time']) {
             $data['end_time'] = strtotime($data['end_date'] . ' 23:59:59');
         }
-        $this->message = $data['ajax'] ? studip_utf8decode($data['message']) : $data['message'];
+        $this->message = $data['message'];
         $this->startTime = $data['start_time'];
         $this->endTime = $data['end_time'];
         return $this;

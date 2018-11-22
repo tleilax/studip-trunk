@@ -51,6 +51,10 @@ class StudipLog
     public static function log($action_name, $affected = null,
             $coaffected = null, $info = null, $dbg_info = null, $user_id = null)
     {
+        if (!Config::get()->LOG_ENABLE) {
+            return;
+        }
+
         $log_action = SimpleORMapCollection::createFromArray(
                 LogAction::findByName($action_name))->first();
         if (!$log_action) {
@@ -180,7 +184,7 @@ class StudipLog
 
         // search for active seminars
         $courses = Course::findBySQL("VeranstaltungsNummer LIKE CONCAT('%', :needle, '%')
-                     OR seminare.Name LIKE CONCAT('%', :needle, '%')",
+                     OR seminare.Name LIKE CONCAT('%', :needle, '%') ORDER BY start_time DESC",
                 array(':needle' => $needle));
 
         foreach ($courses as $course) {
@@ -201,7 +205,7 @@ class StudipLog
                 AND action_id IN (?) ",
                 array($needle, $log_action_ids_archived_seminar));
         foreach ($log_events_archived_seminar as $log_event) {
-            $title = sprintf('%s (%s)', my_substr($log_event->info, 0, 40), _('gelöscht'));
+            $title = sprintf('%s (%s)', my_substr($log_event->info, 0, 40), _('gelÃ¶scht'));
             $result[] = array($log_event->affected_range_id, $title);
         }
 
@@ -220,7 +224,7 @@ class StudipLog
         $result = array();
 
         $institutes = Institute::findBySQL(
-                "name LIKE CONCAT('%', ?, '%')", array($needle));
+                "name LIKE CONCAT('%', ?, '%') ORDER BY name", array($needle));
         foreach ($institutes as $institute) {
             $result[] = array($institute->getId(), my_substr($institute->name, 0, 28));
         }
@@ -234,7 +238,7 @@ class StudipLog
                 "action_id = ? AND info LIKE CONCAT('%', ?, '%')",
                 array($log_action_delete_institute->getId(), $needle));
         foreach ($log_events_delete_institute as $log_event) {
-            $title = sprintf('%s (%s)', $log_event->info, _('gelöscht'));
+            $title = sprintf('%s (%s)', $log_event->info, _('gelÃ¶scht'));
             $result[] = array($log_event->affected_range_id, $title);
         }
 
@@ -257,7 +261,7 @@ class StudipLog
                      OR Vorname LIKE CONCAT('%', :needle, '%')
                      OR CONCAT(Nachname, ', ', Vorname) LIKE CONCAT('%', :needle, '%')
                      OR CONCAT(Vorname, ' ', Nachname) LIKE CONCAT('%', :needle, '%')
-                     OR username LIKE CONCAT('%', :needle, '%')",
+                     OR username LIKE CONCAT('%', :needle, '%') ORDER BY Nachname DESC",
                 array(':needle' => $needle));
         foreach ($users as $user) {
             $name = sprintf('%s (%s)', my_substr($user->getFullname(), 0, 20),
@@ -281,7 +285,7 @@ class StudipLog
                     "action_id = ? AND info LIKE CONCAT('%', ?, '%')",
                     array($log_action_deleted_user->getId(), $needle));
             foreach ($log_events_deleted_user as $log_event) {
-                $name = sprintf('%s (%s)', $log_event->info, _('gelöscht'));
+                $name = sprintf('%s (%s)', $log_event->info, _('gelÃ¶scht'));
                 $result[] = array($log_event->affected_range_id, $name);
             }
         }
@@ -300,7 +304,7 @@ class StudipLog
     {
         $result = array();
 
-        $query = "SELECT resource_id, name FROM resources_objects WHERE name LIKE CONCAT('%', ?, '%')";
+        $query = "SELECT resource_id, name FROM resources_objects WHERE name LIKE CONCAT('%', ?, '%') ORDER by name";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($needle));
 
@@ -348,7 +352,8 @@ class StudipLog
                     break;
                 case 'core':
                     $class_name = $action->class;
-                    if ($class_name instanceof Loggable) {
+                    $interfaces = class_implements($class_name);
+                    if (isset($interfaces['Loggable'])) {
                         return $class_name::logSearch($needle, $action->name);
                     }
             }

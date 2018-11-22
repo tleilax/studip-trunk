@@ -1,5 +1,5 @@
 <? if (!Request::isXhr()) : ?>
-    <h1><?= _("Betreff").": ".htmlReady($message["subject"]) ?></h1>
+    <h1 class="responsive-hidden"><?= _("Betreff").": ".htmlReady($message["subject"]) ?></h1>
 <? endif ?>
 
 <? if ($message["autor_id"] !== "____%system%____") : ?>
@@ -20,17 +20,17 @@
         <tr>
             <td><strong><?= _("An") ?></strong></td>
             <td>
-                <? if ($message["autor_id"] !== $GLOBALS["user"]->id) : ?>
                 <? $num_recipients = $message->getNumRecipients() ?>
-                <?= $num_recipients > 1 ? sprintf(_("%s Personen"), $num_recipients) : _("Eine Person") ?>
+                <? if ($message["autor_id"] !== $GLOBALS["user"]->id && (!$message['show_adressees'] || $num_recipients > Config::get()->SHOW_ADRESSEES_LIMIT)) : ?>
+                    <?= $num_recipients > 1 ? sprintf(_("%s Personen"), $num_recipients) : _("Eine Person") ?>
                 <? else : ?>
-                <ul class='clean' id="adressees">
+                <ul class="list-csv" id="adressees">
                 <? foreach ($message->getRecipients() as $message_user) : ?>
                     <li>
                         <a href="<?= URLHelper::getLink("dispatch.php/profile", array('username' => $message_user["username"])) ?>">
-                            <?= htmlReady($message_user['fullname']) ?>
-                        </a>
-                    </li>
+                            <?= htmlReady($message_user['fullname']) ?><!-- avoid extra space before ::after
+                     --></a><!--
+                 --></li>
                 <? endforeach ?>
                 </ul>
                 <? endif ?>
@@ -38,7 +38,7 @@
         </tr>
         <tr>
             <td><strong><?= _("Datum") ?></strong></td>
-            <td><?= date("d.m.Y G:i", $message['mkdate']) ?></td>
+            <td><?= date("d.m.Y H:i", $message['mkdate']) ?></td>
         </tr>
         <tr>
             <td><strong><?= _("Schlagworte") ?></strong></td>
@@ -54,7 +54,7 @@
                 <? endforeach ?>
                     <span>
                         <input type="text" name="add_tag" style="width: 50px; opacity: 0.8;">
-                        <?= Icon::create('add', 'clickable', ['title' => _("Schlagwort hinzufügen")])->asInput(["class" => 'text-bottom']) ?>
+                        <?= Icon::create('add', 'clickable', ['title' => _("Schlagwort hinzufÃ¼gen")])->asInput(["class" => 'text-bottom']) ?>
                     </span>
                 </form>
             </td>
@@ -66,19 +66,19 @@
 <div class="message_body">
     <?= formatReady($message["message"]) ?>
 </div>
-<? if (count($message->attachments)) : ?>
-<h3><?= Icon::create('staple', 'inactive')->asImg(20, ["class" => "text-bottom"]) ?><?= _("Anhang") ?></h3>
-<ul class="message_attachments">
-    <? foreach ($message->attachments as $attachment) : ?>
-    <li>
-        <? $mime_type = get_mime_type($attachment['filename']) ?>
-        <h4><a href="<?= GetDownloadLink($attachment->getId(), $attachment['filename'], 7, 'force') ?>"><?= GetFileIcon(mb_substr($attachment['filename'], mb_strrpos($attachment["filename"], ".") + 1))->asImg() ?><?= htmlReady($attachment['name']) ?></a></h4>
-        <? if (mb_substr($mime_type, 0, 5) === "image") : ?>
-        <div><img src="<?= GetDownloadLink($attachment->getId(), $attachment['filename'], 7, 'normal') ?>" style="max-width: 400px;"></div>
-        <? endif ?>
-    </li>
-    <? endforeach ?>
-</ul>
+<? if($attachment_folder): ?>
+<h3><?= Icon::create('staple', 'inactive')->asImg(20, ["class" => "text-bottom"]) ?><?= _('AnhÃ¤nge') ?></h3>
+    <table class="default sortable-table" data-sortlist="[[2, 0]]">
+        <?= $this->render_partial('files/_files_thead') ?>
+        <? foreach($attachment_folder->getFiles() as $file_ref): ?>
+            <?= $this->render_partial('files/_fileref_tr',
+                [
+                    'file_ref' => $file_ref,
+                    'current_folder' => $attachment_folder,
+                    'last_visitdate' => time()
+                ]) ?>
+        <? endforeach ?>
+    </table>
 <? endif ?>
 
 <div align="center" data-dialog-button>
@@ -92,12 +92,8 @@
     <a href="<?= URLHelper::getLink("dispatch.php/messages/print/".$message->getId()) ?>" class="print_action"><?= \Studip\Button::create(_("Drucken"))?></a>
     <form action="<?= $controller->url_for('messages/delete/' . $message->id) ?>" method="post" style="display: inline;">
         <input type="hidden" name="studip-ticket" value="<?= get_ticket() ?>">
-        <?= \Studip\Button::create(_("Löschen"), 'delete', array(
-                'onClick' => 'return window.confirm("' . _('Nachricht wirklich löschen?') . '");',
+        <?= \Studip\Button::create(_("LÃ¶schen"), 'delete', array(
+                'onClick' => 'return window.confirm("' . _('Nachricht wirklich lÃ¶schen?') . '");',
         ))?>
     </form>
 </div>
-
-<?php
-$sidebar = Sidebar::get();
-$sidebar->setImage('sidebar/mail-sidebar.png');

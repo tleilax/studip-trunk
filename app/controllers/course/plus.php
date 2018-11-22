@@ -16,9 +16,6 @@ class Course_PlusController extends AuthenticatedController
 
     public function index_action($range_id = null)
     {
-
-        PageLayout::addSqueezePackage('lightbox');
-
         PageLayout::setTitle(_("Mehr Funktionen"));
 
         $id = $GLOBALS['SessionSeminar'];
@@ -71,7 +68,7 @@ class Course_PlusController extends AuthenticatedController
         }
 
         $this->setupSidebar();
-        $this->available_modules = $this->getSortedList();
+        $this->available_modules = $this->getSortedList($this->sem);
 
         if (Request::submitted('deleteContent')) $this->deleteContent($this->available_modules);
     }
@@ -99,11 +96,11 @@ class Course_PlusController extends AuthenticatedController
             if (method_exists($class, 'deleteContent')) {
                 $class->deleteContent();
             } else {
-                PageLayout::postMessage(MessageBox::info(_("Das Plugin/Modul enthält keine Funktion zum Löschen der Inhalte.")));
+                PageLayout::postMessage(MessageBox::info(_("Das Plugin/Modul enthÃ¤lt keine Funktion zum LÃ¶schen der Inhalte.")));
             }
         } else {
-            PageLayout::postMessage(MessageBox::info(sprintf(_("Sie beabsichtigen die Inhalte von %s zu löschen."), $displayname)
-                . "<br>" . _("Wollen Sie die Inhalte wirklich löschen?") . "<br>"
+            PageLayout::postMessage(MessageBox::info(sprintf(_("Sie beabsichtigen die Inhalte von %s zu lÃ¶schen."), $displayname)
+                . "<br>" . _("Wollen Sie die Inhalte wirklich lÃ¶schen?") . "<br>"
                 . LinkButton::createAccept(_('Ja'), URLHelper::getURL("?deleteContent=true&check=true&name=" . $name))
                 . LinkButton::createCancel(_('Nein'))));
         }
@@ -202,17 +199,20 @@ class Course_PlusController extends AuthenticatedController
 
         unset($_SESSION['plus']['Kategorielist']);
         $plusconfig['course_plus'] = $_SESSION['plus'];
-        UserConfig::get($GLOBALS['user']->id)->store(PLUS_SETTINGS,$plusconfig);
+        UserConfig::get($GLOBALS['user']->id)->store('PLUS_SETTINGS', $plusconfig);
     }
 
 
-    private function getSortedList()
+    private function getSortedList(Range $context)
     {
 
         $list = array();
         $cat_index = array();
 
         foreach (PluginEngine::getPlugins('StandardPlugin') as $plugin) {
+            if (!$plugin->isActivatableForContext($context)) {
+                continue;
+            }
 
             if ((!$this->sem_class && !$plugin->isCorePlugin())
                 || ($this->sem_class && !$this->sem_class->isModuleMandatory(get_class($plugin))
@@ -229,7 +229,6 @@ class Course_PlusController extends AuthenticatedController
 
                     $key = isset($info['displayname']) ? $info['displayname'] : $plugin->getPluginname();
 
-
                     $list['Funktionen von A-Z'][mb_strtolower($key)]['object'] = $plugin;
                     $list['Funktionen von A-Z'][mb_strtolower($key)]['type'] = 'plugin';
 
@@ -241,13 +240,8 @@ class Course_PlusController extends AuthenticatedController
 
                     $key = isset($info['displayname']) ? $info['displayname'] : $plugin->getPluginname();
 
-                    if ($_SESSION['plus']['Kategorie'][$cat]
-                        || !isset($_SESSION['plus'])
-                    ) {
-
-                        $list[$cat][mb_strtolower($key)]['object'] = $plugin;
-                        $list[$cat][mb_strtolower($key)]['type'] = 'plugin';
-                    }
+                    $list[$cat][mb_strtolower($key)]['object'] = $plugin;
+                    $list[$cat][mb_strtolower($key)]['type'] = 'plugin';
                 }
             }
         }
@@ -268,7 +262,7 @@ class Course_PlusController extends AuthenticatedController
                 $indcat = isset($info['category']) ? $info['category'] : 'Sonstiges';
                 if(!array_key_exists($indcat, $cat_index)) array_push($cat_index, $indcat);
 
-                if($_SESSION['plus']['displaystyle'] != 'category'){
+                if($_SESSION['plus']['displaystyle'] != 'category') {
 
                     $list['Funktionen von A-Z'][mb_strtolower($val['name'])]['object'] = $val;
                     $list['Funktionen von A-Z'][mb_strtolower($val['name'])]['type'] = 'modul';
@@ -280,14 +274,10 @@ class Course_PlusController extends AuthenticatedController
 
                     if (!isset($_SESSION['plus']['Kategorie'][$cat])) $_SESSION['plus']['Kategorie'][$cat] = 1;
 
-                    if ($_SESSION['plus']['Kategorie'][$cat]
-                        || !isset($_SESSION['plus'])
-                    ) {
-
                         $list[$cat][mb_strtolower($val['name'])]['object'] = $val;
                         $list[$cat][mb_strtolower($val['name'])]['type'] = 'modul';
                         $list[$cat][mb_strtolower($val['name'])]['modulkey'] = $key;
-                    }
+
                 }
             }
         }
@@ -353,7 +343,16 @@ class Course_PlusController extends AuthenticatedController
                     //after sending, set all "conflicts" to TRUE (we check them later)
                     $_SESSION['admin_modules_data']["conflicts"][$key] = true;
 
-                    if ($this->sem_class) $studip_module = $this->sem_class->getModule($key);
+                    if ($this->sem_class) {
+                        $studip_module = $this->sem_class->getModule($key);
+                        $mod = $this->sem_class->getSlotModule($key);
+
+                        //skip the modules that are not changeable
+                        if ($mod && (!$this->sem_class->isModuleAllowed($mod) || $this->sem_class->isModuleMandatory($mod))) {
+                            continue;
+                        }
+                    }
+
                     $info = ($studip_module instanceOf StudipModule) ? $studip_module->getMetadata() : ($val['metadata'] ? $val['metadata'] : array());
                     $info ["category"] = $info ["category"] ? : 'Sonstiges';
 
@@ -454,17 +453,31 @@ class Course_PlusController extends AuthenticatedController
 
             }
         }
-        if (!count($_SESSION['admin_modules_data']["conflicts"])) {
+        if (empty($_SESSION['admin_modules_data']["conflicts"])) {
             $changes = false;
+            $anchor = "";
             // Inhaltselemente speichern
             if ($_SESSION['admin_modules_data']["orig_bin"] != $_SESSION['admin_modules_data']["changed_bin"]) {
                 $modules->writeBin($_SESSION['admin_modules_data']["range_id"], $_SESSION['admin_modules_data']["changed_bin"]);
+
+                $old_mods = $modules->generateModulesArrayFromModulesInteger($_SESSION['admin_modules_data']["orig_bin"]);
+                $new_mods = $modules->generateModulesArrayFromModulesInteger($_SESSION['admin_modules_data']["changed_bin"]);
+                foreach (array_diff_assoc($old_mods, $new_mods) as $changed_mod => $value) {
+                    $mod = $modules->registered_modules[$changed_mod];
+                    if ($value) {
+                        PageLayout::postSuccess(sprintf(_('"%s" wurde deaktiviert.'), $mod['name']));
+                    } else {
+                        PageLayout::postSuccess(sprintf(_('"%s" wurde aktiviert.'), $mod['name']));
+                    }
+                    $anchor = '#m_' . $mod['id'];
+                }
+
                 $_SESSION['admin_modules_data']["orig_bin"] = $_SESSION['admin_modules_data']["changed_bin"];
                 $_SESSION['admin_modules_data']["modules_list"] = $modules->getLocalModules($_SESSION['admin_modules_data']["range_id"]);
                 $changes = true;
             }
             // Plugins speichern
-            if (count($_SESSION['plugin_toggle']) > 0) {
+            if (!empty($_SESSION['plugin_toggle'])) {
                 $plugin_manager = PluginManager::getInstance();
 
                 foreach ($plugins as $plugin) {
@@ -478,17 +491,19 @@ class Course_PlusController extends AuthenticatedController
                         if ($activated) {
                             StudipLog::log('PLUGIN_ENABLE', $seminar_id, $plugin_id, $GLOBALS['user']->id);
                             NotificationCenter::postNotification('PluginForSeminarDidEnabled', $seminar_id, $plugin_id);
+                            PageLayout::postSuccess(sprintf(_('"%s" wurde aktiviert.'), $plugin->getPluginName()));
                         } else {
                             StudipLog::log('PLUGIN_DISABLE', $seminar_id, $plugin_id, $GLOBALS['user']->id);
                             NotificationCenter::postNotification('PluginForSeminarDidDisabled', $seminar_id, $plugin_id);
+                            PageLayout::postSuccess(sprintf(_('"%s" wurde deaktiviert.'), $plugin->getPluginName()));
                         }
+                        $anchor = '#p_' . $plugin->getPluginId();
                     }
                 }
                 $_SESSION['plugin_toggle'] = array();
             }
             if ($changes) {
-                PageLayout::postMessage(MessageBox::success(_('Die veränderte Konfiguration wurde übernommen.')));
-                $this->redirect('course/plus/index/' . $seminar_id);
+                $this->redirect($this->url_for('course/plus/index/' . $seminar_id . $anchor));
             }
         }
     }

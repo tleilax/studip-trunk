@@ -5,9 +5,9 @@
  * model class for statusgroups.
  * The statusgrouphierarchy is represented by the attributes
  * children and parent
- * 
+ *
  * Statusgroupmembers are saved as in <code>$this->members</code>
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -34,7 +34,7 @@
  * @property SimpleORMapCollection members has_many StatusgruppeUser
  * @property Statusgruppen parent belongs_to Statusgruppen
  */
-class Statusgruppen extends SimpleORMap
+class Statusgruppen extends SimpleORMap implements PrivacyObject
 {
     public $keep_children = false;
 
@@ -59,6 +59,12 @@ class Statusgruppen extends SimpleORMap
             'foreign_key' => 'range_id',
         );
         $config['additional_fields']['children'] = true;
+
+        $config['default_values']['position'] = null;
+
+        $config['registered_callbacks']['before_store'][] = 'cbAddPosition';
+        $config['registered_callbacks']['after_delete'][] = 'cbReorderPositions';
+
         parent::configure($config);
     }
 
@@ -81,7 +87,7 @@ class Statusgruppen extends SimpleORMap
         return $result ?: array();
     }
 
-    public function getDatafields() 
+    public function getDatafields()
     {
         return DataFieldEntry::getDataFieldEntries(array($this->range_id, $this->statusgruppe_id), 'roleinstdata');
     }
@@ -96,13 +102,13 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Finds all statusgroups by a course id
-     * 
+     *
      * @param string The course id
      * @return array Statusgroups
      */
     public static function findBySeminar_id($course_id)
     {
-        return self::findByRange_id($course_id);
+        return self::findByRange_id($course_id, 'ORDER BY position asc, name asc');
     }
 
     public static function findByTermin_id($termin_id)
@@ -131,7 +137,7 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Produces an array of all statusgroups a user is in
-     * 
+     *
      * @param string $user_id The user_id
      * @param string $seperator The sign between the full paths
      * @param string $pre Preface of the outputted string (used for recursion)
@@ -157,7 +163,7 @@ class Statusgruppen extends SimpleORMap
     /**
      * Produces string of all statusgroups a user is in (upwards from the
      * current group)
-     * 
+     *
      * @param string $user_id The user_id
      * @param string $seperator The sign between the full paths
      * @return array String of full gendered paths separated by given separator
@@ -176,16 +182,16 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Returns the gendered name of a statusgroup
-     * 
-     * @param string $user_id The user_id
+     *
+     * @param string|User $user_id The user_id
      * @return string The gendered name
      */
-    public function getGenderedName($user_id)
+    public function getGenderedName($user_or_id)
     {
         // We have to have at least 1 name gendered
         if ($this->name_m || $this->name_w) {
-            $userinfo = new UserInfo($user_id);
-            switch ($userinfo->geschlecht) {
+            $user = User::toObject($user_or_id);
+            switch ($user->geschlecht) {
                 case UserInfo::GENDER_FEMALE:
                     return $this->name_w ?: $this->name;
                 case UserInfo::GENDER_MALE:
@@ -195,10 +201,15 @@ class Statusgruppen extends SimpleORMap
         return $this->name;
     }
 
+    public function getName()
+    {
+        return $this->content['name'];
+    }
+
     /**
      * Puts out an array of all gendered userroles for a user in a certain
      * context
-     * 
+     *
      * @param string $context The context
      * @param string $user The user id
      * @return array All roles
@@ -215,46 +226,61 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Checks if a statusgroup has a folder.
-     * 
-     * @return boolean <b>true</> if the statusgroup has a folder, else 
+     *
+     * @return boolean <b>true</> if the statusgroup has a folder, else
      * <b>false</b>
      */
     public function hasFolder()
     {
-        $query = "SELECT folder_id FROM folder WHERE range_id = ?";
+        $query = "SELECT id FROM folders WHERE folder_type = 'CourseGroupFolder' AND range_id = ? AND data_content LIKE ? LIMIT 1";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->id));
-        return (bool) $statement->fetchColumn();
+        $statement->execute(array($this->range_id, '%"group":"' . $this->id. '"%'));
+        return $statement->fetchColumn();
     }
 
     /**
      * Gets the folder assigned to this statusgroup.
      *
-     * @return DocumentFolder|null
+     * @return CourseGroupFolder|null
      */
     public function getFolder()
     {
-        return DocumentFolder::findOneByRange_id($this->id);
+        $folder_id = $this->hasFolder();
+        return $folder_id ? FileManager::getTypedFolder($folder_id) : null;
     }
 
     /**
      * Delete or create a folder
-     * 
      * @param boolean $set <b>true</b> Create a folder
-     * <b>false</b> Delete the folder
+     * <b>false</b> Unlink the existing folder from the group
      */
     public function updateFolder($set)
     {
+        // Keep existing folder, but disconnect it from group.
         if ($this->hasFolder() && !$set) {
-            delete_folder($this->hasFolder(), true);
+            $folder = $this->getFolder();
+            $folder->type = 'StandardFolder';
+            unset($folder->data_content['group']);
+            return $folder->store();
         }
+
+        // Create new CourseGroupFolder under top folder.
         if (!$this->hasFolder() && $set) {
-            create_folder(
-                _('Dateiordner der Gruppe:') . ' ' . $this->name,
-                _('Ablage für Ordner und Dokumente dieser Gruppe'),
-                $this->id,
-                15
-            );
+            $topFolder = Folder::findTopFolder($this->range_id);
+            if ($topFolder) {
+                $folderdata = [
+                    'user_id' => $GLOBALS['user']->id,
+                    'parent_id' => $topFolder->id,
+                    'range_id' => $this->range_id,
+                    'range_type' => 'course',
+                    'folder_type' => 'CourseGroupFolder',
+                    'name' => _('Dateiordner der Gruppe:') . ' ' . $this->name,
+                    'data_content' => ['group' => $this->id],
+                    'description' => _('Ablage fÃ¼r Ordner und Dokumente dieser Gruppe')
+                ];
+                $groupFolder = new CourseGroupFolder($folderdata);
+                return $groupFolder->store();
+            }
         }
     }
 
@@ -292,7 +318,7 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Checks if a user is a member of this group
-     * 
+     *
      * @param string $user_id The user id
      * @return boolean <b>true</b> if user is a member of this group
      */
@@ -311,7 +337,7 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Displayfunction to show the places left in this group
-     * 
+     *
      * @return string displaystring
      */
     public function getPlaces()
@@ -329,7 +355,7 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Remove one user from this group
-     * 
+     *
      * @param string $user_id The user id
      * @param bool   $deep    Remove user from children as well?
      * @return bool
@@ -351,7 +377,7 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Adds a user to a group
-     * 
+     *
      * @param string $user_id The user id
      * @param boolean $check if <b>true</b> checks if there is space left in
      * this group
@@ -368,7 +394,7 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Checks if a user could join this group
-     * 
+     *
      * @param string $user_id The user id
      * @return boolean <b>true</b> if user is allowed to join
      */
@@ -376,23 +402,35 @@ class Statusgruppen extends SimpleORMap
     {
         return !$this->isMember($user_id)
             && $this->hasSpace()
-            && ($this->selfAssign != 2 || !$this->userHasExclusiveGroup($user_id));
+            && ($this->selfassign != 2 || !$this->userHasExclusiveGroup($user_id));
+    }
+
+    /**
+     * Checks if a user could leave this group
+     *
+     * @param string $user_id The user id
+     * @return boolean <b>true</b> if user is allowed to leave
+     */
+    public function userMayLeave($user_id)
+    {
+        return $this->isMember($user_id)
+            && ($this->selfassign && (!$this->selfassign_end || $this->selfassign_end > time()));
     }
 
     /**
      * Checks if the user is already in an exclusive group of this range
-     * 
+     *
      * @param string $user_id The user id
      * @return boolean <b>true</b> if user has already an exclusive group
      */
     public function userHasExclusiveGroup($user_id)
     {
-        $sql = "SELECT 1 FROM statusgruppe_user JOIN statusgruppen USING (statusgruppe_id) WHERE range_id = ? AND user_id = ?";
+        $sql = "SELECT 1 FROM statusgruppe_user JOIN statusgruppen USING (statusgruppe_id) WHERE selfassign = 2 AND range_id = ? AND user_id = ?";
         $stmt = DBManager::get()->prepare($sql);
         $stmt->execute(array($this->range_id, $user_id));
         return $stmt->fetchColumn();
     }
-    
+
     /**
      * Sorts the member of a group alphabetic
      */
@@ -413,7 +451,7 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Checks if there is free space in this group
-     * 
+     *
      * @return <b>true</b> if there is free space
      */
     public function hasSpace()
@@ -426,8 +464,8 @@ class Statusgruppen extends SimpleORMap
 
     /**
      * Move a user to a position of a group
-     * 
-     * @param string $user 
+     *
+     * @param string $user
      * @param type $pos
      */
     public function moveUser($user_id, $pos)
@@ -445,17 +483,6 @@ class Statusgruppen extends SimpleORMap
         $sql2 = "UPDATE statusgruppe_user SET position = ? WHERE statusgruppe_id = ? AND user_id = ?";
         $stmt2 = $db->prepare($sql2);
         $stmt2->execute(array($pos, $this->id, $statususer->user_id));
-    }
-
-    public function store()
-    {
-        if ($this->position === null) {
-            $sql = "SELECT MAX(position) + 1 FROM statusgruppen WHERE range_id = ?";
-            $stmt = DBManager::get()->prepare($sql);
-            $stmt->execute(array($this->range_id));
-            $this->position = $stmt->fetchColumn();
-        }
-        parent::store();
     }
 
     /**
@@ -493,15 +520,11 @@ class Statusgruppen extends SimpleORMap
     {
         $result = 0;
         if (!$this->keep_children) {
-            $result += $this->children->delete();
-        }
+            foreach($this->children as $child) {
+                $result += $child->delete();
+            }
 
-        // Resort groups
-        $query = "UPDATE statusgruppen
-                  SET position = position - 1
-                  WHERE range_id = ? AND position > ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute([$this->range_id, $this->position]);
+        }
 
         // Remove datafields
         $query = "DELETE FROM datafields_entries
@@ -512,5 +535,62 @@ class Statusgruppen extends SimpleORMap
         $result += parent::delete();
 
         return $result;
+    }
+
+    /**
+     * Adds the next free position if position is null.
+     */
+    public function cbAddPosition()
+    {
+        if ($this->position === null) {
+            $sql = "SELECT MAX(position) FROM statusgruppen WHERE range_id = ?";
+            $stmt = DBManager::get()->prepare($sql);
+            $stmt->execute(array($this->range_id));
+            $this->position = 1 + $stmt->fetchColumn();
+        }
+    }
+
+    /**
+     * Reorders position after delete or for the assoicated range_id.
+     */
+    public function cbReorderPositions()
+    {
+        $i = 0;
+        self::findEachBySQL(
+            function ($group) use (&$i) {
+                $group->position = $i++;
+                $group->store();
+            },
+            'range_id = ? ORDER BY position ASC, name ASC',
+            [$this->range_id]
+        );
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findThru($user->user_id, [
+            'thru_table'        => 'statusgruppe_user',
+            'thru_key'          => 'user_id',
+            'thru_assoc_key'    => 'statusgruppe_id',
+            'assoc_foreign_key' => 'statusgruppe_id',
+        ]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('statusgruppen', $field_data, $user);
+            }
+        }
+        return [_('Statusgruppen') => $storage];
     }
 }

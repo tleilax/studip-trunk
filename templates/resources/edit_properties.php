@@ -9,66 +9,38 @@ $types = array(
 )
 ?>
 
-<form method="post" action="<?= URLHelper::getLink() ?>">
+<form method="post" action="<?= URLHelper::getLink() ?>" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
-<table class="default" style="margin: 0 1%; width: 98%;">
-    <colgroup>
-        <col width="4%">
-        <col width="16%">
-        <col width="80%">
-    </colgroup>
-    <thead>
-        <tr>
-            <th>&nbsp;</th>
-            <th colspan="2"><?= _('Neue Eigenschaft anlegen') ?></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <label for="add_property"><?= _('Name:') ?></label>
-            </td>
-            <td>
-                <input type="text" id="add_property" name="add_property"
-                       size="50" maxlength="255"
-                       placeholder="&lt;<?= _('bitte geben Sie hier den Namen ein') ?>&gt;">
-            </td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <label for="add_property_type"><?= _('Art: ') ?></label>
-            </td>
-            <td>
-                <select id="add_property_type" name="add_property_type">
-                <? foreach ($types as $key => $label): ?>
-                    <option value="<?= $key ?>"><?= htmlReady($label) ?></option>
-                <? endforeach; ?>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <label for="info_label_visible"><?= _('in Info-Label sichtbar:') ?></label>
-            </td>
-            <td>
-                <input id="info_label_visible" name="info_label_visible" type="checkbox">
-            </td>
-        </tr>
-    </tbody>
-    <tfoot>
-        <tr class="table_footer">
-            <td>&nbsp;</td>
-            <td colspan="2">
-                <?= Button::create(_('Anlegen'), '_add_property') ?>
-            </td>
-        </tr>
-    </tfoot>
-</table>
+    <fieldset>
+        <legend>
+            <?= _('Neue Eigenschaft anlegen') ?>
+        </legend>
 
+        <label for="add_property">
+            <?= _('Name:') ?>
+            <input type="text" id="add_property" name="add_property"
+                   size="50" maxlength="255"
+                   placeholder="&lt;<?= _('bitte geben Sie hier den Namen ein') ?>&gt;">
+        </label>
+
+        <label for="add_property_type"><?= _('Art: ') ?>
+            <select id="add_property_type" name="add_property_type">
+            <? foreach ($types as $key => $label): ?>
+                <option value="<?= $key ?>"><?= htmlReady($label) ?></option>
+            <? endforeach; ?>
+            </select>
+        </label>
+
+        <label for="info_label_visible">
+            <input id="info_label_visible" name="info_label_visible" type="checkbox">
+            <?= _('in Info-Label sichtbar') ?>
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Button::create(_('Anlegen'), '_add_property') ?>
+    </footer>
 </form>
 
 <br>
@@ -77,12 +49,11 @@ $types = array(
     <?= CSRFProtection::tokenTag() ?>
 
 <div style="text-align: center; margin-top: 1em;">
-    <?= Button::createAccept(_('Übernehmen'), '_send_property_type') ?>
+    <?= Button::createAccept(_('Ãœbernehmen'), '_send_property_type') ?>
 </div>
 
-<table class="default zebra" style="margin: 0 1%; width: 98%;">
+<table class="default zebra">
     <colgroup>
-        <col width="4%">
         <col width="25%">
         <col width="25%">
         <col width="25%">
@@ -91,7 +62,6 @@ $types = array(
     </colgroup>
     <thead>
         <tr>
-            <th>&nbsp;</th>
             <th><?= _('Eigenschaft') ?></th>
             <th colspan="3"><?= _('Art der Eigenschaft') ?></th>
             <th style="text-align: center;"><?= _('X') ?></th>
@@ -100,7 +70,6 @@ $types = array(
     <tbody>
     <? foreach ($properties as $property): ?>
         <tr>
-            <td>&nbsp;</td>
             <td valign="top">
                 <input type="text" size="20" maxlength="255"
                        name="change_property_name[<?= $property['property_id'] ?>]"
@@ -167,9 +136,9 @@ $types = array(
             <td valign="bottom" align="center">
                 <?= _('diese Eigenschaft') ?><br>
             <? if (($property['depTyp']==0) && !$type['system']): ?>
-                <?= LinkButton::create(_('Löschen'), URLHelper::getURL('?delete_property=' . $property['property_id'])) ?>
+                <?= LinkButton::create(_('LÃ¶schen'), URLHelper::getURL('?delete_property=' . $property['property_id'])) ?>
             <? else: ?>
-                <?= Button::create(_('Löschen'), array('disabled' => 'disabled')) ?>
+                <?= Button::create(_('LÃ¶schen'), array('disabled' => 'disabled')) ?>
             <? endif; ?>
             </td>
         </tr>
@@ -178,7 +147,7 @@ $types = array(
     <tfoot>
         <tr class="table_footer">
             <td colspan="6" style="text-align: center;">
-                <?= Button::createAccept(_('Übernehmen'), '_send_property_type') ?>
+                <?= Button::createAccept(_('Ãœbernehmen'), '_send_property_type') ?>
             </td>
         </tr>
     </tfoot>

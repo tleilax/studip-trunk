@@ -22,7 +22,7 @@ class StudipCacheFactory
      *
      * @var string
      */
-    const DEFAULT_CACHE_CLASS = 'StudipFileCache';
+    const DEFAULT_CACHE_CLASS = 'StudipDbCache';
 
     /**
      * singleton instance
@@ -86,22 +86,20 @@ class StudipCacheFactory
         $arguments = json_encode($arguments);
 
         // strip leading STUDIP_BASE_PATH from file path
-        if (mb_strpos($file, $GLOBALS['STUDIP_BASE_PATH']) === 0) {
-            $file = mb_substr($file, mb_strlen($GLOBALS['STUDIP_BASE_PATH']) + 1);
-        }
+        $file = studip_relative_path($file);
 
         self::unconfigure();
 
         $cfg = self::getConfig();
 
         $cfg->create('cache_class', array(
-            'comment' => 'Pfad der Datei, die die StudipCache-Klasse enthält',
+            'comment' => 'Pfad der Datei, die die StudipCache-Klasse enthÃ¤lt',
             'value'   => $class));
         $cfg->create('cache_class_file', array(
             'comment' => 'Klassenname des zu verwendenden StudipCaches',
             'value'   => $file));
         $cfg->create('cache_init_args', array(
-            'comment' => 'JSON-kodiertes Array von Argumenten für die Instanziierung der StudipCache-Klasse',
+            'comment' => 'JSON-kodiertes Array von Argumenten fÃ¼r die Instanziierung der StudipCache-Klasse',
             'value'   => $arguments));
 
         $cfg->store('cache_class', $class);
@@ -194,6 +192,12 @@ class StudipCacheFactory
 
         # default class
         if (is_null($cache_class)) {
+            $version = new DBSchemaVersion();
+            if ($version->get() < 224) {
+                // db cache is not yet available, use StudipNullCache
+                return 'StudipNullCache';
+            }
+
             return self::DEFAULT_CACHE_CLASS;
         }
 

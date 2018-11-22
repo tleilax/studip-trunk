@@ -49,7 +49,8 @@ define ("INSTANCEOF_EVAL", "Evaluation");
  * @package     evaluation
  *
  */
-class Evaluation extends EvaluationObject {
+class Evaluation extends EvaluationObject implements PrivacyObject
+{
 # Define all required variables ============================================= #
   /**
    * Startdate
@@ -106,7 +107,7 @@ class Evaluation extends EvaluationObject {
    * @var      boolean   $shared
    */
   var $shared;
-  
+
   /**
    * Counts the number of connected ranges
    * @access   private
@@ -166,10 +167,10 @@ class Evaluation extends EvaluationObject {
    function setStartdate ($startdate) {
      if (!empty ($startdate)) {
        if (!empty ($this->stopdate) && $startdate > $this->stopdate)
-     return $this->throwError 
+     return $this->throwError
        (1, _("Das Startdatum ist nach dem Stoppdatum."));
        if ($startdate <= 0)
-     return $this->throwError (1, _("Das Startdatum ist leider ungültig."));
+     return $this->throwError (1, _("Das Startdatum ist leider ungÃ¼ltig."));
      }
      $this->startdate = $startdate;
    }
@@ -192,10 +193,10 @@ class Evaluation extends EvaluationObject {
    function setStopdate ($stopdate) {
      if (!empty ($stopdate)) {
        if ($stopdate <= 0)
-         return $this->throwError (1, _("Das Stoppdatum ist leider ungültig."));
-       if ($stopdate < $this->startdate) 
+         return $this->throwError (1, _("Das Stoppdatum ist leider ungÃ¼ltig."));
+       if ($stopdate < $this->startdate)
          return $this->throwError (1, _("Das Stoppdatum ist vor dem Startdatum."));
-       if (!empty ($this->timespan)) 
+       if (!empty ($this->timespan))
          $this->timespan = NULL;
      }
      $this->stopdate = $stopdate;
@@ -217,13 +218,13 @@ class Evaluation extends EvaluationObject {
     */
    function getRealStopdate () {
       $stopdate = $this->getStopdate ();
-      
+
       if ($this->getTimespan () != NULL)
          $stopdate = $this->getStartdate () + $this->getTimespan ();
-      
+
       return $stopdate;
    }
-   
+
    /**
     * Sets the timespan
     * @access  public
@@ -269,7 +270,7 @@ class Evaluation extends EvaluationObject {
     * @param   string  $anonymous  The anonymous.
     * @throws  error
     */
-   function setAnonymous ($anonymous) {     
+   function setAnonymous ($anonymous) {
      $this->anonymous = $anonymous == YES ? YES : NO;
    }
 
@@ -311,7 +312,7 @@ class Evaluation extends EvaluationObject {
          return $this->throwError (1, _("Nur ein Template kann freigegeben werden"));
      $this->shared = $shared == YES ? YES : NO;
    }
-   
+
    /**
     * Is shared for a public search?
     * @access  public
@@ -320,7 +321,7 @@ class Evaluation extends EvaluationObject {
    function isShared () {
       return $this->shared == YES ? YES : NO;
    }
-   
+
    /**
     * Is this evaluation a template?
     * @access  public
@@ -329,7 +330,7 @@ class Evaluation extends EvaluationObject {
    function isTemplate () {
       return empty ($this->rangeID) ? YES : NO;
    }
-   
+
    /**
     * Has a user used this evaluation?
     * @access  public
@@ -355,7 +356,7 @@ class Evaluation extends EvaluationObject {
       $this->rangeID = $temp;
       $this->numberRanges = count ($temp);
    }
-   
+
    /**
     * Removes all rangeIDs
     * @access   public
@@ -363,7 +364,7 @@ class Evaluation extends EvaluationObject {
    function removeRangeIDs () {
       while ($this->getRangeID ());
    }
-   
+
    /**
     * Adds a rangeID
     * @access  public
@@ -374,7 +375,7 @@ class Evaluation extends EvaluationObject {
      array_push ($this->rangeID, $rangeID);
      $this->numberRanges++;
    }
-   
+
    /**
     * Gets the first rangeID and removes it
     * @access  public
@@ -407,7 +408,7 @@ class Evaluation extends EvaluationObject {
    function getRangeIDs () {
      return $this->rangeID;
    }
-   
+
    /**
     * Gets the number of ranges
     * @access  public
@@ -416,15 +417,15 @@ class Evaluation extends EvaluationObject {
    function getNumberRanges () {
      return $this->numberRanges;
    }
-   
+
    /**
     * Resets all answers for this evaluation
     * @access public
     */
    function resetAnswers () {
-      // Für diesen Mist habe ich jetzt ca. 3 Stunden gebraucht :(
-      $answers = $this->getSpecialChildobjects ($this, INSTANCEOF_EVALANSWER);     
-      
+      // FÃ¼r diesen Mist habe ich jetzt ca. 3 Stunden gebraucht :(
+      $answers = $this->getSpecialChildobjects ($this, INSTANCEOF_EVALANSWER);
+
       $number = count ($answers);
       for ($i = 0; $i < $number; $i++) {
          $answer = &$answers[$i];
@@ -433,6 +434,61 @@ class Evaluation extends EvaluationObject {
       }
 
    }
+
+   /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM eval WHERE author_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage->addTabularData('eval', $field_data, $user);
+        }
+
+        $storage1 = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM evalanswer_user WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage1->addTabularData('evalanswer_user', $field_data, $user);
+        }
+
+        $storage2 = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM eval_group_template WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage2->addTabularData('eval_group_template', $field_data, $user);
+        }
+
+        $storage3 = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM eval_templates WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage3->addTabularData('eval_templates', $field_data, $user);
+        }
+
+        $storage4 = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM eval_templates_user WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage4->addTabularData('eval_templates_user', $field_data, $user);
+        }
+
+        $storage5 = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM eval_user WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage5->addTabularData('eval_user', $field_data, $user);
+        }
+
+        return [
+            _('Evaluation')              => $storage,
+            _('EvaluationAnswerUser')    => $storage1,
+            _('EvaluationGroupTemplate') => $storage2,
+            _('EvaluationTemplates')     => $storage3,
+            _('EvaluationTemplatesUser') => $storage4,
+            _('EvaluationUser')          => $storage5,
+        ];
+    }
 # ===================================================== end: public functions #
 
 # Define private functions ================================================== #
@@ -464,12 +520,12 @@ class Evaluation extends EvaluationObject {
      parent::check ();
      if (empty ($this->title))
        $this->throwError (1, _("Der Titel darf nicht leer sein."));
-     
+
      if ($this->isTemplate () && $this->hasVoted ())
-        $this->throwError (2, _("Ungültiges Objekt: Bei einer Vorlage wurde abgestimmt."));
-     
+        $this->throwError (2, _("UngÃ¼ltiges Objekt: Bei einer Vorlage wurde abgestimmt."));
+
      if (!$this->isTemplate () && $this->isShared ())
-        $this->throwError (3, _("Ungültiges Objekt: Eine aktive Evaluation wurde freigegeben."));
+        $this->throwError (3, _("UngÃ¼ltiges Objekt: Eine aktive Evaluation wurde freigegeben."));
 
    }
 # ==================================================== end: private functions #

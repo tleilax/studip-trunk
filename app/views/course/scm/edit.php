@@ -6,9 +6,9 @@ use Studip\Button,
 
 <p>
     <?=
-    _('Hier können Sie eine Seite mit Zusatzinformationen zu Ihrer '
-            . 'Veranstaltung gestalten. Sie können Links normal eingeben, diese '
-            . 'werden anschließend automatisch als Hyperlinks dargestellt.')
+    _('Hier kÃ¶nnen Sie eine Seite mit Zusatzinformationen zu Ihrer '
+            . 'Veranstaltung gestalten. Sie kÃ¶nnen Links normal eingeben, diese '
+            . 'werden anschlieÃŸend automatisch als Hyperlinks dargestellt.')
     ?>
 </p>
 
@@ -16,6 +16,9 @@ use Studip\Button,
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
+        <legend>
+            <?= _('Informationsseite') ?>
+        </legend>
         <label>
             <span class="required"><?= _('Titel') ?></span>
             <input required id="tab_name" type="text" name="tab_name"
@@ -24,7 +27,7 @@ use Studip\Button,
         </label>
 
         <label>
-            <?= _('oder wählen Sie hier einen Namen aus:') ?>
+            <?= _('oder wÃ¤hlen Sie hier einen Namen aus:') ?>
             <select name="tab_name_template" data-copy-to="input[name=tab_name]">
                 <option value="">- <?= _('Vorlagen') ?> -</option>
             <? foreach ($GLOBALS['SCM_PRESET'] as $template): ?>
@@ -35,13 +38,13 @@ use Studip\Button,
 
         <label>
             <?= _('Inhalt') ?>
-            <textarea style="width: 100%;" class="add_toolbar wysiwyg" name="content"><?= htmlReady($scm->content) ?></textarea>
+            <textarea style="width: 100%;" class="add_toolbar wysiwyg" name="content"><?= wysiwygReady($scm->content) ?></textarea>
         </label>
     </fieldset>
 
 <? if (!$scm->isNew()): ?>
     <p>
-        <?= sprintf(_('Zuletzt geändert von %s am %s'),
+        <?= sprintf(_('Zuletzt geÃ¤ndert von %s am %s'),
                     ObjectdisplayHelper::link($scm->user),
                     strftime('%x, %X', $scm->chdate)) ?>
     </p>

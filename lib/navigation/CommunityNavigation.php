@@ -28,14 +28,14 @@ class CommunityNavigation extends Navigation
     {
         parent::initItem();
         $onlinetip = _('Nur Sie sind online');
-        $user_count = get_users_online_count(10); // Should be the same value as in public/index.php
+        $user_count = get_users_online_count();
 
         if ($user_count) {
 
             if ($user_count == 1) {
-                $onlinetip = _('Außer Ihnen ist eine Person online');
+                $onlinetip = _('AuÃŸer Ihnen ist eine Person online');
             } else {
-                $onlinetip = sprintf(_('Es sind außer Ihnen %d Personen online'), $user_count);
+                $onlinetip = sprintf(_('Es sind auÃŸer Ihnen %d Personen online'), $user_count);
             }
         }
 
@@ -53,7 +53,7 @@ class CommunityNavigation extends Navigation
         parent::initSubNavigation();
 
         // online list
-        $navigation = new Navigation(_('Wer ist online?'), 'dispatch.php/online');
+        $navigation = new Navigation(_('Wer ist online?'), 'dispatch.php/online/index');
         $this->addSubNavigation('online', $navigation);
 
         // contacts

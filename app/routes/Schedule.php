@@ -2,7 +2,7 @@
 namespace RESTAPI\Routes;
 
 /**
- * @author  AndrÈ Klaﬂen <andre.klassen@elan-ev.de>
+ * @author  Andr√© Kla√üen <andre.klassen@elan-ev.de>
  * @author  <mlunzena@uos.de>
  * @license GPL 2 or later
  *
@@ -25,11 +25,9 @@ class Schedule extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
-        $semdata = new \SemesterData();
-
         $current_semester = isset($semester_id)
-            ? $semdata->getSemesterData($semester_id)
-            : $semdata->getCurrentSemesterData();
+            ? \Semester::find($semester_id)
+            : \Semester::findCurrent();
 
         if (!$current_semester) {
             $this->notFound('No such semester.');

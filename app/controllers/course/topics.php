@@ -17,19 +17,20 @@ class Course_TopicsController extends AuthenticatedController
 
     public function index_action()
     {
-        if (Request::isPost() && Request::get("edit") && $GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
+        if (Request::isPost() && Request::get("edit") && $GLOBALS['perm']->have_studip_perm("tutor", Context::getId())) {
             $topic = new CourseTopic(Request::option("issue_id"));
-            if ($topic['seminar_id'] && ($topic['seminar_id'] !== $_SESSION['SessionSeminar'])) {
+            if ($topic['seminar_id'] && ($topic['seminar_id'] !== Context::getId())) {
                 throw new AccessDeniedException();
             }
             if (Request::submitted("delete_topic")) {
                 $topic->delete();
-                PageLayout::postMessage(MessageBox::success(_("Thema gelöscht.")));
+                PageLayout::postSuccess(_('Thema gelÃ¶scht.'));
             } else {
-                $topic['title'] = Request::get("title");
-                $topic['description'] = Studip\Markup::purifyHtml(Request::get("description"));
+                $topic['title']         = Request::get("title");
+                $topic['description']   = Studip\Markup::purifyHtml(Request::get("description"));
+                $topic['paper_related'] = (bool) Request::int('paper_related');
                 if ($topic->isNew()) {
-                    $topic['seminar_id'] = $_SESSION['SessionSeminar'];
+                    $topic['seminar_id'] = Context::getId();
                 }
                 $topic->store();
 
@@ -47,7 +48,7 @@ class Course_TopicsController extends AuthenticatedController
                 }
                 $topic->store();
 
-                if (Request::get("folder") && !$topic->folder) {
+                if (Request::get("folder")) {
                     $topic->connectWithDocumentFolder();
                 }
 
@@ -65,7 +66,7 @@ class Course_TopicsController extends AuthenticatedController
             }
         }
         if (Request::isPost() && Request::option("move_down")) {
-            $topics = CourseTopic::findBySeminar_id($_SESSION['SessionSeminar']);
+            $topics = CourseTopic::findBySeminar_id(Context::getId());
             $mainkey = null;
             foreach ($topics as $key => $topic) {
                 if ($topic->getId() === Request::option("move_down")) {
@@ -82,7 +83,7 @@ class Course_TopicsController extends AuthenticatedController
             }
         }
         if (Request::isPost() && Request::option("move_up")) {
-            $topics = CourseTopic::findBySeminar_id($_SESSION['SessionSeminar']);
+            $topics = CourseTopic::findBySeminar_id(Context::getId());
             foreach ($topics as $key => $topic) {
                 if (($topic->getId() === Request::option("move_up")) && $key > 0) {
                     $topic['priority'] = $key;
@@ -96,50 +97,47 @@ class Course_TopicsController extends AuthenticatedController
         }
 
         Navigation::activateItem('/course/schedule/topics');
-        $this->topics = CourseTopic::findBySeminar_id($_SESSION['SessionSeminar']);
-        $this->cancelled_dates_locked = LockRules::Check($_SESSION['SessionSeminar'], 'cancelled_dates');
+        $this->topics = CourseTopic::findBySeminar_id(Context::getId());
+        $this->cancelled_dates_locked = LockRules::Check(Context::getId(), 'cancelled_dates');
     }
 
     public function edit_action($topic_id = null)
     {
-        if (!$GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
+        if (!$GLOBALS['perm']->have_studip_perm("tutor", Context::getId())) {
             throw new AccessDeniedException();
         }
         $this->topic = new CourseTopic($topic_id);
-        $this->dates = CourseDate::findBySeminar_id($_SESSION['SessionSeminar']);
+        $this->dates = CourseDate::findBySeminar_id(Context::getId());
 
         if (Request::isXhr()) {
-            $this->set_layout(null);
-            $this->set_content_type('text/html;Charset=windows-1252');
-            PageLayout::setTitle($topic_id ? _("Bearbeiten").": ".$this->topic['title'] : _("Neues Thema erstellen"));
+            PageLayout::setTitle($topic_id ? sprintf(_('Bearbeiten: %s'), $this->topic['title']) : _("Neues Thema erstellen"));
         }
     }
 
     public function allow_public_action()
     {
-        if (!$GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
+        if (!$GLOBALS['perm']->have_studip_perm("tutor", Context::getId())) {
             throw new AccessDeniedException();
         }
-        $this->course = Course::findCurrent();
-        $this->course['public_topics'] = $this->course['public_topics'] ? 0 : 1;
-        $this->course->store();
+        $config = CourseConfig::get(Context::getId());
+        $config->store('COURSE_PUBLIC_TOPICS', !$config->COURSE_PUBLIC_TOPICS);
         $this->redirect("course/topics");
     }
 
     public function copy_action()
     {
-        if (!$GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
+        if (!$GLOBALS['perm']->have_studip_perm("tutor", Context::getId())) {
             throw new AccessDeniedException();
         }
         if (Request::submitted("copy")) {
             $prio = 1;
-            foreach (Course::find($_SESSION['SessionSeminar'])->topics as $topic) {
+            foreach (Course::find(Context::getId())->topics as $topic) {
                 $prio = max($prio, $topic['priority']);
             }
             foreach (Request::getArray("topic") as $topic_id => $value) {
                 $topic = new CourseTopic($topic_id);
                 $topic = clone $topic;
-                $topic['seminar_id'] = $_SESSION['SessionSeminar'];
+                $topic['seminar_id'] = Context::getId();
                 $topic['priority'] = $prio;
                 $prio++;
                 $topic->setId($topic->getNewId());
@@ -151,10 +149,11 @@ class Course_TopicsController extends AuthenticatedController
         }
         if ($GLOBALS['perm']->have_perm("root")) {
             $this->courseSearch = new SQLSearch("
-                SELECT seminare.Seminar_id, CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')')
+                SELECT seminare.Seminar_id, CONCAT_WS(' ', seminare.VeranstaltungsNummer, seminare.name, '(', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', COUNT(issue_id), ')')
                 FROM seminare
-                    LEFT JOIN semester_data ON (semester_data.beginn = seminare.start_time)
-                WHERE CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')') LIKE :input
+                INNER JOIN semester_data ON (semester_data.beginn = seminare.start_time)
+                INNER JOIN themen ON themen.seminar_id = seminare.Seminar_id
+                WHERE seminare.VeranstaltungsNummer LIKE :input OR seminare.name LIKE :input
                 GROUP BY seminare.Seminar_id
                 ORDER BY semester_data.beginn DESC, seminare.VeranstaltungsNummer ASC, seminare.name ASC
                 ",
@@ -163,12 +162,14 @@ class Course_TopicsController extends AuthenticatedController
             );
         } elseif ($GLOBALS['perm']->have_perm("admin")) {
             $this->courseSearch = new SQLSearch("
-                SELECT seminare.Seminar_id, CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')')
+                SELECT seminare.Seminar_id, CONCAT_WS(' ', seminare.VeranstaltungsNummer, seminare.name, '(', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', COUNT(issue_id), ')')
                 FROM seminare
                     INNER JOIN seminar_inst ON (seminare.Seminar_id = seminar_inst.seminar_id)
                     INNER JOIN user_inst ON (user_inst.Institut_id = seminar_inst.institut_id)
-                    LEFT JOIN semester_data ON (semester_data.beginn = seminare.start_time)
-                WHERE CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')') LIKE :input
+                    INNER JOIN semester_data ON (semester_data.beginn = seminare.start_time)
+                    INNER JOIN themen ON themen.seminar_id = seminare.Seminar_id
+
+                WHERE seminare.VeranstaltungsNummer LIKE :input OR seminare.name LIKE :input
                     AND user_inst.user_id = ".DBManager::get()->quote($GLOBALS['user']->id)."
                     AND user_inst.inst_perms = 'admin'
                 GROUP BY seminare.Seminar_id
@@ -179,11 +180,12 @@ class Course_TopicsController extends AuthenticatedController
             );
         } else {
             $this->courseSearch = new SQLSearch("
-                SELECT seminare.Seminar_id, CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')')
+                SELECT seminare.Seminar_id, CONCAT_WS(' ', seminare.VeranstaltungsNummer, seminare.name, '(', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', COUNT(issue_id), ')')
                 FROM seminare
                     INNER JOIN seminar_user ON (seminare.Seminar_id = seminar_user.Seminar_id)
-                    LEFT JOIN semester_data ON (semester_data.beginn = seminare.start_time)
-                WHERE CONCAT(seminare.VeranstaltungsNummer, ' ', seminare.name, ' (', IF(seminare.duration_time = 0, semester_data.name, 'unbegrenzt'), ') (', (SELECT COUNT(*) FROM themen WHERE themen.seminar_id = seminare.Seminar_id), ')') LIKE :input
+                    INNER JOIN semester_data ON (semester_data.beginn = seminare.start_time)
+                    INNER JOIN themen ON themen.seminar_id = seminare.Seminar_id
+                WHERE seminare.VeranstaltungsNummer LIKE :input OR seminare.name LIKE :input
                     AND seminar_user.status IN ('tutor', 'dozent')
                     AND seminar_user.user_id = ".DBManager::get()->quote($GLOBALS['user']->id)."
                 GROUP BY seminare.Seminar_id
@@ -193,12 +195,7 @@ class Course_TopicsController extends AuthenticatedController
                 "seminar_id"
             );
         }
-
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-            $this->set_content_type('text/html;Charset=windows-1252');
-            PageLayout::setTitle(_("Themen aus Veranstaltung kopieren"));
-        }
+        PageLayout::setTitle(_("Themen aus Veranstaltung kopieren"));
     }
 
     public function fetch_topics_action()

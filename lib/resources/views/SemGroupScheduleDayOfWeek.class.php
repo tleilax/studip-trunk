@@ -10,7 +10,7 @@
 * or a timetable for a ressource like a room, a device or a building
 *
 *
-* @author       AndrÈ Noack <noack@data-quest.de>
+* @author       Andr√© Noack <noack@data-quest.de>
 * @access       public
 * @package      resources
 * @modulegroup  resources_modules
@@ -20,8 +20,8 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ScheduleWeek.class.php
-// Modul zum Erstellen grafischer Belegungspl‰ne
-// Copyright (C) 2005 AndrÈ Noack <noack@data-quest.de>
+// Modul zum Erstellen grafischer Belegungspl√§ne
+// Copyright (C) 2005 Andr√© Noack <noack@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
-require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . "/views/ScheduleView.class.php";
+require_once "lib/resources/views/ScheduleView.class.php";
 
 class SemGroupScheduleDayOfWeek extends ScheduleView
 {
@@ -90,12 +90,16 @@ class SemGroupScheduleDayOfWeek extends ScheduleView
     {
         $add_link_timestamp = $this->base_date + ($i * 60 * 60);
         $add_link_timestamp .= "&show_object=" . $this->show_columns[$l];
-        return sprintf ("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s%s\">%s</a></td>",
-                        $this->add_link,
-                        $add_link_timestamp,
-                        Assets::img('calplus.gif',
-                                    tooltip2(sprintf(_('Eine neue Belegung von %s bis %s Uhr anlegen'),
-                                                     date('H:i', $add_link_timestamp),
-                                                     date('H:i', $add_link_timestamp + 2 * 60 * 60)))));
+        return sprintf ("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s\">%s</a></td>",
+                        URLHelper::getLink($this->add_link . $add_link_timestamp),
+                        Icon::create(
+                            'add',
+                            Icon::ROLE_INACTIVE,
+                            tooltip2(sprintf(_('Eine neue Belegung von %s bis %s Uhr anlegen'),
+                                        date('H:i', $add_link_timestamp),
+                                        date('H:i', $add_link_timestamp + 2 * 60 * 60))
+                            )
+                        )->asImg(8)
+                    );
     }
 }

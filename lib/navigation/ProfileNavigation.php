@@ -27,7 +27,7 @@ class ProfileNavigation extends Navigation
 
         parent::__construct(_('Profil'));
     }
-    
+
     public function initItem()
     {
         global $user;
@@ -38,10 +38,10 @@ class ProfileNavigation extends Navigation
 
         $hp_txt = _('Zu Ihrer Profilseite');
         $hp_link = 'dispatch.php/profile';
-        
+
         $hp_txt .= sprintf(' (%s, %s)', $user->username, $user->perms);
         $this->setURL($hp_link);
-        $this->setImage(Icon::create('person', 'navigation', ["title" => $hp_txt]), ["class" => $hp_class]);
+        //$this->setImage(Icon::create('person', 'navigation', ["title" => $hp_txt]), ["class" => $hp_class]);
     }
 
     /**
@@ -76,18 +76,14 @@ class ProfileNavigation extends Navigation
         $this->addSubNavigation('index', $navigation);
 
         if ($perm->have_profile_perm('user', $current_user->user_id)) {
-            // avatar
-            $navigation = new Navigation(_('Bild'), 'dispatch.php/settings/avatar');
-            $this->addSubNavigation('avatar', $navigation);
-
             // profile data
-            $navigation = new Navigation(_('Nutzerdaten'));
+            $navigation = new Navigation(_('PersÃ¶nliche Angaben'));
             $navigation->addSubNavigation('profile', new Navigation(_('Grunddaten'), 'dispatch.php/settings/account'));
             if (($perm->get_profile_perm($current_user->user_id) == 'user'
                 || ($perm->have_perm('root') && Config::get()->ALLOW_ADMIN_USERACCESS))
                 && !StudipAuthAbstract::CheckField('auth_user_md5.password', $current_user->auth_plugin)
                 && !LockRules::check($current_user->user_id, 'password')) {
-                $navigation->addSubNavigation('password', new Navigation(_('Passwort ändern'), 'dispatch.php/settings/password'));
+                $navigation->addSubNavigation('password', new Navigation(_('Passwort Ã¤ndern'), 'dispatch.php/settings/password'));
             }
             $navigation->addSubNavigation('details', new Navigation(_('Weitere Daten'), 'dispatch.php/settings/details'));
 
@@ -97,7 +93,7 @@ class ProfileNavigation extends Navigation
 
             if ($current_user->perms != 'root') {
                 if (count(UserDomain::getUserDomains())) {
-                    $navigation->addSubNavigation('userdomains', new Navigation(_('Nutzerdomänen'), 'dispatch.php/settings/userdomains'));
+                    $navigation->addSubNavigation('userdomains', new Navigation(_('NutzerdomÃ¤nen'), 'dispatch.php/settings/userdomains'));
                 }
 
                 if ($perm->is_staff_member($current_user->user_id)) {
@@ -111,7 +107,7 @@ class ProfileNavigation extends Navigation
                 $navigation = new Navigation(_('Einstellungen'));
 
                 $navigation->addSubNavigation('general', new Navigation(_('Allgemeines'), 'dispatch.php/settings/general'));
-                $navigation->addSubNavigation('privacy', new Navigation(_('Privatsphäre'), 'dispatch.php/settings/privacy'));
+                $navigation->addSubNavigation('privacy', new Navigation(_('PrivatsphÃ¤re'), 'dispatch.php/settings/privacy'));
                 $navigation->addSubNavigation('messaging', new Navigation(_('Nachrichten'), 'dispatch.php/settings/messaging'));
 
                 if (get_config('CALENDAR_ENABLE')) {
@@ -137,17 +133,6 @@ class ProfileNavigation extends Navigation
             $navigation = new Navigation(_('Kategorien'), 'dispatch.php/settings/categories');
             $this->addSubNavigation('categories', $navigation);
 
-        }
-
-        // user documents page
-        if (Config::get()->PERSONALDOCUMENT_ENABLE && ($perm->have_profile_perm('user', $current_user->user_id) || Config::get()->PERSONALDOCUMENT_OPEN_ACCESS)) {
-            $title = _('Meine Dateien');
-            if (Config::get()->PERSONALDOCUMENT_OPEN_ACCESS && $current_user->id !== $user->id) {
-                $title = _('Dateibereich');
-            }
-            
-            $navigation = new Navigation($title, 'dispatch.php/document/files');
-            $this->addSubNavigation('files', $navigation);
         }
     }
 }

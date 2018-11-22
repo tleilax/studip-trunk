@@ -21,7 +21,7 @@
 require_once dirname(__FILE__) . '/../../../bootstrap.php';
 require_once 'tests/unit/fakeserver.php';
 
-require_once 'vendor/HTMLPurifier/HTMLPurifier.auto.php';
+require_once 'vendor/HTMLPurifier/HTMLPurifier.standalone.php';
 
 # needed by visual.inc.php, which is required by link classifier
 require_once 'lib/classes/DbView.class.php';
@@ -34,6 +34,14 @@ require_once 'lib/classes/htmlpurifier/HTMLPurifier_Injector_ClassifyLinks.php';
  */
 class HTMLPurifier_Injector_ClassifyLinksTest extends PHPUnit_Framework_TestCase
 {
+    public function setUp()
+    {
+        $config = new Config([
+            'CONVERT_IDNA_URL' => false,
+        ]);
+        Config::set($config);
+    }
+
     /**
      * @dataProvider dataProvider
      */
@@ -42,6 +50,7 @@ class HTMLPurifier_Injector_ClassifyLinksTest extends PHPUnit_Framework_TestCase
         # create purifier
         $config = \HTMLPurifier_Config::createDefault();
         $config->set('AutoFormat.Custom', array('ClassifyLinks'));
+        $config->set('Cache.DefinitionImpl', null);
         $purifier = new \HTMLPurifier($config);
 
         # run test
@@ -102,5 +111,10 @@ class HTMLPurifier_Injector_ClassifyLinksTest extends PHPUnit_Framework_TestCase
                 $a($url('net', 'index.php'), $in, 'Main Page')
             ),
         );
+    }
+
+    public function tearDown()
+    {
+        Config::set(null);
     }
 }

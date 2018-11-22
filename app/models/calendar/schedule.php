@@ -9,7 +9,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Till Glöggler <tgloeggl@uos.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
@@ -39,8 +39,8 @@ class CalendarScheduleModel
                 WHERE id = ?");
             $stmt->execute(array($data['start'], $data['end'], $data['day'], $data['title'],
                 $data['content'], $data['color'], $data['user_id'], $data['id']));
-            
-            NotificationCenter::postNotification('ScheduleDidUpdate', $GLOBALS['user']->id, array('values' => $data)); 
+
+            NotificationCenter::postNotification('ScheduleDidUpdate', $GLOBALS['user']->id, array('values' => $data));
 
         } else {
             $stmt = DBManager::get()->prepare("INSERT INTO schedule
@@ -556,7 +556,7 @@ class CalendarScheduleModel
             }
 
             if (sizeof($days) == 1) {
-                $ret[$day]->setTitle($day_names[$day] .' ('. _('zurück zur Wochenansicht') .')')
+                $ret[$day]->setTitle($day_names[$day] .' ('. _('zurÃ¼ck zur Wochenansicht') .')')
                     ->setURL('dispatch.php/calendar/'. $controller .'/index');
             } else {
                 $ret[$day]->setTitle($day_names[$day])
@@ -681,8 +681,7 @@ class CalendarScheduleModel
      */
     static function getCurrentSemester()
     {
-        $semdata = new SemesterData();
-        return $semdata->getCurrentSemesterData();
+        return SemesterData::getCurrentSemesterData();
     }
 
     /**

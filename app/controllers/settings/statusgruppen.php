@@ -26,15 +26,11 @@ class Settings_StatusgruppenController extends Settings_SettingsController
      */
     public function before_filter(&$action, &$args)
     {
-        if ($action === 'verify') {
-            $action = 'index';
-        }
-
         parent::before_filter($action, $args);
 
         require_once 'lib/statusgruppe.inc.php';
 
-        PageLayout::setHelpKeyword('Basis.HomepageUniversitäreDaten');
+        PageLayout::setHelpKeyword('Basis.HomepageUniversitÃ¤reDaten');
         PageLayout::setTitle(_('Einrichtungsdaten bearbeiten'));
         Navigation::activateItem('/profile/edit/statusgruppen');
         SkipLinks::addIndex(_('Einrichtungsdaten bearbeiten'), 'layout_content', 100);
@@ -88,14 +84,14 @@ class Settings_StatusgruppenController extends Settings_SettingsController
 
             $admin_insts = [];
             foreach ($institutes as $institute) {
-                $institute['groups'] = GetAllStatusgruppen($institute['Institut_id']) ?: [];
+                $institute['groups'] = GetAllStatusgruppen($institute['Institut_id'], $this->user->id) ?: [];
 
                 if ($institute['is_fak']) {
                     $stmt = DBManager::get()->prepare("SELECT Institut_id, Name FROM Institute WHERE fakultaets_id = ? AND Institut_id != fakultaets_id ORDER BY Name");
                     $stmt->execute([$institute['Institut_id']]);
                     $institute['sub'] = $stmt->fetchGrouped(PDO::FETCH_ASSOC);
                     foreach ($institute['sub'] as $id => $sub) {
-                        $sub['groups']         = GetAllStatusgruppen($id) ?: [];
+                        $sub['groups']         = GetAllStatusgruppen($id, $this->user->id) ?: [];
                         $institute['sub'][$id] = $sub;
                     }
                 }
@@ -109,13 +105,13 @@ class Settings_StatusgruppenController extends Settings_SettingsController
         // get the roles the user is in
         $institutes = [];
         foreach ($this->user->institute_memberships as $institute_membership) {
-            if ($institute_membership->inst_perms != 'user') {
+            if ($institute_membership->inst_perms !== 'user') {
                 $institutes[$institute_membership->institut_id] = $institute_membership->toArray() + $institute_membership->institute->toArray();
 
                 $roles = GetAllStatusgruppen($institute_membership->institut_id, $this->user->user_id, true);
                 $institutes[$institute_membership->institut_id]['roles'] = $roles ?: [];
 
-                $institutes[$institute_membership->institut_id]['flattened'] = array_filter(Statusgruppe::getFlattenedRoles($roles), function ($role) {
+                $institutes[$institute_membership->institut_id]['flattened'] = array_filter(getFlattenedRoles($roles), function ($role) {
                     return $role['user_there'];
                 });
 
@@ -160,7 +156,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
             $value    = $defaults[$datafield_id]->getValue();
         }
 
-        $entry = new DatafieldEntryModel([$datafield_id, $this->user->user_id, $role_id]);
+        $entry = new DatafieldEntryModel([$datafield_id, $this->user->user_id, $role_id, '']);
         $entry->content = $value;
         $entry->store();
 
@@ -197,30 +193,44 @@ class Settings_StatusgruppenController extends Settings_SettingsController
 
         $role_id = Request::option('role_id');
         if ($role_id) {
-            $group  = Statusgruppen::find($role_id);
+            $group = Statusgruppen::find($role_id);
 
-            if ($group->addUser($this->user->user_id)) {
-                $member  = new InstituteMember([$this->user->user_id, $range_id]);
-                $was_new = $member->isNew();
+            // Get institute from group
+            $temp = $group;
+            while ($temp->parent) {
+                $temp = $temp->parent;
+            }
+            $range_id = $temp->range_id;
+            if (!Institute::find($range_id)) {
+                throw new RuntimeException('Selected group does not belong to an institute');
+            }
 
+            // Try to add group member
+            if ($group->isMember($this->user->id)) {
+                PageLayout::postInfo(_('Die Person ist bereits in der Gruppe eingetragen.'));
+            } elseif (!$group->addUser($this->user->id)) {
+                PageLayout::postError(_('Fehler beim Eintragen in die Gruppe!'));
+            } else {
+                $member  = new InstituteMember([$this->user->id, $range_id]);
                 $member->inst_perms = $this->user->perms;
+
+                $was_new   = $member->isNew();
+                $was_dirty = $member->isDirty();
+
                 $member->store();
 
                 if ($was_new) {
-                    StudipLog::log('INST_USER_ADD', $range_id, $this->user->user_id, $member->inst_perms);
-                    NotificationCenter::postNotification('UserInstitutionDidCreate', $range_id, $this->user->user_id);
-                } else if ($statement->rowCount() == 2) {
-                    StudipLog::log('INST_USER_STATUS', $range_id, $this->user->user_id, $member->inst_perms);
-                    NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $id, $this->user->user_id);
-
+                    StudipLog::log('INST_USER_ADD', $range_id, $this->user->id, $member->inst_perms);
+                    NotificationCenter::postNotification('UserInstitutionDidCreate', $range_id, $this->user->id);
+                } elseif ($was_dirty) {
+                    StudipLog::log('INST_USER_STATUS', $range_id, $this->user->id, $member->inst_perms);
+                    NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $range_id, $this->user->id);
                 }
 
-                InstituteMember::ensureDefaultInstituteForUser($this->user->user_id);
+                InstituteMember::ensureDefaultInstituteForUser($this->user->id);
 
                 $_SESSION['edit_about_data']['open'] = $role_id;
-                PageLayout::postSuccess(_('Die Person wurde in die ausgewählte Gruppe eingetragen!'));
-            } else {
-                PageLayout::postError(_('Fehler beim Eintragen in die Gruppe!'));
+                PageLayout::postSuccess(_('Die Person wurde in die ausgewÃ¤hlte Gruppe eingetragen!'));
             }
         }
 
@@ -239,7 +249,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
             $this->check_ticket();
 
             Statusgruppen::find($id)->removeUser($this->user->id);
-            PageLayout::postSuccess(_('Die Person wurde aus der ausgewählten Gruppe gelöscht!'));
+            PageLayout::postSuccess(_('Die Person wurde aus der ausgewÃ¤hlten Gruppe gelÃ¶scht!'));
         }
 
         $this->redirect('settings/statusgruppen');
@@ -255,8 +265,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
     {
         if (in_array($GLOBALS['perm']->get_profile_perm($this->user->user_id), words('user admin'))) {
 
-            $query
-                       = "SELECT Institut_id
+            $query = "SELECT Institut_id
                       FROM user_inst
                       WHERE user_id = ? AND inst_perms != 'user'
                       ORDER BY priority ASC";
@@ -278,8 +287,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
             }
 
             if ($changed) {
-                $query
-                           = "UPDATE user_inst
+                $query = "UPDATE user_inst
                           SET priority = ?
                           WHERE user_id = ? AND Institut_id = ?";
                 $statement = DBManager::get()->prepare($query);
@@ -291,7 +299,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
                         $id,
                     ]);
                 }
-                PageLayout::postSuccess(_('Reihenfolge wurde geändert'));
+                PageLayout::postSuccess(_('Reihenfolge wurde geÃ¤ndert'));
             }
         }
         $this->redirect('settings/statusgruppen#' . $id);
@@ -328,7 +336,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
                     StudipLog::log('INST_USER_STATUS', $id, $this->user->user_id, $perms . ' -> ' . $status);
                     NotificationCenter::postNotification('UserInstitutionPermDidUpdate', $id, $this->user->user_id);
 
-                    $success[] = _('Der Status wurde geändert!');
+                    $success[] = _('Der Status wurde geÃ¤ndert!');
                 }
             }
 
@@ -347,10 +355,10 @@ class Settings_StatusgruppenController extends Settings_SettingsController
                 ]);
                 if ($statement->rowCount() > 0) {
                     $changed   = true;
-                    $success[] = sprintf(_('Ihre Daten an der Einrichtung %s wurden geändert.'), htmlReady(Request::get('name')));
+                    $success[] = sprintf(_('Ihre Daten an der Einrichtung %s wurden geÃ¤ndert.'), htmlReady(Request::get('name')));
 
                     setTempLanguage($this->user->user_id);
-                    $this->postPrivateMessage(_("Ihre Daten an der Einrichtung %s wurden geändert.\n"), Request::get('name'));
+                    $this->postPrivateMessage(_("Ihre Daten an der Einrichtung %s wurden geÃ¤ndert.\n"), Request::get('name'));
                     restoreLanguage();
                 }
             }
@@ -382,7 +390,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
                     if ($entry->isValid()) {
                         if ($entry->store() && !$changed && $type === 'institute') {
                             $changed   = true;
-                            $success[] = sprintf(_('Ihre Daten an der Einrichtung %s wurden geändert'), htmlReady(Institute::find($id)->name)
+                            $success[] = sprintf(_('Ihre Daten an der Einrichtung %s wurden geÃ¤ndert'), htmlReady(Institute::find($id)->name)
                             );
                         }
                     } else {
@@ -395,7 +403,7 @@ class Settings_StatusgruppenController extends Settings_SettingsController
         }
 
         if (count($success) > 0) {
-            PageLayout::postSuccess(_('Änderung erfolgreich'), $success);
+            PageLayout::postSuccess(_('Ã„nderung erfolgreich'), $success);
 
             if (count($errors) > 0) {
                 PageLayout::postWarning(_('Bei der Verarbeitung sind allerdings folgende Fehler aufgetreten'), $errors);
@@ -403,11 +411,23 @@ class Settings_StatusgruppenController extends Settings_SettingsController
         } elseif (count($errors) === 1) {
             PageLayout::postError($errors);
         } elseif (count($errors) > 0) {
-            PageLayout::postError(_('Fehler bei der Speicherung Ihrer Daten. Bitte überprüfen Sie Ihre Angaben.'), $errors);
+            PageLayout::postError(_('Fehler bei der Speicherung Ihrer Daten. Bitte Ã¼berprÃ¼fen Sie Ihre Angaben.'), $errors);
         }
 
 
         $this->redirect($this->url_for('settings/statusgruppen',
             ['contentbox_open' => $id, 'type' => strtolower($type)]));
+    }
+
+    public function verify_action($action, $id = null)
+    {
+        if ($action === 'delete' && $id) {
+            PageLayout::postQuestion(
+                _('Wollen Sie die Zuordnung zu der Funktion wirklich lÃ¶schen?'),
+                $this->url_for("settings/statusgruppen/delete/{$id}/1")
+            )->includeTicket();
+        }
+
+        $this->redirect('settings/statusgruppen');
     }
 }

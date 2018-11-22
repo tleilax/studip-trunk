@@ -27,9 +27,7 @@ require 'studip_cli_env.inc.php';
 function should_skip_file($filename, $realfile) {
     $exclude = array(
         'locale/*',
-        'public/assets/javascripts/jquery/*',
-        'public/assets/javascripts/ckeditor/*',
-        'public/assets/javascripts/mathjax/*',
+        'node_modules/*',
         'public/assets/*',
         'public/pictures/*',
         'public/plugins_packages/*',
@@ -37,14 +35,13 @@ function should_skip_file($filename, $realfile) {
         'vendor/*',
     );
     $include = array(
-        'public/assets/javascripts*',
         'public/plugins_packages/core*',
     );
     $mime_types = array(
         'text/*',
         'application/javascript',
     );
-    
+
     // Check if the file should be excluded, depending on it's path.
     $matching_pattern = null;
     $skip             = false;
@@ -55,7 +52,7 @@ function should_skip_file($filename, $realfile) {
             break;
         }
     }
-    
+
     // If it should be skipped in step 1, check if it matches the include
     // patterns and no longer skip it, if it matches.
     // Matches are only from patterns that are longer than the pattern that
@@ -69,12 +66,12 @@ function should_skip_file($filename, $realfile) {
             }
         }
     }
-    
+
     // If the file should not be skipped, check it's mime type and skip it
     // if the mime type is not allowed.
     if (!$skip && is_file($realfile)) {
         $mime_type = mime_content_type($realfile);
-        
+
         $skip = true;
         foreach ($mime_types as $pattern) {
             if (fnmatch($pattern, $mime_type)) {
@@ -99,7 +96,7 @@ function should_skip_file($filename, $realfile) {
 function extract_strings($file) {
     $contents = file_get_contents($file);
     $regexp   = '/(?:\'([^\']+)\'|"([^"]+)")\\.toLocaleString\\(\\s*\\)/';
-    
+
     if (preg_match_all($regexp, $contents, $matches, PREG_SET_ORDER)) {
         $result = array();
         foreach ($matches as $match) {
@@ -181,14 +178,8 @@ $translations = array(
 <? endforeach; ?>
 );
 
-// translations have to be UTF8 for #json_encode
-$translations = $plugin->utf8EncodeArray($translations);
-
 ?>
-String.toLocaleString({
-  "<?= '<?=' ?> strtr($language, "_", "-") <?= '?>' ?>": <?= '<?=' ?> json_encode($translations) <?= '?>' ?>
-
-});
+<?= '<?=' ?> json_encode($translations) <?= '?>' ?>
 <?
 $view = ob_get_clean();
 

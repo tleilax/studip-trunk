@@ -24,12 +24,12 @@
                     <col width="7px">
                     <col width="25px">
                     <? if ($config_sem_number) : ?>
-                        <col width="10%">
+                        <col width="70px">
                     <? endif ?>
                     <col>
-                    <col class="responsive-hidden" width="45px">
-                    <col class="responsive-hidden" width="<?= $nav_elements * 27 ?>px">
-                    <col class="responsive-hidden" width=45px>
+                    <col class="hidden-small-down" width="45px">
+                    <col class="hidden-small-down" width="<?= $nav_elements * 27 ?>px">
+                    <col class="hidden-small-down" width=45px>
                 </colgroup>
                 <thead>
                 <tr class="sortable">
@@ -48,9 +48,9 @@
                             <?= _("Name") ?>
                         </a>
                     </th>
-                    <th class="responsive-hidden"></th>
-                    <th class="responsive-hidden"><?= _("Inhalt") ?></th>
-                    <th class="responsive-hidden"></th>
+                    <th class="hidden-small-down"></th>
+                    <th class="hidden-small-down"><?= _("Inhalt") ?></th>
+                    <th class="hidden-small-down"></th>
                 </tr>
                 </thead>
                 <? if (strcmp($group_field, 'sem_number') !== 0) : ?>
@@ -63,9 +63,9 @@
         <? endforeach ?>
     </div>
 <? else : ?>
-    <?= PageLayout::postMessage(MessageBox::info(_('Es wurden keine Veranstaltungen gefunden. Mögliche Ursachen:'), array(
-        sprintf(_('Sie haben zur Zeit keine Veranstaltungen belegt, an denen Sie teilnehmen können.<br>Bitte nutzen Sie %s<b>Veranstaltung suchen / hinzufügen</b>%s um sich für Veranstaltungen anzumelden.'),'<a href="' . URLHelper::getLink('dispatch.php/search/courses') . '">', '</a>'),
-        _('In dem ausgewählten <b>Semester</b> wurden keine Veranstaltungen belegt.').'<br>'._('Wählen Sie links im <b>Semesterfilter</b> ein anderes Semester aus')
+    <?= PageLayout::postMessage(MessageBox::info(_('Es wurden keine Veranstaltungen gefunden. MÃ¶gliche Ursachen:'), array(
+        sprintf(_('Sie haben zur Zeit keine Veranstaltungen belegt, an denen Sie teilnehmen kÃ¶nnen.<br>Bitte nutzen Sie %s<b>Veranstaltung suchen / hinzufÃ¼gen</b>%s um sich fÃ¼r Veranstaltungen anzumelden.'),'<a href="' . URLHelper::getLink('dispatch.php/search/courses') . '">', '</a>'),
+        _('In dem ausgewÃ¤hlten <b>Semester</b> wurden keine Veranstaltungen belegt.').'<br>'._('WÃ¤hlen Sie links im <b>Semesterfilter</b> ein anderes Semester aus')
     )))?>
 <? endif ?>
 <? if (count($my_bosses)) : ?>

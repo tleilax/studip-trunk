@@ -1,13 +1,3 @@
-<?
-$inputs = array(
-    'lock_%s_day'   => array('format' => 'd', 'placeholder' => _('tt')),
-    'lock_%s_month' => array('format' => 'm', 'placeholder' => _('mm')),
-    'lock_%s_year'  => array('format' => 'Y', 'placeholder' => _('jjjj'), 'length' => 4),
-    'lock_%s_hour'  => array('format' => 'H', 'placeholder' => _('ss'), 'divider' => true),
-    'lock_%s_min'   => array('format' => 'i', 'placeholder' => _('mm')),
-);
-?>
-
 <? if (count($locks) > 0): ?>
     <table class="default" style="width: 50%;">
         <colgroup>
@@ -15,39 +5,28 @@ $inputs = array(
             <col width="2*">
             <col width="1*">
         </colgroup>
-        <thead>
-            <tr>
-                <th><?= _('Beginn:') ?></th>
-                <th><?= _('Ende:') ?></th>
-                <th>&nbsp;</th>
-            </tr>
-        </thead>
         <tbody>
         <? foreach ($locks as $lock): ?>
             <tr>
             <? if ($_SESSION['resources_data']['lock_edits'][$lock['lock_id']]): ?>
                 <!-- edit lock start time -->
                 <td>
-                <?  foreach ($inputs as $key => $data): ?>
-                    <? if ($data['divider']): ?><br><? endif; ?>
-                    <input type="text" style="font-size:8pt;"
-                           size="<?= $data['length'] ?: 2 ?>" maxlength="<?= $data['length'] ?: 2 ?>"
-                           name="<?= sprintf($key, 'begin') ?>[]"
-                           value="<?= $lock['lock_begin'] ? date($data['format'], $lock['lock_begin']) : '' ?>"
-                           placeholder="<?= htmlReady($data['placeholder']) ?>">
-                <? endforeach; ?>
+                    <label>
+                        <?= _('Beginn') ?>
+                        <input type="text" name="lock[begin][]"
+                            value="<?= $lock['lock_begin'] ? date('d.m.Y H:i', $lock['lock_begin']) : '' ?>"
+                            data-datetime-picker>
+                    </label>
                 </td>
 
                 <!-- edit lock end time -->
                 <td>
-                <? foreach ($inputs as $key => $data): ?>
-                    <? if ($data['divider']): ?><br><? endif; ?>
-                    <input type="text" style="font-size:8pt;"
-                           size="<?= $data['length'] ?: 2 ?>" maxlength="<?= $data['length'] ?: 2 ?>"
-                           name="<?= sprintf($key, 'end') ?>[]"
-                           value="<?= $lock['lock_end'] ? date($data['format'], $lock['lock_end']) : '' ?>"
-                           placeholder="<?= htmlReady($data['placeholder']) ?>">
-                <? endforeach; ?>
+                    <label>
+                        <?= _('Ende') ?>
+                        <input type="text" name="lock[end][]"
+                            value="<?= $lock['lock_end'] ? date('d.m.Y H:i', $lock['lock_end']) : '' ?>" 
+                            data-datetime-picker>
+                    </label>
                 </td>
 
                 <td style="text-align: right; vertical-align: bottom;">
@@ -55,7 +34,7 @@ $inputs = array(
 
                     <?= Icon::create('accept', 'clickable', ['title' => _('Diesen Eintrag speichern')])->asInput(array('name'=>'lock_sent','class'=>'text-top',)) ?>
                     <a href="<?= URLHelper::getLink('?kill_lock=' . $lock['lock_id']) ?>">
-                        <?= Icon::create('trash', 'clickable')->asImg(['class' => 'text-top', 'title' => _('Diesen Eintrag löschen')]) ?>
+                        <?= Icon::create('trash', 'clickable')->asImg(['class' => 'text-top', 'title' => _('Diesen Eintrag lÃ¶schen')]) ?>
                     </a>
                 </td>
             <? else: ?>
@@ -66,7 +45,7 @@ $inputs = array(
                         <?= Icon::create('edit', 'clickable', ['title' => _('Diesen Eintrag bearbeiten')])->asImg(['class' => 'text-top']) ?>
                     </a>
                     <a href="<?= URLHelper::getLink('?kill_lock=' . $lock['lock_id']) ?>">
-                        <?= Icon::create('trash', 'clickable', ['title' => _('Diesen Eintrag löschen')])->asImg(['class' => 'text-top']) ?>
+                        <?= Icon::create('trash', 'clickable', ['title' => _('Diesen Eintrag lÃ¶schen')])->asImg(['class' => 'text-top']) ?>
                     </a>
                 </td>
             <? endif; ?>

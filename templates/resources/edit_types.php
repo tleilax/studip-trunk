@@ -5,55 +5,36 @@
     $availableIcons = array (1=>"cont_res1.gif",2=> "cont_res2.gif",3=> "cont_res3.gif", 4=>"cont_res4.gif",5=> "cont_res5.gif");
 ?>
 
-<form method="POST" action="<?= URLHelper::getLink() ?>#a">
+<form method="POST" action="<?= URLHelper::getLink() ?>#a" class="default">
 <?= CSRFProtection::tokenTag() ?>
 
-<table class="default" style="margin: 0 1%; width: 98%;">
-    <colgroup>
-        <col width="4%">
-        <col width="16%">
-        <col width="80%">
-    </colgroup>
-    <thead>
-        <tr>
-            <th>&nbsp;</th>
-            <th colspan="2"><?= _('Neuen Typ anlegen') ?></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <label for="new_type"><?= _('Name') ?></label>
-            </td>
-            <td>
-                <input type="text" id="new_type" name="add_type"
-                       size="50" maxlength="255"
-                       placeholder="&lt;<?= _('bitte geben Sie hier den Namen ein') ?>&gt;">
-                <br>
-                <label>
-                    <input type="checkbox" name="resource_is_room">
-                    <?= _('Ressourcen-Typ wird als Raum behandelt') ?>
-                </label>
-            </td>
-        </tr>
-    </tbody>
-    <tfoot>
-        <tr>
-            <td class="table_footer">&nbsp;</td>
-            <td colspan="2" class="table_footer">
-                <?= Button::create(_('Anlegen'), '_add_type') ?>
-            </td>
-        </tr>
-    </tfoot>
-</table>
+    <fieldset>
+        <legend><?= _('Neuen Typ anlegen') ?></legend>
+
+        <label for="new_type">
+            <?= _('Name') ?>
+
+            <input type="text" id="new_type" name="add_type"
+                   size="50" maxlength="255"
+                   placeholder="&lt;<?= _('bitte geben Sie hier den Namen ein') ?>&gt;">
+        </label>
+
+        <label>
+            <input type="checkbox" name="resource_is_room">
+            <?= _('Ressourcen-Typ wird als Raum behandelt') ?>
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Button::create(_('Anlegen'), '_add_type') ?>
+    </footer>
 </form>
 
 
 <form method="POST" action="<?=URLHelper::getLink('?change_categories=TRUE') ?>">
 <?= CSRFProtection::tokenTag() ?>
 <div style="text-align: center; margin-top: 1em;">
-    <?= Button::createAccept(_('Übernehmen'), 'change_types') ?>
+    <?= Button::createAccept(_('Ãœbernehmen'), 'change_types') ?>
 </div>
 
 <table class="default zebra" style="margin: 0 1%; width: 98%;">
@@ -138,7 +119,7 @@
                                 <input type="hidden" name="requestable[]" value="_id1_<?= $type['category_id'] ?>">
                                 <input type="hidden" name="requestable[]" value="_id2_<?= $property['property_id'] ?>">
                                 <input type="checkbox" name="requestable[]" <? if ($property['requestable']) echo 'checked'; ?>>
-                                <?= _('wünschbar') ?>
+                                <?= _('wÃ¼nschbar') ?>
                             <? else: ?>
                                 &nbsp;
                             <? endif; ?>
@@ -147,16 +128,16 @@
                                 <input type="hidden" name="protected[]" value="_id1_<?= $type['category_id'] ?>">
                                 <input type="hidden" name="protected[]" value="_id2_<?= $property['property_id'] ?>">
                                 <input type="checkbox" name="protected[]" <? if ($property['protected']) echo 'checked'; ?>>
-                                <?= _('geschützt') ?>
+                                <?= _('geschÃ¼tzt') ?>
                             </td>
                             <td style="text-align: right;">
                             <? if (!$property['system']):  ?>
                                 <a href="<?= URLHelper::getLink('?delete_type_property_id=' . $property['property_id']
                                                                .'&delete_type_category_id='.$property['category_id']) ?>">
-                                    <?= Icon::create('trash', 'clickable', ['title' => _('Eigenschaft löschen')])->asImg(16, ["class" => 'text-top']) ?>
+                                    <?= Icon::create('trash', 'clickable', ['title' => _('Eigenschaft lÃ¶schen')])->asImg(16, ["class" => 'text-top']) ?>
                                 </a>
                             <? else: ?>
-                                <?= Icon::create('trash+decline', 'inactive', ['title' => _('Löschen der Eigenschaft nicht möglich, Systemobjekt!')])->asImg(16, ["class" => 'text-top']) ?>
+                                <?= Icon::create('trash+decline', 'inactive', ['title' => _('LÃ¶schen der Eigenschaft nicht mÃ¶glich, Systemobjekt!')])->asImg(16, ["class" => 'text-top']) ?>
                             <? endif; ?>
                             </td>
                         </tr>
@@ -187,11 +168,11 @@
             <td style="text-align: center; vertical-align: bottom;">
                 <?= _('diesen Typ') ?><br>
             <? if ($type['depRes'] == 0 && !$type['system']): ?>
-                <?= LinkButton::create(_('Löschen'), URLHelper::getURL('?delete_type=' .$type['category_id'])) ?>
+                <?= LinkButton::create(_('LÃ¶schen'), URLHelper::getURL('?delete_type=' .$type['category_id'])) ?>
             <? else: ?>
-                <?= Button::create(_('Löschen'), array(
+                <?= Button::create(_('LÃ¶schen'), array(
                         'disabled' => 'disabled',
-                        'title' => _('Dieser Typ kann nicht gelöscht werden, da er von Ressourcen verwendet wird!'))
+                        'title' => _('Dieser Typ kann nicht gelÃ¶scht werden, da er von Ressourcen verwendet wird!'))
                     ) ?>
             <? endif; ?>
                 <br>
@@ -202,7 +183,7 @@
     <tfoot>
         <tr>
             <td colspan="4" class="table_footer" style="text-align: center">
-                <?= Button::createAccept(_('Übernehmen'), 'change_types') ?>
+                <?= Button::createAccept(_('Ãœbernehmen'), 'change_types') ?>
             </td>
         </tr>
     </tfoot>

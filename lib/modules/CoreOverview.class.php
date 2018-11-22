@@ -25,7 +25,7 @@ class CoreOverview implements StudipModule {
             $sem_class = SemClass::getDefaultInstituteClass($institute->type);
         }
 
-        $navigation = new Navigation(_('Übersicht'));
+        $navigation = new Navigation(_('Ãœbersicht'));
         $navigation->setImage(Icon::create('seminar', 'info_alt'));
         $navigation->setActiveImage(Icon::create('seminar', 'info'));
         if ($object_type !== 'sem') {
@@ -40,10 +40,6 @@ class CoreOverview implements StudipModule {
             $navigation->addSubNavigation('info', new Navigation(_('Kurzinfo'), 'dispatch.php/course/overview'));
             if (!$sem_class['studygroup_mode']) {
                 $navigation->addSubNavigation('details', new Navigation(_('Details'), 'dispatch.php/course/details/'));
-            }
-
-            if (!$course->admission_binding && in_array($GLOBALS['perm']->get_studip_perm($course_id), array('user','autor')) ) {
-                $navigation->addSubNavigation('leave', new Navigation(_('Austragen aus der Veranstaltung'), 'dispatch.php/my_courses/decline/'.$course_id.'?cmd=suppose_to_kill'));
             }
         }
         return array('main' => $navigation);

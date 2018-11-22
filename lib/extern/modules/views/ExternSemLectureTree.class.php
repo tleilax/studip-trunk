@@ -25,7 +25,7 @@ class ExternSemLectureTree extends StudipSemTreeViewSimple {
         parent::__construct($this->start_item_id, $sem_number);
     }
 
-    function showSemTree () {
+    function showSemTree ($start_id = null) {
         echo "\n<table" . $this->config->getAttributes("Main", "table") . ">";
         echo "\n<tr><td>". $this->getSemPath() . "</td></tr>\n<tr><td>";
         $this->showContent($this->start_item_id);
@@ -94,7 +94,7 @@ class ExternSemLectureTree extends StudipSemTreeViewSimple {
         echo formatReady($this->tree->tree_data[$item_id]['info'], TRUE, TRUE) ."</font></td></tr>\n</table>";
     }
 
-    function getSemPath () {
+    function getSemPath ($start_id = null) {
         $delimiter = $this->config->getValue("TreePath", "delimiter");
         $attributes_a = $this->config->getAttributes("TreePath", "a");
         $ret = "<table width=\"100%\"";

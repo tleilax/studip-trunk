@@ -26,19 +26,19 @@
  * Log::alert_my('log via mail');
  * @endcode
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @copyright   2012 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  *
- * @method mixed FATAL (string $message)
- * @method mixed ALERT (string $message)
- * @method mixed CRITICAL (string $message)
- * @method mixed ERROR (string $message)
- * @method mixed WARNING (string $message)
- * @method mixed NOTICE (string $message)
- * @method mixed INFO (string $message)
- * @method mixed DEBUG (string $message)
+ * @method static mixed FATAL (string $message)
+ * @method static mixed ALERT (string $message)
+ * @method static mixed CRITICAL (string $message)
+ * @method static mixed ERROR (string $message)
+ * @method static mixed WARNING (string $message)
+ * @method static mixed NOTICE (string $message)
+ * @method static mixed INFO (string $message)
+ * @method static mixed DEBUG (string $message)
 */
 class Log
 {

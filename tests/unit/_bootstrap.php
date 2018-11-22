@@ -70,6 +70,22 @@ if (isset($config['modules']['config']['Db'])) {
     //DBManager::getInstance()->setConnection('studip', 'sqlite://'. $GLOBALS ,'', '');
 }
 
+// minimal support for running with PHPUnit 6.x
+if (!class_exists('PHPUnit_Framework_TestCase')) {
+    abstract class PHPUnit_Framework_TestCase extends PHPUnit\Framework\TestCase
+    {
+        public function getMock($classname)
+        {
+            return $this->createMock($classname);
+        }
+
+        public function setExpectedException($exception)
+        {
+            return $this->expectException($exception);
+        }
+    }
+}
+
 // create "fake" cache class
 if (!class_exists('StudipArrayCache')) {
     class StudipArrayCache implements StudipCache {
@@ -78,6 +94,11 @@ if (!class_exists('StudipArrayCache')) {
         function expire($key)
         {
             unset($this->data);
+        }
+
+        function flush()
+        {
+            $this->data = array();
         }
 
         function read($key)
@@ -114,6 +135,7 @@ if (!class_exists('StudipTestHelper')) {
 
             foreach ($tables as $db_table) {
                 include TEST_FIXTURES_PATH."simpleormap/$db_table.php";
+                $db_fields = $pk = array();
                 foreach ($result as $rs) {
                     $db_fields[mb_strtolower($rs['name'])] = array(
                         'name'    => $rs['name'],

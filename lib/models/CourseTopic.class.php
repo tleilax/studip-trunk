@@ -61,9 +61,9 @@ class CourseTopic extends SimpleORMap {
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
-        $config['belongs_to']['folder'] = array(
-            'class_name' => 'DocumentFolder',
-            'assoc_foreign_key' => "range_id"
+        $config['has_many']['folders'] = array(
+            'class_name'  => 'Folder',
+            'assoc_func' => 'findByTopic_id'
         );
         $config['belongs_to']['course'] = array(
             'class_name'  => 'Course',
@@ -94,18 +94,18 @@ class CourseTopic extends SimpleORMap {
         if ($this->seminar_id) {
             $document_module = Seminar::getInstance($this->seminar_id)->getSlotModule('documents');
             if ($document_module) {
-                if (!$this->folder) {
-                    $folder = new DocumentFolder();
-                    $folder['range_id'] = $this->getId();
-                    $folder['priority'] = $this['priority'];
-                    $folder['seminar_id'] = $this['seminar_id'];
+                if (!$this->folders->count()) {
+                    $folder = new Folder();
+                    $folder['range_id'] = $this['seminar_id'];
+                    $folder['parent_id'] = Folder::findTopFolder($this['seminar_id'])->getId();
+                    $folder['range_type'] = "course";
+                    $folder['folder_type'] = "CourseTopicFolder";
+                    $folder['data_content']['topic_id'] = $this->getId();
                     $folder['user_id'] = $GLOBALS['user']->id;
-                    $folder['permission'] = 15;
-                    $this->folder = $folder;
+                    $folder['name'] = $this['title'];
+                    $folder['description'] = $this['description'];
+                    return $folder->store();
                 }
-                $this->folder['name'] = $this['title'];
-                $this->folder['description'] = $this['description'];
-                return $this->folder->store();
             }
         }
         return false;
@@ -140,9 +140,6 @@ class CourseTopic extends SimpleORMap {
     protected function cbUpdateConnectedContentModules()
     {
         if ($this->isFieldDirty('title') || $this->isFieldDirty('description')) {
-            if ($this->folder) {
-                $this->connectWithDocumentFolder();
-            }
             if ($this->forum_thread_url) {
                 $this->connectWithForumThread();
             }
@@ -154,5 +151,30 @@ class CourseTopic extends SimpleORMap {
         if (empty($this->content['priority'])) {
             $this->content['priority'] = self::getMaxPriority($this->seminar_id) + 1;
         }
+    }
+
+    /**
+     * return all filerefs belonging to this topic, permissions fpr given user are checked
+     *
+     * @param string|User $user_or_id
+     * @return mixed[] A mixed array with FolderType and FileRef objects.
+     */
+    public function getAccessibleFolderFiles($user_or_id)
+    {
+        $user_id = $user_or_id instanceof User ? $user_or_id->id : $user_or_id;
+        $all_files = [];
+        $all_folders = [];
+        $folders = $this->folders->getArrayCopy();
+        foreach ($this->dates as $date) {
+            $folders = array_merge($folders, $date->folders->getArrayCopy());
+        }
+        foreach ($folders as $folder) {
+            list($files, $typed_folders) = array_values(FileManager::getFolderFilesRecursive($folder->getTypedFolder(), $user_id));
+            foreach ($files as $file) {
+                $all_files[$file->id] = $file;
+            }
+            $all_folders = array_merge($all_folders, $typed_folders);
+        }
+        return ['files' => $all_files, 'folders' => $all_folders];
     }
 }

@@ -1,93 +1,80 @@
 <? use Studip\Button, Studip\LinkButton; ?>
-<? if ($verify && $verify['action'] === 'delete'): ?>
-<?= $controller->verifyDialog(
-        sprintf(_('Möchten Sie wirklich die Kategorie "%s" löschen?'), Kategorie::find($verify['id'])->name),
-        array('settings/categories/delete', $verify['id'], true),
-        array('settings/categories')
-    ) ?>
-<? endif; ?>
 
 <? if (count($categories) === 0): ?>
 <p class="info"><?= _('Es existieren zur Zeit keine eigenen Kategorien.') ?></p>
 <? else: ?>
-<form action="<?= $controller->url_for('settings/categories/store') ?>" method="post" name="main_content">
+<form action="<?= $controller->url_for('settings/categories/store') ?>" method="post" name="main_content" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
-    <table class="default nohover">
-        <colgroup>
-            <col width="100px">
-            <col>
-            <col width="200px">
-            <col width="100px">
-        </colgroup>
     <? foreach ($categories as $index => $category): ?>
-        <tbody style="vertical-align: top;">
-            <tr>
-                <th>
-                    <label for="name<?= $index ?>"><?= _('Name') ?>:</label>
-                </th>
-                <th>
-                    <input required type="text" name="categories[<?= $category->id ?>][name]" id="name<?= $index ?>"
-                           aria-label="<?= _('Name der Kategorie') ?>" style="width: 100%"
-                           value="<?= htmlReady($category->name) ?>">
-                </th>
-                <th class="actions">
-                    <?= $visibilities[$category->id] ?>
-                </th>
-                <th rowspan="2" style="text-align: right; vertical-align: middle;">
-                <? if ($index > 0): ?>
-                    <a href="<?= $controller->url_for('settings/categories/swap', $category->id, $last->id) ?>">
-                        <?= Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top', 'title' =>_('Kategorie nach oben verschieben')]) ?>
-                    </a>
-                <? else: ?>
-                    <?= Icon::create('arr_2up', 'inactive')->asImg(['class' => 'text-top']) ?>
-                <? endif; ?>
+        <fieldset>
+            <legend><?= htmlReady($category->name) ?></legend>
 
-                <? if ($index < $count - 1): ?>
-                    <a href="<?= $controller->url_for('settings/categories/swap', $category->id, $categories[$index + 1]->id) ?>">
-                        <?= Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top', 'title' =>_('Kategorie nach unten verschieben')]) ?>
-                    </a>
-                <? else: ?>
-                    <?= Icon::create('arr_2down', 'inactive')->asImg(['class' => 'text-top']) ?>
-                <? endif; ?>
+            <table style="width: 100%">
+                <colgroup>
+                    <col>
+                    <col width="100px">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div>
+                                (<?= $visibilities[$category->id] ?>)
+                            </div>
 
-                    <a href="<?= $controller->url_for('settings/categories/delete', $category->id) ?>">
-                        <?= Icon::create('trash', 'clickable')->asImg(['class' => 'text-top', 'title' => _('Kategorie löschen')]) ?>
-                    </a>
-                </th>
-            </tr>
-            <tr>
-                <td>
-                    <label for="content<?= $index ?>"><?= _('Inhalt') ?>:</label>
-                </td>
-                <td colspan="2">
-                    <textarea id="content<?= $index ?>" name="categories[<?= $category->id ?>][content]"
-                              class="resizable add_toolbar wysiwyg" style="width: 100%; height: 200px;"
-                              aria-label="<?= _('Inhalt der Kategorie:') ?>"
-                    ><?= htmlReady($category->content) ?></textarea>
-                </td>
-            </tr>
-        </tbody>
-    <? $last = $category; 
+                            <label>
+                                <?= _('Name') ?>
+                                <input required type="text" name="categories[<?= $category->id ?>][name]" id="name<?= $index ?>"
+                                       aria-label="<?= _('Name der Kategorie') ?>" style="width: 100%"
+                                       value="<?= htmlReady($category->name) ?>">
+                            </label>
+
+                            <label>
+                                <?= _('Inhalt') ?>
+
+                                <textarea id="content<?= $index ?>" name="categories[<?= $category->id ?>][content]"
+                                          class="resizable add_toolbar wysiwyg size-l" style="width: 100%; height: 200px;"
+                                          aria-label="<?= _('Inhalt der Kategorie:') ?>"
+                                ><?= wysiwygReady($category->content) ?></textarea>
+                            </label>
+                        </td>
+                        <td style="vertical-align: top">
+                            <? if ($index > 0): ?>
+                                <a href="<?= $controller->url_for('settings/categories/swap', $category->id, $last->id) ?>">
+                                    <?= Icon::create('arr_2up', 'sort')->asImg(['class' => 'text-top', 'title' =>_('Kategorie nach oben verschieben')]) ?>
+                                </a>
+                            <? else: ?>
+                                <?= Icon::create('arr_2up', 'inactive')->asImg(['class' => 'text-top']) ?>
+                            <? endif; ?>
+
+                            <? if ($index < $count - 1): ?>
+                                <a href="<?= $controller->url_for('settings/categories/swap', $category->id, $categories[$index + 1]->id) ?>">
+                                    <?= Icon::create('arr_2down', 'sort')->asImg(['class' => 'text-top', 'title' =>_('Kategorie nach unten verschieben')]) ?>
+                                </a>
+                            <? else: ?>
+                                <?= Icon::create('arr_2down', 'inactive')->asImg(['class' => 'text-top']) ?>
+                            <? endif; ?>
+
+                            <a href="<?= $controller->url_for('settings/categories/delete', $category->id) ?>">
+                                <?= Icon::create('trash')->asImg(['class' => 'text-top', 'title' => _('Kategorie lÃ¶schen')]) ?>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </fieldset>
+    <? $last = $category;
        endforeach; ?>
+
     <? if ($hidden_count > 0): ?>
-        <tbody>
-            <tr>
-                <td colspan="4">
-                    <?= sprintf(ngettext('Es existiert zusätzlich eine Kategorie, die Sie nicht einsehen und bearbeiten können.',
-                                         'Es existiereren zusätzlich %s Kategorien, die Sie nicht einsehen und bearbeiten können.',
-                                         $hidden_count), $hidden_count) ?>
-                </td>
-            </tr>
-        </tbody>
+            <?= sprintf(ngettext('Es existiert zusÃ¤tzlich eine Kategorie, die Sie nicht einsehen und bearbeiten kÃ¶nnen.',
+                                 'Es existiereren zusÃ¤tzlich %s Kategorien, die Sie nicht einsehen und bearbeiten kÃ¶nnen.',
+                                 $hidden_count), $hidden_count) ?>
     <? endif; ?>
-        <tfoot>
-            <tr>
-                <td colspan="4">
-                    <?= Button::create(_('Übernehmen'), 'store') ?>
-                </td>
-        </tfoot>
-    </table>
+
+    <footer>
+            <?= Button::create(_('Ãœbernehmen'), 'store') ?>
+    </footer>
 </form>
 <? endif; ?>

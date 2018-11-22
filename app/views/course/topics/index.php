@@ -1,5 +1,9 @@
 <? if (count($topics) > 0) : ?>
 <table class="default withdetails">
+    <colgroup>
+        <col width="50%">
+        <col>
+    </colgroup>
     <thead>
         <tr>
             <th><?= _("Thema") ?></th>
@@ -9,12 +13,22 @@
     <tbody>
     <? foreach ($topics as $key => $topic) : ?>
         <tr class="<?= Request::get("open") === $topic->getId() ? "open" : "" ?>">
-            <td><a href="" name="<?=$topic->getId()?>" onClick="jQuery(this).closest('tr').toggleClass('open'); return false;"><?= htmlReady($topic['title']) ?></a></td>
+            <td>
+                <a href="#" name="<?=$topic->getId()?>" onClick="jQuery(this).closest('tr').toggleClass('open'); return false;">
+                <? if ($topic->paper_related): ?>
+                    <?= Icon::create('glossary')->asImg(array_merge(
+                        ['class' => 'text-top'],
+                        tooltip2(_('Thema behandelt eine Hausarbeit oder ein Referat'))
+                    )) ?>
+                <? endif; ?>
+                    <?= htmlReady($topic['title']) ?>
+                </a>
+            </td>
             <td>
                 <ul class="clean">
                     <? foreach ($topic->dates as $date) : ?>
                         <li>
-                            <a href="<?= URLHelper::getLink("dispatch.php/course/dates/details/".$date->getId()) ?>" data-dialog="buttons=false">
+                            <a href="<?= URLHelper::getLink("dispatch.php/course/dates/details/".$date->getId()) ?>" data-dialog="size=auto">
                                 <?= Icon::create('date', 'clickable')->asImg(['class' => "text-bottom"]) ?>
                                 <?= htmlReady($date->getFullName()) ?>
                             </a>
@@ -37,11 +51,13 @@
                             <td>
                                 <? $material = false ?>
                                 <ul class="clean">
-                                    <? $folder = $topic->folder ?>
+                                    <? $folder = $topic->folders->first() ?>
                                     <? if ($documents_activated && $folder) : ?>
                                         <li>
-                                            <a href="<?= URLHelper::getLink("folder.php#anker", array('data[cmd]' => "tree", 'open' => $folder->getId())) ?>">
-                                                <?= Icon::create('folder-empty', 'clickable')->asImg(['class' => "text-bottom"]) ?>
+                                            <a href="<?= URLHelper::getLink(
+                                                'dispatch.php/course/files/index/' . $folder->id
+                                                ) ?>">
+                                                <?= $folder->getTypedFolder()->getIcon('clickable')->asImg(['class' => "text-bottom"]) ?>
                                                 <?= _("Dateiordner") ?>
                                             </a>
                                         </li>
@@ -66,7 +82,7 @@
                         </tbody>
                     </table>
                     <div style="text-align: center;">
-                        <? if ($GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) : ?>
+                        <? if ($GLOBALS['perm']->have_studip_perm("tutor", Context::getId())) : ?>
                             <?= \Studip\LinkButton::createEdit(_('Bearbeiten'),
                                                                URLHelper::getURL("dispatch.php/course/topics/edit/".$topic->getId()),
                                                                array('data-dialog' => '')) ?>
@@ -75,14 +91,14 @@
                                 <?= \Studip\LinkButton::create(_("Alle Termine ausfallen lassen"), URLHelper::getURL("dispatch.php/course/cancel_dates", array('issue_id' => $topic->getId())), array('data-dialog' => '')) ?>
                             <? endif ?>
                             <? if ($key > 0) : ?>
-                                <form action="?" method="post" style="display: inline;">
+                                <form action="<?=$controller->link_for()?>" method="post" style="display: inline;">
                                     <input type="hidden" name="move_up" value="<?= $topic->getId() ?>">
                                     <input type="hidden" name="open" value="<?= $topic->getId() ?>">
                                     <?= \Studip\Button::createMoveUp(_("nach oben verschieben")) ?>
                                 </form>
                             <? endif ?>
                             <? if ($key < count($topics) - 1) : ?>
-                            <form action="?" method="post" style="display: inline;">
+                            <form action="<?=$controller->link_for()?>" method="post" style="display: inline;">
                                 <input type="hidden" name="move_down" value="<?= $topic->getId() ?>">
                                 <input type="hidden" name="open" value="<?= $topic->getId() ?>">
                                 <?= \Studip\Button::createMoveDown(_("nach unten verschieben")) ?>
@@ -108,7 +124,7 @@ $actions = new ActionsWidget();
 $actions->addLink(_("Alle Themen aufklappen"),
                   null, Icon::create('arr_1down', 'clickable'),
                   array('onClick' => "jQuery('table.withdetails > tbody > tr:not(.details):not(.open) > :first-child a').click(); return false;"));
-if ($GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
+if ($GLOBALS['perm']->have_studip_perm("tutor", Context::getId())) {
     $actions->addLink(
         _("Neues Thema erstellen"),
         URLHelper::getURL("dispatch.php/course/topics/edit"),
@@ -121,10 +137,15 @@ if ($GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
         Icon::create('topic+add', 'clickable'),
         array('data-dialog' => "buttons")
     );
-    $actions->addLink(
-        _("Themen öffentlich einsehbar"),
-        URLHelper::getURL("dispatch.php/course/topics/allow_public"),
-        Icon::create(Course::findCurrent()->public_topics ? 'checkbox-checked' : 'checkbox-unchecked', 'clickable')
-    );
 }
 $sidebar->addWidget($actions);
+
+if ($GLOBALS['perm']->have_studip_perm('tutor', Context::getId())) {
+    $options = new OptionsWidget();
+    $options->addCheckbox(
+        _('Themen Ã¶ffentlich einsehbar'),
+        CourseConfig::get(Context::getId())->COURSE_PUBLIC_TOPICS,
+        $controller->url_for('course/topics/allow_public')
+    );
+    $sidebar->addWidget($options);
+}

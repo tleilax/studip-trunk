@@ -47,7 +47,7 @@ class ModulesNotification extends Modules {
         parent::__construct();
         $this->registered_notification_modules['news'] = array(
                 'id' => 25, 'const' => '', 'sem' => TRUE, 'inst' => TRUE,
-                'mes' => TRUE, 'name' => _("Ankündigungen"));
+                'mes' => TRUE, 'name' => _("AnkÃ¼ndigungen"));
         $this->registered_notification_modules['votes'] = array(
                 'id' => 26, 'const' => '', 'sem' => TRUE, 'inst' => FALSE,
                 'mes' => TRUE, 'name' => _("Umfragen und Tests"));
@@ -192,7 +192,7 @@ class ModulesNotification extends Modules {
         }
         $statement = DBManager::get()->prepare($query);
         $statement->bindValue(':user_id', $user_id);
-        $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
+        $statement->bindValue(':threshold', object_get_visit_threshold());
         $statement->execute();
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $seminar_id = $row['Seminar_id'];
@@ -255,12 +255,18 @@ class ModulesNotification extends Modules {
             }
         }
         if (count($news)) {
+            $auth_plugin = User::find($user_id)->auth_plugin;
+            if (!is_a('StudipAuth' . ucfirst($auth_plugin), 'StudipAuthSSO', true)) {
+                $auth_plugin = null;
+            }
             $template = $GLOBALS['template_factory']->open('mail/notification_html');
             $template->set_attribute('lang', getUserLanguagePath($user_id));
             $template->set_attribute('news', $news);
+            $template->set_attribute('sso', $auth_plugin);
 
             $template_text = $GLOBALS['template_factory']->open('mail/notification_text');
             $template_text->set_attribute('news', $news);
+            $template_text->set_attribute('sso', $auth_plugin);
             return array('text' => $template_text->render(), 'html' => $template->render());;
         } else {
             return FALSE;
@@ -276,7 +282,7 @@ class ModulesNotification extends Modules {
             if ($nav->getBadgeNumber()) {
                 $url = 'seminar_main.php?again=yes&auswahl=' . $range_id . '&redirect_to=' . strtr($nav->getURL(), '?', '&');
                 $icon = $nav->getImage();
-                $tab = array_pop($plugin->getTabNavigation());
+                $tab = array_pop($plugin->getTabNavigation($range_id));
                 if ($tab instanceof Navigation && $tab->isVisible()) {
                     $text = $tab->getTitle();
                 }
@@ -286,7 +292,7 @@ class ModulesNotification extends Modules {
                 if ($nav->getBadgeNumber() == 1) {
                     $text .= ' - ' . _("Ein neuer Beitrag:");
                 } else {
-                    $text .= ' - ' . sprintf(_("%s neue Beiträge:"), $nav->getBadgeNumber());
+                    $text .= ' - ' . sprintf(_("%s neue BeitrÃ¤ge:"), $nav->getBadgeNumber());
                 }
                 return compact('text', 'url', 'icon', 'range_id');
             } else {
@@ -315,7 +321,7 @@ class ModulesNotification extends Modules {
             case 'participants' :
                 if (in_array($r_data['status'], words('dozent tutor'))) {
                     if ($r_data['new_accepted_participants'] > 1) {
-                        $text = sprintf(_("%s neue vorläufige Teilnehmende, "), $r_data['newparticipants']);
+                        $text = sprintf(_("%s neue vorlÃ¤ufige Teilnehmende, "), $r_data['newparticipants']);
                     } else if ($r_data['new_accepted_participants'] > 0) {
                         $text = _("1 neue Person, ");
                     }
@@ -338,7 +344,7 @@ class ModulesNotification extends Modules {
                 } else if ($r_data['neuedokumente'] > 0) {
                     $text = _("1 neues Dokument hochgeladen:");
                 }
-                $redirect = '&redirect_to=folder.php&cmd=all';
+                $redirect = '&redirect_to=dispatch.php/course/files/flat';
                 $icon = Icon::create("files", "clickable");
                 break;
             case 'schedule' :
@@ -399,16 +405,16 @@ class ModulesNotification extends Modules {
                 break;
             case 'news' :
                 if ($r_data['neuenews'] > 1) {
-                    $text = sprintf(_("%s neue Ankündigungen wurden angelegt:"), $r_data['neuenews']);
+                    $text = sprintf(_("%s neue AnkÃ¼ndigungen wurden angelegt:"), $r_data['neuenews']);
                 } else if ($r_data['neuenews']) {
-                    $text = _("Eine neue Ankündigung wurde angelegt:");
+                    $text = _("Eine neue AnkÃ¼ndigung wurde angelegt:");
                 }
                 $redirect = '';
                 $icon = Icon::create("news", "clickable");
                 break;
             case 'basic_data' :
                 if ($r_data['chdate'] > $r_data['visitdate']) {
-                    $text = _("Die Grunddaten wurden geändert:");
+                    $text = _("Die Grunddaten wurden geÃ¤ndert:");
                 }
                 $redirect = '&redirect_to=dispatch.php/course/details/';
                 $icon = Icon::create("home", "clickable");

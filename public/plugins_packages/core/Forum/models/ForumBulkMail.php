@@ -7,7 +7,7 @@
  * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
- * @author      Till Glöggler <tgloeggl@uos.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
  * @license     http://www.gnu.org/licenses/gpl-3.0.html GPL version 3
  * @category    Stud.IP
  */
@@ -42,7 +42,7 @@ class ForumBulkMail extends Messaging {
 
             if (empty($this->bulk_mail[md5($message)][getenv('LANG')])) {
 
-                $title = "[Stud.IP - " . $GLOBALS['UNI_NAME_CLEAN'] . "] ".stripslashes(kill_format(str_replace(array("\r","\n"), '', $subject)));
+                $title = "[Stud.IP - " . Config::get()->UNI_NAME_CLEAN . "] ".stripslashes(kill_format(str_replace(array("\r","\n"), '', $subject)));
 
                 if ($snd_user_id != "____%system%____") {
                     $sender = User::find($snd_user_id);
@@ -110,8 +110,24 @@ class ForumBulkMail extends Messaging {
 
                 if($GLOBALS["ENABLE_EMAIL_ATTACHMENTS"]){
                     $message = Message::find($data['message_id']);
-                    foreach($message->attachments as $attachment){
-                        $mail->addStudipAttachment($attachment->id);
+                    
+                    $current_user = User::findCurrent();
+                    
+                    $message_folder = MessageFolder::findMessageTopFolder(
+                        $message->id,
+                        $current_user->id
+                    );
+                    
+                    $message_folder = $message_folder->getTypedFolder();
+                    
+                    $attachments = FileManager::getFolderFilesRecursive(
+                        $message_folder,
+                        $current_user->id
+                    );
+                    
+                    
+                    foreach($attachments as $attachment) {
+                        $mail->addStudipAttachment($attachment);
                     }
                 }
                 $mail->send();

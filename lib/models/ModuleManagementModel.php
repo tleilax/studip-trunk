@@ -14,8 +14,59 @@
  * @since       3.5
  */
 
+require_once 'config/mvv_config.php';
+
 abstract class ModuleManagementModel extends SimpleORMap
 {
+    /**
+     * Usable as option for ModuleManagementModel::getDisplayName().
+     * Use the deafault display options for this object.
+     */
+    const DISPLAY_DEFAULT = 1;
+
+    /**
+     * Usable as option for ModuleManagementModel::getDisplayName().
+     * Displays semesters of the validity period if available for this object.
+     */
+    const DISPLAY_SEMESTER = 2;
+
+    /**
+     * Usable as option for ModuleManagementModel::getDisplayName().
+     * Displays the code (usually a unique identifier) if available for this object.
+     */
+    const DISPLAY_CODE = 4;
+
+    /**
+     * Usable as option for ModuleManagementModel::getDisplayName().
+     * Displays the name of the faculty if available for this object.
+     */
+    const DISPLAY_FACULTY = 8;
+
+    /**
+     * Usable as option for ModuleManagementModel::getDisplayName().
+     * Displays the name of the Fach (subject of study) if available for this object.
+     */
+    const DISPLAY_FACH = 16;
+
+    /**
+     * Usable as option for ModuleManagementModel::getDisplayName().
+     * Displays the name of the Studiengangteil if available for this object.
+     */
+    const DISPLAY_STGTEIL = 32;
+    
+    /**
+     * Usable as option ModuleManagementModel::getDisplayName().
+     * Displays the name of the Abschluss if available for this object.
+     */
+    const DISPLAY_ABSCHLUSS = 64;
+
+    /**
+     * Usable as option ModuleManagementModel::getDisplayName().
+     * Displays the name of the Abschluss-Kategorie
+     * if available for this object.
+     */
+    const DISPLAY_KATEGORIE = 128;
+
 
     protected static $filter_params = array();
     protected $is_dirty = false;
@@ -97,8 +148,14 @@ abstract class ModuleManagementModel extends SimpleORMap
             }
         }
 
-        // check the permissions for every single field
-        foreach (array_keys($this->db_fields) as $field) {
+        // check the permissions for every single db field except primary keys
+        if ($this->isNew()) {
+            $fields = array_diff(array_keys($this->db_fields),
+                    array_values($this->pk));
+        } else {
+            $fields = array_keys($this->db_fields);
+        }
+        foreach ($fields as $field) {
             if ($this->isFieldDirty($field)
                     && !$perm->haveFieldPerm($field, MvvPerm::PERM_WRITE, $user_id)) {
                 throw new Exception(sprintf(
@@ -125,13 +182,14 @@ abstract class ModuleManagementModel extends SimpleORMap
                                     if (!$perm->haveDfEntryPerm($entry, MvvPerm::PERM_WRITE)) {
                                         throw new Exception(sprintf(
                                             'Permission denied! The user is not '
-                                            . 'allowed to change value of field %s::datafields.', get_called_class()));
+                                            . 'allowed to change value of field %s::datafields[%s] ("%s").', get_called_class(), $entry->datafield->datafield_id, $entry->datafield->name));
                                     }
                                 }
                             }
-                        }
-                        foreach ($this->{$relation} as $r) {
-                            $this->checkRelation($relation, $r, $perm, $user_id);
+                        } else {
+                            foreach ($this->{$relation} as $r) {
+                                $this->checkRelation($relation, $r, $perm, $user_id);
+                            }
                         }
                     }
                 }
@@ -157,7 +215,7 @@ abstract class ModuleManagementModel extends SimpleORMap
             throw new Exception(sprintf(
                 'Permission denied! The user is not allowed to create/delete a relation %s::%s.',
                 get_class($relation_object), $relation_name));
-        } elseif (true ||$relation_object->isDirty()) {
+        } elseif ($relation_object->isDirty()) {
             if ($relation_object instanceof ModuleManagementModel) {
                 $relation_object->verifyPermission($user_id);
             } elseif (!$perm->haveFieldPerm($relation_name, MvvPerm::PERM_WRITE, $user_id)) {
@@ -213,7 +271,7 @@ abstract class ModuleManagementModel extends SimpleORMap
     }
 
     /**
-     * @see SimpleOrMap::store()
+     * @see SimpleOrMap::delete()
      * Triggers logging.
      */
     public function delete() {
@@ -408,7 +466,7 @@ abstract class ModuleManagementModel extends SimpleORMap
     }
 
     /**
-     * Enriches the model with data from other tables.
+     * Enriches the model with data from other joined tables.
      *
      * @param string $query complete sql with all fields in select statement
      * from main table
@@ -439,14 +497,18 @@ abstract class ModuleManagementModel extends SimpleORMap
             $class = get_called_class();
             $model_object = new $class();
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $data) {
-                $pkey = '';
+                $pkey = [];
                 foreach ($model_object->pk as $pk) {
                     $pkey[]= $data[$model_object->db_fields[$pk]['name']];
                 }
                 $data_object = clone $model_object;
                 foreach ($data as $key => $value) {
-                    $data_object->content[mb_strtolower($key)] = $value;
-                    $data_object->content_db[mb_strtolower($key)] = $value;
+                    if (isset($data_object->db_fields[$key])) {
+                        $data_object->setValue($key, $value);
+                    } else {
+                        $data_object->content[mb_strtolower($key)] = $value;
+                        $data_object->content_db[mb_strtolower($key)] = $value;
+                    }
                 }
                 $data_object->setId($pkey);
                 $data_object->setNew(false);
@@ -463,16 +525,16 @@ abstract class ModuleManagementModel extends SimpleORMap
      * of the mvv objects to display more complex names glued together from
      * fields of related objects.
      *
-     * @param mixed An optinal parameter.
+     * @param mixed $options An optional parameter to set display options.
      * @return string The name for
      */
-    public function getDisplayName()
+    public function getDisplayName($options = self::DISPLAY_DEFAULT)
     {
         if ($this->isField('name')) {
-            return $this->getValue('name');
+            return (string) $this->getValue('name');
         }
         if ($this->isField('bezeichnung')) {
-            return $this->getValue('bezeichnung');
+            return (string) $this->getValue('bezeichnung');
         }
         return '';
     }
@@ -504,9 +566,11 @@ abstract class ModuleManagementModel extends SimpleORMap
      * the joins with the semester_data table and table aliases in the sql
      * statement.
      *
-     * @param type $filter An associative array with filters where the key is
+     * @param array $filter An associative array with filters where the key is
      * the column name to filter against the given value.
-     * @param type $where if true returns a complete where statement
+     * @param bool $where if true returns a complete where statement
+     * @param string SQL-where part glued with an "OR" at the end of the
+     * filter sql part.
      * @return string The sql clause
      */
     public static function getFilterSql($filter, $where = false, $or_sql = null)
@@ -531,14 +595,19 @@ abstract class ModuleManagementModel extends SimpleORMap
                         $sql_parts[] = trim($matches[1]) . ' ' . $matches[2] . ' '
                                 . DBManager::get()->quote($val) . ' ';
                     } else if ($col == 'start_sem.beginn') {
-                        // start semester filter for Module, Studiengaenge, ...
-                        $sql_parts[] = '(start_sem.beginn <= '
-                                . DBManager::get()->quote($val)
-                                . ' OR ISNULL(start_sem.beginn))';
+                        if ((int) $val >= 0) {
+                            // start semester filter for Module, Studiengaenge, ...
+                            $sql_parts[] = '(start_sem.beginn <= '
+                                    . DBManager::get()->quote($val)
+                                    . ' OR ISNULL(start_sem.beginn))';
+                        }
                     } else if ($col == 'end_sem.ende') {
-                        $sql_parts[] = '(end_sem.ende > '
-                                . DBManager::get()->quote($val)
-                                . ' OR ISNULL(end_sem.ende))';
+                        if ((int) $val >= 0) {
+                            // end semester filter for Module, Studiengaenge, ...
+                            $sql_parts[] = '(end_sem.ende >= '
+                                    . DBManager::get()->quote($val)
+                                    . ' OR ISNULL(end_sem.ende))';
+                        }
                     } else {
                         $sql_parts[] = $col . ' = '
                                 . DBManager::get()->quote($val) . ' ';
@@ -586,8 +655,8 @@ abstract class ModuleManagementModel extends SimpleORMap
      *
      * @param string|array $sort The field(s) to sort by.
      * @param string $order The direction (ASC|DESC)
-     * @param type $standard_field
-     * @param type $additional_fields Calculated columns.
+     * @param string $standard_field
+     * @param array $additional_fields Calculated columns.
      * @return string The sort query part.
      */
     protected static function createSortStatement($sort, $order = 'ASC',
@@ -617,7 +686,7 @@ abstract class ModuleManagementModel extends SimpleORMap
      * @param bool $to_utf8 If true (default), the data will be utf8 transformed.
      * @return array The array with all content fields from object.
      */
-    public static function getContentArray( $sorm, $to_utf8 = true)
+    public static function getContentArray(SimpleORMap $sorm, $to_utf8 = true)
     {
         return $sorm->contentToArray($to_utf8);
     }
@@ -660,20 +729,58 @@ abstract class ModuleManagementModel extends SimpleORMap
     }
 
     /**
-     * Sets the language for localized fields. Possible values are configured in
-     * mvv_config.php.
+     * Sets the language for localized fields and the locale environment
+     * globally.
+     * Possible values are configured in mvv_config.php.
      *
      * @see mvv_config.php
      * @param string $language The language.
      */
     public static final function setLanguage($language)
     {
-        $language = mb_strtoupper(mb_strstr($language, '_', true));
+        $language = mb_strtoupper(mb_strstr($language . '_', '_', true));
         if (isset($GLOBALS['MVV_LANGUAGES']['values'][$language])) {
-            setLocaleEnv($GLOBALS['MVV_LANGUAGES']['values'][$language]['locale']);
-            self::$language = $language;
+            $locale = $GLOBALS['MVV_LANGUAGES']['values'][$language]['locale'];
+            setLocaleEnv($locale);
+            self::setContentLanguage($language);
+            // load config file again
+            require $GLOBALS['STUDIP_BASE_PATH'] . '/config/mvv_config.php';
         }
     }
+    
+    /**
+     * Switches the content to the given language.
+     * Compared to ModuleManagementModel::setLanguage() strings translated with
+     * gettext are always in the prefered language selected by the user.
+     * 
+     * @param string $language The language code (see mvv_config.php)
+     */
+    public static function setContentLanguage($language)
+    {
+        if (!is_array($GLOBALS['MVV_LANGUAGES']['values'][$language])) {
+            throw new InvalidArgumentException();
+        }
+        $locale = $GLOBALS['MVV_LANGUAGES']['values'][$language]['locale'];
+        I18NString::setContentLanguage($locale);
+        self::$language = $language;
+    }
+    
+    public function getAvailableTranslations()
+    {
+        $translations[] = $GLOBALS['MVV_LANGUAGES']['default'];
+        $stmt = DBManager::get()->prepare('SELECT DISTINCT `lang` '
+                . 'FROM i18n '
+                . 'WHERE `object_id` = ? AND `table` = ?');
+        $stmt->execute([$this->id, $this->db_table]);
+        foreach ($stmt->fetchAll() as $locale) {
+            $language = mb_strtoupper(mb_strstr($locale['lang'], '_', true));
+            if (is_array($GLOBALS['MVV_LANGUAGES']['values'][$language])) {
+                $translations[] = $language;
+            }
+        }
+        return $translations;
+    }
+    
 
     /**
      * Returns the currently selected language.
@@ -681,8 +788,9 @@ abstract class ModuleManagementModel extends SimpleORMap
      * @return string The currently selected language.
      */
     public static final function getLanguage()
-    {
-        return self::$language;
+    { return 'DE';
+        $language = self::$language ?: $GLOBALS['MVV_LANGUAGES']['default'];
+        return $language;
     }
 
     /**
@@ -705,30 +813,6 @@ abstract class ModuleManagementModel extends SimpleORMap
             return 'th';
         }
         return '.';
-    }
-
-    /**
-     * Returns value of a column. Checks for localized fields and return the
-     * value of the configured language.
-     *
-     * @see mvv_config.php
-     * @param string $field
-     * @return null|string
-     */
-    function getValue($field)
-    {
-        if ($this->isField($field) && self::$language) {
-            if ($GLOBALS['MVV_LANGUAGES']['values'][self::$language]['visible']) {
-                $localized_field = $field . '_'
-                        . $GLOBALS['MVV_LANGUAGES']['values'][self::$language]['db_suffix'];
-                if (isset($this->content_db[$localized_field])) {
-                    if (parent::getValue($localized_field) !== '') {
-                        return parent::getValue($localized_field);
-                    }
-                }
-            }
-        }
-        return parent::getValue($field);
     }
 
     /**
@@ -788,6 +872,17 @@ abstract class ModuleManagementModel extends SimpleORMap
     public function getResponsibleInstitutes()
     {
         return array();
+    }
+
+    /**
+     * Returns a string that identify a variant of this object. Returns an empty
+     * string if no variant exists for this object.
+     *
+     * @return string String to identify a variant.
+     */
+    public function getVariant()
+    {
+        return '';
     }
 
 }

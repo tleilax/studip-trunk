@@ -1,4 +1,4 @@
-<? if (count($em['day_events'])) : ?>
+<? if (isset($em['day_events']) && count($em['day_events']) > 0) : ?>
     <td class="<?= $class_cell ?>" style="padding: 0px;" <?= (($em['max_cols'] > 0) ? ' colspan="' . ($em['max_cols']) . '"' : '') ?>>
         <table style="width: 100%; border-spacing: 0;">
         <? $i = 0; ?>

@@ -39,7 +39,7 @@
 use Studip\Button,
     Studip\LinkButton;
 
-require_once $RELATIVE_PATH_RESOURCES . '/views/ShowTreeRow.class.php';
+require_once 'lib/resources/views/ShowTreeRow.class.php';
 
 /*****************************************************************************
 ShowList, stellt Liste mit Hilfe von printThread dar
@@ -79,7 +79,7 @@ class ShowList extends ShowTreeRow{
 
     //private
     function showListObject ($resource_id, $admin_buttons=FALSE) {
-        global $edit_structure_object, $RELATIVE_PATH_RESOURCES, $ActualObjectPerms, $SessSemName,
+        global $edit_structure_object,
             $user, $perm, $clipObj, $view_mode, $view;
 
         //Object erstellen
@@ -156,7 +156,7 @@ class ShowList extends ShowTreeRow{
                 if ($admin_buttons && ($simple_perms == "admin")) {
                     $edit .= LinkButton::create(_('Neues Objekt'), URLHelper::getURL('?create_object=' . $resObject->id));
                     if ($resObject->isDeletable()) {
-                        $edit .= LinkButton::create(_('Löschen'), URLHelper::getURL('?kill_object=' . $resObject->id));
+                        $edit .= LinkButton::create(_('LÃ¶schen'), URLHelper::getURL('?kill_object=' . $resObject->id));
                     }
                 }
 
@@ -194,7 +194,7 @@ class ShowList extends ShowTreeRow{
                     }
             }
             $edit .= '</div></div>';
-            $content = $resObject->getDescription();
+            $content = formatReady($resObject->getDescription());
             //Daten an Ausgabemodul senden
             $this->showRow($icon, $link, $titel, $zusatz, 0, 0, 0, $new, $open, $content, $edit);
         }
@@ -251,7 +251,7 @@ class ShowList extends ShowTreeRow{
 
     function showRangeList($range_id) {
         $count = 0;
-        require_once $GLOBALS['RELATIVE_PATH_RESOURCES']."/lib/ResourcesOpenObjectGroups.class.php";
+        require_once "lib/resources/lib/ResourcesOpenObjectGroups.class.php";
         foreach(ResourcesOpenObjectGroups::GetInstance($range_id)->getAllResources() as $resource_id){
             $this->showListObject($resource_id);
             ++$count;
@@ -386,8 +386,7 @@ class ShowList extends ShowTreeRow{
             if ($search_array["search_repeating"])
             {
                 // is this slot empty for the rest of the term?
-                $semester_data = new SemesterData();
-                $semester = $semester_data->getSemesterDataByDate($search_array["search_assign_begin"]);
+                $semester = SemesterData::getSemesterDataByDate($search_array["search_assign_begin"]);
                 // create the dummy assign object
                 $assObj = new AssignObject('');
                 $assObj->setBegin($search_array["search_assign_begin"]);

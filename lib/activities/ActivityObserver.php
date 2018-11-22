@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
- * @author      Till Glˆggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
  * @license     GPL 2 or later
  */
 
@@ -13,7 +13,7 @@ class ActivityObserver
 {
     /**
      * Register for Notifications the providers shall respond to
-     * 
+     *
      */
     public static function initialize()
     {
@@ -25,23 +25,24 @@ class ActivityObserver
         \NotificationCenter::addObserver('\Studip\Activity\ParticipantsProvider', 'postActivity','UserDidLeaveCourse');
 
         //Notifications for DocumentsProvider
-        \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidCreate');
-        \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidUpdate');
-        \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','DocumentDidDelete');
+        \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','FileRefDidCreate');
+        \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','FileRefDidUpdate');
+        \NotificationCenter::addObserver('\Studip\Activity\DocumentsProvider', 'postActivity','FileRefDidDelete');
 
         //Notifications for NewsProvider
-        \NotificationCenter::addObserver('\Studip\Activity\NewsProvider', 'postActivity','NewsDidStore');
+        \NotificationCenter::addObserver('\Studip\Activity\NewsProvider', 'postActivity','StudipNewsDidCreate');
 
         //Notifications for WikiProvider
         \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidCreate');
         \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidDelete');
-        \NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidUpdate');
+        //this is rather pointless and annoying
+        //\NotificationCenter::addObserver('\Studip\Activity\WikiProvider', 'postActivity','WikiPageDidUpdate');
 
         //Notifications for ScheduleProvider (Course)
         \NotificationCenter::addObserver('\Studip\Activity\ScheduleProvider', 'postActivity','CourseDidChangeSchedule');
 
         //Notifications for LiteratureProvider
-        \NotificationCenter::addObserver('\Studip\Activity\LiteratureProvider', 'postActivity','LitListDidInsert');
+        \NotificationCenter::addObserver('\Studip\Activity\LiteratureProvider', 'postActivity','LitListDidCreate');
         \NotificationCenter::addObserver('\Studip\Activity\LiteratureProvider', 'postActivity','LitListDidUpdate');
         \NotificationCenter::addObserver('\Studip\Activity\LiteratureProvider', 'postActivity','LitListDidDelete');
         \NotificationCenter::addObserver('\Studip\Activity\LiteratureProvider', 'postActivity','LitListElementDidInsert');

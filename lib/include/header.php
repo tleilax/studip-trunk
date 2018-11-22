@@ -4,53 +4,27 @@
 # Lifter003: TODO
 # Lifter010: TODO
 /**
-* header
-*
-* head line of Stud.IP
-*
-* @author       Stefan Suchi <suchi@data-quest.de>
-* @author       Michael Riehemann <michael.riehemann@uni-oldenburg.de>
-* @access       public
-* @modulegroup  visual
-* @module       header.php
-* @package      studip_core
-*/
-
-// +---------------------------------------------------------------------------+
-// This file is part of Stud.IP
-// header.php
-// head line of Stud.IP
-// Copyright (C) 2000 Ralf Stockmann <rstockm@gwdg.de>, Stefan Suchi <suchi@data-quest.de>
-// +---------------------------------------------------------------------------+
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or any later version.
-// +---------------------------------------------------------------------------+
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-// +---------------------------------------------------------------------------+
+ * head line of Stud.IP
+ *
+ * @author       Stefan Suchi <suchi@data-quest.de>
+ * @author       Michael Riehemann <michael.riehemann@uni-oldenburg.de>
+ * @author       Ralf Stockmann <rstockm@gwdg.de>
+ * @license      GPL2 or any later version
+ * @access       public
+ * @modulegroup  visual
+ * @module       header.php
+ * @package      studip_core
+ */
 
 /* ---
- * Mögliche Datenschutz-/Sichtbarkeitsentscheidung: Beim ersten Login wird ein
- * informierender Text mit Entscheidungsmöglichkeit: "Ich will sichtbar sein" oder
+ * MÃ¶gliche Datenschutz-/Sichtbarkeitsentscheidung: Beim ersten Login wird ein
+ * informierender Text mit EntscheidungsmÃ¶glichkeit: "Ich will sichtbar sein" oder
  * "Ich will unsichtbar sein" angezeigt.
  *
  * Bei Nutzung dieser Funktion unbedingt die Texte unter locale/de/LC_HELP/visibility_decision.php bzw.
- * locale/en/LC_HELP/visibility_decision.php an die lokalen Verhältnisse anpassen!
+ * locale/en/LC_HELP/visibility_decision.php an die lokalen VerhÃ¤ltnisse anpassen!
  */
-if ($GLOBALS['USER_VISIBILITY_CHECK'] && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody')
-{
-   require_once('lib/user_visible.inc.php');
-   first_decision($GLOBALS['user']->id);
-}
-
-if (PageLayout::isHeaderEnabled()) //Einige Seiten benötigen keinen Header, sprich Navigation (Evaluation usw.)
+if (PageLayout::isHeaderEnabled()) //Einige Seiten benÃ¶tigen keinen Header, sprich Navigation (Evaluation usw.)
 {
     $header_template = $GLOBALS['template_factory']->open('header');
     $header_template->current_page = PageLayout::getTitle();
@@ -58,14 +32,14 @@ if (PageLayout::isHeaderEnabled()) //Einige Seiten benötigen keinen Header, spri
 
     if (is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') {
         // only mark course if user is logged in and free access enabled
-        if (get_config('ENABLE_FREE_ACCESS') &&
+        if (Config::get()->ENABLE_FREE_ACCESS &&
             Navigation::hasItem('/course') && Navigation::getItem('/course')->isActive()) {
             // indicate to the template that this course is publicly visible
             // need to handle institutes separately (always visible)
-            if ($GLOBALS['SessSemName']['class'] == 'inst') {
-                $header_template->public_hint = _('öffentliche Einrichtung');
+            if (Context::isInstitute()) {
+                $header_template->public_hint = _('Ã¶ffentliche Einrichtung');
             } else if (Course::findCurrent()->lesezugriff == 0) {
-                $header_template->public_hint = _('öffentliche Veranstaltung');
+                $header_template->public_hint = _('Ã¶ffentliche Veranstaltung');
             }
         }
         if ($GLOBALS['user']->cfg->getValue('ACCESSKEY_ENABLE')){
@@ -81,18 +55,8 @@ if (PageLayout::isHeaderEnabled()) //Einige Seiten benötigen keinen Header, spri
                                                  $semester_data[$default_semester]['name'] :
                                                  _("alle Semester");
     }
-}
-else
-{
+} else {
     $header_template = $GLOBALS['template_factory']->open('noheader');
 }
 
 echo $header_template->render();
-
-if ($GLOBALS['SHOW_TERMS_ON_FIRST_LOGIN'] && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody')
-{
-    require_once('lib/terms.inc.php');
-    check_terms($GLOBALS['user']->id, $GLOBALS['_language_path']);
-}
-
-?>

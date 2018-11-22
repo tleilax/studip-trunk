@@ -25,6 +25,8 @@ class CalendarParserICalendar extends CalendarParser
     {
         parent::__construct();
         $this->type = 'iCalendar';
+        // initialize error handler
+        $GLOBALS['_calendar_error'] = new ErrorHandler();
     }
 
     public function getCount($data)
@@ -62,10 +64,8 @@ class CalendarParserICalendar extends CalendarParser
         // the CR is optional for files imported from Korganizer (non-standard)
         $data = preg_replace('/\x0D?\x0A[\x20\x09]/', '', $data);
 
-        // UTF-8 decoding
-        $v_calendar = utf8_decode($data);
-        if (!preg_match('/BEGIN:VCALENDAR(\r\n|\r|\n)([\W\w]*)END:VCALENDAR\r?\n?/', $v_calendar, $matches)) {
-            $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Import-Datei ist keine gültige iCalendar-Datei!"));
+        if (!preg_match('/BEGIN:VCALENDAR(\r\n|\r|\n)([\W\w]*)END:VCALENDAR\r?\n?/', $data, $matches)) {
+            $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Import-Datei ist keine gÃ¼ltige iCalendar-Datei!"));
             return false;
         }
 
@@ -76,7 +76,7 @@ class CalendarParserICalendar extends CalendarParser
 
         // All sub components
         if (!preg_match_all('/BEGIN:VEVENT(\r\n|\r|\n)([\w\W]*?)END:VEVENT(\r\n|\r|\n)/', $matches[2], $v_events)) {
-            $_calendar_error->throwError(ErrorHandler::ERROR_MESSAGE, _("Die importierte Datei enthält keine Termine."));
+            $_calendar_error->throwError(ErrorHandler::ERROR_MESSAGE, _("Die importierte Datei enthÃ¤lt keine Termine."));
             return true;
         }
 
@@ -195,8 +195,7 @@ class CalendarParserICalendar extends CalendarParser
                             $values = array();
                             $dates = array();
                             preg_match_all('/,([^,]*)/', ',' . $value, $values);
-
-                            foreach ($values as $value) {
+                            foreach ($values[1] as $value) {
                                 if (array_key_exists('VALUE', $params)) {
                                     if ($params['VALUE'] == 'DATE-TIME') {
                                         $dates[] = $this->_parseDateTime($value);
@@ -283,13 +282,11 @@ class CalendarParserICalendar extends CalendarParser
                 if (!$properties['RRULE']['rtype'])
                     $properties['RRULE'] = array('rtype' => 'SINGLE');
 
-                $properties['RRULE'] = CalendarEvent::createRepeat($properties['RRULE'], $properties['DTSTART'], $properties['DTEND']);
-
                 if (!$properties['LAST-MODIFIED'])
                     $properties['LAST-MODIFIED'] = $properties['CREATED'];
 
                 if (!$properties['DTSTART'] || ($properties['EXDATE'] && !$properties['RRULE'])) {
-                    $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Datei ist keine gültige iCalendar-Datei!"));
+                    $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Datei ist keine gÃ¼ltige iCalendar-Datei!"));
                     $this->count = 0;
                     return false;
                 }
@@ -317,7 +314,7 @@ class CalendarParserICalendar extends CalendarParser
 
                 $this->components[] = $properties;
             } else {
-                $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Datei ist keine gültige iCalendar-Datei!"));
+                $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Datei ist keine gÃ¼ltige iCalendar-Datei!"));
                 $this->count = 0;
                 return false;
             }
@@ -501,7 +498,7 @@ class CalendarParserICalendar extends CalendarParser
                                 $r_rule['rtype'] = trim($match[2]);
                                 break;
                             default:
-                                $_calendar_error->throwSingleError('parse', ErrorHandler::ERROR_WARNING, _("Der Import enthält Kalenderdaten, die Stud.IP nicht korrekt darstellen kann."));
+                                $_calendar_error->throwSingleError('parse', ErrorHandler::ERROR_WARNING, _("Der Import enthÃ¤lt Kalenderdaten, die Stud.IP nicht korrekt darstellen kann."));
                                 break;
                         }
                         break;
@@ -523,7 +520,7 @@ class CalendarParserICalendar extends CalendarParser
                     case 'BYHOUR' :
                     case 'BYWEEKNO' :
                     case 'BYYEARDAY' :
-                        $_calendar_error->throwSingleError('parse', ErrorHandler::ERROR_WARNING, _("Der Import enthält Kalenderdaten, die Stud.IP nicht korrekt darstellen kann."));
+                        $_calendar_error->throwSingleError('parse', ErrorHandler::ERROR_WARNING, _("Der Import enthÃ¤lt Kalenderdaten, die Stud.IP nicht korrekt darstellen kann."));
                         break;
 
                     case 'BYDAY' :
@@ -572,7 +569,7 @@ class CalendarParserICalendar extends CalendarParser
                     else
                         $sinterval = $match[1];
                 } else {
-                    $_calendar_error->throwSingleError('parse', ErrorHandler::ERROR_WARNING, _("Der Import enthält Kalenderdaten, die Stud.IP nicht korrekt darstellen kann."));
+                    $_calendar_error->throwSingleError('parse', ErrorHandler::ERROR_WARNING, _("Der Import enthÃ¤lt Kalenderdaten, die Stud.IP nicht korrekt darstellen kann."));
                 }
             }
         }
@@ -611,10 +608,10 @@ class CalendarParserICalendar extends CalendarParser
 
         if ($this->client_identifier == '') {
             if (!preg_match('/PRODID((;[\W\w]*)*):([\W\w]+?)(\r\n|\r|\n)/', $data, $matches)) {
-                $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Datei ist keine gültige iCalendar-Datei!"));
+                $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Datei ist keine gÃ¼ltige iCalendar-Datei!"));
                 return false;
             } elseif (!trim($matches[3])) {
-                $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Datei ist keine gültige iCalendar-Datei!"));
+                $_calendar_error->throwError(ErrorHandler::ERROR_CRITICAL, _("Die Datei ist keine gÃ¼ltige iCalendar-Datei!"));
                 return false;
             } else {
                 $this->client_identifier = trim($matches[3]);

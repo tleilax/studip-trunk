@@ -28,7 +28,7 @@ require_once 'lib/user_visible.inc.php';
 
 //Basics
 PageLayout::setHelpKeyword('Basis.SuchenPersonen');
-PageLayout::setTitle(_('Personensuche'));
+PageLayout::setTitle(_('Suche nach Personen'));
 Navigation::activateItem('/search/users');
 
 $template = $GLOBALS['template_factory']->open('browse');
@@ -44,7 +44,7 @@ if (!Request::submitted('reset')) {
 
 //Eine Suche wurde abgeschickt
 
-// Suchstring merken für evtl. Sortieraktionen
+// Suchstring merken fÃ¼r evtl. Sortieraktionen
 if (Request::get('name') && !Request::submitted('send')) {
     $name = Request::get('name');
 }
@@ -123,12 +123,13 @@ $vis_query = get_vis_query('auth_user_md5', 'search') . ' AS visible';
 // quick search
 $search_object = new SQLSearch("SELECT username, CONCAT(Vorname, ' ', Nachname, ' (', username, ')'), CONCAT(Vorname, ' ', Nachname), $vis_query" .
                                " FROM auth_user_md5 LEFT JOIN user_visibility USING (user_id)" .
-                               " WHERE ( " .
-                                " CONCAT(Vorname, ' ', Nachname) LIKE :input OR ".
+                               " WHERE " .
+                                " CONCAT(Vorname, ' ', Nachname) LIKE :input OR".
                                 " CONCAT(Nachname, ' ', Vorname) LIKE :input OR".
-                                " CONCAT(Nachname, ', ', Vorname) LIKE :input)".
+                                " CONCAT(Nachname, ', ', Vorname) LIKE :input OR".
+                                " username LIKE :input".
                                " HAVING visible = 1".
-                               " ORDER BY Nachname, Vorname", _('Personen suchen'), 'username');
+                               " ORDER BY Nachname, Vorname", _('Vorname, Nachname oder Nutzername'), 'username');
 
 $template->set_attribute('search_object', $search_object);
 
@@ -175,11 +176,11 @@ if ($sem_id) {
 if (mb_strlen($name) > 2) {
     $name = str_replace('%', '\%', $name);
     $name = str_replace('_', '\_', $name);
-    $filter[] = "CONCAT(Vorname, ' ', Nachname) LIKE CONCAT('%', :needle, '%')";
-    $parameters[':needle'] = $name;
+    $filter[] = "(CONCAT(Vorname, ' ', Nachname) LIKE :needle OR CONCAT(Nachname, ' ', Vorname) LIKE :needle OR CONCAT(Nachname, ', ', Vorname) LIKE :needle OR username LIKE :needle)";
+    $parameters[':needle'] = '%' . $name . '%';
 }
 
-if (count($filter)) {
+if ($filter && count($filter)) {
     $_fields  = implode(', ', $fields);
     $_tables  = implode(' ', $tables);
     $_filters = implode(' AND ', $filter);

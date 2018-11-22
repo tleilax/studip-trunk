@@ -4,7 +4,7 @@
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="view" value="edit_request">
 
-<table class="default" style="margin: 0 1%; width: 98%;">
+<table class="default nohover">
     <colgroup>
         <col width="4%">
         <col>
@@ -14,16 +14,16 @@
             <td>&nbsp;</td>
             <td>
 
-                <table border="0" cellpadding="2" cellspacing="2">
+                <table>
                     <tr>
                         <td>
                             <?= SemesterData::GetSemesterSelector(array(
                                     'name' => 'tools_requests_sem_choose',
-                                    'onChange' => 'document.tools_requests_form.submit()'
+                                    'class' => 'submit-upon-select'
                                 ), $this->semester_id, 'semester_id',false) ?>
-                            <?= Button::create(_('Semester auswählen'), 'tools_requests_sem_choose_button') ?>
+                            <?= Button::create(_('Semester auswÃ¤hlen'), 'tools_requests_sem_choose_button') ?>
                             <br>
-                            <select name="tools_requests_sem_type_choose" onChange="document.tools_requests_form.submit()">
+                            <select name="tools_requests_sem_type_choose" class="submit-upon-select">
                             <option value=""><?= _("alle Veranstaltungen")?></option>
                             <?
                             foreach (SeminarCategories::getAll() as $sc) {
@@ -38,7 +38,7 @@
                            ?>
                            </select>
                            <br>
-                           <select name="tools_requests_faculty_choose" onChange="document.tools_requests_form.submit()">
+                           <select name="tools_requests_faculty_choose" class="submit-upon-select">
                            <option value=""><?= _("alle Veranstaltungen")?></option>
                            <?
                            foreach (Institute::findBySQL("fakultaets_id=Institut_id ORDER BY Name ASC") as $faculty) {
@@ -52,12 +52,12 @@
                         <td style="padding-left:10px">
                             <b><?= _('Status:') ?></b><br>
                         <? if ($open_requests): ?>
-                            <?= sprintf(_('Es liegen insgesamt <b>%s</b> nicht aufgelöste Anfragen vor '
+                            <?= sprintf(_('Es liegen insgesamt <b>%s</b> nicht aufgelÃ¶ste Anfragen vor '
                                         . '- <br>davon <b>%s</b> von Veranstaltungen und <b>%s</b> auf '
                                         . 'Ressourcen, auf die Sie Zugriff haben.'),
                                         $open_requests, (int)$open_sem_requests, (int)$open_res_requests) ?>
                         <? else: ?>
-                            <?= _('Es liegen im Augenblick keine unaufgelösten Anfragen vor.') ?>
+                            <?= _('Es liegen im Augenblick keine unaufgelÃ¶sten Anfragen vor.') ?>
                         <? endif; ?>
                     <? if ($no_time): ?>
                             <br>
@@ -88,7 +88,15 @@
                                        name="resolve_requests_tagged"
                                        type="checkbox" value="1"
                                        <? if ($display_tagged) echo 'checked'; ?>>
-                                <?= _('Anfragen die von mir als bearbeitet markiert sind ausblenden') ?>
+                                <?= _('Anfragen, die von mir als bearbeitet markiert sind, ausblenden') ?>
+                            </label>
+                            <br>
+                            <label>
+                                <input onchange="document.tools_requests_form.submit()"
+                                       name="resolve_requests_regular"
+                                       type="checkbox" value="1"
+                                       <? if ($display_regular) echo 'checked'; ?>>
+                                <?= _('Nur Veranstaltungen mit regelmÃ¤ÃŸigen Terminen einbeziehen') ?>
                             </label>
                         </td>
                     </tr>
@@ -100,8 +108,8 @@
         <tr>
             <td>&nbsp;</td>
             <td>
-                <b><?= _('Optionen beim Auflösen') ?></b><br>
-                <?= _('Sie können die vorliegenden Anfragen mit folgenden Optionen auflösen:') ?><br>
+                <b><?= _('Optionen beim AuflÃ¶sen') ?></b><br>
+                <?= _('Sie kÃ¶nnen die vorliegenden Anfragen mit folgenden Optionen auflÃ¶sen:') ?><br>
                 <br>
 
                 <table border="0" cellpadding="2" cellspacing="0">
@@ -124,7 +132,7 @@
 
                             <label>
                                 <input type="radio" name="resolve_requests_mode" value="res">
-                                <?= _('nur Anfragen auf meine Räume') ?>
+                                <?= _('nur Anfragen auf meine RÃ¤ume') ?>
                             </label>
                             <br>
 
@@ -155,13 +163,13 @@
 
                             <label>
                                 <input type="radio" name="resolve_requests_order" value="complex" checked>
-                                <?= _('komplexere zuerst (Raumgröße und  gewünschte Eigenschaften)') ?>
+                                <?= _('komplexere zuerst (RaumgrÃ¶ÃŸe und  gewÃ¼nschte Eigenschaften)') ?>
                             </label>
                             <br>
 
                             <label>
                                 <input type="radio" name="resolve_requests_order" value="oldest">
-                                <?= _('ältere zuerst') ?>
+                                <?= _('Ã¤ltere zuerst') ?>
                             </label>
                             <br>
 
@@ -183,7 +191,7 @@
         </tr>
     <? endif; ?>
     </tbody>
-<? if (count($open_requests) > 0): ?>
+<? if ($open_requests > 0): ?>
     <tfoot>
         <tr class="table_footer">
             <td>&nbsp;</td>

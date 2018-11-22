@@ -21,12 +21,12 @@
  * @property string readed database column
  * @property string priority database column
  * @property SimpleORMapCollection receivers has_many MessageUser
- * @property SimpleORMapCollection attachments has_many StudipDocument
+ * @property SimpleORMapCollection attachment_folder has_one Folder
  * @property User author has_one User
  * @property MessageUser originator has_one MessageUser
  */
 
-class Message extends SimpleORMap
+class Message extends SimpleORMap implements PrivacyObject
 {
     public static function markAllAs($user_id = null, $state_of_flag = 1)
     {
@@ -109,7 +109,7 @@ class Message extends SimpleORMap
         );
         $config['has_one']['originator'] = array(
             'class_name' => 'MessageUser',
-            'assoc_func' => 'findSendedByMessageId',
+            'assoc_func' => 'findSentByMessageId',
             'on_store' => 'store',
             'on_delete' => 'delete'
         );
@@ -119,13 +119,11 @@ class Message extends SimpleORMap
             'on_store' => 'store',
             'on_delete' => 'delete'
         );
-        $config['has_many']['attachments'] = array(
-            'class_name' => 'StudipDocument',
+        $config['has_one']['attachment_folder'] = array(
+            'class_name' => 'Folder',
             'assoc_foreign_key' => 'range_id',
             'on_store' => 'store',
-            'on_delete' => function($message) {
-                return array_sum(array_map('delete_document', $message->attachments->pluck('id')));
-            }
+            'on_delete' => 'delete'
         );
         parent::configure($config);
     }
@@ -203,10 +201,25 @@ class Message extends SimpleORMap
         return $changed;
     }
 
+    public function markAsAnswered($user_id)
+    {
+        $mu = MessageUser::findOneBySQL("message_id = ? AND user_id = ? AND snd_rec IN('rec','snd')", array($this->id, $user_id));
+        if ($mu) {
+            $mu->answered = 1;
+            return $mu->store();
+        }
+    }
+
     public function isRead($user_id = null)
     {
         $user_id || $user_id = $GLOBALS['user']->id;
         return (bool)MessageUser::countBySQL("message_id = ? AND user_id = ? AND snd_rec IN('rec','snd') AND readed = 1", array($this->message_id, $user_id));
+    }
+
+    public function isAnswered($user_id = null)
+    {
+        $user_id || $user_id = $GLOBALS['user']->id;
+        return (bool)MessageUser::countBySQL("message_id = ? AND user_id = ? AND snd_rec IN('rec','snd') AND answered = 1", array($this->message_id, $user_id));
     }
 
     public static function send($sender, $recipients, $subject, $message)
@@ -285,7 +298,7 @@ class Message extends SimpleORMap
 
     public function getNumAttachments()
     {
-        return StudipDocument::countBySQL("range_id=?", array($this->id));
+        return FileRef::countBySql("INNER JOIN folders ON(folders.id = folder_id) WHERE folders.range_id = ?", [$this->id]);
     }
 
     /**
@@ -298,6 +311,29 @@ class Message extends SimpleORMap
             return (bool)$this->delete();
         }
         return false;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user )
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("autor_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('message', $field_data, $user);
+            }
+        }
+        return [_('Nachrichten') => $storage];
     }
 
 }

@@ -50,13 +50,14 @@ class EventLogController extends AuthenticatedController
     {
         $this->action_id = Request::option('action_id');
         $this->object_id = Request::option('object_id');
+        $this->format = Request::quoted('format');
+        $this->search = Request::get('search');
         $this->log_actions = $this->event_log->get_used_log_actions();
         $this->types = $this->event_log->get_object_types();
 
         // restrict log events to object scope
-        if (Request::get('search') && Request::get('search') != '') {
+        if ($this->search && $this->search != '') {
             $this->type = Request::get('type');
-            $this->search =Request::get('search');
             $objects = $this->event_log->find_objects($this->type,
                     $this->search, $this->action_id);
 
@@ -68,9 +69,8 @@ class EventLogController extends AuthenticatedController
         }
 
         // find all matching log events
-        if (Request::get('search') === '' || isset($this->object_id)) {
-            $this->start = (int) Request::int('start');
-            $this->format = Request::quoted('format');
+        if ($this->search === '' || isset($this->object_id)) {
+            $this->start = Request::int('start', 0);
             $this->num_entries =
                 $this->event_log->count_log_events($this->action_id, $this->object_id);
 

@@ -18,7 +18,7 @@
 // functions.php
 // Stud.IP Kernfunktionen
 // Copyright (C) 2002 Cornelis Kater <ckater@gwdg.de>, Suchi & Berg GmbH <info@data-quest.de>,
-// Ralf Stockmann <rstockm@gwdg.de>, André Noack André Noack <andre.noack@gmx.net>
+// Ralf Stockmann <rstockm@gwdg.de>, AndrÃ© Noack AndrÃ© Noack <andre.noack@gmx.net>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -76,7 +76,7 @@ $UNI_URL = "http://www.studip.de";
 $UNI_LOGIN_ADD='';
 $UNI_LOGOUT_ADD=sprintf(_("Und hier geht's zur %sStud.IP Portalseite%s&nbsp;"), "<a href=\"http://www.studip.de\"><b>", "</b></a>");
 $UNI_CONTACT = "<please insert your general contact mail-adress here>";
-$UNI_INFO = "Stud.IP 3.3 - Studienbegleitender Internetsupport von Präsenzlehre";
+$UNI_INFO = "Stud.IP 4.0 - Studienbegleitender Internetsupport von PrÃ¤senzlehre";
 
 
 /* $SEM_CLASS and $SEM_TYPE configuration moved to database
@@ -90,15 +90,13 @@ $DEFAULT_TITLE_FOR_STATUS = array(
     'tutor'    => array(_('Tutor/-in'), _('Tutor/-innen')),
     'autor'    => array(_('Studierende'), _('Studierende')),
     'user'     => array(_('Leser/-in'), _('Leser/-innen')),
-    'accepted' => array(_('Vorläufig akzeptierte Person'),
-                        _('Vorläufig akzeptierte Personen')));
+    'accepted' => array(_('VorlÃ¤ufig akzeptierte Person'),
+                        _('VorlÃ¤ufig akzeptierte Personen')));
 
 
 /*
 possible types of sem_tree ("Veranstaltungshierarchie") types
 the "editable" flag could be used to prevent modifications, e.g. imported data
-the "is_module" flag specifies an entry which represents a "Studienmodul", if the "studienmodulmanagement"
-plugin interface is used
 */
 $SEM_TREE_TYPES[0] = array("name" => "", "editable" => true); //default type, must be present
 //$SEM_TREE_TYPES[1] = array("name" => _("Studienmodul") , "editable" => true, "is_module" => true);
@@ -116,12 +114,12 @@ $SEM_TREE_TYPES[0] = array("name" => "", "editable" => true); //default type, mu
 $UPLOAD_TYPES=array(    "default" =>
                 array(  "type"=>"allow",
                         "file_types" => array ("exe"),
-                        "file_sizes" => array ( "root" => 30 * 1048576,
-                                    "admin" => 30 * 1048576,
-                                    "dozent" => 30 * 1048576,
-                                    "tutor" => 30 * 1048576,
-                                    "autor" => 7 * 1048576,
-                                    "nobody" => 1.38 * 1048576
+                        "file_sizes" => array ( "root" => 240 * 1048576,
+                                    "admin" => 240 * 1048576,
+                                    "dozent" => 240 * 1048576,
+                                    "tutor" => 240 * 1048576,
+                                    "autor" => 240 * 1048576,
+                                    "nobody" => 16 * 1048576
                                     )
                 ),
 // rules for futher course-types can be added below (please adhere exactly to the structure given above)
@@ -158,11 +156,11 @@ $UPLOAD_TYPES["attachments"] =
 $UPLOAD_TYPES["personalfiles"] =
                 array(  "type" => "allow",
                         "file_types" => array ("exe"),
-                        "file_sizes" => array ( "root" => 7 * 1048576,
-                                    "admin" => 7 * 1048576,
-                                    "tutor" => 7 * 1048576,
-                                    "dozent" => 7 * 1048576,
-                                    "autor" => 7 * 1048576,
+                        "file_sizes" => array ( "root" => 240* 1048576,
+                                    "admin" => 240 * 1048576,
+                                    "tutor" => 240 * 1048576,
+                                    "dozent" =>240 * 1048576,
+                                    "autor" => 240 * 1048576,
                                     "nobody" => 0
                                     )
                 );
@@ -173,7 +171,7 @@ $UPLOAD_TYPES["personalfiles"] =
 * if none is given, the designations of $SEM_STATUS_GROUPS["default"] are used
 */
 $SEM_STATUS_GROUPS["default"] = array ("Lehrende", "Tutor/-innen", "Studierende", "Leser/-innen", "sonstige");    //the default. Don't delete this entry!
-$SEM_STATUS_GROUPS["2"] = array ("Organisatoren", "Mitglieder", "Ausschußmitglieder", "sonstige");
+$SEM_STATUS_GROUPS["2"] = array ("Organisatoren", "Mitglieder", "AusschuÃŸmitglieder", "sonstige");
 $SEM_STATUS_GROUPS["3"] = array ("Moderatoren des Forums","Mitglieder", "sonstige");
 // ...can be continued accordingly
 
@@ -198,7 +196,7 @@ $INST_TYPE[3]=array("name"=>_("Lehrstuhl"));
 $INST_TYPE[4]=array("name"=>_("Abteilung"));
 $INST_TYPE[5]=array("name"=>_("Fachbereich"));
 $INST_TYPE[6]=array("name"=>_("Seminar"));
-$INST_TYPE[7]=array("name"=>_("Fakultät"));
+$INST_TYPE[7]=array("name"=>_("FakultÃ¤t"));
 $INST_TYPE[8]=array("name"=>_("Arbeitsgruppe"));
 // ...can be continued accordingly
 
@@ -253,7 +251,7 @@ $PERS_TERMIN_KAT[3]=array("name"=>_("Vorbesprechung"), "color"=>"#b02e7c");
 $PERS_TERMIN_KAT[4]=array("name"=>_("Klausur"), "color"=>"#129c94");
 $PERS_TERMIN_KAT[5]=array("name"=>_("Exkursion"), "color"=>"#f26e00");
 $PERS_TERMIN_KAT[6]=array("name"=>_("Sondersitzung"), "color"=>"#a85d45");
-$PERS_TERMIN_KAT[7]=array("name"=>_("Prüfung"), "color"=>"#6ead10");
+$PERS_TERMIN_KAT[7]=array("name"=>_("PrÃ¼fung"), "color"=>"#6ead10");
 $PERS_TERMIN_KAT[8]=array("name"=>_("Telefonat"), "color"=>"#d60000");
 $PERS_TERMIN_KAT[9]=array("name"=>_("Besprechung"), "color"=>"#ffbd33");
 $PERS_TERMIN_KAT[10]=array("name"=>_("Verabredung"), "color"=>"#66b570");
@@ -276,9 +274,6 @@ $TIME_PRESETS = array ( //starthour, startminute, endhour, endminute
         );
 //$TIME_PRESETS = false;
 
-
-//number of personal events each user can store in his calendar
-$CALENDAR_MAX_EVENTS = 1000;
 
 //preset for academic titles -  add further titles to the array, if necessary
 $TITLE_FRONT_TEMPLATE = array("","Prof.","Prof. Dr.","Dr.","PD Dr.","Dr. des.","Dr. med.","Dr. rer. nat.","Dr. forest.",
@@ -386,4 +381,3 @@ $NOT_HIDEABLE_FIELDS = array(
 );
 //Add ids of datafields to use for import on teilnehmer.php
 $TEILNEHMER_IMPORT_DATAFIELDS = array();
-

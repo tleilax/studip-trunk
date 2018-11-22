@@ -49,22 +49,22 @@ class CronjobLog extends SimpleORMap
             'foreign_key' => 'schedule_id',
         );
 
-        $config['registered_callbacks']['before_store'][]     = 'cbSerializeException';
-        $config['registered_callbacks']['after_store'][]      = 'cbSerializeException';
-        $config['registered_callbacks']['after_initialize'][] = 'cbSerializeException';
 
         parent::configure($config);
-
     }
 
-    protected function cbSerializeException($type)
+    public function setException($exception_or_string)
     {
-        if ($type === 'before_store' && !is_string($this->exception)) {
-            $this->exception = serialize($this->exception ?: null);
+        if ($exception_or_string instanceof Exception) {
+            $exception_as_string = display_exception($exception_or_string, false, true);
+            return $this->content['exception'] = $exception_as_string;
         }
-        if (in_array($type, array('after_initialize', 'after_store')) && is_string($this->exception)) {
-            $this->exception = unserialize($this->exception ?: null);
+
+        if (is_string($exception_or_string)) {
+            return $this->content['exception'] = $exception_or_string;
         }
+
+        return $this->content['exception'] = null;
     }
 
 }

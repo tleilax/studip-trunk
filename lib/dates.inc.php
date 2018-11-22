@@ -6,7 +6,7 @@
 
 /*
 dates.inc.php - basale Routinen zur Terminveraltung.
-Copyright (C) 2001 Stefan Suchi <suchi@gmx.de>, André Noack <anoack@mcis.de>
+Copyright (C) 2001 Stefan Suchi <suchi@gmx.de>, AndrÃ© Noack <anoack@mcis.de>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,7 +23,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-require_once 'lib/datei.inc.php';  // benötigt zum Löschen von Dokumenten
 require_once 'lib/calendar_functions.inc.php';
 require_once 'lib/raumzeit/raumzeit_functions.inc.php'; // Helper-Funktionen
 
@@ -31,7 +30,7 @@ require_once 'lib/raumzeit/raumzeit_functions.inc.php'; // Helper-Funktionen
  * getWeekday liefert einen String mit einem Tagesnamen.
  *
  * day_num  integer PHP-konformer Tag (0-6)
- * short    boolean Wenn gesetzt wird der Tag verkürzt zurückgegeben.
+ * short    boolean Wenn gesetzt wird der Tag verkÃ¼rzt zurÃ¼ckgegeben.
  */
 function getWeekday($day_num, $short = TRUE) {
     switch ($day_num) {
@@ -78,7 +77,7 @@ function getMonthName($month, $short = true) {
     $months = [
          1 => [_('Januar'),    _('Jan.')],
          2 => [_('Februar'),   _('Feb.')],
-         3 => [_('März'),      _('März')],
+         3 => [_('MÃ¤rz'),      _('MÃ¤rz')],
          4 => [_('April'),     _('Apr.')],
          5 => [_('Mai'),       _('Mai')],
          6 => [_('Juni'),      _('Juni')],
@@ -104,7 +103,7 @@ function leadingZero($num) {
     }
 }
 
-/* veranstaltung_beginn liefert den tatsächlichen ersten Termin einer Veranstaltung */
+/* veranstaltung_beginn liefert den tatsÃ¤chlichen ersten Termin einer Veranstaltung */
 function veranstaltung_beginn($seminar_id = '', $return_mode = '') {
     if ($seminar_id == '') return 'dates.inc.php:veranstaltung_beginn - Fehlerhafter Aufruf!';
     $sem = new Seminar($seminar_id);
@@ -113,7 +112,7 @@ function veranstaltung_beginn($seminar_id = '', $return_mode = '') {
 
 /*
 Die Funktion veranstaltung_beginn_from_metadata errechnet den ersten Seminartermin aus dem Turnus Daten.
-Zurueckgegeben wird ausschließlich ein Timestamp
+Zurueckgegeben wird ausschlieÃŸlich ein Timestamp
 Diese Funktion arbeitet im 'ad hoc' Modus und erwartet die einzelnen Variabeln des Metadaten-Arrays als Uebergabe.
 Konkrete Termine werde dabei NICHT mit beruecksichtigt!
 */
@@ -123,7 +122,7 @@ function veranstaltung_beginn_from_metadata($reg_irreg, $sem_begin, $start_woche
         echo "<br>Fehler in dates.inc.php: veranstaltung_beginn_from_metadata() unterstuetzt nur den return mode 'int'.";
         die();
     }
-    $semester = SemesterData::GetInstance()->getSemesterDataByDate($sem_begin);
+    $semester = SemesterData::getSemesterDataByDate($sem_begin);
     $dow = date("w", $semester['vorles_beginn']);
     if ($dow <= 5)
         $corr = ($dow -1) * -1;
@@ -185,7 +184,7 @@ function shrink_dates($dates) {
             $dates[$i]["time_match"] = true;
         }
 
-        if (((date ("z", $dates[$i]["start_time"])-1) == date ("z", $dates[$i-1]["start_time"])) 
+        if (((date ("z", $dates[$i]["start_time"])-1) == date ("z", $dates[$i-1]["start_time"]))
                 || ((date ("z", $dates[$i]["start_time"]) == 0) && (date ("j", $dates[$i-1]["start_time"]) == 0))) {
             if ($dates[$i]["time_match"]) {
                 $dates[$i]["conjuncted"] = true;
@@ -216,7 +215,7 @@ function shrink_dates($dates) {
         if (!$dates[$i+1]["time_match"]) {
             // check if the current date is for a whole day
             if ((($dates[$i]["end_time"] - $dates[$i]["start_time"]) / 60 / 60) > 23) {
-                $return_string .= ' ('. _('ganztägig') . ')';
+                $return_string .= ' ('. _('ganztÃ¤gig') . ')';
             } else {
                 $return_string .= ' ' . date("H:i", $dates[$i]["start_time"]);
                 if (date("H:i", $dates[$i]["start_time"]) != date("H:i", $dates[$i]["end_time"])) {
@@ -278,7 +277,7 @@ Die Funktion get_sem_name gibt den Namen eines Semester, in dem ein uebergebener
 */
 
 function get_sem_name ($time) {
-    $semester = SemesterData::GetInstance()->getSemesterDataByDate($time);
+    $semester = SemesterData::getSemesterDataByDate($time);
     return $semester["name"];
 }
 
@@ -287,7 +286,7 @@ Die Funktion get_sem_num gibt die Nummer eines Semester, in dem ein uebergebener
 */
 
 function get_sem_num ($time) {
-    $all_semester = SemesterData::GetInstance()->getAllSemesterData();
+    $all_semester = SemesterData::getAllSemesterData();
     foreach ($all_semester as $key=>$val)
         if (($time >= $val["beginn"]) AND ($time <= $val["ende"]))
             return $key;
@@ -295,7 +294,7 @@ function get_sem_num ($time) {
 }
 
 function get_sem_num_sem_browse () {
-    $all_semester = SemesterData::GetInstance()->getAllSemesterData();
+    $all_semester = SemesterData::getAllSemesterData();
     $time = time();
     $ret = false;
     foreach ($all_semester as $key=>$val){
@@ -334,53 +333,30 @@ function get_semester($seminar_id, $start_sem_only=FALSE)
 }
 
 /*
-Die function delete_date löscht einen Termin und verschiebt daran haegende
+Die function delete_date lÃ¶scht einen Termin und verschiebt daran haegende
 Ordner in den allgemeinen Ordner.
-Der erste Parameter ist die termin_id des zu löschenden Termins.
+Der erste Parameter ist die termin_id des zu lÃ¶schenden Termins.
 Der zweite Parameter topic_id gibt an, ob auch die zu diesem Termin gehoerenden
 Postings im Forensystem geloescht werden sollen.
 0 bzw. FALSE : keine Topics loeschen
 > 0 : rekursives loeschen von topic_id
 Der dritte Parameter gibt analog an, ob auch die zu diesem Terminen gehoerenden
 Folder im Ordnersystem geloescht werden sollen.
-Der Rückgabewert der Funktion ist die Anzahl der insgesamt gelöschten Items.
+Der RÃ¼ckgabewert der Funktion ist die Anzahl der insgesamt gelÃ¶schten Items.
 -1 bedeutet einen Fehler beim Loeschen des Termins.
 Ausgabe wird keine produziert.
-Es erfolgt keine Überprüfung der Berechtigung innerhalb der Funktion,
+Es erfolgt keine ÃœberprÃ¼fung der Berechtigung innerhalb der Funktion,
 dies muss das aufrufende Script sicherstellen.
 */
 
 function delete_date($termin_id, $topic_delete = TRUE, $folder_move = TRUE, $sem_id=0) {
-    global $RELATIVE_PATH_RESOURCES;
 
     if (Config::get()->RESOURCES_ENABLE) {
-        include_once ($RELATIVE_PATH_RESOURCES."/lib/VeranstaltungResourcesAssign.class.php");
+        include_once ("lib/resources/lib/VeranstaltungResourcesAssign.class.php");
     }
 
-    if (!$folder_move) {
-        ## Dateiordner muessen weg!
-        recursiv_folder_delete ($termin_id);
-    } else {
-        ## Dateiordner werden verschoben, wenn Ordner nicht leer, ansonsten auch weg
-        if (!doc_count($termin_id))
-            recursiv_folder_delete($termin_id);
-        else {
-            $query = "SELECT folder_id FROM folder WHERE range_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($termin_id));
-            $folder_id = $statement->fetchColumn();
-
-            move_item($folder_id, $sem_id, $sem_id);
-
-            $query = "UPDATE folder SET name = ?, description = ? WHERE folder_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array(
-                _('Dateiordner zu gelöschtem Termin'),
-                _('Dieser Ordner enthält Dokumente und Termine eines gelöschten Termins'),
-                $folder_id,
-            ));
-        }
-    }
+    //Deleting folders was removed since folders can't be assigned to
+    //single dates, only to topics.
 
     ## Und den Termin selbst loeschen
     $query = "DELETE FROM termine WHERE termin_id = ?";
@@ -394,18 +370,18 @@ function delete_date($termin_id, $topic_delete = TRUE, $folder_move = TRUE, $sem
 }
 
 /*
-Die function delete_range_of_dates löscht Termine mit allen daran haengenden Items.
-Der erste Parameter ist die range_id der zu löschenden Termine.
+Die function delete_range_of_dates lÃ¶scht Termine mit allen daran haengenden Items.
+Der erste Parameter ist die range_id der zu lÃ¶schenden Termine.
 Es koennen also mit einem Aufruf alle Termine eines Seminares,
 eines Institutes oder persoenliche Termine eines Benutzers aus der Datenbank entfernt werden.
-Dokumente und Literatur an diesen Terminen werden auf jeden Fall gelöscht.
+Dokumente und Literatur an diesen Terminen werden auf jeden Fall gelÃ¶scht.
 Der zweite Parameter topics gibt an, ob auch die zu diesen Terminen gehoerenden
 Postings im Forensystem geloescht werden sollen.
 0 bzw. FALSE : keine Topics loeschen
 1 bzw. TURE : rekursives Loeschen der Postings
-Der Rückgabewert der Funktion ist die Anzahl der gelöschten Termine.
+Der RÃ¼ckgabewert der Funktion ist die Anzahl der gelÃ¶schten Termine.
 Ausgabe wird keine produziert.
-Es erfolgt keine Überprüfung der Berechtigung innerhalb der Funktion,
+Es erfolgt keine ÃœberprÃ¼fung der Berechtigung innerhalb der Funktion,
 dies muss das aufrufende Script sicherstellen.
 */
 
@@ -515,7 +491,7 @@ function getFormattedRooms($rooms, $link = false)
     if (is_array($rooms)) {
         foreach ($rooms as $room_id => $count) {
             if ($room_id && Config::get()->RESOURCES_ENABLE) {
-                $resObj =& ResourceObject::Factory($room_id);
+                $resObj = ResourceObject::Factory($room_id);
                 if ($link) {
                     $room_list[] = $resObj->getFormattedLink(TRUE, TRUE, TRUE,
                         'view_schedule', 'no_nav', false, htmlReady($resObj->getName()));

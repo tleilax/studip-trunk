@@ -37,35 +37,48 @@
 <!DOCTYPE html>
 <html class="no-js">
 <head>
-    <meta charset="WINDOWS-1252">
+    <meta charset="utf-8">
     <title data-original="<?= htmlReady(PageLayout::getTitle()) ?>">
-        <?= htmlReady(PageLayout::getTitle() . ' - ' . $GLOBALS['UNI_NAME_CLEAN']) ?>
+        <?= htmlReady(PageLayout::getTitle() . ' - ' . Config::get()->UNI_NAME_CLEAN) ?>
     </title>
-    <?php
-        // needs to be included in templates/layouts/base.php as well
-        include 'app/views/WysiwygHtmlHeadBeforeJS.php';
-    ?>
-    <?= PageLayout::getHeadElements() ?>
-
-    <script src="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>"></script>
+    <script>
+    CKEDITOR_BASEPATH = "<?= Assets::url('javascripts/ckeditor/') ?>";
+    String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
+    </script>
+    <? if ($_SESSION['_language'] !== 'de_DE'): ?>
+        <link rel="localization" hreflang="<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>"
+              href="<?= URLHelper::getScriptLink('dispatch.php/localizations/' . $_SESSION['_language']) ?>" type="application/vnd.oftn.l10n+json">
+    <? endif ?>
 
     <script>
-        STUDIP.ABSOLUTE_URI_STUDIP = "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>";
-        STUDIP.ASSETS_URL = "<?= $GLOBALS['ASSETS_URL'] ?>";
-        String.locale = "<?= htmlReady(strtr($_SESSION['_language'], '_', '-')) ?>";
-        <? if (is_object($GLOBALS['perm']) && PersonalNotifications::isActivated() && $GLOBALS['perm']->have_perm("autor")) : ?>
-        STUDIP.jsupdate_enable = true;
-        <? endif ?>
-        STUDIP.URLHelper.parameters = <?= json_encode(studip_utf8encode(URLHelper::getLinkParams())) ?>;
+    window.STUDIP = {
+        ABSOLUTE_URI_STUDIP: "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>",
+        ASSETS_URL: "<?= $GLOBALS['ASSETS_URL'] ?>",
+        CSRF_TOKEN: {
+            name: '<?=CSRFProtection::TOKEN?>',
+            value: '<? try {echo CSRFProtection::token();} catch (SessionRequiredException $e){}?>'
+        },
+        STUDIP_SHORT_NAME: "<?= htmlReady(Config::get()->STUDIP_SHORT_NAME) ?>",
+        URLHelper: {
+            base_url: "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>",
+            parameters: <?= json_encode(URLHelper::getLinkParams(), JSON_FORCE_OBJECT) ?>
+        },
+        jsupdate_enable: <?= json_encode(
+                         is_object($GLOBALS['perm']) &&
+                         $GLOBALS['perm']->have_perm('autor') &&
+                         PersonalNotifications::isActivated()) ?>,
+        wysiwyg_enabled: <?= json_encode((bool) Config::get()->WYSIWYG) ?>
+    }
     </script>
-    <?php
-        // needs to be included in templates/layouts/base.php as well
-        include 'app/views/WysiwygHtmlHead.php';
-    ?>
+
+    <?= PageLayout::getHeadElements() ?>
+
+    <script>
+    window.STUDIP.editor_enabled = <?= json_encode((bool) Studip\Markup::editorEnabled()) ?> && CKEDITOR.env.isCompatible;
+    </script>
 </head>
 
 <body id="<?= PageLayout::getBodyElementId() ?>">
 <div id="layout_wrapper">
     <? SkipLinks::insertContainer() ?>
     <?= PageLayout::getBodyElements() ?>
-    <? PageLayout::clearMessages() ?>

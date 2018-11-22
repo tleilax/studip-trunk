@@ -3,29 +3,37 @@
 use Studip\Button, Studip\LinkButton;
 ?>
 
-<h1><?= _('Rollenzuweisungen anzeigen') ?></h1>
-
 <form action="<?= $controller->url_for('admin/role/show_role') ?>" method="get" class="default inline">
-    <label>
-        <?= _('Rolle wählen') ?>
+    <?= CSRFProtection::tokenTag() ?>
+    <fieldset>
+        <legend>
+            <?= _('Rollenzuweisungen anzeigen') ?>
+        </legend>
 
-        <select name="role">
-        <? foreach ($roles as $one_role): ?>
-            <option value="<?= $one_role->getRoleid() ?>" <? if ($one_role->getRoleid() == $roleid) echo 'selected'; ?>>
-                <?= htmlReady($one_role->getRolename()) ?>
-            <? if ($one_role->getSystemtype()): ?>
-                [<?= _('Systemrolle') ?>]
-            <? endif; ?>
-            </option>
-        <? endforeach; ?>
-        </select>
-    </label>
+        <label>
+            <?= _('Rolle wÃ¤hlen') ?>
 
-    <?= Button::create(_('Auswählen'), 'selectrole', array('title' => _('Rolle auswählen')))?>
+            <select name="role">
+            <? foreach ($roles as $one_role): ?>
+                <option value="<?= $one_role->getRoleid() ?>" <? if ($one_role->getRoleid() == $roleid) echo 'selected'; ?>>
+                    <?= htmlReady($one_role->getRolename()) ?>
+                <? if ($one_role->getSystemtype()): ?>
+                    [<?= _('Systemrolle') ?>]
+                <? endif; ?>
+                </option>
+            <? endforeach; ?>
+            </select>
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Button::create(_('AuswÃ¤hlen'), 'selectrole', array('title' => _('Rolle auswÃ¤hlen')))?>
+    </footer>
 </form>
 
 <? if (isset($role)): ?>
-<form action="<?= $controller->url_for('admin/role/remove_user/' . $role->getRoleId() . '/bulk') ?>" method="post">
+<br>
+<form action="<?= $controller->url_for('admin/role/remove_user/' . $role->getRoleId() . '/bulk') ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <table class="default" id="role-users">
@@ -102,8 +110,8 @@ use Studip\Button, Studip\LinkButton;
         <tfoot>
             <tr>
                 <td colspan="6">
-                    <?= _('Alle markierten Einträge') ?>
-                    <?= Studip\Button::create(_('Löschen'), 'delete', array(
+                    <?= _('Alle markierten EintrÃ¤ge') ?>
+                    <?= Studip\Button::create(_('LÃ¶schen'), 'delete', array(
                             'data-confirm' => _('Sollen den markierten Personen wirklich die Rolle entzogen werden?'),
                     )) ?>
                 </td>
@@ -114,7 +122,7 @@ use Studip\Button, Studip\LinkButton;
 
 <br>
 
-<form action="<?= $controller->url_for('admin/role/remove_plugin/' . $role->getRoleId() . '/bulk') ?>"    method="post">
+<form action="<?= $controller->url_for('admin/role/remove_plugin/' . $role->getRoleId() . '/bulk') ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <table class="default" id="role-plugins">
@@ -124,7 +132,7 @@ use Studip\Button, Studip\LinkButton;
             <div class="actions">
                 <a href="<?= $controller->url_for('admin/role/add_plugin/' . $roleid) ?>" data-dialog="size=auto">
                     <?= Icon::create('plugin+add', 'clickable') ?>
-                    <?= _('Plugins hinzufügen') ?>
+                    <?= _('Plugins hinzufÃ¼gen') ?>
                 </a>
             </div>
         </caption>
@@ -183,8 +191,8 @@ use Studip\Button, Studip\LinkButton;
         <tfoot>
             <tr>
                 <td colspan="6">
-                    <?= _('Alle markierten Einträge') ?>
-                    <?= Studip\Button::create(_('Löschen'), 'delete', array(
+                    <?= _('Alle markierten EintrÃ¤ge') ?>
+                    <?= Studip\Button::create(_('LÃ¶schen'), 'delete', array(
                             'data-confirm' => _('Sollen den markierten Plugins wirklich die Rolle entzogen werden?'),
                     )) ?>
                 </td>

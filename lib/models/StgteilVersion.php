@@ -36,14 +36,14 @@ class StgteilVersion extends ModuleManagementModelTreeItem
             'on_store' => 'store'
         );
         $config['has_many']['documents'] = array(
-            'class_name' => 'dokument',
+            'class_name' => 'MvvDokument',
             'assoc_func' => 'findByObject',
             'assoc_func_params_func' => function ($version) {
                 return $version;
             }
         );
         $config['has_many']['document_assignments'] = array(
-            'class_name' => 'DokumentZuord',
+            'class_name' => 'MvvDokumentZuord',
             'assoc_foreign_key' => 'range_id',
             'order_by' => 'ORDER BY position',
             'on_delete' => 'delete',
@@ -55,6 +55,8 @@ class StgteilVersion extends ModuleManagementModelTreeItem
         $config['additional_fields']['count_dokumente']['get'] =
             function($version) { return $version->count_dokumente; };
 
+        $config['i18n_fields']['beschreibung'] = true;
+        
         parent::configure($config);
     }
 
@@ -83,14 +85,15 @@ class StgteilVersion extends ModuleManagementModelTreeItem
      */
     public static function getEnriched($version_id)
     {
-        $version = parent::getEnrichedByQuery(
-                'SELECT msv.*, COUNT(msa.abschnitt_id) AS count_abschnitte '
-                . 'FROM mvv_stgteilversion msv '
-                . 'LEFT JOIN mvv_stgteilabschnitt msa USING(version_id) '
-                . 'WHERE msv.version_id = ? '
-                . 'GROUP BY version_id '
-                . 'ORDER BY mkdate',
-                array($version_id));
+        $version = parent::getEnrichedByQuery('
+            SELECT msv.*, COUNT(msa.abschnitt_id) AS count_abschnitte 
+            FROM mvv_stgteilversion AS msv 
+                LEFT JOIN mvv_stgteilabschnitt AS msa USING(version_id) 
+            WHERE msv.version_id = ? 
+            GROUP BY version_id 
+            ORDER BY mkdate',
+            array($version_id)
+        );
         if (count($version)) {
             return $version->find($version_id);
         }
@@ -115,23 +118,27 @@ class StgteilVersion extends ModuleManagementModelTreeItem
             $filter = null, $row_count = null, $offset = null)
     {
         $sortby = self::createSortStatement($sortby, $order, 'start',
-                array('count_abschnitte'));
-        return parent::getEnrichedByQuery('SELECT mvv_stgteilversion.*, '
-                . 'start_sem.beginn AS start, '
-                . 'COUNT(abschnitt_id) AS count_abschnitte, '
-                . 'COUNT(DISTINCT dokument_id) AS count_dokumente '
-                . 'FROM mvv_stgteilversion '
-                . 'LEFT JOIN mvv_stgteilabschnitt USING(version_id) '
-                . 'LEFT JOIN mvv_dokument_zuord '
-                . 'ON mvv_dokument_zuord.range_id = mvv_stgteilversion.version_id '
-                . "AND mvv_dokument_zuord.object_type = 'StgteilVersion' "
-                . 'LEFT JOIN semester_data start_sem '
-                . 'ON (mvv_stgteilversion.start_sem = start_sem.semester_id) '
-                . 'LEFT JOIN semester_data end_sem '
-                . 'ON (mvv_stgteilversion.end_sem = end_sem.semester_id) '
-                . self::getFilterSql($filter, true)
-                . 'GROUP BY version_id '
-                . 'ORDER BY ' . $sortby, array(), $row_count, $offset);
+                array('start', 'count_abschnitte', 'count_dokumente'));
+        return parent::getEnrichedByQuery("
+            SELECT mvv_stgteilversion.*, 
+                start_sem.beginn AS start, 
+                COUNT(abschnitt_id) AS count_abschnitte, 
+                COUNT(DISTINCT dokument_id) AS count_dokumente 
+            FROM mvv_stgteilversion 
+                LEFT JOIN mvv_stgteilabschnitt USING(version_id) 
+                LEFT JOIN mvv_dokument_zuord ON (
+                        mvv_dokument_zuord.range_id = mvv_stgteilversion.version_id 
+                        AND mvv_dokument_zuord.object_type = 'StgteilVersion'
+                    ) 
+                LEFT JOIN semester_data start_sem ON (mvv_stgteilversion.start_sem = start_sem.semester_id) 
+                LEFT JOIN semester_data end_sem ON (mvv_stgteilversion.end_sem = end_sem.semester_id) 
+                " . self::getFilterSql($filter, true) . "
+            GROUP BY version_id 
+            ORDER BY " . $sortby,
+            array(),
+            $row_count,
+            $offset
+        );
     }
 
     /**
@@ -144,13 +151,14 @@ class StgteilVersion extends ModuleManagementModelTreeItem
      */
     public static function getCount($filter = null)
     {
-        $query = 'SELECT COUNT(DISTINCT(mvv_stgteilversion.version_id)) '
-                . 'FROM mvv_stgteilversion '
-                . 'LEFT JOIN semester_data start_sem '
-                . 'ON (mvv_stgteilversion.start_sem = start_sem.semester_id) '
-                . 'LEFT JOIN semester_data end_sem '
-                . 'ON (mvv_stgteilversion.end_sem = end_sem.semester_id) '
-                . self::getFilterSql($filter, true);
+        $query = '
+            SELECT COUNT(DISTINCT(mvv_stgteilversion.version_id)) 
+            FROM mvv_stgteilversion 
+                LEFT JOIN semester_data start_sem 
+                    ON (mvv_stgteilversion.start_sem = start_sem.semester_id) 
+                LEFT JOIN semester_data end_sem 
+                    ON (mvv_stgteilversion.end_sem = end_sem.semester_id) 
+            ' . self::getFilterSql($filter, true);
         $db = DBManager::get()->query($query);
         return $db->fetchColumn(0);
     }
@@ -186,13 +194,14 @@ class StgteilVersion extends ModuleManagementModelTreeItem
      */
     public static function findByFilter($filter)
     {
-        $stmt = DBManager::get()->prepare('SELECT DISTINCT version_id '
-                . 'FROM mvv_stgteilversion '
-                . 'LEFT JOIN semester_data start_sem '
-                . 'ON (mvv_stgteilversion.start_sem = start_sem.semester_id) '
-                . 'LEFT JOIN semester_data end_sem '
-                . 'ON (mvv_stgteilversion.end_sem = end_sem.semester_id) '
-                . self::getFilterSql($filter, true));
+        $stmt = DBManager::get()->prepare('
+            SELECT DISTINCT version_id 
+            FROM mvv_stgteilversion 
+                LEFT JOIN semester_data start_sem 
+                    ON (mvv_stgteilversion.start_sem = start_sem.semester_id) 
+                LEFT JOIN semester_data end_sem 
+                    ON (mvv_stgteilversion.end_sem = end_sem.semester_id) 
+            ' . self::getFilterSql($filter, true));
         $stmt->execute();
         return $stmt->fetchAll();
     }
@@ -205,11 +214,14 @@ class StgteilVersion extends ModuleManagementModelTreeItem
      */
     public static function findByStgteilAbschnitt($abschnitt_id)
     {
-        $versions = parent::getEnrichedByQuery('SELECT msv.*, sd.beginn AS start '
-                . 'FROM mvv_stgteilversion msv '
-                . 'LEFT JOIN semester_data sd ON msv.start_sem = sd.semester_id '
-                . 'LEFT JOIN mvv_stgteilabschnitt msa USING(version_id) '
-                . 'WHERE abschnitt_id = ? ', array($abschnitt_id));
+        $versions = parent::getEnrichedByQuery('
+            SELECT msv.*, sd.beginn AS start 
+            FROM mvv_stgteilversion msv 
+                LEFT JOIN semester_data sd ON msv.start_sem = sd.semester_id 
+                LEFT JOIN mvv_stgteilabschnitt msa USING(version_id) 
+            WHERE abschnitt_id = ? ',
+            array($abschnitt_id)
+        );
         foreach ($versions as $version) {
             return $version;
         }
@@ -226,14 +238,16 @@ class StgteilVersion extends ModuleManagementModelTreeItem
      */
     public static function findByFachAbschluss($fach_id, $abschluss_id, $version_id = null)
     {
-        $stmt = 'SELECT DISTINCT msv.* FROM mvv_stgteilversion msv '
-                . 'INNER JOIN mvv_stg_stgteil mss ON msv.stgteil_id = mss.stgteil_id '
-                . 'INNER JOIN mvv_stgteil mst ON mss.stgteil_id = mst.stgteil_id '
-                . 'INNER JOIN mvv_studiengang msg ON mss.studiengang_id = msg.studiengang_id '
-                . 'LEFT JOIN semester_data sem_start ON msv.start_sem = sem_start.semester_id '
-                . ($version_id ? 'WHERE msv.version_id = ? AND mst.fach_id = ? AND msg.abschluss_id = ? '
-                               : 'WHERE mst.fach_id = ? AND msg.abschluss_id = ? ')
-                . 'ORDER BY mst.kp DESC, sem_start.beginn';
+        $stmt = '
+            SELECT DISTINCT msv.* 
+            FROM mvv_stgteilversion msv 
+                INNER JOIN mvv_stg_stgteil AS mss ON msv.stgteil_id = mss.stgteil_id 
+                INNER JOIN mvv_stgteil AS mst ON mss.stgteil_id = mst.stgteil_id 
+                INNER JOIN mvv_studiengang AS msg ON mss.studiengang_id = msg.studiengang_id 
+                LEFT JOIN semester_data AS sem_start ON msv.start_sem = sem_start.semester_id 
+                ' . ($version_id ? 'WHERE msv.version_id = ? AND mst.fach_id = ? AND msg.abschluss_id = ? '
+                               : 'WHERE mst.fach_id = ? AND msg.abschluss_id = ? ') . '
+            ORDER BY mst.kp DESC, sem_start.beginn';
 
         return DBManager::get()->fetchAll($stmt,
                 ($version_id
@@ -245,29 +259,29 @@ class StgteilVersion extends ModuleManagementModelTreeItem
                 });
     }
 
-    public function getDisplayName(/*$with_stgteil = true , $with_fach = true*/)
+    public function getDisplayName($options = self::DISPLAY_DEFAULT)
     {
         if ($this->isNew()) {
             return '';
         }
-
-        $args = func_get_args();
-        $with_stgteil = array_key_exists(0, $args)? $args[0] : true;
-        $with_fach = array_key_exists(1, $args)? $args[1] : true;
+        
+        $options = ($options !== self::DISPLAY_DEFAULT)
+                ? $options : (self::DISPLAY_STGTEIL | self::DISPLAY_FACH);
+        $with_stgteil = $options & self::DISPLAY_STGTEIL;
+        $with_fach = $options & self::DISPLAY_FACH;
         $start_sem = Semester::find($this->start_sem);
         $end_sem = Semester::find($this->end_sem);
-        $fassung_nr = $this->fassung_nr ? $this->fassung_nr
-                . ModuleManagementModel::getLocaleOrdinalNumberSuffix($this->fassung_nr)
-                . ' ' : '';
+        $fassung_nr = $this->fassung_nr
+            ? $this->fassung_nr . ModuleManagementModel::getLocaleOrdinalNumberSuffix($this->fassung_nr). ' '
+            : '';
         $fassung_typ = $this->fassung_typ
-                ? $GLOBALS['MVV_STGTEILVERSION']['FASSUNG_TYP'][$this->fassung_typ]['name'] . ' '
-                : '';
+            ? $GLOBALS['MVV_STGTEILVERSION']['FASSUNG_TYP'][$this->fassung_typ]['name'] . ' '
+            : '';
         if (!$end_sem) {
             if (!$start_sem) {
                 $name = $fassung_nr . trim($fassung_typ);
             } else {
-                $name = $fassung_nr . $fassung_typ . sprintf(_('gültig ab %s'),
-                        $start_sem->name);
+                $name = $fassung_nr . $fassung_typ . sprintf(_('gÃ¼ltig ab %s'), $start_sem->name);
             }
         } else {
             if ($start_sem->name == $end_sem->name) {
@@ -279,7 +293,7 @@ class StgteilVersion extends ModuleManagementModelTreeItem
         }
         if ($with_stgteil) {
             return StudiengangTeil::get($this->stgteil_id)->getDisplayName($with_fach)
-                    . ', ' . $name;
+                    . (trim($name) ? ', ' . $name : '');
         } else {
             return $name;
         }
@@ -298,14 +312,12 @@ class StgteilVersion extends ModuleManagementModelTreeItem
         if ($end_sem || $start_sem) {
             if ($end_sem) {
                 if ($start_sem->name == $end_sem->name) {
-                    $ret .= sprintf(_('gültig im %s'),
-                            $start_sem->name);
+                    $ret .= sprintf(_('gÃ¼ltig im %s'), $start_sem->name);
                 } else {
-                    $ret .= sprintf(_('gültig %s bis %s'),
-                            $start_sem->name, $end_sem->name);
+                    $ret .= sprintf(_('gÃ¼ltig %s bis %s'), $start_sem->name, $end_sem->name);
                 }
             } else {
-                $ret .= sprintf(_('gültig ab %s'), $start_sem->name);
+                $ret .= sprintf(_('gÃ¼ltig ab %s'), $start_sem->name);
             }
         }
         return $ret;
@@ -374,7 +386,7 @@ class StgteilVersion extends ModuleManagementModelTreeItem
      */
     public function getChildren()
     {
-        $_SESSION['MVV/StgteilAbschnitt/trail_parent_id'] =  $this->getId();
+        $_SESSION['MVV/StgteilAbschnitt/trail_parent_id'] =  $this->getId(); //RAS what's that?
         return StgteilAbschnitt::findByStgteilVersion($this->getId());
     }
 
@@ -404,7 +416,7 @@ class StgteilVersion extends ModuleManagementModelTreeItem
                 $start_sem = Semester::find($this->start_sem);
                 if (!$start_sem) {
                     $ret['start_sem'] = true;
-                    $messages[] = _('Ungültiges Semester.');
+                    $messages[] = _('UngÃ¼ltiges Semester.');
                     $rejected = true;
                 } else if ($this->end_sem) {
                     $end_sem = Semester::find($this->end_sem);
@@ -416,7 +428,7 @@ class StgteilVersion extends ModuleManagementModelTreeItem
                         }
                     } else {
                         $ret['end_sem'] = true;
-                        $messages[] = _('Ungültiges Endsemester.');
+                        $messages[] = _('UngÃ¼ltiges Endsemester.');
                         $rejected = true;
                     }
                 }
@@ -428,7 +440,7 @@ class StgteilVersion extends ModuleManagementModelTreeItem
             if ($this->stgteil_id) {
                 if (!StudiengangTeil::find($this->stgteil_id)) {
                     $ret['stgteil'] = true;
-                    $messages[] = _('Der angegebene Studiengangteil ist ungültig.');
+                    $messages[] = _('Der angegebene Studiengangteil ist ungÃ¼ltig.');
                     $rejected = true;
                 }
             } else {
@@ -439,7 +451,7 @@ class StgteilVersion extends ModuleManagementModelTreeItem
             if ($this->fassung_nr) {
                 if (!is_int($this->fassung_nr)) {
                     $ret['fassung_nr'] = true;
-                    $messages[] = _('Für Fassung bitte eine Zahl angeben.');
+                    $messages[] = _('FÃ¼r Fassung bitte eine Zahl angeben.');
                     $rejected = true;
                 }
                 if (!$GLOBALS['MVV_STGTEILVERSION']['FASSUNG_TYP'][$this->fassung_typ]) {
@@ -454,6 +466,7 @@ class StgteilVersion extends ModuleManagementModelTreeItem
         }
         return $ret;
     }
+    
     /**
      * @return string The status (see mvv_config.php)
      */
@@ -464,4 +477,20 @@ class StgteilVersion extends ModuleManagementModelTreeItem
         }
         return parent::getStatus();
     }
+    
+    /**
+     * Returns the responsible institutes.
+     * Inherits the responsible institutes from Studiengangteil
+     * 
+     * @return array Array of institute objects.
+     */
+    public function getResponsibleInstitutes()
+    {
+        $parent = reset($this->getParents());
+        if ($parent) {
+            return $parent->getResponsibleInstitutes();
+        }
+        return parent::getResponsibleInstitutes();
+    }
+    
 }

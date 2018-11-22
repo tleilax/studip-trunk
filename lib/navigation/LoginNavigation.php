@@ -24,22 +24,22 @@ class LoginNavigation extends Navigation
         parent::initSubNavigation();
 
         $navigation = new Navigation(_('Login'), 'index.php?again=yes');
-        $navigation->setDescription(_('für registrierte NutzerInnen'));
+        $navigation->setDescription(_('fÃ¼r registrierte NutzerInnen'));
         $this->addSubNavigation('login', $navigation);
 
         if (in_array('CAS', $GLOBALS['STUDIP_AUTH_PLUGIN'])) {
             $navigation = new Navigation(_('Login'), 'index.php?again=yes&sso=cas');
-            $navigation->setDescription(_('für Single Sign On mit CAS'));
+            $navigation->setDescription(_('fÃ¼r Single Sign On mit CAS'));
             $this->addSubNavigation('login_cas', $navigation);
         }
 
         if (in_array('Shib', $GLOBALS['STUDIP_AUTH_PLUGIN'])) {
             $navigation = new Navigation(_('Shibboleth Login'), 'index.php?again=yes&sso=shib');
-            $navigation->setDescription(_('für Single Sign On mit Shibboleth'));
+            $navigation->setDescription(_('fÃ¼r Single Sign On mit Shibboleth'));
             $this->addSubNavigation('login_shib', $navigation);
         }
 
-        if (get_config('ENABLE_SELF_REGISTRATION')) {
+        if (Config::get()->ENABLE_SELF_REGISTRATION) {
             $navigation = new Navigation(_('Registrieren'), 'register1.php');
             $navigation->setDescription(_('um NutzerIn zu werden'));
             $this->addSubNavigation('register', $navigation);

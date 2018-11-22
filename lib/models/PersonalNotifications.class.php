@@ -9,7 +9,7 @@
  * by the following one-liner:
  *
  * PersonalNotifications::add(
- *      $user_A_user_id, //id of user A or array of ´multiple user_ids
+ *      $user_A_user_id, //id of user A or array of Â´multiple user_ids
  *      $url_of_wiki_page, //when user A clicks this URL he/she should jump directly to the changed wiki-page
  *      "User B changed wiki-page xyz", //a small text that describes the notification
  *      "wiki_page_1234", //an (optional) html-id of the content of the wiki page. If the user is looking at the content already, the notification will disappear automatically
@@ -47,20 +47,6 @@ class PersonalNotifications extends SimpleORMap
         $config['db_table'] = 'personal_notifications';
         $config['additional_fields']['more_unseen'] = true;
 
-        $config['notification_map'] = array(
-            'after_create'  => 'PersonalNotificationsDidCreate',
-            'before_create' => 'PersonalNotificationsWillCreate',
-
-            'after_delete'  => 'PersonalNotificationsDidDelete',
-            'before_delete' => 'PersonalNotificationsWillDelete',
-
-            'after_store'   => 'PersonalNotificationsDidStore',
-            'before_store'  => 'PersonalNotificationsWillStore',
-
-            'after_update'  => 'PersonalNotificationsDidUpdate',
-            'before_update' => 'PersonalNotificationsWillUpdate'
-        );
-
         $config['registered_callbacks']['after_store'][] = 'cbExpireCache';
         $config['registered_callbacks']['before_delete'][] = 'cbExpireCache';
 
@@ -69,7 +55,8 @@ class PersonalNotifications extends SimpleORMap
 
     protected $unseen = null;
 
-    protected function cbExpireCache($notification) {
+    protected function cbExpireCache($notification)
+    {
         $query = "SELECT user_id
                   FROM personal_notifications_user
                   WHERE personal_notification_id = :id";
@@ -112,7 +99,7 @@ class PersonalNotifications extends SimpleORMap
      *   image for the notification. Best size: 40px x 40px
      * @return boolean : true on success
      */
-    public static function add($user_ids, $url, $text, $html_id = null, $avatar = null)
+    public static function add($user_ids, $url, $text, $html_id = null, $avatar = null, $dialog = false)
     {
         if (!is_array($user_ids)) {
             $user_ids = array($user_ids);
@@ -125,20 +112,18 @@ class PersonalNotifications extends SimpleORMap
         $notification['url']     = $url;
         $notification['text']    = $text;
         $notification['avatar']  = $avatar instanceof Icon ? $avatar->asImagePath(40) : $avatar;
+        $notification['dialog']  = $dialog ? 1 : 0;
         $notification->store();
-
-
-        $query = "INSERT INTO personal_notifications_user (user_id, personal_notification_id, seen)
-                  VALUES (:user_id, :id, '0')";
-        $insert_statement = DBManager::get()->prepare($query);
-        $insert_statement->bindValue(':id', $notification->id);
 
         foreach ($user_ids as $user_id) {
             self::expireCache($user_id);
 
             if (self::isActivated($user_id)) {
-                $insert_statement->bindValue(':user_id', $user_id);
-                $insert_statement->execute();
+                $assignment = new PersonalNotificationsUser();
+                $assignment['personal_notification_id'] = $notification->id;
+                $assignment['user_id'] = $user_id;
+                $assignment['seen'] = 0;
+                $assignment->store();
             }
         }
         return true;
@@ -204,17 +189,37 @@ class PersonalNotifications extends SimpleORMap
         self::expireCache($user_id);
 
         $pn = new PersonalNotifications($notification_id);
-        $statement = DBManager::get()->prepare(
-            "UPDATE personal_notifications_user AS pnu " .
-            "INNER JOIN personal_notifications AS pn ON (pn.personal_notification_id = pnu.personal_notification_id) " .
-            "SET pnu.seen = '1' " .
-            "WHERE pnu.user_id = :user_id AND pnu.seen = 0 " .
-            "AND pn.url = :url " .
-            "");
-        return $statement->execute(array(
+        $notification_users = PersonalNotificationsUser::findBySQL("INNER JOIN personal_notifications USING (personal_notification_id) WHERE user_id = :user_id AND seen = '0' AND personal_notifications.url = :url ", array(
             'user_id' => $user_id,
             'url' => $pn['url']
         ));
+        foreach ($notification_users as $notification_user) {
+            $notification_user['seen'] = 1;
+            $notification_user->store();
+        }
+    }
+
+    /**
+     * Marks all notifications as read by the user. It won't appear anymore in
+     * the notification-list on top of its site.
+     * @param string|null $user_id : ID of special user the notification should belong to or (default:) null for current user
+     * @return boolean : true on success, false if it failed.
+     */
+    public static function markAllAsRead($user_id = null)
+    {
+        if (!$user_id) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        self::expireCache($user_id);
+
+        $notification_users = PersonalNotificationsUser::findBySQL("user_id = :user_id AND seen = '0'", array(
+            'user_id' => $user_id
+        ));
+        foreach ($notification_users as $notification_user) {
+            $notification_user['seen'] = 1;
+            $notification_user->store();
+        }
+        return true;
     }
 
     /**
@@ -231,17 +236,14 @@ class PersonalNotifications extends SimpleORMap
         }
         self::expireCache($user_id);
 
-        $statement = DBManager::get()->prepare(
-            "UPDATE personal_notifications_user AS pnu " .
-                "INNER JOIN personal_notifications AS pn ON (pn.personal_notification_id = pnu.personal_notification_id) " .
-            "SET pnu.seen = '1' " .
-            "WHERE pnu.user_id = :user_id AND pnu.seen = 0 " .
-                "AND pn.html_id LIKE :html_id " .
-        "");
-        return $statement->execute(array(
+        $notification_users = PersonalNotificationsUser::findBySQL("INNER JOIN personal_notifications USING (personal_notification_id) WHERE user_id = :user_id AND seen = '0' AND personal_notifications.html_id = :html_id ", array(
             'user_id' => $user_id,
             'html_id' => $html_id
         ));
+        foreach ($notification_users as $notification_user) {
+            $notification_user['seen'] = 1;
+            $notification_user->store();
+        }
     }
 
     /**

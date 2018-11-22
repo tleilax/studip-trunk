@@ -1,26 +1,32 @@
 <form class="default" action="<?= $controller->url_for('course/members/select_course') ?>" method="post">
-    <section>
-        <label class="caption" for="course_id">
-            <?= _('Zielveranstaltung') ?>:
+    <?= CSRFProtection::tokenTag() ?>
+
+    <fieldset>
+        <legend><?= _('Zielveranstaltung auswählen') ?></legend>
+
+        <label>
+            <?= _('Zielveranstaltung') ?>        
+            <?= $search ?>
+
+            <br style="clear: both">
         </label>
-        <?= $search ?>
-    </section>
-    <section>
-        <label class="caption">
-            <?= _('Sollen die gew�hlten Personen in die Zielveranstaltung verschoben oder kopiert werden?') ?>
+
+        <label>
+            <?= _('Sollen die gewählten Personen in die Zielveranstaltung verschoben oder kopiert werden?') ?>
             <select name="move">
-                <option value="1"><?= _('verschieben') ?></option>
-                <option value="0"><?= _('kopieren') ?></option>
+                <option value="1"><?= _('Verschieben') ?></option>
+                <option value="0"><?= _('Kopieren') ?></option>
             </select>
         </label>
-    </section>
-    <?php foreach ($users as $u) : ?>
-        <input type="hidden" name="users[]" value="<?= htmlReady($u) ?>"/>
-    <?php endforeach ?>
-    <?= CSRFProtection::tokenTag() ?>
-    <br/><br/>
-    <div data-dialog-button>
+
+        <?php foreach ($users as $u) : ?>
+            <input type="hidden" name="users[]" value="<?= htmlReady($u) ?>"/>
+        <?php endforeach ?>
+
+    </fieldset>
+
+    <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Abschicken'), 'submit') ?>
         <?= Studip\Button::createCancel(_('Abbrechen'), 'cancel', array('data-dialog' => 'close')) ?>
-    </div>
+    </footer>
 </form>

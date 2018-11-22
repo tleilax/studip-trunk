@@ -39,14 +39,9 @@ class PluginManager
     private $plugins_default_activations_cache = array();
 
     /**
-     * should only core-plugins be activated? Sober means free of any external plugins.
-     */
-    static public $sober = false;
-
-    /**
      * Returns the PluginManager singleton instance.
      */
-    public static function getInstance ($sober = false)
+    public static function getInstance ()
     {
         static $instance;
 
@@ -54,7 +49,7 @@ class PluginManager
             return $instance;
         }
 
-        return $instance = new PluginManager($sober);
+        return $instance = new PluginManager();
     }
 
     /**
@@ -97,52 +92,72 @@ class PluginManager
                 'enabled'                 => $plugin['enabled'] === 'yes',
                 'position'                => $plugin['navigationpos'],
                 'depends'                 => (int) $plugin['dependentonid'],
-                'core'                    => mb_strpos($plugin['pluginpath'], 'core/') === 0,
+                'core'                    => strpos($plugin['pluginpath'], 'core/') === 0,
                 'automatic_update_url'    => $plugin['automatic_update_url'],
                 'automatic_update_secret' => $plugin['automatic_update_secret']
             );
         }
     }
 
-     /**
-      * @addtogroup notifications
-      *
-      * Enabling or disabling a plugin triggers a PluginDidEnable or
-      * respectively PluginDidDisable notification. The plugin's ID
-      * is transmitted as subject of the notification.
-      */
-
+    /**
+     * @addtogroup notifications
+     *
+     * Enabling or disabling a plugin triggers a PluginDidEnable or
+     * respectively PluginDidDisable notification. The plugin's ID
+     * is transmitted as subject of the notification.
+     */
     /**
      * Set the enabled/disabled status of the given plugin.
      *
-     * Triggers a PluginDidEnable or respectively PluginDidDisable
-     * notification. The plugin's ID is transmitted as subject of the
-     * notification.
+     * If the plugin implements the method "onEnable" or "onDisable", this
+     * method will be called accordingly. If the method returns false or
+     * throws and exception, the plugin's activation state is not updated.
      *
-     * @param $id        id of the plugin
-     * @param $enabled   plugin status (true or false)
+     * @param string $id        id of the plugin
+     * @param bool   $enabled   plugin status (true or false)
+     * @param bool   $force     force (de)activation regardless of the result
+    *                           of on(en|dis)able
+     * @return bool  indicating whether the plugin was updated or null if the
+     *               passed state equals the current state or if the plugin is
+     *               missing.
      */
-    public function setPluginEnabled ($id, $enabled)
+    public function setPluginEnabled ($id, $enabled, $force = false)
     {
-        $db = DBManager::get();
         $info = $this->getPluginInfoById($id);
-        $state = $enabled ? 'yes' : 'no';
 
-        if ($info && $info['enabled'] != $enabled) {
-            $db->exec("UPDATE plugins SET enabled = '$state' WHERE pluginid = '$id'");
-            $this->plugins[$id]['enabled'] = (boolean) $enabled;
-
-            // call #onEnable or #onDisable
-            $plugin_class = $this->loadPluginById($id);
-            if ($plugin_class) {
-                $plugin_class->getMethod("on" .  ($enabled ? "En" : "Dis") . "able")->invoke(NULL, $id);
-            }
-
-            NotificationCenter::postNotification(
-                $enabled ? 'PluginDidEnable' : 'PluginDidDisable',
-                $id);
+        // Plugin is not present or no changes
+        if (!$info || $info['enabled'] == $enabled) {
+            return;
         }
 
+        if ($info['core'] || !$this->isPluginsDisabled()) {
+            $plugin_class = $this->loadPlugin($info['class'], $info['path']);
+        }
+
+        if ($plugin_class) {
+            $method = $enabled ? 'onEnable' : 'onDisable';
+            $result = $plugin_class->getMethod($method)->invoke(null, $id);
+
+            // if callback returns false, don't enable or disable the plugin
+            if ($result === false && !$force) {
+                return false;
+            }
+        }
+
+        // Update plugin
+        $state = $enabled ? 'yes' : 'no';
+
+        $query = "UPDATE plugins SET enabled = ? WHERE pluginid = ?";
+        DBManager::get()->execute($query, [$state, $id]);
+
+        $this->plugins[$id]['enabled'] = (boolean) $enabled;
+
+        NotificationCenter::postNotification(
+            $enabled ? 'PluginDidEnable' : 'PluginDidDisable',
+            $id
+        );
+
+        return true;
     }
 
     /**
@@ -150,18 +165,24 @@ class PluginManager
      *
      * @param $id        id of the plugin
      * @param $position  plugin navigation position
+     * @return bool indicating whether any change occured
      */
     public function setPluginPosition ($id, $position)
     {
-        $db = DBManager::get();
         $info = $this->getPluginInfoById($id);
         $position = (int) $position;
 
-        if ($info && $info['position'] != $position) {
-            $db->exec("UPDATE plugins SET navigationpos = $position WHERE pluginid = '$id'");
-            $this->plugins[$id]['position'] = $position;
-            $this->readPluginInfos();
+        if (!$info || $info['position'] == $position) {
+            return false;
         }
+
+        $query = "UPDATE plugins SET navigationpos = ? WHERE pluginid = ?";
+        DBManager::get()->execute($query, [$position, $id]);
+
+        $this->plugins[$id]['position'] = $position;
+        $this->readPluginInfos();
+
+        return true;
     }
 
     /**
@@ -178,16 +199,16 @@ class PluginManager
         if (!isset($this->plugins_activated_cache[$context])) {
             $query = "SELECT pluginid, state "
                    . "FROM plugins_activated "
-                   . "WHERE (poiid = CONCAT('sem', ?) OR poiid = CONCAT('inst', ?))";
+                   . "WHERE range_type IN ('sem', 'inst') AND range_id = ?";
             $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($context, $context));
+            $statement->execute(array($context));
             $this->plugins_activated_cache[$context] = $statement->fetchGrouped(PDO::FETCH_COLUMN);
         }
         $state = $this->plugins_activated_cache[$context][$id];
         if (get_object_type($context, array('sem')) === 'sem') {
-            if (!$state) {
+            if ($state === null) {
                 if (!isset($this->plugins_default_activations_cache[$context])) {
-                    $query = "SELECT pluginid, 'on' as state "
+                    $query = "SELECT pluginid, 1 as state "
                         . "FROM plugins_default_activations "
                         . "JOIN seminar_inst ON (institutid = institut_id) "
                         . "WHERE seminar_id = ?";
@@ -205,7 +226,7 @@ class PluginManager
                 $forbidden = $modules[$plugin_class]['sticky'] && !$sem_class_default;
             }
         }
-        return ((($inst_default || $sem_class_default) && $state !== 'off' || $state === 'on') && !$forbidden)
+        return ((($inst_default || $sem_class_default) && $state !== '0' || $state === '1') && !$forbidden)
             || $mandatory;
     }
 
@@ -224,17 +245,17 @@ class PluginManager
         if (!isset($this->plugins_activated_cache[$userId])) {
             $query = "SELECT pluginid, state "
                    . "FROM plugins_activated "
-                   . "WHERE poiid = CONCAT('user', ?)";
+                   . "WHERE range_type = 'user' AND range_id = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($userId));
             $this->plugins_activated_cache[$userId] = $statement->fetchGrouped(PDO::FETCH_COLUMN);
 
         }
         $state = $this->plugins_activated_cache[$userId][$pluginId];
-        if (!$state) {
+        if ($state === null) {
             $activated = (bool) Config::get()->HOMEPAGEPLUGIN_DEFAULT_ACTIVATION;
         } else {
-            $activated = $state === 'on';
+            $activated = (bool) $state;
         }
 
         return $activated;
@@ -248,13 +269,15 @@ class PluginManager
      * @param $active    plugin status (true or false)
      * @param $context   context of plugin activation
      */
-    public function setPluginActivated ($id, $rangeId, $active, $context='sem')
+    public function setPluginActivated ($id, $rangeId, $active, $context = 'sem')
     {
         $db = DBManager::get();
-        $state = $active ? 'on' : 'off';
+        $state = $active ? 1 : 0;
         unset($this->plugins_activated_cache[$rangeId]);
-        return $db->exec("REPLACE INTO plugins_activated (pluginid, poiid, state)
-                   VALUES ('$id', '$context$rangeId', '$state')");
+
+        $stmt = $db->prepare('REPLACE INTO plugins_activated (pluginid, range_type, range_id, state)
+                              VALUES (?, ?, ?, ?)');
+        return $stmt->execute(array($id, $context, $rangeId, $state));
     }
 
     /**
@@ -296,6 +319,24 @@ class PluginManager
     }
 
     /**
+     * Disable loading of all non-core plugins for the current session.
+     *
+     * @param $status      true: disable non-core plugins
+     */
+    public function setPluginsDisabled($status)
+    {
+        $_SESSION['plugins_disabled'] = (bool) $status;
+    }
+
+    /**
+     * Check whether loading of non-core plugins is currently disabled.
+     */
+    public function isPluginsDisabled()
+    {
+        return $_SESSION['plugins_disabled'];
+    }
+
+    /**
      * Load a plugin class from the given file system path and
      * return the ReflectionClass instance for the plugin.
      *
@@ -315,39 +356,9 @@ class PluginManager
             }
         }
 
-        if (self::$sober && !$this->isPluginCorePlugin($class, $path)) {
-            return null;
-        }
-
         require_once $pluginfile;
 
         return new ReflectionClass($class);
-    }
-
-    private function isPluginCorePlugin($class, $path)
-    {
-        return mb_stripos($path, 'core/') === 0;
-    }
-
-    /**
-     * Load a plugin class from the given plugin ID and
-     * return the ReflectionClass instance for the plugin.
-     *
-     * @param $id string  the plugin's ID
-     * @return a ReflectionClass instance of the plugin
-     */
-    private function loadPluginById ($id)
-    {
-        $plugin_info = $this->getPluginInfoById($id);
-        if (isset($plugin_info)) {
-
-            $class = $plugin_info['class'];
-            $path  = $plugin_info['path'];
-
-            return $this->loadPlugin($class, $path);
-        }
-
-        return NULL;
     }
 
     /**
@@ -396,7 +407,7 @@ class PluginManager
 
         // plugin must implement at least one interface
         if (count($type) == 0) {
-            throw new Exception(_("Plugin implementiert kein gültiges Interface."));
+            throw new Exception(_("Plugin implementiert kein gÃ¼ltiges Interface."));
         }
 
         if ($info) {
@@ -549,29 +560,25 @@ class PluginManager
      * Get instance of the plugin specified by plugin meta data.
      *
      * @param $plugin_info   plugin meta data
-     * @param $context       context range id (optional)
      */
-    protected function getCachedPlugin ($plugin_info, $context = NULL)
+    protected function getCachedPlugin ($plugin_info)
     {
         $class = $plugin_info['class'];
         $path  = $plugin_info['path'];
-        $cache_key = isset($context) ? $class.'_'.$context : $class;
 
         if (isset($this->plugin_cache[$class])) {
             return $this->plugin_cache[$class];
         }
 
-        if (isset($this->plugin_cache[$cache_key])) {
-            return $this->plugin_cache[$cache_key];
+        if ($plugin_info['core'] || !$this->isPluginsDisabled()) {
+            $plugin_class = $this->loadPlugin($class, $path);
         }
-
-        $plugin_class = $this->loadPlugin($class, $path);
 
         if ($plugin_class) {
             $plugin = $plugin_class->newInstance();
         }
 
-        return $this->plugin_cache[$cache_key] = $plugin;
+        return $this->plugin_cache[$class] = $plugin;
     }
 
     /**
@@ -629,7 +636,7 @@ class PluginManager
                 || $this->isPluginActivated($info['id'], $context);
 
             if ($this->checkUserAccess($info, $user) && $activated) {
-                $plugin = $this->getCachedPlugin($info, $context);
+                $plugin = $this->getCachedPlugin($info);
 
                 if ($plugin !== NULL) {
                     $plugins[] = $plugin;
@@ -639,7 +646,7 @@ class PluginManager
 
         return $plugins;
     }
-    
+
     /**
      * Read the manifest of the plugin in the given directory.
      * Returns NULL if the manifest cannot be found.
@@ -664,7 +671,7 @@ class PluginManager
             if ($key === '' || $key[0] === '#') {
                 continue;
             }
-            
+
             $key_array = explode('.',$key,2);
             if(count($key_array) > 1){
                 if($key_array[0] === 'screenshots'){

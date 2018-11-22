@@ -85,12 +85,12 @@ class AdvancedBasicDataWizardStep extends BasicDataWizardStep
         $course->ects = $values[__CLASS__]['ects'];
         $course->admission_turnout = $values[__CLASS__]['maxmembers'];
         if ($course->store() === false) {
-            PageLayout::postError(sprintf(_('Es ist ein Fehler beim Speichern der erweiterten Einstellungen für %s aufgetreten. Kontrollieren Sie bitte:')
+            PageLayout::postError(sprintf(_('Es ist ein Fehler beim Speichern der erweiterten Einstellungen fÃ¼r %s aufgetreten. Kontrollieren Sie bitte:')
                     , htmlReady($course->name)),
                     array(_('Untertitel der Veranstalung'),
                         _('Art der Veranstaltung'),
                         _('ECTS-Punkte der Veranstaltung'),
-                        _('Max. Teilnehmerzahl der Veranstaltung')));
+                        _('Max. Teilnehmendenzahl der Veranstaltung')));
         }
         return $course;
     }

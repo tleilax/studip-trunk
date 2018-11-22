@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Andr� Noack <noack@data-quest.de>
+ * @author      André Noack <noack@data-quest.de>
  * @copyright   2012 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -24,7 +24,7 @@
  * @property Datafield datafield belongs_to Datafield
  */
 
-class DatafieldEntryModel extends SimpleORMap
+class DatafieldEntryModel extends SimpleORMap implements PrivacyObject
 {
     /**
      * returns datafields belonging to given model
@@ -39,9 +39,6 @@ class DatafieldEntryModel extends SimpleORMap
     {
         $mask = array("user" => 1, "autor" => 2, "tutor" => 4, "dozent" => 8, "admin" => 16, "root" => 32);
 
-        // is the module administration enabled?
-        $mv_plugin = PluginEngine::getPlugin('MVVPlugin');
-        
         if (is_a($model, "Course")) {
             $object_class = SeminarCategories::GetByTypeId($model->status)->id;
             $object_type = 'sem';
@@ -64,12 +61,12 @@ class DatafieldEntryModel extends SimpleORMap
             $object_type = 'userinstrole';
             $range_id = $model->user_id;
             $sec_range_id = $model->institut_id;
-        } elseif ($mv_plugin && is_a($model, 'ModulDeskriptor')) {
-            $object_class = $model->sprache;
+        } elseif (is_a($model, 'ModulDeskriptor')) {
+            $object_class = $model->getVariant();
             $object_type = 'moduldeskriptor';
             $range_id = $model->deskriptor_id;
-        } elseif ($mv_plugin && is_a($model, 'ModulteilDeskriptor')) {
-            $object_class = $model->sprache;
+        } elseif (is_a($model, 'ModulteilDeskriptor')) {
+            $object_class = $model->getVariant();
             $object_type = 'modulteildeskriptor';
             $range_id = $model->deskriptor_id;
         } elseif ($model instanceof StatusgruppeUser) {
@@ -83,13 +80,13 @@ class DatafieldEntryModel extends SimpleORMap
             throw new InvalidArgumentException('Wrong type of model: ' . get_class($model));
         }
         if ($datafield_id !== null) {
-            $one_datafield = " AND a.datafield_id = " .DBManager::get()->quote($datafield_id);
+            $one_datafield = ' AND a.datafield_id = ' . DBManager::get()->quote($datafield_id);
         }
-        
+
         $query = "SELECT a.*, b.*,a.datafield_id,b.datafield_id as isset_content ";
         $query .= "FROM datafields a LEFT JOIN datafields_entries b ON (a.datafield_id=b.datafield_id AND range_id = ? AND sec_range_id = ?) ";
-        $query .= "WHERE object_type = ? ";
-        
+        $query .= "WHERE object_type = ?";
+
         if ($object_type === 'moduldeskriptor' || $object_type === 'modulteildeskriptor') {
             // find datafields by language (string)
             $query .= "AND (LOCATE(?, object_class) OR object_class IS NULL) $one_datafield ORDER BY priority";
@@ -107,26 +104,38 @@ class DatafieldEntryModel extends SimpleORMap
                 $object_type,
                 (int) $object_class);
         }
-        
+
         $st = DBManager::get()->prepare($query);
         $st->execute($params);
         $ret = array();
         $c = 0;
         $df_entry = new DatafieldEntryModel();
+        $df_entry_i18n = new DatafieldEntryModelI18N();
         $df = new DataField();
         while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
-            $ret[$c] = clone $df_entry;
+            if (mb_strpos($row['type'], 'i18n') === false) {
+                $ret[$c] = clone $df_entry;
+            } else {
+                $ret[$c] = clone $df_entry_i18n;
+                $row['content'] = I18NStringDatafield::load(
+                        [
+                            $row['datafield_id'],
+                            $range_id,
+                            (string) $second_range_id
+                        ]);
+            }
             $ret[$c]->setData($row, true);
             if (!$row['isset_content']) {
-                $ret[$c]->setValue('range_id', (string)$range_id);
-                $ret[$c]->setValue('sec_range_id', (string)$sec_range_id);
+                $ret[$c]->setValue('range_id', (string) $range_id);
+                $ret[$c]->setValue('sec_range_id', (string) $sec_range_id);
+                $ret[$c]->setValue('lang', '');
             }
             $ret[$c]->setNew(!$row['isset_content']);
             $cloned_df = clone $df;
             $cloned_df->setData($row, true);
             $cloned_df->setNew(false);
             $ret[$c]->setValue('datafield', $cloned_df);
-            ++$c;
+            $c++;
         }
         return $ret;
     }
@@ -142,6 +151,19 @@ class DatafieldEntryModel extends SimpleORMap
         parent::configure($config);
     }
 
+    public function setContentLanguage($language)
+    {
+        if (!Config::get()->CONTENT_LANGUAGES[$language]) {
+            throw new InvalidArgumentException('Language not configured.');
+        }
+
+        if ($language == reset(array_keys(Config::get()->CONTENT_LANGUAGES))) {
+            $language = '';
+        }
+
+        $this->lang = $language;
+    }
+
     /**
      * returns matching "old-style" DataFieldEntry object
      *
@@ -150,8 +172,8 @@ class DatafieldEntryModel extends SimpleORMap
     public function getTypedDatafield()
     {
         $range_id = $this->sec_range_id
-                  ? [$this->range_id, $this->sec_range_id]
-                  : $this->range_id;
+                  ? [$this->range_id, $this->sec_range_id, $this->lang]
+                  : [$this->range_id, '', $this->lang];
 
         $df = DataFieldEntry::createDataFieldEntry($this->datafield, $range_id, $this->getValue('content'));
         $observer = function ($event, $object, $user_data) {
@@ -162,5 +184,28 @@ class DatafieldEntryModel extends SimpleORMap
         NotificationCenter::addObserver($observer, '__invoke', 'DatafieldDidUpdate', $df);
 
         return $df;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("range_id = ?", array($user->user_id));
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('datafields_entries', $field_data, $user);
+            }
+        }
+        return [_('Datenfeld Einträge') => $storage];
     }
 }

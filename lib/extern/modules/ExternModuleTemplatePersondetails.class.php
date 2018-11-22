@@ -40,7 +40,7 @@
 require_once 'lib/user_visible.inc.php';
 require_once 'lib/statusgruppe.inc.php';
 require_once 'lib/dates.inc.php';
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
+require_once 'lib/extern/views/extern_html_templates.inc.php';
 
 if (Config::get()->CALENDAR_ENABLE) {
     require_once 'app/models/calendar/SingleCalendar.php';
@@ -82,11 +82,11 @@ class ExternModuleTemplatePersondetails extends ExternModule {
                 'TemplateOwnCategories' => 'TemplateGeneric'
             );
         }
-        if (in_array(get_object_type($range_id), array('fak', 'global'))) {
+        if (in_array(get_object_type($range_id), array('global'))) {
             array_unshift($this->registered_elements, 'SelectInstitutes');
         }
         $this->field_names = array();
-        $this->args = array('username', 'seminar_id');
+        $this->args = array('username', 'seminar_id', 'group_id');
 
         parent::__construct($range_id, $module_name, $config_id, $set_config, $global_id);
 
@@ -97,18 +97,18 @@ class ExternModuleTemplatePersondetails extends ExternModule {
         // setup module properties
         $this->elements['LinkInternLecturedetails']->real_name = _("Link zum Modul Veranstaltungsdetails");
         $this->elements['LinkInternLecturedetails']->link_module_type = array(4, 13);
-        $this->elements['PersondetailsLectures']->real_name = _("Einstellungen für Lehrveranstaltungen");
-        $this->elements['LitList']->real_name = _("Einstellungen für Literaturlisten");
+        $this->elements['PersondetailsLectures']->real_name = _("Einstellungen fÃ¼r Lehrveranstaltungen");
+        $this->elements['LitList']->real_name = _("Einstellungen fÃ¼r Literaturlisten");
         $this->elements['TemplateMain']->real_name = _("Haupttemplate");
-        $this->elements['TemplateLectures']->real_name = _("Template für Lehrveranstaltungen");
-        $this->elements['TemplateNews']->real_name = _("Template für News");
+        $this->elements['TemplateLectures']->real_name = _("Template fÃ¼r Lehrveranstaltungen");
+        $this->elements['TemplateNews']->real_name = _("Template fÃ¼r News");
         if (get_config('CALENDAR_ENABLE')) {
-            $this->elements['TemplateAppointments']->real_name = _("Template für Termine");
+            $this->elements['TemplateAppointments']->real_name = _("Template fÃ¼r Termine");
         }
-        $this->elements['TemplateLitList']->real_name = _("Template für Literaturlisten");
-        $this->elements['TemplateOwnCategories']->real_name = _("Template für eigene Kategorien");
-        if (in_array(get_object_type($this->config->range_id), array('fak', 'global'))) {
-            $this->elements['SelectInstitutes']->real_name = _("Einschränkung auf Institute/Einrichtungen");
+        $this->elements['TemplateLitList']->real_name = _("Template fÃ¼r Literaturlisten");
+        $this->elements['TemplateOwnCategories']->real_name = _("Template fÃ¼r eigene Kategorien");
+        if (in_array(get_object_type($this->config->range_id), array('global'))) {
+            $this->elements['SelectInstitutes']->real_name = _("EinschrÃ¤nkung auf Institute/Einrichtungen");
         }
     }
 
@@ -116,6 +116,7 @@ class ExternModuleTemplatePersondetails extends ExternModule {
             $faulty_values = '', $anker = '') {
 
         $this->updateGenericDatafields('TemplateMain', 'user');
+        $this->updateGenericDatafields('TemplateMain', 'userinstrole');
         $this->elements['TemplateMain']->markers = $this->getMarkerDescription('TemplateMain');
         $this->elements['TemplateLectures']->markers = $this->getMarkerDescription('TemplateLectures');
         $this->elements['TemplateLitList']->markers = $this->getMarkerDescription('TemplateLitList');
@@ -130,7 +131,7 @@ class ExternModuleTemplatePersondetails extends ExternModule {
     }
 
     public function getMarkerDescription ($element_name) {
-        $markers['TemplateMain'][] = array('__GLOBAL__', _("Globale Variablen (gültig im gesamten Template)."));
+        $markers['TemplateMain'][] = array('__GLOBAL__', _("Globale Variablen (gÃ¼ltig im gesamten Template)."));
         $markers['TemplateMain'][] = array('###STUDIP-EDIT-HREF###', '');
 
         $markers['TemplateMain'][] = array('<!-- BEGIN PERSONDETAILS -->', '');
@@ -181,12 +182,13 @@ class ExternModuleTemplatePersondetails extends ExternModule {
         $markers['TemplateMain'][] = array('<!-- END ALL-INST -->', '');
 
         $this->insertDatafieldMarkers('user', $markers, 'TemplateMain');
+        $this->insertDatafieldMarkers('userinstrole', $markers, 'TemplateMain');
         $this->insertPluginMarkers('HomepagePlugin', $markers, 'TemplateMain');
-        $markers['TemplateMain'][] = array('###LECTURES###', _("Inhalt aus dem Template für Veranstaltungen"));
-        $markers['TemplateMain'][] = array('###NEWS###', _("Inhalt aus dem Template für News"));
-        $markers['TemplateMain'][] = array('###LITERATURE###', _("Inhalt aus dem Template für Literaturlisten"));
-        $markers['TemplateMain'][] = array('###APPOINTMENTS###', _("Inhalt aus dem Template für Termine"));
-        $markers['TemplateMain'][] = array('###OWNCATEGORIES###', _("Inhalt aus dem Template für eigene Kategorien"));
+        $markers['TemplateMain'][] = array('###LECTURES###', _("Inhalt aus dem Template fÃ¼r Veranstaltungen"));
+        $markers['TemplateMain'][] = array('###NEWS###', _("Inhalt aus dem Template fÃ¼r News"));
+        $markers['TemplateMain'][] = array('###LITERATURE###', _("Inhalt aus dem Template fÃ¼r Literaturlisten"));
+        $markers['TemplateMain'][] = array('###APPOINTMENTS###', _("Inhalt aus dem Template fÃ¼r Termine"));
+        $markers['TemplateMain'][] = array('###OWNCATEGORIES###', _("Inhalt aus dem Template fÃ¼r eigene Kategorien"));
         $markers['TemplateMain'][] = array('<!-- END PERSONDETAILS -->', '');
 
         $markers['TemplateLectures'][] = array('<!-- BEGIN LECTURES -->', '');
@@ -225,7 +227,7 @@ class ExternModuleTemplatePersondetails extends ExternModule {
             $markers['TemplateAppointments'][] = array('<!-- END NO-APPOINTMENTS -->', '');
             $markers['TemplateAppointments'][] = array('<!-- BEGIN ALL-APPOINTMENTS -->', '');
             $markers['TemplateAppointments'][] = array('<!-- BEGIN SINGLE-APPOINTMENT -->', '');
-            $markers['TemplateAppointments'][] = array('###DATE###', _("Start und Endzeit oder ganztägig"));
+            $markers['TemplateAppointments'][] = array('###DATE###', _("Start und Endzeit oder ganztÃ¤gig"));
             $markers['TemplateAppointments'][] = array('###BEGIN###', '');
             $markers['TemplateAppointments'][] = array('###END###', '');
             $markers['TemplateAppointments'][] = array('###TITLE###', '');
@@ -256,6 +258,7 @@ class ExternModuleTemplatePersondetails extends ExternModule {
         $instituts_id = $this->config->range_id;
         $username = $args['username'];
         $sem_id = $args['seminar_id'];
+        $group_id = $args['group_id'];
 
         if (!$nameformat = $this->config->getValue('Main', 'nameformat')) {
             $nameformat = 'full';
@@ -264,15 +267,14 @@ class ExternModuleTemplatePersondetails extends ExternModule {
         $row = false;
         $global_view = false;
         $dbv = new DbView();
-        if (in_array(get_object_type($this->config->range_id), array('fak', 'global'))) {
+        if (in_array(get_object_type($this->config->range_id), array('global'))) {
             $global_view = true;
             $selected_item_ids = $this->config->getValue('SelectInstitutes', 'institutesselected');
             // at least one institute has to be selected in the configuration
             if (!is_array($selected_item_ids)) {
-                return array();
-            }
-            // is user lecturer ?
-            if ($this->config->getValue('Main', 'onlylecturers')) {
+                // default to always show user for now
+            } else if ($this->config->getValue('Main', 'onlylecturers')) {
+                // is user lecturer ?
                 $current_semester = get_sem_num(time());
                 $stm = DBManager::get()->prepare(sprintf(
                     "SELECT aum.user_id "
@@ -404,6 +406,8 @@ class ExternModuleTemplatePersondetails extends ExternModule {
                     , $GLOBALS['_fullname_sql'][$nameformat], get_ext_vis_query()));
                 $stm->execute(array($username, $instituts_id));
                 $row = $stm->fetch(PDO::FETCH_ASSOC);
+            } else {
+                $instituts_id = $row['Institut_id'];
             }
         } else {
             $stm = DBManager::get()->prepare(sprintf(
@@ -499,7 +503,7 @@ class ExternModuleTemplatePersondetails extends ExternModule {
         }
 
         // generic data fields
-        if ($generic_datafields = $this->config->getValue('Main', 'genericdatafields')) {
+        if ($generic_datafields = $this->config->getValue('TemplateMain', 'genericdatafields')) {
             $localEntries = DataFieldEntry::getDataFieldEntries($this->user_id, 'user');
             $k = 1;
             foreach ($generic_datafields as $datafield) {
@@ -511,6 +515,24 @@ class ExternModuleTemplatePersondetails extends ExternModule {
                     } else {
                         $localEntry = $localEntries[$datafield]->getDisplayValue();
                     }
+                    if ($localEntry) {
+                        $content['PERSONDETAILS']["DATAFIELD_$k"] = $localEntry;
+                    }
+                }
+                $k++;
+            }
+
+            $localEntries = DataFieldEntry::getDataFieldEntries(array($this->user_id, $instituts_id), 'userinstrole');
+            if (isset($group_id)) {
+                $roleEntries = DataFieldEntry::getDataFieldEntries(array($this->user_id, $group_id), 'userinstrole');
+                $roleEntries = array_filter($roleEntries, function($val) { return $val->getValue() !== 'default_value'; });
+                $localEntries = $roleEntries + $localEntries;
+            }
+            $k = 1;
+            foreach ($generic_datafields as $datafield) {
+                if (isset($localEntries[$datafield]) &&
+                        is_object($localEntries[$datafield])) {
+                    $localEntry = $localEntries[$datafield]->getDisplayValue();
                     if ($localEntry) {
                         $content['PERSONDETAILS']["DATAFIELD_$k"] = $localEntry;
                     }
@@ -576,7 +598,9 @@ class ExternModuleTemplatePersondetails extends ExternModule {
     }
 
     private function getContentNews () {
-        $news =& StudipNews::GetNewsByRange($this->user_id, TRUE);
+        $dateform = $this->config->getValue('Main', 'dateformat');
+
+        $news = StudipNews::GetNewsByRange($this->user_id, TRUE);
         if (!count($news)) {
             $content['NEWS']['NO-NEWS']['NEWS_NO-NEWS-TEXT'] = $this->config->getValue('Main', 'nodatatext');
         } else {
@@ -607,7 +631,7 @@ class ExternModuleTemplatePersondetails extends ExternModule {
                 $i = 0;
                 foreach ($events as $event) {
                     if ($event->isDayEvent()) {
-                        $content['APPOINTMENTS']['ALL-APPOINTMENTS']['SINGLE-APPOINTMENT'][$i]['DATE'] = ExternModule::ExtHtmlReady(strftime($this->config->getValue('Main', 'dateformat'), $event->getStart()) . ' (' . _("ganztügig") . ')');
+                        $content['APPOINTMENTS']['ALL-APPOINTMENTS']['SINGLE-APPOINTMENT'][$i]['DATE'] = ExternModule::ExtHtmlReady(strftime($this->config->getValue('Main', 'dateformat'), $event->getStart()) . ' (' . _("ganztÃ¼gig") . ')');
                     } else {
                         $content['APPOINTMENTS']['ALL-APPOINTMENTS']['SINGLE-APPOINTMENT'][$i]['DATE'] = ExternModule::ExtHtmlReady(strftime($this->config->getValue('Main', 'dateformat') . " %X", $event->getStart()));
                         if (date("dmY", $event->getStart()) == date("dmY", $event->getEnd())) {
@@ -636,8 +660,8 @@ class ExternModuleTemplatePersondetails extends ExternModule {
 
     private function getContentLectures () {
         global $attr_text_td, $end, $start;
-        $semester = new SemesterData();
-        $all_semester = $semester->getAllSemesterData();
+
+        $all_semester = SemesterData::getAllSemesterData();
         // old hard coded $SEMESTER-array starts with index 1
         array_unshift($all_semester, 0);
 

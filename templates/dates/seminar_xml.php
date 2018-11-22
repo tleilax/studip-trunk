@@ -1,8 +1,8 @@
 <?
 $turnus_list = array(
-    0 => _("wöchentlich"),
-    1 => _("zweiwöchentlich"),
-    2 => _("dreiwöchentlich")
+    0 => _("wÃ¶chentlich"),
+    1 => _("zweiwÃ¶chentlich"),
+    2 => _("dreiwÃ¶chentlich")
 );
 
 $output = array();
@@ -31,7 +31,6 @@ if (is_array($cycle['assigned_rooms'])){
     </raum>
 </raumzeit>
 <? endforeach ?>
-<? $presence_types = getPresenceTypes(); ?>
 <? if (is_array($dates['irregular'])) foreach ($dates['irregular'] as $date) : ?>
 <raumzeit>
     <datum><?= date('d.m.Y', $date['start_time']) ?></datum>

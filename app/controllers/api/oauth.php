@@ -55,7 +55,7 @@ class Api_OauthController extends StudipController
         $auth_plugin = Config::get()->API_OAUTH_AUTH_PLUGIN;
         if ($GLOBALS['user']->id === 'nobody' && $auth_plugin !== 'Standard' && !Request::option('sso')) {
             $params = $_GET;
-            $params['sso'] = $auth_plugin;
+            $params['sso'] = strtolower($auth_plugin);
             $this->redirect($this->url_for('api/oauth/authorize?' . http_build_query($params)));
             return;
         } else {
@@ -76,7 +76,7 @@ class Api_OauthController extends StudipController
                 } else {
                     // No oauth_callback, show the user the result of the authorization
                     // ** your code here **
-                    PageLayout::postMessage(MessageBox::success(_('Sie haben der Applikation Zugriff auf Ihre Daten gewährt.')));
+                    PageLayout::postMessage(MessageBox::success(_('Sie haben der Applikation Zugriff auf Ihre Daten gewÃ¤hrt.')));
                     $this->redirect('api/authorizations#' . $consumer->auth_key);
                 }
                 return;

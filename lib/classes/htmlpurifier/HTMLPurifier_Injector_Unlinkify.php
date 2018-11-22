@@ -1,5 +1,4 @@
 <?php
-require_once 'vendor/HTMLPurifier/HTMLPurifier.auto.php';
 
 /**
  * Display the URL of an anchor or image instead of linking to it.

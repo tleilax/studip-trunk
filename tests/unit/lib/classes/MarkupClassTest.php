@@ -34,7 +34,7 @@ require_once 'lib/classes/Markup.class.php';
 
 # Seminar_Session cannot be mocked since it uses static functions.
 # Also, including phplib_local.inc.php, where Seminar_Session is
-# defined, introduces a massive amount of dependencies that are otherwise 
+# defined, introduces a massive amount of dependencies that are otherwise
 # completely unneeded for testing the Markup class.
 # Instead, create a fake class.
 # => But note, this will fail if another test case does the same thing!
@@ -53,7 +53,9 @@ class MarkupTest extends PHPUnit_Framework_TestCase
 {
     public function testRemoveHTML()
     {
-        forEach (array(
+        Config::set(new Config(['WYSIWYG' => true]));
+
+        foreach (array(
             'plain text' => 'plain text',
             '<p>paragraph only</p>' => 'paragraph only',
 
@@ -81,7 +83,7 @@ class MarkupTest extends PHPUnit_Framework_TestCase
             '<p>link <a href="http://example.org">Example-Domain</a> and picture <img src="https://example.org/image.png"></p>'
             => 'link [ http://example.org ]Example-Domain and picture [ https://example.org/image.png ]'
         ) as $in => $out) {
-            $this->assertEquals($out, StudIp\Markup::removeHtml($in));
+            $this->assertEquals($out, Studip\Markup::removeHtml(Studip\Markup::markAsHtml($in)));
         }
     }
 

@@ -1,4 +1,4 @@
-<article class="<?= ContentBoxHelper::classes($termin['id']) ?>" id="<?= $termin['id'] ?>">
+<article class="studip toggle <?= ContentBoxHelper::classes($termin['id']) ?>" id="<?= $termin['id'] ?>">
     <header>
         <h1>
             <a href="<?= ContentBoxHelper::href($termin['id']) ?>">
@@ -12,7 +12,7 @@
             </span>
             <? if($admin && $isProfile && $termin['type'] === 'CalendarEvent'): ?>
             <a href="<?= URLHelper::getLink('dispatch.php/calendar/single/edit/' . $termin['range_id'] . '/' . $termin['event_id'], array('source_page' => 'dispatch.php/profile')) ?>">
-                <?= Icon::create('admin', 'clickable')->asImg(['class' => 'text-bottom']) ?>
+                <?= Icon::create('edit', 'clickable')->asImg(['class' => 'text-bottom']) ?>
             </a>
             <? endif; ?>
         </nav>
@@ -36,14 +36,12 @@
             <?= _('Keine Beschreibung vorhanden') ?>
         <? endif ?>
     </div>
-    <footer>
-        <? foreach($termin['info'] as $type => $info): ?>
+    <footer><? foreach($termin['info'] as $type => $info): ?>
         <? if (trim($info)) : ?>
             <? if (!is_numeric($type)): ?>
                 <em><?= htmlReady($type) ?>: </em>
             <? endif; ?>
             <?= htmlReady(trim($info)) ?>
         <? endif ?>
-        <? endforeach; ?>
-    </footer>
+        <? endforeach; ?></footer>
 </article>

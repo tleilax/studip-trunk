@@ -21,7 +21,6 @@
 require '../lib/bootstrap.php';
 
 require_once 'vendor/phplot/phplot.php';
-require_once 'lib/datei.inc.php';
 require_once 'lib/evaluation/evaluation.config.php';
 require_once EVAL_FILE_EVAL;
 require_once EVAL_FILE_OBJECTDB;
@@ -44,7 +43,7 @@ $cmd = Request::option('cmd');
 $evalgroup_id = Request::option('evalgroup_id');
 $group_type = Request::option('group_type');
 
-// Überprüfen, ob die Evaluation existiert oder der Benutzer genügend Rechte hat
+// ÃœberprÃ¼fen, ob die Evaluation existiert oder der Benutzer genÃ¼gend Rechte hat
 $eval = new Evaluation($eval_id);
 $eval->check();
 if (EvaluationObjectDB::getEvalUserRangesWithNoPermission($eval) == YES || count($eval->errorArray) > 0) {
@@ -56,7 +55,7 @@ $has_template   = 0;
 $eval_templates = array();
 $question_type  = "";
 
-$tmp_path_export = $GLOBALS['TMP_PATH']. '/export/';
+$tmp_path_export = $GLOBALS['TMP_PATH'];
 export_tmp_gc();
 
 if (isset($cmd)) {
@@ -125,7 +124,7 @@ function do_graph_template()
  */
 function do_graph($data, $evalquestion_id)
 {
-    global $tmp_path_export, $auth, $PATH_EXPORT;
+    global $tmp_path_export, $auth;
 
     $type = do_graph_template();
 
@@ -173,7 +172,7 @@ function do_graph($data, $evalquestion_id)
         $graph->SetPlotType($type);
         $graph->SetXLabelAngle(count($data) < 10 ? 0 : 90);
         //$graph->SetShading(0); // kein 3D
-    
+
         $graph->SetLineWidth(1);
         $graph->SetDrawXDataLabels(true);
         //Draw it
@@ -207,7 +206,7 @@ function freetype_answers($parent_id, $anz_nutzer)
     echo "      </table>\n";
     echo "    </td>\n";
     echo "  </tr>\n";
-    echo "  <tr><td colspan=\"2\"><font size=\"-1\">"._("Anzahl der Teilnehmer").": ".$anz_nutzer."</font></td></tr>\n";
+    echo "  <tr><td colspan=\"2\"><font size=\"-1\">"._("Anzahl der Teilnehmenden").": ".$anz_nutzer."</font></td></tr>\n";
 }
 
 function user_answers_residual($parent_id)
@@ -311,14 +310,16 @@ function answers($parent_id, $anz_nutzer, $question_type)
     } else {
         $txt .= "<td colspan=\"2\"><font size=\"-1\"><b>&#x2205;</b>-"._("Antwort").": ".$antwort_durchschnitt.($has_residual==0 ? "" : "<b>*</b>")."</font></td><td>";
     }
-    $txt .= "          <font size=\"-1\">"._("Anzahl der Teilnehmer").": ".$anz_nutzer."</font></td></tr>";
+    $txt .= "          <font size=\"-1\">"._("Anzahl der Teilnehmenden").": ".$anz_nutzer."</font></td></tr>";
 
     if ($has_residual) $txt .= "        <tr class=\"blank\"><td colspan=\"3\"><font size=\"-1\"><b>*</b>"._("Werte ohne Enthaltungen").".</font></td></tr>";
     $txt .= "      </table>";
     $txt .= "    </td>\n";
     $txt .= "    <td width=\"30%\" valign=\"TOP\" align=\"RIGHT\">\n";
     if (do_template("show_graphics")) {
-        $txt .= '<IMG SRC="' . GetDownloadLink('evalsum'.$parent_id.$auth->auth['uid'].'.'.Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT, 'evalsum'.$parent_id.$auth->auth['uid'].'.'.Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT, 2) .'">'."\n";
+        $txt .= '<IMG SRC="' . FileManager::getDownloadLinkForTemporaryFile(
+            'evalsum'.$parent_id.$auth->auth['uid'].'.'.Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT,
+            'evalsum'.$parent_id.$auth->auth['uid'].'.'.Config::get()->EVAL_AUSWERTUNG_GRAPH_FORMAT) .'">'."\n";
     } else $txt .= "&nbsp;\n";
     $txt .= "    </td>\n";
     $txt .= "  </tr>\n";
@@ -380,11 +381,11 @@ function groups($parent_id)
                 if ($ausgabeformat==1 && !$freetype) {
                     if ($group_type === 'normal') {
                         echo '<a href="' . URLHelper::getLink('?eval_id=' . $eval_id . '&evalgroup_id=' . $group['evalgroup_id'] . '&group_type=table&cmd=change_group_type#anker') . '">';
-                        echo Icon::create('vote-stopped', 'clickable', ['title' => sprintf(_('Zum Darstellungstyp %s wechseln'), _('Tabelle'))])->asImg();
+                        echo Icon::create('vote-stopped', 'clickable', ['title' => _('Zum Darstellungstyp Tabelle wechseln')])->asImg();
                         echo '</a>';
                     } else {
                         echo '<a href="' . URLHelper::getLink('?eval_id=' . $eval_id . '&evalgroup_id=' . $group['evalgroup_id'] . '&group_type=normal&cmd=change_group_type#anker') . '">';
-                        echo Icon::create('vote', 'clickable', ['title' => sprintf(_('Zum Darstellungstyp %s wechseln'), _('Normal'))])->asImg();
+                        echo Icon::create('vote', 'clickable', ['title' => _('Zum Darstellungstyp Normal wechseln')])->asImg();
                     }
                 } else {
                     echo '&nbsp;';
@@ -448,7 +449,7 @@ function groups($parent_id)
                                             foreach ($questions["antwort_texte"] as $k2=>$v2) { // 1. Unterebene, hier sind die Antworttexte abgelegt
                                                 echo "<td><font size=\"-1\">".$v2."</font></td>";
                                             }
-                        echo "<td align=\"center\"><font size=\"-1\"><b>&#x2211;</b></font></td><td align=\"center\"><font size=\"-1\"><b>&#x2205;</b></font></td><td align=\"center\"><font size=\"-1\">"._("Teilnehmer")."</font></td>";
+                        echo "<td align=\"center\"><font size=\"-1\"><b>&#x2211;</b></font></td><td align=\"center\"><font size=\"-1\"><b>&#x2205;</b></font></td><td align=\"center\"><font size=\"-1\">"._("Teilnehmende")."</font></td>";
                                             echo "</tr>";
                                             $antworten_angezeigt = TRUE;
                                         }
@@ -498,7 +499,7 @@ if ($evaluation = $statement->fetch(PDO::FETCH_ASSOC)) {
 
   $has_template = !empty($eval_templates);
 
-  $db_owner = User::find($evaluation['author_id'])->getFullName('no_title');
+  $db_owner = User::find($evaluation['author_id']);
 
   $global_counter = 0;
   $local_counter  = 0;
@@ -576,9 +577,9 @@ if ($evaluation = $statement->fetch(PDO::FETCH_ASSOC)) {
   if (do_template("show_total_stats")) {
     echo "  <tr>\n";
     echo "    <td colspan=\"2\" class=\"blank\"><font size=\"-1\">\n";
-    echo "      &nbsp;&nbsp;".$number_of_votes." "._("Teilnehmer insgesamt").".&nbsp;";
-    echo "      "._("Die Teilnahme war")." ". ($evaluation['anonymous']==0 ? _("nicht") : "") . " "._("anonym").".";
-    echo "      "._("Eigentümer").": ".$db_owner.". ".("Erzeugt am").": ".date('d.m.Y H:i:s');
+    echo "      &nbsp;&nbsp;".$number_of_votes." "._("Teilnehmende insgesamt").".&nbsp;";
+    echo "      ". ($evaluation['anonymous'] == 0 ? _('Die Teilnahme war nicht anonym.') : _('Die Teilnahme war anonym.')) . ' ';
+    echo "      "._("EigentÃ¼mer").": ".($db_owner ? htmlReady($db_owner->getFullName('no_title')) : _('Unbekannter Nutzer')).". ".("Erzeugt am").": ".date('d.m.Y H:i:s');
     echo "    </font></td>\n";
     echo "  </tr>\n";
   }
@@ -599,7 +600,7 @@ Navigation::activateItem('/tools/evaluation');
 PageLayout::setTitle(_("Evaluations-Auswertung"));
 
 if ($ausgabeformat == 2) {
-    PageLayout::removeStylesheet('style.css');
+    PageLayout::removeStylesheet('studip-base.css');
     PageLayout::addStylesheet('print.css');
 }
 $layout = $GLOBALS['template_factory']->open('layouts/base.php');

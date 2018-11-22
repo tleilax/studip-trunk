@@ -21,10 +21,6 @@ class BlubberExternalContact extends SimpleORMap implements BlubberContact
     {
         $config['db_table'] = 'blubber_external_contact';
 
-        $config['registered_callbacks']['before_store'][] = 'cbSerializeData';
-        $config['registered_callbacks']['after_store'][] = 'cbUnserializeData';
-        $config['registered_callbacks']['after_initialize'][] = 'cbUnserializeData';
-
         parent::configure($config);
     }
 
@@ -97,33 +93,13 @@ class BlubberExternalContact extends SimpleORMap implements BlubberContact
             . $posting['root_id']
             . ($posting['context_type'] === "course" ? '?cid='.$posting['Seminar_id'] : "");
         $message = sprintf(
-            _("%s hat Sie in einem Blubber erwähnt. Zum Beantworten klicken auf Sie auf folgenen Link:\n\n%s\n"),
+            _("%s hat Sie in einem Blubber erwÃ¤hnt. Zum Beantworten klicken auf Sie auf folgenen Link:\n\n%s\n"),
             get_fullname(), 
             $url
         );
-        StudipMail::sendMessage($this['mail_identifier'], _("Sie wurden erwähnt."), $message);
+        StudipMail::sendMessage($this['mail_identifier'], _("Sie wurden erwÃ¤hnt."), $message);
     }
 
-    /**
-     * Serializes $this->data so it is saves as string in the database.
-     * @return boolean
-     */
-    function cbSerializeData()
-    {
-        $this->content['data'] = serialize($this->content['data']);
-        return true;
-    }
-
-    /**
-     * Unserializes $this->data so it can be used as an array or something else.
-     * @return boolean
-     */
-    function cbUnserializeData()
-    {
-        $this->content['data'] = (array) unserialize($this->content['data']);
-        return true;
-    }
-    
     /**
      * Returns if the given user is following the BlubberExternalContact
      * @param string|null $user_id

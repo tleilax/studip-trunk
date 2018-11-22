@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @copyright   2013 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -24,7 +24,7 @@
  * @property Degree degree belongs_to Degree
  * @property StudyCourse studycourse belongs_to StudyCourse
  */
-class UserStudyCourse extends SimpleORMap
+class UserStudyCourse extends SimpleORMap implements PrivacyObject
 {
 
     public static function findByUser($user_id)
@@ -67,5 +67,28 @@ class UserStudyCourse extends SimpleORMap
         $config['additional_fields']['degree_name'] = array();
         $config['additional_fields']['studycourse_name'] = array();
         parent::configure($config);
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('user_studiengang', $field_data, $user);
+            }
+        }
+        return [_('UserStudiengang') => $storage];
     }
 }

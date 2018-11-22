@@ -54,11 +54,11 @@ class ExternElementTableGroup extends ExternElement {
             $this->config = $config;
         
         $this->name = "TableGroup";
-        $this->real_name = _("Gruppen¸berschriften");
-        $this->description = _("Gruppen¸berschriften sind Tabellenzeilen, die eine neue Gruppe einleiten.");
+        $this->real_name = _("Gruppen√ºberschriften");
+        $this->description = _("Gruppen√ºberschriften sind Tabellenzeilen, die eine neue Gruppe einleiten.");
     }
     
-    function toString ($args) {
+    function toString ($args = null) {
         if (!$args["main_module"])
             $args["main_module"] = "Main";
         if (isset($args["colspan"]))

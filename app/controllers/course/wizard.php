@@ -17,8 +17,6 @@
 
 class Course_WizardController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * @var Array steps the wizard has to execute in order to create a new course.
      */
@@ -31,25 +29,43 @@ class Course_WizardController extends AuthenticatedController
         if (Request::isXhr()) {
             $this->dialog = true;
         }
-        PageLayout::setTitle(_('Neue Veranstaltung anlegen'));
-        $navigation = new Navigation(_('Neue Veranstaltung anlegen'), 'dispatch.php/course/wizard');
-        Navigation::addItem('/browse/my_courses/new_course', $navigation);
-        Navigation::activateItem('/browse/my_courses/new_course');
-        $this->sidebar = Sidebar::get();
-        $this->sidebar->setImage('sidebar/seminar-sidebar.png');
-        $this->sidebar->setTitle(_('Neue Veranstaltung anlegen'));
-        $this->steps = CourseWizardStepRegistry::findBySQL("`enabled`=1 ORDER BY `number`");
-        // Special handling for studygroups.
-        if (Request::int('studygroup')) {
+
+        $sidebar = Sidebar::get();
+        $sidebar->setImage('sidebar/seminar-sidebar.png');
+
+        $this->studygroup = Request::int('studygroup') ?: $this->flash['studygroup'];
+
+        if (!$this->studygroup) {
+            PageLayout::setTitle(_('Neue Veranstaltung anlegen'));
+            $sidebar->setTitle(_('Neue Veranstaltung anlegen'));
+
+            $navigation = new Navigation(_('Neue Veranstaltung anlegen'), 'dispatch.php/course/wizard');
+            Navigation::addItem('/browse/my_courses/new_course', $navigation);
+            Navigation::activateItem('/browse/my_courses/new_course');
+        } else {
             $this->flash['studygroup'] = true;
+
+            PageLayout::setTitle(_('Neue Studiengruppe anlegen'));
+            $sidebar->setTitle(_('Neue Studiengruppe anlegen'));
+
+            $navigation = new Navigation(_('Neue Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1');
+            Navigation::addItem('/browse/my_courses/new_course', $navigation);
+            Navigation::activateItem('/browse/my_courses/new_course');
+        }
+
+        $this->steps = CourseWizardStepRegistry::findBySQL("`enabled`=1 ORDER BY `number`");
+
+        if ($GLOBALS['user']->perms === 'user') {
+            throw new AccessDeniedException();
         }
     }
 
     /**
      * Just some sort of placeholder for initial calling without a step number.
      */
-    public function index_action() {
-        $this->redirect('course/wizard/step/0'.(Request::int('studygroup') ? '?studygroup=1' : ''));
+    public function index_action()
+    {
+        $this->redirect('course/wizard/step/0' . ($this->studygroup ? '?studygroup=1' : ''));
     }
 
     /**
@@ -64,16 +80,21 @@ class Course_WizardController extends AuthenticatedController
         $step = $this->getStep($number);
         if (!$temp_id) {
             $this->initialize();
+            if (Request::getArray('batchcreate')) {
+                $_SESSION['coursewizard'][$this->temp_id]['batchcreate'] = Request::getArray('batchcreate');
+            }
         } else {
             $this->temp_id = $temp_id;
         }
         if ($number == 0) {
             $this->first_step = true;
         }
-        if ($this->flash['studygroup']) {
+        if ($this->studygroup) {
             // Add special studygroup flag to set values.
-            $this->setStepValues(get_class($step),
-                array_merge($this->getValues(get_class($step)), array('studygroup' => 1)));
+            $this->setStepValues(
+                get_class($step),
+                array_merge($this->getValues(get_class($step)), array('studygroup' => 1))
+            );
         }
         $this->values = $this->getValues();
         $this->content = $step->getStepTemplate($this->values, $number, $this->temp_id);
@@ -117,33 +138,74 @@ class Course_WizardController extends AuthenticatedController
         } else if (Request::submitted('create')) {
             $_SESSION['coursewizard'][$this->temp_id]['copy_basic_data'] = Request::submitted('copy_basic_data');
             if ($this->getValues()) {
-                if ($this->course = $this->createCourse()) {
-                    // A studygroup has been created.
-                    if (in_array($this->course->status, studygroup_sem_types() ?: array())) {
-                        $message = MessageBox::success(
-                            sprintf(_('Die Studien-/Arbeitsgruppe "%s" wurde angelegt. ' .
-                                'Sie können Sie direkt hier weiter verwalten.'),
-                                $this->course->name));
-                        $target = $this->url_for('course/studygroup/edit/' . $this->course->id . '?cid=' . $this->course->id);
-                        // "Normal" course.
-                    } else {
-                        if (Request::int('dialog')) {
-                            $message = MessageBox::success(
-                                sprintf(_('Die Veranstaltung "%s" wurde angelegt.'), $this->course->getFullname()));
-                            $target = $this->url_for('admin/courses');
+                // Batch creation of several courses at once.
+                if ($batch = Request::getArray('batchcreate')) {
+                    $numbering = ($batch['numbering'] == 'number' ? 1 : 'A');
+                    $success = 0;
+                    $failed = 0;
+                    // Create given number of courses.
+                    for ($i = 1 ; $i <= $batch['number'] ; $i++) {
+                        if ($newcourse = $this->createCourse($i == $batch['number'] ? true : false)) {
+                            // Add corresponding number/letter to name or number of newly created course.
+                            if ($batch['add_number_to'] == 'name') {
+                                $newcourse->name .= ' ' . $numbering;
+                            } else if ($batch['add_number_to'] == 'number') {
+                                $newcourse->veranstaltungsnummer = $batch['numbering'] == 'number' ?
+                                    $numbering : $newcourse->veranstaltungsnummer . ' ' . $numbering;
+                            }
+                            $newcourse->parent_course = $batch['parent'];
+                            if ($newcourse->store()) {
+                                $numbering++;
+                                $success++;
+                            } else {
+                                $failed++;
+                            }
                         } else {
-                            $message = MessageBox::success(
-                                sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie können Sie direkt hier weiter verwalten.'),
-                                    $this->course->getFullname()));
-                            $target = $this->url_for('course/management?cid=' . $this->course->id);
+                            $failed++;
                         }
                     }
-                    PageLayout::postMessage($message);
-                    $this->redirect($target);
+
+                    // Show message for successfully created courses.
+                    if ($success > 0) {
+                        PageLayout::postSuccess(sprintf(_('%u Veranstaltungen wurden angelegt.'), $success));
+                    }
+
+                    // Show message for courses that couldn't be created.
+                    if ($failed > 0) {
+                        PageLayout::postError(sprintf(_('%u Veranstaltungen konnten nicht angelegt werden.'), $failed));
+                    }
+
+                    $this->redirect(URLHelper::getURL('dispatch.php/course/grouping/children',
+                        ['cid' => $batch['parent']]));
                 } else {
-                    PageLayout::postMessage(MessageBox::error(
-                        sprintf(_('Die Veranstaltung "%s" konnte nicht angelegt werden.'),
-                            $this->course->getFullname())));
+                    if ($this->course = $this->createCourse()) {
+                        // A studygroup has been created.
+                        if (in_array($this->course->status, studygroup_sem_types() ?: array())) {
+                            $message = MessageBox::success(
+                                sprintf(_('Die Studien-/Arbeitsgruppe "%s" wurde angelegt. ' .
+                                    'Sie kÃ¶nnen sie direkt hier weiter verwalten.'),
+                                    htmlReady($this->course->name)));
+                            $target = $this->url_for('course/studygroup/edit/' . $this->course->id . '?cid=' . $this->course->id);
+                            // "Normal" course.
+                        } else {
+                            if (Request::int('dialog')) {
+                                $message = MessageBox::success(
+                                    sprintf(_('Die Veranstaltung "%s" wurde angelegt.'), htmlReady($this->course->getFullname())));
+                                $target = $this->url_for('admin/courses');
+                            } else {
+                                $message = MessageBox::success(
+                                    sprintf(_('Die Veranstaltung "%s" wurde angelegt. Sie kÃ¶nnen sie direkt hier weiter verwalten.'),
+                                        htmlReady($this->course->getFullname())));
+                                $target = $this->url_for('course/management?cid=' . $this->course->id);
+                            }
+                        }
+                        PageLayout::postMessage($message);
+                        $this->redirect($target);
+                    } else {
+                        PageLayout::postMessage(MessageBox::error(
+                            _('Die Veranstaltung konnte nicht angelegt werden.')));
+                        $this->redirect('course/wizard');
+                    }
                 }
             } else {
                 PageLayout::postMessage(MessageBox::error(_('Die angegebene Veranstaltung wurde bereits angelegt.')));
@@ -166,7 +228,7 @@ class Course_WizardController extends AuthenticatedController
             // We are after the last step -> all done, show summary.
             if ($next_step >= sizeof($this->steps)) {
                 $this->redirect($this->url_for('course/wizard/summary', $next_step, $temp_id));
-                // Redirect to next step.
+            // Redirect to next step.
             } else {
                 $this->redirect($this->url_for('course/wizard/step', $next_step, $this->temp_id));
             }
@@ -180,6 +242,9 @@ class Course_WizardController extends AuthenticatedController
     {
         $this->stepnumber = $stepnumber;
         $this->temp_id = $temp_id;
+        if (!$this->getValues()) {
+            throw new UnexpectedValueException('no data found');
+        }
         if (isset($_SESSION['coursewizard'][$this->temp_id]['source_id'])) {
             $this->source_course = Course::find($_SESSION['coursewizard'][$this->temp_id]['source_id']);
         }
@@ -221,7 +286,7 @@ class Course_WizardController extends AuthenticatedController
     public function copy_action($id) {
         if (!$GLOBALS['perm']->have_studip_perm('dozent', $id)
             || LockRules::Check($id, 'seminar_copy')) {
-            throw new AccessDeniedException(_("Sie dürfen diese Veranstaltung nicht kopieren"));
+            throw new AccessDeniedException(_("Sie dÃ¼rfen diese Veranstaltung nicht kopieren"));
         }
         $course = Course::find($id);
         $values = array();
@@ -249,15 +314,26 @@ class Course_WizardController extends AuthenticatedController
      * Wizard finished: we can create the course now. First store an empty,
      * invisible course for getting an ID. Then, iterate through steps and
      * set values from each step.
+     * @param bool $cleanup cleanup session after course creation?
      * @return Course
      * @throws Exception
      */
-    private function createCourse()
+    private function createCourse($cleanup = true)
     {
+
+        foreach (array_keys($this->steps) as $n) {
+            $step = $this->getStep($n);
+            if ($step->isRequired($this->getValues())) {
+                if (!$step->validate($this->getValues())) {
+                    unset($_SESSION['coursewizard'][$this->temp_id]);
+                    return false;
+                }
+            }
+        }
         // Create a new (empty) course so that we get an ID.
         $course = new Course();
         $course->visible = 0;
-        $course->store();
+        $course->setId($course->getNewId());
         $course_id = $course->id;
         // Each (required) step stores its own values at the course object.
         for ($i = 0; $i < sizeof($this->steps) ; $i++) {
@@ -267,25 +343,16 @@ class Course_WizardController extends AuthenticatedController
                     $course = $stored;
                 } else {
                     $course = false;
+                    unset($_SESSION['coursewizard'][$this->temp_id]);
                     break;
                     //throw new Exception(_('Die Daten aus Schritt ' . $i . ' konnten nicht gespeichert werden, breche ab.'));
                 }
             }
         }
-        // Check if "documents" module is activated and create "General" folder.
-        $m = new Modules();
-        if ($m->getStatus('documents', $course_id)) {
-            $f = new DocumentFolder();
-            $f->name = _('Allgemeiner Dateiordner');
-            $f->description = _('Ablage für allgemeine Ordner und Dokumente der Veranstaltung');
-            $f->range_id = $course_id;
-            $f->seminar_id = $course_id;
-            $f->user_id = $GLOBALS['user']->id;
-            $f->permission = 7;
-            $f->store();
+        // Cleanup session data if necessary.
+        if ($cleanup) {
+            unset($_SESSION['coursewizard'][$this->temp_id]);
         }
-        // Cleanup session data.
-        unset($_SESSION['coursewizard'][$this->temp_id]);
         return $course;
     }
 

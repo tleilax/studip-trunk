@@ -60,7 +60,7 @@ class Wiki extends \RESTAPI\RouteMap
     }
 
     /**
-     * Wikiseite ändern/hinzufügen
+     * Wikiseite Ã¤ndern/hinzufÃ¼gen
      *
      * @put /course/:course_id/wiki/:keyword
      */
@@ -81,8 +81,8 @@ class Wiki extends \RESTAPI\RouteMap
 
         // TODO: rewrite this code and put #submitWikiPage into
         // class \WikiPage
-        if (!isset($GLOBALS['SessSemName'])) {
-            $GLOBALS['SessSemName'] = array(1 => $course_id);
+        if (!Context::get()) {
+            Context::set($course_id);
         }
         submitWikiPage($keyword, $last_version->version, $this->data['content'], $user_id, $course_id);
 
@@ -125,7 +125,9 @@ class Wiki extends \RESTAPI\RouteMap
             $json['content_html'] = wikiReady($page->body);
         }
         if (!in_array("user", $without)) {
-            $json['user'] = User::getMiniUser($this, $page->author);
+            if($page->author) {
+                $json['user'] = User::getMiniUser($this, $page->author);
+            }
         }
 
         foreach ($without as $key) {

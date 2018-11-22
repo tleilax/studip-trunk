@@ -1,17 +1,18 @@
-<form name="write_message" action="<?= URLHelper::getLink("dispatch.php/messages/send") ?>" method="post" style="margin-left: auto; margin-right: auto;" data-dialog="<?=($answer_to ? 'reload-on-close' : '')?>" data-secure="#adressees > li:eq(1), .files > li:eq(1)">
-    <? $message_id = Request::option("message_id") ?: md5(uniqid("neWMesSagE")) ?>
-    <input type="hidden" name="message_id" id="message_id" value="<?= htmlReady($message_id) ?>">
+<form class="default" name="write_message" action="<?= URLHelper::getLink("dispatch.php/messages/send") ?>" method="post" style="margin-left: auto; margin-right: auto;" data-dialog data-secure="#adressees > li:eq(1), .files > li:eq(1)">
+    <input type="hidden" name="message_id" id="message_id" value="<?= htmlReady($default_message->id) ?>">
     <input type="hidden" name="answer_to" value="<?= htmlReady($answer_to) ?>">
+    <fieldset>
+        <legend><?= _('Neue Nachricht') ?></legend>
     <div>
-        <label for="user_id_1"><h4><?= _("An") ?></h4></label>
-        <ul class="clean" id="adressees">
+        <label for="user_id_1"><?= _("An") ?></label>
+        <ul class="list-csv" id="adressees">
             <li id="template_adressee" style="display: none;" class="adressee">
                 <input type="hidden" name="message_to[]" value="">
                 <span class="visual"></span>
                 <a class="remove_adressee"><?= Icon::create('trash', 'clickable')->asImg(['class' => "text-bottom"]) ?></a>
             </li>
             <? foreach ($default_message->getRecipients() as $user) : ?>
-            <li style="padding: 0px;" class="adressee">
+            <li class="adressee">
                 <input type="hidden" name="message_to[]" value="<?= htmlReady($user['user_id']) ?>">
                 <span class="visual">
                     <?= htmlReady($user['fullname']) ?>
@@ -21,30 +22,18 @@
             <? endforeach ?>
         </ul>
         <div class="message-search-wrapper">
-        <?= QuickSearch::get("user_id", new StandardSearch("user_id"))
-            ->fireJSFunctionOnSelect("STUDIP.Messages.add_adressee")
+        <?= QuickSearch::get('user_id', new StandardSearch('user_id'))
+            ->fireJSFunctionOnSelect('STUDIP.Messages.add_adressee')
             ->withButton()
             ->render();
 
-        $search_obj = new SQLSearch("SELECT auth_user_md5.user_id, {$GLOBALS['_fullname_sql']['full_rev']} as fullname, username, perms "
-            . "FROM auth_user_md5 "
-            . "LEFT JOIN user_info ON (auth_user_md5.user_id = user_info.user_id) "
-            . "WHERE "
-            . "username LIKE :input OR Vorname LIKE :input "
-            . "OR CONCAT(Vorname,' ',Nachname) LIKE :input "
-            . "OR CONCAT(Nachname,' ',Vorname) LIKE :input "
-            . "OR CONCAT(Nachname,', ',Vorname) LIKE :input "
-            . "OR Nachname LIKE :input "
-            . "OR Vorname LIKE :input"
-            . " ORDER BY fullname ASC",
-            _("Nutzer suchen"), "user_id");
-        $mps = MultiPersonSearch::get("add_adressees")
-           ->setLinkText(_('Mehrere Adressaten hinzufügen'))
+        $mps = MultiPersonSearch::get('add_adressees')
+           ->setLinkText(_('Mehrere Adressaten hinzufÃ¼gen'))
             //->setDefaultSelectedUser($defaultSelectedUser)
-            ->setTitle(_('Mehrere Adressaten hinzufügen'))
-            ->setExecuteURL(URLHelper::getURL("dispatch.php/messages/write"))
-            ->setJSFunctionOnSubmit("STUDIP.Messages.add_adressees")
-            ->setSearchObject($search_obj);
+            ->setTitle(_('Mehrere Adressaten hinzufÃ¼gen'))
+            ->setExecuteURL($controller->url_for('messages/write'))
+            ->setJSFunctionOnSubmit('STUDIP.Messages.add_adressees')
+            ->setSearchObject($this->mp_search_object);
         foreach (Statusgruppen::findContactGroups() as $group) {
             $mps->addQuickfilter(
                 $group['name'],
@@ -60,14 +49,14 @@
     </div>
     <div>
         <label>
-            <h4><?= _("Betreff") ?></h4>
+            <?= _("Betreff") ?>
             <input type="text" name="message_subject" style="width: 100%" required value="<?= htmlReady($default_message['subject']) ?>">
         </label>
     </div>
     <div>
         <label>
-            <h4><?= _("Nachricht") ?></h4>
-            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar wysiwyg"><?= htmlReady($default_message['message'],false) ?></textarea>
+            <?= _("Nachricht") ?>
+            <textarea style="width: 100%; height: 200px;" name="message_body" class="add_toolbar wysiwyg"><?= wysiwygReady($default_message['message'],false) ?></textarea>
         </label>
     </div>
     <div>
@@ -77,7 +66,7 @@
                 <a href="" onClick="STUDIP.Messages.toggleSetting('attachments'); return false;">
                     <?= Icon::create('staple', 'clickable')->asImg(40) ?>
                     <br>
-                    <strong><?= _("Anhänge") ?></strong>
+                    <strong><?= _("AnhÃ¤nge") ?></strong>
                 </a>
             </li>
         <? endif; ?>
@@ -95,6 +84,7 @@
                     <strong><?= _("Optionen") ?></strong>
                 </a>
             </li>
+            <? if (!\Studip\Markup::editorEnabled()) : ?>
             <li>
                 <a href="" onClick="STUDIP.Messages.toggleSetting('preview'); STUDIP.Messages.previewComposedMessage(); return false;">
                     <?= Icon::create('visibility-visible', 'clickable')->asImg(40) ?>
@@ -102,12 +92,13 @@
                     <strong><?= _("Vorschau") ?></strong>
                 </a>
             </li>
+            <? endif ?>
         </ul>
     </div>
 
 <? if ($GLOBALS['ENABLE_EMAIL_ATTACHMENTS']): ?>
     <div id="attachments" style="<?= $default_attachments ? '' : 'display: none;'?>">
-        <h4><?= _("Anhänge") ?></h4>
+        <?= _("AnhÃ¤nge") ?>
         <div>
             <ul class="files">
                 <li style="display: none;" class="file">
@@ -146,47 +137,33 @@
 <? endif; ?>
     <div id="tags" style="<?= Request::get("default_tags") ? "" : 'display: none; ' ?>">
         <label>
-            <h4><?= _("Schlagworte") ?></h4>
+            <?= _("Schlagworte") ?>
             <input type="text" name="message_tags" style="width: 100%" placeholder="<?= _("z.B. klausur termin statistik etc.") ?>" value="<?= htmlReady(Request::get("default_tags")) ?>">
         </label>
     </div>
     <div id="settings" style="display: none;">
-        <h4><?= _("Optionen") ?></h4>
-        <table class="" style="width: 100%">
-            <tbody>
-                <tr>
-                    <td>
-                        <label for="message_mail"><strong><?= _("Immer per Mail weiterleiten") ?></strong></label>
-                    </td>
-                    <td>
-                        <input type="checkbox" name="message_mail" id="message_mail" value="1"<?= $mailforwarding ? " checked" : "" ?>>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <?= _("Optionen") ?>
+        <label for="message_mail">
+            <input type="checkbox" name="message_mail" id="message_mail" value="1"<?= $mailforwarding ? " checked" : "" ?>>
+            <?= _("Immer per E-Mail weiterleiten") ?>
+        </label>
+
+        <label for="show_adressees">
+            <input type="checkbox" name="show_adressees" id="show_adressees" value="1"<?= $show_adressees ? " checked" : "" ?>>
+            <?= _("Sollen die Adressaten fÃ¼r die EmpfÃ¤nger sichtbar sein?") ?>
+        </label>
     </div>
+    </fieldset>
+
+    <? if (!\Studip\Markup::editorEnabled()) : ?>
     <div id="preview" style="display: none;">
-        <h4><?= _("Vorschau") ?></h4>
+        <?= _("Vorschau") ?>
         <p class="message_body"></p>
     </div>
+    <? endif ?>
 
-    <div style="text-align: center;" data-dialog-button>
+    <footer data-dialog-button>
         <?= \Studip\Button::create(_('Abschicken'), null, array('onclick' => "STUDIP.Messages.checkAdressee();")) ?>
-    </div>
+    </footer>
 
 </form>
-
-<br>
-
-<?php
-$sidebar = Sidebar::get();
-$sidebar->setImage('sidebar/mail-sidebar.png');
-
-if (false && count($tags)) {
-    $folderwidget = new LinksWidget();
-    $folderwidget->setTitle(_("Verwendete Tags"));
-    foreach ($tags as $tag) {
-        $folderwidget->addLink(ucfirst($tag), URLHelper::getURL("?", array('tag' => $tag)), null, array('class' => "tag"));
-    }
-    $sidebar->addWidget($folderwidget, 'folder');
-}

@@ -1,6 +1,6 @@
 <?php
 
-class Questionnaire extends SimpleORMap
+class Questionnaire extends SimpleORMap implements PrivacyObject
 {
 
     public $answerable;
@@ -15,6 +15,11 @@ class Questionnaire extends SimpleORMap
         );
         $config['has_many']['assignments'] = array(
             'class_name' => 'QuestionnaireAssignment',
+            'on_delete' => 'delete',
+            'on_store' => 'store'
+        );
+        $config['has_many']['anonymousanswers'] = array(
+            'class_name' => 'QuestionnaireAnonymousAnswer',
             'on_delete' => 'delete',
             'on_store' => 'store'
         );
@@ -95,9 +100,7 @@ class Questionnaire extends SimpleORMap
         foreach ($this->assignments as $assignment) {
             if ($assignment['range_id'] === "public") {
                 return true;
-            } elseif ($assignment['range_id'] === "start" && $GLOBALS['perm']->have_perm("user")) {
-                return true;
-            } elseif ($assignment['range_type'] === "user" && $GLOBALS['perm']->have_perm("user")) {
+            } elseif (in_array($assignment['range_type'], ["static", "user", "institute"]) && $GLOBALS['perm']->have_perm("user")) {
                 return true;
             } elseif($GLOBALS['perm']->have_studip_perm("user", $assignment['range_id'])) {
                 return true;
@@ -108,7 +111,7 @@ class Questionnaire extends SimpleORMap
 
     public function isAnswerable()
     {
-        if (!$this->isViewable()) {
+        if (!$this->isViewable() || !$this->isRunning()) {
             return false;
         }
         if ($this['anonymous'] && $this->isAnswered()) {
@@ -138,35 +141,51 @@ class Questionnaire extends SimpleORMap
         return false;
     }
 
+    public function isCopyable()
+    {
+        return ($this->copyable && $GLOBALS['perm']->have_perm('autor') && $this->isViewable()) || $this->isEditable();
+    }
+
     public function start()
     {
-        if (!$this['startdate']) {
+        if (!$this->isRunning()) {
             $this['startdate'] = time();
+            $this['visible'] = 1;
+            if ($this->isStopped()) {
+                $this['stopdate'] = null;
+            }
+            $this->store();
+            foreach ($this->questions as $question) {
+                $question->onBeginning();
+            }
         }
-        $this['visible'] = 1;
-        $this->store();
     }
 
     public function stop()
     {
-        $this['visible'] = 0;
-        if (!$this['stopdate']) {
+        if (!$this->isStopped()) {
+            $this['visible'] = $this['resultvisibility'] === 'never' ? 0 : 1;
             $this['stopdate'] = time();
-        }
-        $this->store();
-        foreach ($this->questions as $question) {
-            $question->onEnding();
+            $this->store();
+            foreach ($this->questions as $question) {
+                $question->onEnding();
+            }
         }
     }
 
     public function isStarted()
     {
-        return $this['visible'] && $this['startdate'] && ($this['startdate'] <= time());
+        return $this['startdate'] && ($this['startdate'] <= time());
     }
 
     public function isStopped()
     {
-        return !$this['visible'] && $this['stopdate'] && ($this['stopdate'] <= time());
+        return $this['stopdate'] && ($this['stopdate'] <= time());
+    }
+
+    public function isRunning()
+    {
+        return $this->isStarted() && !$this->isStopped();
     }
 
     public function resultsVisible()
@@ -177,5 +196,28 @@ class Questionnaire extends SimpleORMap
         return $this['resultvisibility'] === "always"
             || $this->isEditable()
             || ($this['resultvisibility'] === "afterending" && $this->isStopped());
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('questionnaires', $field_data, $user);
+            }
+        }
+        return [_('Fragebögen') => $storage];
     }
 }

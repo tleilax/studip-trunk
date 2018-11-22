@@ -2,7 +2,7 @@
 /**
 * garbage_collector.class.php
 *
-* @author André Noack <noack@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
+* @author AndrÃ© Noack <noack@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access public
 * @since  2.4
 */
@@ -18,7 +18,7 @@ class GarbageCollectorJob extends CronJob
 
     public static function getDescription()
     {
-        return _('Entfernt endgültig gelöschte Nachrichten, nicht zugehörige Dateianhänge, abgelaufene Ankündigungen, alte Aktivitäten, veraltete Plugin-Assets sowie veraltete OAuth-Servernonces');
+        return _('Entfernt endgÃ¼ltig gelÃ¶schte Nachrichten, nicht zugehÃ¶rige DateianhÃ¤nge, abgelaufene AnkÃ¼ndigungen, alte AktivitÃ¤ten, veraltete Plugin-Assets sowie veraltete OAuth-Servernonces');
     }
 
     public static function getParameters()
@@ -28,46 +28,64 @@ class GarbageCollectorJob extends CronJob
                 'type'        => 'boolean',
                 'default'     => false,
                 'status'      => 'optional',
-                'description' => _('Sollen Ausgaben erzeugt werden (sind später im Log des Cronjobs sichtbar)'),
+                'description' => _('Sollen Ausgaben erzeugt werden (sind spÃ¤ter im Log des Cronjobs sichtbar)'),
             ),
         );
     }
 
     public function setUp()
     {
-        require_once 'lib/datei.inc.php';
+
     }
 
     public function execute($last_result, $parameters = array())
     {
         $db = DBManager::get();
-        $dd_func = function($d) {
-            delete_document($d);
-        };
 
-        //abgelaufenen News löschen
+        //abgelaufenen News lÃ¶schen
         $deleted_news = StudipNews::DoGarbageCollect();
-        //messages aufräumen
+        //messages aufrÃ¤umen
         $to_delete = $db->query("SELECT message_id, count( message_id ) AS gesamt, count(IF (deleted =0, NULL , 1) ) AS geloescht
                 FROM message_user GROUP BY message_id HAVING gesamt = geloescht")->fetchAll(PDO::FETCH_COLUMN,0);
         if (count($to_delete)) {
             $db->exec("DELETE FROM message_user WHERE message_id IN(" . $db->quote($to_delete) . ")");
             $db->exec("DELETE FROM message WHERE message_id IN(" . $db->quote($to_delete) . ")");
-            $to_delete_attach = $db->query("SELECT dokument_id FROM dokumente WHERE range_id IN(" . $db->quote($to_delete) . ")")->fetchAll(PDO::FETCH_COLUMN,0);
-            array_walk($to_delete_attach, $dd_func);
         }
-        //Attachments von nicht versendeten Messages aufräumen
-        $to_delete_attach = $db->query("SELECT dokument_id FROM dokumente WHERE range_id = 'provisional' AND chdate < UNIX_TIMESTAMP(DATE_ADD(NOW(),INTERVAL -2 HOUR))")->fetchAll(PDO::FETCH_COLUMN,0);
-        array_walk($to_delete_attach, $dd_func);
+
+        //delete old attachments of non-sent and deleted messages:
+        //A folder is old and not attached to a message when it has the
+        //range type 'message', belongs to the folder type 'MessageFolder',
+        //is older than 2 hours and has a range-ID that doesn't exist
+        //in the "message" table.
+        $unsent_attachment_folders = Folder::deleteBySql(
+            "folder_type = 'MessageFolder'
+            AND
+            range_type = 'message'
+            AND
+            chdate < UNIX_TIMESTAMP(DATE_ADD(NOW(),INTERVAL -2 HOUR))
+            AND
+            range_id NOT IN (
+                SELECT message_id FROM message
+            )",
+            [
+                'user_id' => $GLOBALS['user']->id
+            ]
+        );
+
+
         if ($parameters['verbose']) {
-            printf(_("Gelöschte Ankündigungen: %u") . "\n", (int)$deleted_news);
-            printf(_("Gelöschte Nachrichten: %u") . "\n", count($to_delete));
-            printf(_("Gelöschte Dateianhänge: %u") . "\n", count($to_delete_attach));
+            printf(_("GelÃ¶schte AnkÃ¼ndigungen: %u") . "\n", (int)$deleted_news);
+            printf(_("GelÃ¶schte Nachrichten: %u") . "\n", count($to_delete));
+            printf(_("GelÃ¶schte DateianhÃ¤nge: %u") . "\n", count($unsent_attachment_folders));
         }
 
         PersonalNotifications::doGarbageCollect();
 
         \Studip\Activity\Activity::doGarbageCollect();
+
+        // clean db cache
+        $cache = new StudipDbCache();
+        $cache->purge();
 
         // Remove old plugin assets
         PluginAsset::deleteBySQL('chdate < ?', array(time() - PluginAsset::CACHE_DURATION));
@@ -78,7 +96,7 @@ class GarbageCollectorJob extends CronJob
         $removed = DBManager::get()->exec($query);
 
         if ($removed > 0 && $parameters['verbose']) {
-            printf(_('Gelöschte Server-Nonces: %u') . "\n", (int)$removed);
+            printf(_('GelÃ¶schte Server-Nonces: %u') . "\n", (int)$removed);
         }
     }
 }

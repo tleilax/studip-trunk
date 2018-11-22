@@ -1,6 +1,10 @@
 <?php
 namespace RESTAPI\Routes;
 
+use Config;
+use SemClass;
+use SemType;
+
 /**
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @author  <mlunzena@uos.de>
@@ -16,22 +20,22 @@ class Studip extends \RESTAPI\RouteMap
     public function getSettings()
     {
         $sem_types = array_map(function ($item) {
-            return array(
+            return [
                 'name'  => $item['name'],
                 'class' => $item['class'],
-            );
-        }, \SemType::getTypes());
+            ];
+        }, SemType::getTypes());
 
         $sem_classes = array_map(function ($item) {
-            $item = (array)$item;
+            $item = (array) $item;
             return reset($item);
-        }, \SemClass::getClasses());
+        }, SemClass::getClasses());
 
-        return array(
-            'ALLOW_CHANGE_USERNAME' => $GLOBALS['ALLOW_CHANGE_USERNAME'],
-            'ALLOW_CHANGE_EMAIL'    => $GLOBALS['ALLOW_CHANGE_EMAIL'],
-            'ALLOW_CHANGE_NAME'     => $GLOBALS['ALLOW_CHANGE_NAME'],
-            'ALLOW_CHANGE_TITLE'    => $GLOBALS['ALLOW_CHANGE_TITLE'],
+        return [
+            'ALLOW_CHANGE_USERNAME' => Config::get()->ALLOW_CHANGE_USERNAME,
+            'ALLOW_CHANGE_EMAIL'    => Config::get()->ALLOW_CHANGE_EMAIL,
+            'ALLOW_CHANGE_NAME'     => Config::get()->ALLOW_CHANGE_NAME,
+            'ALLOW_CHANGE_TITLE'    => Config::get()->ALLOW_CHANGE_TITLE,
             'INST_TYPE'             => $GLOBALS['INST_TYPE'],
             'SEM_TYPE'              => $sem_types,
             'SEM_CLASS'             => $sem_classes,
@@ -39,8 +43,8 @@ class Studip extends \RESTAPI\RouteMap
             'PERS_TERMIN_KAT'       => $GLOBALS['PERS_TERMIN_KAT'],
             'SUPPORT_EMAIL'         => $GLOBALS['UNI_CONTACT'],
             'TITLES'                => $GLOBALS['DEFAULT_TITLE_FOR_STATUS'],
-            'UNI_NAME_CLEAN'        => $GLOBALS['UNI_NAME_CLEAN'],
-        );
+            'UNI_NAME_CLEAN'        => Config::get()->UNI_NAME_CLEAN,
+        ];
     }
 
     /**
@@ -48,12 +52,13 @@ class Studip extends \RESTAPI\RouteMap
      *
      * @get /studip/colors
      */
-    public function getColors() {
+    public function getColors()
+    {
         // TODO: Move these definitions somewhere else (but where!?)
-        return array(
+        return [
             'background' => '#e1e4e9',
             'dark'       => '#34578c',
             'light'      => '#899ab9',
-        );
+        ];
     }
 }

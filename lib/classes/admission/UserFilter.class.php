@@ -120,7 +120,7 @@ class UserFilter
      * @return Array
      */
     public function getUsers() {
-        $users = array();
+        $users = null;
         foreach ($this->fields as $field) {
             // Check if restrictions for the field value must be taken into consideration.
             $restrictions = array();
@@ -136,9 +136,9 @@ class UserFilter
                     }
                 }
             }
-            $users = $users ? array_intersect($users, $field->getUsers($restrictions)) : $field->getUsers($restrictions);
+            $users = isset($users) ? array_intersect($users, $field->getUsers($restrictions)) : $field->getUsers($restrictions);
         }
-        return $users;
+        return (array) $users;
     }
 
     /**
@@ -164,14 +164,15 @@ class UserFilter
      *
      * @return boolean
      */
-    public function isFulfilled($userId) {
-        $fulfilled = true;
+    public function isFulfilled($userId)
+    {
         // Check all fields.
         foreach ($this->fields as $field) {
-            $fulfilled = $fulfilled &&
-                $field->checkValue($field->getUserValues($userId));
+            if (!$field->checkValue($field->getUserValues($userId, $this->fields))) {
+                return false;
+            }
         }
-        return $fulfilled;
+        return true;
     }
 
     /**

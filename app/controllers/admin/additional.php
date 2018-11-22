@@ -1,7 +1,7 @@
 <?php
 /**
  * additonal.php - controller class for the additonal data
- * 
+ *
  * Admin of a Seminar can chose his required aux data and decide if it is
  * forced from the user
  *
@@ -28,16 +28,15 @@ class Admin_AdditionalController extends AuthenticatedController
         // Check permissions to be on this site
         if (!$GLOBALS['perm']->have_studip_perm("tutor", $this->course->id)) {
             throw new AccessDeniedException(_("Sie haben keine Berechtigung diese " .
-                    "Veranstaltung zu verändern."));
+                    "Veranstaltung zu verÃ¤ndern."));
         }
     }
 
     /**
      * Index displays and updates
      */
-    function index_action()
+    public function index_action()
     {
-
         /*
          * Updaterequest
          */
@@ -55,16 +54,16 @@ class Admin_AdditionalController extends AuthenticatedController
                 $stmt = DBManager::get()->prepare('DELETE FROM datafields_entries WHERE sec_range_id = ?');
                 $stmt->execute(array($this->course->id));
             }
-            
+
             if ($this->course->store()) {
                 if (!is_null($this->course->aux_lock_rule)) {
                     PageLayout::postSuccess(_('Zusatzangaben wurden erfolgreich zugeordnet'));
                 } else {
                     PageLayout::postSuccess(_('Zuweisung der Zusatzangaben wurden aufgehoben'));
                 }
-            } 
+            }
         }
-  
+
         // Fetch data
         $stmt = DBManager::get()->prepare('SELECT COUNT(*) FROM datafields_entries WHERE sec_range_id = ?');
         $stmt->execute(array($this->course->id));

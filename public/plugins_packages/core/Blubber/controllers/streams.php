@@ -28,13 +28,18 @@ class StreamsController extends PluginController {
      */
     public function global_action() {
         PageLayout::setTitle(_("Globaler Blubberstream"));
-        Navigation::activateItem("/community/blubber");
+
+        if (Navigation::hasItem('/community/blubber')) {
+            Navigation::activateItem("/community/blubber");
+        } else {
+            throw new AccessDeniedException();
+        }
 
         if (Request::get("delete_stream")) {
             $stream = new BlubberStream(Request::option("delete_stream"));
             if ($stream['user_id'] === $GLOBALS['user']->id) {
                 $stream->delete();
-                PageLayout::postMessage(MessageBox::success(_("Stream wurde erfolgreich gelöscht.")));
+                PageLayout::postMessage(MessageBox::success(_("Stream wurde erfolgreich gelÃ¶scht.")));
                 Navigation::removeItem("/community/blubber/".Request::option("delete_stream"));
             }
         }
@@ -65,20 +70,20 @@ class StreamsController extends PluginController {
      * @throws AccessDeniedException if user has no access to course
      */
     public function forum_action() {
-        object_set_visit($_SESSION['SessionSeminar'], "forum");
-        if ($GLOBALS['SessSemName']['class'] === "sem") {
-            $seminar = new Seminar($_SESSION['SessionSeminar']);
-            $this->commentable = ($seminar->read_level == 0 || $GLOBALS['perm']->have_studip_perm("autor", $_SESSION['SessionSeminar']));
+        object_set_visit(Context::getId(), "forum");
+        if (Context::isCourse()) {
+            $seminar = new Seminar(Context::get());
+            $this->commentable = ($seminar->read_level == 0 || $GLOBALS['perm']->have_studip_perm("autor", Context::getId()));
         } else {
             $this->commentable = true;
         }
         if (!$this->commentable) {
             throw new AccessDeniedException();
         }
-        PageLayout::setTitle($GLOBALS['SessSemName']["header_line"]." - ".$this->plugin->getDisplayTitle());
+        PageLayout::setTitle(Context::getHeaderLine()." - ".$this->plugin->getDisplayTitle());
         Navigation::getItem("/course/blubberforum")->setImage(Icon::create('blubber', 'info'));
         Navigation::activateItem("/course/blubberforum");
-        $coursestream = BlubberStream::getCourseStream($_SESSION['SessionSeminar']);
+        $coursestream = BlubberStream::getCourseStream(Context::getId());
         $this->tags = $coursestream->fetchTags();
         if (Request::get("hash")) {
             $this->search = "#".Request::get("hash");
@@ -86,7 +91,7 @@ class StreamsController extends PluginController {
         }
         $this->threads = $coursestream->fetchThreads(0, $this->max_threads + 1);
         $this->more_threads = count($this->threads) > $this->max_threads;
-        $this->course_id = $_SESSION['SessionSeminar'];
+        $this->course_id = Context::getId();
         if ($this->more_threads) {
             $this->threads = array_slice($this->threads, 0, $this->max_threads);
         }
@@ -96,10 +101,14 @@ class StreamsController extends PluginController {
      * Displays the profile-stream with all threads by the given user.
      */
     public function profile_action() {
-        if (Request::get("extern")) {
-            $this->user = BlubberExternalContact::find(Request::option("user_id"));
+        if (Request::get('extern')) {
+            $this->user = BlubberExternalContact::find(Request::option('user_id'));
+        } elseif (Request::option('user_id')) {
+            $this->user = new BlubberUser(Request::option('user_id'));
+        } elseif (Request::username('username')) {
+            $this->user = BlubberUser::findByUsername(Request::username('username'));
         } else {
-            $this->user = new BlubberUser(Request::option("user_id"));
+            $this->user = BlubberUser::find(User::findCurrent()->id);
         }
         PageLayout::setTitle($this->user->getName()." - Blubber");
 
@@ -107,15 +116,17 @@ class StreamsController extends PluginController {
         $this->tags = $profilestream->fetchTags();
         $this->threads = $profilestream->fetchThreads(0, $this->max_threads + 1);
         $this->more_threads = count($this->threads) > $this->max_threads;
-        $this->course_id = $_SESSION['SessionSeminar'];
+        $this->course_id = Context::getId();
         if ($this->more_threads) {
             $this->threads = array_slice($this->threads, 0, $this->max_threads);
         }
-        if (Request::get("user_id") !== $GLOBALS['user']->id) {
-            $this->isBuddy = is_a($this->user, "BlubberExternalContact") ? $this->user->isFollowed() : User::findCurrent()->isFriendOf($this->user);
+        if ($this->user->id !== $GLOBALS['user']->id) {
+            $this->isBuddy = is_a($this->user, "BlubberExternalContact")
+                           ? $this->user->isFollowed()
+                           : (User::findCurrent() && User::findCurrent()->isFriendOf($this->user));
         }
-        if (count($this->threads) === 0 && Request::get("user_id") !== $GLOBALS['user']->id) {
-            PageLayout::postMessage(MessageBox::info(_("Dieser Nutzer hat noch nicht öffentlich bzw. auf sein Profil geblubbert.")));
+        if (count($this->threads) === 0 && $this->user->id !== $GLOBALS['user']->id) {
+            PageLayout::postInfo(_('Dieser Nutzer hat noch nicht Ã¶ffentlich bzw. auf sein Profil geblubbert.'));
         }
     }
 
@@ -125,7 +136,7 @@ class StreamsController extends PluginController {
      */
     public function more_comments_action() {
         $thread = new BlubberPosting(Request::option("thread_id"));
-        if ($thread['context_type'] === "course" && $GLOBALS['SessSemName']['class'] === "sem") {
+        if ($thread['context_type'] === "course" && Context::isCourse()) {
             $seminar = new Seminar($thread['Seminar_id']);
             if ($seminar->read_level > 0 && !$GLOBALS['perm']->have_studip_perm("autor", $thread['Seminar_id'])) {
                 throw new AccessDeniedException();
@@ -203,7 +214,7 @@ class StreamsController extends PluginController {
         foreach ($threads as $posting) {
             $template = $factory->open("streams/_blubber.php");
             $template->set_attribute('thread', $posting);
-            $template->set_attribute('course_id', $_SESSION['SessionSeminar']);
+            $template->set_attribute('course_id', Context::getId());
             $template->set_attribute('controller', $this);
             $output['threads'][] = array(
                 'content' => $template->render(),
@@ -224,7 +235,7 @@ class StreamsController extends PluginController {
         }
         $context = Request::option("context");
         $context_type = Request::option("context_type");
-        if ($context_type === "course" && $GLOBALS['SessSemName']['class'] === "sem") {
+        if ($context_type === "course" && Context::isCourse()) {
             $seminar = new Seminar($context);
             if ($seminar->write_level > 0 && !$GLOBALS['perm']->have_studip_perm("autor", $context)) {
                 throw new AccessDeniedException();
@@ -236,11 +247,12 @@ class StreamsController extends PluginController {
         $thread['seminar_id'] = $context_type === "course" ? $context : $GLOBALS['user']->id;
         $thread['context_type'] = $context_type;
         $thread['parent_id'] = 0;
-        $thread['author_host'] = $_SERVER['REMOTE_ADDR'];
 
         if ($GLOBALS['user']->id !== "nobody") {
-            $thread['user_id'] = $GLOBALS['user']->id;
+            $thread['user_id']     = $GLOBALS['user']->id;
         } else {
+            $thread['author_host'] = $_SERVER['REMOTE_ADDR'];
+
             if (Request::get("anonymous_security") === $_SESSION['blubber_anonymous_security']) {
                 $contact_user = BlubberExternalContact::findByEmail(Request::get("anonymous_email"));
                 $_SESSION['anonymous_email'] = Request::get("anonymous_email");
@@ -253,7 +265,7 @@ class StreamsController extends PluginController {
             }
         }
 
-        $thread['description'] = studip_utf8decode(Request::get("content"));
+        $thread['description'] = Request::get("content");
         $thread->store();
 
         $content = $this->transformMentions($thread['description'], $thread);
@@ -345,7 +357,7 @@ class StreamsController extends PluginController {
         $old_content = $posting['description'];
         $messaging = new messaging();
 
-        $new_content = studip_utf8decode(Request::get('content'));
+        $new_content = Request::get('content');
         $new_content = $this->transformMentions($new_content, $posting);
 
         if ($new_content && $old_content !== $new_content) {
@@ -363,15 +375,26 @@ class StreamsController extends PluginController {
             }
             $posting->store();
             if ($posting['user_id'] !== $GLOBALS['user']->id) {
+                $message = sprintf(
+                    _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum editiert.\n\nDie alte Version des Beitrags lautete:\n\n%s\n\nDie neue lautet:\n\n%s\n"),
+                    get_fullname(), $old_content, $posting['description']
+                );
+
+                $message .= "\n\n";
+
+                $message .= '[' . _('Link zu diesem Beitrag') . ']';
+                $message .= URLHelper::getURL(
+                    "{$GLOBALS['ABSOLUTE_URI_STUDIP']}plugins.php/blubber/streams/thread/{$posting->root_id}",
+                    array_filter(['cid' => $posting->seminar_id]),
+                    true
+                );
+
                 $messaging->insert_message(
-                    sprintf(
-                        _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum editiert.\n\nDie alte Version des Beitrags lautete:\n\n%s\n\nDie neue lautet:\n\n%s\n"),
-                        get_fullname(), $old_content, $posting['description']
-                    ),
+                    $message,
                     get_username($posting['user_id']),
                     $GLOBALS['user']->id,
                     null, null, null, null,
-                    _("Änderungen an Ihrem Posting.")
+                    _("Ã„nderungen an Ihrem Posting.")
                 );
             }
         } elseif(!$new_content) {
@@ -379,13 +402,13 @@ class StreamsController extends PluginController {
                 setTempLanguage($posting['user_id']);
                 $messaging->insert_message(
                     sprintf(
-                        _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum GELÖSCHT.\n\nDer alte Beitrag lautete:\n\n%s\n"),
+                        _("%s hat als Moderator gerade Ihren Beitrag im Blubberforum gelÃ¶scht.\n\nDer alte Beitrag lautete:\n\n%s\n"),
                         get_fullname(), $old_content
                     ),
                     get_username($posting['user_id']),
                     $GLOBALS['user']->id,
                     null, null, null, null,
-                    _("Ihr Posting wurde gelöscht.")
+                    _("Ihr Posting wurde gelÃ¶scht.")
                 );
                 restoreLanguage();
             }
@@ -420,7 +443,7 @@ class StreamsController extends PluginController {
         }
         $context = Request::option("context");
         $thread = new BlubberPosting(Request::option("thread"));
-        if ($thread['context_type'] === "course" && $GLOBALS['SessSemName']['class'] === "sem") {
+        if ($thread['context_type'] === "course" && Context::isCourse()) {
             $seminar = new Seminar($context);
             if ($seminar->write_level > 0 && !$GLOBALS['perm']->have_studip_perm("autor", $context)) {
                 throw new AccessDeniedException();
@@ -437,6 +460,8 @@ class StreamsController extends PluginController {
             if ($GLOBALS['user']->id !== "nobody") {
                 $posting['user_id'] = $GLOBALS['user']->id;
             } else {
+                $posting['author_host'] = $_SERVER['REMOTE_ADDR'];
+
                 if (Request::get("anonymous_security") === $_SESSION['blubber_anonymous_security']) {
                     $contact_user = BlubberExternalContact::findByEmail(Request::get("anonymous_email"));
                     $_SESSION['anonymous_email'] = Request::get("anonymous_email");
@@ -448,11 +473,10 @@ class StreamsController extends PluginController {
                     throw new AccessDeniedException("No permission to write posting.");
                 }
             }
-            $posting['author_host'] = $_SERVER['REMOTE_ADDR'];
-            $posting['description'] = studip_utf8decode(Request::get("content"));
+            $posting['description'] = Request::get("content");
             $posting->store();
 
-            $content = studip_utf8decode(Request::get("content"));
+            $content = Request::get("content");
             $content = $this->transformMentions($content, $posting);
             $posting['description'] = $content;
             $posting->store();
@@ -515,113 +539,108 @@ class StreamsController extends PluginController {
                 || ($context_type === "course" && !$GLOBALS['perm']->have_studip_perm("autor", $context))) {
             throw new AccessDeniedException();
         }
-        //check folders
-        $db = DBManager::get();
-        $folder_id = md5("Blubber_".$context."_".$GLOBALS['user']->id);
-        $parent_folder_id = md5("Blubber_".$context);
-        if ($context_type !== "course") {
-            $folder_id = $parent_folder_id;
-        }
-        $folder = $db->query(
-            "SELECT * " .
-            "FROM folder " .
-            "WHERE folder_id = ".$db->quote($folder_id)." " .
-        "")->fetch(PDO::FETCH_COLUMN, 0);
-        if (!$folder) {
-            $folder = $db->query(
-                "SELECT * " .
-                "FROM folder " .
-                "WHERE folder_id = ".$db->quote($parent_folder_id)." " .
-            "")->fetch(PDO::FETCH_COLUMN, 0);
-            if (!$folder) {
-                $db->exec(
-                    "INSERT IGNORE INTO folder " .
-                    "SET folder_id = ".$db->quote($parent_folder_id).", " .
-                        "range_id = ".$db->quote($context).", " .
-                        "seminar_id = ".$db->quote($context).", " .
-                        "user_id = ".$db->quote($GLOBALS['user']->id).", " .
-                        "name = ".$db->quote("BlubberDateien").", " .
-                        "permission = '7', " .
-                        "mkdate = ".$db->quote(time()).", " .
-                        "chdate = ".$db->quote(time())." " .
-                "");
-            }
-            if ($context_type === "course") {
-                $db->exec(
-                    "INSERT IGNORE INTO folder " .
-                    "SET folder_id = ".$db->quote($folder_id).", " .
-                        "range_id = ".$db->quote($parent_folder_id).", " .
-                        "seminar_id = ".$db->quote($context).", " .
-                        "user_id = ".$db->quote($GLOBALS['user']->id).", " .
-                        "name = ".$db->quote(get_fullname()).", " .
-                        "permission = '7', " .
-                        "mkdate = ".$db->quote(time()).", " .
-                        "chdate = ".$db->quote(time())." " .
-                "");
-            }
-        }
 
         $output = array();
 
         foreach ($_FILES as $file) {
-            $GLOBALS['msg'] = '';
-            validate_upload($file);
-            if ($GLOBALS['msg']) {
-                $output['errors'][] = $file['name'] . ': ' . decodeHTML(trim(mb_substr($GLOBALS['msg'],6), '§'));
-                continue;
-            }
+
+            $newfile = null; //is filled below
+            $file_ref = null; //is also filled below
+
+
             if ($file['size']) {
-                $document['name'] = $document['filename'] = studip_utf8decode(mb_strtolower($file['name']));
                 $document['user_id'] = $GLOBALS['user']->id;
-                $document['author_name'] = get_fullname();
-                $document['seminar_id'] = $context;
-                $document['range_id'] = $context_type === "course" ? $folder_id : $parent_folder_id;
                 $document['filesize'] = $file['size'];
 
-                if ($context === $GLOBALS['user']->id && Config::get()->PERSONALDOCUMENT_ENABLE) {
-                    try {
-                        $root_dir = RootDirectory::find($GLOBALS['user']->id);
-                        $blubber_directory = $root_dir->listDirectories()->findOneBy('name', 'Blubber');
-                        if (!$blubber_directory) {
-                            $blubber_directory = $root_dir->mkdir('Blubber', _('Ihre Dateien aus Blubberstreams'));
+                try {
+                    $root_dir = Folder::findTopFolder($GLOBALS['user']->id);
+                    $root_dir = $root_dir->getTypedFolder();
+                    $blubber_directory = Folder::findOneBySql(
+                        "parent_id = :parent_id
+                        AND
+                        folder_type = 'PublicFolder'
+                        AND
+                        data_content = '[\"Blubber\"]'",
+                        [
+                            'parent_id' => $root_dir->getId()
+                        ]
+                    );
+
+
+                    if ($blubber_directory) {
+                        $blubber_directory = $blubber_directory->getTypedFolder();
+                    } else {
+                        //blubber directory not found: create it
+                        $blubber_directory = FileManager::createSubFolder(
+                            $root_dir,
+                            $GLOBALS['user']->getAuthenticatedUser(),
+                            'PublicFolder',
+                            'Blubber',
+                            _('Ihre Dateien aus Blubberstreams')
+                        );
+
+                        if (!$blubber_directory instanceof FolderType) {
+                            throw new Exception($blubber_directory[0]);
                         }
-                        $newfile = $blubber_directory->file->createFile($document['name']);
-                        $newfile->name = $document['name'];
-                        $newfile->store();
 
-                        $handle = $newfile->file;
-                        $handle->restricted = 0;
-                        $handle->mime_type = $file['type'];
-                        $handle->setContentFromFile($file['tmp_name']);
-                        $handle->update();
-
-                        $url = $newfile->getDownloadLink(true, true);
-
-                        $success = true;
-                    } catch (Exception $e) {
-                        $output['error'][] = $e->getMessage();
-                        $success = false;
+                        $blubber_directory->data_content = ['Blubber'];
+                        $blubber_directory->store();
                     }
-                } else {
-                    $newfile = StudipDocument::createWithFile($file['tmp_name'], $document);
-                    $success = (bool)$newfile;
 
-                    if ($success) {
-                        $url = GetDownloadLink($newfile->getId(), $newfile['filename']);
+                    if ($blubber_directory) {
+                        //ok, blubber directory exists: we can handle the uploaded file
+
+                        $error_string = $blubber_directory->validateUpload(
+                            $file,
+                            $GLOBALS['user']->id
+                        );
+
+                        if ($error_string) {
+                            throw new Exception($error_string);
+                        }
+
+
+                        $file['tmp_path'] = $file['tmp_name'];
+
+                        $file_ref = $blubber_directory->createFile($file);
+
+                        if($file_ref) {
+                            //we can't use the FileRef's getDownloadURL() here,
+                            //because the getDownloadURL method does not provide
+                            //the full URL!
+                            $url = mb_substr($GLOBALS['ABSOLUTE_URI_STUDIP'], 0, -1) . URLHelper::getUrl(
+                                '/sendfile.php',
+                                [
+                                    'type' => '0',
+                                    'file_id' => $file_ref->id,
+                                    'file_name' => $file_ref->name
+                                ],
+                                true
+                            );
+                            $success = true;
+                        } else {
+                            throw new Exception('File cannot be created!');
+                        }
+
                     }
+                } catch (Exception $e) {
+                    $output['errors'][] = $e->getMessage();
+                    $success = false;
                 }
+
 
                 if ($success) {
                     $type = null;
+
                     mb_strpos($file['type'], 'image') === false || $type = "img";
                     mb_strpos($file['type'], 'video') === false || $type = "video";
-                    if (mb_strpos($file['type'], 'audio') !== false || mb_strpos($document['filename'], '.ogg') !== false) {
+                    if (mb_strpos($file['type'], 'audio') !== false || mb_strpos($file_ref['name'], '.ogg') !== false) {
                          $type = "audio";
                     }
                     if ($type) {
                         $output['inserts'][] = "[".$type."]".$url;
                     } else {
-                        $output['inserts'][] = "[".$document['filename']."]".$url;
+                        $output['inserts'][] = "[".$file_ref['name']."]".$url;
                     }
                 }
             }
@@ -646,7 +665,7 @@ class StreamsController extends PluginController {
             }
         }
         if ($this->thread['context_type'] === "course") {
-            PageLayout::setTitle($GLOBALS['SessSemName']["header_line"]." - ".$this->plugin->getDisplayTitle());
+            PageLayout::setTitle(Context::getHeaderLine()." - ".$this->plugin->getDisplayTitle());
         } elseif($this->thread['context_type'] === "public") {
             PageLayout::setTitle(get_fullname($this->thread['user_id'])." - Blubber");
         } elseif($this->thread['context_type'] === "private") {
@@ -657,8 +676,10 @@ class StreamsController extends PluginController {
             Navigation::getItem("/course/blubberforum")->setImage(Icon::create('blubber', 'info'));
             Navigation::activateItem('/course/blubberforum');
         } elseif($this->thread['context_type'] === "public") {
-            if (Navigation::hasItem('/profile')) {
+            if (Navigation::hasItem('/profile/blubber')) {
                 Navigation::activateItem('/profile/blubber');
+            } elseif (Navigation::hasItem('/community/blubber')) {
+                Navigation::activateItem('/community/blubber');
             }
         } else {
             if (Navigation::hasItem('/community/blubber')) {
@@ -666,7 +687,7 @@ class StreamsController extends PluginController {
             }
         }
 
-        $this->course_id     = $_SESSION['SessionSeminar'];
+        $this->course_id     = Context::getId();
         $this->single_thread = true;
         BlubberPosting::$course_hashes = ($this->thread['user_id'] !== $this->thread['Seminar_id'] ? $this->thread['Seminar_id'] : false);
     }
@@ -708,12 +729,19 @@ class StreamsController extends PluginController {
         }
         $this->render_json(array(
             'success' => 1,
-            'message' => (string) MessageBox::success(_("Kontakt hinzugefügt"))
+            'message' => (string) MessageBox::success(_("Kontakt hinzugefÃ¼gt"))
         ));
     }
 
-    public function custom_action($stream_id) {
+    public function custom_action($stream_id)
+    {
         $this->stream = new BlubberStream($stream_id);
+
+        if (Request::get('hash')) {
+            $this->search = Request::get('hash');
+            $this->stream->filter_hashtags = [$this->search];
+        }
+
         $this->tags = $this->stream->fetchTags();
         if ($this->stream['user_id'] !== $GLOBALS['user']->id) {
             throw new AccessDeniedException("Not your stream.");
@@ -830,7 +858,7 @@ class StreamsController extends PluginController {
             throw new AccessDeniedException("Not allowed to edit stream");
         }
         $this->stream->delete();
-        PageLayout::postMessage(MessageBox::success(_("Blubberstream gelöscht.")));
+        PageLayout::postMessage(MessageBox::success(_("Blubberstream gelÃ¶scht.")));
         $path = "streams/global";
         foreach (BlubberStream::findMine() as $stream) {
             if ($stream['defaultstream']) {

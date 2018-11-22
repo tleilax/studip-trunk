@@ -47,13 +47,13 @@
 */
 function xml_header()
 {
-global $UNI_NAME_CLEAN, $SOFTWARE_VERSION, $ex_type, $ex_sem, $range_name, $range_id;
+global $SOFTWARE_VERSION, $ex_type, $ex_sem, $range_name, $range_id;
     $semester = $ex_sem ? Semester::find($ex_sem) : Semester::findCurrent();
     $xml_tag_string = "<" . "?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
     $xml_tag_string .= "<studip version=\"" . xml_escape ($SOFTWARE_VERSION) . "\" logo=\"". xml_escape (Assets::image_path('logos/logo2b.png')) . "\"";
     if ($range_id == "root") $xml_tag_string .= " range=\"" . _("Alle Einrichtungen") . "\"";
     elseif ($range_name != "") $xml_tag_string .= " range=\"" . xml_escape ($range_name) . "\"";
-    if ($UNI_NAME_CLEAN != "") $xml_tag_string .= " uni=\"" . xml_escape ($UNI_NAME_CLEAN) . "\"";
+    if (Config::get()->UNI_NAME_CLEAN != "") $xml_tag_string .= " uni=\"" . xml_escape (Config::get()->UNI_NAME_CLEAN) . "\"";
     if ($semester)
         $xml_tag_string .= " zeitraum=\"" . xml_escape ($semester->name) . "\" semester_id=\"" . xml_escape ($semester->getId()) . "\"";
     $xml_tag_string .= ">\n";
@@ -139,19 +139,12 @@ function xml_footer()
 
 /**
  * escapes special characters for xml use
- * optinally encodes to utf8
  *
  * @param string $string the string to escape
- * @param bool $utf8encode encode the string as utf-8
  * @return string
  */
-function xml_escape($string, $utf8encode = true)
+function xml_escape($string)
 {
     $string = preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f]/', '', $string);
-    if ($utf8encode) {
-        return htmlspecialchars(studip_utf8encode($string), ENT_QUOTES, 'UTF-8');
-    } else {
-        return htmlspecialchars(html_entity_decode($string, ENT_QUOTES, 'cp1252'), ENT_QUOTES, 'cp1252', false);
-    }
+    return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
 }
-?>

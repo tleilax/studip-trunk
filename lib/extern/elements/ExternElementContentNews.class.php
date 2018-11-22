@@ -54,8 +54,8 @@ class ExternElementContentNews extends ExternElement {
             $this->config = $config;
         
         $this->name = "ContentNews";
-        $this->real_name = _("Überschrift und Beschreibung der News");
-        $this->description = _("Eigenschaften der Überschrift und der Beschreibung einer News.");
+        $this->real_name = _("Ãœberschrift und Beschreibung der News");
+        $this->description = _("Eigenschaften der Ãœberschrift und der Beschreibung einer News.");
     }
     
     function toStringEdit ($post_vars = "", $faulty_values = "",
@@ -92,7 +92,7 @@ class ExternElementContentNews extends ExternElement {
         return $out;
     }
     
-    function toString ($args) {
+    function toString ($args = null) {
         $font_topic = $this->config->getAttributes($this->name, "fonttopic");
         $font_body = $this->config->getAttributes($this->name, "fontbody");
         

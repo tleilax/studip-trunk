@@ -1,11 +1,15 @@
 @import (reference) "assets/stylesheets/less/responsive.less";
 
 @avatar-blubber-size: 50px;
+@posting-padding: 5px;
+@comments-margin: 10px;
+@comments-padding: 10px;
 
 #blubber_threads, #blubber_threads > li > ul {
     list-style-type: none;
 }
 #blubber_threads {
+
     padding: 0px;
     margin: 0px;
     max-width: 100%;
@@ -110,6 +114,10 @@
         }
         > .content_column {
             padding-left: 75px;
+
+            > .timer {
+                margin-right: (@comments-margin + @posting-padding);
+            }
         }
     }
     .comments {
@@ -129,8 +137,8 @@
 
         .posting {
             margin-top: 0px;
-            margin-left: 10px;
-            margin-right: 10px;
+            margin-left: @comments-margin;
+            margin-right: @comments-margin;
             border-top: none;
             &:last-child {
                 border-bottom: none;
@@ -149,7 +157,7 @@
                 }
             }
             > .content_column {
-                padding: 10px;
+                padding: @comments-padding;
                 font-size: 0.9em;
             }
         }
@@ -271,7 +279,7 @@
     opacity: 0.6;
 }
 #blubber_threads .content_column .permalink:hover {
-    .icon-before('grey/group.png', 14);
+    .icon('before', 'group', 'inactive', 14);
 }
 #blubber_threads .writer textarea.hovered, #new_posting.hovered, #blubber_threads textarea.corrector {
     background-color: @activity-color-40;
@@ -297,7 +305,7 @@
 #blubber_threads {
     .content_column {
         .box-sizing(border-box);
-        padding: 5px;
+        padding: @posting-padding;
         > .name {
             color: #888888;
             font-weight: bold;
@@ -335,7 +343,7 @@
 #blubber_threads.singlethread .posting > .content_column img, #blubber_threads.singlethread  .posting > .content_column video {
     //max-width: 750px;
 }
-@media screen and (max-width: @small-screen-width) {
+@media screen and (max-width: @major-breakpoint-medium) {
     #blubber_threads .posting > .content_column img, #blubber_threads .posting > .content_column video {
         max-width: ~"calc(100vw - 127px)";
     }
@@ -344,7 +352,7 @@
 
 #blubber_threads {
     li.more {
-        .icon-before('blue/arr_1right');
+        .icon('before', 'arr_1right', 'clickable');
         &.ajax::before {
             background-image: url("@{image-path}/ajax-indicator-black.svg");
         }
@@ -490,4 +498,3 @@ table.select {
         cursor: pointer;
     }
 }
-

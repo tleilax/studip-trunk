@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @author      Till Glˆggler <tgloeggl@uos.de>
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
  * @license     GPL 2 or later
  */
 
@@ -45,7 +45,7 @@ abstract class Context
 
     /**
      * Return user for who wants to watch his and related activities
-     * 
+     *
      * @return object  a user object
      */
     public function getObserver()
@@ -62,22 +62,20 @@ abstract class Context
      */
     public function getActivities(Filter $filter)
     {
-        $activities = Activity::findBySQL('context = ? AND context_id = ?  AND mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC',
-            array($this->getContextType(), $this->getRangeId(), $filter->getStartDate(), $filter->getEndDate()));
-        if (count($activities)) {
-            $providers = $this->filterProvider($this->getProvider(), $filter);
-            foreach ($activities as $key => $activity) {
+        $providers = $this->filterProvider($this->getProvider(), $filter);
+        $activities = Activity::findAndMapBySQL(
+            function ($activity) use ($providers) {
                 if (isset($providers[$activity->provider])) {                        // provider is available
                     $activity->setContextObject($this);
-                    if (!$providers[$activity->provider]->getActivityDetails($activity)) {
-                        unset($activities[$key]);
+                    if ($providers[$activity->provider]->getActivityDetails($activity)) {
+                        return $activity;
                     }
-                } else {
-                    unset($activities[$key]);
                 }
-            }
-        }
-        return array_flatten($activities);
+            },
+            'context = ? AND context_id = ?  AND mkdate >= ? AND mkdate <= ? ORDER BY mkdate DESC'
+            ,
+            array($this->getContextType(), $this->getRangeId(), $filter->getStartDate(), $filter->getEndDate()));
+        return array_filter($activities);
     }
 
     /**
@@ -93,6 +91,7 @@ abstract class Context
     }
 
     /**
+     * Filter the passed the providers to match the passed filter
      *
      * @param type $providers
      * @param \Studip\Activity\Filter $filter
@@ -102,15 +101,20 @@ abstract class Context
     {
         $filtered_providers = array();
 
-        if (is_null($filter->getType())) {
+        if (empty($filter->getType())) {
             $filtered_providers = $providers;
         } else {
             foreach ($providers as $provider) {
-                // $filtered_class = 'Studip\Activity\\' . ucfirst($filter->getType()) . 'Provider';
-                $filtered_class = $filter->getType();
+                $ctype = $this->getContextType();
+                $filtered_classes = $filter->getType()->$ctype;
 
-                if ($provider instanceof $filtered_class) {
-                    $filtered_providers[] =  $provider;
+                if (is_array($filtered_classes)) {
+                    foreach ($filtered_classes as $class) {
+                        $iclass = 'Studip\\Activity\\' .ucfirst($class) .'Provider';
+                        if ($provider instanceof $iclass) {
+                            $filtered_providers[$iclass] =  $provider;
+                        }
+                    }
                 }
             }
         }

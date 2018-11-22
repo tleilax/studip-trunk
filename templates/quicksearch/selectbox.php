@@ -1,7 +1,7 @@
 <?
 # Lifter010: TODO
 
-//Kein Javascript aktiviert, also über Select-Box arbeiten. Wir sind automatisch schon in Schritt 2 der
+//Kein Javascript aktiviert, also Ã¼ber Select-Box arbeiten. Wir sind automatisch schon in Schritt 2 der
                 //non-javascript-Suche.
 if ($withButton) : ?>
 <div class="quicksearch_frame" style="width: <?= $box_width ?>px;">
@@ -11,9 +11,12 @@ if ($withButton) : ?>
 <? endif ?>
 <? endif ?>
 <select<? foreach ($withAttributes as $attr_name => $attr_value) {
-              print ' '.$attr_name.'="'.$attr_value.'"';
-          }
-          ?> name="<?= $name ?>">
+        if($attr_name != 'class') {
+            //The class attribute is handled below!
+            print ' '.$attr_name.'="'.$attr_value.'"';
+        }
+    }
+    ?> name="<?= $name ?>" class="quicksearch_select <?= array_key_exists('class', $withAttributes) ? htmlReady($withAttributes['class']) : '' ?>">
 <? if (count($searchresults)) : ?>
   <? foreach ($searchresults as $result) : ?>
   <option value="<?= htmlReady($result[0]) ?>"><?= htmlReady($result[1]) ?></option>
@@ -24,7 +27,7 @@ if ($withButton) : ?>
 </select>
 <? if ($withButton) : ?>
     <? if ($box_align !== "left") : ?>
-    <?= Icon::create('refresh', 'clickable', ['title' => _('Suche zurücksetzen')])->asInput(array('name'=>$reset_button_name?:'','class'=>'text-bottom',)) ?>
+    <?= Icon::create('refresh', 'clickable', ['title' => _('Suche zurÃ¼cksetzen')])->asInput(array('name'=>$reset_button_name?:'','class'=>'text-bottom',)) ?>
 <? endif ?>
     </div>
 <? endif ?>

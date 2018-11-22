@@ -10,24 +10,26 @@ $room_request_filter = function ($date) {
 <section class="contentbox timesrooms">
     <header>
         <h1>
-            <?= _('Unregelmäßige Termine / Blocktermine') ?>
+            <?= _('UnregelmÃ¤ÃŸige Termine / Blocktermine') ?>
         </h1>
     <? if(!$locked) : ?>
-        <? $actionMenu = ActionMenu::get()?>
-        <? $actionMenu->addLink(
+        <nav>
+            <? $actionMenu = ActionMenu::get()?>
+            <? $actionMenu->addLink(
                 $controller->link_for('course/timesrooms/createSingleDate/' . $course->id, $linkAttributes),
-                _('Einzeltermin hinzufügen'),
-                Icon::create('date+add', 'clickable', ['title' => _('Einzeltermin hinzufügen')]),
-                ['data-dialog' => 'size=600'])
-        ?>
+                _('Einzeltermin hinzufÃ¼gen'),
+                Icon::create('date+add', 'clickable', ['title' => _('Einzeltermin hinzufÃ¼gen')]),
+                ['data-dialog' => 'size=600']
+            ) ?>
 
-        <? $actionMenu->addLink(
+            <? $actionMenu->addLink(
                 $controller->url_for('course/block_appointments/index/' . $course->id, $linkAttributes),
-                _('Blocktermin hinzufügen'),
-                Icon::create('timetable+add', 'clickable', ['title' => _('Blocktermin hinzufügen')]),
-                ['data-dialog' => 'size=600'])
-        ?>
-        <?= $actionMenu->render() ?>
+                _('Blocktermin hinzufÃ¼gen'),
+                Icon::create('timetable+add', 'clickable', ['title' => _('Blocktermin hinzufÃ¼gen')]),
+                ['data-dialog' => 'size=600']
+            ) ?>
+            <?= $actionMenu->render() ?>
+        </nav>
     <? endif ?>
     </header>
 <? if (!empty($single_dates)): ?>
@@ -40,21 +42,24 @@ $room_request_filter = function ($date) {
                 <h1>
                 <? if (!$locked): ?>
                     <input type="checkbox" class="date-proxy"
-                           data-proxyfor="#singledate-<?= $semester_id ?> .ids-irregular"
-                           data-activates=".actionForAllIrregular">
+                           data-proxyfor="#singledate-<?= $semester_id ?> .ids-irregular">
                 <? endif ?>
                     <a href="<?= ContentBoxHelper::href('singledate-' . $semester_id) ?>">
-                        <?= htmlReady(Semester::find($semester_id)->name) ?>
+                        <? if ($semester_id !== 'none'): ?>
+                            <?= htmlReady(Semester::find($semester_id)->name) ?>
+                        <? else: ?>
+                            <?= _('Ohne Semester') ?>
+                        <? endif ?>
                     </a>
                 </h1>
-                <nav>
+                <section>
                     <span>
                         <?= sprintf(ngettext('%u Termin', '%u Termine', count($termine)),
                                      count($termine)) ?>
                     </span>
                 <? if (Config::get()->RESOURCES_ALLOW_ROOM_REQUESTS): ?>
                     <span>
-                        | <?= _('Einzel-Raumanfrage') ?>:
+                        | <strong><?= _('Einzel-Raumanfrage') ?></strong>:
                     <? if ($rr_count = count($termine->filter($room_request_filter)) > 0): ?>
                         <?= sprintf(_('%u noch offen'), $rr_count) ?>
                     <? else: ?>
@@ -62,7 +67,7 @@ $room_request_filter = function ($date) {
                     <? endif; ?>
                     </span>
                 <? endif; ?>
-                </nav>
+                </section>
             </header>
             <section>
                 <table class="default nohover">
@@ -78,10 +83,10 @@ $room_request_filter = function ($date) {
 
                     <tbody>
                     <? foreach ($termine as $termin): ?>
-                        <?= $this->render_partial('course/timesrooms/_cycleRow.php', array(
-                                'termin'    => $termin,
-                                'class_ids' => 'ids-irregular',
-                        )) ?>
+                        <?= $this->render_partial('course/timesrooms/_cycleRow.php', [
+                            'termin'    => $termin,
+                            'class_ids' => 'ids-irregular',
+                        ]) ?>
                     <? endforeach; ?>
                     </tbody>
                 </table>
@@ -104,17 +109,17 @@ $room_request_filter = function ($date) {
                         <label class="horizontal">
                             <input type="checkbox" data-proxyfor=".date-proxy"
                                    data-activates=".actionForAllIrregular">
-                            <?= _('Alle auswählen') ?>
+                            <?= _('Alle auswÃ¤hlen') ?>
                         </label>
                     </td>
                     <td colspan="3" class="actions">
                         <select name="method" class="datesBulkActions actionForAllIrregular">
                             <?= $this->render_partial('course/timesrooms/_stack_actions.php') ?>
                         </select>
-                        <?= Studip\Button::create(_('Ausführen'), 'run', array(
-                                'class' => 'actionForAllIrregular',
-                                'data-dialog' => 'size=big',
-                        )) ?>
+                        <?= Studip\Button::create( _('AusfÃ¼hren'), 'run', [
+                            'class' => 'actionForAllIrregular',
+                            'data-dialog' => 'size=big',
+                        ]) ?>
                     </td>
                 </tr>
             </tfoot>
@@ -125,7 +130,7 @@ $room_request_filter = function ($date) {
     <section>
         <p class="text-center">
             <strong>
-                <?= _('Keine unregelmäßigen Termine vorhanden') ?>
+                <?= _('Keine unregelmÃ¤ÃŸigen Termine vorhanden') ?>
             </strong>
         </p>
     </section>

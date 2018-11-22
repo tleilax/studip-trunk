@@ -2,7 +2,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 //
-// Copyright (C) 2014 Arne Schröder <schroeder@data-quest>,
+// Copyright (C) 2014 Arne SchrÃ¶der <schroeder@data-quest>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@
  *
  *
  *
- * @author   Arne Schröder <schroeder@data-quest>
+ * @author   Arne SchrÃ¶der <schroeder@data-quest>
  * @access   public
  *
  * @property string content_id database column
@@ -129,7 +129,7 @@ class HelpContent extends SimpleORMap {
                   WHERE installation_id = ?
                   ORDER BY route";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($GLOBALS['STUDIP_INSTALLATION_ID']));
+        $statement->execute(array(Config::get()->STUDIP_INSTALLATION_ID));
         $ret = $statement->fetchGrouped(PDO::FETCH_ASSOC);
         foreach ($ret as $index => $data) {
             $query = "SELECT content_id AS idx, help_content.*
@@ -137,7 +137,7 @@ class HelpContent extends SimpleORMap {
                       WHERE global_content_id = ? AND language = ? AND studip_version >= ? AND installation_id <> ?
                       ORDER BY studip_version DESC LIMIT 1";
             $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($data['global_content_id'], $data['language'], $data['studip_version'], $GLOBALS['STUDIP_INSTALLATION_ID']));
+            $statement->execute(array($data['global_content_id'], $data['language'], $data['studip_version'], Config::get()->STUDIP_INSTALLATION_ID));
             $ret2 = $statement->fetchGrouped(PDO::FETCH_ASSOC);
             if (count($ret2)) {
                 $conflicts[] = HelpContent::GetContentObjects(array_merge(array($index => $data), $ret2));

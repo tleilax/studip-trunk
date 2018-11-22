@@ -26,7 +26,7 @@
             <? if (is_internal_url($url = $nav->getURL())) : ?>
                 href="<?= URLHelper::getLink($url, $header_template->link_params) ?>"
             <? else: ?>
-                href="<?= htmlReady($url) ?>" target="_blank"
+                href="<?= htmlReady($url) ?>" target="_blank" rel="noopener noreferrer"
             <? endif ?>
             ><?= htmlReady($nav->getTitle()) ?></a>
             </li>
@@ -36,6 +36,6 @@
 <? endif; ?>
 </div>
 <script>
-STUDIP.Navigation = <?= json_encode(studip_utf8encode(ResponsiveHelper::getNavigationArray())) ?>;
+STUDIP.Navigation = <?= json_encode(ResponsiveHelper::getNavigationArray(), JSON_PARTIAL_OUTPUT_ON_ERROR) ?: '[]' ?>;
 </script>
 <!-- Ende Footer -->

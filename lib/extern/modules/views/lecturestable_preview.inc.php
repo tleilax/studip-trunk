@@ -18,8 +18,7 @@ foreach ($SEM_CLASS as $key_class => $class) {
 }
 
 // get semester data
-$semester = new SemesterData();
-$semester_data = $semester->getAllSemesterData();
+$semester_data = SemesterData::getAllSemesterData();
 // current semester
 $now = time();
 foreach ($semester_data as $key => $sem) {
@@ -80,7 +79,7 @@ $repeat_headrow = $this->config->getValue("Main", "repeatheadrow");
 $out = "";
 if ($this->config->getValue("Main", "addinfo")) {
     $group_by_name = $this->config->getValue("Main", "aliasesgrouping");
-    $out = $this->elements["InfoCountSem"]->toString(array("content" => "&nbsp;2" . 
+    $out = $this->elements["InfoCountSem"]->toString(array("content" => "&nbsp;2" .
             $this->config->getValue("Main", "textlectures") . ", " .
             $this->config->getValue("Main", "textgrouping") .
             $group_by_name[3]));
@@ -98,26 +97,26 @@ foreach ($data_group as $group) {
         $group1 = htmlReady($SEM_TYPE[$group]["name"]
                 ." (". $SEM_CLASS[$SEM_TYPE[$group]["class"]]["name"].")");
     }
-    
+
     if ($repeat_headrow == "beneath" && ($group1 != $group2)) {
         $out .= $this->elements["Grouping"]->toString(array("content" => $group1));
         $out .= $this->elements["TableHeadrow"]->toString();
         $group2 = $group1;
     }
-    
+
     if($first_loop && $repeat_headrow != "beneath")
         $out .= $this->elements["TableHeadrow"]->toString();
-    
+
     if ($repeat_headrow != "beneath" && ($group1 != $group2)) {
         if ($repeat_headrow && !$first_loop)
             $out .= $this->elements["TableHeadrow"]->toString();
         $out .= $this->elements["Grouping"]->toString(array("content" => $group1));
         $group2 = $group1;
     }
-    
+
     $out .= $this->elements["TableRow"]->toString(array("content" => $data_sem[$i++],
             "data_fields" => $this->data_fields));
-    
+
     $first_loop = FALSE;
 }
 $this->elements["TableHeader"]->printout(array("content" => $out));

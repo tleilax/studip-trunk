@@ -44,6 +44,7 @@ class NotificationCenter
     /**
      * Register an object to be notified. The same object may be
      * registered several times (e.g. for different notifications).
+     * The event name may contain shell-style wildcards (like '*').
      *
      * @param object $observer  object to be notified
      * @param string $method    method that will be called
@@ -112,16 +113,46 @@ class NotificationCenter
      *
      * @throws NotificationVetoException  on observer veto
      */
-    public static function postNotification($event, $object, $user_data = NULL)
+    public static function postNotification($event, $object, $user_data = null)
     {
-        foreach (array('', $event) as $e) {
-            if (isset(self::$observers[$e])) {
-                foreach (self::$observers[$e] as $list) {
-                    if (!$list['predicate'] || $list['predicate']($object)) {
-                        call_user_func($list['observer'], $event, $object, $user_data);
-                    }
-                }
+        $current_observers = [];
+        foreach (self::$observers as $e => $l) {
+            if ($e === '' || fnmatch($e, $event)) {
+                $current_observers = array_merge($current_observers, $l);
             }
         }
+        foreach ($current_observers as $list) {
+            if (!$list['predicate'] || $list['predicate']($object)) {
+                call_user_func($list['observer'], $event, $object, $user_data);
+            }
+        }
+    }
+
+    /**
+     * Convenience method that uses a jQuery like structure for event
+     * registration by closures.
+     *
+     * @param string  $event
+     * @param Closure $callback
+     * @param mixed   $object
+     * @since Stud.IP 4.2
+     */
+    public static function on($event, Closure $callback, $object = null)
+    {
+        static::addObserver($callback, '__invoke', $event, $object);
+    }
+
+    /**
+     * Convenience method that uses a jQuery like structure for event
+     * unregistration by closures.
+     *
+     * @param string  $event
+     * @param Closure $callback
+     * @param mixed   $object
+     * @since Stud.IP 4.2
+     */
+    public static function off($event, Closure $callback, $object = null)
+    {
+        static::removeObserver($callback, $event, $object);
     }
 }

@@ -30,7 +30,13 @@ use Studip\Button, Studip\LinkButton;
             <? endforeach; ?>
             </select>
         </label>
-
+        <? if ($item->object_type !== 'moduldeskriptor' && $item->object_type !== 'modulteildeskriptor') : ?>
+        <label>
+            <?= str_replace('['.$datafield_id.']', '', $datafield_entry->getHTML('default_value', array(
+                'tooltip' => _('Hier kÃ¶nnen Sie den Standardwert fÃ¼r dieses Datenfeld festlegen.')
+            ))) ?>
+        </label>
+        <? endif; ?>
         <label>
         <? if ($item->object_type === 'sem'): ?>
             <?= _('Veranstaltungskategorie') ?>:
@@ -56,9 +62,9 @@ use Studip\Button, Studip\LinkButton;
             </select>
         <? elseif ($item->object_type === 'moduldeskriptor'): ?>
             <?= _('Sprache') ?>:
-            
+
             <select multiple name="object_class[]" id="object_class" required>
-                <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle') ?></option>
+                <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle (mehrsprachige Eingabe bei Feldtyp textline, textarea, textmarkup)') ?></option>
             <? foreach ((array) $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'] as $key => $value) : ?>
                 <option value="<?= htmlReady($key) ?>" <? if (mb_strpos($item->object_class, $key) !== false) echo 'selected'; ?>>
                     <?= htmlReady($value['name']) ?>
@@ -67,9 +73,9 @@ use Studip\Button, Studip\LinkButton;
             </select>
         <? elseif ($item->object_type === 'modulteildeskriptor'): ?>
             <?= _('Sprache') ?>:
-            
+
             <select multiple name="object_class[]" id="object_class" required>
-                <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle') ?></option>
+                <option value="NULL" <? if ($item->object_class === null) echo 'selected'; ?>><?= _('alle (mehrsprachige Eingabe)') ?></option>
             <? foreach ((array) $GLOBALS['MVV_MODULTEIL_DESKRIPTOR']['SPRACHE']['values'] as $key => $value) : ?>
                 <option value="<?= htmlReady($key) ?>" <? if (mb_strpos($item->object_class, $key) !== false) echo 'selected'; ?>>
                     <?= htmlReady($value['name']) ?>
@@ -93,7 +99,7 @@ use Studip\Button, Studip\LinkButton;
         </label>
 
         <label>
-            <?= _('Benötigter Status zum Bearbeiten') ?>
+            <?= _('BenÃ¶tigter Status zum Bearbeiten') ?>
 
             <select name="edit_perms" id="edit_perms">
             <? foreach (array_keys($controller->user_status) as $key): ?>
@@ -105,7 +111,7 @@ use Studip\Button, Studip\LinkButton;
         </label>
 
         <label>
-            <?= _('Sichtbarkeit') ?> (<?= _('für andere') ?>)
+            <?= _('Sichtbarkeit') ?> (<?= _('fÃ¼r andere') ?>)
 
             <select name="visibility_perms" id="visibility_perms">
                 <option value="all" <? if ($item->view_perms == 'all') echo 'selected'; ?>>
@@ -122,8 +128,8 @@ use Studip\Button, Studip\LinkButton;
     <? if ($item->object_type === 'user'): ?>
         <label>
             <?= _('Systemfeld') ?>
-            <?= tooltipIcon(_('Nur für die Person selbst sichtbar, wenn der '
-                            . 'benötigte Status zum Bearbeiten oder die '
+            <?= tooltipIcon(_('Nur fÃ¼r die Person selbst sichtbar, wenn der '
+                            . 'benÃ¶tigte Status zum Bearbeiten oder die '
                             . 'Sichtbarkeit ausreichend ist')) ?>
 
             <input type="hidden" name="system" value="0">
@@ -141,12 +147,11 @@ use Studip\Button, Studip\LinkButton;
            </td>
         </label>
 
-    <? if ($item->object_type === 'sem'): ?>
+    <? if ($item->object_type === 'sem') : ?>
         <label>
-            <?= _('Eintrag verpflichtend') ?>:
-
             <input type="checkbox" name="is_required" id="is_required" value="1"
                    <? if ($item->is_required) echo 'checked'; ?>>
+           <?= _('Eintrag verpflichtend') ?>
         </label>
 
         <label>
@@ -155,10 +160,10 @@ use Studip\Button, Studip\LinkButton;
             <textarea name="description" id="description"><?= htmlReady($item->description) ?></textarea>
         </label>
     <? endif; ?>
-    
+
     <? if ($item->object_type === 'user'): ?>
         <label>
-            <?= _('Mögliche Bedingung für Anmelderegel') ?>:
+            <?= _('MÃ¶gliche Bedingung fÃ¼r Anmelderegel') ?>:
 
             <input type="checkbox" name="is_userfilter" id="is_userfilter" value="1"
                    <? if ($item->is_userfilter) echo 'checked'; ?>>
@@ -167,7 +172,7 @@ use Studip\Button, Studip\LinkButton;
     </fieldset>
 
     <footer data-dialog-button>
-        <?= Button::createAccept(_('Übernehmen'), 'uebernehmen', array('title' => _('Änderungen übernehmen')))?>
-        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields/index/'.$item->type.'#'.$item->type), array('title' => _('Zurück zur Übersicht')))?>
+        <?= Button::createAccept(_('Ãœbernehmen'), 'uebernehmen', array('title' => _('Ã„nderungen Ã¼bernehmen')))?>
+        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields/index/'.$item->type.'#'.$item->type), array('title' => _('ZurÃ¼ck zur Ãœbersicht')))?>
     </footer>
 </form>

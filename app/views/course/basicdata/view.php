@@ -20,11 +20,11 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
     <?= MessageBox::{$message_types[$msg[0]]}($msg[1]) ?>
 <? endforeach ?>
 
-<form name="details" method="post" action="<?= $controller->url_for('course/basicdata/set', $course_id) ?>" <?= $dialog_attr ?> class="default collapsable">
+<form name="course-details" name="details" method="post" action="<?= $controller->url_for('course/basicdata/set', $course_id) ?>" <?= $dialog_attr ?> class="default collapsable">
     <?= CSRFProtection::tokenTag() ?>
     <input id="open_variable" type="hidden" name="open" value="<?= $flash['open'] ?>">
 
-    <fieldset>
+    <fieldset <?= isset($flash['open']) && $flash['open'] != 'bd_basicsettings' ? 'class="collapsed"' : ''?> data-open="bd_basicsettings">
         <legend><?= _('Grundeinstellungen') ?></legend>
 
 <? if (!$attributes): ?>
@@ -32,10 +32,11 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
 <? else: ?>
     <? foreach ($attributes as $attribute): ?>
         <label>
-            <?= htmlReady($attribute['title']) ?>
-        <? if ($attribute['must']): ?>
-            <em class="required"></em>
-        <? endif; ?>
+            <span <?= $attribute['must'] ? 'class="required"' : '' ?>>
+                <?= htmlReady($attribute['title']) ?>
+            </span>
+            <?= $attribute['description'] ? tooltipIcon($attribute['description']) : '' ?>
+
             <?= $this->render_partial("course/basicdata/_input", array('input' => $attribute)) ?>
         </label>
     <? endforeach; ?>
@@ -48,13 +49,13 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
         </label>
 
         <label>
-            <?= _('Letzte Änderung') ?>
+            <?= _('Letzte Ã„nderung') ?>
             <br>
             <?= htmlReady($chstring) ?>
         </label>
     </fieldset>
 
-    <fieldset class="collapsed">
+    <fieldset <?= !isset($flash['open']) || $flash['open'] != 'inset' ? 'class="collapsed"' : ''?> data-open="bd_inst">
         <legend><?= _('Einrichtungen') ?></legend>
 
 <? if (!$institutional): ?>
@@ -62,10 +63,10 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
 <? else: ?>
     <? foreach ($institutional as $inst): ?>
         <label>
-            <?= htmlReady($inst['title']) ?>
-        <? if ($inst['must']): ?>
-            <em class="required"></em>
-        <? endif; ?>
+            <span <?= $inst['must'] ? 'class="required"' : '' ?>>
+                <?= htmlReady($inst['title']) ?>
+            </span>
+
         <? if ($inst['type'] === 'select' && !$inst['choices'][$inst['value']]): ?>
             <? $name = get_object_name($inst['value'], 'inst'); ?>
              <?= htmlReady($name['name']) ?>
@@ -77,7 +78,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
 <? endif; ?>
     </fieldset>
 
-    <fieldset class="collapsed">
+    <fieldset <?= !isset($flash['open']) || $flash['open'] != 'bd_personal' ? 'class="collapsed"' : ''?>>
         <legend><?= _('Personal') ?></legend>
 
         <table class="default">
@@ -87,7 +88,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
             <? if ($perm_dozent && !$dozent_is_locked): ?>
                 <span class="actions">
                     <?= MultiPersonSearch::get('add_member_dozent' . $course_id)
-                            ->setTitle(_('Mehrere Lehrende hinzufügen'))
+                            ->setTitle(_('Mehrere Lehrende hinzufÃ¼gen'))
                             ->setSearchObject($dozentUserSearch)
                             ->setDefaultSelectedUser(array_keys($dozenten))
                             ->setDataDialogStatus(Request::isXhr())
@@ -126,7 +127,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
                     </td>
                     <td>
                     <? if ($perm_dozent && !$dozent_is_locked): ?>
-                        <input value="<?= htmlReady($dozent['label']) ?>" type="text" name="label[<?= htmlReady($dozent['user_id']) ?>]" title="<?= _('Die Funktion, die die Person in der Veranstaltung erfüllt.') ?>">
+                        <input value="<?= htmlReady($dozent['label']) ?>" type="text" name="label[<?= htmlReady($dozent['user_id']) ?>]" title="<?= _('Die Funktion, die die Person in der Veranstaltung erfÃ¼llt.') ?>">
                     <? else : ?>
                         <?= htmlReady($dozent['label']) ?>
                     <? endif ?>
@@ -162,7 +163,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
             <? if ($perm_dozent && !$dozent_is_locked) : ?>
                 <span class="actions">
                     <?= MultiPersonSearch::get('add_member_deputy' . $course_id)
-                            ->setTitle(_('Mehrere Vertretungen hinzufügen'))
+                            ->setTitle(_('Mehrere Vertretungen hinzufÃ¼gen'))
                             ->setSearchObject($deputySearch)
                             ->setDefaultSelectedUser(array_keys($deputies))
                             ->setDataDialogStatus(Request::isXhr())
@@ -221,7 +222,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
             <? if ($perm_dozent && !$tutor_is_locked): ?>
                 <span class="actions">
                 <?= MultiPersonSearch::get('add_member_tutor' . $course_id)
-                        ->setTitle(_('Mehrere TutorInnen hinzufügen'))
+                        ->setTitle(_('Mehrere TutorInnen hinzufÃ¼gen'))
                         ->setSearchObject($tutorUserSearch)
                         ->setDefaultSelectedUser(array_merge(array_keys($dozenten), array_keys($tutoren)))
                         ->setDataDialogStatus(Request::isXhr())
@@ -261,7 +262,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
                     </td>
                     <td>
                     <? if ($perm_dozent && !$tutor_is_locked): ?>
-                        <input value="<?= htmlReady($tutor['label']) ?>" type="text" name="label[<?= htmlReady($tutor['user_id']) ?>]" title="<?= _('Die Funktion, die die Person in der Veranstaltung erfüllt.') ?>">
+                        <input value="<?= htmlReady($tutor['label']) ?>" type="text" name="label[<?= htmlReady($tutor['user_id']) ?>]" title="<?= _('Die Funktion, die die Person in der Veranstaltung erfÃ¼llt.') ?>">
                     <? else: ?>
                         <?= htmlReady($tutor['label']) ?>
                     <? endif; ?>
@@ -289,27 +290,34 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
             </tbody>
         </table>
     </fieldset>
-
-    <fieldset class="collapsed">
+    <fieldset <?= !isset($flash['open']) || $flash['open'] != 'bd_description' ? 'class="collapsed"' : ''?> data-open="bd_description">
         <legend><?= _('Beschreibungen') ?></legend>
 
 <? if (!$descriptions): ?>
         <?= MessageBox::info(_('Fehlende Datenzeilen')) ?>
 <? else: ?>
     <? foreach ($descriptions as $description): ?>
+        <? if ($description['type'] == 'datafield'): ?>
+            <?= $this->render_partial('course/basicdata/_input', array('input' => $description)) ?>
+        <? else : ?>
         <label>
-            <?= $description['title'] ?>
-        <? if ($description['must']): ?>
-            <em class="required"></em>
-        <? endif; ?>
+            <span <?= $description['must'] ? 'class="required"' : '' ?>>
+                <?= $description['title'] ?>
+            </span>
+            
+            <? if ($description['type'] === 'datafield' && $description['description']) : ?>
+                <?= tooltipIcon($description['description'])?>
+            <? endif?>
+
             <?= $this->render_partial('course/basicdata/_input', array('input' => $description)) ?>
         </label>
+        <? endif ?>
     <? endforeach; ?>
 <? endif; ?>
     </fieldset>
 
     <footer data-dialog-button>
-        <?= Button::create(_('Übernehmen')) ?>
+        <?= Button::create(_('Ãœbernehmen')) ?>
     </footer>
 </form>
 
@@ -317,7 +325,7 @@ $message_types = array('msg' => "success", 'error' => "error", 'info' => "info")
 jQuery(function ($) {
     $('input[name^=label]').autocomplete({
         source: <?=
-json_encode(preg_split('/[\s,;]+/', studip_utf8encode(Config::get()->PROPOSED_TEACHER_LABELS), -1, PREG_SPLIT_NO_EMPTY));
+json_encode(preg_split('/[\s,;]+/', Config::get()->PROPOSED_TEACHER_LABELS, -1, PREG_SPLIT_NO_EMPTY));
 ?>
     });
 });

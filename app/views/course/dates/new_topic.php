@@ -1,5 +1,7 @@
-<form action="<?= URLHelper::getLink("dispatch.php/course/dates") ?>" method="post" id="dates_add_topic">
+<form action="<?= URLHelper::getLink("dispatch.php/course/dates") ?>" method="post" id="dates_add_topic" class="default">
     <input type="hidden" name="termin_id" value="<?= $date->getId() ?>">
+    <fieldset>
+        <legend><?= _('Thema anlegen / verknÃ¼pfen') ?></legend>
     <table class="default">
         <tbody>
         <tr>
@@ -7,13 +9,13 @@
             <td class="date_name"><?= htmlReady($date->getFullname()) ?></td>
         </tr>
         <tr>
-            <td><?= _("Thema") ?></td>
+            <td><label for="topic_title"><?= _("Thema") ?></label></td>
             <td>
-                <input type="text" class="topic_title" name="topic_title" required>
+                <input type="text" class="topic_title" name="topic_title" id="topic_title" required>
                 <script>
                     jQuery(function () {
                         jQuery("#dates_add_topic .topic_title").autocomplete({
-                            'source': <?= json_encode(studip_utf8encode($course->topics->pluck('title'))) ?>,
+                            'source': <?= json_encode($course->topics->pluck('title')) ?>,
                             'select': function () {
                                 jQuery("form#dates_add_topic").submit();
                             }
@@ -23,7 +25,7 @@
             </td>
         </tr>
         <tr>
-            <td><?= _("Vorhandenes Thema verknüpfen") ?></td>
+            <td><?= _("Vorhandenes Thema verknÃ¼pfen") ?></td>
             <td>
                 <ul class="clean">
                 <? foreach ($course->topics as $topic) : ?>
@@ -39,7 +41,8 @@
         </tr>
         </tbody>
     </table>
-    <div data-dialog-button>
-        <?= \Studip\Button::create(_("Hinzufügen")) ?>
-    </div>
+    </fieldset>
+    <footer data-dialog-button>
+        <?= \Studip\Button::create(_("HinzufÃ¼gen")) ?>
+    </footer>
 </form>

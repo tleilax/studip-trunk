@@ -26,13 +26,16 @@ class Course_DetailsController extends AuthenticatedController
 
         $course_id = Request::option('sem_id', $args[0]);
         if (empty($course_id)) {
-            checkObject(); //wirft Exception, wenn $SessionSeminar leer ist
+            checkObject(); //wirft Exception, wenn Context::get() leer ist
             $course_id = $GLOBALS['SessionSeminar'];
         }
 
-        $this->course                = Course::find($course_id);
+        $this->course = Course::find($course_id);
         if (!$this->course) {
-            throw new Trails_Exception(400);
+            throw new Trails_Exception(
+                404,
+                _('Es konnte keine Veranstaltung gefunden werden')
+            );
         }
         $this->send_from_search_page = Request::get('send_from_search_page');
 
@@ -66,13 +69,20 @@ class Course_DetailsController extends AuthenticatedController
         $this->title             = $this->course->getFullname();
         $this->course_domains    = UserDomain::getUserDomainsForSeminar($this->course->id);
         $this->sem = new Seminar($this->course);
-        if ($studienmodulmanagement = PluginEngine::getPlugin('StudienmodulManagement')) {
-            foreach ($this->course->study_areas->filter(function ($m) {
-                return $m->isModule();
-            }) as $module) {
-                $this->studymodules[] = array('nav'   => $studienmodulmanagement->getModuleInfoNavigation($module->id, $this->course->start_semester->id),
-                                              'title' => $studienmodulmanagement->getModuleTitle($module->id, $this->course->start_semester->id));
-            }
+
+        //public folders
+        $folders = Folder::findBySQL("range_type='course' AND range_id = ? AND folder_type = 'CoursePublicFolder'", [$this->course->id]);
+        $public_files = [];
+        $public_folders =[];
+        foreach ($folders as $folder) {
+            $one_public_folder = $folder->getTypedFolder();
+            $all_files = FileManager::getFolderFilesRecursive($one_public_folder, $GLOBALS['user']->id);
+            $public_files = array_merge($public_files, $all_files['files']);
+            $public_folders = array_merge($public_folders, $all_files['folders']);
+        }
+        if (count($public_files)) {
+            $this->public_files = $public_files;
+            $this->public_folders = $public_folders;
         }
 
         // Retrive display of sem_tree
@@ -85,33 +95,60 @@ class Course_DetailsController extends AuthenticatedController
         }
 
         // Ausgabe der Modulzuordnung MVV
-        $mvv_plugin = PluginEngine::getPlugin('MVVPlugin');
-        if ($mvv_plugin) {
-            if ($this->course->getSemClass()->offsetGet('module')) {
-
-                // set filter to show only pathes with valid semester data
-                ModuleManagementModelTreeItem::setObjectFilter('Modul', function ($modul, $parameter) {
-                    $modul_start_sem = Semester::find($modul->start);
-                    $modul_end_sem = Semester::find($modul->end);
-                    $course_start_sem = Semester::find($parameter[0]);
-                    $course_end_sem = Semester::find($parameter[1]);
-
-                    if (($modul_start_sem->beginn <= $course_end_sem->beginn && $modul_end_sem->beginn >= $course_start_sem->beginn)
-                        || ($course_end_sem == null && $modul_end_sem->beginn >= $course_start_sem->beginn)
-                        || ($modul_end_sem == null && $modul_start_sem->beginn <= $course_end_sem->beginn)
-                        || ($course_end_sem == null && $modul_end_sem == null)) {
-                        return true;
-                    } else {
+        if ($this->course->getSemClass()->offsetGet('module')) {
+            $course_start = $this->course->start_time;
+            $course_end = ($this->course->end_time < 0 || is_null($this->course->end_time))
+                    ? PHP_INT_MAX
+                    : $this->course->end_time;
+            // set filter to show only pathes with valid semester data
+            ModuleManagementModelTreeItem::setObjectFilter('Modul',
+                function ($modul) use ($course_start, $course_end) {
+                    // check for public status
+                    if (!$GLOBALS['MVV_MODUL']['STATUS']['values'][$modul->stat]['public']) {
                         return false;
                     }
-                }, array(
-                    $this->course->start_semester->id,
-                    $this->course->end_semester ? $this->course->end_semester->id : null
-                ));
+                    $modul_start = Semester::find($modul->start)->beginn ?: 0;
+                    $modul_end = Semester::find($modul->end)->ende ?: PHP_INT_MAX;
+                    return ($modul_start <= $course_end && $modul_end >= $course_start);
+                });
 
-                $trail_classes = array('Modulteil', 'StgteilabschnittModul', 'StgteilAbschnitt', 'StgteilVersion');
-                $mvv_object_pathes = MvvCourse::get($this->course->getId())->getTrails($trail_classes);
-                if ($mvv_object_pathes) {
+            ModuleManagementModelTreeItem::setObjectFilter('StgteilVersion',
+                function ($version) {
+                    return (bool) $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
+                });
+
+            $trail_classes = array('Modulteil', 'StgteilabschnittModul', 'StgteilAbschnitt', 'StgteilVersion');
+            $mvv_object_pathes = MvvCourse::get($this->course->getId())->getTrails($trail_classes);
+            if ($mvv_object_pathes) {
+                if (Config::get()->COURSE_SEM_TREE_DISPLAY) {
+                    $this->mvv_tree = array();
+                    foreach ($mvv_object_pathes as $mvv_object_path) {
+                        // show only complete pathes
+                        if (count($mvv_object_path) == 4) {
+                            // flatten the pathes to a linked list
+                            $stg = reset($mvv_object_path);
+                            $parent_id = 'root';
+                            foreach ($mvv_object_path as $mvv_object) {
+                                $mvv_object_id = $mvv_object instanceof StgteilabschnittModul
+                                        ? $mvv_object->modul_id
+                                        : $mvv_object->id;
+                                $this->mvv_tree[$parent_id][$mvv_object_id] =
+                                        ['id'    => $mvv_object_id,
+                                         'name'  => $mvv_object->getDisplayName(),
+                                         'class' => get_class($mvv_object)];
+                                $parent_id = $mvv_object_id;
+                            }
+                        }
+                    }
+                    if (count($this->mvv_tree)) {
+                        // add the root node
+                        $this->mvv_tree['start'][] = [
+                            'id'    => 'root',
+                            'name'  => Config::get()->UNI_NAME_CLEAN,
+                            'class' => ''
+                        ];
+                    }
+                } else {
                     foreach ($mvv_object_pathes as $mvv_object_path) {
                         // show only complete pathes
                         if (count($mvv_object_path) == 4) {
@@ -127,19 +164,43 @@ class Course_DetailsController extends AuthenticatedController
                         }
                     }
                 }
+                // to prevent collisions of object ids in the tree
+                // in the case of same objects listed in more than one part
+                // of the tree
+                $this->id_sfx = new stdClass();
+                $this->id_sfx->c = 1;
             }
         }
 
+        $order = Config::get()->IMPORTANT_SEMNUMBER ? 'veranstaltungsnummer, name' : 'name';
+
+        // Find child courses or parent course if applicable.
+        if ($this->course->getSemClass()->isGroup()) {
+            $this->children = SimpleCollection::createFromArray(
+                Course::findByParent_Course($this->course->id, "ORDER BY $order")
+            )->filter(function ($c) {
+                return $c->isVisibleForUser();
+            });
+        // Find other courses belonging to the same parent.
+        } else if ($this->course->parent_course) {
+            $this->siblings = SimpleCollection::createFromArray(
+                Course::findbyParent_Course($this->course->parent_course, "ORDER BY $order")
+            )->findBy('id', $this->course->id, '!=')
+             ->filter(function ($c) {
+                 return $c->isVisibleForUser();
+             });
+        }
+
         if (Request::isXhr()) {
-            $this->set_layout(null);
-            $this->response->add_header('Content-Type', 'text/html;charset=Windows-1252');
             PageLayout::setTitle($this->title);
         } else {
-            PageLayout::setHelpKeyword("Basis.InVeranstaltungDetails");
-            PageLayout::setTitle($this->title . " - " . _("Details"));
-            PageLayout::addSqueezePackage('admission');
-            PageLayout::addSqueezePackage('enrolment');
-            if ($GLOBALS['SessionSeminar'] == $this->course->id) {
+            PageLayout::setHelpKeyword('Basis.InVeranstaltungDetails');
+            PageLayout::setTitle($this->title . ' - ' . _('Details'));
+            PageLayout::addScript('studip-admission.js');
+
+            $sidebar = Sidebar::Get();
+
+            if ($GLOBALS['SessionSeminar'] === $this->course->id) {
                 Navigation::activateItem('/course/main/details');
                 SkipLinks::addIndex(Navigation::getItem('/course/main/details')->getTitle(), 'main_content', 100);
             } else {
@@ -147,61 +208,89 @@ class Course_DetailsController extends AuthenticatedController
                 $enrolment_info = $this->sem->getEnrolmentInfo($GLOBALS['user']->id);
             }
 
-            $sidebar = Sidebar::Get();
-            if ($sidebarlink) {
-                $sidebar->setContextAvatar(CourseAvatar::getAvatar($this->course->id));
-            }
             $sidebar->setTitle(_('Details'));
             $links = new ActionsWidget();
-            $links->addLink(_("Drucken"),
-                URLHelper::getScriptLink("dispatch.php/course/details/index/" . $this->course->id), Icon::create('print', 'clickable'),
-                array('class' => 'print_action', 'target' => '_blank'));
+            $links->addLink(
+                _('Drucken'),
+                $this->link_for("course/details/index/{$this->course->id}"),
+                Icon::create('print'),
+                ['class' => 'print_action', 'target' => '_blank']
+            );
             if ($enrolment_info['enrolment_allowed'] && $sidebarlink) {
-                if (in_array($enrolment_info['cause'], words('member root courseadmin'))) {
-                    $abo_msg = _("direkt zur Veranstaltung");
+                if (in_array($enrolment_info['cause'], ['member', 'root', 'courseadmin'])) {
+                    $abo_msg = _('direkt zur Veranstaltung');
                 } else {
-                    $abo_msg = _("Zugang zur Veranstaltung");
+                    $abo_msg = _('Zugang zur Veranstaltung');
                     if ($this->sem->admission_binding) {
-                        PageLayout::postMessage(MessageBox::info(_('Die Anmeldung ist verbindlich, Teilnehmende können sich nicht selbst austragen.')));
+                        PageLayout::postInfo(_('Die Anmeldung ist verbindlich, Teilnehmende kÃ¶nnen sich nicht selbst austragen.'));
                     }
                 }
-                $links->addLink($abo_msg,
-                    URLHelper::getScriptLink("dispatch.php/course/enrolment/apply/" . $this->course->id), Icon::create('door-enter', 'clickable'),
-                    array('data-dialog' => ''));
+                $links->addLink(
+                    $abo_msg,
+                    $this->link_for("course/enrolment/apply/{$this->course->id}"),
+                    Icon::create('door-enter'),
+                    ['data-dialog' => 'size=big']
+                );
 
             }
 
-
             if (Config::get()->SCHEDULE_ENABLE
-                && !$GLOBALS['perm']->have_studip_perm("user", $this->course->id)
+                && !$GLOBALS['perm']->have_studip_perm('user', $this->course->id)
                 && !$GLOBALS['perm']->have_perm('admin')
                 && $this->sem->getMetaDateCount()
             ) {
-                $query = "SELECT COUNT(*) FROM schedule_seminare WHERE seminar_id = ? AND user_id = ?";
-                if (!DBManager::Get()->fetchColumn($query, array($this->course->id,
-                    $GLOBALS['user']->id))
-                ) {
-                    $links->addLink(_("Nur im Stundenplan vormerken"), URLHelper::getLink("dispatch.php/calendar/schedule/addvirtual/" . $this->course->id), Icon::create('info', 'clickable'));
+                $query = "SELECT 1
+                          FROM `schedule_seminare`
+                          WHERE `seminar_id` = ? AND `user_id` = ?";
+                $penciled = DBManager::Get()->fetchColumn($query, [
+                    $this->course->id,
+                    $GLOBALS['user']->id,
+                ]);
+                if (!$penciled) {
+                    $links->addLink(
+                        _('Nur im Stundenplan vormerken'),
+                        $this->link_for("calendar/schedule/addvirtual/{$this->course->id}"),
+                        Icon::create('info')
+                    );
                 }
             }
 
             if ($this->send_from_search_page) {
-                $links->addLink(_("Zurück zur letzten Auswahl"), URLHelper::getLink($this->send_from_search_page), Icon::create('link-intern', 'clickable'));
+                $links->addLink(
+                    _('ZurÃ¼ck zur letzten Auswahl'),
+                    URLHelper::getLink($this->send_from_search_page),
+                    Icon::create('link-intern')
+                );
+            }
+
+            if (!$this->course->admission_binding
+                && in_array($GLOBALS['perm']->get_studip_perm($this->course->id), ['user','autor'])
+                && !$this->course->getSemClass()->isGroup())
+            {
+                $links->addLink(
+                    _('Austragen aus der Veranstaltung'),
+                    $this->url_for("my_courses/decline/{$this->course->id}", ['cmd' => 'suppose_to_kill']),
+                    Icon::create('door-leave')
+                );
             }
 
             if ($links->hasElements()) {
                 $sidebar->addWidget($links);
             }
-            $sidebar->setImage('sidebar/seminar-sidebar.png');
-            $sidebar->setContextAvatar(CourseAvatar::getAvatar($this->course->id));
 
-
-            $sidebar = Sidebar::Get();
-            $sidebar->setImage('sidebar/seminar-sidebar.png');
-            $sidebar->setContextAvatar(CourseAvatar::getAvatar($this->course->id));
+            $share = new ShareWidget();
+            $share->addCopyableLink(
+                _('Link zu dieser Veranstaltung kopieren'),
+                $this->link_for('course/details', [
+                    'sem_id' => $this->course->id,
+                    'cid'    => null,
+                ]),
+                Icon::create('group')
+            );
+            $sidebar->addWidget($share);
 
             if ($enrolment_info['description']) {
-                PageLayout::postMessage(MessageBox::info($enrolment_info['description']));
+                PageLayout::postInfo($enrolment_info['description']);
             }
         }
     }

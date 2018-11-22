@@ -1,6 +1,7 @@
 <? if (!empty($consumers)): ?>
+<form action="#" method="post" class="default">
 <table class="default">
-    <caption><?= _('Registrierte Konsumenten') ?></caption>
+    <caption><?= _('Registrierte Applikationen') ?></caption>
     <thead>
         <tr>
             <th><?= ('Aktiv') ?></th>
@@ -21,7 +22,7 @@
             </td>
             <td>
             <? if ($consumer->url): ?>
-                <a href="<?= htmlReady($consumer->url) ?>" target="_blank">
+                <a href="<?= htmlReady($consumer->url) ?>" target="_blank" rel="noopener noreferrer">
                     <?= htmlReady($consumer->title) ?>
                 </a>
             <? else: ?>
@@ -39,7 +40,7 @@
             <td class="actions">
                 <a href="<?= $controller->url_for('admin/api/keys', $consumer->id) ?>"
                    data-dialog="size=auto"
-                   title="<?= htmlReady(sprintf(_('Schlüssel anzeigen für Applikation "%s"'), $consumer->title)) ?>">
+                   title="<?= htmlReady(sprintf(_('SchlÃ¼ssel anzeigen fÃ¼r Applikation "%s"'), $consumer->title)) ?>">
                     <?= Icon::create('info-circle', 'clickable')->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/api/edit', $consumer->id) ?>" title="<?= _('Applikation bearbeiten') ?>" data-dialog>
@@ -48,15 +49,19 @@
                 <a href="<?= $controller->url_for('admin/api/permissions', $consumer->id) ?>" title="<?= _('Zugriffsberechtigungen verwalten') ?>">
                     <?= Icon::create('admin', 'clickable')->asImg() ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/api/delete', $consumer->id) ?>"
-                   title="<?= htmlReady(sprintf(_('Applikation "%s" entfernen'), $consumer->title)) ?>">
-                    <?= Icon::create('trash', 'clickable')->asImg() ?>
-                </a>
+                <?= Icon::create('trash')->asInput([
+                    'formaction'   => $controller->url_for('admin/api/delete/', $consumer->id),
+                    'title'        => sprintf(_('Applikation "%s" entfernen'), $consumer->title),
+                    'data-confirm' => '',
+                    'style'        => 'vertical-align: middle'
+                ]) ?>
             </td>
         </tr>
 <? endforeach; ?>
     </tbody>
 </table>
+</form>
+
 <? else: ?>
 <p>
     <?= MessageBox::info(_('Es wurde noch keine Applikation registriert.'),

@@ -8,7 +8,7 @@
  * the License, or (at your option) any later version.
  *
  * @author   Jan-Hendrik Willms <tleilax+studip@gmail.com>
- * @author   André Noack <anoack@mcis.de>
+ * @author   AndrÃ© Noack <anoack@mcis.de>
  * @author   Cornelis Kater <ckater@gwdg.de>
  * @author   Stefan Suchi <suchi@gmx.de>
  * @author   Tobias Thelen <tthelen@uni-osnabrueck.de>
@@ -27,7 +27,7 @@ class Course_ScmController extends StudipController
     private function set_title($title = '')
     {
         $title_parts   = func_get_args();
-        $title_parts[] = $GLOBALS['SessSemName']['header_line'];
+        $title_parts[] = Context::getHeaderLine();
         $page_title    = implode(' - ', $title_parts);
 
         PageLayout::setTitle($page_title);
@@ -59,7 +59,7 @@ class Course_ScmController extends StudipController
 
         $GLOBALS['auth']->login_if(Request::get('again')
                                    && $GLOBALS['auth']->auth['uid'] == 'nobody');
-        $this->priviledged = $GLOBALS['perm']->have_studip_perm('tutor', $GLOBALS['SessSemName'][1]);
+        $this->priviledged = $GLOBALS['perm']->have_studip_perm('tutor', Context::getId());
 
         if (!in_array($action, words('index create edit move delete'))) {
             array_unshift($args, $action);
@@ -70,7 +70,7 @@ class Course_ScmController extends StudipController
             throw new AccessDeniedException();
         }
 
-        if ($GLOBALS['perm']->have_studip_perm('tutor', $GLOBALS['SessSemName'][1])) {
+        if ($GLOBALS['perm']->have_studip_perm('tutor', Context::getId())) {
             $widget = new ActionsWidget();
             $widget->addLink(_('Neuen Eintrag anlegen'),
                              URLHelper::getLink('dispatch.php/course/scm/create'), Icon::create('add', 'clickable'))
@@ -98,7 +98,7 @@ class Course_ScmController extends StudipController
      */
     public function index_action($id = null)
     {
-        $temp       = StudipScmEntry::findByRange_id($GLOBALS['SessSemName'][1], 'ORDER BY position ASC');
+        $temp       = StudipScmEntry::findByRange_id(Context::getId(), 'ORDER BY position ASC');
         $this->scms = SimpleORMapCollection::createFromArray($temp);
         $this->scm  = $id ? $this->scms->find($id) : $this->scms->first();
 
@@ -107,11 +107,10 @@ class Course_ScmController extends StudipController
         }
 
         if (Request::get('verify') == 'delete') {
-            $this->verification = $GLOBALS['template_factory']->open('shared/question')->render(array(
-                'approvalLink'    => $this->url_for('course/scm/delete/' . $this->scm->id . '?ticket=' . get_ticket()),
-                'disapprovalLink' => $this->url_for('course/scm/' . $this->scm->id),
-                'question'        => _('Wollen Sie diese Seite wirklich löschen?'),
-            ));
+            PageLayout::postQuestion(
+                _('Wollen Sie diese Seite wirklich lÃ¶schen?'),
+                $this->url_for("course/scm/delete/{$this->scm->id}")
+            )->includeTicket('studip_ticket');
         }
 
         $this->set_title($this->scm->tab_name);
@@ -127,7 +126,7 @@ class Course_ScmController extends StudipController
         $this->scm->user_id = $GLOBALS['user']->id;
         $this->scm->chdate  = time();
 
-        $this->first_entry = StudipScmEntry::countBySql('range_id = ?', array($GLOBALS['SessSemName'][1])) == 0;
+        $this->first_entry = StudipScmEntry::countBySql('range_id = ?', array(Context::getId())) == 0;
 
         $this->set_title(_('Neue Informationsseite anlegen'));
 
@@ -150,10 +149,10 @@ class Course_ScmController extends StudipController
             $scm->tab_name = Request::get('tab_name_template') ?: Request::get('tab_name');
             $scm->content  = Studip\Markup::purifyHtml(Request::get('content'));
             $scm->user_id  = $GLOBALS['user']->id;
-            $scm->range_id = $GLOBALS['SessSemName'][1];
+            $scm->range_id = Context::getId();
 
             if ($scm->isNew()) {
-                $temp = StudipScmEntry::findByRange_id($GLOBALS['SessSemName'][1], 'ORDER BY position ASC');
+                $temp = StudipScmEntry::findByRange_id(Context::getId(), 'ORDER BY position ASC');
                 $scms = SimpleORMapCollection::createFromArray($temp);
                 $max  = max($scms->pluck('position'));
 
@@ -161,7 +160,7 @@ class Course_ScmController extends StudipController
             }
 
             if ($scm->store() !== false) {
-                $message = MessageBox::success(_('Die Änderungen wurden übernommen.'));
+                $message = MessageBox::success(_('Die Ã„nderungen wurden Ã¼bernommen.'));
                 PageLayout::postMessage($message);
             }
 
@@ -183,7 +182,7 @@ class Course_ScmController extends StudipController
     public function move_action($id)
     {
         $scm = new StudipScmEntry($id);
-        if (!$scm->isNew() && $scm->range_id == $GLOBALS['SessSemName'][1]){
+        if (!$scm->isNew() && $scm->range_id == Context::getId()){
             $query = "UPDATE scm
                       SET position = position + 1
                       WHERE range_id = :range_id AND position < :position";
@@ -207,18 +206,18 @@ class Course_ScmController extends StudipController
      */
     public function delete_action($id)
     {
-        $ticket = Request::option('ticket');
+        $ticket = Request::option('studip_ticket');
         if ($ticket && check_ticket($ticket)) {
             $scm = new StudipScmEntry($id);
-            if (!$scm->isNew() && $scm->range_id == $GLOBALS['SessSemName'][1]){
+            if (!$scm->isNew() && $scm->range_id == Context::getId()){
                 $scm->delete();
-                PageLayout::postMessage(MessageBox::success(_('Der Eintrag wurde gelöscht.')));
+                PageLayout::postMessage(MessageBox::success(_('Der Eintrag wurde gelÃ¶scht.')));
             }
             $this->redirect('course/scm');
             return;
         }
 
-        PageLayout::postMessage(MessageBox::error(_('Es ist ein Fehler aufgetreten. Bitte versuchen Sie erneut, diese Seite zu löschen.')));
+        PageLayout::postMessage(MessageBox::error(_('Es ist ein Fehler aufgetreten. Bitte versuchen Sie erneut, diese Seite zu lÃ¶schen.')));
         $this->redirect('course/scm/' . $id);
     }
 

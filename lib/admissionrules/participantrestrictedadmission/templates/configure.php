@@ -2,18 +2,26 @@
 <label for="start" class="caption">
     <?= _('Zeitpunkt der automatischen Platzverteilung') ?>:
 </label>
-<div class="form_group">
-    <input type="text" name="distributiondate" id="distributiondate" size="12"
+
+<label class="col-1">
+    <?= _('Datum') ?>
+    <input type="text" name="distributiondate" id="distributiondate"
+        class="size-s no-hint" placeholder="tt.mm.jjjj"
         value="<?= $rule->getDistributionTime() ? date('d.m.Y', $rule->getDistributionTime()) : '' ?>"/>
-    &nbsp;&nbsp;
-    <input type="text" name="distributiontime" id="distributiontime" size="5"
+</label>
+
+<label class="col-1">
+    <?= _('Uhrzeit') ?>
+    <input type="text" name="distributiontime" id="distributiontime"
+        class="size-s no-hint" placeholder="ss:mm"
         value="<?= $rule->getDistributionTime() ? date('H:i', $rule->getDistributionTime()) : '23:59' ?>"/>
-</div>
+</label>
+
 <? if ($rule->isFCFSallowed()) : ?>
     <label for="enable_FCFS">
     <input <?=($rule->prio_exists ? 'disabled' : '')?> type="checkbox" id="enable_FCFS"  name="enable_FCFS" value="1" <?= (!is_null($rule->getDistributionTime()) && !$rule->getDistributionTime() ? "checked" : ""); ?>>
     <?=_("<u>Keine</u> automatische Platzverteilung (Windhund-Verfahren)")?>
-    <?=($rule->prio_exists ? tooltipicon(_("Es existieren bereits Anmeldungen für die automatische Platzverteilung.")) : '')?>
+    <?=($rule->prio_exists ? tooltipicon(_("Es existieren bereits Anmeldungen fÃ¼r die automatische Platzverteilung.")) : '')?>
     </label>
 <? endif ?>
 <script>

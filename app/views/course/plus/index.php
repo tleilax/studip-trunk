@@ -16,21 +16,26 @@ use Studip\Button, Studip\LinkButton;
     <?= MessageBox::info(_("Diese Daten sind noch nicht gespeichert.")) ?>
 <? endif; ?>
 
-<form action="<?= URLHelper::getLink($save_url) ?>" method="post">
+<form action="<?= URLHelper::getLink($save_url) ?>" method="post" class="default">
 <?= CSRFProtection::tokenTag() ?>
-
+<input name="uebernehmen" value="1" type="hidden">
 <table class="default nohover plus">
 <!-- <caption><?=_("Inhaltselemente")?></caption> -->
 <tbody>
 <?
 foreach ($available_modules as $category => $pluginlist) {
-    if ($_SESSION['plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') continue;
-    if (isset($_SESSION['plus']) && !$_SESSION['plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') continue;
+    $visibility = "";
+    if ($_SESSION['plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') {
+        $visibility = "invisible";
+    }
+    if (isset($_SESSION['plus']) && !$_SESSION['plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') {
+        $visibility = "invisible";
+    }
 
     ?>
-    <tr>
+    <tr class="<?= $visibility; ?>">
         <th colspan=3>
-            <?= htmlReady($category) ?>            
+            <?= htmlReady($category) ?>
         </th>
     </tr>
 
@@ -42,6 +47,7 @@ foreach ($available_modules as $category => $pluginlist) {
             $info = $plugin->getMetadata();
 
             //Checkbox
+            $anchor = 'p_' . $plugin->getPluginId();
             $cb_name = 'plugin_' . $plugin->getPluginId();
             $cb_disabled = '';
             $cb_checked = $plugin_activated ? "checked" : "";
@@ -49,7 +55,7 @@ foreach ($available_modules as $category => $pluginlist) {
             $pluginname = isset($info['displayname']) ? $info['displayname'] : $plugin->getPluginname();
             $URL = $plugin->getPluginURL();
 
-            $warning = $plugin->deactivationWarning($_SESSION['SessionSeminar']);
+            $warning = $plugin->deactivationWarning(Context::getId());
 
         } elseif ($val['type'] == 'modul') {
 
@@ -63,12 +69,13 @@ foreach ($available_modules as $category => $pluginlist) {
                 }
             }
 
+            $anchor = 'm_' . $modul['id'];
             $cb_name = $val['modulkey'] . '_value';
             $cb_disabled = $pre_check ? 'disabled' : '';
             $cb_checked = $modules->isBit($_SESSION['admin_modules_data']["changed_bin"], $modul["id"]) ? "checked" : "";
 
-            
-            
+
+
             $URL = $GLOBALS['ASSETS_URL'].'images';
 
             if ($sem_class) {
@@ -83,13 +90,14 @@ foreach ($available_modules as $category => $pluginlist) {
         //if(isset($info['complexity']) && isset($_SESSION['plus']) && !$_SESSION['plus']['Komplex'][$info['complexity']])continue;
         ?>
 
-        <tr class="<?= $pre_check != null ? ' quiet' : '' ?>">
-            <td colspan=3>
+        <tr id="<?= htmlReady($anchor);?>" class="<?= $visibility; ?> <?= $pre_check != null ? ' quiet' : '' ?>">
+            <td class="element" colspan=3>
 
                 <div class="plus_basic">
 
                     <!-- checkbox -->
-                    <input type="checkbox" id="<?= $pluginname ?>" name="<?= $cb_name ?>" value="TRUE" <?= $cb_disabled ?> <?= $cb_checked ?>>
+                    <input type="checkbox" id="<?= $pluginname ?>" name="<?= $cb_name ?>" value="TRUE" <?= $cb_disabled ?> <?= $cb_checked ?>
+                    onClick="form.submit()">
 
                     <div class="element_header">
 
@@ -126,7 +134,7 @@ foreach ($available_modules as $category => $pluginlist) {
                             $border_color3 = isset($info['complexity']) && $info['complexity'] > 2 ? "hsl( 15, 100%, 45%)" : "hsl(0, 0%, 80%)";
 
                             ?>
-                            <div class="complexity" title="Komplexität: <?= $complexname ?>">
+                            <div class="complexity" title="KomplexitÃ¤t: <?= $complexname ?>">
                                 <div class="complexity_element"
                                      style="background-color: <?= $color1 ?>; border-color: <?= $border_color1 ?>;"></div>
                                 <div class="complexity_element"
@@ -155,12 +163,12 @@ foreach ($available_modules as $category => $pluginlist) {
                             <? if (isset($info['descriptionshort'])) : ?>
                                 <? foreach (explode('\n', $info['descriptionshort']) as $descriptionshort) { ?>
                                     <?= htmlReady($descriptionshort) ?>
-                                <? } ?>   
+                                <? } ?>
                             <? endif ?>
                             <? if (!isset($info['descriptionshort'])) : ?>
                                 <? if (isset($info['summary'])) : ?>
                                     <?= htmlReady($info['summary']) ?>
-                                <? elseif (isset($info['description'])) : ?>  
+                                <? elseif (isset($info['description'])) : ?>
                                     <?= htmlReady($info['description']) ?>
                                 <? else: ?>
                                     <?= _("Keine Beschreibung vorhanden.") ?>
@@ -170,28 +178,28 @@ foreach ($available_modules as $category => $pluginlist) {
 
                     </div>
 
-                    <!-- inhaltlöschenbutton -->
-                    <? if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                    <? if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                          
+                    <!-- inhaltlÃ¶schenbutton -->
+                    <? if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte lÃ¶schen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
+                    <? if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte lÃ¶schen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
+
                 </div>
 
                 <? if ($_SESSION['plus']['View'] == 'openall' || !isset($_SESSION['plus'])) { ?>
 
-                    <div class="plus_expert">
+                    <div class="plus_expert hidden-tiny-down">
 
                         <div class="screenshot_holder">
-                            <? if (isset($info['screenshot']) || isset($info['screenshots'])) : 
-                                if(isset($info['screenshots'])){   
+                            <? if (isset($info['screenshot']) || isset($info['screenshots'])) :
+                                if(isset($info['screenshots'])){
                                     $title = $info['screenshots']['pictures'][0]['title'];
-                                    $source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][0]['source'];                                   
+                                    $source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][0]['source'];
                                 } else {
                                     $fileext = end(explode(".", $info['screenshot']));
                                     $title = str_replace("_"," ",basename($info['screenshot'], ".".$fileext));
                                     $source = $info['screenshot'];
                                 }
                                 ?>
-                                
+
                                 <a href="<?= $URL . "/" . $source ?>"
                                    data-lightbox="<?= $pluginname ?>" data-title="<?= $title ?>">
                                     <img class="big_thumb" src="<?= $URL . "/" . $source ?>"
@@ -210,8 +218,8 @@ foreach ($available_modules as $category => $pluginlist) {
                                             $counter = count($info['additionalscreenshots']);
                                             $cstart = 0;
                                         } ?>
-                                        
-                                        <? for ($i = $cstart; $i < $counter; $i++) { 
+
+                                        <? for ($i = $cstart; $i < $counter; $i++) {
 
                                             if (isset($info['screenshots'])){
                                                 $title = $info['screenshots']['pictures'][$i]['title'];
@@ -221,7 +229,7 @@ foreach ($available_modules as $category => $pluginlist) {
                                                 $title = str_replace("_"," ",basename($info['additionalscreenshots'][$i], ".".$fileext));
                                                 $source = $info['additionalscreenshots'][$i];
                                             }
-                                                                                    
+
                                              ?>
 
                                             <a href="<?= $URL . "/" . $source ?>"
@@ -243,10 +251,10 @@ foreach ($available_modules as $category => $pluginlist) {
 
                         <div class="descriptionbox">
 
-                            <!-- inhaltlöschenbutton -->
-                            <?// if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                            <?// if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                            
+                            <!-- inhaltlÃ¶schenbutton -->
+                            <?// if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte lÃ¶schen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
+                            <?// if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte lÃ¶schen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
+
                             <!-- tags -->
                             <? if (isset($info['keywords'])) : ?>
                                 <ul class="keywords">
@@ -262,7 +270,7 @@ foreach ($available_modules as $category => $pluginlist) {
                                 <p class="longdesc">
                                     <?= htmlReady($descriptionlong) ?>
                                 </p>
-                            <? } ?>   
+                            <? } ?>
                             <? endif ?>
 
                             <? if (!isset($info['descriptionlong']) && isset($info['summary'])) : ?>
@@ -313,8 +321,9 @@ foreach ($available_modules as $category => $pluginlist) {
     }
 } ?>
 </tbody>
+
 <tfoot>
-<tr>
+<tr class="hidden-js">
     <td align="center" colspan="3">
         <?= Button::create(_('An- / Ausschalten'), 'uebernehmen') ?>
     </td>

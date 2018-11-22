@@ -4,7 +4,6 @@ require_once 'lib/raumzeit/raumzeit_functions.inc.php';
 class Course_DatesController extends AuthenticatedController
 {
     protected $allow_nobody = true;
-    protected $utf8decode_xhr = true;
 
     public function before_filter(&$action, &$args)
     {
@@ -12,28 +11,25 @@ class Course_DatesController extends AuthenticatedController
         checkObject();
         checkObjectModule('schedule');
 
-        $course = Course::findCurrent();
-        if ($course) {
-            PageLayout::setTitle($course->getFullname() . ' ' . _('Termine'));
+        $this->course = Context::get();
+        if ($this->course) {
+            PageLayout::setTitle($this->course->getFullname() . ' ' . _('Termine'));
         } else {
             PageLayout::setTitle(_('Termine'));
         }
 
-        PageLayout::addSqueezePackage('tablesorter');
-        PageLayout::addScript('raumzeit');
-
         Sidebar::get()->setImage('sidebar/date-sidebar.png');
 
-        $this->show_raumzeit = $course->getSemClass()->offsetGet('show_raumzeit');
+        $this->show_raumzeit = $this->course->getSemClass()->offsetGet('show_raumzeit');
+        $this->has_access    = $this->hasAccess();
     }
 
     public function index_action()
     {
-        $this->course = Course::findCurrent();
-        if ($GLOBALS['perm']->have_studip_perm('tutor', $this->course->id) && Request::isPost() && Request::option("termin_id") && Request::get("topic_title")) {
-            $date = new CourseDate(Request::option("termin_id"));
+        if ($this->hasAccess() && Request::isPost() && Request::option('termin_id') && Request::get('topic_title')) {
+            $date = new CourseDate(Request::option('termin_id'));
             $seminar_id = $date['range_id'];
-            $title = Request::get("topic_title");
+            $title = Request::get('topic_title');
             $topic = CourseTopic::findByTitle($seminar_id, $title);
             if (!$topic) {
                 $topic = new CourseTopic();
@@ -45,35 +41,60 @@ class Course_DatesController extends AuthenticatedController
             }
             $success = $date->addTopic($topic);
             if ($success) {
-                PageLayout::postSuccess(_('Thema wurde hinzugefügt.'));
+                PageLayout::postSuccess(_('Thema wurde hinzugefÃ¼gt.'));
             } else {
-                PageLayout::postInfo(_('Thema war schon mit dem Termin verknüpft.'));
+                PageLayout::postInfo(_('Thema war schon mit dem Termin verknÃ¼pft.'));
             }
         }
         Navigation::activateItem('/course/schedule/dates');
 
         object_set_visit_module('schedule');
+        $this->assignLockRulesToTemplate();
+
         $this->last_visitdate = object_get_visit($this->course->id, 'schedule');
-        $this->dates = $this->course->getDatesWithExdates();
+        $this->dates          = $this->course->getDatesWithExdates();
+
 
         // set up sidebar
         $actions = new ActionsWidget();
 
-        if (!$this->show_raumzeit && $GLOBALS['perm']->have_studip_perm('tutor', $this->course->id)) {
+        if (!$this->show_raumzeit && $this->hasAccess()) {
             $actions->addLink(
                 _('Neuer Einzeltermin'),
                 $this->url_for('course/dates/singledate'),
-                Icon::create('add', 'clickable')
-            )->asDialog('size=auto');
+                Icon::create('add')
+            )->asDialog();
         }
 
+        if (Seminar::setInstance(new Seminar(Course::findCurrent()))->getSlotModule('documents') && CourseDateFolder::availableInRange(Course::findCurrent(), User::findCurrent()->id)) {
+            $actions->addLink(
+                _('Sitzungsordner anlegen'),
+                $this->url_for('course/dates/create_folders'),
+                Icon::create('folder-topic-empty')
+            )->asDialog('size=auto');
+        }
         $actions->addLink(
             _('Als Doc-Datei runterladen'),
             $this->url_for('course/dates/export'),
-            Icon::create('file-word', 'clickable')
+            Icon::create('file-word')
+        );
+
+        $actions->addLink(
+            _('Als CSV-Datei exportieren'),
+            $this->url_for('course/dates/export_csv'),
+            Icon::create('file-excel')
         );
 
         Sidebar::get()->addWidget($actions);
+
+        if ($this->show_raumzeit && $this->hasAccess()) {
+            $actions = new LinksWidget();
+            $actions->setTitle(_('Links'));
+            $actions->addLink(_('Zeiten und RÃ¤ume bearbeiten'),
+                              $this->url_for('course/timesrooms'),
+                              Icon::create('link-intern'));
+            Sidebar::get()->addWidget($actions);
+        }
     }
 
 
@@ -94,14 +115,7 @@ class Course_DatesController extends AuthenticatedController
         );
 
         if ($this->hasAccess()) {
-            $this->cancelled_dates_locked = LockRules::Check(
-                $this->date->range_id,
-                'cancelled_dates'
-            );
-            $this->dates_locked = LockRules::Check(
-                $this->date->range_id,
-                'room_time'
-            );
+            $this->assignLockRulesToTemplate();
 
             $this->teachers = array_map(function (CourseMember $member) {
                 return $member->user;
@@ -115,6 +129,18 @@ class Course_DatesController extends AuthenticatedController
         }
     }
 
+    public function details_files_action($termin_id)
+    {
+        $this->date = new CourseDate($termin_id);
+
+        Navigation::activateItem('/course/schedule/dates');
+        PageLayout::setTitle(
+            $this->date->getTypeName() . ': ' .
+            $this->date->getFullname(CourseDate::FORMAT_VERBOSE)
+        );
+        $this->render_action('details');
+    }
+
     /**
      * This method is called to show the dialog to edit a singledate for a studygroup.
      *
@@ -123,13 +149,10 @@ class Course_DatesController extends AuthenticatedController
      */
     public function singledate_action($termin_id = null)
     {
+        $this->checkAccess();
+        $this->assignLockRulesToTemplate();
+
         Navigation::activateItem('/course/schedule/dates');
-
-        $course = Course::findCurrent();
-
-        if (!$GLOBALS['perm']->have_studip_perm('tutor', $course->id)) {
-            throw new AccessDeniedException();
-        }
 
         if (Request::isPost()) {
             CSRFProtection::verifyUnsafeRequest();
@@ -143,7 +166,7 @@ class Course_DatesController extends AuthenticatedController
                 $start_time = strtotime((Request::get('start_stunde') ?: '0') . ':' . (Request::get('start_minute') ?: '0'), $start_date);
                 $end_time = strtotime((Request::get('end_stunde') ?: '0') . ':' . (Request::get('end_minute') ?: '0'), $start_date);
                 if (!($start_time && $end_time && $start_time < $end_time)) {
-                    $errors[] = _('Bitte geben Sie korrekte Werte für Start- und Endzeit an!');
+                    $errors[] = _('Bitte geben Sie korrekte Werte fÃ¼r Start- und Endzeit an!');
                 }
             }
             $termin = CourseDate::find(Request::option('singleDateID'));
@@ -152,13 +175,13 @@ class Course_DatesController extends AuthenticatedController
             }
             $termin->raum     = Request::get('freeRoomText_sd');
             $termin->autor_id = $GLOBALS['user']->id;
-            $termin->range_id = $course->getId();
+            $termin->range_id = $this->course->id;
             $termin->date     = $start_time;
             $termin->end_time = $end_time;
             $termin->date_typ = Request::int('dateType');
             if (!count($errors)) {
                 if ($termin->store()) {
-                    PageLayout::postSuccess(_('Der Termin wurde geändert.'));
+                    PageLayout::postSuccess(_('Der Termin wurde geÃ¤ndert.'));
                 }
                 return $this->relocate('course/dates');
             } else {
@@ -171,10 +194,9 @@ class Course_DatesController extends AuthenticatedController
 
         } else {
             $this->date = new CourseDate();
-            $xtitle = _("Einzeltermin anlegen");
+            $xtitle = _('Einzeltermin anlegen');
         }
-        $this->cancelled_dates_locked = LockRules::Check($this->date->range_id, 'cancelled_dates');
-        $this->dates_locked = LockRules::Check($this->date->range_id, 'room_time');
+
         PageLayout::setTitle($xtitle);
     }
 
@@ -185,10 +207,10 @@ class Course_DatesController extends AuthenticatedController
      */
     public function save_details_action($date_id)
     {
+        $this->checkAccess();
+
         CSRFProtection::verifyUnsafeRequest();
-        if (!$GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])) {
-            throw new AccessDeniedException();
-        }
+
         $termin = CourseDate::find($date_id);
         if ($termin) {
             $termin->date_typ = Request::get('dateType');
@@ -208,7 +230,7 @@ class Course_DatesController extends AuthenticatedController
             $termin->statusgruppen = Statusgruppen::findMany($assigned_groups);
 
             if ($termin->store()) {
-                PageLayout::postSuccess(_('Der Termin wurde geändert.'));
+                PageLayout::postSuccess(_('Der Termin wurde geÃ¤ndert.'));
             }
         }
         $this->relocate('course/dates');
@@ -218,7 +240,7 @@ class Course_DatesController extends AuthenticatedController
     {
         Navigation::activateItem('/course/schedule/dates');
         if (Request::isAjax()) {
-            PageLayout::setTitle(_("Thema hinzufügen"));
+            PageLayout::setTitle(_("Thema hinzufÃ¼gen"));
         }
 
         $this->date   = new CourseDate(Request::option('termin_id'));
@@ -230,8 +252,12 @@ class Course_DatesController extends AuthenticatedController
         $this->checkAccess();
 
         if (!Request::get('title')) {
-            throw new Exception(_('Geben Sie einen Titel an.'));
+            $this->set_status(400);
+            $this->render_json(['message' => _('Geben Sie einen Titel an.')]);
+            return;
         }
+
+        $output = ['topic_id' => $topic->id];
 
         $date = new CourseDate(Request::option('termin_id'));
         $seminar_id = $date->range_id;
@@ -245,15 +271,16 @@ class Course_DatesController extends AuthenticatedController
             $topic->description = '';
             $topic->store();
         }
-        $date->addTopic($topic);
 
-        $factory = $this->get_template_factory();
-        $output = array('topic_id' => $topic->getId());
-
-        $template = $factory->open($this->get_default_template("_topic_li"));
-        $template->set_attribute("topic", $topic);
-        $template->set_attribute("date", $date);
-        $output['li'] = $template->render();
+        if ($date->addTopic($topic)) {
+            $factory = $this->get_template_factory();
+            $template = $factory->open($this->get_default_template('_topic_li'));
+            $template->topic      = $topic;
+            $template->date       = $date;
+            $template->has_access = $this->hasAccess();
+            $template->controller = $this;
+            $output['li'] = $template->render();
+        }
 
         $this->render_json($output);
     }
@@ -287,7 +314,7 @@ class Course_DatesController extends AuthenticatedController
         }
         $this->topic->store();
 
-        $this->set_content_type('text/html;charset=windows-1252');
+        $this->set_content_type('text/html;charset=utf-8');
         $this->render_template('course/dates/_topic_li.php');
     }
 
@@ -305,8 +332,7 @@ class Course_DatesController extends AuthenticatedController
 
     public function export_action()
     {
-        $course = new Course($_SESSION['SessionSeminar']);
-        $sem = new Seminar($_SESSION['SessionSeminar']);
+        $sem = new Seminar($this->course);
         $themen =& $sem->getIssues();
 
         $termine = getAllSortedSingleDates($sem);
@@ -328,46 +354,193 @@ class Course_DatesController extends AuthenticatedController
                         'title' => $title,
                         'description' => $description,
                         'start' => $singledate->getStartTime(),
-                        'related_persons' => $singledate->getRelatedPersons()
+                        'related_persons' => $singledate->getRelatedPersons(),
+                        'groups' => $singledate->getRelatedGroups(),
+                        'room' => $singledate->getRoom() ?: $singledate->raum,
+                        'type' => $GLOBALS['TERMIN_TYP'][$singledate->getDateType()]['name']
                     );
                 } elseif ($singledate->getComment()) {
                     $dates[] = array(
                         'date'  => $singledate->toString(),
-                        'title' => _('fällt aus') . ' (' . _('Kommentar:') . ' ' . $singledate->getComment() . ')',
+                        'title' => _('fÃ¤llt aus') . ' (' . _('Kommentar:') . ' ' . $singledate->getComment() . ')',
                         'description' => '',
                         'start' => $singledate->getStartTime(),
-                        'related_persons' => array()
+                        'related_persons' => array(),
+                        'groups' => array(),
+                        'room' => '',
+                        'type' => $GLOBALS['TERMIN_TYP'][$singledate->getDateType()]['name']
                     );
                 }
             }
         }
 
         $factory = $this->get_template_factory();
-        $template = $factory->open($this->get_default_template("export"));
+        $template = $factory->open($this->get_default_template('export'));
 
         $template->set_attribute('dates', $dates);
+        $template->lecturer_count = $this->course->countMembersWithStatus('dozent');
+        $template->group_count = count($this->course->statusgruppen);
         $content = $template->render();
 
-        $content = mb_encode_numericentity($content, array(0x80, 0xffff, 0, 0xffff), 'cp1252');
-        $filename = prepareFilename($course['name'] . '-' . _("Ablaufplan")) . '.doc';
+        $content = mb_encode_numericentity($content, array(0x80, 0xffff, 0, 0xffff), 'utf-8');
+        $filename = FileManager::cleanFileName($this->course['name'] . '-' . _('Ablaufplan') . '.doc');
 
         $this->set_content_type(get_mime_type($filename));
-        $this->response->add_header('Content-Disposition', 'attachment;filename="' . $filename . '"');
+        $this->response->add_header('Content-Length', strlen($content));
+        $this->response->add_header('Content-Disposition', 'attachment; ' . encode_header_parameter('filename', $filename));
         $this->response->add_header('Expires', 0);
         $this->response->add_header('Cache-Control', 'private');
         $this->response->add_header('Pragma', 'cache');
         $this->render_text($content);
     }
 
+    /**
+     * Export list of course dates into CSV format.
+     */
+    public function export_csv_action()
+    {
+        $sem = new Seminar($this->course);
+        $dates = getAllSortedSingleDates($sem);
+        $issues = $sem->getIssues();
+
+        $columns = array(
+            _('Wochentag'),
+            _('Termin'),
+            _('Beginn'),
+            _('Ende'),
+            _('Typ'),
+            _('Thema'),
+            _('Beschreibung'),
+            _('Lehrende'),
+            _('Gruppen'),
+            _('Raum'),
+            _('Raumbeschreibung'),
+            _('SitzplÃ¤tze')
+        );
+
+        $data = array($columns);
+
+        foreach ($dates as $date) {
+            // FIXME this should not be necessary, see https://develop.studip.de/trac/ticket/8101
+            if ($date->isExTermin() && $date->getComment() == '') {
+                continue;
+            }
+
+            $row = array();
+            $row[] = strftime('%A', $date->date);
+            $row[] = strftime('%x', $date->date);
+            $row[] = strftime('%H:%M', $date->date);
+            $row[] = strftime('%H:%M', $date->end_time);
+            $row[] = $date->getTypeName();
+
+            if ($date->isExTermin()) {
+                $row[] = $date->getComment();
+                $row[] = '';
+            } else {
+                $issue = $descr = '';
+
+                foreach ((array) $date->getIssueIDs() as $id) {
+                    $issue .= $issues[$id]->getTitle() . "\n";
+                    $descr .= kill_format($issues[$id]->getDescription()) . "\n";
+                }
+
+                $row[] = trim($issue);
+                $row[] = trim($descr);
+            }
+
+            $related_persons = '';
+
+            if ($date->related_persons) {
+                foreach ($date->related_persons as $user_id) {
+                    $related_persons .= User::find($user_id)->getFullname() . "\n";
+                }
+            }
+
+            $row[] = trim($related_persons);
+
+            $related_groups = '';
+
+            if ($date->related_groups) {
+                foreach ($date->related_groups as $group_id) {
+                    $related_groups .= Statusgruppen::find($group_id)->name . "\n";
+                }
+            }
+
+            $row[] = trim($related_groups);
+
+            if ($date->resource_id) {
+                $resource_object = ResourceObject::Factory($date->resource_id);
+                $row[] = $resource_object->getName();
+                $row[] = $resource_object->getDescription();
+                $row[] = $resource_object->getSeats();
+            } else {
+                $row[] = $date->raum;
+                $row[] = '';
+                $row[] = '';
+            }
+
+            $data[] = $row;
+        }
+
+        $filename = $sem->name . '-' . _('Ablaufplan') . '.csv';
+        $this->render_csv($data, $filename);
+    }
+
     private function hasAccess()
     {
-        return $GLOBALS['perm']->have_studip_perm('tutor', $_SESSION['SessionSeminar']);
+        return $GLOBALS['perm']->have_studip_perm('tutor', $this->course->id);
     }
 
     private function checkAccess()
     {
         if (!$this->hasAccess()) {
             throw new AccessDeniedException();
+        }
+    }
+
+    private function assignLockRulesToTemplate()
+    {
+        $this->cancelled_dates_locked = LockRules::Check(
+            $this->course->id,
+            'cancelled_dates'
+        );
+        $this->metadata_locked = LockRules::Check(
+            $this->course->id,
+            'edit_dates_in_schedule'
+        );
+        $this->dates_locked = LockRules::Check(
+            $this->course->id,
+            'room_time'
+        );
+    }
+
+    public function create_folders_action()
+    {
+        $this->checkAccess();
+        $this->dates = CourseDate::findByRange_id($this->course->id);
+        if (Request::submitted('go')) {
+            CSRFProtection::verifyUnsafeRequest();
+            $count = 0;
+            $root_folder_id = Folder::findTopFolder($this->course->id)->getId();
+            foreach (Request::optionArray('course_date_folders') as $termin_id) {
+                $folder = Folder::build([
+                    'range_id'    => $this->course->id,
+                    'parent_id'   => $root_folder_id,
+                    'range_type'  => 'course',
+                    'folder_type' => 'CourseTopicFolder',
+                    'user_id'     => $GLOBALS['user']->id
+                ]);
+                $date_folder = new CourseDateFolder($folder);
+                $ok = $date_folder->setDataFromEditTemplate([
+                    'course_date_folder_termin_id'  => $termin_id,
+                    'course_date_folder_perm_write' => Request::get('course_date_folder_perm_write')
+                ]);
+                if ($ok instanceof CourseDateFolder) {
+                    $count += $ok->store();
+                }
+            }
+            PageLayout::postSuccess(sprintf(_('Es wurden %u Ordner erstellt.'), $count));
+            $this->relocate($this->url_for('/index'));
         }
     }
 }

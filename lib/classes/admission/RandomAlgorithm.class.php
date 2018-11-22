@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @author      Thomas Hackl <thomas.hackl@uni-passau.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -46,7 +46,12 @@ class RandomAlgorithm extends AdmissionAlgorithm
     {
         Log::DEBUG('start seat distribution for course set: ' . $courseSet->getId());
         $groups_quota = array();
-        $conditional_rule = $courseSet->getAdmissionRule('ConditionalAdmission');
+        $conditional_rule = array_pop(
+            array_filter($courseSet->getAdmissionRules(), function ($r) {
+                return $r instanceof ConditionalAdmission
+                    && count($r->getConditionGroups());
+            })
+        );
         $conditiongroups = $conditional_rule ? $conditional_rule->getConditionGroups() : array();
         if (count($conditiongroups)) {
             foreach (array_keys($conditiongroups) as $group_id) {
@@ -152,7 +157,7 @@ class RandomAlgorithm extends AdmissionAlgorithm
         //unlucky users get a bonus for the next round
         $bonus_users = array();
 
-        //users / courses für later waitlist distribution
+        //users / courses fÃ¼r later waitlist distribution
         $waiting_users = array();
 
         //number of already distributed seats for users
@@ -166,7 +171,12 @@ class RandomAlgorithm extends AdmissionAlgorithm
         };
 
         $groups_quota = array();
-        $conditional_rule = $courseSet->getAdmissionRule('ConditionalAdmission');
+        $conditional_rule = array_pop(
+            array_filter($courseSet->getAdmissionRules(), function ($r) {
+                return $r instanceof ConditionalAdmission
+                    && count($r->getConditionGroups());
+            })
+        );
         $conditiongroups = $conditional_rule ? $conditional_rule->getConditionGroups() : array();
         if (count($conditiongroups)) {
             foreach (array_keys($conditiongroups) as $group_id) {
@@ -222,7 +232,6 @@ class RandomAlgorithm extends AdmissionAlgorithm
                     foreach (array_keys($current_claiming) as $user_id) {
                         if ($bonus_users[$user_id] > 0) {
                             $current_claiming[$user_id] *= $bonus_users[$user_id] * count($current_claiming) + 1;
-                            $bonus_users[$user_id]--;
                         }
                     }
                     $free_seats = round($free_seats_course * $quota / 100, 0, PHP_ROUND_HALF_DOWN);
@@ -235,6 +244,7 @@ class RandomAlgorithm extends AdmissionAlgorithm
                     $this->addUsersToCourse($chosen_ones, $course, $prio_mapper($chosen_ones, $course->id));
                     foreach ($chosen_ones as $one) {
                         $distributed_users[$one]++;
+                        $bonus_users[$one]--;
                     }
                     if ($free_seats < count($current_claiming)) {
                         $remaining_ones = array_slice(array_keys($current_claiming), $free_seats);
@@ -250,7 +260,7 @@ class RandomAlgorithm extends AdmissionAlgorithm
         Log::DEBUG('waiting list: ' . print_r($waiting_users, 1));
         foreach ($waiting_users as $current_prio => $current_prio_waiting_courses) {
             foreach ($current_prio_waiting_courses as $course_id => $users) {
-                $users = array_filter($users, function($user_id) use ($distributed_users, $max_seats_users) {
+                $users = array_filter(array_unique($users), function($user_id) use ($distributed_users, $max_seats_users) {
                     return $distributed_users[$user_id] < $max_seats_users[$user_id];});
                     $course = Course::find($course_id);
                     Log::DEBUG(sprintf('distribute waitlist of %s with prio %s in course %s', count($users), $current_prio, $course->id));
@@ -292,10 +302,10 @@ class RandomAlgorithm extends AdmissionAlgorithm
         foreach ($user_list as $chosen_one) {
             setTempLanguage($chosen_one);
             $message_title = sprintf(_('Teilnahme an der Veranstaltung %s'), $course->name);
-            $message_body = sprintf(_('Sie haben leider bei der Platzverteilung der Veranstaltung **%s** __keinen__ Platz erhalten. Für diese Veranstaltung wurde keine Warteliste vorgesehen.'),
+            $message_body = sprintf(_('Sie haben leider bei der Platzverteilung der Veranstaltung **%s** __keinen__ Platz erhalten. FÃ¼r diese Veranstaltung wurde keine Warteliste vorgesehen.'),
                                        $course->name);
             if ($prio) {
-                $message_body .= "\n" . sprintf(_("Sie hatten für diese Veranstaltung die Priorität %s gewählt."), $prio[$chosen_one]);
+                $message_body .= "\n" . sprintf(_("Sie hatten fÃ¼r diese Veranstaltung die PrioritÃ¤t %s gewÃ¤hlt."), $prio[$chosen_one]);
             }
             messaging::sendSystemMessage($chosen_one, $message_title, $message_body);
             restoreLanguage();
@@ -314,20 +324,28 @@ class RandomAlgorithm extends AdmissionAlgorithm
     {
         $maxpos = $course->admission_applicants->findBy('status', 'awaiting')->orderBy('position desc')->val('position');
         foreach ($user_list as $chosen_one) {
+            if ($course->getParticipantStatus($chosen_one)) {
+                continue;
+            }
             $maxpos++;
             $new_admission_member = new AdmissionApplication();
             $new_admission_member->user_id = $chosen_one;
             $new_admission_member->position = $maxpos;
             $new_admission_member->status = 'awaiting';
-            $course->admission_applicants[] = $new_admission_member;
+            try {
+                $course->admission_applicants[] = $new_admission_member;
+            } catch (InvalidArgumentException $e) {
+                Log::DEBUG($e->getMessage());
+                continue;
+            }
             if ($new_admission_member->store()) {
                 setTempLanguage($chosen_one);
                 $message_title = sprintf(_('Teilnahme an der Veranstaltung %s'), $course->name);
-                $message_body = sprintf(_('Sie haben leider bei der Platzverteilung der Veranstaltung **%s** __keinen__ Platz erhalten. Sie wurden jedoch auf Position %s auf die Warteliste gesetzt. Das System wird Sie automatisch eintragen und benachrichtigen, sobald ein Platz für Sie frei wird.'),
+                $message_body = sprintf(_('Sie haben leider bei der Platzverteilung der Veranstaltung **%s** __keinen__ Platz erhalten. Sie wurden jedoch auf Position %s auf die Warteliste gesetzt. Das System wird Sie automatisch eintragen und benachrichtigen, sobald ein Platz fÃ¼r Sie frei wird.'),
                                            $course->name,
                                            $maxpos);
                 if ($prio) {
-                    $message_body .= "\n" . sprintf(_("Sie hatten für diese Veranstaltung die Priorität %s gewählt."), $prio[$chosen_one]);
+                    $message_body .= "\n" . sprintf(_("Sie hatten fÃ¼r diese Veranstaltung die PrioritÃ¤t %s gewÃ¤hlt."), $prio[$chosen_one]);
                 }
                 messaging::sendSystemMessage($chosen_one, $message_title, $message_body);
                 restoreLanguage();
@@ -345,23 +363,23 @@ class RandomAlgorithm extends AdmissionAlgorithm
      */
     private function addUsersToCourse($user_list, $course, $prio = null)
     {
-        $seminar = new Seminar($course->id);
+        $seminar = new Seminar($course);
         foreach ($user_list as $chosen_one) {
             setTempLanguage($chosen_one);
             $message_title = sprintf(_('Teilnahme an der Veranstaltung %s'), $seminar->getName());
             if ($seminar->admission_prelim) {
                 if ($seminar->addPreliminaryMember($chosen_one)) {
-                    $message_body = sprintf (_('Sie haben bei der Platzvergabe der Veranstaltung **%s** einen vorläufigen Platz erhalten. Die endgültige Zulassung zu der Veranstaltung ist noch von weiteren Bedingungen abhängig, die Sie bitte der Veranstaltungsbeschreibung entnehmen.'),
+                    $message_body = sprintf (_('Sie haben bei der Platzvergabe der Veranstaltung **%s** einen vorlÃ¤ufigen Platz erhalten. Die endgÃ¼ltige Zulassung zu der Veranstaltung ist noch von weiteren Bedingungen abhÃ¤ngig, die Sie bitte der Veranstaltungsbeschreibung entnehmen.'),
                             $seminar->getName());
                 }
             } else {
                 if ($seminar->addMember($chosen_one, 'autor')) {
-                    $message_body = sprintf (_("Sie haben bei der Platzvergabe der Veranstaltung **%s** einen Platz erhalten. Ab sofort finden Sie die Veranstaltung in der Übersicht Ihrer Veranstaltungen. Damit sind Sie auch für die Präsenzveranstaltung zugelassen."),
+                    $message_body = sprintf (_("Sie haben bei der Platzvergabe der Veranstaltung **%s** einen Platz erhalten. Ab sofort finden Sie die Veranstaltung in der Ãœbersicht Ihrer Veranstaltungen. Damit sind Sie auch fÃ¼r die PrÃ¤senzveranstaltung zugelassen."),
                             $seminar->getName());
                 }
             }
             if ($prio) {
-                $message_body .= "\n" . sprintf(_("Sie hatten für diese Veranstaltung die Priorität %s gewählt."), $prio[$chosen_one]);
+                $message_body .= "\n" . sprintf(_("Sie hatten fÃ¼r diese Veranstaltung die PrioritÃ¤t %s gewÃ¤hlt."), $prio[$chosen_one]);
             }
             messaging::sendSystemMessage($chosen_one, $message_title, $message_body);
             restoreLanguage();
@@ -396,7 +414,8 @@ class RandomAlgorithm extends AdmissionAlgorithm
         };
         $db = DbManager::get();
         $db->fetchAll("SELECT user_id, COUNT(*) as c FROM seminar_user
-            WHERE seminar_id IN(?) AND user_id IN(?) GROUP BY user_id", array($course_ids, $user_ids), $sum);
+            WHERE seminar_id IN(?) AND user_id IN(?) AND status IN (?) GROUP BY user_id",
+            array($course_ids, $user_ids, array('user', 'autor')), $sum);
         $db->fetchAll("SELECT user_id, COUNT(*) as c FROM admission_seminar_user
             WHERE seminar_id IN(?) AND user_id IN(?) GROUP BY user_id", array($course_ids, $user_ids), $sum);
         return $distributed_users;

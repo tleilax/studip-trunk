@@ -60,7 +60,12 @@ class PluginRepository
         $metadata = $cache->read($cache_key);
 
         if ($metadata === false) {
-            $metadata = @file_get_contents($url);
+            // Set small timeout for the rare case that the repository is not
+            // available
+            $context = stream_context_create(['http' => [
+                'timeout' => 5,
+            ]]);
+            $metadata = @file_get_contents($url, false, $context);
 
             if ($metadata === false) {
                 throw new Exception(sprintf(_('Fehler beim Zugriff auf %s'), $url));
@@ -81,24 +86,22 @@ class PluginRepository
                 $min_version = trim($release['studipMinVersion']);
                 $max_version = trim($release['studipMaxVersion']);
 
-                if (($min_version &&
-                      version_compare($min_version, $SOFTWARE_VERSION) > 0) ||
-                    ($max_version &&
-                      version_compare($max_version, $SOFTWARE_VERSION) < 0)) {
+                if (($min_version && StudipVersion::olderThan($min_version)) ||
+                    ($max_version && StudipVersion::newerThan($max_version))) {
                     // plugin is not compatible, so skip it
                     continue;
                 }
 
                 $meta_data = array(
-                    'version'     => utf8_decode($release['version']),
-                    'url'         => utf8_decode($release['url']),
-                    'description' => utf8_decode($plugin['description']),
-                    'plugin_url'  => utf8_decode($plugin['homepage']),
-                    'image'       => utf8_decode($plugin['image']),
-                    'score'       => utf8_decode($plugin['score'])
+                    'version'     => (string) $release['version'],
+                    'url'         => (string) $release['url'],
+                    'description' => (string) $plugin['description'],
+                    'plugin_url'  => (string) $plugin['homepage'],
+                    'image'       => (string) $plugin['image'],
+                    'score'       => (string) $plugin['score']
                 );
 
-                $this->registerPlugin(utf8_decode($plugin['name']), $meta_data);
+                $this->registerPlugin((string) $plugin['name'], $meta_data);
             }
         }
     }

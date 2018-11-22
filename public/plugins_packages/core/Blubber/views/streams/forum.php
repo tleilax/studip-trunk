@@ -13,7 +13,7 @@
 <input type="hidden" id="base_url" value="plugins.php/blubber/streams/">
 <input type="hidden" id="user_id" value="<?= htmlReady($GLOBALS['user']->id) ?>">
 <input type="hidden" id="stream" value="course">
-<input type="hidden" id="context_id" value="<?= $_SESSION['SessionSeminar'] ?>">
+<input type="hidden" id="context_id" value="<?= Context::getId() ?>">
 <input type="hidden" id="stream_time" value="<?= time() ?>">
 <input type="hidden" id="search" value="<?= htmlReady($search) ?>">
 <input type="hidden" id="browser_start_time" value="">
@@ -25,7 +25,7 @@
     <div class="row writer">
         <div id="context_selector" style="display: none;">
             <input type="hidden" id="context_type" value="course" checked="checked">
-            <input type="hidden" id="context" value="<?= $_SESSION['SessionSeminar'] ?>">
+            <input type="hidden" id="context" value="<?= Context::getId() ?>">
         </div>
         <textarea id="new_posting" placeholder="<?= _("Schreib was, frag was.") ?>"><?= $search ? htmlReady($search) : "" ?></textarea>
         <label title="<?= _("Datei hochladen") ?>" class="uploader">
@@ -52,7 +52,7 @@
             </tr>
             <tr>
                 <? $_SESSION['blubber_anonymous_security'] or $_SESSION['blubber_anonymous_security'] = mb_substr(md5(uniqid()), 0, 5) ?>
-                <td><?= _("Sicherheitsfrage! Schreibe folgendes rückwärts: ").strrev($_SESSION['blubber_anonymous_security']) ?></td>
+                <td><?= _("Sicherheitsfrage! Schreibe folgendes rÃ¼ckwÃ¤rts: ").strrev($_SESSION['blubber_anonymous_security']) ?></td>
                 <td><input type="text" id="anonymous_security" value="<?= $_SESSION['anonymous_email'] ? htmlReady($_SESSION['blubber_anonymous_security']) : "" ?>"></td>
             </tr>
             <tr>

@@ -47,12 +47,14 @@ class ModulInst extends ModuleManagementModel
         $params = is_null($group) ? array($modul_id)
                 : array($modul_id, $group);
         $ret = array();
-        $modul_insts = parent::getEnrichedByQuery('SELECT mmi.* '
-                . 'FROM mvv_modul_inst mmi '
-                . 'WHERE mmi.modul_id = ? '
-                . (is_null($group) ? '' : 'AND gruppe = ? ')
-                . ' ORDER BY `position`'
-                , $params);
+        $modul_insts = parent::getEnrichedByQuery('
+            SELECT mmi.* 
+            FROM mvv_modul_inst mmi 
+            WHERE mmi.modul_id = ? '
+                . (is_null($group) ? '' : 'AND gruppe = ? ') .
+            ' ORDER BY `position`',
+            $params
+        );
         foreach ($modul_insts as $modul_inst) {
             $ret[$modul_inst->institut_id] = $modul_inst;
         }
@@ -68,8 +70,9 @@ class ModulInst extends ModuleManagementModel
     public static function findPrimarilyResponsibleInstitute($modul_id)
     {
         return self::findOneBySql(
-                "modul_id = ? AND `gruppe` = 'hauptverantwortlich'",
-                array($modul_id));
+            "modul_id = ? AND `gruppe` = 'hauptverantwortlich'",
+            array($modul_id)
+        );
     }
     
     /**
@@ -81,9 +84,9 @@ class ModulInst extends ModuleManagementModel
     public static function findOtherResponsibleInstitutes($modul_id)
     {
         return self::findBySql(
-                "modul_id = ? AND `gruppe` != 'hauptverantwortlich' "
-                . "ORDER BY `position`",
-                array($modul_id));
+            "modul_id = ? AND `gruppe` != 'hauptverantwortlich' ORDER BY `position`",
+            array($modul_id)
+        );
     }
     
     /**

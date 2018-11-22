@@ -3,30 +3,39 @@
 use Studip\Button, Studip\LinkButton;
 ?>
 
-<h3><?= _('Rollenverwaltung für Plugins') ?></h3>
-
-<form action="<?= $controller->url_for('admin/role/assign_plugin_role') ?>" style="margin-bottom: 1em;" method="POST">
+<form action="<?= $controller->url_for('admin/role/assign_plugin_role') ?>" method="POST" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <select name="pluginid" style="min-width: 300px;">
-        <? foreach ($plugins as $plugin): ?>
-            <option value="<?= $plugin['id'] ?>" <?= $plugin['id'] == $pluginid ? 'selected' : '' ?>>
-                <?= htmlReady($plugin['name']) ?>
-            </option>
-        <? endforeach ?>
-    </select>
+    <fieldset>
+        <legend>
+            <?= _('Rollenverwaltung fÃ¼r Plugins') ?>
+        </legend>
 
-    <?= Button::create(_('Auswählen'), 'select', array('title' => _('Plugin auswählen'))) ?>
+        <label>
+            <select name="pluginid" style="min-width: 300px;">
+                <? foreach ($plugins as $plugin): ?>
+                    <option value="<?= $plugin['id'] ?>" <?= $plugin['id'] == $pluginid ? 'selected' : '' ?>>
+                        <?= htmlReady($plugin['name']) ?>
+                    </option>
+                <? endforeach ?>
+            </select>
+        </label>
+    </fieldset>
+
+    <footer>
+        <?= Button::create(_('AuswÃ¤hlen'), 'select', array('title' => _('Plugin auswÃ¤hlen'))) ?>
+    </footer>
 </form>
 
 <? if ($pluginid): ?>
-    <form action="<?= $controller->url_for('admin/role/save_plugin_role', $pluginid) ?>" method="POST">
+    <br>
+    <form action="<?= $controller->url_for('admin/role/save_plugin_role', $pluginid) ?>" method="POST" class="default">
         <?= CSRFProtection::tokenTag() ?>
         <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
         <table class="default nohover">
             <tr>
-                <th style="text-align: center;"><?= _('Gegenwärtig zugewiesene Rollen') ?></th>
+                <th style="text-align: center;"><?= _('GegenwÃ¤rtig zugewiesene Rollen') ?></th>
                 <th></th>
-                <th><?= _('Verfügbare Rollen') ?></th>
+                <th><?= _('VerfÃ¼gbare Rollen') ?></th>
             </tr>
             <tr class="table_row_even">
                 <td style="text-align: right;">
@@ -59,4 +68,3 @@ use Studip\Button, Studip\LinkButton;
         </table>
     </form>
 <? endif ?>
-

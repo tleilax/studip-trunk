@@ -1,5 +1,5 @@
 <?
-$last_visit = object_get_visit($_SESSION['SessionSeminar'], "forum");
+$last_visit = object_get_visit(Context::getId(), "forum");
 BlubberPosting::$course_hashes = ($thread['context_type'] === "course" ? $thread['Seminar_id'] : false);
 $related_users = $thread['context_type'] === "private" ? $thread->getRelatedUsers() : array();
 $author = $thread->getUser();
@@ -55,8 +55,8 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
             } ?>
         </div>
     <? else : ?>
-        <div class="contextinfo" title="<?= _("�ffentlich") ?>">
-            <div class="name"><?= _("�ffentlich") ?></div>
+        <div class="contextinfo" title="<?= _("Öffentlich") ?>">
+            <div class="name"><?= _("Öffentlich") ?></div>
         </div>
     <? endif ?>
     <? if ($thread['context_type'] === "public") : ?>
@@ -114,16 +114,24 @@ $commentable = $GLOBALS['perm']->have_perm("autor") ? true : (bool) $commentable
         <div class="timer">
             <a href="<?= URLHelper::getLink('plugins.php/blubber/streams/thread/' . $thread->getId(), array('cid' => $thread['Seminar_id'])) ?>"
                    class="permalink"
-                   title="<?= date("j.n.Y G:i", $thread['mkdate']) ?>">
+                   title="<?= date("j.n.Y H:i", $thread['mkdate']) ?>">
                 <span class="time" data-timestamp="<?= (int) $thread['mkdate'] ?>">
-                    <?= (date("j.n.Y", $thread['mkdate']) == date("j.n.Y")) ? sprintf(_("%s Uhr"), date("G:i", $thread['mkdate'])) : date("j.n.Y", $thread['mkdate']) ?>
+                    <?= (date("j.n.Y", $thread['mkdate']) == date("j.n.Y")) ? sprintf(_("%s Uhr"), date("H:i", $thread['mkdate'])) : date("j.n.Y", $thread['mkdate']) ?>
                 </span>
             </a>
             <? if (($thread['Seminar_id'] !== $thread['user_id'] && $GLOBALS['perm']->have_studip_perm("tutor", $thread['Seminar_id']))
                 or ($thread['user_id'] === $GLOBALS['user']->id)
                 or $GLOBALS['perm']->have_perm("root")) : ?>
-                <a href="#" class="edit icon" onClick="return false;">
-                    <?= Icon::create('tools', 'inactive', ['title' => _('Bearbeiten')])->asImg(14) ?>
+                <a href="#" class="edit icon">
+                    <?= Icon::create('edit')->asImg(14, [
+                        'title' => _('Bearbeiten'),
+                    ]) ?>
+                </a>
+                <a href="#" class="delete icon">
+                    <?= Icon::create('trash')->asImg(14, [
+                        'title' => _('Löschen'),
+                        'data-confirm' => _('Möchten Sie diesen Beitrag wirklich löschen?'),
+                    ]) ?>
                 </a>
             <? endif ?>
         </div>

@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 require_once 'lib/dates.inc.php';
-require_once 'lib/datei.inc.php';
 require_once 'lib/wiki.inc.php'; // getAllWikiPages for dump
 require_once 'lib/user_visible.inc.php';
 
@@ -42,10 +41,13 @@ function lastActivity ($sem_id)
         $queries = array(
             // Veranstaltungs-data
             "SELECT chdate FROM seminare WHERE Seminar_id = :id",
-            // Folder
-            "SELECT MAX(chdate) AS chdate FROM folder WHERE range_id = :id",
-            // Dokuments
-            "SELECT MAX(chdate) AS chdate FROM dokumente WHERE seminar_id = :id",
+            // Folders
+            "SELECT MAX(chdate) AS chdate FROM folders WHERE range_id = :id",
+            // Documents
+            "SELECT MAX(file_refs.chdate) AS chdate FROM file_refs
+                INNER JOIN folders
+                ON file_refs.folder_id = folders.id
+                WHERE folders.range_id = :id",
             // SCM
             "SELECT MAX(chdate) AS chdate FROM scm WHERE range_id = :id",
             // Dates
@@ -208,7 +210,7 @@ function dump_sem($sem_id, $print_view = false)
     $statement->execute(array($sem_id));
     $faculties = $statement->fetchAll(PDO::FETCH_COLUMN);
     if (count($faculties) > 0) {
-        $dumpRow(_('Fakult‰t(en):'), implode('<br>', array_map('htmlReady', $faculties)));
+        $dumpRow(_('Fakult√§t(en):'), implode('<br>', array_map('htmlReady', $faculties)));
     }
 
     //Studienbereiche
@@ -254,32 +256,43 @@ function dump_sem($sem_id, $print_view = false)
     foreach ($forum_modules as $plugin) {
         $count += $plugin->getNumberOfPostingsForSeminar($sem_id);
     }
-    $dumpRow(_('Forenbeitr‰ge:'), $count);
+    $dumpRow(_('Forenbeitr√§ge:'), $count);
+
+    $num_files = 0;
+    $course_top_folder = Folder::findTopFolder($sem_id);
+    if ($course_top_folder) {
+        $course_top_folder = $course_top_folder->getTypedFolder();
+    }
+
+    $user_id = $print_view === true ? $GLOBALS['user']->id : $print_view;
+
+    $readable_files_user_id = $user_id;
 
     if ($Modules['documents']) {
-        //do not show hidden documents
-        $unreadable_folders = array();
-        if ($print_view) {
-            $check_user = $print_view === true ? $GLOBALS['user']->id : $print_view;
-            if ($Modules['documents_folder_permissions'] || StudipDocumentTree::ExistsGroupFolders($sem_id)) {
-                if (!$GLOBALS['perm']->have_studip_perm('tutor', $sem_id, $check_user)) {
-                    $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $sem_id,'entity_type' => 'sem'));
-                    $unreadable_folders = $folder_tree->getUnReadableFolders($check_user);
-                }
-            }
-        }
-        $query = "SELECT COUNT(*) FROM dokumente WHERE seminar_id = ?";
-        $parameters = array($sem_id);
+        //Get the amount of readable files for a user with status autor in the course:
 
-        if (count($unreadable_folders) > 0) {
-            $query .= " AND range_id NOT IN(?)";
-            $parameters[] = $unreadable_folders;
+        $autor = CourseMember::findOneBySql(
+            "seminar_id = :course_id AND status = 'autor'",
+            [
+                'course_id' => $sem_id
+            ]
+        );
+        if ($autor) {
+            $readable_files_user_id = $autor->user_id;
+            $num_files = FileManager::countFilesInFolder($course_top_folder, true, null, $autor->user_id);
+        } else {
+            $dozent = CourseMember::findOneBySql(
+                "seminar_id = :course_id AND status = 'dozent'",
+                [
+                    'course_id' => $sem_id
+                ]
+            );
+            $readable_files_user_id = $dozent->user_id;
+            $num_files = FileManager::countFilesInFolder($course_top_folder, true, null, $dozent->user_id);
         }
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute($parameters);
-        $docs = $statement->fetchColumn();
     }
-    $dumpRow(_('Dokumente:'), $docs ?: 0);
+
+    $dumpRow(_('Dokumente:'), $num_files ? $num_files : 0);
 
     $dump.= '</table>' . "\n";
 
@@ -320,40 +333,35 @@ function dump_sem($sem_id, $print_view = false)
     // Dateien anzeigen
     if ($Modules['documents']) {
 
-        $link_text = _('Hinweis: Diese Datei wurde nicht archiviert, da sie lediglich verlinkt wurde.');
-        $query = "SELECT name, filename, mkdate, filesize, Nachname AS nachname,
-                         IF(url != '', CONCAT('{$link_text}', ' / ', description), description) AS description
-                  FROM dokumente
-                  LEFT JOIN auth_user_md5 USING (user_id)
-                  WHERE seminar_id = ?";
-        $parameters = array($sem_id);
+        if ($course_top_folder) {
+            list($file_refs, $folders) = array_values(
+                FileManager::getFolderFilesRecursive(
+                    $course_top_folder,
+                    $readable_files_user_id,
+                    true
+                )
+            );
 
-        if (count($unreadable_folders) > 0) {
-            $query .= " AND range_id NOT IN (?)";
-            $parameters[] = $unreadable_folders;
-        }
+            $link_text = _('Hinweis: Diese Datei wurde nicht archiviert, da sie lediglich verlinkt wurde.');
 
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute($parameters);
-        $dbresult = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        if (count($dbresult) > 0) {
-            $dump .= '<br>';
-            $dump .= '<table width="100%" border="1" cellpadding="2" cellspacing="0">';
-            $dump .= '<tr><td align="left" colspan="3" class="table_header_bold">';
-            $dump .= '<h2 class="table_header_bold">&nbsp;' . _('Dateien:') . '</h2>';
-            $dump .= '</td></tr>' . "\n";
+            if ($file_refs) {
+                $dump .= '<br>';
+                $dump .= '<table width="100%" border="1" cellpadding="2" cellspacing="0">';
+                $dump .= '<tr><td align="left" colspan="3" class="table_header_bold">';
+                $dump .= '<h2 class="table_header_bold">&nbsp;' . _('Dateien:') . '</h2>';
+                $dump .= '</td></tr>' . "\n";
 
-            foreach ($dbresult as $row) {
-                $name = ($row['name'] && $row['name'] != $row['filename'])
-                      ? $row['name'] . ' (' . $row['filename'] . ')'
-                      : $row['filename'];
-                $dump .= sprintf('<tr><td width="100%%"><b>%s</b><br>%s (%u KB)</td><td>%s</td><td>%s</td></tr>' . "\n",
-                                 htmlReady($name),
-                                 htmlReady($row['description']),
-                                 round($row['filesize'] / 1024),
-                                 htmlReady($row['nachname']),
-                                 date('d.m.Y', $row['mkdate']));
+                foreach ($file_refs as $file_ref) {
+                    $dump .= sprintf(
+                        '<tr><td width="100%%"><b>%s</b><br>%s (%u KB)</td><td>%s</td><td>%s</td></tr>' . "\n",
+                        htmlReady($file_ref->name),
+                        htmlReady($file_ref->description),
+                        round($file_ref->file->size / 1024),
+                        htmlReady($file_ref->owner->nachname),
+                        date('d.m.Y', $file_ref->mkdate)
+                    );
+                }
             }
 
             $dump .= '</table>' . "\n";
@@ -366,18 +374,6 @@ function dump_sem($sem_id, $print_view = false)
     {
         $dump .= '<br>';
 
-        // Prepare statement that obtains the number of document a specific
-        // user has uploaded into a specific seminar
-        $documents_params = array($sem_id, null);
-        $query = "SELECT COUNT(*) FROM dokumente WHERE Seminar_id = ? AND user_id = ?";
-        if (count($unreadable_folders) > 0) {
-            $query .= " AND range_id NOT IN (?)";
-            $documents_params[] = $unreadable_folders;
-
-        }
-        $documents_statement = DBManager::get()->prepare($query);
-        // Prepare statement that obtains all participants of a specific
-        // seminar with a specific status
         $ext_vis_query = get_ext_vis_query('seminar_user');
         $query = "SELECT user_id, {$_fullname_sql['full']} AS fullname,
                          {$ext_vis_query} AS user_is_visible
@@ -403,14 +399,17 @@ function dump_sem($sem_id, $print_view = false)
                 $dump .= '<h2 class="table_header_bold">&nbsp;' . get_title_for_status($key, count($users), $sem_type) . '</h2>';
                 $dump .= '</td></tr>' . "\n";
                 $dump .= '<th width="30%">' . _('Name') . '</th>';
-                $dump .= '<th width="10%">' . _('Forenbeitr‰ge') . '</th>';
+                $dump .= '<th width="10%">' . _('Forenbeitr√§ge') . '</th>';
                 $dump .= '<th width="10%">' . _('Dokumente') . '</th></tr>' . "\n";
 
                 foreach ($users as $user) {
-                    $documents_params[1] = $user['user_id'];
-                    $documents_statement->execute($documents_params);
-                    $count = $documents_statement->fetchColumn() ?: 0;
-                    $documents_statement->closeCursor();
+                    //Count the files the user owns in the course:
+
+                    $user_files_count = FileManager::countFilesInFolder(
+                        $course_top_folder,
+                        true,
+                        $user['user_id']
+                    );
 
                     // get number of postings for this user from all forum-modules
                     $postings = 0;
@@ -418,9 +417,14 @@ function dump_sem($sem_id, $print_view = false)
                         $postings += $plugin->getNumberOfPostingsForUser($user['user_id'], $sem_id);
                     }
 
-                    $dump .= sprintf('<tr><td>%s</td><td align="center">%u</td><td align="center">%u</td></tr>' . "\n",
-                                     $user['user_is_visible'] ? htmlReady($user['fullname']) : _('(unsichtbareR NutzerIn)'),
-                                     $postings, $count);
+                    $dump .= sprintf(
+                        '<tr><td>%s</td><td align="center">%u</td><td align="center">%u</td></tr>' . "\n",
+                        $user['user_is_visible']
+                        ? htmlReady($user['fullname'])
+                        : _('(unsichtbareR NutzerIn)'),
+                        $postings,
+                        $user_files_count
+                    );
                 } // eine Zeile zuende
 
                 $dump.= '</table>' . "\n";
@@ -471,7 +475,7 @@ function dumpExtraDatesSchedule($sem_id)
     $statement->execute(array($sem_id));
     $data = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-    return dumpScheduleTable($data, _('zus‰tzliche Termine'));
+    return dumpScheduleTable($data, _('zus√§tzliche Termine'));
 }
 
 /**
@@ -556,7 +560,7 @@ function dumpDateTableRows($data)
 //Funktion zum archivieren eines Seminars, sollte in der Regel vor dem Loeschen ausgfuehrt werden.
 function in_archiv ($sem_id)
 {
-    global $SEM_CLASS,$SEM_TYPE, $ARCHIV_PATH, $TMP_PATH, $ZIP_PATH, $ZIP_OPTIONS, $_fullname_sql;
+    global $SEM_CLASS,$SEM_TYPE, $ARCHIV_PATH, $TMP_PATH, $_fullname_sql;
 
     NotificationCenter::postNotification('CourseWillArchive', $sem_id);
 
@@ -577,8 +581,7 @@ function in_archiv ($sem_id)
     $heimat_inst_id = $row['Institut_id'];
 
     //Besorgen von einzelnen Daten zu dem Seminar
-    $semester = new SemesterData;
-    $all_semester = $semester->getAllSemesterData();
+    $all_semester = SemesterData::getAllSemesterData();
     foreach ($all_semester as $sem) {
         if (($start_time >= $sem['beginn']) && ($start_time <= $sem['ende'])) {
             $semester_tmp = $sem['name'];
@@ -636,7 +639,7 @@ function in_archiv ($sem_id)
     $statement->execute(array($seminar_id));
     $fakultaet = $statement->fetchColumn();
 
-    setTempLanguage();  // use $DEFAULT_LANGUAGE for archiv-dumps
+    setTempLanguage();  // use DEFAULT_LANGUAGE for archiv-dumps
 
     //Dump holen
     $dump = dump_sem($sem_id, 'nobody');
@@ -652,7 +655,7 @@ function in_archiv ($sem_id)
     restoreLanguage();
 
     //OK, naechster Schritt: Kopieren der Personendaten aus seminar_user in archiv_user
-    $query = "INSERT INTO archiv_user (seminar_id, user_id, status)
+    $query = "INSERT IGNORE INTO archiv_user (seminar_id, user_id, status)
               SELECT Seminar_id, user_id, status FROM seminar_user WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($seminar_id));
@@ -668,63 +671,94 @@ function in_archiv ($sem_id)
         }
     }
 
-    $Modules = new Modules;
-    $Modules = $Modules->getLocalModules($sem_id);
-    $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $sem_id,'entity_type' => 'sem'));
 
-    if ($Modules['documents_folder_permissions'] || StudipDocumentTree::ExistsGroupFolders($sem_id)) {
-        $unreadable_folders = $folder_tree->getUnReadableFolders('nobody');
+    //Archive files:
+
+
+    //Get the top folder of the course:
+    $top_folder = Folder::findTopFolder($sem_id);
+    if($top_folder) {
+        $top_folder = $top_folder->getTypedFolder();
     }
 
-    $query = "SELECT COUNT(dokument_id) FROM dokumente WHERE seminar_id = ? AND url = ''";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($seminar_id));
-    $count = $statement->fetchColumn();
-    if ($count) {
-        $hash_secret = "frauen";
-        $archiv_file_id = md5(uniqid($hash_secret,1));
+    //Collect all subfolders and files which are directly below the top folder:
 
-        //temporaeres Verzeichnis anlegen
-        $tmp_full_path = "$TMP_PATH/$archiv_file_id";
-        mkdir($tmp_full_path, 0700);
+    $readable_items = []; //files and folders which are readable for all course participants
+    $protected_archive_items = []; //all files and folders of the course
 
-        if($folder_tree->getNumKids('root')) {
-            $list = $folder_tree->getKids('root');
+    foreach($top_folder->getSubfolders() as $subfolder) {
+        $protected_archive_items[] = $subfolder;
+        if($subfolder instanceof StandardFolder) {
+            //StandardFolder instances inside a course are always readable
+            //for everyone. For other folder types we can't be sure
+            //about that so that these folder types aren't included
+            //in the standard file archive.
+            $readable_items[] = $subfolder;
         }
-        if (is_array($list) && count($list) > 0) {
-            $query = "SELECT folder_id, name
-                      FROM folder WHERE range_id IN (?)
-                      ORDER BY name";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($list));
+    }
 
-            $folder = 0;
-            while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-                $folder += 1;
-                $temp_folder = $tmp_full_path . "/[$folder]_" . prepareFilename($row['name'], FALSE);
-                mkdir($temp_folder, 0700);
-                createTempFolder($row['folder_id'], $temp_folder, $seminar_id, 'nobody');
+    foreach($top_folder->getFiles() as $file_ref) {
+        $protected_archive_items[] = $file_ref;
+        if($file_ref->terms_of_use) {
+            if($file_ref->terms_of_use->download_condition == 0) {
+                //only Files which are downloadable by everyone in the course
+                //can be added to the standard file archive.
+                $readable_items[] = $file_ref;
             }
-
-            //zip all the stuff
-            $archiv_full_path = "$ARCHIV_PATH/$archiv_file_id";
-            create_zip_from_directory($tmp_full_path, $tmp_full_path);
-            @rename($tmp_full_path . '.zip', $archiv_full_path);
         }
-        rmdirr($tmp_full_path);
-
-        if (is_array($unreadable_folders)) {
-            $query = "SELECT dokument_id FROM dokumente WHERE seminar_id = ? AND url = '' AND range_id IN (?)";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($seminar_id, $unreadable_folders));
-            $archiv_protected_file_id = createSelectedZip($statement->fetchAll(PDO::FETCH_COLUMN), false, false);
-            @rename("$TMP_PATH/$archiv_protected_file_id", "$ARCHIV_PATH/$archiv_protected_file_id");
-        }
-    } else {
-        $archiv_file_id = '';
     }
 
-    //Reinschreiben von diversem Klumpatsch in die Datenbank
+
+    //Create the standard file archive if there are files and folders which
+    //are readable (or downloadable) for everyone in the course:
+
+    $archive_file_id = '';
+
+    if (!empty($readable_items)) {
+        //list of readable items isn't empty
+
+        //create name for the archive ZIP file:
+        $archive_file_id = md5('archive_' . $sem_id);
+
+        $archive_path = $ARCHIV_PATH . '/' . $archive_file_id;
+
+        FileArchiveManager::createArchive(
+            $readable_items,
+            'nobody',
+            $archive_path,
+            false, //don't do individual permission checks
+            true, //keep hierarchy
+            true //skip check for user permissions
+        );
+
+        if(!file_exists($archive_path)) {
+            //empty archive or error during archive creation:
+            $archive_file_id = ''; //no archive
+        }
+
+    }
+
+
+    //Create the protected file archive which contains all files of the course.
+
+    $archive_protected_files_zip_id = md5('protected_archive_' . $sem_id);
+
+    $archive_protected_files_path = $ARCHIV_PATH . '/' . $archive_protected_files_zip_id;
+
+    FileArchiveManager::createArchive(
+        $protected_archive_items,
+        null,
+        $archive_protected_files_path,
+        false //no permission checks
+    );
+
+    if(!file_exists($archive_protected_files_path)) {
+        //empty archive or error during archive creation:
+        $archive_protected_files_zip_id = ''; //no protected files archive
+    }
+
+
+    //We're done with archiving: Store a new archived course in the database:
     $query = "INSERT INTO archiv
                 (seminar_id, name, untertitel, beschreibung, start_time,
                  semester, heimat_inst_id, institute, dozenten, fakultaet,
@@ -745,8 +779,8 @@ function in_archiv ($sem_id)
         $dozenten ?: '',
         $fakultaet ?: '',
         $dump ?: '',
-        $archiv_file_id ?: '',
-        $archiv_protected_file_id ?: '',
+        $archive_file_id ?: '',
+        $archive_protected_files_zip_id ?: '',
         $forumdump ?: '',
         $wikidump ?: '',
         $studienbereiche ?: '',

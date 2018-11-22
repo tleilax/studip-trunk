@@ -11,17 +11,15 @@ class SelectWidget extends SidebarWidget
     /**
      * Constructs the widget by defining a special template.
      */
-    public function __construct($title, $url, $name, $method = 'get')
+    public function __construct($title, $url, $name, $method = 'get', $multiple = false)
     {
         $this->template = 'sidebar/select-widget';
-        $this->template_variables['attributes'] = array(
-            'onchange' => '$(this).closest(\'form\').submit();',
-        );
 
         $this->setTitle($title);
         $this->setUrl($url);
         $this->setSelectParameterName($name);
         $this->setRequestMethod($method);
+        $this->setMultiple($multiple);
 
         $this->template_variables['max_length'] = 30;
     }
@@ -60,11 +58,21 @@ class SelectWidget extends SidebarWidget
         $this->template_variables['method'] = $method;
     }
 
+    public function setMultiple($multiple)
+    {
+        $this->template_variables['multiple'] = $multiple;
+    }
+
     public function setOptions(Array $options, $selected = false)
     {
-        $selected = $selected ?: Request::get($this->template_variables['name']);
+        $selected = $selected ?: Request::getArray($this->template_variables['name']);
+        //if selected is one single value
+        if (!is_array($selected)) {
+            $selected = [$selected];
+        }
+
         foreach ($options as $key => $label) {
-            $element = new SelectElement($key, $label, $selected === $key);
+            $element = new SelectElement($key, $label, in_array($key, $selected));
             $this->addElement($element);
         }
     }
@@ -79,6 +87,11 @@ class SelectWidget extends SidebarWidget
 
         $variables['__is_nested'] = $this->hasNestedElements();
 
+        //submit-upon-select is not helpful if we have the multiple version
+        if (!$this->template_variables['multiple']) {
+            $this->template_variables['class'] .= ' submit-upon-select';
+        }
+
         return parent::render($variables);
     }
 
@@ -91,6 +104,46 @@ class SelectWidget extends SidebarWidget
                 return true;
             }
         }
-        return false;
+
+        // use nested if multiple
+        return $this->template_variables['multiple'];
+    }
+
+    private static function isArrayAssoc(array $arr)
+    {
+        if ([] === $arr) {
+            return false;
+        }
+        return array_keys($arr) !== range(0, count($arr) - 1);
+    }
+
+    public static function arrayToHiddenInput($array, $prefix = '')
+    {
+        $string = '';
+
+        if (self::isArrayAssoc($array)) {
+            foreach ($array as $key => $value) {
+                if (empty($prefix)) {
+                    $name = $key;
+                } else {
+                    $name = $prefix.'['.$key.']';
+                }
+                if (is_array($value)) {
+                    $string .= self::arrayToHiddenInput($value, $name);
+                } else {
+                    $string .= sprintf('<input type="hidden" value="%s" name="%s">'."\n", htmlReady($value), htmlReady($name));
+                }
+            }
+        } else {
+            foreach ($array as $i => $item) {
+                if (is_array($item)) {
+                    $string .= self::arrayToHiddenInput($item, $prefix.'['.((int) $i).']');
+                } else {
+                    $string .= sprintf('<input type="hidden" name="%s[%d]" value="%s">'."\n", htmlReady($prefix), $i, htmlReady($item));
+                }
+            }
+        }
+
+        return $string;
     }
 }

@@ -16,7 +16,7 @@
 
 class ModulDeskriptor extends ModuleManagementModel
 {
-
+    
     protected static function configure($config = array())
     {
         $config['db_table'] = 'mvv_modul_deskriptor';
@@ -41,6 +41,25 @@ class ModulDeskriptor extends ModuleManagementModel
                 }
         );
         
+        $config['i18n_fields']['verantwortlich'] = true;
+        $config['i18n_fields']['bezeichnung'] = true;
+        $config['i18n_fields']['voraussetzung'] = true;
+        $config['i18n_fields']['kompetenzziele'] = true;
+        $config['i18n_fields']['inhalte'] = true;
+        $config['i18n_fields']['literatur'] = true;
+        $config['i18n_fields']['links'] = true;
+        $config['i18n_fields']['kommentar'] = true;
+        $config['i18n_fields']['turnus'] = true;
+        $config['i18n_fields']['kommentar_kapazitaet'] = true;
+        $config['i18n_fields']['kommentar_sws'] = true;
+        $config['i18n_fields']['kommentar_wl_selbst'] = true;
+        $config['i18n_fields']['kommentar_wl_pruef'] = true;
+        $config['i18n_fields']['kommentar_note'] = true;
+        $config['i18n_fields']['pruef_vorleistung'] = true;
+        $config['i18n_fields']['pruef_leistung'] = true;
+        $config['i18n_fields']['pruef_wiederholung'] = true;
+        $config['i18n_fields']['ersatztext'] = true;
+        
         parent::configure($config);
     }
     
@@ -56,20 +75,6 @@ class ModulDeskriptor extends ModuleManagementModel
     public static function getClassDisplayName($long = false)
     {
         return _('Modul-Deskriptor');
-    }
-    
-    /**
-     * Retrieves all descriptors for the given module.
-     * 
-     * @param string $modul_id The id of a module.
-     * @return object A SimpleORMapcollection of module descriptors.
-     */
-    public static function findByModul($modul_id)
-    {
-        return parent::getEnrichedByQuery('SELECT mmd.* '
-                . 'FROM mvv_modul_deskriptor mmd '
-                . 'WHERE mmd.modul_id = ? '
-                , array($modul_id));
     }
     
     /**
@@ -101,5 +106,30 @@ class ModulDeskriptor extends ModuleManagementModel
         }
         return $institutes;
     }
-
+    
+    /**
+     * Returns the language identifier as the variant of the descriptor object.
+     * 
+     * @see ModuleManagementModel::getVariant()
+     * @return string The language identifier.
+     */
+    public function getVariant()
+    {
+        if (self::getLanguage() == $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['default']) {
+            return '';
+        }
+        return self::getLanguage();
+    }
+    
+    /**
+     * Deletes the translation in the given language of this descriptor.
+     * 
+     * @param string $language The language of the translation to delete.
+     * @return int The number of deleted translated fields.
+     */
+    public function deleteTranslation($language)
+    {
+        $locale = $GLOBALS['MVV_LANGUAGES']['values'][$language]['locale'];
+        return I18NString::removeAllTranslations($this->id, 'mvv_modul_deskriptor', $locale);
+    }
 }

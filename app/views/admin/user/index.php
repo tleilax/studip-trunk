@@ -1,6 +1,7 @@
 <?
 # Lifter010: TODO
 use Studip\Button, Studip\LinkButton;
+
 ?>
 
 
@@ -10,17 +11,27 @@ use Studip\Button, Studip\LinkButton;
     <fieldset>
         <legend><?= _('Benutzerverwaltung') ?></legend>
 
-        <label>
+        <label class="col-3">
             <?= _('Benutzername') ?>
             <input name="username" type="text" value="<?= htmlReady($request['username']) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('E-Mail') ?>
             <input name="email" type="text" value="<?= htmlReady($request['email']) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
+            <?= _('Vorname') ?>
+            <input name="vorname" type="text" value="<?= htmlReady($request['vorname']) ?>">
+        </label>
+
+        <label class="col-3">
+            <?= _('Nachname') ?>
+            <input name="nachname" type="text" value="<?= htmlReady($request['nachname']) ?>">
+        </label>
+
+        <label class="col-1">
             <?= _('Status')?>
 
             <select name="perm">
@@ -32,45 +43,34 @@ use Studip\Button, Studip\LinkButton;
             </select>
         </label>
 
-        <label>
+        <label class="col-1">
+            <span class="label-text"><?= _('inaktiv') ?></span>
+
+            <div class="hgroup">
+                <select name="inaktiv" class="size-s">
+                <? foreach(array('<=' => '>=', '=' => '=', '>' => '<', 'nie' =>_('nie')) as $i => $one): ?>
+                    <option value="<?= htmlready($i) ?>" <?= ($request['inaktiv'][0] === $i) ? 'selected' : '' ?>>
+                        <?= htmlReady($one) ?>
+                    </option>
+                <? endforeach; ?>
+                </select>
+
+                <input name="inaktiv_tage" type="number" id="inactive"
+                       value="<?= htmlReady($request['inaktiv'][1]) ?>">
+                <?= _('Tage') ?>
+            </div>
+        </label>
+
+        <label class="col-1" style="padding-top: 1.8em;">
             <input type="checkbox" name="locked" value="1" <?=  ($request['locked']) ?  'checked' : '' ?>>
             <?= _('nur gesperrt') ?>
         </label>
-
-        <label>
-            <?= _('Vorname') ?>
-            <input name="vorname" type="text" value="<?= htmlReady($request['vorname']) ?>">
-        </label>
-
-        <label>
-            <?= _('Nachname') ?>
-            <input name="nachname" type="text" value="<?= htmlReady($request['nachname']) ?>">
-        </label>
-
-        <label for="inactive">
-            <?= _('inaktiv') ?>
-        </label>
-        <section class="hgroup size-m">
-            <select name="inaktiv" class="size-s">
-            <? foreach(array('<=' => '>=', '=' => '=', '>' => '<', 'nie' =>_('nie')) as $i => $one): ?>
-                <option value="<?= htmlready($i) ?>" <?= ($user['inaktiv'] === $i) ? 'selected' : '' ?>>
-                    <?= htmlReady($one) ?>
-                </option>
-            <? endforeach; ?>
-            </select>
-
-            <label>
-                <input name="inaktiv_tage" type="number" id="inactive"
-                       value="<?= htmlReady($request['inaktiv_tage']) ?>">
-                <?= _('Tage') ?>
-            </label>
-        </section>
-
     </fieldset>
 
     <fieldset class="collapsable <?= (!$advanced) ?  'collapsed' : '' ?>">
         <legend><?= _('Erweiterte Suche') ?></legend>
-        <label for="institute">
+
+        <label for="institute" class="col-3">
             <?=_('Einrichtung')?>
             <select name="institute">
                 <option value=""><?= _('Alle')?></option>
@@ -81,13 +81,14 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach ?>
             </select>
         </label>
-        <label>
-            <?= _('Nutzerdomäne') ?>
+
+        <label class="col-3">
+            <?= _('NutzerdomÃ¤ne') ?>
 
             <select name="userdomains">
                 <option value=""><?= _('Alle') ?></option>
                 <option value="null-domain" <?= ($request['userdomains'] === 'null-domain') ? 'selected' : '' ?>>
-                    <?= _('Ohne Domäne') ?>
+                    <?= _('Ohne DomÃ¤ne') ?>
                 </option>
             <? foreach ($userdomains as $one): ?>
                 <option value="<?= htmlReady($one->getId()) ?>" <?= ($request['userdomains'] === $one->getId()) ? 'selected' : ''?>>
@@ -96,7 +97,8 @@ use Studip\Button, Studip\LinkButton;
             <? endforeach; ?>
             </select>
         </label>
-        <label>
+
+        <label class="col-3">
             <?=_('Abschluss')?>
             <select name="degree">
                 <option value=""><?=_('Alle')?></option>
@@ -105,7 +107,8 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach ?>
             </select>
         </label>
-        <label>
+
+        <label class="col-3">
             <?=_('Fach')?>
             <select name="studycourse">
                 <option value=""><?=_('Alle')?></option>
@@ -114,38 +117,38 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach ?>
             </select>
         </label>
-        <label>
+
+        <label class="col-3">
             <?= _('Authentifizierung') ?>
 
             <select name="auth_plugins">
                <option value=""><?= _('Alle') ?></option>
-               <option value="preliminary"><?= _('vorläufig')?></option>
-           <? foreach ($available_auth_plugins as $one): ?>
-                <option <?= ($request['auth_plugins'] === $one) ? 'selected' : '' ?>>
-                    <?= htmlReady($one) ?>
+           <? foreach (array_merge(['preliminary' => _('vorlÃ¤ufig')], $available_auth_plugins) as $key => $val): ?>
+                <option value="<?= $key ?>" <?= $request['auth_plugins'] === $key ? 'selected' : '' ?>>
+                    <?= htmlReady($val) ?>
                 </option>
             <? endforeach; ?>
             </select>
         </label>
 
     <? foreach ($datafields as $datafield): ?>
-        <label>
+        <label class="col-3">
             <?= htmlReady($datafield->name) ?>
 
         <? if ($datafield->type === 'bool'): ?>
-            <section class="hgroup size-m">
-                <label>
+            <section class="hgroup">
+                <span class="col-2">
                     <input type="radio" name="<?= $datafield->id ?>" value="" <?= (mb_strlen($request[$datafield->id]) === 0) ? 'checked' : '' ?>>
                     <?= _('egal') ?>
-                </label>
-                <label>
+                </span>
+                <span class="col-2">
                     <input type="radio" name="<?= $datafield->id ?>" value="1" <?= ($request[$datafield->id] === '1') ? 'checked' : '' ?>>
                     <?= _('ja') ?>
-                </label>
-                <label>
+                </span>
+                <span class="col-2">
                     <input type="radio" name="<?= $datafield->id ?>" value="0" <?= ($request[$datafield->id] === '0') ? 'checked' : '' ?>>
                     <?= _('nein') ?>
-                </label>
+                </span>
             </section>
         <? elseif ($datafield->type === 'selectbox' || $datafield->type === 'radio') : ?>
             <? $datafield_entry = DataFieldEntry::createDataFieldEntry($datafield);?>
@@ -164,14 +167,19 @@ use Studip\Button, Studip\LinkButton;
         </label>
     <? endforeach; ?>
 
+        <label>
+            <input type="checkbox" name="show_only_not_lectures" value="1"
+                   <? if ($request['show_only_not_lectures']) echo 'checked'; ?>>
+            <?= _('Nur Personen anzeigen, die in keiner Veranstaltung Lehrende sind')?>
+        </label>
     </fieldset>
 
     <footer>
         <?= Button::create(_('Suchen'), 'search')?>
-        <?= Button::create(_('Zurücksetzen'), 'reset')?>
+        <?= Button::create(_('ZurÃ¼cksetzen'), 'reset')?>
     </footer>
 </form>
 
-<? if (count($users) > 0 && $users != 0): ?>
-    <?= $this->render_partial('admin/user/_results', compact('users')) ?>
+<? if (!empty($users) && is_array($users)): ?>
+    <?= $this->render_partial('admin/user/_results') ?>
 <? endif; ?>

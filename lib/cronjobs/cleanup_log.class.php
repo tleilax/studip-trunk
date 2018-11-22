@@ -37,7 +37,7 @@ class CleanupLogJob extends CronJob
      */
     public static function getName()
     {
-        return _('Logs aufräumen');
+        return _('Logs aufrÃ¤umen');
     }
 
     /**
@@ -45,8 +45,8 @@ class CleanupLogJob extends CronJob
      */
     public static function getDescription()
     {
-        return _('Entfernt abgelaufene Log-Einträge sowohl für das '
-                .'Eventsystem als auch für die Cronjobs');
+        return _('Entfernt abgelaufene Log-EintrÃ¤ge sowohl fÃ¼r das '
+                .'Eventsystem als auch fÃ¼r die Cronjobs');
     }
 
     /**
@@ -59,23 +59,23 @@ class CleanupLogJob extends CronJob
         return array(
             'cronjobs' => array(
                 'type'        => 'boolean',
-                'default'     => false,
+                'default'     => true,
                 'status'      => 'optional',
-                'description' => _('Sollen die Logeinträge für Cronjobs auch gelöscht werden'),
+                'description' => _('Sollen die LogeintrÃ¤ge fÃ¼r Cronjobs auch gelÃ¶scht werden'),
             ),
             'cronjobs-success' => array(
                 'type'        => 'integer',
-                'default'     => 1,
+                'default'     => 7,
                 'status'      => 'optional',
-                'description' => _('Nach wievielen Tagen sollen Logeinträge für '
-                                  .'erfolgreiche Cronjobs gelöscht werden (0 für nie)'),
+                'description' => _('Nach wievielen Tagen sollen LogeintrÃ¤ge fÃ¼r '
+                                  .'erfolgreiche Cronjobs gelÃ¶scht werden (0 fÃ¼r nie)'),
             ),
             'cronjobs-error' => array(
                 'type'        => 'integer',
                 'default'     => 28,
                 'status'      => 'optional',
-                'description' => _('Nach wievielen Tagen sollen Logeinträge für '
-                                  .'fehlgeschlagene Cronjobs gelöscht werden (0 für nie)'),
+                'description' => _('Nach wievielen Tagen sollen LogeintrÃ¤ge fÃ¼r '
+                                  .'fehlgeschlagene Cronjobs gelÃ¶scht werden (0 fÃ¼r nie)'),
             ),
         );
     }
@@ -104,12 +104,18 @@ class CleanupLogJob extends CronJob
         if (!empty($parameters['cronjobs'])) {
             $delete = function($l) {$l->delete();};
             if ($parameters['cronjobs-error'] > 0) {
-                CronjobLog::findEachBySql($delete, "exception != 'N;' AND executed + ? < UNIX_TIMESTAMP()",
-                                              array($parameters['cronjobs-error'] * 24 * 60 * 60));
+                CronjobLog::findEachBySql(
+                    $delete,
+                    "exception IS NOT NULL AND executed + ? < UNIX_TIMESTAMP()",
+                    [$parameters['cronjobs-error'] * 24 * 60 * 60]
+                );
             }
             if ($parameters['cronjobs-success'] > 0) {
-                CronjobLog::findEachBySql($delete, "exception = 'N;' AND executed + ? < UNIX_TIMESTAMP()",
-                                              array($parameters['cronjobs-success'] * 24 * 60 * 60));
+                CronjobLog::findEachBySql(
+                    $delete,
+                    "exception IS NULL AND executed + ? < UNIX_TIMESTAMP()",
+                    [$parameters['cronjobs-success'] * 24 * 60 * 60]
+                );
             }
         }
     }

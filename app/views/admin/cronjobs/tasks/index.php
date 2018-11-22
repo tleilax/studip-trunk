@@ -1,6 +1,6 @@
 <? use Studip\Button; ?>
 
-<form action="<?= $controller->url_for('admin/cronjobs/tasks/bulk', $page) ?>" method="post">
+<form action="<?= $controller->url_for('admin/cronjobs/tasks/bulk', $page) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
 <table class="default cronjobs">
@@ -54,32 +54,31 @@
             <td style="text-align: right">
             <? if ($tasks[$i]->valid): ?>
                 <a data-dialog href="<?= $controller->url_for('admin/cronjobs/tasks/execute', $tasks[$i]->task_id) ?>">
-                    <?= Icon::create('play', 'clickable', ['title' => _('Aufgabe ausführen')])->asImg() ?>
+                    <?= Icon::create('play', 'clickable', ['title' => _('Aufgabe ausfÃ¼hren')])->asImg() ?>
                 </a>
             <? endif; ?>
                 <a href="<?= $controller->url_for('admin/cronjobs/logs/task', $tasks[$i]->task_id) ?>">
                     <?= Icon::create('log', 'clickable', ['title' => _('Log anzeigen')])->asImg() ?>
                 </a>
                 <a href="<?= $controller->url_for('admin/cronjobs/tasks/delete', $tasks[$i]->task_id, $page) ?>">
-                    <?= Icon::create('trash', 'clickable', ['title' => _('Aufgabe löschen')])->asImg() ?>
+                    <?= Icon::create('trash', 'clickable', ['title' => _('Aufgabe lÃ¶schen')])->asImg() ?>
                 </a>
             </td>
         </tr>
     <? endif; ?>
 <? endfor; ?>
     </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="3" class="printhead">
-                <select name="action" data-activates=".cronjobs button[name=bulk]">
-                    <option value="">- <?= _('Aktion auswählen') ?></option>
-                    <option value="activate"><?= _('Aktivieren') ?></option>
-                    <option value="deactivate"><?= _('Deaktivieren') ?></option>
-                    <option value="delete"><?= _('Löschen') ?></option>
-                </select>
-                <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
-            </td>
-            <td colspan="3" class="printhead" style="text-align: right; vertical-align: middle;">
+</table>
+    <footer>
+        <select name="action" data-activates=".cronjobs button[name=bulk]">
+            <option value="">- <?= _('Aktion auswÃ¤hlen') ?></option>
+            <option value="activate"><?= _('Aktivieren') ?></option>
+            <option value="deactivate"><?= _('Deaktivieren') ?></option>
+            <option value="delete"><?= _('LÃ¶schen') ?></option>
+        </select>
+        <?= Button::createAccept(_('AusfÃ¼hren'), 'bulk') ?>
+
+        <section style="float: right">
             <?
                 $pagination = $GLOBALS['template_factory']->open('shared/pagechooser');
                 $pagination->set_attributes(array(
@@ -90,8 +89,7 @@
                 ));
                 echo $pagination->render();
             ?>
-            </td>
-        </tr>
-    </tfoot>
+        </section>
+    </footer>
 </table>
 </form>

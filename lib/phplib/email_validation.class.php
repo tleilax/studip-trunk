@@ -6,14 +6,14 @@
  *
  */
 
+require_once 'vendor/idna_convert/idna_convert.class.php';
+
 class email_validation_class
 {
     var $username_regular_expression=null;
-    var $password_regular_expression="/^([[:print:]]{4,72})\$/";
-    var $name_regular_expression='/^[-_ a-zA-ZÀ-ÿ\']+$/';
+    var $password_regular_expression="/^([[:print:]]{8,72})\$/";
+    var $name_regular_expression='/^[-_ a-zA-ZÃ€-Ã¿\']+$/';
     var $telefon_regular_expression="/^([0-9 \(\)\\/+_-]*)\$/";
-    var $email_regular_expression='/^([-+.0-9=?A-Z_a-z{|}~])+@([-.0-9=?A-Z_a-z{|}~])+\.[a-zA-Z]{2,6}$/i';
-    var $email_regular_expression_restricted_part = "/^([a-zA-Z0-9_]|\\-|\\.)+/";
     var $timeout=10;
     var $data_timeout=10;
     var $localhost="studip.de";
@@ -25,9 +25,12 @@ class email_validation_class
 
     var $next_token="";
 
+    private $idna_convert;
+
     function __construct()
     {
-        $this->username_regular_expression = $GLOBALS['USERNAME_REGULAR_EXPRESSION'];
+        $this->username_regular_expression = Config::get()->USERNAME_REGULAR_EXPRESSION;
+        $this->idna_convert = new idna_convert();
     }
 
     Function Tokenize($string,$separator="")
@@ -109,21 +112,33 @@ class email_validation_class
         return(preg_match($this->telefon_regular_expression,$telefon)!=0);
     }
 
-    Function ValidateEmailAddress($email, $restriction = '')
+    /**
+     * Validates an email adress. If you pass a comma separated list of domains
+     * as the second parameter, the email is also validated against this list
+     * of domains and the email is only valid if it matches any of the domains.
+     *
+     * @param string $email   Email adress to validate
+     * @param string $domains Optional comma separated list of valid domains
+     * @return bool
+     */
+    public function ValidateEmailAddress($email, $domains = '')
     {
-        if ($restriction) {
-            $restrictions = array();
-            $restriction_split = explode(',', $restriction);
-            foreach ($restriction_split as $restriction_part) {
-                $restrictions[] = '@' . trim($restriction_part);
-            }
-            $restriction = implode('|', $restrictions);
-            $restriction = str_replace(array('.', '-'), array('\.', '\-'), $restriction);
-            $email_regular_expression_restricted = $this->email_regular_expression_restricted_part
-            . '(' . $restriction . ')$/i';
-            return (preg_match($email_regular_expression_restricted, $email) != 0);
+        $converted_email = $this->idna_convert->encode($email);
+        if (!filter_var($converted_email, FILTER_VALIDATE_EMAIL)) {
+            return false;
         }
-        return(preg_match($this->email_regular_expression,$email)!=0);
+
+        if (!$domains) {
+            return true;
+        }
+
+        $checks = [];
+        foreach (explode(',', $domains) as $domain) {
+            $checks[] = preg_quote('@' . trim($domain), '/');
+        }
+
+        $regexp = '/' . implode('|', $checks) . '$/i';
+        return preg_match($regexp, $email) > 0;
     }
 
     Function ValidateEmailHost($email){

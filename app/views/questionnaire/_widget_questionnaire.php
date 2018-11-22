@@ -1,4 +1,4 @@
-<article class="<?= ContentBoxHelper::classes($questionnaire->id, $is_new) ?> widget_questionnaire_<?= $questionnaire->getId() ?>"  data-questionnaire_id="<?= htmlReady($questionnaire->getId()) ?>">
+<article class="studip toggle <?= ContentBoxHelper::classes($questionnaire->id, $is_new) ?> widget_questionnaire_<?= $questionnaire->getId() ?>"  data-questionnaire_id="<?= htmlReady($questionnaire->getId()) ?>">
     <header>
         <h1>
             <a href="<?= ContentBoxHelper::switchhref($questionnaire->id, array('contentbox_type' => 'vote')) ?>">
@@ -12,8 +12,17 @@
             <span>
                 <?= strftime("%d.%m.%Y", $questionnaire->mkdate) ?>
             </span>
-            <span>
+            <span title="<?= _("Anzahl der Antworten") ?>">
                 <?= $questionnaire->countAnswers() ?>
+            </span>
+            <span title="<?= _("QR-Code zu diesem Fragebogen anzeigen") ?>">
+                <? $oldbase = URLHelper::setBaseURL($GLOBALS['ABSOLUTE_URI_STUDIP']) ?>
+                <a href="<?= URLHelper::getLink("dispatch.php/questionnaire/answer/".$questionnaire->getId()) ?>"
+                   class="questionnaire-qr"
+                    data-qr-code>
+                    <? URLHelper::setBaseURL($oldbase) ?>
+                    <?= Icon::create("code-qr", "clickable")->asImg(20, array('class' => "text-bottom")) ?>
+                </a>
             </span>
         </nav>
     </header>

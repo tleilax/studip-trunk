@@ -5,17 +5,18 @@
     <fieldset>
         <legend><?= _('Verwaltung der Einrichtungsgrunddaten') ?></legend>
 
-        <label>
-            <?= _('Name') ?>
-            <?= I18N::input('Name', $institute->Name, LockRules::Check($institute->id, 'name') ? array('readonly' => true, 'disabled' => true) : []); ?>
+        <label class="col-6">
+            <span class="required"><?= _('Name') ?></span>
+            <?= I18N::input('Name', $institute->Name, LockRules::Check($institute->id, 'name') ? ['readonly' => true, 'disabled' => true] : ['required' => true]); ?>
         </label>
 
-        <label>
-            <?= _('Fakultät') ?>
+        <label class="col-3">
+            <?= _('FakultÃ¤t') ?>
 
         <? if (count($institute->sub_institutes) > 0): ?>
-            <small>
-                <?= _('Diese Einrichtung hat den Status einer Fakultät.') ?><br>
+            <br>
+            <small style="font-weight: normal;">
+                <?= _('Diese Einrichtung hat den Status einer FakultÃ¤t.') ?><br>
                 <?= sprintf(_('Es wurden bereits %u andere Einrichtungen zugeordnet.'), count($institute->sub_institutes)) ?>
             </small>
             <input type="hidden" name="Fakultaet" id="Fakultaet" value="<?= $institute->id ?>">
@@ -23,7 +24,7 @@
             <select <?= !$may_edit_faculty ? 'readonly disabled' : '' ?> name="Fakultaet" id="Fakultaet">
             <? if ($GLOBALS['perm']->have_perm('root')): ?>
                 <option value="<?= $institute->id ?>" <?= ($institute->fakultaets_id == Request::option('Fakultaet', $institute->id)) ? 'selected' : '' ?>>
-                    <?= _('Diese Einrichtung hat den Status einer Fakultät.') ?>
+                    <?= _('Diese Einrichtung hat den Status einer FakultÃ¤t.') ?>
                 </option>
             <? endif; ?>
             <? if ($may_edit_faculty): ?>
@@ -44,7 +45,7 @@
         <? endif; ?>
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Bezeichnung') ?>
 
             <select name="type" id="type" <?= LockRules::Check($institute->id, 'type') ? 'readonly disabled' : '' ?> >
@@ -56,44 +57,44 @@
            </select>
         </label>
 
-        <label>
-            <?= _('Straße') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'strasse') ? 'readonly disabled' : '' ?> id="strasse" name="strasse"
+        <label class="col-3">
+            <?= _('StraÃŸe') ?>
+            <input type="text" <?= LockRules::Check($institute->id, 'strasse') ? 'readonly disabled' : '' ?> id="strasse" name="strasse"
                    value="<?= htmlReady(Request::get('strasse', $institute->strasse)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Ort') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'plz') ? 'readonly disabled' : '' ?> id="plz" name="plz"
+            <input type="text" <?= LockRules::Check($institute->id, 'plz') ? 'readonly disabled' : '' ?> id="plz" name="plz"
                    value="<?= htmlReady(Request::get('plz', $institute->plz)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Telefonnummer') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'telefon') ? 'readonly disabled' : '' ?> id="telefon" name="telefon" maxlength="32"
+            <input type="text" <?= LockRules::Check($institute->id, 'telefon') ? 'readonly disabled' : '' ?> id="telefon" name="telefon"
                    value="<?= htmlReady(Request::get('telefon', $institute->telefon)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Faxnummer') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'fax') ? 'readonly disabled' : '' ?> id="fax" name="fax" maxlength="32"
+            <input type="text" <?= LockRules::Check($institute->id, 'fax') ? 'readonly disabled' : '' ?> id="fax" name="fax"
                    value="<?= htmlReady(Request::get('fax', $institute->fax)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('E-Mail-Adresse') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'email') ? 'readonly disabled' : '' ?> id="email" name="email"
+            <input type="text" <?= LockRules::Check($institute->id, 'email') ? 'readonly disabled' : '' ?> id="email" name="email"
                    value="<?= htmlReady(Request::get('email', $institute->email)) ?>">
         </label>
 
-        <label>
+        <label class="col-3">
             <?= _('Homepage') ?>
-            <input type="text" size="80" <?= LockRules::Check($institute->id, 'url') ? 'readonly disabled' : '' ?> id="home" name="home"
+            <input type="text" <?= LockRules::Check($institute->id, 'url') ? 'readonly disabled' : '' ?> id="home" name="home"
                    value="<?= htmlReady(Request::get('home', $institute->url)) ?>">
         </label>
 
     <? if (get_config('LITERATURE_ENABLE') && $institute->is_fak): // choose preferred lit plugin ?>
-        <label>
+        <label class="col-3">
             <?= _('Bevorzugter Bibliothekskatalog') ?>
             <select id="lit_plugin_name" name="lit_plugin_name">
             <? foreach (StudipLitSearch::GetAvailablePlugins() as $name => $title): ?>
@@ -106,7 +107,7 @@
     <? endif; ?>
 
     <? if ($GLOBALS['perm']->have_perm('root')): // Select lockrule to apply ?>
-        <label>
+        <label class="col-3">
             <?= _('Sperrebene') ?>
             <select id="lock_rule" name="lock_rule">
                 <option value="">&nbsp;</option>
@@ -120,19 +121,17 @@
     <? endif; ?>
 
     <? foreach ($datafields as $key => $datafield): ?>
-        <label style="color: <?= $datafield['color'] ?>">
-            <?= htmlReady($datafield['title']) ?>
-
+        <div class="col-3" style="vertical-align: top">
             <?= $datafield['value'] ?>
-        </label>
+        </div>
     <? endforeach; ?>
     </fieldset>
 
     <footer>
     <? if ($i_view != 'new' && !$institute->isNew()): ?>
         <input type="hidden" name="i_id" value="<?= $institute->id ?>">
-        <?= Studip\Button::createAccept(_('Übernehmen'), 'i_edit') ?>
-        <?= Studip\LinkButton::create(_('Löschen'),
+        <?= Studip\Button::createAccept(_('Ãœbernehmen'), 'i_edit') ?>
+        <?= Studip\LinkButton::create(_('LÃ¶schen'),
                                       $controller->url_for('institute/basicdata/index/' . $i_view, array('i_trykill' => 1)),
                                       !$may_delete ? array('disabled' => '') : array()) ?>
         <? if (!$may_delete && mb_strlen($reason_txt) > 0): ?>
@@ -151,9 +150,17 @@ $sidebar->setImage('sidebar/institute-sidebar.png');
 
 if (!$institute->isNew()) {
     $widget = new ActionsWidget();
-    $widget->addLink(_('Infobild ändern'), URLHelper::getLink('dispatch.php/institute/avatar/update/' . $institute->id), Icon::create('edit', 'clickable'));
+    $widget->addLink(
+        _('Infobild Ã¤ndern'),
+        URLHelper::getLink('dispatch.php/avatar/update/institute/' . $institute->id),
+        Icon::create('edit')
+    )->asDialog();
     if (InstituteAvatar::getAvatar($institute->id)->is_customized()) {
-        $widget->addLink(_('Infobild löschen'), URLHelper::getLink('dispatch.php/institute/avatar/delete/' . $institute->id), Icon::create('trash', 'clickable'));
+        $widget->addLink(
+            _('Infobild lÃ¶schen'),
+            URLHelper::getLink('dispatch.php/avatar/delete/institute/' . $institute->id),
+            Icon::create('trash')
+        );
     }
     $sidebar->addWidget($widget);
 }

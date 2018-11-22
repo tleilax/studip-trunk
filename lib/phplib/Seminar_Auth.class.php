@@ -9,7 +9,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @copyright   2000 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
@@ -122,6 +122,7 @@ class Seminar_Auth
                     $this->auth["uid"] = $uid;
                     $sess->regenerate_session_id(array('auth', '_language', 'phpCAS'));
                     $sess->freeze();
+                    $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
                     return true;
                 }
 
@@ -169,8 +170,13 @@ class Seminar_Auth
                     case "log":
                         if ($uid = $this->auth_validatelogin()) {
                             $this->auth["uid"] = $uid;
-                            $sess->regenerate_session_id(array('auth', 'forced_language', '_language'));
+                            $keep_session_vars = array('auth', 'forced_language', '_language');
+                            if ($this->auth['perm'] === 'root') {
+                                $keep_session_vars[] = 'plugins_disabled';
+                            }
+                            $sess->regenerate_session_id($keep_session_vars);
                             $sess->freeze();
+                            $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
                             return true;
                         } else {
                             $this->auth_loginform();
@@ -182,6 +188,7 @@ class Seminar_Auth
                     case "reg":
                         if ($uid = $this->auth_doregister()) {
                             $this->auth["uid"] = $uid;
+                            $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
                             return true;
                         } else {
                             $this->auth_registerform();
@@ -245,9 +252,6 @@ class Seminar_Auth
             $this->nobody = false; # We are forcing login, so default auth is
             # disabled
             $this->start(); # Call authentication code
-            if (is_object($GLOBALS['user'])) {
-                $GLOBALS['user'] = new Seminar_User($this->auth['uid']);
-            }
         }
         return true;
     }
@@ -270,7 +274,7 @@ class Seminar_Auth
         }
         if ($cfg->getValue('MAINTENANCE_MODE_ENABLE') && $user->perms != 'root') {
             $this->unauth();
-            throw new AccessDeniedException(_("Das System befindet sich im Wartungsmodus. Zur Zeit ist kein Zugriff möglich."));
+            throw new AccessDeniedException(_("Das System befindet sich im Wartungsmodus. Zur Zeit ist kein Zugriff mÃ¶glich."));
         }
         return @$this->auth['uid'] ? : false;
     }
@@ -282,6 +286,8 @@ class Seminar_Auth
     {
         // is Single Sign On activated?
         if (($provider = Request::option('sso'))) {
+
+            $this->check_environment();
 
             Metrics::increment('core.sso_login.attempted');
 
@@ -320,25 +326,8 @@ class Seminar_Auth
             }
             throw new AccessDeniedException();
         }
-        // first of all init I18N because seminar_open is not called here...
-        global $_language_path;
 
-        // set up dummy user environment
-        if ($GLOBALS['user']->id !== 'nobody') {
-            $GLOBALS['user'] = new Seminar_User('nobody');
-            $GLOBALS['perm'] = new Seminar_Perm();
-            $GLOBALS['auth'] = $this;
-        }
-
-        if (!($_SESSION['_language'])) {
-            $_SESSION['_language'] = get_accepted_languages();
-        }
-        if (!$_SESSION['_language']) {
-            $_SESSION['_language'] = $GLOBALS['DEFAULT_LANGUAGE'];
-        }
-        // init of output via I18N
-        $_language_path = init_i18n($_SESSION['_language']);
-        include 'config.inc.php';
+        $this->check_environment();
 
         // load the default set of plugins
         PluginEngine::loadPlugins();
@@ -356,7 +345,7 @@ class Seminar_Auth
             $login_template->set_attribute('loginerror', (isset($this->auth["uname"]) && $this->error_msg));
             $login_template->set_attribute('error_msg', $this->error_msg);
             $login_template->set_attribute('uname', (isset($this->auth["uname"]) ? $this->auth["uname"] : Request::username('loginname')));
-            $login_template->set_attribute('self_registration_activated', $GLOBALS['ENABLE_SELF_REGISTRATION']);
+            $login_template->set_attribute('self_registration_activated', Config::get()->ENABLE_SELF_REGISTRATION);
         }
         PageLayout::setHelpKeyword('Basis.AnmeldungLogin');
         $header_template = $GLOBALS['template_factory']->open('header');
@@ -375,20 +364,12 @@ class Seminar_Auth
      */
     function auth_validatelogin()
     {
-        global $_language_path;
-
         //prevent replay attack
         if (!Seminar_Session::check_ticket(Request::option('login_ticket'))) {
             return false;
         }
 
-        // check for direct link
-        if (!($_SESSION['_language']) || $_SESSION['_language'] == "") {
-            $_SESSION['_language'] = get_accepted_languages();
-        }
-
-        $_language_path = init_i18n($_SESSION['_language']);
-        include 'config.inc.php';
+        $this->check_environment();
 
         $this->auth["uname"] = Request::get('loginname'); // This provides access for "loginform.ihtml"
         $this->auth["jscript"] = Request::get('resolution') != "";
@@ -437,5 +418,27 @@ class Seminar_Auth
             // we found a stored setting for preferred language
             $_SESSION['_language'] = $user->preferred_language;
         }
+    }
+
+    /**
+     * setup dummy user environment
+     */
+    function check_environment()
+    {
+        global $_language_path;
+
+        if ($GLOBALS['user']->id !== 'nobody') {
+            $GLOBALS['user'] = new Seminar_User('nobody');
+            $GLOBALS['perm'] = new Seminar_Perm();
+            $GLOBALS['auth'] = $this;
+        }
+
+        $_SESSION['_language'] = $_SESSION['_language'] ?: get_accepted_languages();
+
+        // init of output via I18N
+        $_language_path = init_i18n($_SESSION['_language']);
+        include 'config.inc.php';
+
+
     }
 }

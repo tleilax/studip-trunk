@@ -6,14 +6,14 @@
  * class for constructing and sending emails in Stud.IP
  *
  *
- * @author  André Noack <noack@data-quest>, Suchi & Berg GmbH <info@data-quest.de>
+ * @author  AndrÃ© Noack <noack@data-quest>, Suchi & Berg GmbH <info@data-quest.de>
  * @version 1
  */
 
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 //
-// Copyright (C) 2009 André Noack <noack@data-quest>,
+// Copyright (C) 2009 AndrÃ© Noack <noack@data-quest>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -128,11 +128,15 @@ class StudipMail
      * configuration settings. The return path is always set to MAIL_ABUSE
      *
      */
-    function __construct() {
+    function __construct($data = null) {
         $mail_localhost = ($GLOBALS['MAIL_LOCALHOST'] == "") ? $_SERVER["SERVER_NAME"] : $GLOBALS['MAIL_LOCALHOST'];
         $this->setSenderEmail($GLOBALS['MAIL_ENV_FROM'] == "" ? "wwwrun@" . $mail_localhost : $GLOBALS['MAIL_ENV_FROM']);
-        $this->setSenderName($GLOBALS['MAIL_FROM'] == "" ? 'Stud.IP - ' . $GLOBALS['UNI_NAME_CLEAN'] : $GLOBALS['MAIL_FROM']);
+        $this->setSenderName($GLOBALS['MAIL_FROM'] == "" ? 'Stud.IP - ' . Config::get()->UNI_NAME_CLEAN : $GLOBALS['MAIL_FROM']);
         $this->setReplyToEmail($GLOBALS['MAIL_ABUSE'] == "" ? "abuse@" . $mail_localhost : $GLOBALS['MAIL_ABUSE']);
+
+        if ($data) {
+            $this->setData($data);
+        }
     }
 
     /**
@@ -278,13 +282,16 @@ class StudipMail
     }
 
     /**
-     * @param $dokument_id
+     * @param FileRef $file_ref The FileRef object of a file that shall be added to a mail
      * @return StudipMail provides fluent interface
      */
-    function addStudipAttachment($dokument_id){
-        $doc = new StudipDocument($dokument_id);
-        if(!$doc->isNew()){
-            $this->addFileAttachment(get_upload_file_path($doc->getId()), $doc->getValue('filename'));
+    function addStudipAttachment(FileRef $file_ref)
+    {
+        if (!$file_ref->isNew()) {
+            $this->addFileAttachment(
+                $file_ref->file->getPath(),
+                $file_ref->name
+            );
         }
         return $this;
     }
@@ -389,7 +396,7 @@ class StudipMail
             $text_part = '';
             $text_message = $this->getBodyText();
             if(!$text_message){
-                $text_message = _("Diese Nachricht ist im HTML-Format verfasst. Sie benötigen eine E-Mail-Anwendung, die das HTML-Format anzeigen kann.");
+                $text_message = _("Diese Nachricht ist im HTML-Format verfasst. Sie benÃ¶tigen eine E-Mail-Anwendung, die das HTML-Format anzeigen kann.");
             }
             $transporter->CreateQuotedPrintableTextPart($transporter->WrapText($text_message), "", $text_part);
             $transporter->AddAlternativeMultipart($part = array($text_part, $html_part));
@@ -411,6 +418,18 @@ class StudipMail
         } else {
             Log::error(get_class($transporter) . '::Send() - ' . $error);
             return false;
+        }
+    }
+
+    public function toArray()
+    {
+        return get_object_vars($this);
+    }
+
+    public function setData($data)
+    {
+        foreach ($data as $name => $value) {
+            $this->$name = $value;
         }
     }
 }

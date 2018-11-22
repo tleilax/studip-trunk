@@ -131,9 +131,10 @@ class EvaluationExportManagerCSV extends EvaluationExportManager {
     */
    function exportHeader () {
       if (empty ($this->filehandle))
-         return $this->throwError (1, _("ExportManager::Konnte tempor‰re Datei nicht ˆffnen."));
-
+         return $this->throwError (1, _("ExportManager::Konnte tempor√§re Datei nicht √∂ffnen."));
+      fputs ($this->filehandle, "\xEF\xBB\xBF");
       fputs ($this->filehandle, EVALEXPORT_DELIMITER . _("Nummer") . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
+      fputs ($this->filehandle, EVALEXPORT_DELIMITER . _("Datum") . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
       fputs ($this->filehandle, EVALEXPORT_DELIMITER . _("Benutzername") . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
       fputs ($this->filehandle, EVALEXPORT_DELIMITER . _("Nachname") . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
       fputs ($this->filehandle, EVALEXPORT_DELIMITER . _("Vorname") . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
@@ -211,7 +212,7 @@ class EvaluationExportManagerCSV extends EvaluationExportManager {
 
          /* Questiontype: undefined ----------------------------------------- */
          } else {
-            return $this->throwError (2, _("ExportManager::Ung¸ltiger Typ."));
+            return $this->throwError (2, _("ExportManager::Ung√ºltiger Typ."));
          }
          /* -------------------------------------------------- end: undefined */
       }
@@ -229,6 +230,7 @@ class EvaluationExportManagerCSV extends EvaluationExportManager {
       $answers = array();
       $db = DBManager::get();
       $stmt = $db->prepare("SELECT user_id,text,value,position,residual,
+                    MAX(evaldate) as evaldate,
                     GROUP_CONCAT(evalanswer_id) as evalanswer_id
                     FROM evalanswer
                     INNER JOIN evalanswer_user
@@ -247,6 +249,7 @@ class EvaluationExportManagerCSV extends EvaluationExportManager {
          $name     = "";
          $surname  = "";
          $email    = "";
+         $evaldate = "";
          if (!$this->eval->isAnonymous ()) {
              $data = DBManager::get()->query("SELECT username, Vorname, Nachname, Email "
                    . "FROM auth_user_md5 WHERE user_id = "
@@ -255,7 +258,11 @@ class EvaluationExportManagerCSV extends EvaluationExportManager {
                  list($username, $name, $surname, $email) = $data[0];
              }
          }
+         if ($timestamp = $answers[$this->evalquestions[0]->getObjectID()][$userID]['evaldate']) {
+             $evaldate = date('Y-m-d H:i:s', $timestamp);
+         }
          fputs ($this->filehandle, EVALEXPORT_DELIMITER . ++$counter . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
+         fputs ($this->filehandle, EVALEXPORT_DELIMITER . $evaldate . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
          fputs ($this->filehandle, EVALEXPORT_DELIMITER . $username . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
          fputs ($this->filehandle, EVALEXPORT_DELIMITER . $surname . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
          fputs ($this->filehandle, EVALEXPORT_DELIMITER . $name . EVALEXPORT_DELIMITER.EVALEXPORT_SEPERATOR);
@@ -309,7 +316,7 @@ class EvaluationExportManagerCSV extends EvaluationExportManager {
 
             /* Questiontype: undefined -------------------------------------- */
             else {
-               return $this->throwError (1, _("ExportManager::Ung¸ltiger Fragetyp."));
+               return $this->throwError (1, _("ExportManager::Ung√ºltiger Fragetyp."));
             }
             /* ----------------------------------------------- end: undefined */
          }

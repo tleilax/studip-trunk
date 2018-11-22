@@ -118,10 +118,10 @@ class WikiFormat extends StudipFormat
             $from = decodeHTML($from);
             $comment = decodeHTML($comment); //because tooltip already escapes
             return sprintf(
-                    '<a href="javascript:void(0);"%s">'.
+                    '<a href="javascript:void(0);" %s>'.
                         Icon::create('chat2', 'status-yellow').
                     '</a>',
-                tooltip(sprintf("%s %s:\n%s", _("Kommentar von"), $from, $comment), TRUE, TRUE)
+                tooltip(sprintf("%s %s: %s", _("Kommentar von"), $from, $comment), TRUE, TRUE)
             );
         } else {
             return "";
@@ -133,7 +133,7 @@ class WikiFormat extends StudipFormat
         $page = decodeHTML($matches[1]);
         $display_page = $matches[2] ? $markup->format($matches[2]) : htmlReady($page);
 
-        if (keywordExists($page, $_SESSION['SessionSeminar'])) {
+        if (keywordExists($page, Context::getId())) {
             return sprintf('<a href="%s">%s</a>',
                 URLHelper::getLink("wiki.php", array('keyword' => $page)),
                 $display_page

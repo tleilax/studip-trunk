@@ -7,7 +7,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @package     admin
@@ -21,10 +21,8 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
     function before_filter (&$action, &$args)
     {
         parent::before_filter($action, $args);
-        PageLayout::setTitle(_('Teilnahmebeschränkte Veranstaltungen'));
+        PageLayout::setTitle(_('TeilnahmebeschrÃ¤nkte Veranstaltungen'));
         Navigation::activateItem('/tools/coursesets/restricted_courses');
-        PageLayout::addSqueezePackage('tablesorter');
-
     }
 
     /**
@@ -73,8 +71,8 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
             $captions = array(_("Anmeldeset"),
                     _("Nummer"),
                     _("Name"),
-                    _("max. Teilnehmer"),
-                    _("Teilnehmer aktuell"),
+                    _("max. Teilnehmende"),
+                    _("Teilnehmende aktuell"),
                     _("Anzahl Anmeldungen"),
                     _("Anzahl vorl. Anmeldungen"),
                     _("Anzahl Warteliste"),
@@ -100,13 +98,18 @@ class Admission_RestrictedCoursesController extends AuthenticatedController
 
             $tmpname = md5(uniqid('tmp'));
             if (array_to_csv($data, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-                $this->redirect(GetDownloadLink($tmpname, 'teilnahmebeschraenkteVeranstaltungen.csv', 4, 'force'));
+                $this->redirect(
+                    FileManager::getDownloadURLForTemporaryFile(
+                        $tmpname,
+                        'teilnahmebeschraenkteVeranstaltungen.csv'
+                    )
+                );
                 return;
             }
         }
         if (is_array($this->not_distributed_coursesets)) {
             PageLayout::postMessage(MessageBox::info(
-                _("Es existieren Anmeldesets, die zum Zeitpunkt der Platzverteilung nicht gelost wurden. Stellen Sie sicher, dass der Cronjob \"Losverfahren überprüfen\" ausgeführt wird."),
+                _("Es existieren Anmeldesets, die zum Zeitpunkt der Platzverteilung nicht gelost wurden. Stellen Sie sicher, dass der Cronjob \"Losverfahren Ã¼berprÃ¼fen\" ausgefÃ¼hrt wird."),
                 array_unique($this->not_distributed_coursesets)));
         }
     }

@@ -29,27 +29,35 @@ class CoreAdmin implements StudipModule {
             $main = new Navigation(_('Verwaltung'), 'dispatch.php/course/management');
             $navigation->addSubNavigation('main', $main);
 
-            if ($GLOBALS['SessSemName']['class'] !== "inst") {
+            if (!Context::isInstitute()) {
                 $item = new Navigation(_('Grunddaten'), 'dispatch.php/course/basicdata/view/' . $course_id);
                 $item->setImage(Icon::create('edit', 'clickable'));
                 $item->setDescription(_('Bearbeiten der Grundeinstellungen dieser Veranstaltung.'));
                 $navigation->addSubNavigation('details', $item);
 
-                $item = new Navigation(_('Infobild'), 'dispatch.php/course/avatar/update/' . $course_id);
+                $item = new Navigation(_('Infobild'), 'dispatch.php/avatar/update/course/' . $course_id);
                 $item->setImage(Icon::create('file-pic', 'clickable'));
-                $item->setDescription(_('Infobild dieser Veranstaltung bearbeiten oder löschen.'));
+                $item->setDescription(_('Infobild dieser Veranstaltung bearbeiten oder lÃ¶schen.'));
                 $navigation->addSubNavigation('avatar', $item);
 
                 $item = new Navigation(_('Studienbereiche'), 'dispatch.php/course/study_areas/show/' . $course_id);
                 $item->setImage(Icon::create('module', 'clickable'));
-                $item->setDescription(_('Zuordnung dieser Veranstaltung zu Studienbereichen für die Darstellung im Verzeichnis aller Veranstaltungen.'));
+                $item->setDescription(_('Zuordnung dieser Veranstaltung zu Studienbereichen fÃ¼r die Darstellung im Verzeichnis aller Veranstaltungen.'));
                 $navigation->addSubNavigation('study_areas', $item);
 
-                $item = new Navigation(_('Zeiten/Räume'), 'dispatch.php/course/timesrooms');
+                $current_course = Course::find($course_id);
+                if ($current_course && $current_course->getSemClass()->offsetGet('module')) {
+                    $item = new Navigation(_('LV-Gruppen'), 'dispatch.php/course/lvgselector/index/' . $course_id, array('list' => 'TRUE'));
+                    $item->setImage(Icon::create('learnmodule', 'clickable'));
+                    $item->setDescription(_('Zuordnung der Veranstaltung zu Lehrveranstaltungsgruppen um die Einordnung innerhalb des Modulverzeichnisses festzulegen.'));
+                    $navigation->addSubNavigation('lvgruppen', $item);
+                }
+
+                $item = new Navigation(_('Zeiten/RÃ¤ume'), 'dispatch.php/course/timesrooms');
                 $item->setImage(Icon::create('date', 'clickable'));
-                $item->setDescription(_('Regelmäßige Veranstaltungszeiten, Einzeltermine und Ortsangaben ändern.'));
+                $item->setDescription(_('RegelmÃ¤ÃŸige Veranstaltungszeiten, Einzeltermine und Ortsangaben Ã¤ndern.'));
                 $navigation->addSubNavigation('dates', $item);
-                
+
                 if (get_config('RESOURCES_ENABLE') && get_config('RESOURCES_ALLOW_ROOM_REQUESTS')) {
                     $item = new Navigation(_('Raumanfragen'), 'dispatch.php/course/room_requests/index/' . $course_id);
                     $item->setImage(Icon::create('resources', 'clickable'));
@@ -59,12 +67,12 @@ class CoreAdmin implements StudipModule {
 
                 $item = new Navigation(_('Zugangsberechtigungen'), 'dispatch.php/course/admission');
                 $item->setImage(Icon::create('lock-locked', 'clickable'));
-                $item->setDescription(_('Zugangsbeschränkungen, Anmeldeverfahren oder einen Passwortschutz für diese Veranstaltung einrichten.'));
+                $item->setDescription(_('ZugangsbeschrÃ¤nkungen, Anmeldeverfahren oder einen Passwortschutz fÃ¼r diese Veranstaltung einrichten.'));
                 $navigation->addSubNavigation('admission', $item);
 
                 $item = new AutoNavigation(_('Zusatzangaben'), 'dispatch.php/admin/additional');
                 $item->setImage(Icon::create('add', 'clickable'));
-                $item->setDescription(_('Vorlagen zur Erhebung weiterer Angaben von Teilnehmenden auswählen.'));
+                $item->setDescription(_('Vorlagen zur Erhebung weiterer Angaben von Teilnehmenden auswÃ¤hlen.'));
                 $navigation->addSubNavigation('additional_data', $item);
 
                 if ($GLOBALS['perm']->have_perm($sem_create_perm)) {
@@ -74,21 +82,21 @@ class CoreAdmin implements StudipModule {
                         $main->addSubNavigation('copy', $item);
                     }
 
-                    if (get_config('ALLOW_DOZENT_ARCHIV') || $GLOBALS['perm']->have_perm('admin')) {
-                        $item = new Navigation(_('Veranstaltung archivieren'), 'dispatch.php/course/archive/confirm');
+                    if (get_config('ALLOW_DOZENT_DELETE') || $GLOBALS['perm']->have_perm('admin')) {
+                        $item = new Navigation(_('Veranstaltung lÃ¶schen'), 'dispatch.php/course/archive/confirm');
                         $item->setImage(Icon::create('seminar+remove', 'clickable'));
                         $main->addSubNavigation('archive', $item);
                     }
 
                     if ((get_config('ALLOW_DOZENT_VISIBILITY') || $GLOBALS['perm']->have_perm('admin')) && !LockRules::Check($course_id, 'seminar_visibility')) {
                         $is_visible = Course::findCurrent()->visible;
-                        $item = new Navigation(_('Sichtbarkeit ändern') . ' (' .  ($is_visible ? _('sichtbar') : _('unsichtbar')) . ')', 'dispatch.php/course/management/change_visibility');
+                        $item = new Navigation(_('Sichtbarkeit Ã¤ndern') . ' (' .  ($is_visible ? _('sichtbar') : _('unsichtbar')) . ')', 'dispatch.php/course/management/change_visibility');
                         $item->setImage(Icon::create('visibility-' . ($is_visible ? 'visible' : 'invisible'), 'clickable'));
                         $main->addSubNavigation('visibility', $item);
                     }
                     if ($GLOBALS['perm']->have_perm('admin')) {
                         $is_locked = Course::findCurrent()->lock_rule;
-                        $item = new Navigation(_('Sperrebene ändern') . ' (' .  ($is_locked ? _('gesperrt') : _('nicht gesperrt')) . ')', 'dispatch.php/course/management/lock');
+                        $item = new Navigation(_('Sperrebene Ã¤ndern') . ' (' .  ($is_locked ? _('gesperrt') : _('nicht gesperrt')) . ')', 'dispatch.php/course/management/lock');
                         $item->setImage(Icon::create('lock-' . ($is_locked  ? 'locked' : 'unlocked'), 'clickable'), ['data-dialog'=> 'size=auto']);
                         $main->addSubNavigation('lock', $item);
                     }
@@ -98,7 +106,7 @@ class CoreAdmin implements StudipModule {
                 // show entry for simulated participant view
                 if (in_array($GLOBALS['perm']->get_studip_perm($course_id), words('tutor dozent'))) {
                     $item = new Navigation('Studierendenansicht simulieren', 'dispatch.php/course/change_view/set_changed_view');
-                    $item->setDescription(_('Hier können Sie sich die Veranstaltung aus der Sicht von Studierenden sehen.'));
+                    $item->setDescription(_('Hier kÃ¶nnen Sie sich die Veranstaltung aus der Sicht von Studierenden sehen.'));
                     $item->setImage(Icon::create('visibility-invisible', 'clickable'));
                     $main->addSubNavigation('change_view', $item);
                 }
@@ -106,15 +114,46 @@ class CoreAdmin implements StudipModule {
 
             if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
                 if (get_config('VOTE_ENABLE')) {
-                    $item = new Navigation(_('Fragebögen'), 'dispatch.php/questionnaire/courseoverview');
+                    $item = new Navigation(_('FragebÃ¶gen'), 'dispatch.php/questionnaire/courseoverview');
                     $item->setImage(Icon::create('vote', 'clickable'));
-                    $item->setDescription(_('Erstellen und bearbeiten von Fragebögen.'));
+                    $item->setDescription(_('Erstellen und bearbeiten von FragebÃ¶gen.'));
                     $navigation->addSubNavigation('questionnaires', $item);
 
                     $item = new Navigation(_('Evaluationen'), 'admin_evaluation.php?view=eval_sem');
                     $item->setImage(Icon::create('evaluation', 'clickable'));
                     $item->setDescription(_('Richten Sie fragebogenbasierte Umfragen und Lehrevaluationen ein.'));
                     $navigation->addSubNavigation('evaluation', $item);
+                }
+            }
+
+            /*
+             * Is the current SemClass available for grouping other courses?
+             * -> show child management
+             */
+            $course = Course::find($course_id);
+            if ($course) {
+                $c = $course->getSemClass();
+                if ($c->isGroup()) {
+
+                    $item = new Navigation(_('Unterveranstaltungen'), 'dispatch.php/course/grouping/children');
+                    $item->setImage(Icon::create('group', 'info_alt'));
+                    $item->setActiveImage(Icon::create('group', 'info'));
+                    $item->setDescription(_('Ordnen Sie dieser Veranstaltung eine oder mehrere Unterveranstaltungen zu.'));
+                    $navigation->addSubNavigation('children', $item);
+
+                /*
+                 * Check if any SemClasses with grouping functionality exist at all
+                 * -> show parent assignment.
+                 */
+                } else if (count(SemClass::getGroupClasses()) > 0) {
+
+                    $item = new Navigation(_('Zuordnung zu Hauptveranstaltung'), 'dispatch.php/course/grouping/parent');
+                    $item->setImage(Icon::create('group', 'info_alt'));
+                    $item->setActiveImage(Icon::create('group', 'info'));
+                    $item->setDescription(_('Ordnen Sie diese Veranstaltung einer bestehenden ' .
+                        'Hauptveranstaltung zu oder lÃ¶sen Sie eine bestehende Zuordnung.'));
+                    $navigation->addSubNavigation('parent', $item);
+
                 }
             }
 

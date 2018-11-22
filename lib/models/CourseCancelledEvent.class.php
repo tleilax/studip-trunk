@@ -15,9 +15,17 @@
 class CourseCancelledEvent extends CourseEvent
 {
 
-    protected static function configure($config= array())
+    protected static function configure($config = [])
     {
         $config['alias_fields']['ex_description'] = 'content';
+
+        if (!self::TableScheme('ex_termine')) {
+            throw new Exception('Cannot obtain table meta data for table "ex_termine"');
+        }
+
+        $config['db_fields'] = self::$schemes['ex_termine']['db_fields'];
+        $config['pk'] = self::$schemes['ex_termine']['pk'];
+
         parent::configure($config);
         self::$config['CourseCancelledEvent']['db_table'] = 'ex_termine';
     }
@@ -73,7 +81,7 @@ class CourseCancelledEvent extends CourseEvent
     {
         $title = parent::getTitle();
         if ($this->havePermission(Event::PERMISSION_READABLE)) {
-            $title .= ' ' . _('(f‰llt aus)');
+            $title .= ' ' . _('(f√§llt aus)');
         }
         return $title;
     }

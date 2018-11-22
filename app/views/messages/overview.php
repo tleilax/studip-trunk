@@ -19,22 +19,31 @@
             <?= $received ? _("Eingang") : _("Gesendet") ?>
             <? if (Request::get("tag")) : ?>
                 <?= ", "._("Schlagwort: ").htmlReady(ucfirst(Request::get("tag"))) ?>
-                <button onClick="if (window.confirm('<?= _("Schlagwort wirklich löschen?") ?>') { jQuery('#delete_tags_form').submit(); }" style="background: none; border: none; cursor: pointer;" title="<?= _("Schlagwort von allen Nachrichten entfernen.") ?>">
+                <button onClick="if (window.confirm('<?= _("Schlagwort wirklich lÃ¶schen?") ?>') { jQuery('#delete_tags_form').submit(); }" style="background: none; border: none; cursor: pointer;" title="<?= _("Schlagwort von allen Nachrichten entfernen.") ?>">
                     <?= Icon::create('trash', 'clickable')->asImg(20) ?>
                 </button>
             <? endif ?>
         </caption>
+        <colgroup>
+            <col class="hidden-small-down">
+            <col>
+            <col>
+            <col>
+            <col class="hidden-small-down">
+            <col style="width: 120px">
+            <col class="hidden-small-down">
+        </colgroup>
         <thead>
             <tr>
-                <th class="responsive-hidden">
+                <th class="hidden-small-down">
                     <input type="checkbox" data-proxyfor="#bulk tbody :checkbox">
                 </th>
                 <th></th>
                 <th></th>
                 <th><?= _("Betreff") ?></th>
-                <th  class="responsive-hidden"><?= $received ? _("Gesendet") : _("Empfänger") ?></th>
+                <th  class="hidden-small-down"><?= $received ? _("Gesendet") : _("EmpfÃ¤nger") ?></th>
                 <th><?= _("Zeit") ?></th>
-                <th class="responsive-hidden"><?= _("Schlagworte") ?></th>
+                <th class="hidden-small-down"><?= _("Schlagworte") ?></th>
             </tr>
         </thead>
 
@@ -45,7 +54,7 @@
                 <tr>
                     <td colspan="8">
                         <? if (Request::int("offset") > 0) : ?>
-                        <a title="<?= _("zurück") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") - $messageBufferCount > 0 ? Request::int("offset") - $messageBufferCount : null)) ?>"><?= Icon::create('arr_1left', 'clickable')->asImg(["class" => "text-bottom"]) ?></a>
+                        <a title="<?= _("zurÃ¼ck") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") - $messageBufferCount > 0 ? Request::int("offset") - $messageBufferCount : null)) ?>"><?= Icon::create('arr_1left', 'clickable')->asImg(["class" => "text-bottom"]) ?></a>
                         <? endif ?>
                         <? if ($more) : ?>
                         <div style="float:right">
@@ -64,7 +73,7 @@
                 <tr>
                     <td colspan="7">
                         <? if (Request::int("offset") > 0) : ?>
-                            <a title="<?= _("zurück") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") - $messageBufferCount > 0 ? Request::int("offset") - $messageBufferCount : null)) ?>"><?= Icon::create('arr_1left', 'clickable')->asImg(["class" => "text-bottom"]) ?></a>
+                            <a title="<?= _("zurÃ¼ck") ?>" href="<?= URLHelper::getLink("?", array('offset' => Request::int("offset") - $messageBufferCount > 0 ? Request::int("offset") - $messageBufferCount : null)) ?>"><?= Icon::create('arr_1left', 'clickable')->asImg(["class" => "text-bottom"]) ?></a>
                         <? endif ?>
                         <? if ($more) : ?>
                             <div style="float:right">
@@ -101,55 +110,3 @@ jQuery(function ($) {
 });
 </script>
 <? endif; ?>
-
-<?php
-
-$sidebar = Sidebar::get();
-$sidebar->setImage('sidebar/mail-sidebar.png');
-
-$actions = new ActionsWidget();
-$actions->addLink(
-    _("Neue Nachricht schreiben"),
-    $controller->url_for('messages/write'), Icon::create('mail+add', 'clickable'),
-    array('data-dialog' => 'width=650;height=600')
-);
-if (Navigation::getItem('/messaging/messages/inbox')->isActive() && $messages) {
-    $actions->addLink(
-        _('Alle als gelesen markieren'),
-        $controller->url_for('messages/overview', array('read_all' => 1)), Icon::create('accept', 'clickable')
-    );
-}
-$actions->addLink(
-    _('Ausgewählte Nachrichten löschen'),
-    "#", Icon::create('trash', 'clickable'),
-    array(
-        'onclick' => "if (window.confirm('Wirklich %s Nachrichten löschen?'.toLocaleString().replace('%s', jQuery('#bulk tbody :checked').length))) { jQuery('#bulk').submit(); } return false;"
-    )
-);
-$sidebar->addWidget($actions);
-
-$search = new SearchWidget(URLHelper::getLink('?'));
-$search->addNeedle(_('Nachrichten durchsuchen'), 'search', true);
-$search->addFilter(_('Betreff'), 'search_subject');
-$search->addFilter(_('Inhalt'), 'search_content');
-$search->addFilter(_('Autor/-in'), 'search_autor');
-$sidebar->addWidget($search);
-
-$folderwidget = new ViewsWidget();
-$folderwidget->forceRendering();
-$folderwidget->title = _('Schlagworte');
-$folderwidget->id    = 'messages-tags';
-$folderwidget
-    ->addLink(_("Alle Nachrichten"), URLHelper::getURL("?"), null, array('class' => "tag"))
-    ->setActive(!Request::submitted("tag"));
-if (empty($tags)) {
-    $folderwidget->style = 'display:none';
-} else {
-    foreach ($tags as $tag) {
-        $folderwidget
-            ->addLink(ucfirst($tag), URLHelper::getURL("?", array('tag' => $tag)), null, array('class' => "tag"))
-            ->setActive(Request::get("tag") === $tag);
-    }
-}
-
-$sidebar->addWidget($folderwidget);

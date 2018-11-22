@@ -12,7 +12,8 @@
                     </a>
                     <?= Icon::create('trash', 'clickable')->asInput(16,
                             ['formaction'   => $controller->url_for('contact/deleteGroup/' . $filter),
-                             'data-confirm' => sprintf(_('Gruppe %s wirklich l�schen?'), htmlReady($title))]) ?>
+                             'title'        => _('Gruppe löschen'),
+                             'data-confirm' => sprintf(_('Gruppe %s wirklich löschen?'), htmlReady($title))]) ?>
                 <? endif; ?>
             </span>
         </caption>
@@ -21,10 +22,10 @@
                 <th>
                     <?= _('Name') ?>
                 </th>
-                <th class="responsive-hidden">
+                <th class="hidden-small-down">
                     <?= _('Stud.IP') ?>
                 </th>
-                <th class="responsive-hidden">
+                <th class="hidden-small-down">
                     <?= _('E-Mail') ?>
                 </th>
                 <th class="actions">
@@ -45,13 +46,13 @@
                             <td>
                                 <?= ObjectdisplayHelper::avatarlink($contact) ?>
                             </td>
-                            <td class="responsive-hidden">
+                            <td class="hidden-small-down">
                                 <a data-dialog="button"
                                    href="<?= URLHelper::getLink('dispatch.php/messages/write', ['rec_uname' => $contact->username]) ?>">
                                     <?= htmlReady($contact->username) ?>
                                 </a>
                             </td>
-                            <td class="responsive-hidden">
+                            <td class="hidden-small-down">
                                 <a href="mailto:<?= htmlReady($contact->email) ?>">
                                     <?= htmlReady($contact->email) ?>
                                 </a>
@@ -64,7 +65,7 @@
                                 <? $actionMenu->addButton('remove_person',
                                         $filter ? _('Kontakt aus Gruppe entfernen') : _('Kontakt entfernen'),
                                         Icon::create('person+remove', 'clickable',
-                                                ['data-confirm' => sprintf(_('Wollen Sie %s wirklich der Liste entfernen'), htmlReady($contact->username)),
+                                                ['data-confirm' => sprintf(_('Wollen Sie %s wirklich von der Liste entfernen'), htmlReady($contact->username)),
                                                  'formaction'   => $controller->url_for('contact/remove/' . $filter, ['user' => $contact->username])])) ?>
                                 <?= $actionMenu->render() ?>
                             </td>

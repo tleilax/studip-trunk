@@ -9,7 +9,7 @@
 * view schedule/assigns for a ressource-object
 *
 *
-* @author       André Noack <noack@data-quest.de>, Cornelis Kater <ckater@gwdg.de>, Suchi & Berg GmbH <info@data-quest.de>
+* @author       AndrÃ© Noack <noack@data-quest.de>, Cornelis Kater <ckater@gwdg.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
 * @package      resources
 */
@@ -37,8 +37,8 @@
 use Studip\Button,
     Studip\LinkButton;
 
-require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/views/ShowSchedules.class.php';
-require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/views/SemScheduleWeek.class.php';
+require_once 'lib/resources/views/ShowSchedules.class.php';
+require_once 'lib/resources/views/SemScheduleWeek.class.php';
 
 /*****************************************************************************
 ShowSchedules - schedule view
@@ -51,15 +51,14 @@ class ShowSemSchedules extends ShowSchedules {
 
     //Konstruktor
     function __construct($resource_id, $semester_id = null, $timespan = 'sem_time') {
-        $sem = new SemesterData();
         if (!$semester_id){
-            $this->semester = $sem->getCurrentSemesterData();
+            $this->semester = SemesterData::getCurrentSemesterData();
         } else {
-            $this->semester = $sem->getSemesterData($semester_id);
+            $this->semester = SemesterData::getSemesterData($semester_id);
         }
         $this->timespan = $timespan;
         if  ($this->timespan == 'sem_time'){
-            $next_sem = $sem->getNextSemesterData($this->semester['vorles_ende']);
+            $next_sem = SemesterData::getNextSemesterData($this->semester['vorles_ende']);
             $this->start_time = $this->semester['vorles_ende'];
             $this->end_time = is_array($next_sem) ? $next_sem['vorles_beginn'] : $this->semester['ende'];
         } else {
@@ -91,8 +90,8 @@ class ShowSemSchedules extends ShowSchedules {
             <tr>
                 <td rowspan="2">&nbsp;</td>
                 <td valign="bottom">
-                    <?=SemesterData::GetSemesterSelector(array('name' => 'sem_schedule_choose', 'onChange' => 'document.schedule_form.submit()'), $this->semester['semester_id'],'semester_id',false)?>
-                    <?= Button::create(_('Auswählen'), 'jump') ?>
+                    <?=SemesterData::GetSemesterSelector(array('name' => 'sem_schedule_choose', 'class' => 'submit-upon-select'), $this->semester['semester_id'],'semester_id',false)?>
+                    <?= Button::create(_('AuswÃ¤hlen'), 'jump') ?>
                 </td>
                 <td valign="middle">
                     <?= _('Ein Semester als Liste ausgeben') ?>
@@ -125,7 +124,7 @@ class ShowSemSchedules extends ShowSchedules {
     }
 
     function showScheduleGraphical($print_view = false) {
-        global $RELATIVE_PATH_RESOURCES, $view_mode, $ActualObjectPerms;
+        global $view_mode, $ActualObjectPerms;
 
         $categories["na"] = 4;
         $categories["sd"] = 4;
@@ -139,7 +138,7 @@ class ShowSemSchedules extends ShowSchedules {
 
 
          //select view to jump from the schedule
-         if ($this->used_view == "openobject_schedule")
+         if ($this->used_view == "openobject_schedule" && Context::get())
             $view = "openobject_assign";
          else
             $view = "edit_object_assign";
@@ -168,15 +167,15 @@ class ShowSemSchedules extends ShowSchedules {
             foreach($events as $id => $event){
                 $repeat_mode = $event['repeat_mode'];
                 $add_info = ($event['sem_doz_names'] ? '('.$event['sem_doz_names'].') ' : '');
-                $add_info .= ($repeat_mode == 'w' && $event['repeat_interval'] == 1 ? '('._("wöchentlich").')' : '');
-                $add_info .= ($repeat_mode == 'w' && $event['repeat_interval'] > 1 ? '('.$event['repeat_interval'].'-'._("wöchentlich").')' : '');
+                $add_info .= ($repeat_mode == 'w' && $event['repeat_interval'] == 1 ? '('._("wÃ¶chentlich").')' : '');
+                $add_info .= ($repeat_mode == 'w' && $event['repeat_interval'] > 1 ? '('.$event['repeat_interval'].'-'._("wÃ¶chentlich").')' : '');
                 $name = $event['name'];
                 $schedule->addEvent(null, $name, $event['begin'], $event['end'],
                             URLHelper::getLink('?cancel_edit_assign=1&quick_view='.$view.'&quick_view_mode='.$view_mode.'&edit_assign_object='.$event['assign_id']), $add_info, $categories[$repeat_mode]);
             }
             $num_rep_events = count($events);
         }
-        // nur zukünftige Einzelbelegungen
+        // nur zukÃ¼nftige Einzelbelegungen
         if ( ($end_time > time()) && ($_SESSION['resources_data']["show_repeat_mode"] == 'single' || $_SESSION['resources_data']["show_repeat_mode"] == 'all')){
             $a_start_time = ($start_time > time() ? $start_time : time());
             $a_end_time = $end_time;
@@ -187,21 +186,21 @@ class ShowSemSchedules extends ShowSchedules {
                     $assign = AssignObject::Factory($event->getAssignId());
                     switch($event->repeat_mode){
                         case 'd':
-                        $add_info = '('.sprintf(_("täglich, %s bis %s"), strftime('%x',$assign->getBegin()), strftime('%x',$assign->getRepeatEnd())).')';
+                        $add_info = '('.sprintf(_("tÃ¤glich, %s bis %s"), strftime('%x',$assign->getBegin()), strftime('%x',$assign->getRepeatEnd())).')';
                         break;
                         case 'm':
                         if($assign->getRepeatInterval() == 1) $add_info = '('._("monatlich").')';
                         else  $add_info = '('.$assign->getRepeatInterval().'-'._("monatlich").')';
                         break;
                         case 'y':
-                        if($assign->getRepeatInterval() == 1) $add_info = '('._("jährlich").')';
-                        else  $add_info = '('.$assign->getRepeatInterval().'-'._("jährlich").')';
+                        if($assign->getRepeatInterval() == 1) $add_info = '('._("jÃ¤hrlich").')';
+                        else  $add_info = '('.$assign->getRepeatInterval().'-'._("jÃ¤hrlich").')';
                         break;
                     }
                 } else {
                     $add_info = '';
                 }
-                $schedule->addEvent('EB'.$num++.':' . $event->getName(get_config('RESOURCES_SCHEDULE_EXPLAIN_USER_NAME')), $event->getBegin(), $event->getEnd(),
+                $schedule->addEvent(null, 'EB'.$num++.':' . $event->getName(get_config('RESOURCES_SCHEDULE_EXPLAIN_USER_NAME')), $event->getBegin(), $event->getEnd(),
                         URLHelper::getLink('?cancel_edit_assign=1&quick_view='.$view.'&quick_view_mode='.$view_mode.'&edit_assign_object='.$event->getAssignId()), $add_info, $categories[$event->repeat_mode]);
             }
             $num_single_events = $assign_events->numberOfEvents();
@@ -232,7 +231,7 @@ class ShowSemSchedules extends ShowSchedules {
                 </td>
                 <td align="center">&nbsp;
                     <a href="<?= URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_sem=1')?>">
-                        <?= Icon::create('arr_2right', 'clickable', ['title' => _("Nächstes Semester anzeigen")])->asImg(16, ["alt" => _("Nächstes Semester anzeigen"), "border" => 0]) ?>
+                        <?= Icon::create('arr_2right', 'clickable', ['title' => _("NÃ¤chstes Semester anzeigen")])->asImg(16, ["alt" => _("NÃ¤chstes Semester anzeigen"), "border" => 0]) ?>
                     </a>
                 </td>
             </tr>
@@ -242,14 +241,14 @@ class ShowSemSchedules extends ShowSchedules {
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : -1)) ?>">
-                        <?= Icon::create('arr_2up', 'clickable', ['title' => _('Frühere Belegungen anzeigen')])->asImg(['class' => 'middle']) ?>
+                        <?= Icon::create('arr_2up', 'clickable', ['title' => _('FrÃ¼here Belegungen anzeigen')])->asImg(['class' => 'middle']) ?>
                     </a>
                 <? endif; ?>
                 </td>
                 <td colspan="2">
                     <?
                     if ($_SESSION['resources_data']["show_repeat_mode"] == 'repeated' || $_SESSION['resources_data']["show_repeat_mode"] == 'all'){
-                        echo _("Anzahl der regelmäßigen Belegungen in diesem Zeitraum:") . " " . $num_rep_events;
+                        echo _("Anzahl der regelmÃ¤ÃŸigen Belegungen in diesem Zeitraum:") . " " . $num_rep_events;
                     }
                     if ($_SESSION['resources_data']["show_repeat_mode"] == 'single' || $_SESSION['resources_data']["show_repeat_mode"] == 'all'){
                         echo _("Anzahl der Einzelbelegungen in diesem Zeitraum:") . " " . $num_single_events;
@@ -279,7 +278,7 @@ class ShowSemSchedules extends ShowSchedules {
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : 1)) ?>">
-                        <?= Icon::create('arr_2down', 'clickable', ['title' => _('Spätere Belegungen anzeigen')])->asImg() ?>
+                        <?= Icon::create('arr_2down', 'clickable', ['title' => _('SpÃ¤tere Belegungen anzeigen')])->asImg() ?>
                     </a>
                 <? endif; ?>
                 </td>
@@ -297,7 +296,7 @@ class ShowSemSchedules extends ShowSchedules {
                         reset($assign_events->events);
                         $num = 1;
                         while($event = $assign_events->nextEvent()) {
-                            echo LinkButton::create(_('Eigenschaften'), URLHelper::getURL('?quick_view=' 
+                            echo LinkButton::create(_('Eigenschaften'), URLHelper::getURL('?quick_view='
                                 . $view . '&quick_view_mode=' . $view_mode . '&edit_assign_object=' . $event->getAssignId()));
                             printf ("&nbsp; <font size=-1>"._("%s ist von <b>%s</b> bis <b>%s</b>, belegt von <b>%s</b>")."</font><br>",'EB'.$num++, strftime("%A, %d.%m.%Y %H:%M", $event->getBegin()), strftime("%A, %d.%m.%Y %H:%M", $event->getEnd()), $event->getName());
                         }

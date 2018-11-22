@@ -41,8 +41,7 @@ use Studip\Button, Studip\LinkButton;
 if (($o_mode != "direct") AND ($o_mode != "passthrough"))
     $perm->check("tutor");
 
-require_once ($GLOBALS['PATH_EXPORT'] . '/export_xslt_vars.inc.php');   // Liste der XSLT-Skripts
-require_once('lib/datei.inc.php');
+require_once ('lib/export/export_xslt_vars.inc.php');   // Liste der XSLT-Skripts
 
 /**
 * Checks given parameters
@@ -55,11 +54,11 @@ require_once('lib/datei.inc.php');
 */
 function CheckParamRUN()
 {
-global $XSLT_ENABLE, $ex_type, $o_mode, $xml_file_id, $page, $format, $output_formats, $choose, $xslt_files, $export_error, $export_error_num, $export_o_modes, $export_ex_types;
+global $ex_type, $o_mode, $xml_file_id, $format, $choose, $xslt_files, $export_error, $export_error_num, $export_o_modes, $export_ex_types;
 
     if (($xml_file_id == "")
             OR ($xslt_files[$choose]["file"] == "")
-            OR ($XSLT_ENABLE != true))
+            OR (Config::get()->XSLT_ENABLE != true))
     {
         $export_error .= "<b>" . _("Fehlende Parameter!") . "</b><br>";
         $export_error_num++;
@@ -70,7 +69,7 @@ global $XSLT_ENABLE, $ex_type, $o_mode, $xml_file_id, $page, $format, $output_fo
             OR (!in_array($o_mode,  $export_o_modes))
             OR (!$xslt_files[$choose][$format]))
     {
-        $export_error .= "<b>" . _("Unzulässiger Seitenaufruf!") . "</b><br>";
+        $export_error .= "<b>" . _("UnzulÃ¤ssiger Seitenaufruf!") . "</b><br>";
         $export_error_num++;
         return false;
     }
@@ -78,32 +77,46 @@ global $XSLT_ENABLE, $ex_type, $o_mode, $xml_file_id, $page, $format, $output_fo
     return true;
 }
 
+/**
+ * Convert all 2, 3 and 4 byte UTF-8 characters to the RTF unicode sequence \uX
+ *
+ * @param  string $utf8_text rft document
+ * @return string converted document
+ */
+function encode_utf8_for_rtf($utf8_text)
+{
+    $utf8_patterns = array(
+      "[\xC0-\xDF][\x80-\xBF]",
+      "[\xE0-\xEF][\x80-\xBF]{2}",
+      "[\xF0-\xF7][\x80-\xBF]{3}",
+    );
+    $unicode_text = $utf8_text;
+
+    foreach($utf8_patterns as $pattern) {
+        $unicode_text = preg_replace_callback("/$pattern/",
+        function($treffer) {
+            return '\u'. hexdec(bin2hex(mb_convert_encoding($treffer[0], 'UCS-4', 'UTF-8'))).'?';
+        },
+        $unicode_text);
+    }
+
+    return $unicode_text;
+}
 
 $export_pagename = _("Download der Ausgabedatei");
 $xslt_process = false;
-$xslt_filename = mb_strlen(Request::get('xslt_filename')) ? basename(stripslashes(Request::get('xslt_filename'))) : $xslt_filename_default;
+$xslt_filename = Request::get('xslt_filename', $xslt_filename_default);
 
-if (!CheckParamRUN())
-{
-    $infobox = array(
-    array ("kategorie"  => _("Information:"),
-        "eintrag" => array  (
-                        array ( "icon" => Icon::create('info', 'clickable'),
-                                "text"  => _("Die Parameter, mit denen diese Seite aufgerufen wurde, sind fehlerhaft.")
-                             )
-                        )
-        )
+if (!CheckParamRUN()) {
+    PageLayout::postError(
+        _('Die Parameter, mit denen diese Seite aufgerufen wurde, sind fehlerhaft.')
     );
-}
-else
-{
-
-
+} else {
     // Process the document
     $result_file = md5(uniqid(rand())) . "." . $format;
-    $result = "" . $TMP_PATH . "/export/" . $result_file;
-    $xml_process_file = "" . $TMP_PATH . "/export/" . $xml_file_id;
-    $xslt_process_file = $GLOBALS['STUDIP_BASE_PATH'] . '/' . $PATH_EXPORT . "/" . $xslt_files[$choose]["file"];
+    $result = "" . $TMP_PATH . "/" . $result_file;
+    $xml_process_file = "" . $TMP_PATH . "/" . $xml_file_id;
+    $xslt_process_file = $GLOBALS['STUDIP_BASE_PATH'] . '/lib/export/' . $xslt_files[$choose]["file"];
 
     $xh = new XSLTProcessor();
     $xml_doc = new DOMDocument();
@@ -114,6 +127,12 @@ else
     $result_doc = $xh->transformToXML($xml_doc);
     if ($result_doc) {
         $processed = true;
+
+        // if the output format is rtf, convert utf-8 chars to rtf escape sequences
+        if ($format == 'rtf') {
+            $result_doc = encode_utf8_for_rtf($result_doc);
+        }
+
         file_put_contents($result, $result_doc);
     } else {
         $xh = libxml_get_last_error();
@@ -125,7 +144,7 @@ else
         $xslt_info = _("Die Daten sind nun im gew&auml;hlten Format verf&uuml;gbar.");
         $xslt_process = true;
         $link1 = "<a href=\"" . $TMP_PATH . "/" . $result_file . "\">";
-        $link2 = '<a href="'. GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2) . '">';
+        $link2 = '<a href="'. FileManager::getDownloadLinkForTemporaryFile($result_file, $xslt_filename .'.'. $format) . '">';
 
     } elseif ($o_mode != "passthrough") {
 
@@ -138,8 +157,8 @@ else
 
     if ($o_mode == "passthrough")
     {
-        header("Location: " . GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2, 'force'));
-        unlink( $TMP_PATH . "/export/" . $xml_file_id);
+        header("Location: " . FileManager::getDownloadURLForTemporaryFile($result_file, $xslt_filename .'.'. $format));
+        unlink( $TMP_PATH . "/" . $xml_file_id);
     } else {
 
         $export_weiter_button = "<form method=\"POST\" action=\"" . URLHelper::getURL() . "\">";
@@ -157,9 +176,9 @@ else
         $export_weiter_button .= "<input type=\"hidden\" name=\"xml_file_id\" value=\"" . htmlReady($xml_file_id) . "\">";
         $export_weiter_button .= "<input type=\"hidden\" name=\"xslt_filename\" value=\"" . htmlReady($xslt_filename) . "\">";
         if (Request::option('jump'))
-            $export_weiter_button .= '<center>' . LinkButton::create('<< ' . _('Zurück'), URLHelper::getURL('seminar_main.php', array('auswahl' => $range_id, 'redirect_to' => $jump))) . "<br>";
+            $export_weiter_button .= '<center>' . LinkButton::create('<< ' . _('ZurÃ¼ck'), URLHelper::getURL('seminar_main.php', array('auswahl' => $range_id, 'redirect_to' => $jump))) . "<br>";
         else
-            $export_weiter_button .= "<center>" . Button::create('<< ' . _('Zurück'), 'back') . "<br>";
+            $export_weiter_button .= "<center>" . Button::create('<< ' . _('ZurÃ¼ck'), 'back') . "<br>";
         $export_weiter_button .= "</center></form>";
 
         if ($xslt_process) {
@@ -170,31 +189,31 @@ else
         }
 
 
-        $xml_printimage = ' <a href="' . GetDownloadLink($xml_file_id, $xml_filename, 2) . '" target="_blank">';
+        $xml_printimage = ' <a href="' . FileManager::getDownloadLinkForTemporaryFile($xml_file_id, $xml_filename) . '" target="_blank">';
         $xml_printimage.= Icon::create($export_icon['xml'], 'clickable')->asImg(['class' => 'text-top']);
         $xml_printimage.= '</a>';
-        $xml_printlink = ' <a href="'. GetDownloadLink($xml_file_id, $xml_filename, 2) . '" class="tree">' . htmlReady($xml_filename) . '</a>';
+        $xml_printlink = ' <a href="'. FileManager::getDownloadLinkForTemporaryFile($xml_file_id, $xml_filename) . '" class="tree">' . htmlReady($xml_filename) . '</a>';
         $xml_printdesc = _("XML-Daten");
-        $xml_printcontent = _("In dieser Datei sind die Daten als XML-Tags gespeichert. Diese Tags können mit einem XSLT-Script verarbeitet werden.") . '<br>';
+        $xml_printcontent = _("In dieser Datei sind die Daten als XML-Tags gespeichert. Diese Tags kÃ¶nnen mit einem XSLT-Script verarbeitet werden.") . '<br>';
 
-        $xslt_printimage = ' <a href="'. GetDownloadLink($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl', 3) . '">';
+        $xslt_printimage = ' <a href="'. FileManager::getDownloadLinkForTemporaryFile($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl') . '">';
         $xslt_printimage.= Icon::create($export_icon['xslt'], 'clickable')->asImg(['class' => 'text-top']);
         $xslt_printimage.= '</a>';
-        $xslt_printlink = ' <a href="' . GetDownloadLink($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl', 3) .  '" class="tree"> ' . $xslt_files[$choose]['name'] . '.xsl</a>';
+        $xslt_printlink = ' <a href="' . FileManager::getDownloadLinkForTemporaryFile($xslt_files[$choose]['file'], $xslt_files[$choose]['name'].'.xsl') .  '" class="tree"> ' . $xslt_files[$choose]['name'] . '.xsl</a>';
         $xslt_printdesc = _("XSLT-Datei");
-        $xslt_printcontent = _("Dies ist das XSLT-Script zur Konvertierung der Daten. Klicken Sie auf den Dateinamen, um die Datei zu öffnen.") . '<br>';
+        $xslt_printcontent = _("Dies ist das XSLT-Script zur Konvertierung der Daten. Klicken Sie auf den Dateinamen, um die Datei zu Ã¶ffnen.") . '<br>';
 
         if ($xslt_process) {
-            $result_printimage = '<a href="'. GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2) . '">';
+            $result_printimage = '<a href="'. FileManager::getDownloadLinkForTemporaryFile($result_file, $xslt_filename .'.'. $format) . '">';
             $result_printimage.= Icon::create($export_icon[$format], 'clickable')->asImg(['class' => 'text-top']);
             $result_printimage.= '</a>';
-            $result_printlink = '<a href="'. GetDownloadLink($result_file, $xslt_filename .'.'. $format, 2) . '" class="tree"> ' . htmlReady($xslt_filename) . '.' . htmlReady($format) . '</a>';
+            $result_printlink = '<a href="'. FileManager::getDownloadLinkForTemporaryFile($result_file, $xslt_filename .'.'. $format) . '" class="tree"> ' . htmlReady($xslt_filename) . '.' . htmlReady($format) . '</a>';
             $result_printdesc = _("Ausgabe-Datei");
             $result_printcontent = _("Dies ist die fertige Ausgabedatei.") . "<br>";
         }
 
 
-        include_once ("$PATH_EXPORT/oscar.php");
+        include_once ("lib/export/oscar.php");
     }
 
 }

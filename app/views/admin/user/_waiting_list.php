@@ -2,7 +2,7 @@
     <header>
         <h1>
             <a href="<?= ContentBoxHelper::href('seminar_wait') ?>">
-                <?= _('Übersicht Wartelisten von Veranstaltungen') ?>
+                <?= _('Ãœbersicht Wartelisten von Veranstaltungen') ?>
             </a>
         </h1>
     </header>
@@ -27,12 +27,12 @@
                     <? foreach ($memberships as $membership): ?>
                         <tr>
                             <td>
-                                <a href="<?= URLHelper::getLink('seminar_main.php', ['auswahl' => $course->id]) ?>">
+                                <a href="<?= URLHelper::getLink('seminar_main.php', ['auswahl' => $membership->course->id]) ?>">
                                     <?= htmlReady($membership->course->veranstaltungsnummer) ?>
                                 </a>
                             </td>
                             <td>
-                                <a href="<?= URLHelper::getLink('seminar_main.php', ['auswahl' => $course->id]) ?>">
+                                <a href="<?= URLHelper::getLink('seminar_main.php', ['auswahl' => $membership->course->id]) ?>">
                                     <?= sprintf('%s (%s)', htmlReady($membership->course->getFullName('type-name')), htmlReady($membership->course->getFullName('sem-duration-name'))) ?>
                                 </a>
                             </td>

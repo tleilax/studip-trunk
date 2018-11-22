@@ -90,7 +90,6 @@ function insert_seminar_user($seminar_id, $user_id, $status, $copy_studycourse =
         $log_message = 'Wurde in die Veranstaltung eingetragen, admission_status: '. $admission_status . ' Kontingent: ' . $contingent;
     }
     StudipLog::log('SEM_USER_ADD', $seminar_id, $user_id, $status, $log_message);
-
     // actually insert the user into the seminar
     $stmt = DBManager::get()->prepare('INSERT IGNORE INTO seminar_user
         (Seminar_id, user_id, status, comment, gruppe, mkdate)
@@ -117,6 +116,11 @@ function insert_seminar_user($seminar_id, $user_id, $status, $copy_studycourse =
 
     // reload the seminar, the contingents have changed
     $sem->restore();
+
+    // Check if a parent course exists and insert user there.
+    if ($sem->parent_course) {
+        insert_seminar_user($sem->parent_course, $user_id, $status, $copy_studycourse, $contingent, $log_message);
+    }
 
     return true;
 }
@@ -161,7 +165,7 @@ function renumber_admission ($seminar_id, $send_message = TRUE)
             $update_statement->execute(array($position, $user_id, $seminar->id));
 
             //User benachrichten
-            if ($update_statement->rowCount() && $send_message) {
+            if ($update_statement->rowCount() && Config::get()->NOTIFY_ON_WAITLIST_ADVANCE && $send_message) {
                 //Usernamen auslesen
                 $username = get_username($user_id);
 
@@ -170,7 +174,7 @@ function renumber_admission ($seminar_id, $send_message = TRUE)
                     $seminar->name,
                     $seminar->getFormattedTurnus(),
                     $position);
-                $subject = sprintf(_('Ihre Position auf der Warteliste der Veranstaltung %s wurde verändert'), $seminar->name);
+                $subject = sprintf(_('Ihre Position auf der Warteliste der Veranstaltung %s wurde verÃ¤ndert'), $seminar->name);
                 restoreLanguage();
 
                 $messaging->insert_message($message, $username, '____%system%____', FALSE, FALSE, '1', FALSE, $subject);
@@ -275,9 +279,9 @@ function normal_update_admission($seminar_id, $send_message = TRUE)
                     if (($sem_preliminary || $affected > 0) && $send_message) {
                         setTempLanguage($row['user_id']);
                         if (!$sem_preliminary) {
-                            $message = sprintf (_('Sie sind in die Veranstaltung **%s (%s)** eingetragen worden, da für Sie ein Platz frei geworden ist. Ab sofort finden Sie die Veranstaltung in der Übersicht Ihrer Veranstaltungen. Damit sind Sie auch für die Präsenzveranstaltung zugelassen.'), $seminar->getName(), $seminar->getFormattedTurnus(true));
+                            $message = sprintf (_('Sie sind in die Veranstaltung **%s (%s)** eingetragen worden, da fÃ¼r Sie ein Platz frei geworden ist. Ab sofort finden Sie die Veranstaltung in der Ãœbersicht Ihrer Veranstaltungen. Damit sind Sie auch fÃ¼r die PrÃ¤senzveranstaltung zugelassen.'), $seminar->getName(), $seminar->getFormattedTurnus(true));
                         } else {
-                            $message = sprintf (_('Sie haben den Status vorläufig akzeptiert in der Veranstaltung **%s (%s)** erhalten, da für Sie ein Platz freigeworden ist.'), $seminar->getName(), $seminar->getFormattedTurnus(true));
+                            $message = sprintf (_('Sie haben den Status vorlÃ¤ufig akzeptiert in der Veranstaltung **%s (%s)** erhalten, da fÃ¼r Sie ein Platz freigeworden ist.'), $seminar->getName(), $seminar->getFormattedTurnus(true));
                         }
                         $subject = sprintf(_("Teilnahme an der Veranstaltung %s"),$seminar->getName());
                         restoreLanguage();

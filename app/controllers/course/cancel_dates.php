@@ -8,29 +8,27 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @package     admin
  */
 class Course_CancelDatesController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-    
     /**
      * common tasks for all actions
      */
     public function before_filter(&$action, &$args)
     {
         global $perm;
-        
+
         parent::before_filter($action, $args);
-        
+
         if (Request::get('termin_id')) {
             $this->dates[0]  = new SingleDate(Request::option('termin_id'));
             $this->course_id = $this->dates[0]->range_id;
         }
-        
+
         if (Request::get('issue_id')) {
             $this->issue_id  = Request::option('issue_id');
             $this->dates     = array_values(array_map(function ($data) {
@@ -46,34 +44,34 @@ class Course_CancelDatesController extends AuthenticatedController
         PageLayout::setHelpKeyword('Basis.VeranstaltungenVerwaltenAendernVonZeitenUndTerminen');
         PageLayout::setTitle(Course::findCurrent()->getFullname() . " - " . _('Veranstaltungstermine absagen'));
     }
-    
+
     public function index_action()
     {
     }
-    
+
     public function store_action()
     {
         CSRFProtection::verifyUnsafeRequest();
-        $sem     = Seminar::getInstance($this->course_id);
+        $sem = Seminar::getInstance($this->course_id);
         foreach ($this->dates as $date) {
             $sem->cancelSingleDate($date->getTerminId(), $date->getMetadateId());
             $date->setComment(Request::get('cancel_dates_comment'));
             $date->setExTermin(true);
             $date->store();
         }
-        if (Request::int('cancel_dates_snd_message') && count($this->dates)) {
+        if (Request::int('cancel_dates_snd_message') && count($this->dates) > 0) {
             $snd_messages = raumzeit_send_cancel_message(Request::get('cancel_dates_comment'), $this->dates);
-            if ($snd_messages) {
-                $msg = sprintf(_('Es wurden %s Benachrichtigungen gesendet.'), $snd_messages);
+            if ($snd_messages > 0) {
+                $msg = _('Alle Teilnehmenden wurden benachrichtigt.');
             }
         }
         PageLayout::postSuccess(_('Folgende Termine wurden abgesagt') . ($msg ? ' (' . $msg . '):' : ':'), array_map(function ($d) {
             return $d->toString();
         }, $this->dates));
-        
+
         $this->redirect($this->url_for('course/dates'));
     }
-    
+
     public function after_filter($action, $args)
     {
         if (Request::isXhr()) {
@@ -88,5 +86,5 @@ class Course_CancelDatesController extends AuthenticatedController
         }
         parent::after_filter($action, $args);
     }
-    
+
 }

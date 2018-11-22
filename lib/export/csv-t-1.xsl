@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="WINDOWS-1252"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:exsl="http://exslt.org/common"
 	xmlns:func="http://exslt.org/functions"
 	xmlns:str="http://exslt.org/strings">
 
-	<xsl:output method="text" encoding="WINDOWS-1252"/>
+	<xsl:output method="text" encoding="UTF-8"/>
 
-	<xsl:key name="datafields-by-key" match="//datenfeld" use="@key"/>
+	<xsl:key name="datafields-by-key" match="//personen//datenfeld" use="@key"/>
 
 	<xsl:variable name="collect-datafields">
 		<xsl:for-each select="//datenfeld[generate-id(.) = generate-id(key('datafields-by-key', @key)[1])]">
@@ -18,7 +18,7 @@
 
 	<xsl:variable name="datafields" select="exsl:node-set($collect-datafields)/entry"/>
 
-	<xsl:key name="zusatzangaben-by-key" match="//zusatzangabe" use="@key"/>
+	<xsl:key name="zusatzangaben-by-key" match="//personen//zusatzangabe" use="@key"/>
 
 	<xsl:variable name="collect-zusatzangaben">
 		<xsl:for-each select="//zusatzangabe[generate-id(.) = generate-id(key('zusatzangaben-by-key', @key)[1])]">
@@ -35,6 +35,8 @@
 	<xsl:variable name="zusatzangaben" select="exsl:node-set($collect-zusatzangaben)/entry"/>
 
   <xsl:template match="/">
+        <xsl:text>&#xFEFF;</xsl:text>
+		<xsl:text>Anrede;</xsl:text>
 		<xsl:text>Titel;</xsl:text>
 		<xsl:text>Vorname;</xsl:text>
 		<xsl:text>Nachname;</xsl:text>
@@ -44,7 +46,7 @@
 		<xsl:text>Privatnr;</xsl:text>
 		<xsl:text>E-Mail;</xsl:text>
 		<xsl:text>Anmeldedatum;</xsl:text>
-		<xsl:text>Studiengänge;</xsl:text>
+		<xsl:text>StudiengÃ¤nge;</xsl:text>
 		<xsl:if test="$datafields">
 			<xsl:for-each select="$datafields">
 			    <xsl:text>"</xsl:text>
@@ -78,6 +80,10 @@
 	<xsl:template name="showperson">
 		<xsl:for-each select="person">
 			<xsl:text>"</xsl:text>
+
+			<xsl:if test="geschlecht = 1">Herr</xsl:if>
+			<xsl:if test="geschlecht = 2">Frau</xsl:if>
+			<xsl:text>";"</xsl:text>
 
 			<xsl:if test="titel">
 				<xsl:value-of select="str:replace(titel,'&quot;','&quot;&quot;')"/>

@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
- * @author      Till Glˆggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
  * @license     GPL 2 or later
  */
 
@@ -17,7 +17,7 @@ class ScheduleProvider implements ActivityProvider
      */
     public function getActivityDetails($activity)
     {
-        $activity->content = $activity->content;
+        $activity->content = htmlReady($activity->content);
 
         $url = \URLHelper::getUrl("dispatch.php/course/dates?cid={$activity->context_id}");
         $route = \URLHelper::getURL('api.php/course/' . $activity->context_id . '/events', NULL, true);
@@ -35,13 +35,11 @@ class ScheduleProvider implements ActivityProvider
      * posts an activity for a given notification event
      *
      * @param String $event a notification for an activity
-     * @param Array  $info information which a relevant for the activity
+     * @param Array  $sem Seminar-class for the notification
      */
-    public function postActivity($event, $info)
+    public function postActivity($event, $sem)
     {
-        $info = $info->toArray();
-
-        $range_id = $info['seminar_id'];
+        $range_id = $sem->getId();
 
         $type = get_object_type($range_id);
         if ($type == 'sem') {

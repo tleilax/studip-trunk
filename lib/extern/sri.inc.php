@@ -5,9 +5,9 @@
 # Lifter010: TODO
 /**
 * sri.inc.php
-* 
+*
 * The Stud.IP-remote-include interface to extern modules.
-* 
+*
 *
 * @author       Peter Thienel <pthienel@web.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -37,7 +37,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
-if (!$EXTERN_SRI_ENABLE) {
+if (!Config::get()->EXTERN_SRI_ENABLE) {
     echo $EXTERN_ERROR_MESSAGE;
     exit;
 }
@@ -47,8 +47,7 @@ if (!ini_get('allow_url_fopen')){
 }
 // this script is included in extern.inc.php
 
-$semester = new SemesterData();
-$all_semester = $semester->getAllSemesterData();
+$all_semester = SemesterData::getAllSemesterData();
 
 if ($sri_file = @file($page_url))
     $sri_page = implode("", $sri_file);
@@ -115,7 +114,7 @@ elseif (!$config_id) {
     if ($id = ExternConfig::GetStandardConfiguration($range_id, $type)) {
         $config_id = $id;
     } else {
-        if ($EXTERN_ALLOW_ACCESS_WITHOUT_CONFIG) {
+        if (Config::get()->EXTERN_ALLOW_ACCESS_WITHOUT_CONFIG) {
             // use default configuraion
             $default = 'DEFAULT';
             $config_id = '';
@@ -169,21 +168,21 @@ if ($sem_offset == "-1") {
 foreach ($EXTERN_MODULE_TYPES as $type) {
     if ($type["module"] == $module_name) {
         $class_name = "ExternModule" . $module_name;
-        require_once($RELATIVE_PATH_EXTERN . "/modules/$class_name.class.php");
+        require_once "lib/extern/modules/$class_name.class.php";
         $module_obj = ExternModule::GetInstance($range_id, $module_name, $config_id, $default, $global_id);
     }
 }
-// drop URL parameters from page_url 
+// drop URL parameters from page_url
 $page_url = preg_replace('/\?.*/', '', Request::get('page_url'));
- 
-$sri_url = $module_obj->config->getValue('Main', 'sriurl'); 
 
-if (isset($sri_url)) { 
-    // drop URL parameters from sri_url 
-    $sri_url = preg_replace('/\?.*/', '', $sri_url); 
-} 
+$sri_url = $module_obj->config->getValue('Main', 'sriurl');
 
-if ($page_url != $sri_url || !sri_is_enabled($module_obj->config->range_id)) { 
+if (isset($sri_url)) {
+    // drop URL parameters from sri_url
+    $sri_url = preg_replace('/\?.*/', '', $sri_url);
+}
+
+if ($page_url != $sri_url || !sri_is_enabled($module_obj->config->range_id)) {
 
     echo $EXTERN_ERROR_MESSAGE;
     exit;

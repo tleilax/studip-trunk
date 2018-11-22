@@ -44,7 +44,7 @@ class ForumController extends StudipController {
 
         // Set help keyword for Stud.IP's user-documentation and page title
         PageLayout::setHelpKeyword('Basis.Forum');
-        PageLayout::setTitle($_SESSION['SessSemName']['header_line'] .' - '. _('Forum'));
+        PageLayout::setTitle(Context::getHeaderLine() .' - '. _('Forum'));
 
         $this->AVAILABLE_DESIGNS = array('web20', 'studip');
         if ($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] && $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] != '/') {
@@ -52,9 +52,6 @@ class ForumController extends StudipController {
         } else {
             $this->picturepath = '/'. $this->dispatcher->trails_root . '/img';
         }
-
-        // we want to display the dates in german
-        setlocale(LC_TIME, 'de_DE@euro', 'de_DE', 'de', 'ge');
 
         // the default for displaying timestamps
         $this->time_format_string = "%a %d. %B %Y, %H:%M";
@@ -65,6 +62,8 @@ class ForumController extends StudipController {
 
         //$this->check_token();
 
+        //$this->getId() depends on Context::get()
+        checkObject();
         ForumVisit::setVisit($this->getId());
         if (Request::int('page')) {
             ForumHelpers::setPage(Request::int('page'));

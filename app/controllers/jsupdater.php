@@ -58,7 +58,6 @@ class JsupdaterController extends AuthenticatedController
     {
         $data = UpdateInformation::getInformation();
         $data = array_merge($data, $this->coreInformation());
-        $data = studip_utf8encode($data);
 
         $this->set_content_type('application/json;charset=utf-8');
         $this->render_text(json_encode($data));
@@ -71,16 +70,24 @@ class JsupdaterController extends AuthenticatedController
      */
     public function mark_notification_read_action($id)
     {
-        PersonalNotifications::markAsRead($id);
-        if (Request::isXhr()) {
-            $this->render_nothing();
+        if ($id === 'all') {
+            PersonalNotifications::markAllAsRead();
         } else {
+            PersonalNotifications::markAsRead($id);
+        }
+
+        $url = false;
+        if ($id === 'all') {
+            $url = Request::get('return_to');
+        } elseif (!Request::isXhr() || Request::isDialog()) {
             $notification = new PersonalNotifications($id);
-            if ($notification->url) {
-                $this->redirect(URLHelper::getUrl(TransformInternalLinks($notification->url)));
-            } else {
-                $this->render_nothing();
-            }
+            $url = $notification->url;
+        }
+
+        if ($url) {
+            $this->redirect(URLHelper::getURL(TransformInternalLinks($url)));
+        } else {
+            $this->render_nothing();
         }
     }
 
@@ -133,7 +140,7 @@ class JsupdaterController extends AuthenticatedController
                         ->render(compact("message") + array('controller' => $this));
             }
         }
-        if (count($page_info['Questionnaire']['questionnaire_ids']) > 0) {
+        if (is_array($page_info['Questionnaire']['questionnaire_ids'])) {
             foreach ($page_info['Questionnaire']['questionnaire_ids'] as $questionnaire_id) {
                 $questionnaire = new Questionnaire($questionnaire_id);
                 if ($questionnaire->latestAnswerTimestamp() > $page_info['Questionnaire']['last_update']) {
@@ -144,24 +151,6 @@ class JsupdaterController extends AuthenticatedController
                         'html' => $template->render()
                     );
                 }
-            }
-        }
-        return $data;
-    }
-
-    /**
-     * Converts all strings within an array (except for indexes)
-     * from windows 1252 to utf8. PHP-objects are ignored.
-     * @param array $data: any array with strings in windows-1252 encoded
-     * @return array: almost the same array but strings are now utf8-encoded
-     */
-    protected function recursive_studip_utf8encode(array $data)
-    {
-        foreach ($data as $key => $component) {
-            if (is_array($component)) {
-                $data[$key] = $this->recursive_studip_utf8encode($component);
-            } elseif(is_string($component)) {
-                $data[$key] = studip_utf8encode($component);
             }
         }
         return $data;

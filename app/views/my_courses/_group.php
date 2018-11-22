@@ -21,14 +21,16 @@
 
                 <?= htmlReady($title) ?></a>
         </th>
-        <th class="dont-hide responsive-hidden"></th>
-        <th class="dont-hide responsive-hidden" colspan="2">
+        <th class="dont-hide hidden-small-down"></th>
+        <th class="dont-hide hidden-small-down" colspan="2">
             <? if ($last_modified) : ?>
-                <?= tooltipIcon(_('Letzte Änderung') . ': ' . strftime('%x, %H:%M', $last_modified), true) ?>
+                <?= tooltipIcon(_('Letzte Ã„nderung') . ': ' . strftime('%x, %H:%M', $last_modified), true) ?>
             <? endif ?>
         </th>
     </tr>
-    <?= $this->render_partial("my_courses/_course", compact('course_collection')) ?>
+    <? if ($_my_sem_open[$id]) : ?>
+        <?= $this->render_partial("my_courses/_course", compact('course_collection')) ?>
+    <? endif ?>
     </tbody>
     <? $index++ ?>
 <? endforeach ?>

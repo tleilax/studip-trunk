@@ -7,16 +7,16 @@ $options = array(
      'show_total_stats'            => _('Zeige Gesamtstatistik an'),
      'show_graphics'               => _('Zeige Grafiken an'),
      'show_questions'              => _('Zeige Fragen an'),
-     'show_group_headline'         => _('Zeige Gruppenüberschriften an'),
-     'show_questionblock_headline' => _('Zeige Fragenblocküberschriften an'),
+     'show_group_headline'         => _('Zeige GruppenÃ¼berschriften an'),
+     'show_questionblock_headline' => _('Zeige FragenblockÃ¼berschriften an'),
 );
 
 $graphtypes = array(
     'polscale_gfx_type' => array(
-        'title'   => _('Grafiktyp für Polskalen'),
+        'title'   => _('Grafiktyp fÃ¼r Polskalen'),
         'options' => array(
             'bars'        => _('Balken'),
-            'pie'         => _('Tortenstücke'),
+            'pie'         => _('TortenstÃ¼cke'),
             'lines'       => _('Linien'),
             'linepoints'  => _('Linienpunkte'),
             'area'        => _('Bereich'),
@@ -25,10 +25,10 @@ $graphtypes = array(
         ),
     ),
     'likertscale_gfx_type' => array(
-        'title'   => _('Grafiktyp für Likertskalen'),
+        'title'   => _('Grafiktyp fÃ¼r Likertskalen'),
         'options' => array(
             'bars'        => _('Balken'),
-            'pie'         => _('Tortenstücke'),
+            'pie'         => _('TortenstÃ¼cke'),
             'lines'       => _('Linien'),
             'linepoints'  => _('Linienpunkte'),
             'area'        => _('Bereich'),
@@ -37,7 +37,7 @@ $graphtypes = array(
         ),
     ),
     'mchoice_scale_gfx_type' => array(
-        'title'   => _('Grafiktyp für Multiplechoice'),
+        'title'   => _('Grafiktyp fÃ¼r Multiplechoice'),
         'options' => array(
             'bars'        => _('Balken'),
             'points'      => _('Punkte'),
@@ -47,7 +47,7 @@ $graphtypes = array(
 );
 ?>
 
-<form action="<?= URLHelper::getLink() ?>" method="post">
+<form class="default" action="<?= URLHelper::getLink() ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
 
     <input type="hidden" name="template_id" value="<?= $templates['template_id'] ?>">
@@ -90,7 +90,7 @@ $graphtypes = array(
                     <label for="<?= $type ?>"><?= htmlReady($data['title']) ?>:</label>
                 </td>
                 <td style="text-align: center;" colspan="2">
-                    <select id="<?= $type ?>" name="<?= $type ?>" style="120px">
+                    <select class="size-s" id="<?= $type ?>" name="<?= $type ?>" style="120px">
                     <? foreach ($data['options'] as $k => $v): ?>
                         <option value="<?= htmlReady($k) ?>"
                                 <? if ($templates[$type] == $k) echo "selected"; ?>>
@@ -106,12 +106,12 @@ $graphtypes = array(
         <tfoot>
             <tr>
                 <td>
-                    <?= LinkButton::create('<< ' . _('Zurück'), 
+                    <?= LinkButton::create('<< ' . _('ZurÃ¼ck'),
                                            URLHelper::getURL('eval_summary.php', compact('eval_id'))) ?>
                 </td>
                 <td colspan="2" style="text-align: right;">
                     <?= Button::createAccept(_('Speichern'), 'store') ?>
-                    <?= ResetButton::createCancel(_('Zurücksetzen')) ?>
+                    <?= ResetButton::createCancel(_('ZurÃ¼cksetzen')) ?>
                 </td>
             </tr>
         </tfoot>
@@ -119,23 +119,7 @@ $graphtypes = array(
 </form>
 
 <?
-$infobox = array(
-    'picture' => 'sidebar/evaluation-sidebar.png',
-    'content' => array(
-        array(
-            'kategorie' => _('Information:'),
-            'eintrag'   => array(
-                array(
-                    'icon' => Icon::create('vote', 'clickable'),
-                    'text' => _('Auf dieser Seite können Sie die Auswertung Ihrer Evaluation konfigurieren.')
-                ),
-                array(
-                    'icon' => Icon::create('info', 'clickable'),
-                    'text' => _('Wählen Sie Ihre Einstellungen und drücken Sie auf "Template speichern". '
-                               .'Anschließend kommen Sie mit dem Button unten links zurück zu Ihrer Evaluation.')
-                ),
-            ),
-        ),
-    ),
-);
+Helpbar::Get()->addPlainText(_('Information'), _('Auf dieser Seite kÃ¶nnen Sie die Auswertung Ihrer Evaluation konfigurieren.'));
+Helpbar::Get()->addPlainText(_('Information'), ('WÃ¤hlen Sie Ihre Einstellungen und drÃ¼cken Sie auf "Template speichern". '
+                                                .'AnschlieÃŸend kommen Sie mit dem Button unten links zurÃ¼ck zu Ihrer Evaluation.'));
 ?>

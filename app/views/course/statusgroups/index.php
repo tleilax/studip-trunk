@@ -1,35 +1,34 @@
 <form action="<?= $controller->url_for('course/statusgroups/batch_action') ?>" method="post">
-<section class="contentbox course-statusgroups">
+<section class="contentbox course-statusgroups" <? if ($is_tutor && !$is_locked) echo 'data-sortable="' . $controller->url_for('course/statusgroups/order') . '"'; ?>>
     <header>
         <h1><?= _('Teilnehmende nach Gruppen') ?></h1>
     </header>
     <?php foreach ($groups as $group) : ?>
         <?= $this->render_partial('course/statusgroups/_group',
-            array('group' => $group['group'], 'members' => $group['members'])) ?>
+            array('group' => $group['group'], 'membercount' => $group['membercount'],
+                'members' => $group['members'], 'joinable' => $group['joinable'], 'load' => $group['load'],
+                'order' => $order, 'sort_by' => $sort_by)) ?>
     <?php endforeach ?>
-    <?php if ($no_group) : ?>
-        <?= $this->render_partial('course/statusgroups/_group',
-            array('group' => $no_group['group'], 'members' => $no_group['members'])) ?>
-    <?php endif ?>
-    <?php if (count($groups) > 1 && $is_tutor && !$is_locked) : ?>
+    <?php if ((count($groups) > $ungrouped_count ? 2 : 1) && $is_tutor && !$is_locked) : ?>
         <footer>
             <div class="groupselection">
                 <label>
-                    <input aria-label="<?= sprintf(_('Alle Gruppen auswählen')) ?>"
+                    <input aria-label="<?= sprintf(_('Alle Gruppen auswÃ¤hlen')) ?>"
                            type="checkbox" name="allgroups" value="1"
                            data-proxyfor=":checkbox.groupselector"
-                           data-activates="select#batch-groups-action">
-                    <?= _('Alle Gruppen auswählen') ?>
+                           data-activates="select#batch-groups-action,#batch-groups-submit">
+                    <?= _('Alle Gruppen auswÃ¤hlen') ?>
                 </label>
             </div>
             <div class="groupactions">
                 <label>
                     <select name="groups_action" id="batch-groups-action" disabled>
-                        <option value="edit"><?= _('Bearbeiten') ?></option>
-                        <option value="delete"><?= _('Löschen') ?></option>
+                        <option value="edit_size"><?= _('GruppengrÃ¶ÃŸe bearbeiten') ?></option>
+                        <option value="edit_selfassign"><?= _('Selbsteintrag bearbeiten') ?></option>
+                        <option value="delete"><?= _('LÃ¶schen') ?></option>
                     </select>
                 </label>
-                <?= Studip\Button::create(_('Ausführen'), 'batch_groups', array('data-dialog' => 'size=auto')) ?>
+                <?= Studip\Button::create(_('AusfÃ¼hren'), 'batch_groups', array('data-dialog' => 'size=auto', 'disabled' => '', 'id' => 'batch-groups-submit')) ?>
             </div>
         </footer>
     <?php endif ?>

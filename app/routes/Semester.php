@@ -39,7 +39,7 @@ class Semester extends \RESTAPI\RouteMap
      */
     public function getSemester($id)
     {
-        $semester = \SemesterData::getInstance()->getSemesterData($id);
+        $semester = \SemesterData::getSemesterData($id);
         if (!$semester) {
             $this->notFound();
         }

@@ -12,10 +12,8 @@
  * @category    Stud.IP
  */
 
-class MultipersonsearchController extends AuthenticatedController {
-
-    protected $utf8decode_xhr = true;
-
+class MultipersonsearchController extends AuthenticatedController
+{
     /**
      * Ajax action used for searching persons.
      *
@@ -25,7 +23,7 @@ class MultipersonsearchController extends AuthenticatedController {
     {
         $searchterm = Request::get("s");
         $searchterm = str_replace(",", " ", $searchterm);
-        $searchterm = preg_replace('/\s+/', ' ', $searchterm);
+        $searchterm = preg_replace('/\s+/u', ' ', $searchterm);
 
         $result = array();
         // execute searchobject if searchterm is at least 3 chars long
@@ -35,7 +33,7 @@ class MultipersonsearchController extends AuthenticatedController {
             $result = array_map(function ($r) {
                 return $r['user_id'];
             }, $searchObject->getResults($searchterm, array(), 50));
-            $result = User::findMany($result, 'ORDER BY nachname asc, vorname asc');
+            $result = User::findFullMany($result, 'ORDER BY nachname asc, vorname asc');
             $alreadyMember = $mp->getDefaultSelectedUsersIDs();
         }
         $output = array();
@@ -76,14 +74,14 @@ class MultipersonsearchController extends AuthenticatedController {
         $this->additionHTML = $mp->getAdditionHTML();
         $this->data_dialog_status = $mp->getDataDialogStatus();
         foreach ($this->quickfilter as $title => $users) {
-            $tmp = User::findMany($users, 'ORDER BY nachname asc, vorname asc');
+            $tmp = User::findFullMany($users, 'ORDER BY nachname asc, vorname asc');
             $this->quickfilter[$title] = $tmp;
         }
         $this->executeURL = $mp->getExecuteURL();
         $this->jsFunction = $mp->getJSFunctionOnSubmit();
-        $tmp = User::findMany($mp->getDefaultSelectableUsersIDs(), 'ORDER BY nachname asc, vorname asc');
+        $tmp = User::findFullMany($mp->getDefaultSelectableUsersIDs(), 'ORDER BY nachname asc, vorname asc');
         $this->defaultSelectableUsers = $tmp;
-        $tmp = User::findMany($mp->getDefaultSelectedUsersIDs(), 'ORDER BY nachname asc, vorname asc');
+        $tmp = User::findFullMany($mp->getDefaultSelectedUsersIDs(), 'ORDER BY nachname asc, vorname asc');
         $this->defaultSelectedUsers = $tmp;
         $this->ajax = Request::isXhr();
 

@@ -2,7 +2,7 @@
 /**
  * send_mail_notifications.php - Sends daily email notifications.
  *
- * @author  André Noack <noack@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
+ * @author  AndrÃ© Noack <noack@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @access  public
  */
@@ -37,7 +37,7 @@ class SendMailNotificationsJob extends CronJob
      */
     public static function getName()
     {
-        return _('Versendet tägliche E-Mailbenachrichtigungen');
+        return _('Versendet tÃ¤gliche E-Mailbenachrichtigungen');
     }
 
     /**
@@ -45,7 +45,7 @@ class SendMailNotificationsJob extends CronJob
      */
     public static function getDescription()
     {
-        return _('Versendet die täglichen E-Mailbenachrichtigungen an alle Nutzer, die diese aktiviert haben');
+        return _('Versendet die tÃ¤glichen E-Mailbenachrichtigungen an alle Nutzer, die diese aktiviert haben');
     }
 
     /**
@@ -76,7 +76,7 @@ class SendMailNotificationsJob extends CronJob
                 'type'        => 'boolean',
                 'default'     => false,
                 'status'      => 'optional',
-                'description' => _('Sollen Ausgaben erzeugt werden (sind später im Log des Cronjobs sichtbar)'),
+                'description' => _('Sollen Ausgaben erzeugt werden (sind spÃ¤ter im Log des Cronjobs sichtbar)'),
             ),
         );
     }
@@ -107,12 +107,12 @@ class SendMailNotificationsJob extends CronJob
         $rs = DBManager::get()->query($query);
         while($r = $rs->fetch()){
             $user = new Seminar_User($r["user_id"]);
-            if ($user->locked) {
+            if ($user->locked || ($user->cfg->EXPIRATION_DATE > 0 && $user->cfg->EXPIRATION_DATE < time())) {
                 continue;
             }
             setTempLanguage('', $user->preferred_language);
             $to = $user->email;
-            $title = "[" . $GLOBALS['UNI_NAME_CLEAN'] . "] " . _("Tägliche Benachrichtigung");
+            $title = "[" . Config::get()->UNI_NAME_CLEAN . "] " . _("TÃ¤gliche Benachrichtigung");
             $mailmessage = $notification->getAllNotifications($user->id);
             $ok = false;
             if ($mailmessage) {

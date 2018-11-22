@@ -20,6 +20,20 @@ function htmlReady($what, $trim=TRUE, $br=FALSE, $double_encode=true) {
     return Markup::htmlReady($what, $trim, $br, $double_encode);
 }
 
+/**
+ * Prepare text for wysiwyg (if enabled), otherwise convert special
+ * characters using htmlReady.
+ *
+ * @param  string  $text  The text.
+ * @param  boolean $trim  Trim text before applying markup rules, if TRUE.
+ * @param  boolean $br    Replace newlines by <br>, if TRUE and wysiwyg editor disabled.
+ * @param  boolean $double_encode  Encode existing HTML entities, if TRUE and wysiwyg editor disabled.
+ * @return string         The converted string.
+ */
+function wysiwygReady($what, $trim=TRUE, $br=FALSE, $double_encode=true) {
+    return Markup::wysiwygReady($what, $trim, $br, $double_encode);
+}
+
 function jsReady ($what, $target) {
     switch ($target) {
 
@@ -44,20 +58,49 @@ function jsReady ($what, $target) {
 }
 
 /**
- * Funktion um Quotings zu encoden
+ * Quote a piece of text, optionally include the author's name.
  *
- * @param string $description der Text der gequotet werden soll, wird zurueckgegeben
- * @param string $author Name des urspruenglichen Autors
- * @return string
+ * Applies Stud.IP-Markup if WYSIWYG/HTML is disabled and HTML
+ * if it is enabled.
+ *
+ * @param string $text Text that is to be quoted.
+ * @param string $author Name of the text's author (optional).
+ *
+ * @return string The quoted text.
  */
-function quotes_encode($description,$author)
+function quotes_encode($text, $author = '')
 {
-    if (preg_match("/%%\[editiert von/",$description)) { // wurde schon mal editiert
-        $postmp = mb_strpos($description,"%%[editiert von");
-        $description = substr_replace($description," ",$postmp);
+    // If quoting is changed update these functions:
+    // - StudipFormat::markupQuote
+    //   lib/classes/StudipFormat.php
+    // - quotes_encode lib/visual.inc.php
+    // - STUDIP.Forum.citeEntry > quote
+    //   public/plugins_packages/core/Forum/javascript/forum.js
+    // - studipQuotePlugin > insertStudipQuote
+    //   public/assets/javascripts/ckeditor/plugins/studip-quote/plugin.js
+
+    if (Markup::editorEnabled()) {
+        // quote with HTML markup
+        $text = Markup::markupToHtml($text);
+
+        if ($author) {
+            $title = sprintf(_('%s hat geschrieben:'), htmlReady($author));
+            $text = '<div class="author">' . $title . '</div>' . $text;
+        }
+        $text = sprintf('<blockquote>%s</blockquote><p>&nbsp;</p>', $text);
+        return Markup::markAsHtml($text);
     }
-    $description = "[quote=".$author."]\n".$description."\n[/quote]";
-    return $description;
+
+    if (Markup::isHtml($text)) {
+        // remove HTML before quoting
+        $text = Markup::removeHtml($text);
+    }
+
+    // quote with Stud.IP markup
+    if ($author) {
+        return "[quote=" . $author . "]\n" . $text . "\n[/quote]\n";
+    }
+    return "[quote]\n" . $text . "\n[/quote]\n";
 }
 
 /**
@@ -72,10 +115,13 @@ function quotes_encode($description,$author)
  * @return string        HTML code computed by applying markup-rules.
  */
 // TODO remove unused function arguments
-function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_comments='icon')
+function formatReady($text, $trim = true, $extern = false, $wiki = false, $show_comments = 'icon')
 {
-    return sprintf(FORMATTED_CONTENT_WRAPPER,
-                   Markup::apply(new StudipFormat(), $text, $trim));
+    $formatted = Markup::apply(new StudipFormat(), $text, $trim);
+
+    return $formatted
+        ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted)
+        : '';
 }
 
 /**
@@ -87,7 +133,7 @@ function formatReady($text, $trim=TRUE, $extern=FALSE, $wiki=FALSE, $show_commen
  *                        HTML-links.
  */
 function formatLinks($text, $nl2br=TRUE){
-    $link_markup_rule = StudipFormat::getStudipMarkup('links');
+    $link_markup_rule = StudipCoreFormat::getStudipMarkup('links');
     $markup = new TextFormat();
     $markup->addMarkup(
         'links',
@@ -95,10 +141,7 @@ function formatLinks($text, $nl2br=TRUE){
         $link_markup_rule['end'],
         $link_markup_rule['callback']
     );
-    if ($nl2br) { // fix newlines
-        $text = nl2br($text, FALSE);
-    }
-    return Markup::purify($markup->format(trim($text)));
+    return $markup->format(htmlReady($text, true, $nl2br));
 }
 
 /**
@@ -109,9 +152,9 @@ function formatLinks($text, $nl2br=TRUE){
  * @param  string $trim  Trim leading and trailing whitespace, if TRUE.
  * @return string        HTML code computed by applying markup-rules.
  */
-function wikiReady($text, $trim=TRUE){
-    return sprintf(FORMATTED_CONTENT_WRAPPER,
-                   Markup::apply(new WikiFormat(), $text, $trim));
+function wikiReady($text, $trim=TRUE) {
+    $formatted = Markup::apply(new WikiFormat(), $text, $trim);
+    return $formatted ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted) : '';
 }
 
 /**
@@ -135,7 +178,7 @@ function transformBeforeSave($text){
 * @return   string
 */
 function decodeHTML ($string) {
-    return html_entity_decode($string, ENT_QUOTES, 'cp1252');
+    return html_entity_decode($string, ENT_QUOTES);
 }
 
 /**
@@ -159,8 +202,16 @@ function preg_call_format_signature($username, $timestamp) {
 */
 function kill_format ($text) {
     if (Markup::isHtml($text)) {
-        $text = Markup::removeHTML($text);
+        $is_fallback = Markup::isHtmlFallback($text);
+        $text = Markup::removeHtml($text);
+
+        if (!$is_fallback) {
+            // pure HTML - no Stud.IP markup to remove
+            return $text;
+        }
     }
+
+    // remove Stud.IP markup
     $text = preg_replace("'\n?\r\n?'", "\n", $text);
     // wir wandeln [code] einfach in [pre][nop] um und sind ein Problem los ... :-)
     $text = preg_replace_callback ( "|(\[/?code\])|isU", create_function('$a', 'return ($a[0] == "[code]")? "[pre][nop]":"[/nop][/pre]";'), $text);
@@ -248,18 +299,18 @@ function isLinkIntern($url) {
 * @return   string  link in punycode
 */
 function idna_link($link, $mail = false){
-    if (!$GLOBALS['CONVERT_IDNA_URL']) return $link;
+    if (!Config::get()->CONVERT_IDNA_URL) return $link;
     $pu = @parse_url($link);
     if (preg_match('/&\w+;/i',$pu['host'])) { //umlaute?  (html-coded)
         $IDN = new idna_convert();
         $out = false;
         if ($mail){
             if (preg_match('#^([^@]*)@(.*)$#i',$link, $matches)) {
-                $out = $IDN->encode(utf8_encode(decodeHTML($matches[2], ENT_NOQUOTES))); // false by error
+                $out = $IDN->encode(decodeHTML($matches[2], ENT_NOQUOTES)); // false by error
                 $out = ($out)? $matches[1].'@'.$out : $link;
             }
         }elseif (preg_match('#^([^/]*)//([^/?]*)(((/|\?).*$)|$)#i',$link, $matches)) {
-            $out = $IDN->encode(utf8_encode(decodeHTML($matches[2], ENT_NOQUOTES))); // false by error
+            $out = $IDN->encode(decodeHTML($matches[2], ENT_NOQUOTES)); // false by error
             $out = ($out)? $matches[1].'//'.$out.$matches[3] : $link;
         }
         return ($out)? $out:$link;
@@ -408,7 +459,7 @@ function printhead($breite, $left, $link, $open, $new, $icon, $titel, $zusatz,
         }
     }
 
-    //TODO: überarbeiten -> valides html und/oder template draus machen...
+    //TODO: Ã¼berarbeiten -> valides html und/oder template draus machen...
     $class = "printhead";
     $class2 = "printhead2";
     $class3 = "printhead3";
@@ -419,7 +470,7 @@ function printhead($breite, $left, $link, $open, $new, $icon, $titel, $zusatz,
 
     if ($open == "close") {
         $print = "<td bgcolor=\"".$timecolor."\" class=\"".$class2."\" nowrap=\"nowrap\" width=\"1%\"";
-        $print .= "align=\"left\" valign=\"top\">";
+        $print .= " align=\"left\" valign=\"top\">";
     }
     else {
         $print = "<td bgcolor=\"".$timecolor."\" class=\"".$class3."\" nowrap=\"nowrap\" width=\"1%\"";
@@ -466,18 +517,23 @@ function printhead($breite, $left, $link, $open, $new, $icon, $titel, $zusatz,
 }
 
 //Ausgabe des Contents einer aufgeklappten Kopfzeile
-function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE, $addon="") {
+function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE, $addon="", $noTdTag = false) {
 
-    $print = "<td class=\"printcontent\" width=\"22\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-    $print .= "</td><td class=\"printcontent\" width=\"$breite\" valign=\"bottom\"><br>";
+    $print = "";
+    if ($noTdTag == false)
+    {
+        $print .= "<td class=\"printcontent\" width=\"22\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        $print .= "</td><td class=\"printcontent\" width=\"$breite\" valign=\"bottom\"><br>";
+    }
+
     $print .= $inhalt;
 
     if ($edit) {
         $print .= "<br><br><div align=\"center\">$edit</div>";
         if ($addon!="") {
-            if (mb_substr($addon,0,5)=="open:") { // es wird der öffnen-Pfeil mit Link ausgegeben
+            if (mb_substr($addon,0,5)=="open:") { // es wird der Ã¶ffnen-Pfeil mit Link ausgegeben
                 $print .= "</td><td valign=\"middle\" class=\"table_row_even\" nowrap><a href=\"".mb_substr($addon,5)."\">";
-                $print .= Icon::create('arr_1left', 'clickable', ['title' => _('Bewertungsbereich öffnen')])->asImg();
+                $print .= Icon::create('arr_1left', 'clickable', ['title' => _('Bewertungsbereich Ã¶ffnen')])->asImg();
                 $print .= "</a>&nbsp;";
             } else {              // es wird erweiterter Inhalt ausgegeben
                 $print .= "</td><td class=\"content_body_panel\" nowrap>";
@@ -488,61 +544,16 @@ function printcontent ($breite, $write = FALSE, $inhalt, $edit, $printout = TRUE
         $print .= "<br>";
     }
 
-    $print .= "</td>";
+    if ($noTdTag == false)
+    {
+        $print .= "</td>";
+    }
 
     if ($printout)
         echo $print;
     else
         return $print;
 }
-
-/**
- * print_infobox, baut einen Info-Kasten aus folgenden Elementen zusammen:
- * Bild (separat uebergeben), Ueberschriften, Icons, Inhalt (in Array).
- * Der Aufruf des Bildes ist optional.
- *
- * @example
-    $infobox = array    (
-    array  ("kategorie"  => "Information:",
-            "eintrag" => array  (
-                            array    (  "icon" => Icon::create('search', 'info'),
-                                    "text"  => "Um weitere Veranstaltungen bitte Blabla"
-                                    ),
-                            array    (  "icon" => Icon::create('search', 'info'),
-                                    "text"  => "um Verwaltung  Veranstaltungen bitte Blabla"
-                                    )
-            )
-        ),
-    array  ("kategorie" => "Aktionen:",
-               "eintrag" => array   (
-                            array ( "icon" => Icon::create('search', 'info'),
-                                    "text"  => "es sind noch 19 Veranstaltungen vorhanden."
-                                    )
-            )
-        )
-    );
- *
- * @param   array() $content
- * @param   string $picture
- * @param   bool $dont_display_immediatly
- */
-function print_infobox($content, $picture = '', $dont_display_immediatly = false)
-{
-    // get template
-    $template = $GLOBALS['template_factory']->open('infobox/infobox_generic_content');
-
-    // fill attributes
-    $template->set_attribute('picture', $picture);
-    $template->set_attribute('content', $content);
-
-    // render template
-    if ($dont_display_immediatly) {
-        return $template->render();
-    } else {
-        echo $template->render();
-    }
-}
-
 
 /**
  * Returns a given text as html tooltip
@@ -556,11 +567,7 @@ function print_infobox($content, $picture = '', $dont_display_immediatly = false
  * @return       string
  */
 function tooltip ($text, $with_alt = TRUE, $with_popup = FALSE) {
-    $result = '';
-    foreach (tooltip2($text, $with_alt, $with_popup) as $key => $value) {
-        $result .= sprintf(' %s="%s"', $key, $value);
-    }
-    return $result;
+    return arrayToHtmlAttributes(tooltip2($text, $with_alt, $with_popup));
 }
 
 /**
@@ -598,11 +605,11 @@ function tooltip2($text, $with_alt = TRUE, $with_popup = FALSE) {
  *
  * @param string $text tooltip text, html gets encoded
  * @param bool $important render icon in "important" style
+ * @param bool $html tooltip text is HTML content
  */
-function tooltipIcon($text, $important = false)
+function tooltipIcon($text, $important = false, $html = false)
 {
     // render tooltip
-    $html = false;
     $template = $GLOBALS['template_factory']->open('shared/tooltip');
     return $template->render(compact('text', 'important', 'html'));
 }
@@ -663,16 +670,15 @@ function TransformInternalLinks($str){
 * @param   string $baseUrl           if set, this url is used, PHP_SELF otherwise
 *
 * @return  string $dialog            text which contains the dialog
+*
+* @deprecated since Stud.IP 4.2, use QuestionBox oder PageLayout::postQuestion()
 */
-
-function createQuestion($question, $approveParams, $disapproveParams = array(), $baseUrl = '?') {
-    $template = $GLOBALS['template_factory']->open('shared/question');
-
-    $template->set_attribute('approvalLink', URLHelper::getURL($baseUrl, (array)$approveParams));
-    $template->set_attribute('disapprovalLink', URLHelper::getURL($baseUrl, (array)$disapproveParams));
-    $template->set_attribute('question', $question);
-
-    return $template->render();
+function createQuestion($question, $approveParams, $disapproveParams = [], $baseUrl = '') {
+    return (string) QuestionBox::create(
+        $question,
+        URLHelper::getURL($baseUrl, $approveParams),
+        URLHelper::getURL($baseUrl, $disapproveParams)
+    );
 }
 
 /**
@@ -684,16 +690,11 @@ function createQuestion($question, $approveParams, $disapproveParams = array(), 
 * @param   string $baseUrl           if set, this url is used, PHP_SELF otherwise
 *
 * @return  string $dialog            text which contains the dialog
+*
+* @deprecated since Stud.IP 4.2, use QuestionBox or PageLayout::postQuestion()
 */
-function createQuestion2($question, $approveParams, $disapproveParams = array(), $baseUrl = '?') {
-    $template = $GLOBALS['template_factory']->open('shared/question2');
-
-    $template->set_attribute('approvalLink', $baseUrl);
-    $template->set_attribute('approvParams', (array)$approveParams);
-    $template->set_attribute('disapproveParams', (array)$disapproveParams);
-    $template->set_attribute('question', $question);
-
-    return $template->render();
+function createQuestion2($question, $approveParams, $disapproveParams = [], $baseUrl = '') {
+    return createQuestion($question, $approveParams, $disapproveParams, $baseUrl);
 }
 
 /**
@@ -732,33 +733,53 @@ function display_exception($exception, $as_html = false, $deep = false) {
  * @param String $mime_type Mime type to get the icon for
  * @return String Icon path for the mime type
  */
+//DEPRECATED: replaced by FileManager::getIconNameForMimeType
+//TODO: test: lib/extern/modules/ExternModuleDownload.class.php
+//TODO: test: lib/extern/modules/ExternModuleTemplateDownload.class.php
+/*
 function get_icon_for_mimetype($mime_type)
 {
-    if (mb_strpos($mime_type, 'image/') === 0) {
-        return 'file-pic';
-    }
-    if (mb_strpos($mime_type, 'audio/') === 0) {
-        return 'file-audio';
-    }
-    if (mb_strpos($mime_type, 'video/') === 0) {
-        return 'file-video';
-    }
-    if ($mime_type === 'application/pdf') {
-        return 'file-pdf';
-    }
-    if ($mime_type === 'application/vnd.ms-powerpoint') {
-        return 'file-presentation';
+
+    $icons_application = [
+        'file-pdf' => ['pdf'],
+        'file-ppt' => ['powerpoint','presentation'],
+        'file-excel' => ['excel', 'spreadsheet', 'csv'],
+        'file-word' => ['word', 'wordprocessingml', 'opendocument.text', 'rtf'],
+        'file-archive' => ['zip', 'rar', 'arj', '7z' ]
+        ];
+    list($type, $subtype) = explode('/', $mime_type);
+    switch ($type) {
+        case 'image':
+            $ret = 'file-pic';
+        break;
+        case 'audio':
+            $ret = 'file-audio';
+            break;
+        case 'video':
+            $ret = 'file-video';
+            break;
+        case 'text':
+            $ret = 'file-text';
+            if (preg_match('/csv|comma-separated-values/i', $subtype)) {
+                $ret = 'file-excel';
+            }
+            break;
+        case 'application':
+            $ret = 'file-generic';
+            foreach($icons_application as $icon => $marker) {
+                if (preg_match('/' . join('|', array_map('preg_quote', $marker)) . '/i', $subtype)) {
+                    $ret = $icon;
+                    break;
+                }
+            }
+            break;
+        default:
+            $ret = 'file-generic';
     }
 
-    $parts = explode('/', $mime_type);
-    if (reset($parts) === 'application' && in_array(end($parts), words('vnd.ms-excel msexcel x-msexcel x-ms-excel x-excel x-dos_ms_excel xls x-xls'))) {
-        return 'file-xls';
-    }
-    if (reset($parts) === 'application' && in_array(end($parts), words('7z arj rar zip'))) {
-        return 'file-archive';
-    }
-    return 'file';
+    return $ret;
 }
+*/
 
 
 if (!function_exists('preg_replace_callback_array')) {
@@ -782,4 +803,30 @@ if (!function_exists('preg_replace_callback_array')) {
         return preg_last_error() == PREG_NO_ERROR ? $subject : null;
     }
 
+}
+
+/**
+ * Converts an array of attributes to an html attribute string.
+ *
+ * @param array $attributes Associative array of attributes
+ * @return string
+ * @since Stud.IP 4.1
+ * @todo Nested attribute definitions?
+ */
+function arrayToHtmlAttributes(array $attributes) {
+    // Filter empty attributes
+    $attributes = array_filter($attributes, function ($value) {
+        return isset($value) && $value !== false;
+    });
+
+    // Actual conversion
+    $result = [];
+    foreach ($attributes as $key => $value) {
+        if ($value === true) {
+            $result[] = htmlReady($key);
+        } else {
+            $result[] = sprintf('%s="%s"', htmlReady($key), htmlReady($value));
+        }
+    }
+    return implode(' ', $result);
 }

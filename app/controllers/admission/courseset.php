@@ -15,13 +15,10 @@
  */
 
 require_once 'app/models/courseset.php';
-require_once 'app/models/rule_administration.php';
 require_once 'lib/admission.inc.php';
 
 class Admission_CoursesetController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * Things to do before every page load.
      */
@@ -41,7 +38,7 @@ class Admission_CoursesetController extends AuthenticatedController
                 throw new AccessDeniedException();
             }
         }
-        PageLayout::addSqueezePackage('admission');
+        PageLayout::addScript('studip-admission.js');
 
         $views = new ActionsWidget();
         $views->addLink(
@@ -62,7 +59,7 @@ class Admission_CoursesetController extends AuthenticatedController
             $courseset = new CourseSet($this->course_set_details);
             return $this->render_text($courseset->toString());
         }
-        $this->ruleTypes = RuleAdministrationModel::getAdmissionRuleTypes();
+        $this->ruleTypes = AdmissionRule::getAvailableAdmissionRules(false);
         $this->coursesets = array();
         foreach (words('current_institut_id current_rule_types set_name_prefix current_semester_id current_rule_types') as $param) {
             $this->$param = $_SESSION[get_class($this)][$param];
@@ -126,7 +123,7 @@ class Admission_CoursesetController extends AuthenticatedController
         }, $this->coursesets));
         if (count($not_distributed_coursesets)) {
             PageLayout::postMessage(MessageBox::info(
-                _("Es existieren Anmeldesets, die zum Zeitpunkt der Platzverteilung nicht gelost wurden. Stellen Sie sicher, dass der Cronjob \"Losverfahren überprüfen\" ausgeführt wird."),
+                _("Es existieren Anmeldesets, die zum Zeitpunkt der Platzverteilung nicht gelost wurden. Stellen Sie sicher, dass der Cronjob \"Losverfahren Ã¼berprÃ¼fen\" ausgefÃ¼hrt wird."),
                 array_unique($not_distributed_coursesets)));
         }
     }
@@ -277,10 +274,10 @@ class Admission_CoursesetController extends AuthenticatedController
                 $this->flash['institute_id_parameter'] = Request::get('institute_id_parameter');
             }
             if (!Request::submitted('add_institute') && !Request::option('name')) {
-                $this->flash['error'] = _('Bitte geben Sie einen Namen für das Anmeldeset an!');
+                $this->flash['error'] = _('Bitte geben Sie einen Namen fÃ¼r das Anmeldeset an!');
             }
             if (!Request::submitted('add_institute') && !Request::getArray('institutes')) {
-                $this->flash['error'] = _('Bitte geben Sie mindestens eine Einrichtung an, zu der das Anmeldeset gehört!');
+                $this->flash['error'] = _('Bitte geben Sie mindestens eine Einrichtung an, zu der das Anmeldeset gehÃ¶rt!');
             }
             $this->redirect($this->url_for('admission/courseset/configure', $coursesetId));
         } else {
@@ -384,7 +381,7 @@ class Admission_CoursesetController extends AuthenticatedController
      */
     public function configure_courses_action($set_id, $csv = null)
     {
-        PageLayout::setTitle(_('Ausgewählte Veranstaltungen konfigurieren'));
+        PageLayout::setTitle(_('AusgewÃ¤hlte Veranstaltungen konfigurieren'));
 
         $courseset = new CourseSet($set_id);
         $this->set_id = $courseset->getId();
@@ -406,11 +403,17 @@ class Admission_CoursesetController extends AuthenticatedController
         $this->count_distinct_members = count($distinct_members);
         $this->count_multi_members = count($multi_members);
 
-        if ($csv == 'csv') {
-            $captions = array(_("Nummer"), _("Name"), _("versteckt"), _("Zeiten"), _("Dozenten"), _("max. Teilnehmer"), _("Teilnehmer aktuell"), _("Anzahl Anmeldungen"),_("Anzahl Anmeldungen Prio 1"), _("Warteliste"), _("max. Anzahl Warteliste"), _("vorläufige Anmeldung"), _("verbindliche Anmeldung"));
-            $data = array();
+        if ($csv === 'csv') {
+            $captions = [
+                _('Nummer'), _('Name'), _('versteckt'), _('Zeiten'), _('Dozenten'),
+                _('max. Teilnehmende'), _('Teilnehmende aktuell'), _('Anzahl Anmeldungen'),
+                _('Anzahl Anmeldungen Prio 1'), _('Warteliste'), _('max. Anzahl Warteliste'),
+                _('automatisches NachrÃ¼cken aus der Warteliste') , _('vorlÃ¤ufige Anmeldung'),
+                _('verbindliche Anmeldung'),
+            ];
+            $data = [];
             foreach ($this->courses as $course) {
-                $row = array();
+                $row = [];
                 $row[] = $course->veranstaltungsnummer;
                 $row[] = $course->name;
                 $row[] = $course->visible ? _("nein") : _("ja");
@@ -420,15 +423,22 @@ class Admission_CoursesetController extends AuthenticatedController
                 $row[] = $course->getNumParticipants();
                 $row[] = $this->applications[$course->id]['c'];
                 $row[] = $this->applications[$course->id]['h'];
-                $row[] = $course->admission_disable_waitlist ? _("nein") : _("ja");
+                $row[] = $course->admission_disable_waitlist ? _('nein') : _('ja');
                 $row[] = $course->admission_waitlist_max > 0 ? $course->admission_waitlist_max : '';
-                $row[] = $course->admission_prelim ? _("ja") : _("nein");
-                $row[] = $course->admission_binding ? _("ja") : _("nein");
+                $row[] = $course->admission_disable_waitlist_move ? _('nein') : _('ja');
+                $row[] = $course->admission_prelim ? _('ja') : _('nein');
+                $row[] = $course->admission_binding ? _('ja') : _('nein');
+
                 $data[] = $row;
             }
             $tmpname = md5(uniqid('tmp'));
             if (array_to_csv($data, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-                $this->redirect(GetDownloadLink($tmpname, 'Veranstaltungen_' . $courseset->getName() . '.csv', 4, 'force'));
+                $this->redirect(
+                    FileManager::getDownloadURLForTemporaryFile(
+                        $tmpname,
+                        'Veranstaltungen_' . $courseset->getName() . '.csv'
+                    )
+                );
                 return;
             }
         }
@@ -451,7 +461,12 @@ class Admission_CoursesetController extends AuthenticatedController
                 if (count($liste)) {
                     $tmpname = md5(uniqid('tmp'));
                     if (array_to_csv($liste, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-                        $this->redirect(GetDownloadLink($tmpname, 'Gesamtteilnehmerliste_' . $courseset->getName() . '.csv', 4, 'force'));
+                        $this->redirect(
+                            FileManager::getDownloadURLForTemporaryFile(
+                                $tmpname,
+                                'Gesamtteilnehmendenliste_' . $courseset->getName() . '.csv'
+                            )
+                        );
                         return;
                     }
                 }
@@ -476,7 +491,12 @@ class Admission_CoursesetController extends AuthenticatedController
             if (count($liste)) {
                     $tmpname = md5(uniqid('tmp'));
                     if (array_to_csv($liste, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-                        $this->redirect(GetDownloadLink($tmpname, 'Mehrfachanmeldungen_' . $courseset->getName() . '.csv', 4, 'force'));
+                        $this->redirect(
+                            FileManager::getDownloadURLForTemporaryFile(
+                                $tmpname,
+                                'Mehrfachanmeldungen_' . $courseset->getName() . '.csv'
+                            )
+                        );
                         return;
                     }
                 }
@@ -488,6 +508,7 @@ class Admission_CoursesetController extends AuthenticatedController
             $admission_turnouts = Request::intArray('configure_courses_turnout');
             $admission_waitlists = Request::intArray('configure_courses_disable_waitlist');
             $admission_waitlists_max = Request::intArray('configure_courses_waitlist_max');
+            $admission_disable_waitlist_move = Request::intArray('admission_disable_waitlist_move');
             $admission_bindings = Request::intArray('configure_courses_binding');
             $admission_prelims = Request::intArray('configure_courses_prelim');
             $hidden = Request::intArray('configure_courses_hidden');
@@ -498,9 +519,11 @@ class Admission_CoursesetController extends AuthenticatedController
                     $course->admission_turnout = $admission_turnouts[$course->id];
                     $course->admission_disable_waitlist = isset($admission_waitlists[$course->id]) ? 0 : 1;
                     $course->admission_waitlist_max = $course->admission_disable_waitlist ? 0 : $admission_waitlists_max[$course->id];
+                    $course->admission_disable_waitlist_move = isset($admission_disable_waitlist_move[$course->id]) ? 0 : 1;
                     $course->admission_binding = @$admission_bindings[$course->id] ?: 0;
                     $course->admission_prelim = @$admission_prelims[$course->id] ?: 0;
                     $course->visible = @$hidden[$course->id] ? 0 : 1;
+
                     $ok += $course->store();
                     if ($do_update_admission) {
                         update_admission($course->id);
@@ -546,12 +569,20 @@ class Admission_CoursesetController extends AuthenticatedController
         $applicants = AdmissionPriority::getPriorities($set_id);
         $users = User::findMany(array_keys($applicants), 'ORDER BY Nachname');
         $courses = SimpleCollection::createFromArray(Course::findMany($courseset->getCourses()));
-        $captions = array(_("Nachname"), _("Vorname"), _("Nutzername"), _("Veranstaltung"), _("Nummer"), _("Priorität"));
+        $captions = array(_("Nachname"), _("Vorname"), _("Nutzername"), _("Veranstaltung"), _("Nummer"), _("Studiengang"), _("PrioritÃ¤t"));
         $data = array();
+        $studycourses = function ($st) {
+            return sprintf(
+                '%s (%s)',
+                trim($st->studycourse_name . ' ' . $st->degree_name),
+                $st->semester
+            );
+        };
         foreach ($users as $user) {
             $row = array();
             $app_courses = $applicants[$user->id];
             asort($app_courses);
+
             foreach ($app_courses as $course_id => $prio) {
                 $row = array();
                 $row[] = $user->nachname;
@@ -559,6 +590,7 @@ class Admission_CoursesetController extends AuthenticatedController
                 $row[] = $user->username;
                 $row[] = $courses->findOneBy('id', $course_id)->name;
                 $row[] = $courses->findOneBy('id', $course_id)->veranstaltungsnummer;
+                $row[] = implode('; ', $user->studycourses->map($studycourses));
                 $row[] = $prio;
                 if ($csv) {
                     $row[] = $user->email;
@@ -570,7 +602,12 @@ class Admission_CoursesetController extends AuthenticatedController
             $tmpname = md5(uniqid('tmp'));
             $captions[] = _("Email");
             if (array_to_csv($data, $GLOBALS['TMP_PATH'].'/'.$tmpname, $captions)) {
-                $this->redirect(GetDownloadLink($tmpname, 'Anmeldungen_' . $courseset->getName() . '.csv', 4, 'force'));
+                $this->redirect(
+                    FileManager::getDownloadURLForTemporaryFile(
+                        $tmpname,
+                        'Anmeldungen_' . $courseset->getName() . '.csv'
+                    )
+                );
                 return;
             }
         }
@@ -609,7 +646,7 @@ class Admission_CoursesetController extends AuthenticatedController
                     PageLayout::postMessage(MessageBox::info(sprintf(_("Bitte passen Sie das Datum der automatischen Platzverteilung an, es wurde automatisch auf %s festgelegt!"), strftime('%x %X', $rule->getDistributiontime()))));
                 }
             } else if ($rule->getEndTime() && $rule->getEndTime() < time()) {
-                PageLayout::postMessage(MessageBox::info(sprintf(_("Der Gültigkeitszeitraum der Regel %s endet in der Vergangenheit!"), $rule->getName())));
+                PageLayout::postMessage(MessageBox::info(sprintf(_("Der GÃ¼ltigkeitszeitraum der Regel %s endet in der Vergangenheit!"), $rule->getName())));
             }
         }
         $this->redirect(URLHelper::getURL('dispatch.php/admission/courseset/configure/' .

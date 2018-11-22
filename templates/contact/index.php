@@ -5,22 +5,23 @@
             <td>
         <? if ($size_of_book): ?>
             <? if ($open === 'all'): ?>
-                <a href="<?= URLHelper::getLink('', compact('view', 'filter') + array('close' => 'all')) ?>">
+                <a href="<?= URLHelper::getLink('', compact('view', 'filter') + ['close' => 'all']) ?>">
                     <?= Icon::create('arr_1up', 'clickable')->asImg() ?>
                     <?= _('Alle zuklappen') ?>
             <? else: ?>
-                <a href="<?= URLHelper::getLink('', compact('view', 'filter') + array('open' => 'all')) ?>">
+                <a href="<?= URLHelper::getLink('', compact('view', 'filter') + ['open' => 'all']) ?>">
                     <?= Icon::create('arr_1down', 'clickable')->asImg() ?>
                     <?= _('Alle aufklappen') ?>
             <? endif; ?>
-                    <?= sprintf($size_of_book == 1 ? _('(%d Eintrag)') : _('(%d Einträge)'), $size_of_book) ?>
+                    <?= sprintf(
+                        ngettext('(%d Eintrag)', '(%d EintrÃ¤ge)', $size_of_book),
+                        $size_of_book
+                    ) ?>
                 </a>
         <? endif; ?>
             </td>
             <td align="right">
-            <span class="actions">
-            <?= $mp; ?>
-            </span>
+                <span class="actions"><?= $mp  ?></span>
             </td>
         </tr>
     </table>
@@ -29,23 +30,20 @@
 <table align="center" width="100%">
     <tr>
         <td align="middle" >
-
-        <? if ($contact['view'] == 'alpha'): ?>
+        <? if ($contact['view'] === 'alpha'): ?>
             <?= $this->render_partial('contact/header-alpha') ?>
-        <? elseif ($contact['view'] == 'gruppen'): ?>
+        <? elseif ($contact['view'] === 'gruppen'): ?>
             <?= $this->render_partial('contact/header-groups') ?>
         <? endif; ?>
 
-    <? if ($edit_id): ?>
+        <? if ($edit_id): ?>
             <? PrintEditContact($edit_id); ?>
-    <? else: ?>
-            <? PrintAllContact($filter == 'all' ? '' : $filter); ?>
-        <? if ($size_of_book): ?>
-            <?= $this->render_partial('contact/legend') ?>
+        <? else: ?>
+            <? PrintAllContact($filter === 'all' ? '' : $filter); ?>
+            <? if ($size_of_book): ?>
+                <?= $this->render_partial('contact/legend') ?>
+            <? endif; ?>
         <? endif; ?>
-    <? endif; ?>
-
         </td>
     </tr>
 </table>
-

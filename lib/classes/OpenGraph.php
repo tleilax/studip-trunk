@@ -10,7 +10,7 @@ class OpenGraph
 {
     /**
      * Extracts urls and their according open graph infos from a given string
-     * 
+     *
      * @param String $string Text to extract urls and open graph infos from
      * @return OpenGraphURLCollection containing the extracted urls
      */
@@ -19,8 +19,8 @@ class OpenGraph
         $collection = new OpenGraphURLCollection;
 
         if (Config::get()->OPENGRAPH_ENABLE) {
-            $regexp = StudipFormat::getStudipMarkups()['links']['start'];
-            $matched = preg_match_all('/' . $regexp . '/ms', $string, $matches, PREG_SET_ORDER);
+            $regexp = StudipCoreFormat::getStudipMarkup('links')['start'];
+            $matched = preg_match_all('/' . $regexp . '/ums', $string, $matches, PREG_SET_ORDER);
             foreach ($matches as $match) {
                 $url = $match[2];
 

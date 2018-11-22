@@ -67,25 +67,25 @@ class WysiwygDocument
 
     /**
      * Store uploaded files as StudIP documents.
-     * @param string  $folder_id  UID of Stud.IP document folder to which files
-     *                            are stored.
+     * @param FolderType $foldertype
      * @return array  Associative array containing upload results.
      */
-    public static function storeUploadedFilesIn($folder_id)
+    public static function storeUploadedFilesIn($foldertype)
     {
         $results = array();  // data for HTTP response
         foreach (self::getUploadedFiles() as $file) {
             try {
-                $document = self::fromUpload($file, $folder_id);
+                $fileref = $foldertype->createFile($file);
+                //$document = self::fromUpload($file, $folder_id);
                 $results['files'][] = Array(
-                    'name' => $document->filename(),
-                    'type' => $document->type(),
-                    'url' => $document->url()
+                    'name' => $fileref->filename,
+                    'type' => $fileref->mime_type,
+                    'url' => $fileref->getDownloadURL()
                 );
             } catch (\AccessDeniedException $e) { // document creation failed
                 $results['files'][] = Array(
-                    'name' => \studip_utf8decode($file['name']),
-                    'type' => \studip_utf8decode($file['type']),
+                    'name' => $file['name'],
+                    'type' => $file['type'],
                     'error' => $e->getMessage()
                 );
             }
@@ -120,7 +120,7 @@ class WysiwygDocument
      *   'error'    => error2,
      *   ...],
      *  ...]
-     * 
+     *
      * @return array  Each entry is an associative array for a single file.
      */
     public static function getUploadedFiles(){
@@ -140,7 +140,7 @@ class WysiwygDocument
      */
     public static function fromUpload($file, $folder_id) {
         self::verifyUpload($file);  // throw exception if file is forbidden
-    
+
         $newfile = \StudipDocument::createWithFile(
             $file['tmp_name'],
             self::studipData($file, $folder_id));
@@ -149,7 +149,7 @@ class WysiwygDocument
             throw new \AccessDeniedException(
                 _('Stud.IP-Dokument konnte nicht erstellt werden.'));
         }
-        return new WysiwygDocument($newfile, \studip_utf8decode($file['type']));
+        return new WysiwygDocument($newfile, $file['type']);
     }
 
     /**
@@ -162,8 +162,8 @@ class WysiwygDocument
         $GLOBALS['msg'] = ''; // validate_upload will store messages here
         if (! \validate_upload($file)) { // upload is forbidden
             // remove error pattern from message
-            $message = \preg_replace('/error§(.+)§/', '$1', $GLOBALS['msg']);
-    
+            $message = \preg_replace('/errorÂ§(.+)Â§/', '$1', $GLOBALS['msg']);
+
             // clear global messages and throw exception
             $GLOBALS['msg'] = '';
             throw new \AccessDeniedException(\decodeHTML($message));
@@ -178,7 +178,7 @@ class WysiwygDocument
      * @return array   Stud.IP document metadata
      */
     static function studipData($file, $folder_id) {
-        $filename = \studip_utf8decode($file['name']);
+        $filename = $file['name'];
         return array(
             'name' => $filename,
             'filename' => $filename,
@@ -204,58 +204,24 @@ class WysiwygDocument
      * @return string             Folder ID, NULL if something went wrong.
      */
     public function createFolder(
-        $name, $description=NULL, $parent_id=NULL, $permission=7
+        $name, $description = null
     ) {
-        $id = self::getFolderId($name, $parent_id);
-        if ($id) {
-            return $id;  // folder already exists
-        }
-
         $seminar_id = WysiwygRequest::seminarId();
-        $parent_id = $parent_id ?: $seminar_id;
-        $id = md5($seminar_id . $parent_id . $name);
-    
-        $data = Array(':name'        => $name,
-                      ':folder_id'   => $id,
-                      ':description' => $description,
-                      ':range_id'    => $parent_id,
-                      ':seminar_id'  => $seminar_id,
-                      ':user_id'     => $GLOBALS['user']->id,
-                      ':permission'  => $permission);
-    
-        $keys = array_keys($data);
-        $column_names = implode(',', array_map(function($key) {
-            return mb_substr($key, 1);
-        }, $keys));
-    
-        $query = 'INSERT INTO folder (' . $column_names
-            . ', mkdate, chdate) VALUES (' . implode(',', $keys)
-            . ', UNIX_TIMESTAMP(), UNIX_TIMESTAMP())';
-
-        if (self::executeQuery($query, $data, FALSE)) {
-            return $id;  // folder successfully created
+        $topFolder = \Folder::findTopFolder($seminar_id)->getTypedFolder();
+        foreach ($topFolder->getSubfolders() as $subfolder) {
+            if ($subfolder->name === $name) {
+                return $subfolder;
+            }
         }
-        throw new \AccessDeniedException(
-            _('Stud.IP-Ordner konnte nicht erstellt werden.'));
+        $wysiwygfolder = new \StandardFolder();
+        $wysiwygfolder->name = $name;
+        $wysiwygfolder->description = $description;
+        $wysiwygfolder->user_id = $GLOBALS['user']->id;
+        return $topFolder->createFolder($wysiwygfolder);
     }
 
-    /**
-     * Return a folder's identifier.
-     *
-     * @params string $name       Folder name.
-     * @params string $parent_id  Parent folder's ID, NULL for top-level
-     *                            folders.
-     * @return string             Folder ID if folder exists, NULL if not.
-     */
-    public static function getFolderId($name, $parent_id = null)
-    {
-        $result = self::executeQuery(
-            'SELECT folder_id FROM folder WHERE name=:name AND range_id=:range_id',
-            Array(':name' => $name,
-                  ':range_id' => $parent_id ?: WysiwygRequest::seminarId()));
-        return $result ? $result[0]['folder_id'] : NULL;
-    }
-    
+
+
     //// utilities ////////////////////////////////////////////////////////////
 
     /**

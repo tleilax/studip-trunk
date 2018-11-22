@@ -49,7 +49,7 @@ define ("EVALEXPORT_PREFIX", "evaluation");
  * @const EVALEXPORT_PATH_TEMP The path for temporary files
  * @access public
  */
-define ("EVALEXPORT_PATH_TEMP", $GLOBALS['TMP_PATH'].'/export');
+define ("EVALEXPORT_PATH_TEMP", $GLOBALS['TMP_PATH']);
 
 /**
  * @const EVALEXPORT_LIFETIME The lifetime in seconds for temporary files
@@ -176,7 +176,7 @@ class EvaluationExportManager extends AuthorObject {
     */
    function export () {
       if (empty ($this->filehandle))
-         return $this->throwError (1, _("ExportManager::Konnte tempor‰re Datei nicht ˆffnen."));
+         return $this->throwError (1, _("ExportManager::Konnte tempor√§re Datei nicht √∂ffnen."));
 
       if (!$this->eval->isAnonymous ()) {
          $this->users = EvaluationDB::getUserVoted ($this->eval->getObjectID ());
@@ -224,7 +224,7 @@ class EvaluationExportManager extends AuthorObject {
     */
    function closeFile () {
       if (empty ($this->filehandle))
-         return $this->throwError (1, _("ExportManager::Konnte tempor‰re Datei nicht schlieﬂen."));
+         return $this->throwError (1, _("ExportManager::Konnte tempor√§re Datei nicht schlie√üen."));
 
        fclose ($this->filehandle);
    }
@@ -235,7 +235,7 @@ class EvaluationExportManager extends AuthorObject {
     */
    function cleanUp () {
       if (empty ($this->filehandle))
-         return $this->throwError (1, _("ExportManager::Konnte tempor‰re Datei nicht ˆffnen."));
+         return $this->throwError (1, _("ExportManager::Konnte tempor√§re Datei nicht √∂ffnen."));
 
       $dirhandle = dir (EVALEXPORT_PATH_TEMP);
       while (($file = $dirhandle->read()) != false) {
@@ -256,7 +256,7 @@ class EvaluationExportManager extends AuthorObject {
     */
    function createNewFile () {
       $randomID       = StudipObject::createNewID ();
-      $this->filename = EVALEXPORT_PREFIX.$randomID.".".$this->extension;
+      $this->filename = $randomID.".".$this->extension;
       export_tmp_gc();
       if (!is_dir (EVALEXPORT_PATH_TEMP))
          return $this->throwError (1, sprintf (_("ExportManager::Das Verzeichnis %s existiert nicht."), EVALEXPORT_PATH_TEMP));
@@ -266,7 +266,7 @@ class EvaluationExportManager extends AuthorObject {
       $this->filehandle = @fopen (EVALEXPORT_PATH_TEMP."/".$this->filename,"w");
 
       if (empty ($this->filehandle))
-         return $this->throwError (3, _("ExportManager::Konnte tempor‰re Datei nicht erstellen."));
+         return $this->throwError (3, _("ExportManager::Konnte tempor√§re Datei nicht erstellen."));
    }
 # ==================================================== end: private functions #
 

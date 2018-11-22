@@ -6,7 +6,7 @@
  * issues with php's implementation of ArrayObject regarding cyclic references
  * based on Zend\Stdlib\ArrayObject\PhpReferenceCompatibility
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  *
  * Zend Framework (http://framework.zend.com/)
  *
@@ -73,9 +73,8 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
         if ($this->flag == self::ARRAY_AS_PROPS) {
             return $this->offsetExists($key);
         }
-        if (in_array($key, $this->protectedProperties)) {
-            throw new InvalidArgumentException('$key is a protected property, use a different key');
-        }
+
+        $this->validateKeyUsage($key);
 
         return isset($this->$key);
     }
@@ -92,9 +91,9 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
         if ($this->flag == self::ARRAY_AS_PROPS) {
             return $this->offsetSet($key, $value);
         }
-        if (in_array($key, $this->protectedProperties)) {
-            throw new InvalidArgumentException('$key is a protected property, use a different key');
-        }
+
+        $this->validateKeyUsage($key);
+
         $this->$key = $value;
     }
 
@@ -109,9 +108,9 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
         if ($this->flag == self::ARRAY_AS_PROPS) {
             return $this->offsetUnset($key);
         }
-        if (in_array($key, $this->protectedProperties)) {
-            throw new InvalidArgumentException('$key is a protected property, use a different key');
-        }
+
+        $this->validateKeyUsage($key);
+
         unset($this->$key);
     }
 
@@ -128,9 +127,8 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
             $ret = $this->offsetGet($key);
             return $ret;
         }
-        if (in_array($key, $this->protectedProperties)) {
-            throw new InvalidArgumentException('$key is a protected property, use a different key');
-        }
+
+        $this->validateKeyUsage($key);
 
         return $this->$key;
     }
@@ -423,5 +421,17 @@ class StudipArrayObject implements IteratorAggregate, ArrayAccess, Serializable,
             }
         }
     }
-}
 
+    /**
+     * Validates whether the given key is a protected property.
+     *
+     * @param  string $key The key to validate
+     * @throws InvalidArgumentException when key is invalid
+     */
+    protected function validateKeyUsage($key)
+    {
+        if (in_array($key, $this->protectedProperties)) {
+            throw new InvalidArgumentException("{$key} is a protected property, use a different key");
+        }
+    }
+}

@@ -8,7 +8,7 @@
 // StudipForm.class.php
 // Class to build HTML formular and handle persistence using PhpLib
 //
-// Copyright (c) 2003 André Noack <noack@data-quest.de>
+// Copyright (c) 2003 AndrÃ© Noack <noack@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,10 +29,10 @@ use Studip\Button, Studip\LinkButton;
 /**
 * Class to build Studip HTML forms
 *
-*
+* @deprecated
 *
 * @access   public
-* @author   André Noack <noack@data-quest.de>
+* @author   AndrÃ© Noack <noack@data-quest.de>
 * @package
 **/
 class StudipForm {
@@ -102,9 +102,9 @@ class StudipForm {
             foreach ($this->form_fields as $name => $value){
                 if (!$value['disabled']){
                     if ($value['type'] == 'combo'){
-                        if ($this->form_values[$name] != $new_form_values[$value['text']]){ //textfeld wurde verändert
+                        if ($this->form_values[$name] != $new_form_values[$value['text']]){ //textfeld wurde verÃ¤ndert
                             $new_form_values[$name] = $new_form_values[$value['text']];
-                        } else if ($this->form_values[$name] != $new_form_values[$value['select']] && !$new_form_values[$value['text']]){ //textfeld nicht geändert, select geändert
+                        } else if ($this->form_values[$name] != $new_form_values[$value['select']] && !$new_form_values[$value['text']]){ //textfeld nicht geÃ¤ndert, select geÃ¤ndert
                             $new_form_values[$name] = $new_form_values[$value['select']];
                         } else {
                             $new_form_values[$name] = $this->form_values[$name];
@@ -225,12 +225,12 @@ class StudipForm {
         if($subtype !== false){
             return $this->getOneRadio($name, $attributes, ($default == $options[$subtype]['value']), $subtype);
         } else {
-            $ret = '<fieldset id="' . $attributes['id'] .'" style="border:none;padding:0px;display:inline">';
+            $ret = '<div id="' . $attributes['id'] .'"><section class="hgroup">';
             for ($i = 0; $i < count($options); ++$i){
                 $ret .= $this->getOneRadio($name, $attributes, ($default == $options[$i]['value']), $i);
                 $ret .= "\n" . $this->form_fields[$name]['separator'];
             }
-            $ret .= '</fieldset>';
+            $ret .= '</section></div>';
         }
         return $ret;
     }
@@ -269,12 +269,12 @@ class StudipForm {
 
     function getFormFieldTime($name, $attributes, $default) {
         $date_values = explode(":", $default); //hh:mm
-        $ret = '<fieldset id="' . $attributes['id'] .'" style="border:none;padding:0px;display:inline">';
+        $ret = '<div id="' . $attributes['id'] .'"><section class="hgroup">';
         unset($attributes['id']);
         $ret .= $this->getFormFieldText($name . "_hours", array_merge(array('size'=>2,'maxlength'=>2), (array)$attributes), $date_values[0]);
         $ret .= "\n" . $this->form_fields[$name]['separator'];
         $ret .= $this->getFormFieldText($name . "_minutes", array_merge(array('size'=>2,'maxlength'=>2), (array)$attributes), $date_values[1]);
-        $ret .= '</fieldset>';
+        $ret .= '</section></div>';
         return $ret;
     }
 
@@ -363,7 +363,7 @@ class StudipForm {
     }
 
     function getFormFieldCombo($name, $attributes, $default , $subtype = false){
-        $ret = '<fieldset id="' . $attributes['id'] .'" style="border:none;padding:0px;display:inline">';
+        $ret = '<div id="' . $attributes['id'] .'"><section class="hgroup">';
         unset($attributes['id']);
         $combo_text_name = $this->form_fields[$name]['text'];
         $combo_select_name = $this->form_fields[$name]['select'];
@@ -381,7 +381,7 @@ class StudipForm {
         } else {
                 $ret .= $this->getFormFieldSelect($combo_select_name, $select_attributes, $default);
         }
-        $ret .= "</fieldset>";
+        $ret .= "</section></div>";
         return $ret;
     }
 
@@ -540,7 +540,7 @@ function getSomeOptions(&$caller, $name){
 }
 
 page_open(array("sess" => "Seminar_Session"));
-$_language = $DEFAULT_LANGUAGE;
+$_language = DEFAULT_LANGUAGE;
 $_language_path = $INSTALLED_LANGUAGES[$_language]["path"];
 
 $form_fields = array('text1'        =>  array('type' => 'text', 'caption' => 'Testtextfeld1', 'info' => 'Hier Schwachsinn eingeben'),

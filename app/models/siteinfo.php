@@ -31,13 +31,13 @@ class Siteinfo {
             //users with root priveleges get a hint whether what to do...
             if ($perm->have_perm('root')) {
                 if ($this->rubrics_empty) {
-                    return _("Benutzen Sie den Link »neue Rubrik anlegen« in der Infobox, um eine Rubrik anzulegen.");
+                    return _("Benutzen Sie den Link Â»neue Rubrik anlegenÂ« in der Infobox, um eine Rubrik anzulegen.");
                 } else {
-                    return _("Benutzen Sie den Link »neue Seite anlegen« in der Infobox, um eine Seite in dieser Rubrik anzulegen.");
+                    return _("Benutzen Sie den Link Â»neue Seite anlegenÂ« in der Infobox, um eine Seite in dieser Rubrik anzulegen.");
                 }
             //...while unauthorized users just get informed that there's something missing und who might be the person to fix this
             } else {
-                return _("Der für diese Stud.IP-Installation verantwortliche Administrator muss hier noch Inhalte einfügen.\n(:rootlist:)");
+                return _("Der fÃ¼r diese Stud.IP-Installation verantwortliche Administrator muss hier noch Inhalte einfÃ¼gen.\n(:rootlist:)");
             }
         } else {
             $sql = "SELECT content
@@ -249,7 +249,7 @@ class SiteinfoMarkupEngine {
     }
 
     function uniName() {
-        return htmlReady($GLOBALS['UNI_NAME_CLEAN']);
+        return htmlReady(Config::get()->UNI_NAME_CLEAN);
     }
 
     function uniContact() {
@@ -358,7 +358,7 @@ class SiteinfoMarkupEngine {
         $template = $this->template_factory->open('toplist');
         switch ($item) {
             case "mostparticipants":
-                $template->heading = _("die meisten Teilnehmer");
+                $template->heading = _("die meisten Teilnehmenden");
                 $sql = "SELECT seminar_user.seminar_id,
                                seminare.name AS display,
                                count(seminar_user.seminar_id) AS count
@@ -383,13 +383,14 @@ class SiteinfoMarkupEngine {
                 break;
             case "mostdocuments":
                 $template->heading = _("die meisten Materialien (Dokumente)");
-                $sql = "SELECT a.seminar_id,
+                $sql = "SELECT b.seminar_id,
                                b.name AS display,
-                               count(a.seminar_id) AS count
+                               count(b.seminar_id) AS count
                         FROM seminare b
-                        INNER JOIN dokumente a USING(seminar_id)
+                        INNER JOIN folders ON (range_id = seminar_id)
+                        INNER JOIN file_refs ON (folders.id = folder_id)
                         WHERE b.visible=1
-                        GROUP BY a.seminar_id
+                        GROUP BY b.seminar_id
                         ORDER BY count DESC
                         LIMIT 10";
                 $template->type = "seminar";
@@ -465,10 +466,10 @@ class SiteinfoMarkupEngine {
                                                "detail" => _("alle Veranstaltungen, die archiviert wurden"));
         $indicator['institute_secondlevel_all'] = array("query" => "SELECT COUNT(*) FROM Institute WHERE Institut_id != fakultaets_id",
                                                         "title" => _("beteiligte Einrichtungen"),
-                                                        "detail" => _("alle Einrichtungen außer den Fakultäten"));
+                                                        "detail" => _("alle Einrichtungen auÃŸer den FakultÃ¤ten"));
         $indicator['institute_firstlevel_all'] = array("query" => "SELECT COUNT(*) FROM Institute WHERE Institut_id = fakultaets_id",
-                                                       "title" => _("beteiligte Fakultäten"),
-                                                       "detail" => _("alle Fakultäten"));
+                                                       "title" => _("beteiligte FakultÃ¤ten"),
+                                                       "detail" => _("alle FakultÃ¤ten"));
         $indicator['user_admin'] = array("query" => "SELECT COUNT(*) FROM auth_user_md5 WHERE perms='admin'",
                                          "title" => _("registrierte Administratoren"),
                                          "detail" => "");
@@ -481,10 +482,10 @@ class SiteinfoMarkupEngine {
         $indicator['user_autor'] = array("query" => "SELECT COUNT(*) FROM auth_user_md5 WHERE perms='autor'",
                                          "title" => _("registrierte Autoren"),
                                          "detail" => "");
-        $indicator['document'] = array("query" => "SELECT COUNT(*) FROM dokumente WHERE url = ''",
+        $indicator['document'] = array("query" => "SELECT COUNT(*) FROM files WHERE storage='disk'",
                                        "title" => _("Dokumente"),
                                        "detail" => "");
-        $indicator['link'] = array("query" => "SELECT COUNT(*) FROM dokumente WHERE url != ''",
+        $indicator['link'] = array("query" => "SELECT COUNT(*) FROM files WHERE storage='url'",
                                    "title" => _("verlinkte Dateien"),
                                    "detail" => "");
         $indicator['litlist'] = array("count" => array('count_table_rows','lit_list'),
@@ -495,10 +496,10 @@ class SiteinfoMarkupEngine {
                                      "title" => _("Termine"),
                                      "detail" => "");
         $indicator['news'] = array("count" => array('count_table_rows','news'),
-                                   "title" => _("Ankündigungen"),
+                                   "title" => _("AnkÃ¼ndigungen"),
                                    "detail" => "");
         $indicator['vote'] = array("count" => array('count_table_rows', 'questionnaires'),
-                                   "title" => _("Fragebögen"),
+                                   "title" => _("FragebÃ¶gen"),
                                    "detail" => "",
                                    "constraint" => get_config('VOTE_ENABLE'));
         $indicator['evaluation'] = array("count" => array('count_table_rows','eval'),
@@ -511,7 +512,7 @@ class SiteinfoMarkupEngine {
                                          "constraint" => get_config('WIKI_ENABLE'));
         $indicator['resource'] = array("count" => array('count_table_rows','resources_objects'),
                                        "title" => _("Ressourcen-Objekte"),
-                                       "detail" => _("von Stud.IP verwaltete Ressourcen wie Räume oder Geräte"),
+                                       "detail" => _("von Stud.IP verwaltete Ressourcen wie RÃ¤ume oder GerÃ¤te"),
                                        "constraint" => Config::get()->RESOURCES_ENABLE);
 
         if ($key == 'posting') {
@@ -522,8 +523,8 @@ class SiteinfoMarkupEngine {
                 $count += $plugin->getNumberOfPostings();
             }
 
-            $template->title  = _('Forenbeiträge');
-            $template->detail = _('Anzahl Beiträge aller verwendeten Foren');
+            $template->title  = _('ForenbeitrÃ¤ge');
+            $template->detail = _('Anzahl BeitrÃ¤ge aller verwendeten Foren');
             $template->count = $count;
         } else {
             // iterate over the other indicators

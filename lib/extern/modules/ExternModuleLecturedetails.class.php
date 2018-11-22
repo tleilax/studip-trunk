@@ -38,13 +38,13 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/modules/views/ExternSemBrowse.class.php';
+require_once 'lib/extern/views/extern_html_templates.inc.php';
+require_once 'lib/extern/modules/views/ExternSemBrowse.class.php';
 require_once 'lib/dates.inc.php';
 
 class ExternModuleLecturedetails extends ExternModule {
 
-   
+
     // private
     var $seminar_id;
 
@@ -93,8 +93,8 @@ class ExternModuleLecturedetails extends ExternModule {
 
         // setup module properties
         $this->elements["SemName"]->real_name = _("Name der Veranstaltung");
-        $this->elements["Headline"]->real_name = _("‹berschriften");
-        $this->elements["Content"]->real_name = _("Abs‰tze");
+        $this->elements["Headline"]->real_name = _("√úberschriften");
+        $this->elements["Content"]->real_name = _("Abs√§tze");
         $this->elements["LinkInternSimple"]->link_module_type = 2;
         $this->elements["LinkInternSimple"]->real_name = _("Link zum Modul Mitarbeiterdetails");
     }
@@ -123,8 +123,7 @@ class ExternModuleLecturedetails extends ExternModule {
             $language = "de_DE";
         init_i18n($language);
 
-        include($GLOBALS["RELATIVE_PATH_EXTERN"]
-                . "/modules/views/lecturedetails_preview.inc.php");
+        include "lib/extern/modules/views/lecturedetails_preview.inc.php";
 
         if ($this->config->getValue("Main", "wholesite"))
             echo html_footer();
@@ -138,7 +137,7 @@ class ExternModuleLecturedetails extends ExternModule {
         $statement = DBManager::get()->prepare($query);
         $statement->execute($parameters);
         $row = $statement->fetch(PDO::FETCH_ASSOC);
-        
+
         $visible = $this->config->getValue("Main", "visible");
         $j = -1;
         if ($row !== false) {
@@ -296,11 +295,11 @@ class ExternModuleLecturedetails extends ExternModule {
         $data_sem["semester"] = "WS 2003/2004";
         $data_sem["time"] = _("Di. 8:30 - 13:30, Mi. 8:30 - 13:30, Do. 8:30 - 13:30");
         $data_sem["number"] = "1234";
-        $data_sem["teilnehmer"] = str_repeat(_("Teilnehmer") . " ", 6);
+        $data_sem["teilnehmer"] = str_repeat(_("Teilnehmende") . " ", 6);
         $data_sem["requirements"] = str_repeat(_("Voraussetzungen") . " ", 6);
         $data_sem["lernorga"] = str_repeat(_("Lernorganisation") . " ", 6);
         $data_sem["leistung"] = str_repeat(_("Leistungsnachweis") . " ", 6);
-        $data_sem["range_path"] = _("Fakult‰t &gt; Studiengang &gt; Bereich");
+        $data_sem["range_path"] = _("Fakult√§t &gt; Studiengang &gt; Bereich");
         $data_sem["misc"] = str_repeat(_("Sonstiges") . " ", 6);
         $data_sem["ects"] = "4";
 
@@ -514,9 +513,12 @@ class ExternModuleLecturedetails extends ExternModule {
                 $link_inst = htmlReady($res['url']);
                 if (!preg_match('{^https?://.+$}', $link_inst))
                     $link_inst = "http://$link_inst";
-                $studip_info .= sprintf("<a href=\"%s\"%s target=\"_blank\">%s</a>", $link_inst,
-                        $this->config->getAttributes("LinkInternSimple", "a"),
-                        htmlReady($res['Name']));
+                $studip_info .= sprintf(
+                    "<a href=\"%s\"%s target=\"_blank\" rel=\"noopener noreferrer\">%s</a>",
+                    $link_inst,
+                    $this->config->getAttributes("LinkInternSimple", "a"),
+                    htmlReady($res['Name'])
+                );
             }else
                 $studip_info .= htmlReady($res['Name']);
             $studip_info .= "<br>\n";
@@ -533,9 +535,12 @@ class ExternModuleLecturedetails extends ExternModule {
                     $link_inst = htmlReady($res['url']);
                     if (!preg_match('{^https?://.+$}', $link_inst))
                         $link_inst = "http://$link_inst";
-                        $involved_insts[] = sprintf("<a href=\"%s\"%s target=\"_blank\">%s</a>",
-                        $link_inst, $this->config->getAttributes("LinkInternSimple", "a"),
-                        htmlReady($res['Name']));
+                        $involved_insts[] = sprintf(
+                            "<a href=\"%s\"%s target=\"_blank\" rel=\"noopener noreferrer\">%s</a>",
+                            $link_inst,
+                            $this->config->getAttributes("LinkInternSimple", "a"),
+                            htmlReady($res['Name'])
+                        );
                 }
                 else
                     $involved_insts[] = $res['Name'];
@@ -565,14 +570,19 @@ class ExternModuleLecturedetails extends ExternModule {
             foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
                 $postings += $plugin->getNumberOfPostingsForSeminar($this->seminar_id);
             }
-            
+
             if ($postings) {
                 $studip_info .= $this->elements["StudipInfo"]->toString(array("content" =>
                             $this->config->getValue("StudipInfo", "countpostings") . "&nbsp;"));
                 $studip_info .= $postings . "<br>\n";
             }
 
-            $query = "SELECT count(*) as count_documents FROM dokumente WHERE seminar_id = ?";
+            $query = "SELECT COUNT(*) AS count_documents
+                  FROM folders
+                  INNER JOIN file_refs ON folder_id = folders.id
+                  WHERE range_id = ? AND range_type = 'course'
+            AND folder_type IN ('RootFolder', 'StandardFolder')
+                  GROUP BY range_id";
             $parameters = array($this->seminar_id);
             $statement = DBManager::get()->prepare($query);
             $statement->execute($parameters);

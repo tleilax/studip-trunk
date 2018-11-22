@@ -128,6 +128,9 @@ class AdminCourseFilter
             'waiting' => "(SELECT COUNT(seminar_id)
                           FROM admission_seminar_user
                           WHERE seminar_id = seminare.Seminar_id AND status = 'awaiting')",
+            'requests' => "(SELECT COUNT(request_id)
+                          FROM resources_requests
+                          WHERE seminar_id = seminare.Seminar_id)",
             'course_set' => "(SELECT set_id FROM seminar_courseset WHERE seminar_id = seminare.Seminar_id LIMIT 1)"
         );
         $this->settings['query']['joins'] = array(
@@ -158,7 +161,7 @@ class AdminCourseFilter
     {
         $semester = Semester::find($semester_id);
         if (!$semester) {
-            throw new Exception("Das ausgewählte Semester scheint nicht zu existieren.");
+            throw new Exception("Das ausgewÃ¤hlte Semester scheint nicht zu existieren.");
         }
         $this->settings['query']['where']['semester'] = "(seminare.start_time <= :semester_beginn AND ((:semester_beginn <= seminare.start_time + seminare.duration_time) OR (seminare.duration_time = -1)))";
         $this->settings['parameter']['semester_beginn'] = $semester['beginn'];
@@ -257,7 +260,7 @@ class AdminCourseFilter
         if (!in_array($flag, words('ASC DESC'))) {
             throw new Exception("Sortierreihenfolge undefiniert.");
         }
-        if (in_array($attribute, words('VeranstaltungsNummer Name status teilnehmer waiting prelim is_complete start_time'))) {
+        if (in_array($attribute, words('VeranstaltungsNummer Name status teilnehmer waiting prelim requests completion start_time'))) {
             $this->settings['query']['orderby'] = $attribute . ' ' . $flag;
         }
         return $this;
@@ -326,7 +329,7 @@ class AdminCourseFilter
         if ($count_courses && $count_courses <= $this->max_show_courses) {
             $settings = $this->settings;
             $this->settings['query']['select'] = array();
-            $this->settings['query']['orderby'] = "seminare.name";
+            $this->settings['query']['orderby'] = Config::get()->IMPORTANT_SEMNUMBER ? 'seminare.veranstaltungsnummer, seminare.name' : 'seminare.name';
             $ret = $this->getCourses(false);
             $this->settings = $settings;
             return $ret;

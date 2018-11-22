@@ -48,21 +48,19 @@ class PmWikiConnectedLink extends ConnectedLink
 
     function getUserModuleLinks()
     {
-        $range_id = $GLOBALS['SessSemName'][1];
+        $range_id = Context::getId();
         $username = get_username($GLOBALS['auth']->auth['uid']);
 
         global $connected_cms, $view, $search_key, $cms_select, $current_module;
 
-        // hier muss die Authentifizierung mit übergeben werden...
+        // hier muss die Authentifizierung mit Ã¼bergeben werden...
         //
-        if ($GLOBALS['SessSemName']['class'] == 'sem')
-        {
+        if (Context::isCourse()) {
             $context = 'seminar';
 
             $status = StudipSeminarHelper::get_user_status($username, $range_id);
 
-        } else if ($GLOBALS['SessSemName']['class'] == 'inst')
-        {
+        } else if (Context::isInstitute()) {
             $context = 'institute';
 
             $status = StudipInstituteHelper::get_user_status($username, $range_id);
@@ -71,16 +69,16 @@ class PmWikiConnectedLink extends ConnectedLink
         $token = new Token($GLOBALS['auth']->auth['uid']);
 
         ob_start(); ?>
-        <form method='post' target='_blank'
-                    action='<?=$connected_cms[$this->cms_type]->content_module[$current_module]->link?>' >
+        <form method="post" target="_blank" rel="noopener noreferrer"
+              action="<?= $connected_cms[$this->cms_type]->content_module[$current_module]->link ?>">
 
             <?= CSRFProtection::tokenTag() ?>
-            <input type='hidden'    name='authid'           value='<?= $GLOBALS['auth']->auth['uname'] ?>'>
-            <input type='hidden'    name='authpw'           value='<?= $token->get_string() ?>'>
-            <input type='hidden'    name='_permission'  value='<?= $status ?>'>
-            <input type='hidden'    name='_range_id'        value='<?= $range_id ?>'>
-            <input type='hidden'    name='_server'          value='<?= $GLOBALS['STUDIP_INSTALLATION_ID'] ?>'>
-            <input type='hidden'    name='_context'         value='<?= $context ?>'>
+            <input type='hidden'    name='authid'           value='<?= htmlReady($GLOBALS['auth']->auth['uname']) ?>'>
+            <input type='hidden'    name='authpw'           value='<?= htmlReady($token->get_string()) ?>'>
+            <input type='hidden'    name='_permission'  value='<?= htmlReady($status) ?>'>
+            <input type='hidden'    name='_range_id'        value='<?= htmlReady($range_id) ?>'>
+            <input type='hidden'    name='_server'          value='<?= htmlReady(Config::get()->STUDIP_INSTALLATION_ID) ?>'>
+            <input type='hidden'    name='_context'         value='<?= htmlReady($context) ?>'>
             <?= Button::createAccept(_('Starten')) ?>
 
         </form>
@@ -121,7 +119,7 @@ class PmWikiConnectedLink extends ConnectedLink
 
             <?php else :?>
 
-                &nbsp;<?= Button::create(_('Hinzufügen'), 'add') ?>
+                &nbsp;<?= Button::create(_('HinzufÃ¼gen'), 'add') ?>
 
             <?php endif ; ?>
 

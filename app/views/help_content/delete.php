@@ -8,13 +8,14 @@
         <legend><?= sprintf(_('Seite %s'), $help_content->route) ?></legend>
         <?= _('Hilfe-Text:') ?>
         <?= $help_content->content ? htmlReady($help_content->content) : '' ?>
-        <footer data-dialog-button>
-            <?= CSRFProtection::tokenTag() ?>
-            <? if ($via_ajax): ?>
-                <?= Button::create(_('Löschen'), 'delete_help_content', array('data-dialog' => '')) ?>
-            <? else: ?>
-                <?= Button::create(_('Löschen'), 'delete_help_content') ?>
-            <? endif; ?>
-        </footer>
     </fieldset>
+
+    <footer data-dialog-button>
+        <?= CSRFProtection::tokenTag() ?>
+        <? if ($via_ajax): ?>
+            <?= Button::create(_('LÃ¶schen'), 'delete_help_content', array('data-dialog' => '')) ?>
+        <? else: ?>
+            <?= Button::create(_('LÃ¶schen'), 'delete_help_content') ?>
+        <? endif; ?>
+    </footer>
 </form>

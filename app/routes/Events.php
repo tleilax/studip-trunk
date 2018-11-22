@@ -1,10 +1,18 @@
 <?php
 namespace RESTAPI\Routes;
-use Calendar, DbCalendarEventList, SingleCalendar, SingleDate, Seminar, Issue,
-    CalendarExportFile, CalendarWriterICalendar, SemesterData;
+
+use Calendar;
+use DbCalendarEventList;
+use SingleCalendar;
+use SingleDate;
+use Seminar;
+use Issue;
+use CalendarExport;
+use CalendarWriterICalendar;
+use SemesterData;
 
 /**
- * @author  AndrÈ Klaﬂen <andre.klassen@elan-ev.de>
+ * @author  Andr√© Kla√üen <andre.klassen@elan-ev.de>
  * @author  <mlunzena@uos.de>
  * @license GPL 2 or later
  *
@@ -16,8 +24,8 @@ class Events extends \RESTAPI\RouteMap
 {
     public function before($router, &$handler, &$parameters)
     {
-        require_once $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/CalendarExportFile.class.php';
-        require_once $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/CalendarWriterICalendar.class.php';
+        require_once 'lib/calendar/CalendarExportFile.class.php';
+        require_once 'lib/calendar/CalendarWriterICalendar.class.php';
     }
 
     /**
@@ -32,13 +40,15 @@ class Events extends \RESTAPI\RouteMap
         }
 
         $start = time();
-        $end   = strtotime('+2 weeks');
-        $list  = new DbCalendarEventList(new SingleCalendar($user_id, Calendar::PERMISSION_OWN),
-                                         $start, $end,
-                                         true, Calendar::getBindSeminare($user_id));
+        $end   = strtotime('+2 weeks', $start);
+        $list = SingleCalendar::getEventList($user_id, $start, $end, null, [], [
+            'CourseEvent',
+            'CourseCancelledEvent',
+            'CourseMarkedEvent',
+        ]);
 
         $json = array();
-        $events = array_slice($list->getAllEvents(), $this->offset, $this->limit); ;
+        $events = array_slice($list, $this->offset, $this->limit); ;
         foreach ($events as $event) {
             $singledate = new SingleDate($event->id);
 
@@ -59,7 +69,7 @@ class Events extends \RESTAPI\RouteMap
 
         $this->etag(md5(serialize($json)));
 
-        return $this->paginated($json, $list->numberOfEvents(), compact('user_id'));
+        return $this->paginated($json, count($list), compact('user_id'));
     }
 
     /**
@@ -73,19 +83,21 @@ class Events extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
-        $export = new CalendarExportFile(new CalendarWriterICalendar());
-        $export->exportFromDatabase($user_id, 0, 2114377200, 'ALL_EVENTS', Calendar::getBindSeminare($user_id));
+        $export = new CalendarExport(new CalendarWriterICalendar());
+        $export->exportFromDatabase($user_id, 0, 2114377200, 'ALL_EVENTS');
 
-        if ($GLOBALS['_calendar_error']->getMaxStatus(\ERROR_CRITICAL)) {
+        if ($GLOBALS['_calendar_error']->getMaxStatus(\ErrorHandler::ERROR_CRITICAL)) {
             $this->halt(500);
         }
 
-        $filename = sprintf('%s/export/%s', $GLOBALS['TMP_PATH'], $export->getTempFileName());
-        
-        $this->sendFile($filename, array(
-                            'type' => 'text/calendar',
-                            'filename' => 'studip.ics'
-                        ));
+        $content = implode($export->getExport());
+
+        $this->contentType('text/calendar');
+        $this->headers([
+            'Content-Length'      => strlen($content),
+            'Content-Disposition' => 'attachment; ' . encode_header_parameter('filename', 'studip.ics'),
+        ]);
+        $this->halt(200, $this->response->headers, $content);
     }
 
 
@@ -137,7 +149,7 @@ class Events extends \RESTAPI\RouteMap
 
     private static function getRoomForSingleDate($val) {
 
-        /* css-Klasse ausw‰hlen, sowie Template-Feld f¸r den Raum mit Text f¸llen */
+        /* css-Klasse ausw√§hlen, sowie Template-Feld f√ºr den Raum mit Text f√ºllen */
         if (\Config::get()->RESOURCES_ENABLE) {
 
             if ($val->getResourceID()) {
@@ -158,7 +170,7 @@ class Events extends \RESTAPI\RouteMap
                     if ($name = $val->isHoliday()) {
                         $room = '('.$name.')';
                     } else {
-                        $room = '('._('f‰llt aus').')';
+                        $room = '('._('f√§llt aus').')';
                     }
                 }
 

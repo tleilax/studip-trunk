@@ -34,10 +34,16 @@ class Admin_StatusgroupsController extends AuthenticatedController
         $this->user_id = $GLOBALS['user']->user_id;
 
         // Set pagelayout
-        PageLayout::addSqueezePackage('statusgroups');
+        PageLayout::addStyleSheet('studip-statusgroups.css');
+        PageLayout::addScript('studip-statusgroups.js');
         PageLayout::setHelpKeyword("Basis.Allgemeines");
         PageLayout::setTitle(_("Verwaltung von Funktionen und Gruppen"));
         Navigation::activateItem('/admin/institute/groups');
+
+        // Change header_line if open object
+        if ($header_line = Context::getHeaderLine()) {
+            PageLayout::setTitle($header_line." - ".PageLayout::getTitle());
+        }
 
         // Include url for ajax moving of members in group to page header
         PageLayout::addHeadElement('meta', array(
@@ -55,8 +61,8 @@ class Admin_StatusgroupsController extends AuthenticatedController
      */
     public function index_action()
     {
-        $lockrule = LockRules::getObjectRule($_SESSION['SessionSeminar']);
-        $this->is_locked = LockRules::Check($_SESSION['SessionSeminar'], 'groups');
+        $lockrule = LockRules::getObjectRule(Context::getId());
+        $this->is_locked = LockRules::Check(Context::getId(), 'groups');
         if ($lockrule->description && $this->is_locked) {
             PageLayout::postMessage(MessageBox::info(formatLinks($lockrule->description)));
         }
@@ -69,7 +75,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
                              $this->url_for('admin/statusgroups/editGroup'),
                              Icon::create('group3+add', 'clickable'))
                    ->asDialog('size=auto');
-            $widget->addLink(_('Gruppenreihenfolge ändern'),
+            $widget->addLink(_('Gruppenreihenfolge Ã¤ndern'),
                              $this->url_for('admin/statusgroups/sortGroups'),
                              Icon::create('arr_2down', 'clickable'))
                    ->asDialog();
@@ -78,7 +84,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
         // Collect all groups
         $this->loadGroups();
 
-        $institute = Institute::find($_SESSION['SessionSeminar']);
+        $institute = Institute::find(Context::getId());
 
         $this->membersOfInstitute = $institute->members->orderBy('nachname')->pluck('user_id');
         $assigned = array_unique(array_flatten($institute->all_status_groups->map(function ($group) {
@@ -99,7 +105,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
                     AND auth_user_md5.perms IN ('autor', 'tutor', 'dozent')
                     AND auth_user_md5.visible <> 'never'
                 ORDER BY Vorname, Nachname";
-        $this->searchType = new SQLSearch($query, _('Teilnehmer suchen'), 'username');
+        $this->searchType = new SQLSearch($query, _('Teilnehmende/n suchen'), 'username');
     }
 
     /**
@@ -114,7 +120,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
         if (Request::isPost()) {
             $group = new Statusgruppen($group_id);
             if ($group->isNew()) {
-                $group->range_id = $_SESSION['SessionSeminar'];
+                $group->range_id = Context::getId();
             } else {
                 DataFieldEntry::removeAll(array('', $group->statusgruppe_id));
             }
@@ -151,7 +157,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
 
         if (Request::isPost()) {
             $newOrder = json_decode(Request::get('ordering'));
-            $this->updateRecoursive($newOrder, $_SESSION['SessionSeminar']);
+            $this->updateRecoursive($newOrder, Context::getId());
 
            PageLayout::postMessage(MessageBox::success(_('Die Gruppenreihenfolge wurde gespeichert.')));
            $this->redirect('admin/statusgroups');
@@ -181,8 +187,8 @@ class Admin_StatusgroupsController extends AuthenticatedController
         }
 
         if ($countAdded > 0) {
-            $message = sprintf(ngettext('Es wurde eine Person hinzugefügt.',
-                                        'Es wurden %u Personen hinzugefügt.',
+            $message = sprintf(ngettext('Es wurde eine Person hinzugefÃ¼gt.',
+                                        'Es wurden %u Personen hinzugefÃ¼gt.',
                                         $countAdded),
                                $countAdded);
             PageLayout::postMessage(MessageBox::success($message));
@@ -285,7 +291,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
      */
     private function loadGroups()
     {
-        $this->groups = Institute::find($_SESSION['SessionSeminar'])->status_groups;
+        $this->groups = Institute::findCurrent()->status_groups;
     }
 
     /*
@@ -334,8 +340,8 @@ class Admin_StatusgroupsController extends AuthenticatedController
      */
     private function setType()
     {
-        $_SESSION['SessionSeminar'] = Request::option('admin_inst_id') ?: $_SESSION['SessionSeminar'];
-        if (get_object_type($_SESSION['SessionSeminar'], array('inst', 'fak'))) {
+
+        if (get_object_type(Context::getId(), array('inst', 'fak'))) {
             $type = 'inst';
         }
         $types = $this->types();
@@ -360,13 +366,13 @@ class Admin_StatusgroupsController extends AuthenticatedController
             'inst' => array(
                 'name' => _('Institut'),
                 'after_user_add' => function ($user_id) {
-                    $newInstUser = new InstituteMember(array($user_id, $_SESSION['SessionSeminar']));
+                    $newInstUser = new InstituteMember(array($user_id, Context::getId()));
                     if ($newInstUser->isNew() || $newInstUser->inst_perms == 'user') {
                         $user = new User($user_id);
                         $newInstUser->inst_perms = $user->perms;
                         if ($newInstUser->store()) {
                             InstituteMember::ensureDefaultInstituteForUser($user->id);
-                            StudipLog::INST_USER_ADD($_SESSION['SessionSeminar'], $user->id, $user->perms);
+                            StudipLog::INST_USER_ADD(Context::getId(), $user->id, $user->perms);
                         }
                     }
                 },
@@ -382,7 +388,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
                 'needs_size' => false,
                 'needs_self_assign' => false,
                 'edit' => function ($user_id) {
-                    return $GLOBALS['perm']->have_studip_perm('admin', $_SESSION['SessionSeminar']) && !LockRules::Check($_SESSION['SessionSeminar'], 'groups');
+                    return $GLOBALS['perm']->have_studip_perm('admin', Context::getId()) && !LockRules::Check(Context::getId(), 'groups');
                 },
                 'redirect' => function () {
                     require_once 'lib/admin_search.inc.php';

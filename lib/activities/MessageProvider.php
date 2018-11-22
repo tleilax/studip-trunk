@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @author      Till Glˆggler <tgloeggl@uos.de>
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
  * @license     GPL 2 or later
  */
 
@@ -19,10 +19,10 @@ class MessageProvider implements ActivityProvider
     {
         $message = \Message::find($activity->object_id);
 
-        if (in_array($activity->getContextObject()->getObserver()->id,
-                $message->receivers->map(function($m) {
-                    return $m['user_id']; 
-                })) === false) {
+        if (!$message
+            || !$activity->getContextObject()
+            || !$message->permissionToRead($activity->getContextObject()->getObserver()->id))
+        {
             return false;
         }
 

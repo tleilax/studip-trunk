@@ -33,10 +33,98 @@
  * @property SimpleORMapCollection dozenten has_and_belongs_to_many User
  */
 
-class CourseDate extends SimpleORMap
+class CourseDate extends SimpleORMap implements PrivacyObject
 {
     const FORMAT_DEFAULT = 'default';
     const FORMAT_VERBOSE = 'verbose';
+
+    private static $numbered_dates = null;
+
+    /**
+     * Configures this model.
+     *
+     * @param Array $config Configuration array
+     */
+    protected static function configure($config = [])
+    {
+        $config['db_table'] = 'termine';
+        $config['has_and_belongs_to_many']['topics'] = [
+            'class_name' => 'CourseTopic',
+            'thru_table' => 'themen_termine',
+            'order_by'   => 'ORDER BY priority',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store'
+        ];
+        $config['has_and_belongs_to_many']['statusgruppen'] = [
+            'class_name' => 'Statusgruppen',
+            'thru_table' => 'termin_related_groups',
+            'order_by'   => 'ORDER BY position',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store'
+        ];
+        $config['has_and_belongs_to_many']['dozenten'] = [
+            'class_name'  => 'User',
+            'thru_table'  => 'termin_related_persons',
+            'foreign_key' => 'termin_id',
+            'thru_key'    => 'range_id',
+            'order_by'    => 'ORDER BY Nachname, Vorname',
+            'on_delete'   => 'delete',
+            'on_store'    => 'store'
+        ];
+        $config['has_many']['folders'] = [
+            'class_name' => 'Folder',
+            'assoc_func' => 'findByTermin_id'
+        ];
+        $config['belongs_to']['author'] = [
+            'class_name'  => 'User',
+            'foreign_key' => 'autor_id'
+        ];
+        $config['belongs_to']['course'] = [
+            'class_name'  => 'Course',
+            'foreign_key' => 'range_id'
+        ];
+        $config['belongs_to']['cycle'] = [
+            'class_name'  => 'SeminarCycleDate',
+            'foreign_key' => 'metadate_id'
+        ];
+        $config['has_one']['room_assignment'] = [
+            'class_name'        => 'ResourceAssignment',
+            'foreign_key'       => 'termin_id',
+            'assoc_foreign_key' => 'assign_user_id',
+            'on_delete'         => 'delete',
+            'on_store'          => 'store'
+        ];
+        $config['has_one']['room_request'] = [
+            'class_name'        => 'RoomRequest',
+            'assoc_foreign_key' => 'termin_id',
+            'on_delete'         => 'delete',
+        ];
+        $config['default_values']['date_typ'] = 1;
+        parent::configure($config);
+    }
+
+    /**
+     * return consecutive number for a date in its course, if semester is given
+     * only within that time range
+     *
+     * @param CourseDate $date
+     * @param null|Semester $semester
+     * @return int|null
+     */
+    public static function getConsecutiveNumber($date, $semester = null)
+    {
+        if (!isset(self::$numbered_dates[@$semester->id ?: 'all'])) {
+            $db = DBManager::get();
+            $numbered = array_flip($db->fetchFirst("SELECT termin_id FROM termine WHERE range_id = ?" .
+                ($semester ? " AND date BETWEEN ? AND ?" : "") .
+                " ORDER BY date",
+                $semester ? [$date->range_id, $semester->beginn, $semester->ende] : [$date->range_id]));
+            self::$numbered_dates[@$semester->id ?: 'all'] = $numbered;
+        }
+        return isset(self::$numbered_dates[@$semester->id ?: 'all'][$date->termin_id])
+             ? self::$numbered_dates[@$semester->id ?: 'all'][$date->termin_id] + 1
+             : null;
+    }
 
     /**
      * Returns course dates by issue id.
@@ -89,64 +177,6 @@ class CourseDate extends SimpleORMap
             ORDER BY `date` ASC",
             array($group_id)
         );
-    }
-
-    /**
-     * Configures this model.
-     *
-     * @param Array $config Configuration array
-     */
-    protected static function configure($config = array())
-    {
-        $config['db_table'] = 'termine';
-        $config['has_and_belongs_to_many']['topics'] = array(
-            'class_name' => 'CourseTopic',
-            'thru_table' => 'themen_termine',
-            'order_by' => 'ORDER BY priority',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_and_belongs_to_many']['statusgruppen'] = array(
-            'class_name' => 'Statusgruppen',
-            'thru_table' => 'termin_related_groups',
-            'order_by' => 'ORDER BY position',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_and_belongs_to_many']['dozenten'] = array(
-            'class_name' => 'User',
-            'thru_table' => 'termin_related_persons',
-            'foreign_key' => 'termin_id',
-            'thru_key' => 'range_id',
-            'order_by' => 'ORDER BY Nachname, Vorname',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['belongs_to']['author'] = array(
-            'class_name'  => 'User',
-            'foreign_key' => 'autor_id'
-        );
-        $config['belongs_to']['course'] = array(
-            'class_name'  => 'Course',
-            'foreign_key' => 'range_id'
-        );
-        $config['belongs_to']['cycle'] = array(
-            'class_name'  => 'SeminarCycleDate',
-            'foreign_key' => 'metadate_id'
-        );
-        $config['has_one']['room_assignment'] = array(
-            'class_name'  => 'ResourceAssignment',
-            'foreign_key' => 'termin_id',
-            'assoc_foreign_key' => 'assign_user_id',
-            'on_delete' => 'delete',
-        );
-        $config['has_one']['room_request'] = array(
-            'class_name'        => 'RoomRequest',
-            'assoc_foreign_key' => 'termin_id',
-            'on_delete'          => 'delete',
-        );
-        $config['default_values']['date_typ'] = 1;
-        parent::configure($config);
     }
 
     public function __construct($id = null)
@@ -238,7 +268,7 @@ class CourseDate extends SimpleORMap
                          : '%R';
 
         if (($this->end_time - $this->date) / 60 / 60 > 23) {
-            return strftime('%a., %x (' . _('ganzt�gig') . ')' , $this->date);
+            return strftime('%a., %x (' . _('ganztägig') . ')' , $this->date);
         }
 
         return strftime('%a., %x, %R', $this->date) . ' - '
@@ -265,13 +295,56 @@ class CourseDate extends SimpleORMap
      */
     public function cancelDate()
     {
+        //NOTE: If you modify this method make sure the changes
+        //are also inserted in SingleDateDB::storeSingleDate
+        //and CourseExDate::unCancelDate to keep the behavior consistent
+        //across Stud.IP!
+
+        //These statements are used below to update the relations
+        //of this date.
+        $db = DBManager::get();
+
+        $groups_stmt = $db->prepare(
+            "UPDATE termin_related_groups
+            SET termin_id = :ex_termin_id
+            WHERE termin_id = :termin_id;"
+        );
+
+        $persons_stmt = $db->prepare(
+            "UPDATE termin_related_persons
+            SET range_id = :ex_termin_id
+            WHERE range_id = :termin_id;"
+        );
+
         $date = $this->toArray();
 
         $ex_date = new CourseExDate();
         $ex_date->setData($date);
+        if ($room = $this->getRoom()) {
+            $ex_date['resource_id'] = $room->getId();
+        }
         $ex_date->setId($ex_date->getNewId());
 
         if ($ex_date->store()) {
+            //Update some (but not all) relations to the date so that they
+            //use the ID of the new ex-date.
+
+            $groups_stmt->execute(
+                [
+                    'ex_termin_id' => $ex_date->id,
+                    'termin_id' => $this->id
+                ]
+            );
+
+            $persons_stmt->execute(
+                [
+                    'ex_termin_id' => $ex_date->id,
+                    'termin_id' => $this->id
+                ]
+            );
+
+            //After we updated the relations so that they refer to the
+            //new ex-date we can delete this date and return the ex-date:
             $this->delete();
             return $ex_date;
         }
@@ -285,6 +358,9 @@ class CourseDate extends SimpleORMap
      */
     public function store()
     {
+        // load room-assignment, if any
+        $this->room_assignment;
+
         $cache = StudipCacheFactory::getCache();
         $cache->expire('course/undecorated_data/'. $this->range_id);
         return parent::store();
@@ -316,5 +392,78 @@ class CourseDate extends SimpleORMap
                 StudipLog::log('SINGLEDATE_CHANGE_TIME', $this->range_id, $this->getFullname(), $old_entry->getFullname() . ' -> ' . $this->getFullname());
             }
         }
+    }
+
+    /**
+     * Returns a list of all possible warnings that should be considered when
+     * this date is deleted.
+     *
+     * @return array of warnings
+     */
+    public function getDeletionWarnings()
+    {
+        $warnings = [];
+        if (count($this->topics) > 0) {
+            if (Config::get()->RESOURCES_ENABLE_EXPERT_SCHEDULE_VIEW) {
+                $warnings[] = _('Diesem Termin ist im Ablaufplan ein Thema zugeordnet.') . "\n"
+                            . _('Titel und Beschreibung des Themas bleiben erhalten und können in der Expertenansicht des Ablaufplans einem anderen Termin wieder zugeordnet werden.');
+            } else {
+                $warnings[] = _('Diesem Termin ist ein Thema zugeordnet.');
+            }
+        }
+
+        if (Config::get()->RESOURCES_ENABLE && $this->getRoom()) {
+            $warnings[] = _('Dieser Termin hat eine Raumbuchung, welche mit dem Termin gelöscht wird.');
+        }
+
+        return $warnings;
+    }
+
+    /**
+     * return all filerefs belonging to this date, permissions fpr given user are checked
+     *
+     * @param string|User $user_or_id
+     * @return mixed[] A mixed array with FolderType and FileRef objects.
+     */
+    public function getAccessibleFolderFiles($user_or_id)
+    {
+        $user_id = $user_or_id instanceof User ? $user_or_id->id : $user_or_id;
+        $all_files = [];
+        $all_folders = [];
+        $folders = $this->folders->getArrayCopy();
+        foreach ($this->topics as $topic) {
+            $folders = array_merge($folders, $topic->folders->getArrayCopy());
+        }
+        foreach ($folders as $folder) {
+            list($files, $typed_folders) = array_values(FileManager::getFolderFilesRecursive($folder->getTypedFolder(), $user_id));
+            foreach ($files as $file) {
+                $all_files[$file->id] = $file;
+            }
+            $all_folders = array_merge($all_folders, $typed_folders);
+        }
+        return ['files' => $all_files, 'folders' => $all_folders];
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("autor_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('termine', $field_data, $user);
+            }
+        }
+        return [_('Termine') => $storage];
     }
 }

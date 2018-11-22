@@ -81,8 +81,8 @@ class CourseSet
         $this->id = $setId;
         $this->name = _("Anmeldeset");
         $this->algorithm = new RandomAlgorithm();
-        // Define autoload function for admission rules.
-        spl_autoload_register(array('AdmissionRule', 'getAvailableAdmissionRules'));
+        // Autoload admission rules.
+        AdmissionRule::getAvailableAdmissionRules();
         // Define autoload function for admission rules.
         spl_autoload_register(array('UserFilterField', 'getAvailableFilterFields'));
         if ($setId) {
@@ -347,9 +347,12 @@ class CourseSet
      * @param String $courseSetId
      * @return Array
      */
-    public static function getCoursesByCourseSetId($courseSetId) {
-        $stmt = DBManager::get()->prepare("SELECT seminar_id FROM `seminar_courseset`
-            WHERE courseset_id=?");
+    public static function getCoursesByCourseSetId($courseSetId)
+    {
+        $query = "SELECT `seminar_id`
+                  FROM `seminar_courseset`
+                  WHERE `set_id` = ?";
+        $stmt = DBManager::get()->prepare($query);
         $stmt->execute(array($courseSetId));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -936,6 +939,35 @@ class CourseSet
         //fix free access courses
         if (count($this->courses)) {
             DBManager::get()->execute("UPDATE seminare SET Lesezugriff=1,Schreibzugriff=1 WHERE seminar_id IN(?)", array(array_keys($this->courses)));
+        }
+        //create general log
+        $this->log_store();
+
+    }
+
+    /**
+     * Generates a general log entry if the CourseSet rules were changed.
+     */
+    private function log_store()
+    {
+        $text = '';
+        $rule_counter = 1;
+        foreach ($this->getAdmissionRules() as $rule) {
+            $rule_text = strip_tags(kill_format($rule->toString()));
+            $semicolon = ($rule_counter < count($this->getAdmissionRules()) ? '; ' : '');
+            $text .= '#' . $rule_counter . ' => ' . $rule_text . $semicolon;
+            $rule_counter++;
+        }
+        
+        $courses = $this->getCourses();
+        foreach ($courses as $course_id) {
+            StudipLog::log(
+                'SEM_CHANGED_ACCESS',
+                $course_id,
+                NULL,
+                $text,
+                sprintf('Anmeldeset: %s (%s)', strip_tags(kill_format(($this->name))), $this->id)
+            );
         }
     }
 

@@ -48,9 +48,9 @@
 *
 */
 function get_accepted_languages() {
-    global $INSTALLED_LANGUAGES, $DEFAULT_LANGUAGE;
+    global $INSTALLED_LANGUAGES;
 
-    $_language = $DEFAULT_LANGUAGE;
+    $_language = Config::get()->DEFAULT_LANGUAGE;
     $accepted_languages = explode(",", getenv("HTTP_ACCEPT_LANGUAGE"));
     if (is_array($accepted_languages) && count($accepted_languages)) {
         foreach ($accepted_languages as $temp_accepted_language) {
@@ -98,33 +98,48 @@ function init_i18n($_language) {
  */
 function getUserLanguage($uid)
 {
-    global $DEFAULT_LANGUAGE;
-
     // try to get preferred language from user, fallback to default
     $query = "SELECT preferred_language FROM user_info WHERE user_id = ?";
     $statement = DBManager::get()->prepare($query);
     $statement->execute(array($uid));
-    $language = $statement->fetchColumn() ?: $DEFAULT_LANGUAGE;
+    $language = $statement->fetchColumn() ?: Config::get()->DEFAULT_LANGUAGE;
 
     return $language;
 }
 
 /**
-* retrieves path to preferred language of user from database
-*
-* Can be used for sending language specific mails to other users.
-*
-* @access   public
-* @param        string  the user_id of the recipient (function will try to get preferred language from database)
-* @return       string  the path to the language files, given in "en"-style
-*/
+ * Retrieves the path for the preferred language of a user which is specified
+ * by his/her ID.
+ *
+ * This method can be used for sending language specific mails to other users.
+ *
+ * @param string  the user_id of the recipient (function will try to get
+ *                preferred language from database)
+ * @return string the path to the language files, given in "en"-style
+ */
 function getUserLanguagePath($uid)
 {
-    global $INSTALLED_LANGUAGES;
+    // First we get the language code in the format language_Country, e.g. de_DE
+    $lang_code = getUserLanguage($uid);
 
-    $language = getUserLanguage($uid);
+    // Now we test if a directory with that language code exists in the locale
+    // directory
+    if (is_dir("{$GLOBALS['STUDIP_BASE_PATH']}/locale/{$lang_code}")) {
+        return $lang_code;
+    }
 
-    return $INSTALLED_LANGUAGES[$language]['path'];
+    // There is no directory containing country specific translations for the
+    // language. Now we have to check if a general translation exists for the
+    // language
+    $lang = explode('_', $lang_code)[0];
+    if (is_dir("{$GLOBALS['STUDIP_BASE_PATH']}/locale/{$lang}")) {
+        //A general translation exists:
+        return $lang;
+    }
+
+    // No directory exists that has a translation for the language.
+    // Our last resort is to use the path index in $INSTALLED_LANUGAGES:
+    return $GLOBALS['INSTALLED_LANGUAGES'][$lang_code]['path'];
 }
 
 /**
@@ -139,7 +154,7 @@ function getUserLanguagePath($uid)
 * @param        string  explicit temporary language (set $uid to FALSE to switch to this language)
 */
 function setTempLanguage ($uid = FALSE, $temp_language = "") {
-    global $_language_domain, $DEFAULT_LANGUAGE;
+    global $_language_domain;
 
     if ($uid) {
         $temp_language = getUserLanguage($uid);
@@ -147,7 +162,7 @@ function setTempLanguage ($uid = FALSE, $temp_language = "") {
 
     if ($temp_language == "") {
         // we got no arguments, best we can do is to set system default
-        $temp_language = $DEFAULT_LANGUAGE;
+        $temp_language = Config::get()->DEFAULT_LANGUAGE;
     }
 
     setLocaleEnv($temp_language, $_language_domain);
@@ -163,8 +178,8 @@ function setTempLanguage ($uid = FALSE, $temp_language = "") {
 * @access   public
 */
 function restoreLanguage() {
-    global $_language_domain, $_language;
-    setLocaleEnv($_language, $_language_domain);
+    global $_language_domain;
+    setLocaleEnv($_SESSION['_language'] ?: Config::get()->DEFAULT_LANGUAGE, $_language_domain);
 }
 
 /**
@@ -179,15 +194,14 @@ function restoreLanguage() {
 * @access   public
 */
 function setLocaleEnv($language, $language_domain = ''){
-    putenv("LANG=$language");
-    putenv("LANGUAGE=$language");
-    putenv("LC_ALL=$language");
+    putenv("LANG=$language.UTF-8");
+    putenv("LC_ALL=$language.UTF-8");
     $ret = setlocale(LC_ALL, '');
     setlocale(LC_NUMERIC, 'C');
     if($language_domain){
         bindtextdomain($language_domain, $GLOBALS['STUDIP_BASE_PATH'] . "/locale");
         textdomain($language_domain);
-        bind_textdomain_codeset($language_domain, 'windows-1252');
+        bind_textdomain_codeset($language_domain, 'utf-8');
     }
     return $ret;
 }

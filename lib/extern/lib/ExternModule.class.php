@@ -37,7 +37,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
 
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/ExternEditModule.class.php';
+require_once 'lib/extern/views/ExternEditModule.class.php';
 
 class ExternModule {
 
@@ -49,7 +49,7 @@ class ExternModule {
     var $field_names = array();
     var $data_fields = array();
     var $args = array();
-    var $is_raw_output = FALSE;
+    private static $is_raw_output = false;
 
 
     /**
@@ -59,7 +59,7 @@ class ExternModule {
 
         if ($module_name != '') {
             $module_name = ucfirst($module_name);
-            require_once($GLOBALS['RELATIVE_PATH_EXTERN'] . "/modules/ExternModule$module_name.class.php");
+            require_once "lib/extern/modules/ExternModule$module_name.class.php";
 
             $class_name = "ExternModule" . $module_name;
             $module = new $class_name($range_id, $module_name, $config_id, $set_config, $global_id);
@@ -100,8 +100,10 @@ class ExternModule {
 
         // the "Main"-element is included in every module and needs information
         // about the data this module handles with
-        $this->elements["Main"] = ExternElementMain::GetInstance($module_name,
-                $this->data_fields, $this->field_names, $this->config);
+        $this->elements["Main"] = ExternElementMain::GetInstance(
+            $this->config, $module_name,
+            $this->data_fields, $this->field_names
+        );
 
         // instantiate the registered elements
         foreach ($this->registered_elements as $name => $registered_element) {
@@ -225,7 +227,7 @@ class ExternModule {
     function toStringEdit ($open_elements = "", $post_vars = "",
             $faulty_values = "", $anker = "") {
 
-        require_once($GLOBALS['RELATIVE_PATH_EXTERN'] . "/views/ExternEditModule.class.php");
+        require_once "lib/extern/views/ExternEditModule.class.php";
         $edit_form = new ExternEditModule($this->config, $post_vars, $faulty_values, $anker);
 
         $out = $edit_form->editHeader();
@@ -417,32 +419,32 @@ class ExternModule {
         }
     }
 
-    function setRawOutput ($raw = TRUE) {
-        $this->is_raw_output = $raw;
+    public static function SetRawOutput ($raw = TRUE) {
+        self::$is_raw_output = $raw;
     }
 
-    function extHtmlReady ($text, $allow_links = FALSE) {
-        if ($this->is_raw_output) {
+    public static function ExtHtmlReady ($text, $allow_links = FALSE) {
+        if (self::$is_raw_output) {
             return $text;
         }
         return $allow_links ? formatLinks($text) : htmlReady($text);
     }
 
-    function extFormatReady ($text) {
-        if ($this->is_raw_output) {
+    public static function ExtFormatReady ($text) {
+        if (self::$is_raw_output) {
             return $text;
         }
-        return formatReady($text, TRUE, TRUE, FALSE);
+        return Studip\Markup::apply(new StudipFormat(), $text, true);
     }
 
-    function extWikiReady ($text, $show_comments = 'all') {
-        if ($this->is_raw_output) {
+    public static function ExtWikiReady ($text, $show_comments = 'all') {
+        if (self::$is_raw_output) {
             return $text;
         }
         return wikiReady($text, TRUE, TRUE, $show_comments);
     }
 
-    function GetOrderedModuleTypes () {
+    public static function GetOrderedModuleTypes () {
         $order = array();
         foreach ($GLOBALS['EXTERN_MODULE_TYPES'] as $key => $module) {
             $order[$GLOBALS['EXTERN_MODULE_TYPES'][$key]['order']] = $key;

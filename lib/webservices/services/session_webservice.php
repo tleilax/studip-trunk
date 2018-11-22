@@ -50,9 +50,9 @@ class SessionService extends AccessControlledService
 
     function get_prefixed_session_username_action($api_key, $session_id)
     {
-        if ($GLOBALS['STUDIP_INSTALLATION_ID'])
+        if (Config::get()->STUDIP_INSTALLATION_ID)
         {
-            $prefix = $GLOBALS['STUDIP_INSTALLATION_ID'];
+            $prefix = Config::get()->STUDIP_INSTALLATION_ID;
         } else
         {
             $prefix = $GLOBALS['HTTP_SERVER']['HTTP_HOST'];

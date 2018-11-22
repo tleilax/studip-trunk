@@ -6,7 +6,7 @@
  * @copyright  (c) 1998,1999 NetUSE GmbH Boris Erdmann, Kristian Koehntopp,
  *             2000 Maxim Derkachev <kot@books.ru>,
  *             2000 Teodor Cimpoesu <teo@digiro.net>
- * @author     André Noack <noack@data-quest.de> Maxim Derkachev <kot@books.ru>,
+ * @author     AndrÃ© Noack <noack@data-quest.de> Maxim Derkachev <kot@books.ru>,
  *               Teodor Cimpoesu <teo@digiro.net>,Ulf Wendel <uw@netuse.de>
  */
 class Seminar_Session
@@ -203,7 +203,7 @@ class Seminar_Session
      */
     function __construct()
     {
-        if ($GLOBALS['CACHING_ENABLE'] && $GLOBALS['CACHE_IS_SESSION_STORAGE']) {
+        if (Config::get()->CACHING_ENABLE && $GLOBALS['CACHE_IS_SESSION_STORAGE']) {
             $this->that_class = 'CT_Cache';
         }
         $this->cookie_path = $this->cookie_path ? : $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'];
@@ -263,7 +263,6 @@ class Seminar_Session
 
         switch ($this->module) {
             case "user" :
-                session_module_name('user');
                 $name = $this->that_class;
                 $this->that = new $name;
                 $this->that->ac_start();
@@ -305,7 +304,7 @@ class Seminar_Session
             }
             $_SESSION = array();
         }
-        session_destroy();
+        $this->delete();
         $this->start();
         foreach ($keep_session_vars as $k) {
             $_SESSION[$k] = $keep[$k];
@@ -388,7 +387,7 @@ class Seminar_Session
     function thaw()
     {
         if ($this->module == 'user') {
-            return $this->that->ac_get_value(session_id(), $this->name);
+            return $this->that->ac_get_value(session_id(), $this->name) ?: '';
         }
         return '';
     }

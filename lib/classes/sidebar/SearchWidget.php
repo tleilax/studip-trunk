@@ -31,7 +31,6 @@ class SearchWidget extends SidebarWidget
         $this->template = 'sidebar/search-widget';
 
         $this->needles = $needles;
-        $this->filters = $filters;
     }
 
     /**
@@ -150,9 +149,9 @@ class SearchWidget extends SidebarWidget
 
         if ($this->hasData()) {
             $reset_link = sprintf('<a href="%s">%s %s</a>',
-                                  URLHelper::getLink($this->template_variables['url'], array('reset-search' => 1)),
+                                  URLHelper::getLink($this->url, array_merge($query_params, array('reset-search' => 1))),
                                   Icon::create('search+decline', 'clickable')->asImg(["class" => 'text-top']),
-                                  _('Zurücksetzen'));
+                                  _('ZurÃ¼cksetzen'));
             $this->template_variables['reset_search'] = $reset_link;
         }
 

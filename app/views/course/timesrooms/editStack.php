@@ -1,86 +1,108 @@
-<form method="post" action="<?= $controller->url_for('course/timesrooms/saveStack/' . $cycle_id, $linkAttributes) ?>" class="default"
-      data-dialog="size=big">
+<form method="post" action="<?= $controller->url_for('course/timesrooms/saveStack/' . $cycle_id, $linkAttributes) ?>"
+      class="default collapsable" data-dialog="size=big">
     <?= CSRFProtection::tokenTag()?>
-    <input type="hidden" name="method" value="edit">
+    <input type="hidden" name="method" value="edit">    
+    <input type="hidden" name="checked_dates" value="<?= implode(',',$_SESSION['_checked_dates']); ?>">
 
-    <label>
-        <?= _('Durchführende Lehrende') ?>
-        <select name="related_persons_action" id="related_persons_action">
-            <option value="">-- <?= _('Aktion auswählen') ?> --</option>
-            <option value="add">...<?= _('hinzufügen') ?></option>
-            <option value="delete">...<?= _('entfernen') ?></option>
-        </select>
-    </label>
+    <fieldset>
+        <legend><?= _('Raumangaben') ?></legend>
+        <? if (Config::get()->RESOURCES_ENABLE && $resList->numberOfRooms()) : ?>
+            <section>
+            <input type="radio" name="action" value="room" checked="checked">
+            <label style="display: inline;">
+                <select name="room" style="display: inline-block; width: 50%;" onFocus="jQuery('input[type=radio][name=action][value=room]').prop('checked', 'checked')">
+                    <option value="0">-- <?= _('Raum auswÃ¤hlen') ?> --</option>
+                    <? foreach ($resList->getRooms() as $room_id => $room) : ?>
+                        <option value="<?= $room_id ?>">
+                            <?= htmlReady($room->getName()) ?>
+                            <? if ($room->getSeats() > 1) : ?>
+                                <?= sprintf(_('(%d SitzplÃ¤tze)'), $room->getSeats()) ?>
+                            <? endif ?>
+                        </option>
+                    <? endforeach ?>
+                </select>
+                <?= Icon::create('room-clear', 'clickable', ['title' => _("Nur buchbare RÃ¤ume anzeigen")])->asImg(16, ["class" => 'bookable_rooms_action', "data-name" => 'bulk_action']) ?>
+            </label>
+            </section>
 
-    <select name="related_persons[]" id="related_persons" multiple>
-        <? foreach ($teachers as $teacher) : ?>
-            <option value="<?= htmlReady($teacher['user_id']) ?>"><?= htmlReady($teacher['fullname']) ?></option>
-        <? endforeach ?>
-    </select>
+            <? $placerholder = _('Freie Ortsangabe (keine Raumbuchung):') ?>
+        <? else : ?>
+            <? $placerholder = _('Freie Ortsangabe:') ?>
+        <? endif ?>
+        <section>
+        <input type="radio" name="action" value="freetext">
+        <label style="display: inline;">
+            <input type="text" name="freeRoomText" style="display: inline-block; width: 50%;" value="<?= $tpl['freeRoomText'] ?>"
+                   placeholder="<?= $placerholder ?>"
+                   onFocus="jQuery('input[type=radio][name=action][value=freetext]').prop('checked', 'checked')">
+        </label>
+        </section>
+        <? if (Config::get()->RESOURCES_ENABLE) : ?>
+            <label>
+                <input type="radio" name="action" value="noroom" style="display:inline">
+                <?= _('Kein Raum') ?>
+            </label>
+        <? endif ?>
 
-    <? if (count($gruppen)) : ?>
         <label>
-            <?= _('Betrifft die Gruppen') ?>
-            <select name="related_groups_action" id="related_groups_action">
-                <option value="">-- <?= _('Aktion auswählen') ?> --</option>
-                <option value="add">...<?= _('hinzufügen') ?></option>
+            <input type="radio" name="action" value="nochange" checked="checked">
+            <?= _('Keine Ã„nderungen an den Raumangaben vornehmen') ?>
+        </label>
+    </fieldset>
+
+    <fieldset class="collapsed">
+        <legend><?= _('Terminangaben') ?></legend>
+        <label>
+            <?= _('Art') ?>
+            <select name="course_type" id="course_type" class="size-s">
+                <? foreach ($GLOBALS['TERMIN_TYP'] as $id => $value) : ?>
+                    <option value="<?= $id ?>"><?= htmlReady($value['name']) ?></option>
+                <? endforeach ?>
+            </select>
+        </label>
+    </fieldset>
+
+    <fieldset class="collapsed">
+        <legend><?= _('DurchfÃ¼hrende Lehrende') ?></legend>
+        <label>
+            <select name="related_persons_action" id="related_persons_action">
+                <option value="">-- <?= _('Aktion auswÃ¤hlen') ?> --</option>
+                <option value="add">...<?= _('hinzufÃ¼gen') ?></option>
                 <option value="delete">...<?= _('entfernen') ?></option>
             </select>
         </label>
 
-        <select id="related_groups" name="related_groups[]" multiple>
-            <? foreach ($gruppen as $gruppe) : ?>
-                <option value="<?= htmlReady($gruppe->statusgruppe_id) ?>"><?= htmlReady($gruppe->name) ?></option>
+        <select name="related_persons[]" id="related_persons" multiple>
+            <? foreach ($teachers as $teacher) : ?>
+                <option value="<?= htmlReady($teacher['user_id']) ?>"><?= htmlReady($teacher['fullname']) ?></option>
             <? endforeach ?>
         </select>
-    <? endif ?>
+    </fieldset>
 
+    <? if (count($gruppen)) : ?>
+        <fieldset class="collapsed">
+            <legend><?= _('Beteiligte Gruppen') ?></legend>
+            <label>
+                <select name="related_groups_action" id="related_groups_action">
+                    <option value="">-- <?= _('Aktion auswÃ¤hlen') ?> --</option>
+                    <option value="add">...<?= _('hinzufÃ¼gen') ?></option>
+                    <option value="delete">...<?= _('entfernen') ?></option>
+                </select>
+            </label>
 
-    <p><strong><?= _('Raumangaben') ?></strong></p>
-    <? if (Config::get()->RESOURCES_ENABLE && $resList->numberOfRooms()) : ?>
-        <? $resList->reset() ?>
-        <section>
-        <input type="radio" name="action" value="room" checked="checked">
-        <label style="display: inline;">
-            <select name="room" style="display: inline; " onFocus="jQuery('input[type=radio][name=action][value=room]').prop('checked', 'checked')">
-                <option value="0">-- <?= _('Raum auswählen') ?> --</option>
-                <? while ($res = $resList->next()) : ?>
-                    <option value="<?= $res['resource_id'] ?>">
-                        <?= my_substr(htmlReady($res["name"]), 0, 30) ?> <?= $seats[$res['resource_id']] ? '(' . $seats[$res['resource_id']] . ' ' . _('Sitzplätze') . ')' : '' ?>
-                    </option>
-                <? endwhile; ?>
+            <select id="related_groups" name="related_groups[]" multiple>
+                <? foreach ($gruppen as $gruppe) : ?>
+                    <option value="<?= htmlReady($gruppe->statusgruppe_id) ?>"><?= htmlReady($gruppe->name) ?></option>
+                <? endforeach ?>
             </select>
-            <?= Icon::create('room-clear', 'inactive', ['title' => _("Nur buchbare Räume anzeigen")])->asImg(16, ["class" => 'bookable_rooms_action', "data-name" => 'bulk_action']) ?>
-        </label>
-        </section>
-
-        <? $placerholder = _('Freie Ortsangabe (keine Raumbuchung):') ?>
-    <? else : ?>
-        <? $placerholder = _('Freie Ortsangabe:') ?>
-    <? endif ?>
-    <section>
-    <input type="radio" name="action" value="freetext">
-    <label style="display: inline;">
-        <input type="text" name="freeRoomText" style="display: inline;" value="<?= $tpl['freeRoomText'] ?>"
-               placeholder="<?= $placerholder ?>"
-               onFocus="jQuery('input[type=radio][name=action][value=freetext]').prop('checked', 'checked')">
-    </label>
-    </section>
-    <? if (Config::get()->RESOURCES_ENABLE) : ?>
-        <label>
-            <input type="radio" name="action" value="noroom" style="display:inline">
-            <?= _('Kein Raum') ?>
-        </label>
+        </fieldset>
     <? endif ?>
 
-    <label>
-        <input type="radio" name="action" value="nochange" checked="checked">
-        <?= _('Keine Änderungen an den Raumangaben vornehmen') ?>
-    </label>
+
     <footer data-dialog-button>
-        <?= Studip\Button::createAccept(_('Änderungen speichern'), 'save') ?>
+        <?= Studip\Button::createAccept(_('Ã„nderungen speichern'), 'save') ?>
         <? if (Request::int('fromDialog')) : ?>
-            <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
+            <?= Studip\LinkButton::create(_('ZurÃ¼ck zur Ãœbersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
         <? endif ?>
     </footer>
 </form>

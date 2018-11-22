@@ -17,8 +17,6 @@
 
 class Admission_UserListController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * @see AuthenticatedController::before_filter
      */
@@ -28,7 +26,7 @@ class Admission_UserListController extends AuthenticatedController
 
         PageLayout::setTitle(_('Personenlisten'));
         Navigation::activateItem('/tools/coursesets/userlists');
-        PageLayout::addSqueezePackage('admission');
+        PageLayout::addScript('studip-admission.js');
 
         $views = new ViewsWidget();
         $views->setTitle(_('Aktionen'));
@@ -48,7 +46,7 @@ class Admission_UserListController extends AuthenticatedController
 
     /**
      * Show a configuration form for the given user list.
-     * 
+     *
      * @param String $userlistId user list to load settings from (or empty
      * if it is a new user list)
      */
@@ -88,7 +86,7 @@ class Admission_UserListController extends AuthenticatedController
             }
         });
         $uids = array_map(function($u) { return $u->id; }, $this->users);
-        $this->userSearch = new PermissionSearch('user', 'Person hinzufügen', 'user_id',
+        $this->userSearch = new PermissionSearch('user', 'Person hinzufÃ¼gen', 'user_id',
             array(
                 'permission' => array('user', 'autor', 'tutor', 'dozent'),
                 'exclude_user' => $uids
@@ -99,7 +97,7 @@ class Admission_UserListController extends AuthenticatedController
 
     /**
      * Saves the given user list to database.
-     * 
+     *
      * @param String $userlistId user list to save
      */
     public function save_action($userlistId='') {
@@ -119,7 +117,7 @@ class Admission_UserListController extends AuthenticatedController
 
     /**
      * Deletes the given user list.
-     * 
+     *
      * @param String $userlistId the user list to delete
      */
     public function delete_action($userlistId) {
@@ -171,13 +169,11 @@ class Admission_UserListController extends AuthenticatedController
         $this->flash['users'] = $users;
 
         PageLayout::postInfo(
-            sprintf(ngettext('Eine Person wurde der Liste hinzugefügt.',
-                '%u Personen wurden der Liste hinzugefügt, die Liste ist aber noch nicht gespeichert.',
+            sprintf(ngettext('Eine Person wurde der Liste hinzugefÃ¼gt.',
+                '%u Personen wurden der Liste hinzugefÃ¼gt, die Liste ist aber noch nicht gespeichert.',
                 $newsize - $oldsize), $newsize - $oldsize));
 
         $this->redirect($this->url_for('admission/userlist/configure', $userlistId));
     }
 
 }
-
-?>

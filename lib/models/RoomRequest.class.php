@@ -8,8 +8,8 @@
  * the License, or (at your option) any later version.
  *
  * @author      Cornelis Kater <ckater@gwdg.de>
- * @author      Till Glöggler <tgloeggl@uos.de>
- * @author      André Noack <noack@data-quest.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @author      Suchi & Berg GmbH <info@data-quest.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -56,6 +56,7 @@ class RoomRequest extends SimpleORMap
             'foreign_key' => 'resource_id',
             'assoc_func' => 'Factory'
         );
+        $config['registered_callbacks']['after_initialize'][] = 'cbInitProperties';
         parent::configure($config);
     }
 
@@ -190,6 +191,19 @@ class RoomRequest extends SimpleORMap
 
     public function getSeats()
     {
+        //The following statement makes the assumption that a
+        //resource property with a system-value of 2 is a
+        //seats property.
+        //Furthermore it is based on the assumption that only
+        //one such property exists for a room request.
+
+        //Explaination:
+        //Get the state from a resource request's property
+        //where the property is requestable (defined in the
+        //resource request's category) and where the property
+        //has a system value of '2' (defined in the
+        //property's definition). Furthermore the property
+        //must belong to this room request.
         $available_properties = $this->getAvailableProperties();
         foreach ($this->properties as $key => $val) {
             if ($available_properties[$key]["system"] == 2) {
@@ -372,10 +386,9 @@ class RoomRequest extends SimpleORMap
         return $found;
     }
 
-    public function restore()
+    public function cbInitProperties()
     {
-        $found = parent::restore();
-        if ($found) {
+        if ($this->getId()) {
             $db = DBManager::get();
             $st = $db->prepare("SELECT a.property_id, state, mkdate, chdate, type, name, options, system
                                 FROM resources_requests_properties a
@@ -388,7 +401,6 @@ class RoomRequest extends SimpleORMap
         } else {
             $this->inititalizeProperties();
         }
-        return $found;
     }
 
     //private
@@ -434,7 +446,7 @@ class RoomRequest extends SimpleORMap
         //metadate request
         } elseif ($this->metadate_id){
             $query = sprintf("SELECT count(termin_id)=count(assign_id) FROM termine LEFT JOIN resources_assign ON(termin_id=assign_user_id)
-                    WHERE metadate_id=%s" , $db->quote($this->seminar_id));
+                    WHERE metadate_id=%s" , $db->quote($this->metadate_id));
         //seminar request
         } else {
             $query = sprintf("SELECT count(termin_id)=count(assign_id) FROM termine LEFT JOIN resources_assign ON(termin_id=assign_user_id)
@@ -564,7 +576,7 @@ class RoomRequest extends SimpleORMap
     {
         if ($this->isNew()) {
             if (!($this->getSettedPropertiesCount() || $this->getResourceId())) {
-                $requestData[] = _('Die Raumanfrage ist unvollständig, und kann so nicht dauerhaft gespeichert werden!');
+                $requestData[] = _('Die Raumanfrage ist unvollstÃ¤ndig, und kann so nicht dauerhaft gespeichert werden!');
             } else {
                 $requestData[] = _('Die Raumanfrage ist neu.');
             }
@@ -572,15 +584,15 @@ class RoomRequest extends SimpleORMap
         } else {
             $requestData[] = _('Erstellt von') . ': ' . get_fullname($this->user_id);
             $requestData[] = _('Erstellt am') . ': ' . strftime('%x %H:%M', $this->mkdate);
-            $requestData[] = _('Letzte Änderung') . ': ' . strftime('%x %H:%M', $this->chdate);
-            $requestData[] = _('Letzte Änderung von') . ': ' . get_fullname($this->last_modified_by ?: $this->user_id);
+            $requestData[] = _('Letzte Ã„nderung') . ': ' . strftime('%x %H:%M', $this->chdate);
+            $requestData[] = _('Letzte Ã„nderung von') . ': ' . get_fullname($this->last_modified_by ?: $this->user_id);
         }
         if ($this->resource_id) {
             $resObject = ResourceObject::Factory($this->resource_id);
             $requestData[] = _('Raum') . ': ' . $resObject->getName();
             $requestData[] = _('verantwortlich') . ': ' . $resObject->getOwnerName();
         } else {
-            $requestData[] = _('Es wurde kein spezifischer Raum gewünscht');
+            $requestData[] = _('Es wurde kein spezifischer Raum gewÃ¼nscht');
         }
         $requestData[] = '';
 
@@ -626,12 +638,12 @@ class RoomRequest extends SimpleORMap
                 $ret .= chr(10) . '(' . $termin->toString() . ')';
             }
         } elseif ($this->metadate_id) {
-            $ret = _("alle Termine einer regelmäßigen Zeit");
+            $ret = _("alle Termine einer regelmÃ¤ÃŸigen Zeit");
             if ($cycle = SeminarCycleDate::find($this->metadate_id)) {
                 $ret .= chr(10) . ' (' . $cycle->toString('full') . ')';
             }
         } elseif ($this->seminar_id) {
-            $ret =  _("alle regelmäßigen und unregelmäßigen Termine der Veranstaltung");
+            $ret =  _("alle regelmÃ¤ÃŸigen und unregelmÃ¤ÃŸigen Termine der Veranstaltung");
             if (get_object_type($this->seminar_id, array('sem'))) {
                 $course = new Seminar($this->seminar_id);
                 $ret .= chr(10) . ' (' . $course->getDatesExport(array('short' => true, 'shrink' => true)) . ')';

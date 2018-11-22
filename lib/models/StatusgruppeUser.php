@@ -24,7 +24,7 @@
  * @property Statusgruppen group belongs_to Statusgruppen
  * @property User user belongs_to User
  */
-class StatusgruppeUser extends SimpleORMap
+class StatusgruppeUser extends SimpleORMap implements PrivacyObject
 {
     protected static function configure($config = array())
     {
@@ -50,6 +50,14 @@ class StatusgruppeUser extends SimpleORMap
             'on_delete' => 'delete',
             'on_store'  => 'store',
         );
+
+        $config['additional_fields']['vorname']     = ['user', 'vorname'];
+        $config['additional_fields']['nachname']    = ['user', 'nachname'];
+        $config['additional_fields']['username']    = ['user', 'username'];
+        $config['additional_fields']['email']       = ['user', 'email'];
+        $config['additional_fields']['title_front'] = ['user', 'title_front'];
+        $config['additional_fields']['title_rear']  = ['user', 'title_rear'];
+
         parent::configure($config);
     }
 
@@ -58,8 +66,14 @@ class StatusgruppeUser extends SimpleORMap
      *
      * @return string Fullname if visible else string for invisible user
      */
-    public function name($format = 'full_rev') {
+    public function name($format = 'full_rev')
+    {
         return $this->user->getFullname($format);
+    }
+
+    public function getUserFullname($format = "full")
+    {
+        return User::build(array_merge(array('motto' => ''), $this->toArray('vorname nachname username title_front title_rear')))->getFullname($format);
     }
 
     /**
@@ -67,7 +81,8 @@ class StatusgruppeUser extends SimpleORMap
      *
      * @return mixed Useravatar if visible else dummyavatar
      */
-    public function avatar() {
+    public function avatar()
+    {
         return Avatar::getAvatar($this->user_id, $this->user->username)->getImageTag(Avatar::SMALL, array('title' => htmlReady($this->name())));
     }
 
@@ -81,6 +96,13 @@ class StatusgruppeUser extends SimpleORMap
             $stmt = DBManager::get()->prepare($sql);
             $stmt->execute(array($this->statusgruppe_id));
             $this->position = $stmt->fetchColumn() ?: 0;
+
+            StudipLog::log(
+                "STATUSGROUP_ADD_USER",
+                $this['user_id'],
+                $this['statusgruppe_id'],
+                "Statusgruppe ".$this->group->name
+            );
         }
         return parent::store();
     }
@@ -95,7 +117,37 @@ class StatusgruppeUser extends SimpleORMap
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->statusgruppe_id, $this->position));
 
+        StudipLog::log(
+            "STATUSGROUP_REMOVE_USER",
+            $this['user_id'],
+            $this['statusgruppe_id'],
+            "Statusgruppe ".$this->group->name
+        );
+
         return parent::delete();
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('statusgruppe_user', $field_data, $user);
+            }
+        }
+        return [_('StatusgruppeUser') => $storage];
     }
 
 }

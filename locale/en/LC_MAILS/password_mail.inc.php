@@ -2,8 +2,8 @@
         $subject="Password modification in the Stud.IP-System";
         
         $mailbody="This is a Stud.IP system information mail\n"
-        ."(Studienbegleitender Internetsupport von Präsenzlehre)\n"
-        ."- " . $GLOBALS['UNI_NAME_CLEAN'] . " -\n\n"
+        ."(Studienbegleitender Internetsupport von PrÃ¤senzlehre)\n"
+        ."- " . Config::get()->UNI_NAME_CLEAN . " -\n\n"
         ."Your password was changed by an administrator at " . $Zeit . ".\n"
         ."The current information is:\n\n"
         ."Username: " . $this->user_data['auth_user_md5.username'] . "\n"

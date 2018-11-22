@@ -6,7 +6,7 @@
 /*
 raumzeit_functions.inc.php
 Helper functions for the "RaumZeit"-pages
-Copyright (C) 2005-2007 Till Glöggler <tgloeggl@uos.de>
+Copyright (C) 2005-2007 Till GlÃ¶ggler <tgloeggl@uos.de>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -33,6 +33,9 @@ function getAllSortedSingleDates(&$sem) {
 
     $termine = array_merge($termine, $sem->getSingleDates(true, false, true));
     uasort ($termine, function ($a, $b) {
+        if ($a->getStartTime() === $b->getStartTime()) {
+            return strnatcasecmp($a->getRoom(), $b->getRoom());
+        }
         return $a->getStartTime() - $b->getStartTime();
     });
 
@@ -53,7 +56,7 @@ function raumzeit_send_cancel_message($comment, $dates)
         $subject = sprintf(_("[%s] Terminausfall"), $course->name);
         $recipients = $course->members->pluck('username');
         $lecturers = $course->members->findBy('status', 'dozent')->pluck('nachname');
-        $message = sprintf(_("In der Veranstaltung %s fällt der/die folgende(n) Termine aus:"),
+        $message = sprintf(_("In der Veranstaltung %s fÃ¤llt der/die folgende(n) Termine aus:"),
                  $course->name . ' ('. join(',', $lecturers) .') ' . $course->start_semester->name);
         $message .= "\n\n- ";
         $message .= join("\n- " , array_map(function($a) {return $a->toString();}, $dates));

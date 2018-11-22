@@ -7,7 +7,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author   Nico Müller <nico.mueller@uni-oldenburg.de>
+ * @author   Nico MÃ¼ller <nico.mueller@uni-oldenburg.de>
  * @license  http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category Stud.IP
  * @package  admin
@@ -30,7 +30,7 @@ class Admin_BannerController extends AuthenticatedController
         $GLOBALS['perm']->check('root');
 
         // set navigation
-        Navigation::activateItem('/admin/config/banner');
+        Navigation::activateItem('/admin/locations/banner');
 
         //pagelayout
         PageLayout::setTitle(_('Verwaltung der Banner'));
@@ -124,14 +124,14 @@ class Admin_BannerController extends AuthenticatedController
 
             $startDate = explode('.',Request::get('start_date'));
             if (($x = $this->valid_date(Request::int('start_hour'), Request::int('start_minute'), $startDate[0],$startDate[1], $startDate[2])) == -1) {
-                $errors[] = _('Bitte geben Sie einen gültiges Startdatum ein.');
+                $errors[] = _('Bitte geben Sie einen gÃ¼ltiges Startdatum ein.');
             } else {
                 $startdate = $x;
             }
 
             $endDate = explode('.',Request::get('end_date'));
             if (($x = $this->valid_date(Request::int('end_hour'), Request::int('end_minute'), $endDate[0], $endDate[1], $endDate[2])) == -1) {
-                           $errors[] = _('Bitte geben Sie einen gültiges Enddatum ein.');
+                           $errors[] = _('Bitte geben Sie einen gÃ¼ltiges Enddatum ein.');
             } else {
                 $enddate = $x;
             }
@@ -139,13 +139,13 @@ class Admin_BannerController extends AuthenticatedController
             switch ($target_type) {
                 case 'url':
                     if (!preg_match('~^(https?|ftp)://~i', $target)) {
-                        $errors[] = _('Das Verweisziel muss eine gültige URL sein (incl. http://).');
+                        $errors[] = _('Das Verweisziel muss eine gÃ¼ltige URL sein (incl. http://).');
                     }
                 break;
                 case 'inst':
                     if (Institute::find($target) === null) {
                         $errors[] =  _('Die angegebene Einrichtung existiert nicht. '
-                                      .'Bitte geben Sie eine gültige Einrichtungs-ID ein.');
+                                      .'Bitte geben Sie eine gÃ¼ltige Einrichtungs-ID ein.');
                     }
                 break;
                 case 'user':
@@ -158,7 +158,7 @@ class Admin_BannerController extends AuthenticatedController
                         Seminar::getInstance($target);
                     } catch (Exception $e) {
                         $errors[] =  _('Die angegebene Veranstaltung existiert nicht. '
-                                      .'Bitte geben Sie eine gültige Veranstaltungs-ID ein.');
+                                      .'Bitte geben Sie eine gÃ¼ltige Veranstaltungs-ID ein.');
                     }
                 break;
                 case 'none':
@@ -238,19 +238,19 @@ class Admin_BannerController extends AuthenticatedController
 
             $upload = $_FILES['imgfile'];
             if (!$upload['name']) {
-                $errors[] = _('Es wurde kein Bild ausgewählt.');
+                $errors[] = _('Es wurde kein Bild ausgewÃ¤hlt.');
             } else {
                $banner_path = $this->bannerupload($upload['tmp_name'], $upload['size'], $upload['name'], $errors);
             }
             $startDate = explode('.',Request::get('start_date'));
             if (($x = $this->valid_date(Request::int('start_hour'), Request::int('start_minute'), $startDate[0],$startDate[1], $startDate[2])) == -1) {
-                $errors[] = _('Bitte geben Sie einen gültiges Startdatum ein.');
+                $errors[] = _('Bitte geben Sie einen gÃ¼ltiges Startdatum ein.');
             } else {
                 $startdate = $x;
             }
             $endDate = explode('.',Request::get('end_date'));
             if (($x = $this->valid_date(Request::int('end_hour'), Request::int('end_minute'), $endDate[0], $endDate[1], $endDate[2])) == -1) {
-                $errors[] = _('Bitte geben Sie einen gültiges Enddatum ein.');
+                $errors[] = _('Bitte geben Sie einen gÃ¼ltiges Enddatum ein.');
             } else {
                 $enddate = $x;
             }
@@ -261,13 +261,13 @@ class Admin_BannerController extends AuthenticatedController
                 switch ($target_type) {
                     case 'url':
                         if (!preg_match('~^(https?|ftp)://~i', $target)) {
-                            $errors[] = _('Das Verweisziel muss eine gültige URL sein (incl. http://).');
+                            $errors[] = _('Das Verweisziel muss eine gÃ¼ltige URL sein (incl. http://).');
                         }
                     break;
                     case 'inst':
                         if (Institute::find($target) === null) {
                             $errors[] =  _('Die angegebene Einrichtung existiert nicht. '
-                                          .'Bitte geben Sie eine gültige Einrichtungs-ID ein.');
+                                          .'Bitte geben Sie eine gÃ¼ltige Einrichtungs-ID ein.');
                         }
                     break;
                     case 'user':
@@ -280,7 +280,7 @@ class Admin_BannerController extends AuthenticatedController
                             Seminar::getInstance($target);
                         } catch (Exception $e) {
                             $errors[] =  _('Die angegebene Veranstaltung existiert nicht. '
-                                          .'Bitte geben Sie eine gültige Veranstaltungs-ID ein.');
+                                          .'Bitte geben Sie eine gÃ¼ltige Veranstaltungs-ID ein.');
                         }
                     break;
                     case 'none':
@@ -320,7 +320,7 @@ class Admin_BannerController extends AuthenticatedController
         $banner->clicks = 0;
         $banner->store();
 
-        $message = _('Die Klick- und Viewzahlen des Banners wurden zurückgesetzt');
+        $message = _('Die Klick- und Viewzahlen des Banners wurden zurÃ¼ckgesetzt');
         PageLayout::postMessage(MessageBox::success($message));
         $this->redirect('admin/banner');
     }
@@ -333,7 +333,7 @@ class Admin_BannerController extends AuthenticatedController
     {
         if (Request::int('delete') == 1) {
             $banner->delete();
-            PageLayout::postMessage(MessageBox::success(_('Das Banner wurde erfolgreich gelöscht!')));
+            PageLayout::postMessage(MessageBox::success(_('Das Banner wurde erfolgreich gelÃ¶scht!')));
         } elseif (!Request::get('back')) {
             $this->flash['delete'] = ['banner_id' => $banner->id];
         }
@@ -351,7 +351,7 @@ class Admin_BannerController extends AuthenticatedController
      */
     private function bannerupload($img, $img_size, $img_name, &$errors = array())
     {
-        if (!$img_name) { //keine Datei ausgewählt!
+        if (!$img_name) { //keine Datei ausgewÃ¤hlt!
             return false;
         }
 
@@ -416,8 +416,11 @@ class Admin_BannerController extends AuthenticatedController
         $sidebar->setImage('sidebar/admin-sidebar.png');
 
         $actions = new ActionsWidget();
-        $actions->addLink(_('Übersicht'), $this->url_for('admin/banner'), Icon::create('visibility-visible', 'clickable'));
-        $actions->addLink(_('Neues Banner anlegen'), $this->url_for('admin/banner/new'), Icon::create('add', 'clickable'));
+        $actions->addLink(
+            _('Neues Banner anlegen'),
+            $this->url_for('admin/banner/new'),
+            Icon::create('add')
+        )->asDialog('size=auto');
 
         $sidebar->addWidget($actions);
     }

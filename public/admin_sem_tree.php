@@ -9,7 +9,7 @@
 // admin_sem_tree.php
 //
 //
-// Copyright (c) 2003 André Noack <noack@data-quest.de>
+// Copyright (c) 2003 AndrÃ© Noack <noack@data-quest.de>
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@ if (!$perm->is_fak_admin()){
 
 include 'lib/seminar_open.php'; // initialise Stud.IP-Session
 
-PageLayout::setTitle($UNI_NAME_CLEAN . " - " . _("Veranstaltungshierachie bearbeiten"));
+PageLayout::setTitle(Config::get()->UNI_NAME_CLEAN . " - " . _("Veranstaltungshierachie bearbeiten"));
 Navigation::activateItem('/admin/locations/sem_tree');
 
 // Start of Output
@@ -64,10 +64,10 @@ if(!Config::GetInstance()->getValue('SEM_TREE_ALLOW_BRANCH_ASSIGN')){
     $_possible_open_items = $_open_items;
 }
 
-// allow add only for items where user has admin permission
+// allow add only for items where user has admin permission and which are not hidden
 if (is_array($_possible_open_items)) {
     foreach ($_possible_open_items as $item_id => $value) {
-        if (!$the_tree->isItemAdmin($item_id)) {
+        if (!$the_tree->isItemAdmin($item_id) || $the_tree->tree->isHiddenItem($item_id)) {
             unset($_possible_open_items[$item_id]);
         }
     }
@@ -75,9 +75,9 @@ if (is_array($_possible_open_items)) {
 
 if ($search_obj->search_done){
     if ($search_obj->search_result->numRows > 50){
-        PageLayout::postError(_("Es wurden mehr als 50 Veranstaltungen gefunden! Bitte schränken Sie Ihre Suche weiter ein."));
+        PageLayout::postError(_("Es wurden mehr als 50 Veranstaltungen gefunden! Bitte schrÃ¤nken Sie Ihre Suche weiter ein."));
     } elseif ($search_obj->search_result->numRows > 0){
-        PageLayout::postSuccess(sprintf(_("Es wurden %s Veranstaltungen gefunden, und in Ihre Merkliste eingefügt"),$search_obj->search_result->numRows));
+        PageLayout::postSuccess(sprintf(_("Es wurden %s Veranstaltungen gefunden, und in Ihre Merkliste eingefÃ¼gt"),$search_obj->search_result->numRows));
         if (is_array($_SESSION['_marked_sem']) && count($_SESSION['_marked_sem'])){
             $_SESSION['_marked_sem'] = array_merge((array)$_SESSION['_marked_sem'], (array)$search_obj->search_result->getDistinctRows("seminar_id"));
         } else {
@@ -128,15 +128,15 @@ if (Request::option('cmd') == "MarkList"){
 }
 if ($the_tree->mode == "MoveItem" || $the_tree->mode == "CopyItem"){
     if ($_msg){
-        $_msg .= "§";
+        $_msg .= "Â§";
     }
     if ($the_tree->mode == "MoveItem"){
-        $text = _("Der Verschiebemodus ist aktiviert. Bitte wählen Sie ein Einfügesymbol %s aus, um das Element <b>%s</b> an diese Stelle zu verschieben.%s");
+        $text = _("Der Verschiebemodus ist aktiviert. Bitte wÃ¤hlen Sie ein EinfÃ¼gesymbol %s aus, um das Element <b>%s</b> an diese Stelle zu verschieben.%s");
     } else {
-        $text = _("Der Kopiermodus ist aktiviert. Bitte wählen Sie ein Einfügesymbol %s aus, um das Element <b>%s</b> an diese Stelle zu kopieren.%s");
+        $text = _("Der Kopiermodus ist aktiviert. Bitte wÃ¤hlen Sie ein EinfÃ¼gesymbol %s aus, um das Element <b>%s</b> an diese Stelle zu kopieren.%s");
     }
     PageLayout::postInfo(sprintf($text ,
-            Icon::create('arr_2right', 'sort', ['title' => _('Einfügesymbol')])->asImg(),
+            Icon::create('arr_2right', 'sort', ['title' => _('EinfÃ¼gesymbol')])->asImg(),
             htmlReady($the_tree->tree->tree_data[$the_tree->move_item_id]['name']),
             "<div align=\"right\">"
             .LinkButton::createCancel(_('Abbrechen'), $the_tree->getSelf("cmd=Cancel&item_id=$the_tree->move_item_id"), array('title' => _("Verschieben / Kopieren abbrechen")))
@@ -152,100 +152,129 @@ if ($the_tree->mode == "MoveItem" || $the_tree->mode == "CopyItem"){
     <? $the_tree->showSemTree(); ?>
     </td>
     <td class="blank" align="left" valign="top">
-    <div>
-    <b><?=_("Veranstaltungssuche:")?></b>
-    </div>
+
     <?
-    $search_obj->attributes_default = array('style' => 'width:100%;font-size:10pt;');
-    $search_obj->search_fields['type']['size'] = 30 ;
-    echo $search_obj->getFormStart(URLHelper::getLink($the_tree->getSelf()));
+        $search_obj->attributes_default = ['style' => ''];
+        // $search_obj->search_fields['type']['size'] = 30 ;
+        echo $search_obj->getFormStart(URLHelper::getLink($the_tree->getSelf()), ['class' => 'default narrow']);
     ?>
-    <table border="0" width="100%" style="font-size:10pt">
-    <tr>
-    <td ><span style="font-size:10pt"><?=_("Titel:")?></span></td><td style="font-size:10pt"><?=$search_obj->getSearchField("title")?></td>
-    </tr>
-    <tr>
-    <td><span style="font-size:10pt"><?=_("Untertitel:")?></span></td><td style="font-size:10pt"><?=$search_obj->getSearchField("sub_title")?></td>
-    </tr>
-    <tr>
-    <td><span style="font-size:10pt"><?=_("Nummer:")?></span></td><td style="font-size:10pt"><?=$search_obj->getSearchField("number")?></td>
-    </tr>
-    <tr>
-    <td><span style="font-size:10pt"><?=_("Kommentar:")?></span></td><td style="font-size:10pt"><?=$search_obj->getSearchField("comment")?></td>
-    </tr>
-    <tr>
-    <td><span style="font-size:10pt"><?=_("Lehrende:")?></span></td><td style="font-size:10pt"><?=$search_obj->getSearchField("lecturer")?></td>
-    </tr>
-    <tr>
-    <td><span style="font-size:10pt"><?=_("Bereich:")?></span></td><td style="font-size:10pt"><?=$search_obj->getSearchField("scope")?></td>
-    </tr>
-    <tr>
-    <td><span style="font-size:10pt"><?=_("Kombination:")?></span></td><td style="font-size:10pt"><?=$search_obj->getSearchField("combination",array('style' => 'width:*;font-size:10pt;'))?></td>
-    </tr>
-    <tr>
-    <td colspan="2"><hr></td>
-    </tr>
-    <tr>
-    <td><span style="font-size:10pt"><?=_("Typ:")?></span></td><td style="font-size:10pt"><?=$search_obj->getSearchField("type",array('style' => 'width:*;font-size:10pt;'))?></td>
-    </tr>
-    <tr>
-    <td><span style="font-size:10pt"><?=_("Semester:")?></span></td><td style="font-size:10pt"><?=$search_obj->getSearchField("sem",array('style' => 'width:*;font-size:10pt;'))?></td>
-    </tr>
-    <tr>
-    <td align="right" colspan="2"><?=$search_obj->getSearchButton();?>&nbsp;&nbsp;<?=$search_obj->getNewSearchButton();?></td>
-    </tr>
-    </table>
+    <fieldset>
+        <legend><?= _("Veranstaltungssuche") ?></legend>
+
+        <label class="col-3">
+            <?=_("Titel")?>
+            <?=$search_obj->getSearchField("title")?>
+        </label>
+
+        <label class="col-3">
+            <?=_("Untertitel")?>
+            <?=$search_obj->getSearchField("sub_title")?>
+        </label>
+
+        <label class="col-3">
+            <?=_("Nummer")?>
+            <?=$search_obj->getSearchField("number")?>
+        </label>
+
+        <label class="col-3">
+            <?=_("Kommentar")?>
+            <?=$search_obj->getSearchField("comment")?>
+        </label>
+
+        <label class="col-3">
+            <?=_("Lehrende")?>
+            <?=$search_obj->getSearchField("lecturer")?>
+        </label>
+
+        <label class="col-3">
+            <?=_("Bereich")?>
+            <?=$search_obj->getSearchField("scope")?>
+        </label>
+
+        <label class="col-2">
+            <?=_("Kombination")?>
+            <?=$search_obj->getSearchField("combination", ['class' => 'size-s'])?>
+        </label>
+
+        <label class="col-2">
+            <?=_("Typ")?>
+            <?=$search_obj->getSearchField("type", ['class' => 'size-s'])?>
+        </label>
+
+        <label class="col-2">
+            <?=_("Semester")?>
+            <?=$search_obj->getSearchField("sem", ['class' => 'size-s'])?>
+        </label>
+    </fieldset>
+
+    <footer>
+        <?=$search_obj->getSearchButton();?>
+        <?=$search_obj->getNewSearchButton();?>
+    </footer>
+
     <?=$search_obj->getFormEnd();?>
-    <p>
-    <b><?=_("Merkliste:")?></b>
-    </p>
-    <form action="<?=URLHelper::getLink($the_tree->getSelf("cmd=MarkList"))?>" method="post">
+
+    <br>
+
+    <form action="<?=URLHelper::getLink($the_tree->getSelf("cmd=MarkList"))?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <select multiple size="20" name="sem_mark_list[]" style="font-size:8pt;width:100%" class="nested-select">
-    <?
-    $cols = 50;
-    if (is_array($_SESSION['_marked_sem']) && count($_SESSION['_marked_sem'])){
-        $view->params[0] = array_keys($_SESSION['_marked_sem']);
-        $entries = new DbSnapshot($view->get_query("view:SEMINAR_GET_SEMDATA"));
-        $sem_data = $entries->getGroupedResult("seminar_id");
-        $sem_number = -1;
-        foreach ($sem_data as $seminar_id => $data) {
-            if (key($data['sem_number']) != $sem_number){
-                if ($sem_numer !== -1) {
+
+        <fieldset>
+            <legend><?= _("Merkliste") ?></legend>
+
+            <label>
+                <select multiple size="20" name="sem_mark_list[]" style="font-size:8pt;width:100%" class="nested-select">
+                <?
+                $cols = 50;
+                if (is_array($_SESSION['_marked_sem']) && count($_SESSION['_marked_sem'])){
+                    $view->params[0] = array_keys($_SESSION['_marked_sem']);
+                    $entries = new DbSnapshot($view->get_query("view:SEMINAR_GET_SEMDATA"));
+                    $sem_data = $entries->getGroupedResult("seminar_id");
+                    $sem_number = -1;
+                    foreach ($sem_data as $seminar_id => $data) {
+                        if (key($data['sem_number']) != $sem_number){
+                            if ($sem_numer !== -1) {
+                                echo '</optgroup>';
+                            }
+
+                            $sem_number = key($data['sem_number']);
+                            echo "\n<optgroup label=\"" . $the_tree->tree->sem_dates[$sem_number]['name'] . "\">";
+                        }
+                        $sem_name = key($data["Name"]);
+                        $sem_number_end = key($data["sem_number_end"]);
+                        if ($sem_number != $sem_number_end){
+                            $sem_name .= " (" . $the_tree->tree->sem_dates[$sem_number]['name'] . " - ";
+                            $sem_name .= (($sem_number_end == -1) ? _("unbegrenzt") : $the_tree->tree->sem_dates[$sem_number_end]['name']) . ")";
+                        }
+                        $line = htmlReady(my_substr($sem_name,0,$cols));
+                        $tooltip = $sem_name . " (" . join(",",array_keys($data["doz_name"])) . ")";
+                        echo "\n<option value=\"$seminar_id\" " . tooltip($tooltip,false) . ">$line</option>";
+                    }
                     echo '</optgroup>';
                 }
+                ?>
+                </select>
+            </label>
 
-                $sem_number = key($data['sem_number']);
-                echo "\n<optgroup label=\"" . $the_tree->tree->sem_dates[$sem_number]['name'] . "\">";
-            }
-            $sem_name = key($data["Name"]);
-            $sem_number_end = key($data["sem_number_end"]);
-            if ($sem_number != $sem_number_end){
-                $sem_name .= " (" . $the_tree->tree->sem_dates[$sem_number]['name'] . " - ";
-                $sem_name .= (($sem_number_end == -1) ? _("unbegrenzt") : $the_tree->tree->sem_dates[$sem_number_end]['name']) . ")";
-            }
-            $line = htmlReady(my_substr($sem_name,0,$cols));
-            $tooltip = $sem_name . " (" . join(",",array_keys($data["doz_name"])) . ")";
-            echo "\n<option value=\"$seminar_id\" " . tooltip($tooltip,false) . ">$line</option>";
-        }
-        echo '</optgroup>';
-    }
-    ?>
-    </select><br>&nbsp;<br><select name="mark_list_aktion" style="font-size:8pt;width:100%;">
-    <?
-    if (is_array($_possible_open_items) && count($_possible_open_items) && !(count($_possible_open_items) == 1 && $_possible_open_items['root'])){
-        echo "\n<option  value=\"insert_all\">" . _("Markierte in alle geöffneten Bereiche eintragen") . "</option>";
-        foreach ($_possible_open_items as $item_id => $value){
-            echo "\n<option value=\"insert_{$item_id}\">"
-                . sprintf(_("Markierte in \"%s\" eintragen"),htmlReady(my_substr($the_tree->tree->tree_data[$item_id]['name'],0,floor($cols * .8)))) . "</option>";
-        }
-    }
-    ?>
-    <option value="del"><?=_("Markierte aus der Merkliste löschen")?></option>
-    </select>
-    <div align="right">
-    <?= Button::create(_('OK'), array('title' => _("Gewählte Aktion starten"))); ?>
-    </div>
+            <label>
+                <select name="mark_list_aktion">
+                <?
+                if (is_array($_possible_open_items) && count($_possible_open_items) && !(count($_possible_open_items) == 1 && $_possible_open_items['root'])){
+                    echo "\n<option  value=\"insert_all\">" . _("Markierte in alle geÃ¶ffneten Bereiche eintragen") . "</option>";
+                    foreach ($_possible_open_items as $item_id => $value){
+                        echo "\n<option value=\"insert_{$item_id}\">"
+                            . sprintf(_('Markierte in "%s" eintragen'),htmlReady(my_substr($the_tree->tree->tree_data[$item_id]['name'],0,floor($cols * .8)))) . "</option>";
+                    }
+                }
+                ?>
+                <option value="del"><?=_("Markierte aus der Merkliste lÃ¶schen")?></option>
+                </select>
+            </label>
+        </fieldset>
+
+        <footer>
+            <?= Button::create(_('OK'), array('title' => _("GewÃ¤hlte Aktion starten"))); ?>
+        </footer>
     </form>
 </td></tr>
 </table>

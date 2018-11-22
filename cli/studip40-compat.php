@@ -15,6 +15,8 @@ $rules = [
     'deprecated_tabs_layout' => 'Don\'t use this. Use the global layout #{yellow:layouts/base.php} and #{yellow:Navigation} instead.',
     'setInfoBoxImage' => 'Replace with #{yellow:Sidebar}',
     'addToInfobox'    => 'Replace with #{yellow:Sidebar}',
+    'InfoboxElement'  => 'Replace with appropriate #{yellow:Sidebar} element',
+    'InfoboxWidget'   => 'Replace with appropriate #{yellow:Sidebar} widget',
 
     'details.php' => 'Link to #{yellow:dispatch.php/course/details} instead',
     'institut_main.php' => 'Link to #{yellow:dispatch.php/institute/overview} instead',
@@ -32,7 +34,6 @@ $rules = [
     'SimpleORMap::haveData' => 'Use #{yellow:SimpleORMap::isDirty()} or #{yellow:SimpleORMap::isNew()} instead',
     'Seminar::getMetaDateType' => 'Don\'t use this!',
     'UserConfig::setUserId' => 'Don\'t use this. #{yellow:Set the user via the constructor}.',
-    'string_to_unicode' => 'Use #{yellow:studip_utf8encode()} if neccessary.',
 
     'StudIPTemplateEngine' => 'Time to refactor your plugin.',
     'AbstractStudIPAdministrationPlugin' => 'Time to refactor your plugin.',
@@ -56,7 +57,7 @@ $rules = [
     'ContainerTable'   => false,
     'DbCrossTableView' => false,
     'DbPermissions'    => false,
-    
+
     'pclzip' => 'Use #{yellow:Studip\\ZipArchive} instead',
     'get_global_visibility_by_id' => 'Use #{yellow:User::visible} attribute instead',
 
@@ -119,6 +120,7 @@ $rules = [
     'get_local_visibility_by_username' => false,
     'get_homepage_element_visibility' => false,
     'set_homepage_element_visibility' => false,
+    'checkVisibility' => 'Use #{yellow:Visibility::verify($param, $this->current_user->user_id)} instead',
 
     'InsertPersonStatusgruppe' => 'Use #{Statusgruppen::addUser()} instead',
     'RemovePersonStatusgruppe(' => 'Use #{yellow:Statusgruppen::find($group_id)->removeUser($user_id)} instead',
@@ -141,8 +143,42 @@ $rules = [
     'getExternDefaultForUser' => 'Use #{yellow:InstituteMember::getDefaultInstituteIdForUser($user_id)} instead.',
     'checkExternDefaultForUser' => 'Use #{yellow:InstituteMember::ensureDefaultInstituteIdForUser($user_id)} instead.',
     'getAllChildIDs' => false,
+    'getKingsInformations' => 'Use #{yellow:User} model instead',
 
     'AutoInsert::existSeminars' => false,
+    'new ZebraTable' => 'No longer neccessary. Use #{table.default} instead.',
+    'new Table' => 'No longer neccessary. Use #{table.default} instead.',
+
+    //old datei.inc.php and visual.inc.php functions:
+    'createSelectedZip' => 'Removed. Use #{yellow:FileArchiveManager::createArchiveFromFileRefs} instead.',
+    'create_zip_from_directory' => 'Removed(?). Use #{yellow:FileArchiveManager::createArchiveFromPhysicalFolder} instead.',
+    'getFileExtension' => 'Removed. Use PHP\'s built-in #{yellow:pathinfo($filename, PATHINFO_EXTENSION)} instead.',
+    'get_icon_for_mimetype' => 'Removed. Use #{yellow:FileManager::getIconNameForMimeType} instead.',
+    'get_upload_file_path' => 'Removed. Use #{yellow:File->getPath()} instead.',
+    'GetDownloadLink' => 'Removed. Use one of the following alternatives instead: #{yellow:FileRef->getDownloadURL()}, #{yellow:FileManager::getDownloadLinkForArchivedCourse}, #{yellow:FileManager::getDownloadLinkForTemporaryFile} or #{yellow:FileManager::getDownloadURLForTemporaryFile}',
+    'prepareFilename' => 'Removed. Use #{yellow:FileManager::cleanFileName} instead.',
+    'GetFileIcon' => 'Removed. Use #{yellow:FileManager::getIconNameForMimeType} instead.',
+    'parse_link' => 'Removed. Use #{yellow:FileManager::fetchURLMetadata} instead.',
+    'unzip_file' => 'Removed. Use #{yellow:Studip\ZipArchive::extractToPath} or #yellow:Studip\ZipArchive::test} instead.',
+    'datei.inc.php' => 'Removed. Use methods in functions.inc.php, FileManager, FileArchiveManager, FileRef, File or FolderType instead.',
+    'TrackAccess' => 'Removed(?). Use {yellow:FileRef::incrementDownloadCounter}',
+    //StudipDocument and related classes:
+    'StudipDocument(' => 'Removed(?). Use class #{yellow:FileRef} instead.',
+    'DocumentFolder(' => 'Removed(?). Use class #{yellow:Folder} instead.',
+    'StudipDocumentTree(' => 'Removed(?). Use class #{yellow:Folder} or #{yellow:FolderType} instead.',
+    'WysiwygDocument' => 'Deprecated/To be removed. Use class #{yellow:FileRef} in conjunction with a #{yellow:FolderType} implementation instead.',
+
+    'ZIP_USE_INTERNAL' => 'Removed. Please avoid querying the value of this configuration variable!',
+    'ZIP_PATH' => 'Removed. Please avoid querying the value of this configuration variable!',
+    'ZIP_OPTIONS' => 'Removed. Please avoid querying the value of this configuration variable!',
+    'UNZIP_PATH' => 'Removed. Please avoid querying the value of this configuration variable!',
+
+    'RuleAdministrationModel::getAdmissionRuleTypes' => 'Use #{yellow:AdmissionRule::getAvailableAdmissionRules(false)} instead.',
+    'SessSemName' => 'Use class #{yellow:Context} instead',
+    '_SESSION["SessionSeminar"]' => 'Use class #{yellow:Context} instead',
+    '_SESSION[\'SessionSeminar\']' => 'Use class #{yellow:Context} instead',
+
+    'Statusgruppe(' => 'Removed(?). Use class #{yellow:Statusgruppen} instead.',
 ];
 
 

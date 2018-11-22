@@ -6,7 +6,7 @@
 * view schedule/assigns for a ressource group
 *
 *
-* @author       AndrÈ Noack <noack@data-quest.de>, Cornelis Kater <ckater@gwdg.de>, Suchi & Berg GmbH <info@data-quest.de>
+* @author       Andr√© Noack <noack@data-quest.de>, Cornelis Kater <ckater@gwdg.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @version
 * @access       public
 * @package      resources
@@ -16,7 +16,7 @@
 // This file is part of Stud.IP
 // ShowGroupSchedulesDaily.class.php
 // stellt Assign/graphische Uebersicht der Belegungen dar
-// Copyright (C) 2008 AndrÈ Noack <noack@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
+// Copyright (C) 2008 Andr√© Noack <noack@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -34,8 +34,8 @@
 
 use Studip\Button;
 
-require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/views/ShowSemSchedules.class.php';
-require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/views/SemGroupScheduleDayOfWeek.class.php';
+require_once 'lib/resources/views/ShowSemSchedules.class.php';
+require_once 'lib/resources/views/SemGroupScheduleDayOfWeek.class.php';
 
 
 class ShowGroupSchedulesDaily extends ShowSemSchedules
@@ -80,11 +80,11 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                     <input type="text" id="schedule_begin_date" name="schedule_begin_date"
                            size="10" value="<?= date('d.m.Y', $start_time) ?>"
                            class="has-date-picker">
-                    <?= Button::create(_('Ausw‰hlen'), 'jump') ?><br>
+                    <?= Button::create(_('Ausw√§hlen'), 'jump') ?><br>
                 </td>
                 <td valign="bottom">
-                    <?= $view_mode == 'oobj' ? _('Eine Ressourcengruppe ausw‰hlen') : _('Eine Raumgruppe ausw‰hlen') ?>:<br>
-                    <select name="group_schedule_choose_group" onChange="document.schedule_form.submit()">
+                    <?= $view_mode == 'oobj' ? _('Eine Ressourcengruppe ausw√§hlen') : _('Eine Raumgruppe ausw√§hlen') ?>:<br>
+                    <select name="group_schedule_choose_group" class="submit-upon-select">
                     <? foreach($this->resources_groups->getAvailableGroups() as $gid) :
                         echo '<option value="'.$gid.'" '
                             . ($this->group_id == $gid ? 'selected' : '') . '>'
@@ -92,17 +92,17 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                             .' ('.$this->resources_groups->getGroupCount($gid).')</option>';
                     endforeach ?>
                     </select>
-                    <?= Button::create(_('Ausw‰hlen')) ?>
+                    <?= Button::create(_('Ausw√§hlen')) ?>
                 </td>
                 <td valign="middle">&nbsp;</td>
             </tr>
         </table>
-    <? endif; 
+    <? endif;
     }
 
     public function showScheduleGraphical($print_view = false)
     {
-        global $RELATIVE_PATH_RESOURCES, $view_mode, $ActualObjectPerms;
+        global $view_mode;
 
         $categories["na"] = 4;
         $categories["sd"] = 4;
@@ -116,7 +116,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
 
 
          //select view to jump from the schedule
-         if ($view_mode == "oobj") {
+         if ($view_mode == "oobj" && Context::get()) {
             $view = "openobject_assign";
          } else {
             $view = "edit_object_assign";
@@ -155,13 +155,13 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                         $assign = AssignObject::Factory($event->getAssignId());
                         switch($event->repeat_mode){
                             case 'd':
-                                $add_info = '('.sprintf(_("t‰glich, %s bis %s"), strftime('%x',$assign->getBegin()), strftime('%x',$assign->getRepeatEnd())).')';
+                                $add_info = '('.sprintf(_("t√§glich, %s bis %s"), strftime('%x',$assign->getBegin()), strftime('%x',$assign->getRepeatEnd())).')';
                                 break;
                             case 'w':
                                 if($assign->getRepeatInterval() == 1) {
-                                    $add_info = '('._("wˆchentlich").')';
+                                    $add_info = '('._("w√∂chentlich").')';
                                 } else {
-                                    $add_info = '('.$assign->getRepeatInterval().'-'._("wˆchentlich").')';
+                                    $add_info = '('.$assign->getRepeatInterval().'-'._("w√∂chentlich").')';
                                 }
                                 break;
                             case 'm':
@@ -173,9 +173,9 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                                 break;
                             case 'y':
                                 if($assign->getRepeatInterval() == 1) {
-                                    $add_info = '('._("j‰hrlich").')';
+                                    $add_info = '('._("j√§hrlich").')';
                                 } else {
-                                    $add_info = '('.$assign->getRepeatInterval().'-'._("j‰hrlich").')';
+                                    $add_info = '('.$assign->getRepeatInterval().'-'._("j√§hrlich").')';
                                 }
                                 break;
                         }
@@ -225,9 +225,9 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                         <?= Icon::create('arr_2left', 'clickable', ['title' => _("Vorherigen Tag anzeigen")])->asImg(16, ["alt" => _("Vorherigen Tag anzeigen"), "border" => 0]) ?>
                     </a>
                 </td>
-                
+
                 <td align="center" style="font-weight:bold;">
-                    <? echo htmlReady(strftime('%A, %x (KW %V)', $start_time));                    
+                    <? echo htmlReady(strftime('%A, %x (KW %V)', $start_time));
                         if (!empty($holiday)) echo " - ".htmlReady($holiday['name']);
                     ?>
                     <br>
@@ -235,7 +235,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                 </td>
                 <td align="center">
                     <a href="<?= URLHelper::getLink('?quick_view='.$this->used_view.'&quick_view_mode='.$view_mode.'&next_day=1')?>">
-                        <?= Icon::create('arr_2right', 'clickable', ['title' => _("N‰chsten Tag anzeigen")])->asImg(16, ["alt" => _("N‰chsten Tag anzeigen"), "border" => 0]) ?>
+                        <?= Icon::create('arr_2right', 'clickable', ['title' => _("N√§chsten Tag anzeigen")])->asImg(16, ["alt" => _("N√§chsten Tag anzeigen"), "border" => 0]) ?>
                     </a>
                 </td>
             </tr>
@@ -245,7 +245,7 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : -1)) ?>">
-                           <?= Icon::create('arr_2up', 'clickable', ['title' => _('Fr¸here Belegungen anzeigen')])->asImg(['class' => 'middle']) ?>
+                           <?= Icon::create('arr_2up', 'clickable', ['title' => _('Fr√ºhere Belegungen anzeigen')])->asImg(['class' => 'middle']) ?>
                     </a>
                 <? endif; ?>
                 </td>
@@ -274,9 +274,9 @@ class ShowGroupSchedulesDaily extends ShowSemSchedules
                 <td align="center" valign="bottom">
                 <? if ((!$_SESSION['resources_data']['schedule_time_range']) || ($_SESSION['resources_data']['schedule_time_range'] == -1)): ?>
                     <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
-                                                              'quick_view_mode' => $view_mode, 
+                                                              'quick_view_mode' => $view_mode,
                                                               'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : 1)) ?>">
-                        <?= Icon::create('arr_2down', 'clickable', ['title' => _('Sp‰tere Belegungen anzeigen')])->asImg() ?>
+                        <?= Icon::create('arr_2down', 'clickable', ['title' => _('Sp√§tere Belegungen anzeigen')])->asImg() ?>
                     </a>
                 <? endif; ?>
                 </td>

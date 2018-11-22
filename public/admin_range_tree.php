@@ -8,7 +8,7 @@
 * 
 * 
 *
-* @author       André Noack <andre.noack@data.quest.de>
+* @author       AndrÃ© Noack <andre.noack@data.quest.de>
 * @access       public
 * @modulegroup  admin_modules
 * @module       admin_range_tree
@@ -18,7 +18,7 @@
 // This file is part of Stud.IP
 // admin_range_tree.php
 //
-// Copyright (c) 2002 André Noack <noack@data-quest.de> 
+// Copyright (c) 2002 AndrÃ© Noack <noack@data-quest.de> 
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ $perm->check(Config::get()->RANGE_TREE_ADMIN_PERM ?: 'admin');
 
 include 'lib/seminar_open.php'; //hier werden die sessions initialisiert
 
-PageLayout::setTitle($UNI_NAME_CLEAN . " - " . _("Einrichtungshierarchie bearbeiten"));
+PageLayout::setTitle(Config::get()->UNI_NAME_CLEAN . " - " . _("Einrichtungshierarchie bearbeiten"));
 Navigation::activateItem('/admin/locations/range_tree');
 
 ob_start();

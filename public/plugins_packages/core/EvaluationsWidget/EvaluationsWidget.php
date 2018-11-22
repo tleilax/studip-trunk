@@ -9,30 +9,44 @@
  * the License, or (at your option) any later version.
  */
 
-require_once 'app/controllers/questionnaire.php';
-
 class EvaluationsWidget extends StudIPPlugin implements PortalPlugin
 {
     public function getPluginName()
     {
-        return _('Fragebögen');
+        return _('FragebÃ¶gen');
     }
 
+    /**
+     * Returns the portal widget template.
+     *
+     * Due to a seriously messed up architecture, the suppress_empty_output
+     * variable is used to determine when an according message should be
+     * presented to the user. If no evaluations and questionnaires are present,
+     * the message from the questionnaires should be displayed. The according
+     * message from evaluations should never be shown in the widget. Thus, the
+     * evaluation controller will always suppress this message and the variable
+     * is adjusted if the evaluation returned no content so that the
+     * questionnaire controller will display it's message. If you think, we're
+     * slowly running out of duct tape, you might be absolutely right...
+     */
     public function getPortalTemplate()
     {
         // include and show votes and tests
         if (get_config('VOTE_ENABLE')) {
             $controller = new PluginController(new StudipDispatcher());
-            $response = $controller->relay('evaluation/display/studip')->body;
-            $response .= $controller->relay('questionnaire/widget/start')->body;
+            $controller->suppress_empty_output = true;
 
+            $response = $controller->relay('evaluation/display/studip')->body;
+
+            $controller->suppress_empty_output = (bool)$response;
+            $response .= $controller->relay('questionnaire/widget/start')->body;
 
             $template = $GLOBALS['template_factory']->open('shared/string');
             $template->content = $response;
 
             if ($GLOBALS['perm']->have_perm('root')) {
                 $navigation = new Navigation('', 'dispatch.php/questionnaire/overview');
-                $navigation->setImage(Icon::create('admin', 'clickable', ["title" => _('Umfragen bearbeiten')]));
+                $navigation->setImage(Icon::create('add', 'clickable', ["title" => _('Umfragen bearbeiten')]));
                 $template->icons = array($navigation);
             }
             return $template;

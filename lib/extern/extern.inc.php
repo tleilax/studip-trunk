@@ -5,9 +5,9 @@
 # Lifter010: TODO
 /**
 * extern.inc.php
-* 
-* 
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <pthienel@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -19,7 +19,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // extern.inc.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -48,20 +48,20 @@ $perm = new Seminar_Perm();
 // there is a page_url, switch to the sri-interface
 $page_url = Request::quoted('page_url');
 if ($page_url) {
-    require($GLOBALS['RELATIVE_PATH_EXTERN'] . "/sri.inc.php");
+    require "lib/extern/sri.inc.php";
     exit;
 }
 
 // set base url for URLHelper class
 URLHelper::setBaseUrl($GLOBALS['ABSOLUTE_URI_STUDIP']);
-$range_id = Request::option('range_id',$SessSemName[1]);
+$range_id = Request::option('range_id',Context::getId());
 $module = Request::quoted('module');
 $config_id = Request::option('config_id');
 $global_id = Request::option('global_id');
 // range_id and module are always necessary
 if ($range_id && $module) {
     // $module = ucfirst(mb_strtolower($module));
-    
+
     // Is it a valid module name?
     foreach ($GLOBALS['EXTERN_MODULE_TYPES'] as $module_type => $module_data) {
         if ($module_data["module"] == $module) {
@@ -74,7 +74,7 @@ if ($range_id && $module) {
         echo $GLOBALS['EXTERN_ERROR_MESSAGE'];
         exit;
     }
-    
+
     if ($config_name) {
         // check for valid configuration name and convert it into a config_id
         if (!$config_id = ExternConfig::GetConfigurationByName($range_id, $type, $config_name)) {
@@ -86,7 +86,7 @@ if ($range_id && $module) {
         if ($id = ExternConfig::GetStandardConfiguration($range_id, $type)) {
             $config_id = $id;
         } else {
-            if ($GLOBALS['EXTERN_ALLOW_ACCESS_WITHOUT_CONFIG']) {
+            if (Config::get()->EXTERN_ALLOW_ACCESS_WITHOUT_CONFIG) {
                 // use default configuraion
                 $default = 'DEFAULT';
                 $config_id = '';
@@ -127,7 +127,7 @@ foreach ($args as $arg) {
 }
 
 // declare Stud.IP encoding by default
-header('Content-Type: text/html; charset=windows-1252');
+header('Content-Type: text/html; charset=utf-8');
 
 if (Request::option('preview')) {
     $module_obj->printoutPreview();

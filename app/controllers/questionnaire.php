@@ -1,22 +1,19 @@
 <?php
 
-require_once 'authenticated_controller.php';
 require_once 'lib/classes/QuestionType.interface.php';
 
 class QuestionnaireController extends AuthenticatedController
 {
-
     protected $allow_nobody = true; //nobody is allowed
-    protected $utf8decode_xhr = true; //uf8decode request parameters from XHR ?
 
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
         if ($action != 'courseoverview' && Navigation::hasItem("/tools/questionnaire")) {
             Navigation::activateItem("/tools/questionnaire");
         }
         Sidebar::Get()->setImage(Assets::image_path("sidebar/evaluation-sidebar.png"));
-        PageLayout::setTitle(_("Fragebögen"));
+        PageLayout::setTitle(_("FragebÃ¶gen"));
         class_exists("Test"); //trigger autoloading
     }
 
@@ -28,10 +25,10 @@ class QuestionnaireController extends AuthenticatedController
         //Navigation::activateItem("/tools/questionnaire/overview");
         $this->questionnaires = Questionnaire::findBySQL("user_id = ? ORDER BY mkdate DESC", array($GLOBALS['user']->id));
         foreach ($this->questionnaires as $questionnaire) {
-            if (!$questionnaire['visible'] && $questionnaire['startdate'] && $questionnaire['startdate'] <= time() && $questionnaire['stopdate'] > time()) {
+            if (!$questionnaire['visible'] && $questionnaire->isRunning()) {
                 $questionnaire->start();
             }
-            if ($questionnaire['visible'] && $questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
+            if ($questionnaire['visible'] && $questionnaire->isStopped()) {
                 $questionnaire->stop();
             }
         }
@@ -52,10 +49,10 @@ class QuestionnaireController extends AuthenticatedController
         Navigation::activateItem("/course/admin/questionnaires");
         $this->questionnaires = Questionnaire::findBySQL("INNER JOIN questionnaire_assignments USING (questionnaire_id) WHERE questionnaire_assignments.range_id = ? AND questionnaire_assignments.range_type = ? ORDER BY questionnaires.mkdate DESC", array($GLOBALS['SessionSeminar'], $this->range_type));
         foreach ($this->questionnaires as $questionnaire) {
-            if (!$questionnaire['visible'] && $questionnaire['startdate'] && $questionnaire['startdate'] <= time() && $questionnaire['stopdate'] > time()) {
+            if (!$questionnaire['visible'] && $questionnaire->isRunning()) {
                 $questionnaire->start();
             }
-            if ($questionnaire['visible'] && $questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
+            if ($questionnaire['visible'] && $questionnaire->isStopped()) {
                 $questionnaire->stop();
             }
         }
@@ -81,8 +78,9 @@ class QuestionnaireController extends AuthenticatedController
         if (!$this->questionnaire->isEditable()) {
             throw new AccessDeniedException("Fragebogen ist nicht bearbeitbar.");
         }
-        if ($this->questionnaire->isStarted() && $this->questionnaire->countAnswers() > 0) {
-            throw new Exception("Fragebogen ist gestartet worden und kann jetzt nicht mehr bearbeitet werden. Stoppen oder löschen Sie den Fragebogen stattdessen.");
+        if ($this->questionnaire->isRunning() && $this->questionnaire->countAnswers() > 0) {
+            $this->render_text(MessageBox::error(_("Fragebogen ist gestartet worden und kann jetzt nicht mehr bearbeitet werden. Stoppen oder lÃ¶schen Sie den Fragebogen stattdessen.")));
+            return;
         }
         if (Request::isPost()) {
             $questionnaire_data = Request::getArray("questionnaire");
@@ -90,13 +88,15 @@ class QuestionnaireController extends AuthenticatedController
                 ? (strtotime($questionnaire_data['startdate']) ?: time())
                 : null;
             $questionnaire_data['stopdate'] = strtotime($questionnaire_data['stopdate']) ?: null;
+            $questionnaire_data['copyable'] = (int) $questionnaire_data['copyable'];
             $questionnaire_data['anonymous'] = (int) $questionnaire_data['anonymous'];
-            $questionnaire_data['editanswers'] = (int) $questionnaire_data['editanswers'];
+            $questionnaire_data['editanswers'] = $questionnaire_data['anonymous'] ? 0 : (int) $questionnaire_data['editanswers'];
             if ($this->questionnaire->isNew()) {
                 $questionnaire_data['visible'] = ($questionnaire_data['startdate'] <= time() && (!$questionnaire_data['stopdate'] || $questionnaire_data['stopdate'] >= time())) ? 1 : 0;
             }
             $this->questionnaire->setData($questionnaire_data);
-            foreach (Request::getArray("question_types") as $question_id => $question_type) {
+            $question_types_data = Request::getArray("question_types");
+            foreach ($question_types_data as $question_id => $question_type) {
                 $question = null;
                 foreach ($this->questionnaire->questions as $index => $q) {
                     if ($q->getId() === $question_id) {
@@ -106,24 +106,30 @@ class QuestionnaireController extends AuthenticatedController
                 }
                 if (!$question) {
                     $question = new $question_type($question_id);
-                    $question['questiontype'] = $question_type;
                     $this->questionnaire->questions[] = $question;
                 }
                 $question['position'] = $index + 1;
                 $question->createDataFromRequest();
             }
+            foreach ($this->questionnaire->questions as $q) {
+                if (!in_array($q->getId(), array_keys($question_types_data))) {
+                    $q->delete();
+                }
+            }
             if (Request::submitted("questionnaire_store")) {
                 //save everything
-                $this->questionnaire['user_id'] = $GLOBALS['user']->id;
                 $is_new = $this->questionnaire->isNew();
+                if ($is_new) {
+                    $this->questionnaire['user_id'] = $GLOBALS['user']->id;
+                }
                 $this->questionnaire->store();
 
                 if ($is_new && Request::get("range_id") && Request::get("range_type")) {
                     if (Request::get("range_id") === "start" && !$GLOBALS['perm']->have_perm("root")) {
-                        throw new Exception("Der Fragebogen darf nicht von Ihnen auf die Startseite eingehängt werden, sondern nur von einem Admin.");
+                        throw new Exception("Der Fragebogen darf nicht von Ihnen auf die Startseite eingehÃ¤ngt werden, sondern nur von einem Admin.");
                     }
                     if (Request::get("range_type") === "course" && !$GLOBALS['perm']->have_studip_perm("tutor", Request::get("range_id"))) {
-                        throw new Exception("Der Fragebogen darf nicht in die ausgewählte Veranstaltung eingebunden werden.");
+                        throw new Exception("Der Fragebogen darf nicht in die ausgewÃ¤hlte Veranstaltung eingebunden werden.");
                     }
                     $assignment = new QuestionnaireAssignment();
                     $assignment['questionnaire_id'] = $this->questionnaire->getId();
@@ -141,20 +147,16 @@ class QuestionnaireController extends AuthenticatedController
                     $this->questionnaire->restore();
                     $this->questionnaire->resetRelation("assignments");
                     $output = array(
-                        'func' => "STUDIP.Questionnaire.updateOverviewQuestionnaire",
-                        'payload' => array(
                             'questionnaire_id' => $this->questionnaire->getId(),
                             'overview_html' => $this->render_template_as_string("questionnaire/_overview_questionnaire.php"),
                             'widget_html' => $this->questionnaire->isStarted()
                                 ? $this->render_template_as_string("questionnaire/_widget_questionnaire.php")
                                 : "",
-                            'message' => $this->questionnaire->isStarted()
-                                ? ""
-                                : $message->__toString()
-                        )
+                            'message' => $message->__toString()
                     );
                     $this->response->add_header("X-Dialog-Close", 1);
-                    $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($output)));
+                    $this->response->add_header("X-Dialog-Execute", "STUDIP.Questionnaire.updateOverviewQuestionnaire");
+                    $this->render_json($output);
                 } else {
                     PageLayout::postMessage($message);
                     if (Request::get("range_type") === "user") {
@@ -166,24 +168,23 @@ class QuestionnaireController extends AuthenticatedController
                     } else {
                         $this->redirect("questionnaire/overview");
                     }
-                    $this->redirect("questionnaire/overview");
                 }
             }
+            return;
         }
         if ($this->questionnaire->isNew() && count($this->questionnaire->questions) === 0) {
             $question = new Vote();
             $question->setId($question->getNewId());
-            $question['questiontype'] = "Vote";
             $this->questionnaire->questions[] = $question;
         }
     }
 
     public function copy_action($from)
     {
-        if (!$GLOBALS['perm']->have_perm("autor")) {
-            throw new AccessDeniedException("Only for logged in users.");
+        $this->old_questionnaire = Questionnaire::find($from);
+        if (!$this->old_questionnaire->isCopyable()) {
+            throw new AccessDeniedException("Reproduction and copy forbidden");
         }
-        $this->old_questionnaire = new Questionnaire($from);
         $this->questionnaire = new Questionnaire();
         $this->questionnaire->setData($this->old_questionnaire->toArray());
         $this->questionnaire->setId($this->questionnaire->getNewId());
@@ -211,11 +212,32 @@ class QuestionnaireController extends AuthenticatedController
             throw new AccessDeniedException("Der Fragebogen ist nicht bearbeitbar.");
         }
         $this->questionnaire->delete();
-        PageLayout::postMessage(MessageBox::success(_("Der Fragebogen wurde gelöscht.")));
+        PageLayout::postMessage(MessageBox::success(_("Der Fragebogen wurde gelÃ¶scht.")));
         if (Request::get("redirect")) {
             $this->redirect(Request::get("redirect"));
         } else {
             $this->redirect("questionnaire/overview");
+        }
+    }
+
+    public function bulkdelete_action() {
+        if (Request::isPost()) {
+            foreach (Request::getArray("q") as $questionnaire_id) {
+                $questionnaire = new Questionnaire($questionnaire_id);
+                if ($questionnaire->isEditable()) {
+                    $questionnaire->delete();
+                }
+            }
+            PageLayout::postSuccess(_("FragebÃ¶gen wurden gelÃ¶scht."));
+            if (Request::get("range_type") === "user") {
+                $this->redirect("questionnaire/overview");
+            } elseif (Request::get("range_type") === "course") {
+                $this->redirect("questionnaire/courseoverview");
+            } elseif (Request::get("range_id") === "start") {
+                $this->redirect("start");
+            } else {
+                $this->redirect("questionnaire/overview");
+            }
         }
     }
 
@@ -226,7 +248,6 @@ class QuestionnaireController extends AuthenticatedController
         }
         $class = Request::get("questiontype");
         $this->question = new $class();
-        $this->question['questiontype'] = $class;
         $this->question->setId($this->question->getNewId());
 
         $template = $this->get_template_factory()->open("questionnaire/_question.php");
@@ -258,13 +279,15 @@ class QuestionnaireController extends AuthenticatedController
                         $answer['answerdata'] = array();
                     }
                     if ($this->questionnaire['anonymous']) {
-                        $answer['user_id'] = null;
+                        $answer['user_id'] = 'anonymous';
                         $answer['chdate'] = 1;
                         $answer['mkdate'] = 1;
+                        $this->anonAnswers[] = $answer->toArray();
+                        $answer['user_id'] = null;
                     }
                     $answer->store();
                 }
-                if ($this->questionnaire['anonymous']) {
+                if ($this->questionnaire['anonymous'] && ($GLOBALS['user']->id !== "nobody")) {
                     $anonymous_answer = new QuestionnaireAnonymousAnswer();
                     $anonymous_answer['questionnaire_id'] = $this->questionnaire->getId();
                     $anonymous_answer['user_id'] = $GLOBALS['user']->id;
@@ -272,32 +295,13 @@ class QuestionnaireController extends AuthenticatedController
                 }
                 if (!$answered_before && !$this->questionnaire['anonymous'] && ($this->questionnaire['user_id'] !== $GLOBALS['user']->id)) {
                     $url = URLHelper::getURL("dispatch.php/questionnaire/evaluate/" . $this->questionnaire->getId(), array(), true);
-                    foreach ($this->questionnaire->assignments as $assignment) {
-                        if ($assignment['range_type'] === "course") {
-                            $url = URLHelper::getURL("dispatch.php/course/overview#" . $this->questionnaire->getId(), array(
-                                'cid' => $assignment['range_id'],
-                                'contentbox_type' => "vote",
-                                'contentbox_open' => $this->questionnaire->getId()
-                            ));
-                        } elseif ($assignment['range_type'] === "profile") {
-                            $url = URLHelper::getURL("dispatch.php/profile#" . $this->questionnaire->getId(), array(
-                                'contentbox_type' => "vote",
-                                'contentbox_open' => $this->questionnaire->getId()
-                            ), true);
-                        } elseif ($assignment['range_type'] === "start") {
-                            $url = URLHelper::getURL("dispatch.php/start#" . $this->questionnaire->getId(), array(
-                                'contentbox_type' => "vote",
-                                'contentbox_open' => $this->questionnaire->getId()
-                            ), true);
-                        }
-                        break;
-                    }
                     PersonalNotifications::add(
                         $this->questionnaire['user_id'],
                         $url,
                         sprintf(_("%s hat an der Befragung '%s' teilgenommen."), get_fullname(), $this->questionnaire['title']),
                         "questionnaire_" . $this->questionnaire->getId(),
-                        Icon::create('vote', 'clickable')
+                        Icon::create('vote', 'clickable'),
+                        true
                     );
                 }
             }
@@ -307,16 +311,16 @@ class QuestionnaireController extends AuthenticatedController
                 $this->response->add_header("X-Dialog-Execute", "STUDIP.Questionnaire.updateWidgetQuestionnaire");
                 $this->render_template("questionnaire/evaluate");
             } elseif (Request::get("range_type") === "user") {
-                PageLayout::postMessage(MessageBox::success(_("Danke für die Teilnahme!")));
+                PageLayout::postMessage(MessageBox::success(_("Danke fÃ¼r die Teilnahme!")));
                 $this->redirect("profile?username=".get_username(Request::option("range_id")));
             } elseif (Request::get("range_type") === "course") {
-                PageLayout::postMessage(MessageBox::success(_("Danke für die Teilnahme!")));
+                PageLayout::postMessage(MessageBox::success(_("Danke fÃ¼r die Teilnahme!")));
                 $this->redirect("course/overview?cid=".Request::option("range_id"));
             } elseif (Request::get("range_id") === "start") {
-                PageLayout::postMessage(MessageBox::success(_("Danke für die Teilnahme!")));
+                PageLayout::postMessage(MessageBox::success(_("Danke fÃ¼r die Teilnahme!")));
                 $this->redirect("start");
             } else {
-                PageLayout::postMessage(MessageBox::success(_("Danke für die Teilnahme!")));
+                PageLayout::postMessage(MessageBox::success(_("Danke fÃ¼r die Teilnahme!")));
                 if ($GLOBALS['perm']->have_perm("autor")) {
                     $this->redirect("questionnaire/overview");
                 } else {
@@ -339,8 +343,8 @@ class QuestionnaireController extends AuthenticatedController
         PageLayout::setTitle(sprintf(_("Fragebogen: %s"), $this->questionnaire->title));
 
         if (Request::isAjax() && !$_SERVER['HTTP_X_DIALOG']) {
-            //Wenn das hier direkt auf der Übersichts-/Profil-/Startseite angezeigt
-            //wird, brauchen wir kein 'Danke für die Teilnahme'.
+            //Wenn das hier direkt auf der Ãœbersichts-/Profil-/Startseite angezeigt
+            //wird, brauchen wir kein 'Danke fÃ¼r die Teilnahme'.
             PageLayout::clearMessages();
         }
     }
@@ -367,12 +371,7 @@ class QuestionnaireController extends AuthenticatedController
         if (!$this->questionnaire->isEditable()) {
             throw new AccessDeniedException("Der Fragebogen ist nicht bearbeitbar.");
         }
-        $this->questionnaire['visible'] = 1;
-        $this->questionnaire['startdate'] = time();
-        if ($this->questionnaire['stopdate'] && $this->questionnaire['stopdate'] < time()) {
-            $this->questionnaire['stopdate'] = null;
-        }
-        $this->questionnaire->store();
+        $this->questionnaire->start();
 
         PageLayout::postMessage(MessageBox::success(_("Die Befragung wurde gestartet.")));
         if (Request::get("redirect")) {
@@ -404,8 +403,13 @@ class QuestionnaireController extends AuthenticatedController
         }
 
         foreach ($user_ids as $key => $user_id) {
-            $user = new User($user_id);
-            $csv_line = array($key + 1, $user['username'], $user['Nachname'], $user['Vorname'], $user['Email']);
+            $user = User::find($user_id);
+            if ($user) {
+                $csv_line = array($key + 1, $user['username'], $user['Nachname'], $user['Vorname'], $user['Email']);
+            } else {
+                $csv_line = array($key + 1, $user_id, '', '', '');
+            }
+
             foreach ($results as $result) {
                 foreach ($result as $frage => $value) {
                     $csv_line[] = $value[$user_id];
@@ -414,7 +418,7 @@ class QuestionnaireController extends AuthenticatedController
             $csv[] = $csv_line;
         }
         $this->response->add_header('Content-Type', "text/csv");
-        $this->response->add_header('Content-Disposition', "attachment; filename=".$this->questionnaire['title'].".csv");
+        $this->response->add_header('Content-Disposition', "attachment; " . encode_header_parameter('filename', $this->questionnaire['title'].'.csv'));
         $this->render_text(array_to_csv($csv));
     }
 
@@ -514,9 +518,9 @@ class QuestionnaireController extends AuthenticatedController
                     'html' => $this->render_template_as_string("questionnaire/_overview_questionnaire.php")
                 )
             );
-            $this->response->add_header("X-Dialog-Execute", json_encode(studip_utf8encode($output)));
+            $this->response->add_header("X-Dialog-Execute", json_encode($output));
         }
-        PageLayout::setTitle(sprintf(_("Bereiche für Fragebogen: %s"), $this->questionnaire->title));
+        PageLayout::setTitle(sprintf(_("Bereiche fÃ¼r Fragebogen: %s"), $this->questionnaire->title));
     }
 
     public function widget_action($range_id, $range_type = "course")
@@ -535,7 +539,7 @@ class QuestionnaireController extends AuthenticatedController
                 INNER JOIN questionnaire_assignments ON (questionnaires.questionnaire_id = questionnaire_assignments.questionnaire_id)
             WHERE questionnaire_assignments.range_id = :range_id
                 AND questionnaire_assignments.range_type = :range_type
-                ".(Request::get("questionnaire_showall") ? "AND startdate <= UNIX_TIMESTAMP()" : "AND visible = 1")."
+                AND startdate <= UNIX_TIMESTAMP()
             ORDER BY questionnaires.mkdate DESC
         ");
         $statement->execute(array(
@@ -543,21 +547,29 @@ class QuestionnaireController extends AuthenticatedController
             'range_type' => $this->range_type
         ));
         $this->questionnaire_data = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $stopped_visible = 0;
         foreach ($this->questionnaire_data as $i => $questionnaire) {
-            if (!$questionnaire['visible'] && $questionnaire['startdate'] && $questionnaire['startdate'] <= time()) {
-                Questionnaire::buildExisting($questionnaire)->start();
+            $one = Questionnaire::buildExisting($questionnaire);
+            if (!$questionnaire['visible'] && $one->isRunning()) {
+                $one->start();
             }
-            if ($questionnaire['visible'] && $questionnaire['stopdate'] && $questionnaire['stopdate'] <= time()) {
-                Questionnaire::buildExisting($questionnaire)->stop();
+            if ($questionnaire['visible'] && $one->isStopped()) {
+                $one->stop();
+            }
+            if ($one->isStopped() && $one->resultsVisible()) {
+                $stopped_visible++;
+            }
+            if ($one->isStopped() && (!$one->resultsVisible() || !Request::get("questionnaire_showall"))) {
                 unset($this->questionnaire_data[$i]);
+                continue;
             }
+
             object_set_visit($questionnaire['questionnaire_id'], 'vote');
         }
-        if ($this->range_type === "course"
-                && !$GLOBALS['perm']->have_studip_perm("tutor", $_SESSION['SessionSeminar'])
-                && !count($this->questionnaire_data)) {
+        if (in_array($this->range_type, ["course", "institute"])
+                && !$GLOBALS['perm']->have_studip_perm("tutor", $this->range_id)
+                && !($stopped_visible || count($this->questionnaire_data))) {
             $this->render_nothing();
         }
     }
 }
-

@@ -8,7 +8,7 @@
  * @subpackage engine
  */
 
-class PluginEngine 
+class PluginEngine
 {
     /**
      * This function maps an incoming request to a tuple
@@ -20,7 +20,7 @@ class PluginEngine
     {
         $dispatch_to = ltrim($dispatch_to, '/');
         if (mb_strlen($dispatch_to) === 0) {
-            throw new PluginNotFoundException(_('Es wurde kein Plugin gew‰hlt.'));
+            throw new PluginNotFoundException(_('Es wurde kein Plugin gew√§hlt.'));
         }
         $pos = mb_strpos($dispatch_to, '/');
         return $pos === FALSE
@@ -45,7 +45,7 @@ class PluginEngine
         self::getPlugins('HomepagePlugin');
 
         // load course plugins
-        if (isset($_SESSION['SessionSeminar'])) {
+        if (Context::getId()) {
             self::getPlugins('StandardPlugin');
         }
 
@@ -128,7 +128,7 @@ class PluginEngine
     public static function getURL($plugin, $params = array(), $cmd = 'show', $ignore_registered_params = false)
     {
         if (is_null($plugin)) {
-            throw new InvalidArgumentException(_('Es wurde kein Plugin gew‰hlt.'));
+            throw new InvalidArgumentException(_('Es wurde kein Plugin gew√§hlt.'));
         } else if (is_object($plugin)) {
             $plugin = mb_strtolower(get_class($plugin)) . '/' . $cmd;
         } else if (mb_strpos($plugin, '/') === false) {

@@ -156,7 +156,7 @@ class ResourceObject
         $this->chng_flag = true;
     }
 
-    
+
     /**
      * Set wether the ResourceObject is requestable or not
      *
@@ -391,13 +391,13 @@ class ResourceObject
 
         if ($this->id) {
             if (self::isScheduleViewAllowed($this->id)) {
-                if ((!$javaScript) || (!$auth->auth["jscript"])) {
-                    return "<a " . (($target_new) ? "target=\"_blank\"" : "") . " href=\"" . $this->getLink($quick_view, $view, $view_mode, ($timestamp > 0) ? $timestamp : FALSE) . "\">" . (($link_text) ? $link_text : $this->getName()) . "</a>";
+                if (!$javaScript || !$auth->auth["jscript"]) {
+                    return "<a " . ($target_new ? "target=\"_blank\" rel=\"noopener noreferrer\"" : "") . " href=\"" . $this->getLink($quick_view, $view, $view_mode, ($timestamp > 0) ? $timestamp : FALSE) . "\">" . (($link_text) ? $link_text : $this->getName()) . "</a>";
                 } else {
-                    return "<a href=\"javascript:void(null)\" onClick=\"window.open('" . $this->getLink($quick_view, $view, $view_mode, ($timestamp > 0) ? $timestamp : FALSE) . "','','scrollbars=yes,left=10,top=10,width=1000,height=680,resizable=yes')\" >" . (($link_text) ? $link_text : $this->getName()) . "</a>";
+                    return "<a href=\"javascript:void(null)\" onClick=\"window.open('" . $this->getLink($quick_view, $view, $view_mode, ($timestamp > 0) ? $timestamp : FALSE) . "','','scrollbars=yes,left=10,top=10,width=1000,height=680,resizable=yes').opener = null;\" >" . ($link_text ?: $this->getName()) . "</a>";
                 }
             } else {
-                return (($link_text) ? $link_text : $this->getName());
+                return $link_text ?: $this->getName();
             }
         }
         return false;
@@ -493,7 +493,7 @@ class ResourceObject
 
     public function isDeletable()
     {
-        return !$this->isParent() && !$this->isAssigned();
+        return $GLOBALS['perm']->have_perm('root') || (!$this->isParent() && !$this->isAssigned());
     }
 
     public function isParent()
@@ -548,12 +548,16 @@ class ResourceObject
         return $this->lockable;
     }
 
-    public function flushProperties()
+    public function flushProperties($id = '')
     {
+        if (!$id) {
+            $id = $this->id;
+        }
+
         $query = "DELETE FROM resources_objects_properties
                   WHERE resource_id = ?";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->id));
+        $statement->execute(array($id));
         return $statement->rowCount() > 0;
     }
 
@@ -809,7 +813,7 @@ class ResourceObject
         $statement->execute(array($id));
 
         while ($resource_id = $statement->fetchColumn()) {
-            $this->deleteResourceRecursive($resource_id, $recursive);
+            $this->deleteResourceRecursive($resource_id);
         }
 
         $this->deleteAllAssigns($id);

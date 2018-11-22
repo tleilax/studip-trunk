@@ -13,11 +13,6 @@
  * @category    Stud.IP
  */
 
-require_once 'lib/classes/squeeze/squeeze.php';
-
-use \Studip\Squeeze\Configuration;
-use \Studip\Squeeze\Packager;
-
 /**
  * The PageLayout class provides utility functions to control the
  * global page layout of Stud.IP. This includes the page title, the
@@ -70,10 +65,10 @@ class PageLayout
      */
     private static $display_header = true;
 
-    /**
-     * names of the squeeze packages to include
+    /*
+     * Custom quicksearch on the page
      */
-    private static $squeeze_packages = array();
+    private static $customQuicksearch;
 
     /**
      * Compatibility lookup table (old file -> new file/squeeze package)
@@ -91,31 +86,45 @@ class PageLayout
      */
     public static function initialize()
     {
+        // Get software version
+        $v = StudipVersion::getStudipVersion(false);
+
         // set favicon
-        self::addHeadElement('link', array('rel' => 'apple-touch-icon', 'href' => Assets::image_path('touch-icon-ipad3.png'), 'size' => '144x144'));
-        self::addHeadElement('link', array('rel' => 'apple-touch-icon', 'href' => Assets::image_path('touch-icon-iphone4.png'), 'size' => '114x114'));
-        self::addHeadElement('link', array('rel' => 'apple-touch-icon', 'href' => Assets::image_path('touch-icon-ipad.png'), 'size' => '72x72'));
-        self::addHeadElement('link', array('rel' => 'apple-touch-icon', 'href' => Assets::image_path('touch-icon-iphone.png')));
-        self::addHeadElement('link', array('rel' => 'shortcut icon', 'href' => Assets::image_path('favicon.png')));
+        self::addHeadElement('link', ['rel' => 'apple-touch-icon', 'sizes' => '180x180', 'href' => Assets::image_path('apple-touch-icon.png')]);
+        self::addHeadElement('link', ['rel' => 'icon', 'type' => 'image/svg+xml', 'href' => Assets::image_path('favicon.svg')]);
+        self::addHeadElement('link', ['rel' => 'icon', 'type' => 'image/png', 'sizes' => '64x64', 'href' => Assets::image_path('favicon-64x64.png')]);
+        self::addHeadElement('link', ['rel' => 'icon', 'type' => 'image/png', 'sizes' => '32x32', 'href' => Assets::image_path('favicon-32x32.png')]);
+        self::addHeadElement('link', ['rel' => 'icon', 'type' => 'image/png', 'sizes' => '16x16', 'href' => Assets::image_path('favicon-16x16.png')]);
+        self::addHeadElement('link', ['rel' => 'manifest', 'href' => Assets::image_path('manifest.json')]);
+        self::addHeadElement('link', ['rel' => 'mask-icon', 'href' => Assets::image_path('safari-pinned-tab.svg')]);
+        self::addHeadElement('meta', ['name' => 'TileColor', 'content' => '#2b5797']);
+        self::addHeadElement('meta', ['name' => 'TileImage', 'content' => Assets::image_path('mstile-144x144.png')]);
+        self::addHeadElement('meta', ['name' => 'msapplication-config', 'content' => Assets::image_path('browserconfig.xml')]);
+        self::addHeadElement('meta', ['name' => 'theme-color', 'content' => '#ffffff']);
 
         // set initial width for mobile devices
-        self::addHeadElement('meta', array('name' => 'viewport', 'content' => 'width=device-width, initial-scale=1.0'));
+        self::addHeadElement('meta', ['name' => 'viewport', 'content' => 'width=device-width, initial-scale=1.0']);
 
         // include ie-specific CSS
-        self::addComment('[if IE]>' . Assets::stylesheet('ie.css', array('media' => 'screen,print')) . '<![endif]');
+        self::addComment('[if IE]>' . Assets::stylesheet('ie.css?v=' . $v, ['media' => 'screen,print']) . '<![endif]');
 
-        self::addHeadElement('link', array(
+        self::addHeadElement('link', [
             'rel'   => 'help',
             'href'  => format_help_url('Basis.VerschiedenesFormat'),
             'class' => 'text-format',
             'title' => _('Hilfe zur Textformatierung')
-        ));
+        ]);
 
-        self::setSqueezePackages("base");
+        self::addStylesheet('studip-base.css?v=' . $v, ['media' => 'screen']);
+        self::addScript('studip-base.js?v=' . $v);
+
+        self::addStylesheet('print.css?v=' . $v, ['media' => 'print']);
+
         if (Config::get()->WYSIWYG) {
-            self::addSqueezePackage("wysiwyg");
+            self::addStylesheet('studip-wysiwyg.css?v=' . $v);
+            self::addScript('studip-wysiwyg.js?v=' . $v);
         }
-        self::addScript("mathjax/MathJax.js?config=TeX-AMS_HTML,default");
+        self::addScript('mathjax/MathJax.js?config=TeX-AMS_HTML,default&v=' . $v);
     }
 
     /**
@@ -145,7 +154,7 @@ class PageLayout
         return isset(self::$title) ? self::$title :
                 (isset($GLOBALS['_html_head_title']) ? $GLOBALS['_html_head_title'] :
                     (isset($GLOBALS['CURRENT_PAGE']) ? $GLOBALS['CURRENT_PAGE'] :
-                        $GLOBALS['UNI_NAME_CLEAN']));
+                        Config::get()->UNI_NAME_CLEAN));
     }
 
     /**
@@ -377,7 +386,7 @@ class PageLayout
     {
         $result = '';
 
-        $package_elements = self::includeSqueezePackages();
+        $package_elements = [];
 
         if (isset($GLOBALS['_include_stylesheet'])) {
             unset($package_elements['base-style.css']);
@@ -488,7 +497,7 @@ class PageLayout
      *
      * @param MessageBox  message object to display
      */
-    public static function postMessage(MessageBox $message, $id = null)
+    public static function postMessage(LayoutMessage $message, $id = null)
     {
         if ($id === null ) {
             $_SESSION['messages'][] = $message;
@@ -563,6 +572,27 @@ class PageLayout
     }
 
     /**
+     * Convenience method: Post a question to confirm an action.
+     *
+     * Be aware, that this will output the question as html. So you should
+     * either know what you are doing, use htmlReady() or post the QuestionBox
+     * for yourself using self::postMessage().
+     *
+     * @param String $question          Question to confirm
+     * @param Array  $approve_params    Parameters to send when approving
+     * @param Array  $disapprove_params Parameters to send when disapproving
+     * @return QuestionBox to allow further settings like urls and such
+     * @see QuestionBox
+     * @since Stud.IP 4.2
+     */
+    public static function postQuestion($question, $accept_url = '', $decline_url = '')
+    {
+        $qbox = QuestionBox::createHTML($question, $accept_url, $decline_url);
+        self::postMessage($qbox, 'question-box');
+        return $qbox;
+    }
+
+    /**
      * Clears all messages pending for display.
      */
     public static function clearMessages()
@@ -596,7 +626,7 @@ class PageLayout
      */
     public static function getSqueezePackages()
     {
-        return array_unique(self::$squeeze_packages);
+        return [];
     }
 
     /**
@@ -615,7 +645,10 @@ class PageLayout
      */
     public static function setSqueezePackages($package/*, ...*/)
     {
-        self::$squeeze_packages = func_get_args();
+        $packages = func_get_args();
+        foreach ($packages as $package) {
+            self::addSqueezePackage($package);
+        }
     }
 
     /**
@@ -629,59 +662,46 @@ class PageLayout
      */
     public static function addSqueezePackage($package)
     {
-        self::$squeeze_packages[] = $package;
+        $oldPackages = ["admission", "base", "statusgroups", "wysiwyg"];
+        $oldCssPackages = ["base", "statusgroups", "wysiwyg"];
+
+        // tablesorter loads on demand
+
+        // Get software version
+        $v = StudipVersion::getStudipVersion(false);
+
+        if (in_array($package, $oldPackages)) {
+            self::addScript('studip-' . $package . '.js?v=' . $v);
+        }
+        if (in_array($package, $oldCssPackages)) {
+            self::addStylesheet('studip-' . $package . '.css?v=' . $v);
+        }
     }
 
     /**
-     * Depending on \Studip\ENV, either includes individual script
-     * elements for each JS file in every package, or a single script
-     * element containing the squeezed source code for every package.
+     * Modifies the Quicksearch of Stud.IP
+     *
+     * @param $html HTML code for the custom quicksearch
      */
-    private static function includeSqueezePackages()
-    {
-        global $STUDIP_BASE_PATH;
+    public static function addCustomQuicksearch($html) {
+        self::$customQuicksearch = $html;
+    }
 
-        $config_path   = "$STUDIP_BASE_PATH/config/assets.yml";
-        $configuration = Configuration::load($config_path);
-        $packager      = new Packager($configuration);
-        $javascripts   = \Studip\Squeeze\includePackages($packager, self::getSqueezePackages());
+    /**
+     * Check if a custom quicksearch was added to the layout
+     *
+     * @return bool TRUE if there is a custom quicksearch
+     */
+    public static function hasCustomQuicksearch() {
+        return isset(self::$customQuicksearch);
+    }
 
-        $css = array();
-        foreach (self::getSqueezePackages() as $package) {
-            if (isset($configuration['css'][$package])) {
-                foreach ($configuration['css'][$package] as $filename => $media) {
-                    $attributes = array(
-                        'rel' => 'stylesheet',
-                        'href' => \Studip\Squeeze\shouldPackage()
-                             ? $configuration['package_url'] . '/' . $package . '-' . $filename
-                             : Assets::stylesheet_path($filename),
-                        'media' => $media
-                    );
-                    $css[$package . '-' . $filename] = array(
-                        'name'       => 'link',
-                        'attributes' => $attributes
-                    );
-                }
-            }
-        }
-
-        $files = array_merge($css, $javascripts);
-
-        // When not in development mode, add the current version number to
-        // the assets file, so browser caches will be informed about an
-        // update
-        if (Studip\ENV !== 'development') {
-            $v = preg_replace('/^(\d+(?:\.\d+)*).*$/', '$1', $GLOBALS['SOFTWARE_VERSION']);
-            $files = array_map(function ($file) use ($v) {
-                if ($file['name'] === 'link') {
-                    $file['attributes']['href'] = URLHelper::getURL($file['attributes']['href'], compact('v'), true);
-                } else if ($file['name'] === 'script') {
-                    $file['attributes']['src'] = URLHelper::getURL($file['attributes']['src'], compact('v'), true);
-                }
-                return $file;
-            }, $files);
-        }
-
-        return $files;
+    /**
+     * Retrieves the code of the custom quicksearch
+     *
+     * @return mixed Quicksearch code
+     */
+    public static function getCustomQuicksearch() {
+        return self::$customQuicksearch;
     }
 }

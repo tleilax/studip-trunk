@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @copyright   2000 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
 */
@@ -24,11 +24,12 @@ class Seminar_User
         if ($user instanceOf User) {
             $this->user = $user;
         } else {
-            $this->user = User::find($user);
+            $this->user = User::findFull($user);
         }
         if (!isset($this->user)) {
             $this->user = new User();
             $this->user->user_id = 'nobody';
+            $this->user->perms = null;
         }
         $this->cfg = UserConfig::get($this->user->user_id);
         $this->last_online_time = $this->get_last_action();
@@ -47,7 +48,6 @@ class Seminar_User
                 $stmt->execute(array($this->id));
                 return $stmt->fetchColumn();
             } catch (PDOException $e) {
-                require_once 'lib/migrations/db_schema_version.php';
                 $version = new DBSchemaVersion('studip');
                 if ($version->get() < 98) {
                     Log::ALERT('Seminar_User::set_last_action() failed. Check migration no. 98!');
@@ -76,7 +76,6 @@ class Seminar_User
                 $stmt->bindValue(':time_delta', time() - $timestamp, PDO::PARAM_INT);
                 $stmt->execute();
             } catch (PDOException $e) {
-                require_once 'lib/migrations/db_schema_version.php';
                 $version = new DBSchemaVersion('studip');
                 if ($version->get() < 98) {
                     Log::ALERT('Seminar_User::set_last_action() failed. Check migration no. 98!');

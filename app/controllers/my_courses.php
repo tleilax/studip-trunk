@@ -108,7 +108,7 @@ class MyCoursesController extends AuthenticatedController
             $forced_grouping = 'sem_number';
         }
 
-        if (!$group_field) {
+        if (!$group_field || !in_array($group_field, getValidGroupingFields())) {
             $group_field = 'sem_number';
         }
         if ($group_field == 'sem_number' && $forced_grouping != 'sem_number') {
@@ -170,7 +170,7 @@ class MyCoursesController extends AuthenticatedController
             $setting_widget->addLink(_('Alles als gelesen markieren'),
                                      $this->url_for('my_courses/tabularasa/' . $sem . '/', time()), Icon::create('accept', 'clickable'));
         }
-        $setting_widget->addLink(_('Farbgruppierung ändern'),
+        $setting_widget->addLink(_('Farbgruppierung Ã¤ndern'),
                                  URLHelper::getLink($this->settings_url), Icon::create('group4', 'clickable'),
                                  array('data-dialog' => ''));
 
@@ -184,7 +184,10 @@ class MyCoursesController extends AuthenticatedController
                                      URLHelper::getLink('dispatch.php/course/wizard'), Icon::create('seminar+add', 'clickable'));
         }
 
-        $setting_widget->addLink(_('Veranstaltung hinzufügen'), URLHelper::getLink('dispatch.php/search/courses'), Icon::create('seminar', 'clickable'));
+        $setting_widget->addLink(_('Veranstaltung hinzufÃ¼gen'), URLHelper::getLink('dispatch.php/search/courses'), Icon::create('seminar', 'clickable'));
+        $setting_widget->addLink(_('Neue Studiengruppe anlegen'),
+            URLHelper::getLink('dispatch.php/course/wizard', ['studygroup' => 1]),
+            Icon::create('studygroup+add', 'clickable'), ['data-dialog' => 'size=auto']);
         $sidebar->addWidget($setting_widget);
         $this->setGroupingSelector($this->group_field);
     }
@@ -216,13 +219,9 @@ class MyCoursesController extends AuthenticatedController
 
         PageLayout::setTitle($this->title);
 
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-            $this->response->add_header('Content-Type', 'text/html;charset=Windows-1252');
-        } else {
-            PageLayout::setHelpKeyword('Basis.VeranstaltungenOrdnen');
-            Navigation::activateItem('/browse/my_courses/list');
-        }
+
+        PageLayout::setHelpKeyword('Basis.VeranstaltungenOrdnen');
+        Navigation::activateItem('/browse/my_courses/list');
 
         $this->current_semester = $sem ? : Semester::findCurrent()->semester_id;
 
@@ -420,7 +419,7 @@ class MyCoursesController extends AuthenticatedController
         $ticket_check    = Seminar_Session::check_ticket(Request::option('studipticket'));
         if (LockRules::Check($course_id, 'participants')) {
             $lockdata = LockRules::getObjectRule($course_id);
-            PageLayout::postMessage(MessageBox::error(sprintf(_("Sie können sich nicht von der Veranstaltung <b>%s</b> abmelden."),
+            PageLayout::postMessage(MessageBox::error(sprintf(_("Sie kÃ¶nnen sich nicht von der Veranstaltung <b>%s</b> abmelden."),
                 htmlReady($current_seminar->name))));
             if ($lockdata['description']) PageLayout::postMessage(MessageBox::info(formatLinks($lockdata['description'])));
             $this->redirect('my_courses/index');
@@ -436,7 +435,7 @@ class MyCoursesController extends AuthenticatedController
 
             if ($current_seminar->admission_binding && Request::get('cmd') != 'suppose_to_kill_admission' && !LockRules::Check($current_seminar->getId(), 'participants')) {
                 PageLayout::postMessage(MessageBox::error(sprintf(_("Die Veranstaltung <b>%s</b> ist als <b>bindend</b> angelegt.
-                    Wenn Sie sich abmelden wollen, müssen Sie sich an die Lehrende der Veranstaltung wenden."),
+                    Wenn Sie sich abmelden wollen, mÃ¼ssen Sie sich an die Lehrende der Veranstaltung wenden."),
                     htmlReady($current_seminar->name))));
                 $this->redirect('my_courses/index');
                 return;
@@ -450,9 +449,9 @@ class MyCoursesController extends AuthenticatedController
                 $admission_locked   = $current_seminar->isAdmissionLocked();
 
                 if ($admission_enabled || $admission_locked || (int)$current_seminar->admission_prelim == 1) {
-                    $message = sprintf(_('Wollen Sie sich von der teilnahmebeschränkten Veranstaltung "%s" wirklich abmelden? Sie verlieren damit die Berechtigung für die Veranstaltung und müssen sich ggf. neu anmelden!'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie sich von der teilnahmebeschrÃ¤nkten Veranstaltung "%s" wirklich abmelden? Sie verlieren damit die Berechtigung fÃ¼r die Veranstaltung und mÃ¼ssen sich ggf. neu anmelden!'), $current_seminar->name);
                 } else if (isset($admission_end_time) && $admission_end_time < time()) {
-                    $message = sprintf(_('Wollen Sie sich von der teilnahmebeschränkten Veranstaltung "%s" wirklich abmelden? Der Anmeldzeitraum ist abgelaufen und Sie können sich nicht wieder anmelden!'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie sich von der teilnahmebeschrÃ¤nkten Veranstaltung "%s" wirklich abmelden? Der Anmeldzeitraum ist abgelaufen und Sie kÃ¶nnen sich nicht wieder anmelden!'), $current_seminar->name);
                 } else {
                     $message = sprintf(_('Wollen Sie sich von der Veranstaltung "%s" wirklich abmelden?'), $current_seminar->name);
                 }
@@ -461,7 +460,7 @@ class MyCoursesController extends AuthenticatedController
                 if (admission_seminar_user_get_position($GLOBALS['user']->id, $course_id) === false) {
                     $message = sprintf(_('Wollen Sie sich von der Anmeldeliste der Veranstaltung "%s" wirklich abmelden?'), $current_seminar->name);
                 } else {
-                    $message = sprintf(_('Wollen Sie sich von der Warteliste der Veranstaltung "%s" wirklich abmelden? Sie verlieren damit die bereits erreichte Position und müssen sich ggf. neu anmelden!'), $current_seminar->name);
+                    $message = sprintf(_('Wollen Sie sich von der Warteliste der Veranstaltung "%s" wirklich abmelden? Sie verlieren damit die bereits erreichte Position und mÃ¼ssen sich ggf. neu anmelden!'), $current_seminar->name);
                 }
                 $this->flash['cmd'] = 'kill_admission';
             }
@@ -478,7 +477,7 @@ class MyCoursesController extends AuthenticatedController
                 $statement = DBManager::get()->prepare($query);
                 $statement->execute(array($GLOBALS['user']->id, $course_id));
                 if ($statement->rowCount() == 0) {
-                    PageLayout::postMessage(MessageBox::error(_('In der ausgewählten Veranstaltung wurde die gesuchten Personen nicht gefunden und konnte daher nicht ausgetragen werden.')));
+                    PageLayout::postMessage(MessageBox::error(_('In der ausgewÃ¤hlten Veranstaltung wurde die gesuchten Personen nicht gefunden und konnte daher nicht ausgetragen werden.')));
                 } else {
                     // LOGGING
                     StudipLog::log('SEM_USER_DEL', $course_id, $GLOBALS['user']->id, 'Hat sich selbst ausgetragen');
@@ -492,6 +491,29 @@ class MyCoursesController extends AuthenticatedController
 
                     // Are successor available
                     update_admission($course_id);
+
+                    // If this course is a child of another course...
+                    if ($current_seminar->parent_course) {
+
+                        // ... check if user is member in another sibling ...
+                        $other = CourseMember::findBySQL(
+                            "`user_id` = :user AND `Seminar_id` IN (:courses) AND `Seminar_id` != :this",
+                            [
+                                'user' => $GLOBALS['user']->id,
+                                'courses' => $current_seminar->parent->children->pluck('seminar_id'),
+                                'this' => $course_id
+                            ]
+                        );
+
+                        // ... and delete from parent course if this was the only
+                        // course membership in this family.
+                        if (count($other) == 0) {
+                            $m = CourseMember::find([$current_seminar->parent_course, $GLOBALS['user']->id]);
+                            if ($m) {
+                                $m->delete();
+                            }
+                        }
+                    }
 
                     PageLayout::postMessage(MessageBox::success(sprintf(_("Erfolgreich von Veranstaltung <b>%s</b> abgemeldet."),
                         htmlReady($current_seminar->name))));
@@ -513,12 +535,11 @@ class MyCoursesController extends AuthenticatedController
                     //Pruefen, ob es Nachruecker gibt
                     update_admission($course_id);
                     PageLayout::postMessage(MessageBox::success(sprintf(_("Der Eintrag in der Anmelde- bzw. Warteliste der Veranstaltung <b>%s</b> wurde aufgehoben.
-                    Wenn Sie an der Veranstaltung teilnehmen wollen, müssen Sie sich erneut bewerben."), htmlReady($current_seminar->name))));
+                    Wenn Sie an der Veranstaltung teilnehmen wollen, mÃ¼ssen Sie sich erneut bewerben."), htmlReady($current_seminar->name))));
                 }
             }
 
             $this->redirect('my_courses/index');
-            return;
         }
     }
 
@@ -567,14 +588,16 @@ class MyCoursesController extends AuthenticatedController
 
         foreach ($my_obj as $courses) {
 
-            if ($group_field !== 'sem_number') {
-                // tlx: If array is 2-dimensional, merge it into a 1-dimensional
-                $courses = call_user_func_array('array_merge', $courses);
-            }
+            if (is_array($courses)) {
+                if ($group_field !== 'sem_number') {
+                    // tlx: If array is 2-dimensional, merge it into a 1-dimensional
+                    $courses = call_user_func_array('array_merge', $courses);
+                }
 
-            foreach ($courses as $course) {
-                if ($this->check_course($course)) {
-                    return true;
+                foreach ($courses as $course) {
+                    if ($this->check_course($course)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -593,8 +616,8 @@ class MyCoursesController extends AuthenticatedController
         $sem = Request::option('sem_select', null);
         if (!is_null($sem)) {
             $GLOBALS['user']->cfg->store('MY_COURSES_SELECTED_CYCLE', $sem);
-            PageLayout::postMessage(MessageBox::success(_('Das gewünschte Semester bzw.
-            die gewünschte Semester Filteroption wurde ausgewählt!')));
+            PageLayout::postMessage(MessageBox::success(_('Das gewÃ¼nschte Semester bzw.
+            die gewÃ¼nschte Semester Filteroption wurde ausgewÃ¤hlt!')));
         }
 
         $this->redirect('my_courses/index');
@@ -619,7 +642,7 @@ class MyCoursesController extends AuthenticatedController
             }
         }
 
-        $plugins_navigation = getPluginNavigationForSeminar($seminar_content['seminar_id'], $seminar_content['visitdate']);
+        $plugins_navigation = $seminar_content['navigation'];
 
         foreach ($plugins_navigation as $navigation) {
             if ($navigation && $navigation->isVisible(true) && $navigation->hasBadgeNumber()) {
@@ -686,15 +709,15 @@ class MyCoursesController extends AuthenticatedController
         $widget = new SelectWidget(_('Semesterfilter'), $this->url_for('my_courses/set_semester'), 'sem_select');
         $widget->setMaxLength(50);
         $widget->addElement(new SelectElement('current', _('Aktuelles Semester'), $sem == 'current'));
-        $widget->addElement(new SelectElement('future', _('Aktuelles und nächstes Semester'), $sem == 'future'));
+        $widget->addElement(new SelectElement('future', _('Aktuelles und nÃ¤chstes Semester'), $sem == 'future'));
         $widget->addElement(new SelectElement('last', _('Aktuelles und letztes Semester'), $sem == 'last'));
-        $widget->addElement(new SelectElement('lastandnext', _('Letztes, aktuelles, nächstes Semester'), $sem == 'lastandnext'));
+        $widget->addElement(new SelectElement('lastandnext', _('Letztes, aktuelles, nÃ¤chstes Semester'), $sem == 'lastandnext'));
         if (Config::get()->MY_COURSES_ENABLE_ALL_SEMESTERS) {
             $widget->addElement(new SelectElement('all', _('Alle Semester'), $sem == 'all'));
         }
 
         if (!empty($semesters)) {
-            $group = new SelectGroupElement(_('Semester auswählen'));
+            $group = new SelectGroupElement(_('Semester auswÃ¤hlen'));
             foreach ($semesters as $semester) {
                 $group->addElement(new SelectElement($semester->id, $semester->name, $sem == $semester->id));
             }

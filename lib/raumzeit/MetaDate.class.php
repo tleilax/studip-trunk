@@ -7,7 +7,7 @@
 // This file is part of Stud.IP
 // MetaDate.class.php
 //
-// Repräsentiert die Zeit- und Turnusdaten einer Veranstaltung
+// ReprÃ¤sentiert die Zeit- und Turnusdaten einer Veranstaltung
 //
 // +--------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@
  * MetaDate.class.php
  *
  *
- * @author      Till Glöggler <tgloeggl@uos.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
  * @version     28. Juni 2007
  * @access      protected
  * @package     raumzeit
@@ -391,11 +391,12 @@ class MetaDate
         foreach (SeminarCycleDate::findBySeminar($this->seminar_id) as $c) {
             $this->cycles[$c->getId()] = new CycleData($c);
         }
+        $this->sortCycleData();
     }
 
     function delete($removeSingleDates = TRUE)
     {
-        //TODO: Löschen eines MetaDate-Eintrages (CycleData);
+        //TODO: LÃ¶schen eines MetaDate-Eintrages (CycleData);
     }
 
     /**
@@ -412,13 +413,19 @@ class MetaDate
 
     /**
      * returns cycledates as arrays
+     *
+     * @param bool $show_invisibles if cycles without dates should
+     *                              be in the array, defaults to false
      * @return array assoc of cycledate data arrays
      */
-    function getCycleData()
+    function getCycleData($show_invisibles = false)
     {
         $ret = array();
+
         foreach ($this->cycles as $val) {
-            $ret[$val->getMetaDateID()] = $val->toArray();
+            if ($val->is_visible || $show_invisibles) {
+                $ret[$val->getMetaDateID()] = $val->toArray();
+            }
         }
         return $ret;
     }
@@ -495,7 +502,7 @@ class MetaDate
                 $d->store();
             }
         }
-        //das sollte nicht nötig sein, muss aber erst genauer untersucht werden
+        //das sollte nicht nÃ¶tig sein, muss aber erst genauer untersucht werden
         $this->store();
         $this->restore();
     }
@@ -518,8 +525,7 @@ class MetaDate
 
         $ret = array();
 
-        $semester = new SemesterData;
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
 
         // get the starting-point for creating singleDates for the choosen cycleData
         foreach ($all_semester as $val) {
@@ -600,13 +606,7 @@ class MetaDate
 
         // get the first presence date after sem_begin
         $day_of_week = date('l', strtotime('Sunday + ' . $this->cycles[$metadate_id]->day . ' days'));
-        $stamp = strtotime('this ' . $day_of_week, $sem_begin);
-
-        if ($end_woche) {
-            $end_woche -= 1;
-            if ($end_woche < 0) $end_woche = 0;
-            $sem_end = strtotime(sprintf('+%u weeks %s', $end_woche, strftime('%d.%m.%Y', $stamp)));
-        }
+        $stamp = strtotime('this week ' . $day_of_week, $sem_begin);
 
         $start_time = mktime(
             (int)$this->cycles[$metadate_id]->start_stunde,     // Hour
@@ -630,8 +630,11 @@ class MetaDate
             // if dateExists is true, the singledate will not be created. Default is of course to create the singledate
             $dateExists = false;
 
+            // do not create singledates if they are earlier than the semester start
+            if ($end_time < $sem_begin) $dateExists = true;
+
             // do not create singledates, if they are earlier then the chosen start-week
-            if ($start_woche > $week) $dateExists = true;
+            if ($start_woche > $week || (isset($end_woche) && $week > $end_woche)) $dateExists = true;
 
             // bi-weekly check
             if ($turnus > 0 && ($week - $start_woche) > 0 && (($week - $start_woche) % ($turnus + 1))) {
@@ -654,7 +657,7 @@ class MetaDate
                     }
 
                     // delete singledates if they are earlier than the chosen start-week
-                    if ($start_woche > $week) {
+                    if ($start_woche > $week || (isset($end_woche) && $week > $end_woche)) {
                         $dates_to_delete[$key] = $val;
                         unset($existingSingleDates[$key]);
                     }
@@ -705,15 +708,6 @@ class MetaDate
 
         } while ($end_time < $sem_end);
 
-
-        foreach ($existingSingleDates as $id => $val) {
-            foreach (array_keys($dates) as $date) {
-                if($date != $id){
-                    $dates_to_delete[$id] = $val;
-                    unset($existingSingleDates[$id]);
-                }
-            }
-        }
         return array('dates' => $dates, 'dates_to_delete' => $dates_to_delete);
     }
 

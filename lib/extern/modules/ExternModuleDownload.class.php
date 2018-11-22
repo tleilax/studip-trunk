@@ -38,9 +38,8 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
+require_once 'lib/extern/views/extern_html_templates.inc.php';
 require_once 'lib/statusgruppe.inc.php';
-require_once 'lib/datei.inc.php';
 
 
 class ExternModuleDownload extends ExternModule {
@@ -62,7 +61,7 @@ class ExternModuleDownload extends ExternModule {
                 _("Dateiname"),
                 _("Beschreibung"),
                 _("Datum"),
-                _("Größe"),
+                _("GrÃ¶ÃŸe"),
                 _("Upload durch")
         );
         parent::__construct($range_id, $module_name, $config_id, $set_config, $global_id);
@@ -101,7 +100,7 @@ class ExternModuleDownload extends ExternModule {
     }
 
     function toString ($args = NULL) {
-        
+
         $error_message = "";
 
         // check for valid range_id
@@ -119,7 +118,7 @@ class ExternModuleDownload extends ExternModule {
             $statement = DBManager::get()->prepare($query);
             $statement->execute($parameters);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($row === false && $row['Lesezugriff'] == 0)
                 $error_message = $GLOBALS["EXTERN_ERROR_MESSAGE"];
         } else {
@@ -135,27 +134,33 @@ class ExternModuleDownload extends ExternModule {
         }
         if ($query_order) {
             ksort($query_order, SORT_NUMERIC);
-            $query_order = " ORDER BY " . implode(",", $query_order) . " DESC";
+            $query_order = implode(",", $query_order) . " DESC";
         }
 
         if (!$nameformat = $this->config->getValue("Main", "nameformat")) {
             $nameformat = "no_title_short";
         }
-        $folder_tree = TreeAbstract::GetInstance('StudipDocumentTree', array('range_id' => $seminar_id));
-        $allowed_folders = $folder_tree->getReadableFolders('nobody');
-        $query = "SELECT dokument_id, description, filename, d.mkdate, d.chdate, filesize, ";
-        $query .= $GLOBALS["_fullname_sql"][$nameformat];
-        $query .= "AS fullname, username, aum.user_id, author_name FROM dokumente d LEFT JOIN user_info USING (user_id) ";
-        $query .= "LEFT JOIN auth_user_md5 aum USING (user_id) WHERE ";
-        $query .= "seminar_id = ? AND range_id IN ('";
-        $query .= implode("','", $allowed_folders) . "')$query_order";
 
-        $parameters = array($seminar_id);
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute($parameters);
-        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        $downloadable_file_refs = [];
 
-        if ($row === false) {
+        $top_folder = Folder::findTopFolder($seminar_id);
+        $top_folder = $top_folder->getTypedFolder();
+
+        $files = $folders = [];
+        extract(FileManager::getFolderFilesRecursive($top_folder, 'nobody'));
+
+        foreach ($files as $f) {
+            if ($folders[$f->folder_id]->isFileDownloadable($f, 'nobody')) {
+                $file_data = $f->toArray();
+                $file_data['fullname'] = $f->owner->getFullname($nameformat);
+                $file_data['username'] = $f->owner->username;
+                $file_data['filename'] = $f->name;
+                $file_data['filesize'] = $f->size;
+                $downloadable_file_refs[] = $file_data;
+            }
+        }
+
+        if (empty($downloadable_file_refs)) {
             $error_message = $this->config->getValue("Main", "nodatatext");
         }
 
@@ -168,88 +173,44 @@ class ExternModuleDownload extends ExternModule {
             $this->config->setValue('Main', 'width', array('100%'));
             $out = $this->elements['TableRow']->toString(array('content' => array('' => $error_message)));
         } else {
+
             $table_row_data["data_fields"] = $this->data_fields;
-            do{
-                preg_match("/^.+\.([a-z1-9_-]+)$/i", $row['filename'], $file_suffix);
+            $downloadable_file_refs = new SimpleCollection($downloadable_file_refs);
+            $downloadable_file_refs->orderBy($query_order);
+            foreach ($downloadable_file_refs as $downloadable_file_ref) {
+                $icon = Icon::create(FileManager::getIconNameForMimeType($downloadable_file_ref->mime_type), 'clickable');
 
-                $icon = "";
-                switch ($file_suffix[1]) {
-                    case "txt" :
-                        if (!$picture_file = $this->config->getValue("Main", "icontxt"))
-                            $icon = Icon::create("file-text", "clickable");
-                        break;
-                    case "xls" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconxls"))
-                            $icon = Icon::create("file-archive", "clickable");
-                        break;
-                    case "ppt" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconppt"))
-                            $icon = Icon::create("file-presentation", "clickable");
-                        break;
-                    case "rtf" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconrtf"))
-                            $icon = Icon::create("file-text", "clickable");
-                        break;
-                    case "zip" :
-                    case "tgz" :
-                    case "gz" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconzip"))
-                            $icon = Icon::create("file-archive", "clickable");
-                        break;
-                    case "jpg" :
-                    case "png" :
-                    case "gif" :
-                    case "jpeg" :
-                    case "tif" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconpic"))
-                            $icon = Icon::create("file-pic", "clickable");
-                        break;
-                    case "pdf" :
-                        if (!$picture_file = $this->config->getValue("Main", "iconpdf"))
-                            $icon = Icon::create("file-pdf", "clickable");
-                        break;
-                    default :
-                        if (!$picture_file = $this->config->getValue("Main", "icondefault"))
-                            $icon = Icon::create("file-generic", "clickable");
-                }
+                $download_link = $downloadable_file_ref->download_url;
 
-                if ($icon) {
-                    $picture_file = $icon;
-                }
-                
-                $download_link = GetDownloadLink($row['dokument_id'], $row['filename']);
-                
                 // Aufbereiten der Daten
                 $table_row_data["content"] = array(
                     "icon"        => sprintf("<a href=\"%s\">%s</a>",
                                              $download_link,
-                                             is_string($picture_file)
-                                             ? Assets::img($picture_file)
-                                             : $picture_file->asImg()),
-                                                                             
+                                             $icon->asImg()),
+
                     "filename"    => $this->elements["Link"]->toString(array("content" =>
-                                                        htmlReady($row['filename']), "link" => $download_link)),
-                                                         
-                    "description" => htmlReady(mila_extern($row['description'],
+                                                        htmlReady($downloadable_file_ref->name), "link" => $download_link)),
+
+                    "description" => htmlReady(mila_extern($downloadable_file_ref->description,
                                                      $this->config->getValue("Main", "lengthdesc"))),
-                    
-                    "mkdate"      => strftime($this->config->getValue("Main", "dateformat"), $row['mkdate']),
-                    
-                    "filesize"    => $row['filesize'] > 1048576 ? round($row['filesize'] / 1048576, 1) . " MB"
-                                                        : round($row['filesize'] / 1024, 1) . " kB",
-                                                            
+
+                    "mkdate"      => strftime($this->config->getValue("Main", "dateformat"), $downloadable_file_ref->mkdate),
+
+                    "filesize"    => $downloadable_file_ref->size > 1048576 ? round($downloadable_file_ref->size / 1048576, 1) . " MB"
+                        : round($downloadable_file_ref->size / 1024, 1) . " kB",
+
                 );
                 // if user is member of a group then link name to details page
-                if (GetRoleNames(GetAllStatusgruppen($this->config->range_id, $row['user_id']))) {
-                    $table_row_data['content']['fullname'] = 
+                if (GetRoleNames(GetAllStatusgruppen($this->config->range_id, $downloadable_file_ref['user_id']))) {
+                    $table_row_data['content']['fullname'] =
                             $this->elements['LinkIntern']->toString(array('content' =>
-                            htmlReady($row['fullname']), 'module' => 'Persondetails',
-                            'link_args' => 'username=' . $row['username']));
+                            htmlReady($downloadable_file_ref->fullname), 'module' => 'Persondetails',
+                            'link_args' => 'username=' . $downloadable_file_ref->username));
                 } else {
-                    $table_row_data['content']['fullname'] = htmlReady($row['username'] ? $row['username'] : $row['author_name']);
+                    $table_row_data['content']['fullname'] = htmlReady($downloadable_file_ref->fullname);
                 }
                 $out .= $this->elements["TableRow"]->toString($table_row_data);
-            }while($row = $statement->fetch(PDO::FETCH_ASSOC));
+            }
         }
 
         return $this->elements["TableHeader"]->toString(array("content" => $out));

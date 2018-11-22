@@ -29,12 +29,12 @@ class PublicCoursesController extends AuthenticatedController
         parent::before_filter($action, $args);
 
         if (!Config::get()->ENABLE_FREE_ACCESS) {
-            throw new AccessDeniedException(_('÷ffentliche Veranstaltungen sind nicht aktiviert.'));
+            throw new AccessDeniedException(_('√ñffentliche Veranstaltungen sind nicht aktiviert.'));
         }
 
         Navigation::activateItem('/browse');
 
-        PageLayout::setTitle(_('÷ffentliche Veranstaltungen'));
+        PageLayout::setTitle(_('√ñffentliche Veranstaltungen'));
         PageLayout::setHelpKeyword('Basis.SymboleFreieVeranstaltungen');
 
         // we are definitely not in an lexture or institute
@@ -106,16 +106,18 @@ class PublicCoursesController extends AuthenticatedController
         $seminar_ids = array_keys($seminars);
 
         // Documents
-        $query = "SELECT seminar_id, COUNT(*) AS count
-                  FROM dokumente
-                  WHERE seminar_id IN (?)
-                  GROUP BY seminar_id";
+        $query = "SELECT range_id, COUNT(*) AS count
+                  FROM folders
+                  INNER JOIN file_refs ON folder_id = folders.id
+                  WHERE range_id IN (?) AND range_type = 'course'
+                  AND folder_type IN ('RootFolder', 'StandardFolder')
+                  GROUP BY range_id";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($seminar_ids));
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $nav = new Navigation('files', 'folder.php?cmd=tree');
+            $nav = new Navigation('files', 'dispatch.php/course/files/index');
             $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf(_('%s Dokumente'),$row['count'])]));
-            $seminars[$row['seminar_id']]['navigations']['files'] = $nav;
+            $seminars[$row['range_id']]['navigations']['files'] = $nav;
         }
 
         // News
@@ -129,7 +131,7 @@ class PublicCoursesController extends AuthenticatedController
         $statement->execute(array($seminar_ids));
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $nav = new Navigation('news', '');
-            $nav->setImage(Icon::create('news', 'inactive', ["title" => sprintf(_('%s Ank¸ndigungen'),$row['count'])]));
+            $nav->setImage(Icon::create('news', 'inactive', ["title" => sprintf(_('%s Ank√ºndigungen'),$row['count'])]));
             $seminars[$row['range_id']]['navigations']['news'] = $nav;
         }
 
@@ -142,7 +144,7 @@ class PublicCoursesController extends AuthenticatedController
         $statement->execute(array($seminar_ids));
         while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
             $nav = new Navigation('scm', 'dispatch.php/course/scm');
-            $nav->setImage(Icon::create('infopage', 'inactive', ["title" => sprintf(_('%s Eintr‰ge'),$row['count'])]));
+            $nav->setImage(Icon::create('infopage', 'inactive', ["title" => sprintf(_('%s Eintr√§ge'),$row['count'])]));
             $seminars[$row['range_id']]['navigations']['scm'] = $nav;
         }
 

@@ -1,13 +1,14 @@
 <?php
 /**
- * @author Arne Schrˆder <schroeder@data-quest.de>
+ * @author Arne Schr√∂der <schroeder@data-quest.de>
  * @author Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @license GPL2 or any later version
  *
  * @todo test datafields!
  */
 
-include_once $GLOBALS['PATH_EXPORT'] . '/export_linking_func.inc.php';
+require_once 'lib/export/export_studipdata_func.inc.php'; // Funktionen f√ºr den Export
+require_once 'lib/export/export_linking_func.inc.php';
 
 class Institute_MembersController extends AuthenticatedController
 {
@@ -29,11 +30,17 @@ class Institute_MembersController extends AuthenticatedController
 
         parent::before_filter($action, $args);
 
+        if (Navigation::hasItem('/admin/institute/faculty')) {
+            Navigation::activateItem('/admin/institute/faculty');
+        } elseif (Navigation::hasItem('/course/faculty/view')) {
+            Navigation::activateItem('/course/faculty/view');
+        }
+
         if (!Institute::findCurrent()) {
             require_once 'lib/admin_search.inc.php';
 
             // TODO: We don't seem to need this since admin_search will stop the script
-            PageLayout::postInfo(_('Sie m¸ssen zun‰chst eine Einrichtung ausw‰hlen'));
+            PageLayout::postInfo(_('Sie m√ºssen zun√§chst eine Einrichtung ausw√§hlen'));
             $this->redirect('institute/basicdata/index?list=TRUE');
             return;
         }
@@ -48,22 +55,16 @@ class Institute_MembersController extends AuthenticatedController
 
         if ($this->admin_view) {
             PageLayout::setTitle(_('Verwaltung von Mitarbeiter/-innen'));
-            if (Navigation::hasItem('/admin/institute/faculty')) {
-                Navigation::activateItem('/admin/institute/faculty');
-            }
             $GLOBALS['perm']->check('admin');
         } else {
             checkObject();
             checkObjectModule('personal');
 
-            if (Navigation::hasItem('/course/faculty/view')) {
-                Navigation::activateItem('/course/faculty/view');
-            }
             $GLOBALS['perm']->check('autor');
         }
 
         //Change header_line if open object
-        if ($header_line = getHeaderLine($this->institute->id)) {
+        if ($header_line = Context::getHeaderLine()) {
             PageLayout::setTitle($header_line." - ".PageLayout::getTitle());
         }
 
@@ -93,8 +94,6 @@ class Institute_MembersController extends AuthenticatedController
         URLHelper::addLinkParam('direction', $this->direction);
         URLHelper::addLinkParam('extend', $this->extend);
 
-        PageLayout::addScript('multi_person_search.js');
-
         $this->setupSidebar();
     }
 
@@ -108,7 +107,8 @@ class Institute_MembersController extends AuthenticatedController
 
         // Show lock rule information
         $lockrule = LockRules::getObjectRule($this->institute->id);
-        if ($this->admin_view && $lockrule->description && LockRules::Check($this->institute->id, 'participants')) {
+        if ($this->admin_view && $lockrule->description
+                && LockRules::Check($this->institute->id, 'participants')) {
             PageLayout::postInfo(formatLinks($lockrule->description));
         }
 
@@ -150,11 +150,11 @@ class Institute_MembersController extends AuthenticatedController
             }
         }
 
-        $this->structure = $this->getTableStructure($this->struct);
+        $this->structure = $this->getTableStructure($this->struct ?: []);
 
         // Actual display routines
         $this->display_tables = [];
-        
+
         if ($this->type == 'function') {
             $this->display_recursive($this->institute->status_groups, $dview);
 
@@ -165,7 +165,8 @@ class Institute_MembersController extends AuthenticatedController
                     return $group->members->pluck('user_id');
                 })));
                 $institut_members = $this->institute->members->filter(function ($member) use ($assigned) {
-                    if (!$GLOBALS['perm']->have_perm('admin') && !($member->visible && $member->user->visible !== 'never')) {
+                    if (!$GLOBALS['perm']->have_perm('admin')
+                            && !($member->visible && $member->user->visible !== 'never')) {
                         return false;
                     }
                     if ($member->inst_perms === 'user') {
@@ -303,7 +304,7 @@ class Institute_MembersController extends AuthenticatedController
                 // der Admin hat Tomaten auf den Augen, der Mitarbeiter sitzt schon im Institut
                 PageLayout::postError(
                     _('Die Person ist bereits in der Einrichtung eingetragen.') . ' ' .
-                    _('Um Rechte etc. zu ‰ndern folgen Sie dem Link zu den Nutzerdaten der Person!')
+                    _('Um Rechte etc. zu √§ndern folgen Sie dem Link zu den pers√∂nlichen Angaben der Person!')
                 );
             } else {
                 // mal nach dem globalen Status sehen
@@ -311,9 +312,10 @@ class Institute_MembersController extends AuthenticatedController
                 $perms    = $member->user->perms;
 
                 if ($perms === 'root') {
-                    PageLayout::postError(_('ROOTs kˆnnen nicht berufen werden!'));
+                    PageLayout::postError(_('ROOTs k√∂nnen nicht berufen werden!'));
                 } elseif ($perms == 'admin') {
-                    if ($GLOBALS['perm']->have_perm('root') || (!$GLOBALS['SessSemName']['is_fak'] && $GLOBALS['perm']->have_studip_perm('admin', $GLOBALS['SessSemName']['fak']))) {
+                    if ($GLOBALS['perm']->have_perm('root')
+                            || (!Context::get()->is_fak && $GLOBALS['perm']->have_studip_perm('admin', Context::get()->fakultaets_id))) {
                         // Emails schreiben...
                         if ($enable_mail_dozent || $enable_mail_admin) {
                             if ($enable_mail_admin && $enable_mail_dozent) {
@@ -376,7 +378,7 @@ class Institute_MembersController extends AuthenticatedController
                 } else {
                     //ok, aber nur hochstufen auf Maximal-Status (hat sich selbst schonmal gemeldet als Student an dem Inst)
                     $was_new = $member->isNew();
-                    
+
                     $member->inst_perms = $perms;
                     if ($member->store()) {
 
@@ -390,7 +392,7 @@ class Institute_MembersController extends AuthenticatedController
 
                         PageLayout::postInfo(
                             sprintf(_('%s wurde als "%s" in die Einrichtung aufgenommen.'), htmlReady($Fullname), $perms) . ' ' .
-                            _('Um Rechte etc. zu ‰ndern folgen Sie dem Link zu den Nutzerdaten der Person!')
+                            _('Um Rechte etc. zu √§ndern folgen Sie dem Link zu den pers√∂nlichen Angaben der Person!')
                         );
                     } else {
                         PageLayout::postError(sprintf(_('%s konnte nicht in die Einrichtung aufgenommen werden!'), htmlReady($Fullname)));
@@ -438,13 +440,13 @@ class Institute_MembersController extends AuthenticatedController
         }
 
         if ($user->id === $GLOBALS['user']->id) {
-            throw new Exception(_('Sie kˆnnen sich nicht selbst aus der Einrichtung austragen.'));
+            throw new Exception(_('Sie k√∂nnen sich nicht selbst aus der Einrichtung austragen.'));
         }
 
         $member = InstituteMember::find([$user->id, $this->institute->id]);
         if ($member && $member->delete()) {
             PageLayout::postInfo(sprintf(
-                _('%s wurde von der Liste des Personals gelˆscht.'),
+                _('%s wurde von der Liste des Personals gel√∂scht.'),
                 htmlReady($user->getFullName())
             ));
 
@@ -486,7 +488,7 @@ class Institute_MembersController extends AuthenticatedController
             unset($table_structure['statusgruppe']);
         }
 
-        $table_structure = array_merge($table_structure, $additional_structure);
+        $table_structure = array_merge($table_structure, (array)$additional_structure);
 
         if ($this->admin_view || $GLOBALS['perm']->have_studip_perm('autor', $this->institute->id)) {
             $table_structure['actions'] = array(
@@ -524,7 +526,7 @@ class Institute_MembersController extends AuthenticatedController
                 $actions->addElement(LinkElement::fromHTML($search->render(), $icon));
             }
 
-            // Mitglieder z‰hlen und E-Mail-Adressen zusammenstellen
+            // Mitglieder z√§hlen und E-Mail-Adressen zusammenstellen
             $valid_mail_members = $this->institute->members->filter(function ($member) {
                 return $member->inst_perms !== 'user'
                     && (bool)$member->email;
@@ -575,7 +577,8 @@ class Institute_MembersController extends AuthenticatedController
 
         if (Config::get()->EXPORT_ENABLE && $GLOBALS['perm']->have_perm('tutor')) {
             $widget = new ExportWidget();
-            $widget->addElement(new WidgetElement(export_form_sidebar($institute->id, 'person', $GLOBALS['SessSemName'][0])));
+            $widget->addElement(new WidgetElement(export_form_sidebar($this->institute->id,
+                'person', $this->institute->Name)));
             $sidebar->addWidget($widget);
         }
     }
@@ -603,7 +606,9 @@ class Institute_MembersController extends AuthenticatedController
             ->setTitle(_('Personen in die Einrichtung eintragen'))
             ->setExecuteURL($this->link_for('institute/members/add', $this->type, ['admin_view' => 1]))
             ->setSearchObject($search_obj)
-            ->setAdditionalHTML('<p><strong>' . _('Nur bei Zuordnung eines Admins:') .' </strong> <label>Benachrichtigung der <input name="additional[]" value="admins" type="checkbox">' . _('Admins') .'</label>
-                             <label><input name="additional[]" value="dozenten" type="checkbox">' . _('Dozenten') . '</label></p>');
+            ->setAdditionalHTML('<p><strong>' . _('Nur bei Zuordnung eines Admins:') .' </strong>
+                            <label><input name="additional[]" value="admins" type="checkbox">' . _('Benachrichtigung der Admins') . '</label>
+                            <label><input name="additional[]" value="dozenten" type="checkbox">' . _('Benachrichtigung der Dozenten') . '</label>
+                            </p>');
     }
 }

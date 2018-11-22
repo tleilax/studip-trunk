@@ -1,13 +1,13 @@
 <?php
 /**
- * Elearning Interface f¸r Veranstaltungen/ Einrichtungen
+ * Elearning Interface f√ºr Veranstaltungen/ Einrichtungen
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author   Arne Schrˆder <schroeder@data-quest.de>
+ * @author   Arne Schr√∂der <schroeder@data-quest.de>
  * @license  http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category Stud.IP
  * @since    3.1
@@ -32,7 +32,7 @@ class Course_ElearningController extends AuthenticatedController
             $this->elearning_active = true;
 
         PageLayout::setHelpKeyword('Basis.Ilias');
-        PageLayout::setTitle($_SESSION['SessSemName']["header_line"]. " - " . _("Lernmodule"));
+        PageLayout::setTitle(Context::getHeaderLine(). " - " . _("Lernmodule"));
 
         checkObject(); // do we have an open object?
         checkObjectModule('elearning_interface');
@@ -49,7 +49,7 @@ class Course_ElearningController extends AuthenticatedController
         $this->module_id = Request::get('module_id');
         $this->module_type = Request::get('module_type');
         $this->anker_target = Request::get('anker_target');
-        $this->seminar_id = $_SESSION['SessSemName'][1];
+        $this->seminar_id = Context::getId();
         $this->rechte = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id);
         if (!isset($GLOBALS['ELEARNING_INTERFACE_MODULES'][$this->new_account_cms])) {
             unset($this->new_account_cms);
@@ -110,7 +110,7 @@ class Course_ElearningController extends AuthenticatedController
 
                     $connected_cms[$connection["cms"]]->newContentModule($connection["id"], $connection["type"], true);
                     $connected_modules[$key]['title'] = $connected_cms[$connection["cms"]]->content_module[$connection["id"]]->getTitle();
-                    $title_tmp[$key] = str_replace(array('‰','ˆ','¸','ﬂ'),array('ae','oe','ue','ss'),mb_strtolower($connected_modules[$key]['title']));
+                    $title_tmp[$key] = str_replace(array('√§','√∂','√º','√ü'),array('ae','oe','ue','ss'),mb_strtolower($connected_modules[$key]['title']));
                     $type_tmp[$key] = array_search($connection['type'], array_keys($GLOBALS['ELEARNING_INTERFACE_MODULES'][$connection["cms"]]['types']));
                     $class_tmp[$key] = $GLOBALS['ELEARNING_INTERFACE_MODULES'][$connection["cms"]]["CLASS_PREFIX"];
                 }
@@ -135,7 +135,7 @@ class Course_ElearningController extends AuthenticatedController
             }
         }
         if (($this->module_count == 0) AND ($this->new_account_cms == "")) {
-            if ($_SESSION['SessSemName']['class']=='inst') {
+            if (Context::isInstitute()) {
                 PageLayout::postMessage(MessageBox::info(_('Momentan sind dieser Einrichtung keine Lernmodule zugeordnet.')));
             } else {
                 PageLayout::postMessage(MessageBox::info(_('Momentan sind dieser Veranstaltung keine Lernmodule zugeordnet.')));
@@ -146,7 +146,12 @@ class Course_ElearningController extends AuthenticatedController
         $widget->addLink(_('Externe Accounts verwalten'), URLHelper::getURL('dispatch.php/elearning/my_accounts'), Icon::create('person', 'clickable'));
         if (count($this->course_output['courses']))
             foreach ($this->course_output['courses'] as $course) {
-                $widget->addLink(sprintf(_('Direkt zum Kurs in %s'), $course['cms_name']), $course['url'], Icon::create('link-extern', 'clickable'), array('target' => '_blank'));
+                $widget->addLink(
+                    sprintf(_('Direkt zum Kurs in %s'), $course['cms_name']),
+                    $course['url'],
+                    Icon::create('link-extern', 'clickable'),
+                    ['target' => '_blank', 'rel' => 'noopener noreferrer']
+                );
             }
         $this->sidebar->addWidget($widget);
         $this->new_account = $this->new_account_cms;
@@ -160,7 +165,7 @@ class Course_ElearningController extends AuthenticatedController
     {
         global $connected_cms, $current_module;
         if (! $this->rechte)
-            throw new AccessDeniedException(_('Keine Berechtigung zum Bearbeiten der Lernmodul-Verkn¸pfungen.'));
+            throw new AccessDeniedException(_('Keine Berechtigung zum Bearbeiten der Lernmodul-Verkn√ºpfungen.'));
         Navigation::activateItem('/course/elearning/edit');
         $GLOBALS['view'] = 'edit';
         // ggf. neuen Ilias4-Kurs anlegen
@@ -225,7 +230,7 @@ class Course_ElearningController extends AuthenticatedController
 
                     $connected_cms[$connection["cms"]]->newContentModule($connection["id"], $connection["type"], true);
                     $connected_modules[$key]['title'] = $connected_cms[$connection["cms"]]->content_module[$connection["id"]]->getTitle();
-                    $title_tmp[$key] = str_replace(array('‰','ˆ','¸','ﬂ'),array('ae','oe','ue','ss'),mb_strtolower($connected_modules[$key]['title']));
+                    $title_tmp[$key] = str_replace(array('√§','√∂','√º','√ü'),array('ae','oe','ue','ss'),mb_strtolower($connected_modules[$key]['title']));
                     $type_tmp[$key] = array_search($connection['type'], array_keys($GLOBALS['ELEARNING_INTERFACE_MODULES'][$connection["cms"]]['types']));
                     $class_tmp[$key] = $GLOBALS['ELEARNING_INTERFACE_MODULES'][$connection["cms"]]["CLASS_PREFIX"];
                 }
@@ -248,7 +253,7 @@ class Course_ElearningController extends AuthenticatedController
             }
         }
         if (($this->module_count == 0) AND ($this->new_account_cms == "")) {
-            if ($_SESSION['SessSemName']['class']=='inst') {
+            if (Context::isInstitute()) {
                 PageLayout::postMessage(MessageBox::info(_('Momentan sind dieser Einrichtung keine Lernmodule zugeordnet.')));
             } else {
                 PageLayout::postMessage(MessageBox::info(_('Momentan sind dieser Veranstaltung keine Lernmodule zugeordnet.')));
@@ -310,7 +315,7 @@ class Course_ElearningController extends AuthenticatedController
                     }
                 }
 
-                // ILIAS 4: ggf. Hinweis auf Mˆglichkeit, weitere Modulformen als Link einzubinden
+                // ILIAS 4: ggf. Hinweis auf M√∂glichkeit, weitere Modulformen als Link einzubinden
                 elseif (method_exists($connected_cms[$this->cms_select], "updateConnections") AND count($connected_cms[$this->cms_select]->types['webr'])) {
                     $this->show_ilias_link_info = true;
                     $crs_data = ObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $this->cms_select);
@@ -328,7 +333,7 @@ class Course_ElearningController extends AuthenticatedController
         }
         $this->sidebar->addWidget($widget);
         $this->new_account = $this->new_account_cms;
-        $this->is_inst = ($_SESSION['SessSemName']['class']=='inst');
+        $this->is_inst = Context::isInstitute();
         if ($this->cms_select) {
             $this->cms_name = $connected_cms[$this->cms_select]->getName();
             $this->cms_logo = $connected_cms[$this->cms_select]->getLogo();

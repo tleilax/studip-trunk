@@ -34,13 +34,13 @@ class StudipNavigation extends Navigation
 
         // if the user is not logged in, he will see the free courses, otherwise
         // the my courses page will be shown.
-        if (is_object($user) && $user->id != 'nobody' || get_config('ENABLE_FREE_ACCESS')) {
+        if (is_object($user) && $user->id != 'nobody' || Config::get()->ENABLE_FREE_ACCESS) {
             $this->addSubNavigation('browse', new BrowseNavigation());
         }
 
         // if a course is selected, the navigation for it will be loaded, but
         // it will not be shown in the main toolbar
-        if ($_SESSION['SessionSeminar']) {
+        if (Context::getId()) {
             $this->addSubNavigation('course', new CourseNavigation());
         }
 
@@ -59,6 +59,13 @@ class StudipNavigation extends Navigation
 
             // search page
             $this->addSubNavigation('search', new SearchNavigation());
+
+            // avatar menu
+            $this->addSubNavigation('avatar', new AvatarNavigation());
+        } else if ($user->id == 'nobody'
+                && Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY) {
+            // search page
+            $this->addSubNavigation('search', new SearchNavigation());
         }
 
         // tools page
@@ -69,6 +76,11 @@ class StudipNavigation extends Navigation
         // admin page
         if (is_object($user) && $perm->have_perm('admin')) {
             $this->addSubNavigation('admin', new AdminNavigation());
+        }
+
+        //mvv pages
+        if (MVV::isVisible()) {
+            $this->addSubNavigation('mvv', new MVVNavigation());
         }
 
         // resource managment, if it is enabled
@@ -84,13 +96,15 @@ class StudipNavigation extends Navigation
             $this->addSubNavigation('resources', $navigation);
         }
 
+        if (is_object($user) && $user->id != 'nobody') {
+            $this->addSubNavigation('files_dashboard', new FilesDashboardNavigation());
+        }
+
         // quick links
         $links = new Navigation('Links');
 
         // login / logout
-        if (is_object($user) && $user->id != 'nobody') {
-            $links->addSubNavigation('logout', new Navigation(_('Logout'), 'logout.php'));
-        } else {
+        if (!is_object($user) && $user->id === 'nobody') {
             if (in_array('CAS', $GLOBALS['STUDIP_AUTH_PLUGIN'])) {
                 $links->addSubNavigation('login_cas', new Navigation(_('Login CAS'), Request::url(), array('again' => 'yes', 'sso' => 'cas')));
             }

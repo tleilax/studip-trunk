@@ -1,12 +1,12 @@
 <h1 class="sr-only">
     <? if ($GLOBALS['perm']->have_perm('root')) :?>
-        <?= _("Startseite für Root bei Stud.IP")?>
+        <?= _("Startseite fÃ¼r Root bei Stud.IP")?>
     <? elseif ($GLOBALS['perm']->have_perm('admin')) : ?>
-        <?= _("Startseite für Admins")?>
+        <?= _("Startseite fÃ¼r Admins")?>
     <? elseif ($GLOBALS['perm']->have_perm('dozent')) :?>
-        <?= _("Startseite für Lehrende")?>
+        <?= _("Startseite fÃ¼r Lehrende")?>
     <? else : ?>
-        <?= _("Ihre persönliche Startseite")?>
+        <?= _("Ihre persÃ¶nliche Startseite")?>
     <? endif ?>
 </h1>
 
@@ -16,10 +16,6 @@ if (get_config('BANNER_ADS_ENABLE')) {
     echo Banner::getRandomBanner()->toHTML();
 }
 ?>
-
-<? if ($flash['question']): ?>
-    <?= $flash['question'] ?>
-<? endif; ?>
 
 <div class="start-widgetcontainer">
     <? foreach (array($left, $right) as $column): ?>

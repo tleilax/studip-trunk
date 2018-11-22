@@ -13,7 +13,9 @@
             <div class="messagebox messagebox_info" style="background-image: none; padding-left: 15px">
                 <?=$course_output['text']?><br>
                 <? foreach ($course_output['courses'] as $course) : ?>
-                    <a target="_blank" href="<?=$course['url']?>"><?=sprintf(_('Kurs in %s'), $course['cms_name'])?></a>
+                    <a href="<?= $course['url'] ?>" target="_blank" rel="noopener noreferrer">
+                        <?= sprintf(_('Kurs in %s'), $course['cms_name']) ?>
+                    </a>
                     <br>
                 <? endforeach ?>
             </div>
@@ -29,7 +31,9 @@
             <? if (count($course_output['courses'])) : ?>
                 <?=$course_output['text']?><br>
                 <? foreach ($course_output['courses'] as $course) : ?>
-                    <a target="_blank" href="<?=$course['url']?>"><?=sprintf(_('Kurs in %s'), $course['cms_name'])?></a>
+                    <a href="<?= $course['url'] ?>" target="_blank" rel="noopener noreferrer">
+                        <?= sprintf(_('Kurs in %s'), $course['cms_name']) ?>
+                    </a>
                     <br>
                 <? endforeach ?>
             <? endif ?>

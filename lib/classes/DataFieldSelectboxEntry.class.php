@@ -19,7 +19,7 @@ class DataFieldSelectboxEntry extends DataFieldEntry
      * @param String    $rangeID   Range id
      * @param mixed     $value     Value
      */
-    public function __construct(DataField $struct, $range_id, $value)
+    public function __construct(DataField $struct = null, $range_id = '', $value = null)
     {
         parent::__construct($struct, $range_id, $value);
 
@@ -61,7 +61,7 @@ class DataFieldSelectboxEntry extends DataFieldEntry
      *
      * @return array containing the individual type parameters
      */
-    protected function getParameters()
+    public function getParameters()
     {
         $params = explode("\n", $this->model->typeparam);
         $params = array_map('trim', $params);

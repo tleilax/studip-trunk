@@ -62,7 +62,7 @@ class ConditionalAdmission extends AdmissionRule
     public function __construct($ruleId='', $courseSetId = '')
     {
         parent::__construct($ruleId, $courseSetId);
-        $this->default_message = _("Sie erfüllen nicht die Bedingung: %s");
+        $this->default_message = _("Sie erfÃ¼llen nicht die Bedingung: %s");
         if ($ruleId) {
             $this->load();
         } else {
@@ -117,7 +117,7 @@ class ConditionalAdmission extends AdmissionRule
     }
 
     /**
-     * Gets all users that are matched by thís rule.
+     * Gets all users that are matched by thÃ­s rule.
      *
      * @return Array An array containing IDs of users who are matched by
      *      this rule.
@@ -182,10 +182,10 @@ class ConditionalAdmission extends AdmissionRule
      */
     public static function getDescription()
     {
-        return _('Über eine Menge von Bedingungen kann festgelegt werden, '.
+        return _('Ãœber eine Menge von Bedingungen kann festgelegt werden, '.
             'wer zur Anmeldung zu den Veranstaltungen des Anmeldesets '.
-            'zugelassen ist. Es muss nur eine der Bedingungen erfüllt sein, '.
-            'innerhalb einer Bedingung müssen aber alle Datenfelder '.
+            'zugelassen ist. Es muss nur eine der Bedingungen erfÃ¼llt sein, '.
+            'innerhalb einer Bedingung mÃ¼ssen aber alle Datenfelder '.
             'zutreffen.');
     }
 
@@ -398,9 +398,7 @@ class ConditionalAdmission extends AdmissionRule
         // prepare condition data.
         $keys = array_keys($this->ungrouped_conditions);
         foreach ($this->conditiongroups as $conditiongroup_id => $conditions) {
-            foreach ($conditions as $condition) {
-                $keys = array_merge($keys, array_keys($conditions));
-            }
+            $keys = array_merge($keys, array_keys($conditions));
         }
 
         // Delete removed conditions from DB.
@@ -516,11 +514,11 @@ class ConditionalAdmission extends AdmissionRule
             $quota_total += $part;
         }
         if ($grouped && $ungrouped) {
-            $errors[] = sprintf(_('Es müssen entweder alle Bedingungen Teil einer Gruppe sein, oder keine. %s Bedingungen sind keiner Gruppe zugeordnet.'), $ungrouped);
+            $errors[] = sprintf(_('Es mÃ¼ssen entweder alle Bedingungen Teil einer Gruppe sein, oder keine. %s Bedingungen sind keiner Gruppe zugeordnet.'), $ungrouped);
         } elseif ($grouped && $quota_total !== 100) {
             $errors[] = _('Die Gesamtsumme der Kontingente muss 100 Prozent betragen.');
         } elseif ($grouped && $no_quota) {
-            $errors[] = sprintf(_('Für %s Gruppen muss noch ein Kontingent festgelegt werden.'), $no_quota);
+            $errors[] = sprintf(_('FÃ¼r %s Gruppen muss noch ein Kontingent festgelegt werden.'), $no_quota);
         }
         return $errors;
     }
@@ -546,13 +544,17 @@ class ConditionalAdmission extends AdmissionRule
         }
         $this->ungrouped_conditions = $cloned_conditions;
         $cloned_conditiongroups = array();
+        $cloned_quota = array();
         foreach ($this->conditiongroups as $conditiongroup_id => $conditions) {
+            $cloned_conditiongroup_id = md5(uniqid($conditiongroup_id));
+            $cloned_quota[$cloned_conditiongroup_id] = $this->quota[$conditiongroup_id];
             foreach ($conditions as $condition) {
                 $dolly = clone $condition;
-                $cloned_conditions[$conditiongroup_id][$dolly->id] = $dolly;
+                $cloned_conditiongroups[$cloned_conditiongroup_id][$dolly->id] = $dolly;
             }
         }
-        $this->conditiongroups = $cloned_conditions;
+        $this->conditiongroups = $cloned_conditiongroups;
+        $this->quota = $cloned_quota;
     }
 
     public function setSiblings($siblings = array())

@@ -2,9 +2,7 @@
     <colgroup>
         <col width="40">
         <col>
-    <? if (!$moderator_list) : ?>
         <col width="48">
-    <? endif ?>
     </colgroup>
     <caption>
         <?= $title ?>
@@ -13,9 +11,7 @@
         <tr>
             <th data-sort="false"></th>
             <th data-sort="text"><?= _('Name') ?></th>
-        <? if (!$moderator_list) : ?>
             <th data-sort="false" class="actions"><?= _('Aktionen') ?></th>
-        <? endif ?>
         </tr>
     </thead>
     <tbody>
@@ -34,17 +30,15 @@
                     <?= htmlReady($fullname) ?>
                 </a>
             </td>
-        <? if (!$moderator_list) : ?>
             <td class="actions">
                 <a href="<?= $controller->url_for('messages/write', array('rec_uname' => $m['username'])) ?>"
                    data-dialog="size=50%">
                     <?= Icon::create('mail', 'clickable', ['title' => _('Nachricht schreiben')])->asImg(20) ?>
                 </a>
-                <? if (($GLOBALS['perm']->have_studip_perm('tutor', $sem_id) && $m['status'] !== 'dozent') || $GLOBALS['perm']->have_studip_perm('admin', $sem_id)) : ?>
+                <? if ($GLOBALS['perm']->have_studip_perm('tutor', $sem_id) || $GLOBALS['perm']->have_studip_perm('admin', $sem_id)) : ?>
                     <?= $this->render_partial('course/studygroup/_members_options.php', compact('m')) ?>
                 <? endif ?>
             </td>
-        <? endif ?>
         </tr>
     <? endforeach ?>
     </tbody>

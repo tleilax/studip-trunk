@@ -8,16 +8,13 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @package     admin
  */
 class Course_RoomRequestsController extends AuthenticatedController
 {
-
-    protected $utf8decode_xhr = true;
-
     /**
      * Common tasks for all actions
      *
@@ -70,16 +67,21 @@ class Course_RoomRequestsController extends AuthenticatedController
         $actions->addLink(_('Neue Raumanfrage erstellen'), $this->url_for('course/room_requests/new/' . $this->course_id), Icon::create('add', 'clickable'));
         Sidebar::get()->addWidget($actions);
 
-        if ($GLOBALS['perm']->have_perm("admin")) {
-            $list = new SelectorWidget();
-            $list->setUrl("?#admin_top_links");
-            $list->setSelectParameterName("cid");
+        if ($GLOBALS['perm']->have_perm('admin')) {
+            $list = new SelectWidget(_('Veranstaltungen'), '?#admin_top_links', 'cid');
+
             foreach (AdminCourseFilter::get()->getCoursesForAdminWidget() as $seminar) {
-                $list->addElement(new SelectElement($seminar['Seminar_id'], $seminar['Name']), 'select-' . $seminar['Seminar_id']);
+                $list->addElement(new SelectElement(
+                    $seminar['Seminar_id'],
+                    $seminar['Name'],
+                    $seminar['Seminar_id'] === Context::getId(),
+                    $seminar['VeranstaltungsNummer'] . ' ' . $seminar['Name']
+                ));
             }
-            $list->setSelection($this->course_id);
+            $list->size = 8;
             Sidebar::get()->addWidget($list);
         }
+
     }
 
     /**
@@ -99,11 +101,17 @@ class Course_RoomRequestsController extends AuthenticatedController
      */
     public function edit_action()
     {
-        Helpbar::get()->addPlainText(_('Information'), _('Hier können Sie Angaben zu gewünschten Raumeigenschaften machen.'));
+        Helpbar::get()->addPlainText(_('Information'), _('Hier kÃ¶nnen Sie Angaben zu gewÃ¼nschten Raumeigenschaften machen.'));
+
+        $request_was_closed_before = false;
+        $admission_turnout = Seminar::getInstance($this->course_id)->admission_turnout;
+
         if (Request::option('new_room_request_type')) {
             $request = new RoomRequest();
             $request->seminar_id = $this->course_id;
             $request->user_id = $GLOBALS['user']->id;
+            $request->setDefaultSeats($admission_turnout ?: Config::get()->RESOURCES_ROOM_REQUEST_DEFAULT_SEATS);
+
             list($new_type, $id) = explode('_', Request::option('new_room_request_type'));
             if ($new_type == 'course') {
                 if ($existing_request = RoomRequest::existsByCourse($this->course_id)) {
@@ -123,10 +131,15 @@ class Course_RoomRequestsController extends AuthenticatedController
             }
         } else {
             $request = RoomRequest::find(Request::option('request_id'));
+
+            if($request->user_id != $GLOBALS['user']->id) {
+                $request->last_modified_by = $GLOBALS['user']->id;
+            }
+
+            $request_was_closed_before = $request->getClosed() > 0;
         }
 
-        $admission_turnout = Seminar::getInstance($this->course_id)->admission_turnout;
-        $attributes = self::process_form($request, $admission_turnout);
+        $attributes = self::process_form($request);
 
         $this->params = array('request_id' => $request->getId());
         $this->params['fromDialog'] = Request::get('fromDialog');
@@ -136,12 +149,18 @@ class Course_RoomRequestsController extends AuthenticatedController
 
         if (Request::submitted('save') || Request::submitted('save_close')) {
             if (!($request->getSettedPropertiesCount() || $request->getResourceId())) {
-                PageLayout::postMessage(MessageBox::error(_("Die Anfrage konnte nicht gespeichert werden, da Sie mindestens einen Raum oder mindestens eine Eigenschaft (z.B. Anzahl der Sitzplätze) angeben müssen!")));
+                PageLayout::postMessage(MessageBox::error(_("Die Anfrage konnte nicht gespeichert werden, da Sie mindestens einen Raum oder mindestens eine Eigenschaft (z.B. Anzahl der SitzplÃ¤tze) angeben mÃ¼ssen!")));
             } else {
                 $request->setClosed(0);
+                if ($request_was_closed_before) {
+                    //The one who re-activates a request shall be the one who owns it.
+                    //(Fix for Biest #2794).
+                    $request->user_id = $GLOBALS['user']->id;
+                }
+
                 $this->request_stored = $request->store();
                 if ($this->request_stored) {
-                    PageLayout::postMessage(MessageBox::success(_("Die Raumanfrage und gewünschte Raumeigenschaften wurden gespeichert")));
+                    PageLayout::postMessage(MessageBox::success(_("Die Raumanfrage und gewÃ¼nschte Raumeigenschaften wurden gespeichert")));
                 }
                 if (Request::submitted('save_close')) {
                     if (!Request::isXhr()) {
@@ -160,7 +179,7 @@ class Course_RoomRequestsController extends AuthenticatedController
         }
 
         if (!$request->isNew() && $request->isDirty()) {
-            PageLayout::postMessage(MessageBox::info(_("Die Änderungen an der Raumanfrage wurden noch nicht gespeichert!")));
+            PageLayout::postMessage(MessageBox::info(_("Die Ã„nderungen an der Raumanfrage wurden noch nicht gespeichert!")));
         }
         $room_categories = array_values(array_filter(getResourcesCategories(), function ($a) { return $a["is_room"] == 1;}));
         if (!$request->getCategoryId() && count($room_categories) == 1) {
@@ -168,7 +187,6 @@ class Course_RoomRequestsController extends AuthenticatedController
         }
         $this->search_result = $attributes['search_result'];
         $this->search_by_properties = $attributes['search_by_properties'];
-        $this->admission_turnout = $admission_turnout;
         $this->request = $request;
         $this->room_categories = $room_categories;
         $this->new_room_request_type = Request::option('new_room_request_type');
@@ -179,7 +197,7 @@ class Course_RoomRequestsController extends AuthenticatedController
         $actions->addLink(_('Bearbeitung abbrechen'), $this->link_for('index/' . $this->course_id), Icon::create('decline', 'clickable'));
 
         if (!$request->isNew() && (getGlobalPerms($GLOBALS['user']->id) == 'admin' || ($GLOBALS['perm']->have_perm('admin') && count(getMyRoomRequests(null, null, true, $request->getId()))))) {
-            $actions->addLink(_('Raumanfrage auflösen'),
+            $actions->addLink(_('Raumanfrage auflÃ¶sen'),
                 URLHelper::getLink('resources.php', array('view'           => 'edit_request',
                                                           'single_request' => $request->getId()
                 )),
@@ -195,11 +213,11 @@ class Course_RoomRequestsController extends AuthenticatedController
                 $widget->addElement(new WidgetElement(_('Dies ist eine neue Raumanfrage.')));
             } else {
                 $info_txt = '';
-                if($request->user) {
+                if ($request->user) {
                     $info_txt .= '<p>' . sprintf(_('Erstellt von: %s'), htmlReady($request->user->getFullname())) . '</p>';
                 }
                 $info_txt .= '<p>' . sprintf(_('Erstellt am: %s'), htmlReady(strftime('%x %H:%M', $request->mkdate))) . '</p>';
-                $info_txt .= '<p>' . sprintf(_('Letzte Änderung: %s'), htmlReady(strftime('%x %H:%M', $request->chdate))) . '</p>';
+                $info_txt .= '<p>' . sprintf(_('Letzte Ã„nderung: %s'), htmlReady(strftime('%x %H:%M', $request->chdate))) . '</p>';
                 $widget->addElement(new WidgetElement($info_txt));
             }
             Sidebar::Get()->addWidget($widget);
@@ -218,12 +236,12 @@ class Course_RoomRequestsController extends AuthenticatedController
         }
         if (!RoomRequest::existsByCourse($this->course_id)) {
             $options[] = array('value' => 'course',
-                               'name'  => _('alle regelmäßigen und unregelmäßigen Termine der Veranstaltung')
+                               'name'  => _('alle regelmÃ¤ÃŸigen und unregelmÃ¤ÃŸigen Termine der Veranstaltung')
             );
         }
         foreach (SeminarCycleDate::findBySeminar($this->course_id) as $cycle) {
             if (!RoomRequest::existsByCycle($cycle->getId())) {
-                $name = _("alle Termine einer regelmäßigen Zeit");
+                $name = _("alle Termine einer regelmÃ¤ÃŸigen Zeit");
                 $name .= ' (' . $cycle->toString('full') . ')';
                 $options[] = array('value' => 'cycle_' . $cycle->getId(), 'name' => $name);
             }
@@ -238,7 +256,7 @@ class Course_RoomRequestsController extends AuthenticatedController
         }
         $this->options = $options;
 
-        Helpbar::get()->addPlainText(_('Information'), _('Hier können Sie festlegen, welche Art von Raumanfrage Sie erstellen möchten.'));
+        Helpbar::get()->addPlainText(_('Information'), _('Hier kÃ¶nnen Sie festlegen, welche Art von Raumanfrage Sie erstellen mÃ¶chten.'));
     }
 
     /**
@@ -254,13 +272,13 @@ class Course_RoomRequestsController extends AuthenticatedController
             $factory = new Flexi_TemplateFactory($this->dispatcher->trails_root . '/views/');
             $template = $factory->open('course/room_requests/_del.php');
             $template->action = $this->link_for('delete/' . $this->course_id, array('request_id' => $request->getid()));
-            $template->question = sprintf(_('Möchten Sie die Raumanfrage "%s" löschen?'), $request->getTypeExplained());
+            $template->question = sprintf(_('MÃ¶chten Sie die Raumanfrage "%s" lÃ¶schen?'), $request->getTypeExplained());
             $this->flash['message'] = $template->render();
         } else {
             CSRFProtection::verifyUnsafeRequest();
             if (Request::submitted('kill')) {
                 if ($request->delete()) {
-                    $this->flash['message'] = MessageBox::success("Die Raumanfrage wurde gelöscht.");
+                    $this->flash['message'] = MessageBox::success("Die Raumanfrage wurde gelÃ¶scht.");
                 }
             }
         }
@@ -271,7 +289,7 @@ class Course_RoomRequestsController extends AuthenticatedController
      * handle common tasks for the romm request form
      * (set properties, searching etc.)
      */
-    public static function process_form($request, $admission_turnout = null)
+    public static function process_form($request)
     {
         if (Request::submitted('room_request_form')) {
             CSRFProtection::verifyUnsafeRequest();
@@ -300,9 +318,7 @@ class Course_RoomRequestsController extends AuthenticatedController
                 $request_property_val = Request::getArray('request_property_val');
                 foreach ($request->getAvailableProperties() as $prop) {
                     if ($prop["system"] == 2) { //it's the property for the seat/room-size!
-                        if (Request::get('seats_are_admission_turnout') && $admission_turnout) {
-                            $request->setPropertyState($prop['property_id'], $admission_turnout);
-                        } else if (!Request::submitted('send_room_type')) {
+                        if (!Request::submitted('send_room_type')) {
                             $request->setPropertyState($prop['property_id'], abs($request_property_val[$prop['property_id']]));
                         }
                     } else {
@@ -319,18 +335,19 @@ class Course_RoomRequestsController extends AuthenticatedController
                 if (count($tmp_search_result)) {
                     $timestamps = $events = array();
                     foreach ($request->getAffectedDates() as $date) {
-                        if (!isset($date->room_assignment)) {
-                            $timestamps[] = $date->date;
-                            $timestamps[] = $date->end_time;
-                            $event = new AssignEvent($date->id, $date->date, $date->end_time, null, null, '');
-                            $events[$event->getId()] = $event;
-                        }
+                        $timestamps[] = $date->date;
+                        $timestamps[] = $date->end_time;
+                        $assign_id = $date->room_assignment->id ?: $date->id;
+                        $event = new AssignEvent($assign_id, $date->date, $date->end_time, $date->room_assignment->resource_id, null);
+                        $events[$event->getId()] = $event;
                     }
                     $check_result = array();
                     if (count($events)) {
                         $checker = new CheckMultipleOverlaps();
                         $checker->setTimeRange(min($timestamps), max($timestamps));
-                        foreach (array_keys($tmp_search_result) as $room) $checker->addResource($room);
+                        foreach (array_keys($tmp_search_result) as $room) {
+                            $checker->addResource($room);
+                        }
                         $checker->checkOverlap($events, $check_result, "assign_id");
                     }
                     foreach ($tmp_search_result as $room_id => $name) {
@@ -341,24 +358,31 @@ class Course_RoomRequestsController extends AuthenticatedController
                             continue;
                         }
 
-                        if (isset($check_result[$room_id])) {
+                        if (isset($check_result[$room_id]) && count($check_result[$room_id]) > 0) {
                             $details = $check_result[$room_id];
                             if (count($details) >= round(count($events) * Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE / 100)) {
-                                $overlap_status = 'status-red';
-                            } elseif (count($details)) {
-                                $overlap_status = 'status-yellow';
+                                $icon = Icon::create('decline-circle', 'status-red', [
+                                    'title' => sprintf(
+                                        _('Es existieren Ãœberschneidungen oder Belegungssperren zu mehr als %s%% aller gewÃ¼nschten Belegungszeiten.'),
+                                        Config::get()->RESOURCES_ALLOW_SINGLE_ASSIGN_PERCENTAGE
+                                    ),
+                                ]);
+                            } else {
+                                $icon = Icon::create('exclaim-circle', 'status-yellow', [
+                                    'title' => _('Es existieren Ãœberschneidungen zur gewÃ¼nschten Belegungszeit.'),
+                                ]);
                             }
                         } else {
-                            $overlap_status = 'status-green';
+                            $icon = Icon::create('check-circle', 'status-green', [
+                                'title' => _('Es existieren keine Ãœberschneidungen'),
+                            ]);
                         }
-                        $search_result[$room_id] = array('name'           => $name,
-                                                         'overlap_status' => $overlap_status
-                        );
+                        $search_result[$room_id] = compact('name', 'icon');
                     }
                 }
             }
         }
-        return compact('search_result', 'search_by_properties', 'request', 'admission_turnout');
+        return compact('search_result', 'search_by_properties');
     }
 
     /**

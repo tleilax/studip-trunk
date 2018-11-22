@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @author      Till Glˆggler <tgloeggl@uos.de>
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
  * @license     GPL 2 or later
  */
 
@@ -58,9 +58,9 @@ class ParticipantsProvider implements ActivityProvider
      */
     public function getActivityDetails($activity)
     {
-        $activity->content = $activity->content;
+        $activity->content = htmlReady($activity->content);
 
-        $url = \URLHelper::getUrl("dispatch.php/course/members/index?cid=/{$activity->context_id}", array('cid' => null));
+        $url = \URLHelper::getUrl("dispatch.php/course/members/index", array('cid' => $activity->context_id));
 
         $route = \URLHelper::getURL('api.php/course/' . $activity->context_id, NULL, true);
 

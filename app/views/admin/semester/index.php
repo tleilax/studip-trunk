@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for('admin/semester/delete/bulk') ?>" method="post">
+<form action="<?= $controller->url_for('admin/semester/delete/bulk') ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
 <table class="default" id="semesters">
@@ -20,7 +20,7 @@
                        data-activates="#semesters tfoot button">
             </th>
             <th><?= _('Name') ?></th>
-            <th><?= _('Kürzel') ?></th>
+            <th><?= _('KÃ¼rzel') ?></th>
             <th><?= _('Zeitraum') ?></th>
             <th><?= _('Veranstaltungszeitraum') ?></th>
             <th><?= _('Veranstaltungen') ?></th>
@@ -32,7 +32,7 @@
         <tr>
             <td colspan="7" style="text-align: center;">
             <? if ($filter): ?>
-                <?= _('In der gewählten Ansicht gibt es keine Einträge.') ?>
+                <?= _('In der gewÃ¤hlten Ansicht gibt es keine EintrÃ¤ge.') ?>
             <? else: ?>
                 <?= _('Es wurden noch keine Semester angelegt.') ?><br>
                 <?= Studip\LinkButton::create(_('Neues Semester anlegen'),
@@ -67,19 +67,21 @@
             <td>
                 <?= $semester->absolute_seminars_count ?>
                 <?= sprintf(_('(+%u implizit)'),
-                            $semester->continuous_seminars_count + $semester->duration_seminars_count) ?> 
+                            $semester->continuous_seminars_count + $semester->duration_seminars_count) ?>
             </td>
             <td class="actions">
                 <a data-dialog="size=auto" href="<?= $controller->url_for('admin/semester/edit/' . $semester->id) ?>">
                     <?= Icon::create('edit', 'clickable', ['title' => _('Semesterangaben bearbeiten')])->asImg() ?>
                 </a>
             <? if ($semester->absolute_seminars_count): ?>
-                <?= Icon::create('trash', 'inactive', ['title' => _('Semester hat Veranstaltungen und kann daher nicht gelöscht werden.')])->asImg() ?>
+                <?= Icon::create('trash', 'inactive', ['title' => _('Semester hat Veranstaltungen und kann daher nicht gelÃ¶scht werden.')])->asImg() ?>
             <? else: ?>
-                <?= Icon::create('trash', 'clickable', ['title' => _('Semester löschen')])
+                <?= Icon::create('trash', 'clickable', ['title' => _('Semester lÃ¶schen')])
                         ->asInput(array(
-                            'formaction' => $controller->url_for('admin/semester/delete/'.$semester->id),
-                            'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'),)) ?>
+                            'formaction'   => $controller->url_for('admin/semester/delete/'.$semester->id),
+                            'data-confirm' => _('Soll das Semester wirklich gelÃ¶scht werden?'),
+                            'style'        => 'vertical-align: bottom'
+                        )) ?>
             <? endif; ?>
             </td>
         </tr>
@@ -89,9 +91,8 @@
     <tfoot>
         <tr>
             <td colspan="7">
-                <?= _('Markierte Einträge') ?>
-                <?= Studip\Button::create(_('Löschen'), 'delete', array(
-                        'data-confirm' => _('Sollen die Semester wirklich gelöscht werden?')
+                <?= Studip\Button::create(_('Markierte EintrÃ¤ge lÃ¶schen'), 'delete', array(
+                        'data-confirm' => _('Sollen die Semester wirklich gelÃ¶scht werden?')
                 )) ?>
             </td>
         </tr>

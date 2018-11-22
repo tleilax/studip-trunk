@@ -1,14 +1,16 @@
 <form class="default" method="post" action="<?= URLHelper::getLink(); ?>">
     <input type="hidden" name="myCoursesOnly" value="<?= Request::get('myCoursesOnly') ?>">
     <fieldset>
-        <legend><?= _('Suche im Veranstaltungsarchiv'); ?></legend>
-        <label>
-            <?= _('Name der Veranstaltung') . ':'; ?>
-            <input type="text" minlength="4" name="criteria"
-                value="<?= htmlReady($criteria) ?>">
+        <legend>
+            <?= _('Suche im Veranstaltungsarchiv') ?>
+        </legend>
+        <label class="col-3">
+            <?= _('Name der Veranstaltung') ?>
+            <input type="text" minlength="4" name="criteria" placeholder="<?= _('Veranstaltung suchen') ?>"
+                   value="<?= htmlReady($criteria) ?>" autofocus>
         </label>
-        <label>
-            <?= _('Semester') . ':'; ?>
+        <label class="col-3">
+            <?= _('Semester') ?>
             <select name="selectedSemester">
                 <option value=""
                     <?= ($selectedSemester == '') ? 'selected="selected"' : '' ?>>
@@ -22,8 +24,8 @@
                 <? endforeach ?>
             </select>
         </label>
-        <label>
-            <div style="margin-top: 1ex; margin-bottom: 1ex;"><?= _('Einrichtung') . ':'; ?></div>
+        <label class="col-3">
+            <?= _('Einrichtung') ?>
             <select name="selectedDepartment" class="nested-select">
                 <option value="" class="nested-item-header"
                     <?= ($selectedDepartment == '') ? 'selected="selected"' : '' ?>>
@@ -45,11 +47,15 @@
                 <? endforeach ?>
             </select>
         </label>
-        <?= \Studip\Button::create(_('Suchen'), '') ?>
     </fieldset>
+    <footer>
+        <?= \Studip\Button::create(_('Suchen'), '') ?>
+        <?= Studip\LinkButton::create(_('Zurücksetzen'), URLHelper::getURL('dispatch.php/search/archive')) ?>
+    </footer>
 </form>
+
 <? if ($foundCourses) : ?>
-    
+    <br>
     <table class="default withdetails">
         <tr>
             <th><?= _('Name') ?></th>
@@ -75,21 +81,18 @@
                     <?= Icon::create('info-circle', 'clickable')->asImg('16px') ?>
                 </a>
                 <? endif ?>
-                
-                <? if ($course->archiv_file_id and archiv_check_perm($course->id)) : 
-                    $filename = _('Dateisammlung') . '-' . mb_substr($course->name, 0, 200) . '.zip';
-                ?>
-                <a href="<?= URLHelper::getLink(GetDownloadLink($course->archiv_file_id, $filename, 1)) ?>">
-                    <?= Icon::create('file-archive', 'clickable')->asImg('16px') ?>
-                </a>
-                <? elseif ($course->archiv_protected_file_id and in_array(archiv_check_perm($course->id), ['tutor', 'dozent', 'admin'])) :
-                    $filename = _('Dateisammlung') . '-' . mb_substr($course->name, 0, 200) . '.zip';
-                ?>
-                <a href="<?= URLHelper::getLink(GetDownloadLink($course->archiv_protected_file_id, $filename, 1)) ?>">
+
+                <? if ($course->archiv_file_id and archiv_check_perm($course->id)): ?>
+                <a href="<?= FileManager::getDownloadLinkForArchivedCourse($course, false) ?>">
                     <?= Icon::create('file-archive', 'clickable')->asImg('16px') ?>
                 </a>
                 <? endif ?>
-                <? if(archiv_check_perm($course->id)) : ?>
+                <? if ($course->archiv_protected_file_id and in_array(archiv_check_perm($course->id), ['tutor', 'dozent', 'admin'])): ?>
+                <a href="<?= FileManager::getDownloadLinkForArchivedCourse($course, true) ?>">
+                    <?= Icon::create('file-archive', 'clickable')->asImg('16px') ?>
+                </a>
+                <? endif ?>
+                <? if (archiv_check_perm($course->id)): ?>
                 <a href="<?= $controller->url_for(
                                 'archive/forum',
                                 $course->id
@@ -103,13 +106,31 @@
                     <?= Icon::create('wiki', 'clickable')->asImg('16px') ?>
                 </a>
                 <? endif ?>
+                <? if (archiv_check_perm($course->id) == 'admin'): ?>
+                <a href="<?= URLHelper::getLink(
+                         'dispatch.php/archive/delete/' . $course->id,
+                         [
+                             'criteria' => $criteria,
+                             'selectedSemester' => $selectedSemester,
+                             'selectedDepartment' => $selectedDepartment
+                         ]
+                         ) ?>"
+                   title="<?= _('Löschen') ?>"
+                   onclick="return STUDIP.Dialog.confirmAsPost('<?=
+                       sprintf(
+                           _('Soll die Veranstaltung %1$s wirklich aus dem Archiv gelöscht werden?'),
+                           htmlReady($course->name)
+                       ) ?>', this.href);">
+                    <?= Icon::create('trash', 'clickable')->asImg('16px') ?>
+                </a>
+                <? endif ?>
             </td>
         </tr>
         <tr class="details nohover">
             <td colspan="5" class="detailscontainer">
                 <ul class="default nohover">
                     <li>
-                        <strong><?= _('Fakult�t') . ':' ?></strong>
+                        <strong><?= _('Fakultät') . ':' ?></strong>
                         <?= htmlReady($course->fakultaet) ?>
                     </li>
                     <li>

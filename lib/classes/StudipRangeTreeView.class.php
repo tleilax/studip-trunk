@@ -9,7 +9,7 @@
 // StudipRangeTreeView.class.php
 // Class to print out the "range tree"
 //
-// Copyright (c) 2002 André Noack <noack@data-quest.de>
+// Copyright (c) 2002 AndrÃ© Noack <noack@data-quest.de>
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@
 * This class prints out a html representation of the whole or part of the tree
 *
 * @access   public
-* @author   André Noack <noack@data-quest.de>
+* @author   AndrÃ© Noack <noack@data-quest.de>
 * @package
 */
 class StudipRangeTreeView extends TreeView{
@@ -48,7 +48,7 @@ class StudipRangeTreeView extends TreeView{
     }
 
     function getItemContent($item_id){
-        $content = "\n<table width=\"90%\" cellpadding=\"2\" cellspacing=\"2\" align=\"center\" style=\"font-size:10pt\">";
+        $content = "\n<table width=\"100%\" cellpadding=\"2\" cellspacing=\"2\" align=\"center\" style=\"font-size:10pt\">";
         if ($item_id == "root"){
             $content .= "\n<tr><td class=\"table_header_bold\" align=\"left\">" . htmlReady($this->tree->root_name) ." </td></tr>";
             $content .= "\n<tr><td class=\"blank\" align=\"left\">" . htmlReady($this->root_content) ." </td></tr>";
@@ -99,4 +99,3 @@ class StudipRangeTreeView extends TreeView{
 //$test->showTree();
 //echo "</table>";
 //page_close();
-?>

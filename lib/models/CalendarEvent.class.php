@@ -25,14 +25,14 @@
  * @property institute institute belongs_to Institute
  * @property event belongs_to CalendarEvent
  */
-class CalendarEvent extends SimpleORMap implements Event
+class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
 {
     const PARTSTAT_TENTATIVE = 1;
     const PARTSTAT_ACCEPTED = 2;
     const PARTSTAT_DECLINED = 3;
     const PARTSTAT_DELEGATED = 4;
     const PARTSTAT_NEEDS_ACTION = 5;
-    
+
     private $properties = null;
     private $permission_user_id = null;
 
@@ -78,7 +78,7 @@ class CalendarEvent extends SimpleORMap implements Event
     /**
      * Returns the owner of this event as an object of type User, Course
      * or Institute.
-     * 
+     *
      * @return object
      */
     public function getOwner()
@@ -92,7 +92,7 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         return null;
     }
-    
+
     public static function deleteBySQL($where, $params = array())
     {
         $ret = parent::deleteBySQL($where, $params);
@@ -155,7 +155,7 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         return $as_array ? $categories : implode(', ', $categories);
     }
-    
+
     /**
      * Returns the name of the group status.
      * Returns an empty string status is unknown.
@@ -179,7 +179,7 @@ class CalendarEvent extends SimpleORMap implements Event
         }
         return '';
     }
-    
+
     /**
      * Returns all values that defines a recurrence rule or a single value
      * named by $index.
@@ -265,25 +265,39 @@ class CalendarEvent extends SimpleORMap implements Event
                 } else {
                     $ts = mktime(12, 0, 0, date('n', $start),
                             date('j', $start) + (7 - (strftime('%u', $start) - 1))
-                            - ((strftime('%u', $start) <= mb_substr($r_rule['wdays'], -1)) ? 7 : 0),
+                            - ((strftime('%u', $start) <= substr($r_rule['wdays'], -1)) ? 7 : 0),
                             date('Y', $start));
 
                     if ($r_rule['count']) {
-                        $set_start_wday = false;
-                        $wdays = array(0);
-                        for ($i = 0; $i < mb_strlen($r_rule['wdays']); $i++) {
-                            $wdays[] = $r_rule['wdays']{$i};
-                            if (!$set_start_wday && intval($r_rule['wdays']{$i}) >= intval(strftime('%u', $start))) {
-                                $start_wday = $r_rule['wdays']{$i};
-                                $set_start_wday = true;
+                        $dt_ts = DateTime::createFromFormat('U', $ts);
+
+                        // max. length of selected week days must not exceed
+                        // number of recurrences
+                        $r_rule['wdays'] = substr($r_rule['wdays'], 0, $r_rule['count']);
+
+                        $start_wday = date('N', $start);
+                        $count_first_week = 0;
+                        for ($i = 0; $i < strlen($r_rule['wdays']); $i++) {
+                            if ($r_rule['wdays']{$i} >= $start_wday) {
+                                $count_first_week++;
                             }
                         }
-                        if (intval(strftime('%u', $start)) > intval(mb_substr($r_rule['wdays'], -1))) {
-                            $start_wday = $r_rule['wdays']{0};
-                        }
-                        $expire_ts = $ts + ((($r_rule['count'] % (count($wdays) - 1)) >= 1) ? (($start_wday - 1) * 86400) : 0)
-                                + floor($r_rule['count'] / (count($wdays) - 1)) * 604800 * $r_rule['linterval'];
 
+                        $count_first_week += (date('N', $start) < $r_rule['wdays']{0}) ? 1 : 0;
+
+                        $count_complete = $r_rule['count'] - $count_first_week;
+                        $weeks_max = floor($count_complete / strlen($r_rule['wdays']));
+
+                        $dt_expire = $dt_ts->add(new DateInterval('P' . ($weeks_max + 1) . 'W'));
+                        $count_last_week = $count_complete % strlen($r_rule['wdays']);
+                        if ($count_last_week) {
+                            $last_wday = $r_rule['wdays']{$count_last_week - 1};
+                            $dt_expire = $dt_expire->add(new DateInterval('P' . ($last_wday - 1) . 'D'));
+                        } else {
+                            $dt_expire = $dt_expire->sub(new DateInterval('P1D'));
+                        }
+
+                        $expire_ts = $dt_expire->format('U');
                         $r_rule['expire'] = mktime(23, 59, 59, date('n', $expire_ts),
                                 date('j', $expire_ts), date('Y', $expire_ts));
                     }
@@ -446,7 +460,7 @@ class CalendarEvent extends SimpleORMap implements Event
                             $rrule['linterval']);
                 } else {
                     $type = 'daily';
-                    $text = _('Der Termin wird täglich wiederholt');
+                    $text = _('Der Termin wird tÃ¤glich wiederholt');
                 }
                 break;
             case 'WEEKLY':
@@ -499,7 +513,7 @@ class CalendarEvent extends SimpleORMap implements Event
                 }
                 break;
             case 'YEARLY':
-                $month_names = array(_('Januar'), _('Februar'), _('März'), _('April'), _('Mai'),
+                $month_names = array(_('Januar'), _('Februar'), _('MÃ¤rz'), _('April'), _('Mai'),
                     _('Juni'), _('Juli'), _('August'), _('September'), _('Oktober'),
                     _('November'), _('Dezember'));
                 if ($rrule['day']) {
@@ -561,7 +575,7 @@ class CalendarEvent extends SimpleORMap implements Event
                 $this->permission_user_id)) {
             switch ($this->event->class) {
                 case 'PUBLIC':
-                    return _('Öffentlich');
+                    return _('Ã–ffentlich');
                 case 'CONFIDENTIAL':
                     return _('Vertraulich');
                 default:
@@ -731,13 +745,15 @@ class CalendarEvent extends SimpleORMap implements Event
     }
 
     /**
-     * Returns the global uni id of this event.
+     * Returns the global unique id of this event.
      *
      * @return string The global unique id.
      */
     public function getUid()
     {
-        return 'Stud.IP-' . $this->event_id . '@' . $_SERVER['SERVER_NAME'];
+        return $this->event->uid !== ''
+                ? $this->event->uid
+                : 'Stud.IP-' . $this->event_id . '@' . $_SERVER['SERVER_NAME'];
     }
 
     /**
@@ -914,7 +930,7 @@ class CalendarEvent extends SimpleORMap implements Event
             case Calendar::PERMISSION_ADMIN :
                 $options = array(
                     // SEMBBS nur private und vertrauliche Termine
-                    'PUBLIC' => _('Öffentlich'),
+                    'PUBLIC' => _('Ã–ffentlich'),
                     'PRIVATE' => _('Privat'),
                     'CONFIDENTIAL' => _('Vertraulich')
                 );
@@ -1034,7 +1050,7 @@ class CalendarEvent extends SimpleORMap implements Event
                 'DESCRIPTION' => stripslashes($this->getDescription()),
                 'UID' => $this->getUid(),
                 'CLASS' => $this->getAccessibility(),
-                'CATEGORIES' => $this->getUserDefinedCategories(),
+                'CATEGORIES' => $this->toStringCategories(),
                 'STUDIP_CATEGORY' => $this->getCategory(),
                 'PRIORITY' => $this->getPriority(),
                 'LOCATION' => stripslashes($this->getLocation()),
@@ -1112,7 +1128,7 @@ class CalendarEvent extends SimpleORMap implements Event
 
     /**
      * Sets the user_id to check his permission.
-     * 
+     *
      * @param string $user_id The id of the user.
      */
     public function setPermissionUser($user_id)
@@ -1124,7 +1140,7 @@ class CalendarEvent extends SimpleORMap implements Event
      * Checks the permission of the user previously set with
      * CalendarEvent::setPermissisonUser or given by second argument.
      * Returns true if the user have the at least the given permission.
-     * 
+     *
      * @param int $permission
      * @param string $user_id
      * @return boolean
@@ -1138,7 +1154,7 @@ class CalendarEvent extends SimpleORMap implements Event
     /**
      * Returns the permission of the given user or the user set by
      * CalendarEvent::setPermssionUser previously.
-     * 
+     *
      * @staticvar array $permissions
      * @param string $user_id The user's id.
      * @return int The permission.
@@ -1154,16 +1170,16 @@ class CalendarEvent extends SimpleORMap implements Event
             if ($user_id == $this->event->author_id) {
                 $permissions[$user_id][$this->event_id] = Event::PERMISSION_OWN;
             } else
-            
+
             // SEMBBS
-            // Admins dürfen alle Termine löschen
+            // Admins dÃ¼rfen alle Termine lÃ¶schen
             /*
             if ($GLOBALS['perm']->have_perm('admin')) {
                 $permissions[$user_id][$this->event_id] = Event::PERMISSION_DELETABLE;
-            } else 
-             * 
+            } else
+             *
              */
-            
+
             if ($user_id == $this->range_id) {
                 if ($this->group_status) {
                     $permissions[$user_id][$this->event_id] = Event::PERMISSION_READABLE;
@@ -1176,9 +1192,10 @@ class CalendarEvent extends SimpleORMap implements Event
                         $permissions[$user_id][$this->event_id] =
                             $this->getUserCalendarPermission($user_id);
                         break;
-                    case 'course':
+                    case 'sem':
                         $permissions[$user_id][$this->event_id] =
                             $this->getCourseCalendarPermission($user_id);
+                        break;
                     case 'inst':
                     case 'fak':
                         $permissions[$user_id][$this->event_id] =
@@ -1195,7 +1212,7 @@ class CalendarEvent extends SimpleORMap implements Event
 
     /**
      * Get the user's permission for this event in the actual calendar.
-     * 
+     *
      * @param string $user_id The user id.
      * @return int The permission.
      */
@@ -1239,7 +1256,7 @@ class CalendarEvent extends SimpleORMap implements Event
     /**
      * Get the user's permission for this event in the actual calendar if the
      * owner is a course.
-     * 
+     *
      * @param string $user_id The user's id.
      * @return int The permission.
      */
@@ -1270,7 +1287,7 @@ class CalendarEvent extends SimpleORMap implements Event
     /**
      * Get the user's permission for this event in the actual calendar if the
      * owner is an institute.
-     * 
+     *
      * @param string $user_id The user's id.
      * @return int The permssion.
      */
@@ -1299,7 +1316,7 @@ class CalendarEvent extends SimpleORMap implements Event
 
     /**
      * Returns the user id of the event's author.
-     * 
+     *
      * @return string The user id of the author.
      */
     public function getAuthor()
@@ -1309,12 +1326,35 @@ class CalendarEvent extends SimpleORMap implements Event
 
     /**
      * Returns teh user id of the event's last editor.
-     * 
+     *
      * @return string The uder id og the editor.
      */
     public function getEditor()
     {
         return $this->event->editor;
     }
-    
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = CalendarEvent::findBySQL("range_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('calendar_event', $field_data, $user);
+            }
+        }
+        return [_('Kalender') => $storage];
+    }
+
 }

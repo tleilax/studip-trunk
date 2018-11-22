@@ -17,7 +17,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @copyright   2011 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -68,8 +68,94 @@
  * @property UserInfo   info   has_one UserInfo
  * @property UserOnline online has_one UserOnline
  */
-class User extends AuthUserMd5
+class User extends AuthUserMd5 implements Range, PrivacyObject
 {
+    /**
+     *
+     */
+    protected static function configure($config = array())
+    {
+        $config['has_many']['course_memberships'] = [
+            'class_name' => 'CourseMember',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['institute_memberships'] = [
+            'class_name' => 'InstituteMember',
+            'order_by'   => 'ORDER BY priority ASC',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['admission_applications'] = [
+            'class_name' => 'AdmissionApplication',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['archived_course_memberships'] = [
+            'class_name' => 'ArchivedCourseMember',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['datafields'] = [
+            'class_name'  => 'DatafieldEntryModel',
+            'foreign_key' => function ($user) {
+                return array($user);
+            },
+            'assoc_foreign_key' => function ($model, $params) {
+                $model->setValue('range_id', $params[0]->id);
+            },
+            'assoc_func' => 'findByModel',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_many']['studycourses'] = [
+            'class_name' => 'UserStudyCourse',
+            'assoc_func' => 'findByUser',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_and_belongs_to_many']['contacts'] = [
+            'class_name'     => 'User',
+            'thru_table'     => 'contact',
+            'thru_key'       => 'owner_id',
+            'thru_assoc_key' => 'user_id',
+            'order_by'       => 'ORDER BY Nachname, Vorname',
+            'on_delete'      => 'delete',
+            'on_store'       => 'store',
+        ];
+        $config['has_many']['contactgroups'] = [
+            'class_name'        => 'Statusgruppen',
+            'assoc_foreign_key' => 'range_id',
+            'on_delete'         => 'delete',
+            'on_store'          => 'store',
+        ];
+        $config['has_one']['info'] = [
+            'class_name' => 'UserInfo',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+        $config['has_one']['online'] = [
+            'class_name' => 'UserOnline',
+            'on_delete'  => 'delete',
+            'on_store'   => 'store',
+        ];
+
+        $info = new UserInfo();
+        $info_meta = $info->getTableMetadata();
+        foreach ($info_meta ['fields'] as $field => $meta) {
+            if ($field !== $info_meta['pk'][0]) {
+                $config['additional_fields'][$field] = [
+                    'get'            => '_getAdditionalValueFromRelation',
+                    'set'            => '_setAdditionalValueFromRelation',
+                    'relation'       => 'info',
+                    'relation_field' => $field,
+                ];
+            }
+        }
+
+        parent::configure($config);
+    }
+
     /**
      * Returns the currently authenticated user.
      *
@@ -83,25 +169,57 @@ class User extends AuthUserMd5
     }
 
     /**
+     * build new object with given data
+     *
+     * @param $data array assoc array of record
+     * @return User
+     */
+    public static function build($data, $is_new = true)
+    {
+        $user = new User();
+        $user->info = new UserInfo();
+        $user->setData($data);
+        $user->setNew($is_new);
+        foreach (array_keys($user->db_fields) as $field) {
+            $user->content_db[$field] = $user->content[$field];
+        }
+        $user->info = UserInfo::build($data, $is_new);
+        return $user;
+    }
+
+    /**
      * Returns user object including user_info
      *
+     * @param string $id
      * @return User User
      */
     public static function findFull($id)
     {
-        $sql = "SELECT * FROM auth_user_md5 LEFT JOIN user_info USING (user_id) WHERE auth_user_md5.user_id = ?";
+        $sql = "SELECT *
+                FROM auth_user_md5
+                LEFT JOIN user_info USING (user_id)
+                WHERE user_id = ?";
         $data = DbManager::get()->fetchOne($sql, array($id));
         if ($data) {
-            $user = new User();
-            $user->info = new UserInfo();
-            $user->setData($data);
-            $user->setNew(false);
-            foreach (array_keys($user->db_fields) as $field) {
-                $user->content_db[$field] = $user->content[$field];
-            }
-            $user->info = UserInfo::buildExisting($data);
-            return $user;
+            return self::buildExisting($data);
         }
+    }
+
+    /**
+     * Returns user objects including user_info
+     *
+     * @param array $ids
+     * @param string $order_by
+     * @return User[] User
+     */
+    public static function findFullMany($ids, $order_by = '')
+    {
+        $sql = "SELECT *
+                FROM auth_user_md5
+                LEFT JOIN user_info USING (user_id)
+                WHERE user_id IN (?) " . $order_by;
+        $data = DbManager::get()->fetchAll($sql, array($ids), 'User::buildExisting');
+        return $data;
     }
 
     /**
@@ -112,8 +230,7 @@ class User extends AuthUserMd5
      */
     public static function findByUsername($username)
     {
-        $found = parent::findByUsername($username);
-        return isset($found[0]) ? $found[0] : null;
+        return parent::findOneByUsername($username);
     }
 
     /**
@@ -124,15 +241,14 @@ class User extends AuthUserMd5
      */
     public static function findByDatafield($datafield_id, $value)
     {
-        $search = DBManager::get()->prepare(
-            "SELECT range_id " .
-            "FROM datafields_entries " .
-            "WHERE datafield_id = :datafield_id " .
-                "AND content = :value " .
-        "");
-        $search->execute(compact("datafield_id", "value"));
+        $query = "SELECT range_id
+                  FROM datafields_entries
+                  WHERE datafield_id = :datafield_id
+                    AND content = :value";
+        $search = DBManager::get()->prepare($query);
+        $search->execute(compact('datafield_id', 'value'));
         $users = array();
-        foreach ($search->fetchAll(PDO::FETCH_COLUMN, 0) as $user_id) {
+        foreach ($search->fetchAll(PDO::FETCH_COLUMN) as $user_id) {
             $users[] = new User($user_id);
         }
         return $users;
@@ -142,34 +258,23 @@ class User extends AuthUserMd5
     {
         $record = new User();
         $db = DBManager::get();
-        $sql = "
-            SELECT `" .  $record->db_table . "`.*
-            FROM `" .  $record->db_table . "`
-                INNER JOIN termin_related_persons USING (user_id)
-            WHERE termin_related_persons.range_id = ?
-            ORDER BY Nachname, Vorname ASC
-        ";
-        $st = $db->prepare($sql);
-        $st->execute(array($termin_id));
-        $ret = array();
-        $c = 0;
-        while($row = $st->fetch(PDO::FETCH_ASSOC)) {
-            $ret[$c] = new User();
-            $ret[$c]->setData($row, true);
-            $ret[$c]->setNew(false);
-            ++$c;
+        $sql = "SELECT `{$record->db_table}`.*
+                FROM `{$record->db_table}`
+                INNER JOIN `termin_related_persons` USING (user_id)
+                WHERE `termin_related_persons`.`range_id` = ?
+                ORDER BY Nachname, Vorname ASC";
+        $statement = $db->prepare($sql);
+        $statement->execute([$termin_id]);
+
+        $ret = [];
+        while($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $item = new User();
+            $item->setData($row, true);
+            $item->setNew(false);
+
+            $ret[] = $item;
         }
         return $ret;
-    }
-
-    /**
-     * Returns all available auth_plugins
-     * @return array
-     */
-    public static function getAvailableAuthPlugins()
-    {
-        $query = "SELECT DISTINCT IFNULL(auth_plugin, 'standard') as auth_plugin FROM auth_user_md5 ORDER BY auth_plugin='standard',auth_plugin";
-        return DBManager::get()->query($query)->fetchAll(PDO::FETCH_COLUMN);
     }
 
     /**
@@ -198,16 +303,16 @@ class User extends AuthUserMd5
     {
         $params = [];
 
-        $query = "SELECT au.* "
-                 ."FROM auth_user_md5 au "
-                 ."LEFT JOIN datafields_entries de ON de.range_id=au.user_id "
-                 ."LEFT JOIN user_online uo ON au.user_id = uo.user_id "
-                 ."LEFT JOIN user_info ui ON (au.user_id = ui.user_id) "
-                 ."LEFT JOIN user_userdomains uud ON (au.user_id = uud.user_id) "
-                 ."LEFT JOIN userdomains uds USING (userdomain_id) "
-                 ."LEFT JOIN user_studiengang us ON us.user_id = au.user_id "
-                 ."LEFT JOIN user_inst uis ON uis.user_id = au.user_id "
-                 ."WHERE 1 ";
+        $query = "SELECT au.*,ui.*
+                  FROM auth_user_md5 au
+                  LEFT JOIN datafields_entries de ON (de.range_id = au.user_id)
+                  LEFT JOIN user_online uo ON (au.user_id = uo.user_id)
+                  LEFT JOIN user_info ui ON (au.user_id = ui.user_id)
+                  LEFT JOIN user_userdomains uud ON (au.user_id = uud.user_id)
+                  LEFT JOIN userdomains uds USING (userdomain_id)
+                  LEFT JOIN user_studiengang us ON (us.user_id = au.user_id)
+                  LEFT JOIN user_inst uis ON uis.user_id = au.user_id
+                  WHERE 1 ";
         if ($attributes['username']) {
             $query .= "AND au.username like :username ";
             $params[':username'] = self::searchParam($attributes['username']);
@@ -229,9 +334,9 @@ class User extends AuthUserMd5
         }
 
         //permissions
-        if (!is_null($attributes['perms']) && $attributes['perms'] != 'alle') {
+        if (!is_null($attributes['perm']) && $attributes['perm'] != 'alle') {
             $query .= "AND au.perms =  :perms ";
-            $params[':perms'] = $attributes['perms'];
+            $params[':perms'] = $attributes['perm'];
         }
 
         //locked user
@@ -239,10 +344,15 @@ class User extends AuthUserMd5
             $query .= "AND au.locked = 1 ";
         }
 
+        // show only users who are not lecturers
+        if ($attributes['show_only_not_lectures']) {
+            $query .= "AND au.user_id NOT IN (SELECT user_id FROM seminar_user WHERE status = 'dozent') ";
+        }
+
         //inactivity
         if (!is_null($attributes['inaktiv']) && $attributes['inaktiv'][0] != 'nie') {
             $comp = in_array(trim($attributes['inaktiv'][0]), ['=', '>', '<=']) ? $attributes['inaktiv'][0] : '=';
-            $days = (int)$attributes['  inaktiv'][1];
+            $days = (int)$attributes['inaktiv'][1];
             $query .= "AND uo.last_lifesign {$comp} UNIX_TIMESTAMP(TIMESTAMPADD(DAY, -{$days}, NOW())) ";
         } elseif (!is_null($attributes['inaktiv'])) {
             $query .= "AND uo.last_lifesign IS NULL ";
@@ -251,7 +361,7 @@ class User extends AuthUserMd5
         //datafields
         if (!is_null($attributes['datafields']) && count($attributes['datafields']) > 0) {
             foreach ($attributes['datafields'] as $id => $entry) {
-                $query .= "AND de.datafield_id = :df_id_". $id ." AND de.content = :df_content_". $id ." ";
+                $query .= "AND de.datafield_id = :df_id_". $id ." AND de.content LIKE :df_content_". $id ." ";
                 $params[':df_id_' . $id] = $id;
                 $params[':df_content_' . $id] = $entry;
             }
@@ -287,6 +397,7 @@ class User extends AuthUserMd5
         }
 
         $query .= " GROUP BY au.user_id ";
+
         //sortieren
         switch ($attributes['sort']) {
             case "perms":
@@ -319,104 +430,9 @@ class User extends AuthUserMd5
 
 
     /**
-     *
-     */
-    protected static function configure($config = array())
-    {
-        $config['has_many']['course_memberships'] = array(
-            'class_name' => 'CourseMember',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_many']['institute_memberships'] = array(
-            'class_name' => 'InstituteMember',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_many']['admission_applications'] = array(
-            'class_name' => 'AdmissionApplication',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_many']['archived_course_memberships'] = array(
-            'class_name' => 'ArchivedCourseMember',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_many']['datafields'] = array(
-            'class_name' => 'DatafieldEntryModel',
-            'assoc_foreign_key' =>
-                function($model, $params) {
-                    $model->setValue('range_id', $params[0]->id);
-                },
-            'assoc_func' => 'findByModel',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-            'foreign_key' =>
-                function($user) {
-                    return array($user);
-                }
-        );
-        $config['has_many']['studycourses'] = array(
-            'class_name' => 'UserStudyCourse',
-            'assoc_func' => 'findByUser',
-            'on_delete' => 'delete',
-            'on_store' => 'store',
-        );
-        $config['has_and_belongs_to_many']['contacts'] = array(
-            'class_name' => 'User',
-            'thru_table' => 'contact',
-            'thru_key' => 'owner_id',
-            'thru_assoc_key' => 'user_id',
-            'order_by' => 'ORDER BY Nachname, Vorname',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_many']['contactgroups'] = array(
-            'class_name' => 'Statusgruppen',
-            'assoc_foreign_key' => 'range_id',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_one']['info'] = array(
-            'class_name' => 'UserInfo',
-            'assoc_func' => 'find',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_one']['online'] = array(
-            'class_name' => 'UserOnline',
-            'assoc_func' => 'find',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-
-        $info = new UserInfo();
-        $info_meta = $info->getTableMetadata();
-        foreach ( $info_meta ['fields'] as $field => $meta ) {
-            if ($field !== $info_meta ['pk'] [0]) {
-                $config ['additional_fields'] [$field] = array (
-                        'get' => '_getAdditionalValueFromRelation',
-                        'set' => '_setAdditionalValueFromRelation',
-                        'relation' => 'info',
-                        'relation_field' => $field
-                );
-            }
-        }
-
-        $config['notification_map']['after_create'] = 'UserDidCreate';
-        $config['notification_map']['after_store'] = 'UserDidUpdate';
-        $config['notification_map']['after_delete'] = 'UserDidDelete';
-        $config['notification_map']['before_create'] = 'UserWillCreate';
-        $config['notification_map']['before_store'] = 'UserWillUpdate';
-        $config['notification_map']['before_delete'] = 'UserWillDelete';
-        parent::configure($config);
-    }
-
-    /**
      * @see SimpleORMap::store()
      */
-    function store()
+    public function store()
     {
         if ($this->isDirty() && !$this->info->isFieldDirty('chdate')) {
             $this->info->setValue('chdate', time());
@@ -427,7 +443,7 @@ class User extends AuthUserMd5
     /**
      * @see SimpleORMap::triggerChdate()
      */
-    function triggerChdate()
+    public function triggerChdate()
     {
        return $this->info->triggerChdate();
     }
@@ -439,7 +455,7 @@ class User extends AuthUserMd5
      * @param string one of full,full_rev,no_title,no_title_rev,no_title_short,no_title_motto,full_rev_username
      * @return string guess what - the fullname
      */
-    function getFullName($format = "full")
+    public function getFullName($format = 'full')
     {
         static $concat,$left,$if,$quote;
 
@@ -467,7 +483,7 @@ class User extends AuthUserMd5
         return eval('return ' . $eval . ';');
     }
 
-    function toArrayRecursive($only_these_fields = null)
+    public function toArrayRecursive($only_these_fields = null)
     {
         $ret = parent::toArrayRecursive($only_these_fields);
         unset($ret['info']);
@@ -595,13 +611,31 @@ class User extends AuthUserMd5
             return ['admin'];
         }
         $allowed_status = [];
-        $possible_status = words('autor tutor dozent');
+        $possible_status = ['autor', 'tutor', 'dozent'];
 
         $pos = array_search($this->perms, $possible_status);
-        if($pos) {
-            $allowed_status = array_slice($possible_status, 0, $pos+1);
+
+        if ($pos !== false) {
+            $allowed_status = array_slice($possible_status, 0, $pos + 1);
         }
         return $allowed_status;
+    }
+
+    /**
+     * Get the decorated StudIP-Kings information
+     * @return String
+     */
+    public function getStudipKingIcon()
+    {
+        $is_king = StudipKing::is_king($this->user_id, TRUE);
+
+        $result = '';
+        foreach ($is_king as $type => $text) {
+            $type = str_replace('_', '-', $type);
+            $result .= Assets::img('crowns/crown-' . $type . '.png', ['alt' => $text, 'title' => $text]);
+        }
+
+        return $result ?: null;
     }
 
     /**
@@ -650,61 +684,81 @@ class User extends AuthUserMd5
         $homepage_elements = [];
 
         if (Avatar::getAvatar($this->id)->is_customized() && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['picture']) {
-            $homepage_elements['picture'] = ['name'         => _('Eigenes Bild'),
-                                              'visibility'  => $homepage_visibility['picture'] ?: get_default_homepage_visibility($this->id),
-                                              'extern'      => true,
-                                              'category'    => 'Allgemeine Daten'];
+            $homepage_elements['picture'] = [
+                'name'        => _('Eigenes Bild'),
+                'visibility'  => $homepage_visibility['picture'] ?: get_default_homepage_visibility($this->id),
+                'extern'      => true,
+                'category'    => 'Allgemeine Daten',
+            ];
         }
 
         if ($this->info->motto && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['motto']) {
-            $homepage_elements['motto'] = ['name'       => _('Motto'),
-                                           'visibility' => $homepage_visibility['motto'] ?: get_default_homepage_visibility($this->id),
-                                           'category'   => 'Private Daten'];
+            $homepage_elements['motto'] = [
+                'name'       => _('Motto'),
+                'visibility' => $homepage_visibility['motto'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Private Daten',
+            ];
         }
         if (Config::get()->ENABLE_SKYPE_INFO) {
             if ($GLOBALS['user']->cfg->getValue('SKYPE_NAME') && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['skype_name']) {
-                $homepage_elements['skype_name'] = ['name'              => _('Skype Name'),
-                                                         'visibility'   => $homepage_visibility['skype_name'] ?: get_default_homepage_visibility($this->id),
-                                                         'category'     => 'Private Daten'];
+                $homepage_elements['skype_name'] = [
+                    'name'       => _('Skype Name'),
+                    'visibility' => $homepage_visibility['skype_name'] ?: get_default_homepage_visibility($this->id),
+                    'category'   => 'Private Daten',
+                ];
             }
         }
         if ($this->info->privatnr && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['Private Daten_phone']) {
-            $homepage_elements['private_phone'] = ['name'       => _('Private Telefonnummer'),
-                                                   'visibility' => $homepage_visibility['private_phone'] ?: get_default_homepage_visibility($this->id),
-                                                   'category'   => 'Private Daten'];
+            $homepage_elements['private_phone'] = [
+                'name'       => _('Private Telefonnummer'),
+                'visibility' => $homepage_visibility['private_phone'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->privatcell && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['private_cell']) {
-            $homepage_elements['private_cell'] = ['name'        => _('Private Handynummer'),
-                                                  'visibility'  => $homepage_visibility['private_cell'] ?: get_default_homepage_visibility($this->id),
-                                                  'category'    => 'Private Daten'];
+            $homepage_elements['private_cell'] = [
+                'name'       => _('Private Handynummer'),
+                'visibility' => $homepage_visibility['private_cell'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->privadr && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['privadr']) {
-            $homepage_elements['privadr'] = ['name'         => _('Private Adresse'),
-                                             'visibility'   => $homepage_visibility['privadr'] ?: get_default_homepage_visibility($this->id),
-                                             'category'     => 'Private Daten'];
+            $homepage_elements['privadr'] = [
+                'name'         => _('Private Adresse'),
+                'visibility'   => $homepage_visibility['privadr'] ?: get_default_homepage_visibility($this->id),
+                'category'     => 'Private Daten',
+            ];
         }
         if ($this->info->home && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['homepage']) {
-            $homepage_elements['homepage'] = ['name'        => _('Homepage-Adresse'),
-                                              'visibility'  => $homepage_visibility['homepage'] ?: get_default_homepage_visibility($this->id),
-                                              'extern'      => true,
-                                              'category'    => 'Private Daten'];
+            $homepage_elements['homepage'] = [
+                'name'        => _('Homepage-Adresse'),
+                'visibility'  => $homepage_visibility['homepage'] ?: get_default_homepage_visibility($this->id),
+                'extern'      => true,
+                'category'    => 'Private Daten',
+            ];
         }
         if ($news && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['news']) {
-            $homepage_elements['news'] = ['name'        => _('Ankündigungen'),
-                                          'visibility'  => $homepage_visibility['news'] ?: get_default_homepage_visibility($this->id),
-                                          'extern'      => true,
-                                          'category'    => 'Allgemeine Daten'];
+            $homepage_elements['news'] = [
+                'name'       => _('AnkÃ¼ndigungen'),
+                'visibility' => $homepage_visibility['news'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Allgemeine Daten',
+            ];
         }
         if (Config::get()->CALENDAR_ENABLE && $dates && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['dates']) {
-            $homepage_elements['termine'] = ['name'        => _('Termine'),
-                                             'visibility'  => $homepage_visibility['termine'] ?: get_default_homepage_visibility($this->id),
-                                             'extern'      => true,
-                                             'category'    => 'Allgemeine Daten'];
+            $homepage_elements['termine'] = [
+                'name'       => _('Termine'),
+                'visibility' => $homepage_visibility['termine'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Allgemeine Daten',
+            ];
         }
         if (Config::get()->VOTE_ENABLE && ($activeVotes || $stoppedVotes || $activeEvals) && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['votes']) {
-            $homepage_elements['votes'] = ['name'       => _('Fragebögen'),
-                                           'visibility' => $homepage_visibility['votes'] ?: get_default_homepage_visibility($this->id),
-                                           'category'   => 'Allgemeine Daten'];
+            $homepage_elements['votes'] = [
+                'name'       => _('FragebÃ¶gen'),
+                'visibility' => $homepage_visibility['votes'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Allgemeine Daten',
+            ];
         }
 
         $query = "SELECT 1
@@ -714,37 +768,49 @@ class User extends AuthUserMd5
         $statement = DBManager::get()->prepare($query);
         $statement->execute([$this->id]);
         if ($statement->fetchColumn() && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['studying']) {
-            $homepage_elements['studying'] = ['name'        => _('Wo ich studiere'),
-                                              'visibility'  => $homepage_visibility['studying'] ?: get_default_homepage_visibility($this->id),
-                                              'category'    => 'Studien-/Einrichtungsdaten'];
+            $homepage_elements['studying'] = [
+                'name'       => _('Wo ich studiere'),
+                'visibility' => $homepage_visibility['studying'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Studien-/Einrichtungsdaten',
+            ];
         }
         if ($lit_list && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['literature']) {
-            $homepage_elements["literature"] = ['name'          => _('Literaturlisten'),
-                                                'visibility'    => $homepage_visibility['literature'] ?: get_default_homepage_visibility($this->id),
-                                                'category'      => 'Allgemeine Daten'];
+            $homepage_elements['literature'] = [
+                'name'       => _('Literaturlisten'),
+                'visibility' => $homepage_visibility['literature'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Allgemeine Daten',
+            ];
         }
         if ($this->info->lebenslauf && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['lebenslauf']) {
-            $homepage_elements['lebenslauf'] = ['name'          => _('Lebenslauf'),
-                                                'visibility'    => $homepage_visibility['lebenslauf'] ?: get_default_homepage_visibility($this->id),
-                                                'extern'        => true,
-                                                'category'      => 'Private Daten'];
+            $homepage_elements['lebenslauf'] = [
+                'name'       => _('Lebenslauf'),
+                'visibility' => $homepage_visibility['lebenslauf'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->hobby && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['hobby']) {
-            $homepage_elements['hobby'] = ['name'            => _('Hobbies'),
-                                           'visibility'      => $homepage_visibility['hobby'] ?: get_default_homepage_visibility($this->id),
-                                           'category'        => 'Private Daten'];
+            $homepage_elements['hobby'] = [
+                'name'       => _('Hobbies'),
+                'visibility' => $homepage_visibility['hobby'] ?: get_default_homepage_visibility($this->id),
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->publi && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['publi']) {
-            $homepage_elements['publi'] = ['name'           => _('Publikationen'),
-                                           'visibility'     => $homepage_visibility['publi'] ?: get_default_homepage_visibility($this->id),
-                                           'extern'         => true,
-                                           'category'       => 'Private Daten'];
+            $homepage_elements['publi'] = [
+                'name'       => _('Publikationen'),
+                'visibility' => $homepage_visibility['publi'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Private Daten',
+            ];
         }
         if ($this->info->schwerp && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms]['schwerp']) {
-            $homepage_elements['schwerp'] = ['name'         => _('Arbeitsschwerpunkte'),
-                                             'visibility'   => $homepage_visibility['schwerp'] ?: get_default_homepage_visibility($this->id),
-                                             'extern'       => true,
-                                             'category'     => 'Private Daten'];
+            $homepage_elements['schwerp'] = [
+                'name'       => _('Arbeitsschwerpunkte'),
+                'visibility' => $homepage_visibility['schwerp'] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Private Daten',
+            ];
         }
 
         if ($data_fields) {
@@ -752,55 +818,55 @@ class User extends AuthUserMd5
                 if ($field->getValue() && $field->isEditable($this->perms) && !$GLOBALS['NOT_HIDEABLE_FIELDS'][$this->perms][$key]) {
                     $homepage_elements[$key] = [
                         'name'       => $field->getName(),
-                        'visibility' => $homepage_visibility[$key]
-                            ?: get_default_homepage_visibility($this->id),
+                        'visibility' => $homepage_visibility[$key] ?: get_default_homepage_visibility($this->id),
                         'extern'     => true,
-                        'category'   => 'Zusätzliche Datenfelder'
+                        'category'   => 'ZusÃ¤tzliche Datenfelder',
                     ];
                 }
             }
         }
 
-        $query = "SELECT kategorie_id, name
-                  FROM kategorien
-                  WHERE range_id = ?
-                  ORDER BY priority";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute([$this->id]);
-        while ($category = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $homepage_elements['kat_'.$category['kategorie_id']] = ['name'          => $category['name'],
-                                                                    'visibility'    => $homepage_visibility['kat_'.$category['kategorie_id']] ?: get_default_homepage_visibility($this->id),
-                                                                    'extern'        => true,
-                                                                    'category'      => 'Eigene Kategorien'];
+        foreach (Kategorie::findByUserId($this->id) as $category) {
+            $homepage_elements['kat_' . $category->id] = [
+                'name'       => $category->name,
+                'visibility' => $homepage_visibility['kat_' . $category->id] ?: get_default_homepage_visibility($this->id),
+                'extern'     => true,
+                'category'   => 'Eigene Kategorien',
+            ];
         }
 
         if ($homepageplugins) {
             foreach ($homepageplugins as $plugin) {
-                $homepage_elements['plugin_'.$plugin->getPluginId()] = ['name'          => $plugin->getPluginName(),
-                                                                        'visibility'    => $homepage_visibility['plugin_'.$plugin->getPluginId()] ?: get_default_homepage_visibility($this->id),
-                                                                        'category'      => 'Plugins'];
+                $homepage_elements['plugin_' . $plugin->getPluginId()] = [
+                    'name'       => $plugin->getPluginName(),
+                    'visibility' => $homepage_visibility['plugin_'.$plugin->getPluginId()] ?: get_default_homepage_visibility($this->id),
+                    'category'   => 'Plugins',
+                ];
             }
         }
         return $homepage_elements;
     }
 
-
     /**
-     * @param $user
-     * @param $email
-     * @param bool $force
+     * Changes a user's email adress.
+     *
+     * @param string $email New email
+     * @param bool   $force Force update (even if nothing actually changed)
      * @return bool
      */
     public function changeEmail($email, $force = false)
     {
-        if ($this->email == $email && !$force) {
+        // Email did not actually change and update is not forced
+        if ($this->email === $email && !$force) {
             return true;
         }
 
-        if (!$GLOBALS['ALLOW_CHANGE_EMAIL']) {
+        // Is changing of email globally allowed?
+        if (!Config::get()->ALLOW_CHANGE_EMAIL) {
             return false;
         }
 
+        // Is changing of email allowed by auth plugin?
         if (StudipAuthAbstract::CheckField('auth_user_md5.Email', $this->auth_plugin) || LockRules::check($this->user_id, 'email')) {
             return false;
         }
@@ -808,7 +874,7 @@ class User extends AuthUserMd5
         $validator          = new email_validation_class; ## Klasse zum Ueberpruefen der Eingaben
         $validator->timeout = 10;
         $REMOTE_ADDR        = $_SERVER['REMOTE_ADDR'];
-        $Zeit               = date('H:i:s, d.m.Y', time());
+        $Zeit               = date('H:i:s, d.m.Y');
 
         // accept only registered domains if set
         $email_restriction = trim(Config::get()->EMAIL_DOMAIN_RESTRICTION);
@@ -825,7 +891,7 @@ class User extends AuthUserMd5
                         $email_restriction_msg_part .= '@' . trim($email_restriction_parts[$email_restriction_count]) . ',<br>';
                     }
                 }
-                PageLayout::postError(sprintf(_('Die E-Mail-Adresse fehlt, ist falsch geschrieben oder gehört nicht zu folgenden Domains:%s'),
+                PageLayout::postError(sprintf(_('Die E-Mail-Adresse fehlt, ist falsch geschrieben oder gehÃ¶rt nicht zu folgenden Domains:%s'),
                     '<br>' . $email_restriction_msg_part));
             } else {
                 PageLayout::postError(_('Die E-Mail-Adresse fehlt oder ist falsch geschrieben!'));
@@ -834,12 +900,12 @@ class User extends AuthUserMd5
         }
 
         if (!$validator->ValidateEmailHost($email)) {     // Mailserver nicht erreichbar, ablehnen
-            PageLayout::postError(_('Der Mailserver ist nicht erreichbar. Bitte überprüfen Sie, ob Sie E-Mails mit der angegebenen Adresse verschicken können!'));
+            PageLayout::postError(_('Der Mailserver ist nicht erreichbar. Bitte Ã¼berprÃ¼fen Sie, ob Sie E-Mails mit der angegebenen Adresse verschicken kÃ¶nnen!'));
             return false;
         } else {       // Server ereichbar
             if (!$validator->ValidateEmailBox($email)) {    // aber user unbekannt. Mail an abuse!
                 StudipMail::sendAbuseMessage("edit_about", "Emailbox unbekannt\n\nUser: " . $this->username . "\nEmail: ".$email ."\n\nIP: " . $REMOTE_ADDR ." \nZeit: " . $Zeit . "\n");
-                PageLayout::postError(_('Die angegebene E-Mail-Adresse ist nicht erreichbar. Bitte überprüfen Sie Ihre Angaben!'));
+                PageLayout::postError(_('Die angegebene E-Mail-Adresse ist nicht erreichbar. Bitte Ã¼berprÃ¼fen Sie Ihre Angaben!'));
                 return false;
             }
         }
@@ -851,7 +917,7 @@ class User extends AuthUserMd5
         }
 
         if (StudipAuthAbstract::CheckField('auth_user_md5.validation_key', $this->auth_plugin)) {
-            PageLayout::postSuccess(_('Ihre E-Mail-Adresse wurde geändert!'));
+            PageLayout::postSuccess(_('Ihre E-Mail-Adresse wurde geÃ¤ndert!'));
         } else {
             // auth_plugin does not map validation_key (what if...?)
 
@@ -870,7 +936,7 @@ class User extends AuthUserMd5
 
             $activatation_url = $GLOBALS['ABSOLUTE_URI_STUDIP'] . 'activate_email.php?uid=' . $this->user_id . '&key=' . $this->validation_key;
             // include language-specific subject and mailbody with fallback to german
-            $lang = $GLOBALS['_language_path']; // workaround
+            $lang = getUserLanguagePath($this->id);
             if($lang == '') {
                 $lang = 'de';
             }
@@ -884,8 +950,8 @@ class User extends AuthUserMd5
 
             $this->store();
 
-            PageLayout::postInfo(sprintf(_('An Ihre neue E-Mail-Adresse <b>%s</b> wurde ein Aktivierungslink geschickt, dem Sie folgen müssen bevor Sie sich das nächste mal einloggen können.'), $email));
-            StudipLog::log("USER_NEWPWD", $this->user_id);
+            PageLayout::postInfo(sprintf(_('An Ihre neue E-Mail-Adresse <b>%s</b> wurde ein Aktivierungslink geschickt, dem Sie folgen mÃ¼ssen bevor Sie sich das nÃ¤chste mal einloggen kÃ¶nnen.'), $email));
+            StudipLog::log('USER_NEWPWD', $this->user_id);
         }
         return true;
     }
@@ -907,7 +973,7 @@ class User extends AuthUserMd5
 
         $messages = array();
 
-        //Identitätsrelevante Daten migrieren
+        //IdentitÃ¤tsrelevante Daten migrieren
         if ($identity) {
             // Veranstaltungseintragungen
             self::removeDoubles('seminar_user', 'Seminar_id', $new_id, $old_id);
@@ -920,7 +986,7 @@ class User extends AuthUserMd5
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($new_id, $old_id));
 
-            // Persönliche Infos
+            // PersÃ¶nliche Infos
             $query = "DELETE FROM user_info WHERE user_id = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($new_id));
@@ -929,7 +995,7 @@ class User extends AuthUserMd5
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($new_id, $old_id));
 
-            // Studiengänge
+            // StudiengÃ¤nge
             self::removeDoubles('user_studiengang', 'fach_id', $new_id, $old_id);
             $query = "UPDATE IGNORE user_studiengang SET user_id = ? WHERE user_id = ?";
             $statement = DBManager::get()->prepare($query);
@@ -946,25 +1012,24 @@ class User extends AuthUserMd5
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($new_id, $old_id));
 
-            // Generische Datenfelder zusammenführen (bestehende Einträge des
-            // "neuen" Nutzers werden dabei nicht überschrieben)
+            // Generische Datenfelder zusammenfÃ¼hren (bestehende EintrÃ¤ge des
+            // "neuen" Nutzers werden dabei nicht Ã¼berschrieben)
             $old_user = User::find($old_id);
 
             $query = "INSERT INTO datafields_entries
                         (datafield_id, range_id, sec_range_id, content, mkdate, chdate)
                       VALUES (:datafield_id, :range_id, :sec_range_id, :content,
-                              UNIX_TIMESTAMP(), UNIX_TIMESTAMP())
+                              :mkdate, :chdate)
                       ON DUPLICATE KEY
                         UPDATE content = IF(content IN ('', 'default_value'), VALUES(content), content),
                                chdate = UNIX_TIMESTAMP()";
-            $statement = DBManager::get()->prepare($query);
-            $statement->bindValue(':range_id', $new_id);
 
-            $old_user->datafields->each(function ($field) use ($new_id, $statement) {
-                $statement->bindValue(':datafield_id', $field->datafield_id);
-                $statement->bindValue(':sec_range_id', $field->sec_range_id);
-                $statement->bindValue(':content', $field->content);
-                $statement->execute();
+            $old_user->datafields->each(function ($field) use ($new_id, $query) {
+                if (!$field->isNew() && $field->content !== null) {
+                    $data = $field->toArray('datafield_id sec_range_id content mkdate chdate');
+                    $data['range_id'] = $new_id;
+                    DBManager::get()->execute($query, $data);
+                }
             });
 
             # Datenfelder des alten Nutzers leeren
@@ -990,10 +1055,10 @@ class User extends AuthUserMd5
                 $old_avatar->reset();
             }
 
-            $messages[] = _('Identitätsrelevante Daten wurden migriert.');
+            $messages[] = _('IdentitÃ¤tsrelevante Daten wurden migriert.');
         }
 
-        // Restliche Daten übertragen
+        // Restliche Daten Ã¼bertragen
 
         // ForumsModule migrieren
         foreach (PluginEngine::getPlugins('ForumModule') as $plugin) {
@@ -1002,11 +1067,15 @@ class User extends AuthUserMd5
 
         // Dateieintragungen und Ordner
         // TODO (mlunzena) should post a notification
-        $query = "UPDATE IGNORE dokumente SET user_id = ? WHERE user_id = ?";
+        $query = "UPDATE IGNORE file_refs SET user_id = ? WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($new_id, $old_id));
 
-        $query = "UPDATE IGNORE folder SET user_id = ? WHERE user_id = ?";
+        $query = "UPDATE IGNORE files SET user_id = ? WHERE user_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($new_id, $old_id));
+
+        $query = "UPDATE IGNORE folders SET user_id = ? WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($new_id, $old_id));
 
@@ -1089,7 +1158,7 @@ class User extends AuthUserMd5
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($new_id, $old_id));
 
-        // Statusgruppeneinträge
+        // StatusgruppeneintrÃ¤ge
         self::removeDoubles('statusgruppe_user', 'statusgruppe_id', $new_id, $old_id);
         $query = "UPDATE IGNORE statusgruppe_user SET user_id = ? WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
@@ -1101,21 +1170,25 @@ class User extends AuthUserMd5
         $statement->execute(array($new_id, $old_id));
 
         //Votings
-        $query = "UPDATE IGNORE vote SET author_id = ? WHERE author_id = ?";
+        $query = "UPDATE IGNORE questionnaires SET user_id = ? WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($new_id, $old_id));
 
-        $query = "UPDATE IGNORE vote SET range_id = ? WHERE range_id = ?";
+        $query = "UPDATE IGNORE questionnaire_assignments SET user_id = ? WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($new_id, $old_id));
 
-        self::removeDoubles('vote_user', 'vote_id', $new_id, $old_id);
-        $query = "UPDATE IGNORE vote_user SET user_id = ? WHERE user_id = ?";
+        $query = "UPDATE IGNORE questionnaire_assignments SET range_id = ? WHERE range_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($new_id, $old_id));
 
-        self::removeDoubles('voteanswers_user', 'answer_id', $new_id, $old_id);
-        $query = "UPDATE IGNORE voteanswers_user SET user_id = ? WHERE user_id = ?";
+        self::removeDoubles('questionnaire_anonymous_answers', 'questionnaire_id', $new_id, $old_id);
+        $query = "UPDATE IGNORE questionnaire_anonymous_answers SET user_id = ? WHERE user_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($new_id, $old_id));
+
+        self::removeDoubles('questionnaire_answers', 'question_id', $new_id, $old_id);
+        $query = "UPDATE IGNORE questionnaire_answers SET user_id = ? WHERE user_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($new_id, $old_id));
 
@@ -1128,7 +1201,7 @@ class User extends AuthUserMd5
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($new_id, $old_id));
 
-        //Adressbucheinträge
+        //AdressbucheintrÃ¤ge
         $query = "UPDATE IGNORE contact SET owner_id = ? WHERE owner_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($new_id, $old_id));
@@ -1155,7 +1228,6 @@ class User extends AuthUserMd5
         $messages[] = _('Dateien, Termine, Adressbuch, Nachrichten und weitere Daten wurden migriert.');
         return $messages;
     }
-
 
     /**
      * Delete double entries of the old and new user. This is a part of the old
@@ -1184,12 +1256,124 @@ class User extends AuthUserMd5
 
         if (!empty($items)) {
             $query = "DELETE FROM `{$table}`
-                  WHERE user_id = :user_id AND `{$field}` IN (:items)";
+                      WHERE user_id = :user_id AND `{$field}` IN (:items)";
 
             $statement = DBManager::get()->prepare($query);
             $statement->bindValue(':user_id', $new_id);
             $statement->bindValue(':items', $items, StudipPDO::PARAM_ARRAY);
             $statement->execute();
         }
+    }
+
+    /**
+     * Returns a descriptive text for the range type.
+     *
+     * @return string
+     */
+    public function describeRange()
+    {
+        return _('NutzerIn');
+    }
+
+    /**
+     * Returns a unique identificator for the range type.
+     *
+     * @return string
+     */
+    public function getRangeType()
+    {
+        return 'user';
+    }
+
+    /**
+     * Returns the id of the current range
+     *
+     * @return mixed (string|int)
+     */
+    public function getRangeId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Decides whether the user may access the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     */
+    public function userMayAccessRange($user_id = null)
+    {
+        // TODO: Visibility checks
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        return $user_id === $this->user_id
+            || self::find($user_id)->perms === 'root'
+            || !in_array(self::find($user_id)->visible, ['no', 'never']);
+    }
+
+    /**
+     * Decides whether the user may edit/alter the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     */
+    public function userMayEditRange($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        return $user_id === $this->user_id
+            || self::find($user_id)->perms === 'root';
+    }
+
+    /**
+     * Decides whether the user may administer the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     */
+    public function userMayAdministerRange($user_id = null)
+    {
+        return $this->userMayEditRange($user_id);
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $storage2 = new StoredUserData($user);
+        $sorm = User::findBySQL("user_id = ?", [$user->user_id]);
+
+        if ($sorm) {
+            $limit ='user_id username password perms vorname nachname email validation_key auth_plugin locked lock_comment locked_by visible';
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray($limit);
+            }
+            if ($field_data) {
+                $storage->addTabularData('auth_user_md5', $field_data, $user);
+            }
+
+            $limit = 'user_id hobby lebenslauf publi schwerp home privatnr privatcell privadr score geschlecht mkdate chdate title_front title_rear preferred_language smsforward_copy smsforward_rec email_forward smiley_favorite motto lock_rule';
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray($limit);
+            }
+            if ($field_data) {
+                $storage2->addTabularData('user_info', $field_data, $user);
+            }
+        }
+
+        return [
+            _('Kerndaten') => $storage,
+            _('Benutzer Informationen') => $storage2,
+        ];
     }
 }

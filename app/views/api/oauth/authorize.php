@@ -1,7 +1,9 @@
 <section class="oauth authorize">
     <p>
-        <?= sprintf(_('Die Applikation <strong>%s</strong> möchte auf Ihre Daten zugreifen.'), 
-                    htmlReady($consumer->title)) ?>
+        <?= sprintf(
+            _('Die Applikation <strong>%s</strong> mÃ¶chte auf Ihre Daten zugreifen.'),
+            htmlReady($consumer->title)
+        ) ?>
     </p>
 
     <form action="<?= $controller->url_for('api/oauth/authorize?oauth_token=' . $token) ?>" method="post">
@@ -15,11 +17,17 @@
     <p>
         <?= Avatar::getAvatar($GLOBALS['user']->id)->getImageTag(Avatar::SMALL) ?>
 
-        <?= sprintf(_('Angemeldet als <strong>%s</strong> (%s)'),
-                    $name = get_fullname(), $GLOBALS['user']->username) ?><br>
+        <?= sprintf(
+            _('Angemeldet als <strong>%s</strong> (%s)'),
+            htmlReady($GLOBALS['user']->getFullName()),
+            htmlReady($GLOBALS['user']->username)
+        ) ?><br>
         <small>
-            <?= sprintf(_('Sind sie nicht <strong>%s</strong>, so <a href="%s">melden Sie sich bitte ab</a> und versuchen es erneut.'),
-                        $name, URLHelper::getLink('logout.php')) ?>
+            <?= sprintf(
+                _('Sind sie nicht <strong>%s</strong>, so <a href="%s">melden Sie sich bitte ab</a> und versuchen es erneut.'),
+                htmlReady($GLOBALS['user']->getFullName()),
+                URLHelper::getLink('logout.php')
+            ) ?>
         </small>
     </p>
 </section>

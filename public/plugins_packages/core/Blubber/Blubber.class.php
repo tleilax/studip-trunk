@@ -8,7 +8,6 @@
  *  the License, or (at your option) any later version.
  */
 
-require_once 'lib/datei.inc.php';
 require_once __DIR__ . '/models/BlubberPosting.class.php';
 require_once __DIR__ . '/models/BlubberExternalContact.class.php';
 require_once __DIR__ . '/models/BlubberStream.class.php';
@@ -104,9 +103,10 @@ class Blubber extends StudIPPlugin implements StandardPlugin, SystemPlugin {
         if (Navigation::hasItem("/profile") &&
                 $this->isActivated(get_userid(Request::username('username',
                 $GLOBALS['auth']->auth['uname'])), 'user')) {
-            $nav = new AutoNavigation(_("Blubber"), PluginEngine::getURL($this,
-                array('user_id' => get_userid(Request::get("username"))),
-                "streams/profile"));
+            $nav = new AutoNavigation(
+                _('Blubber'),
+                PluginEngine::getURL($this, [], 'streams/profile')
+            );
             Navigation::addItem("/profile/blubber", $nav);
         }
     }

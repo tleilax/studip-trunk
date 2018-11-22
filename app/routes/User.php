@@ -2,10 +2,10 @@
 namespace RESTAPI\Routes;
 
 /**
- * @author  AndrÈ Klaﬂen <andre.klassen@elan-ev.de>
+ * @author  Andr√© Kla√üen <andre.klassen@elan-ev.de>
  * @author  <mlunzena@uos.de>
  * @license GPL 2 or later
- * @condition user_id ^[0-9a-f]{32}$
+ * @condition user_id ^[0-9a-f]{1,32}$
  */
 class User extends \RESTAPI\RouteMap
 {
@@ -95,16 +95,6 @@ class User extends \RESTAPI\RouteMap
             'privadr'         => strip_tags($get_field('privadr', 'privadr')),
         );
 
-        $query = "SELECT value
-                  FROM user_config
-                  WHERE field = ? AND user_id = ?";
-        $statement = \DBManager::get()->prepare($query);
-        $statement->execute(array('SKYPE_NAME', $user_id));
-        $user['skype'] = $statement->fetchColumn() ?: '';
-        $statement->closeCursor();
-
-        $user['skype_show'] = null;
-
         // Data fields
         $datafields = array();
         foreach (\DataFieldEntry::getDataFieldEntries($user_id, 'user') as $entry) {
@@ -159,6 +149,10 @@ class User extends \RESTAPI\RouteMap
      */
     public function getInstitutes($user_id)
     {
+        $user = \User::find($user_id);
+        if (!$user) {
+            $this->notFound(sprintf('User %s not found', $user_id));
+        }
 
         $query = "SELECT i0.Institut_id AS institute_id, i0.Name AS name,
                          inst_perms AS perms, sprechzeiten AS consultation,
@@ -175,10 +169,10 @@ class User extends \RESTAPI\RouteMap
         $statement->bindValue(':user_id', $user_id);
         $statement->execute();
 
-        $institutes = array(
-            'work'  => array(),
-            'study' => array(),
-        );
+        $institutes = [
+            'work'  => [],
+            'study' => [],
+        ];
 
         foreach ($statement->fetchAll(\PDO::FETCH_ASSOC) as $row) {
             if ($row['perms'] === 'user') {
@@ -191,6 +185,93 @@ class User extends \RESTAPI\RouteMap
         $this->etag(md5(serialize($institutes)));
 
         $result = array_slice($institutes, $this->offset, $this->limit);
-        return $this->paginated($result, count($institutes), compact('user_id'));
+        return $this->paginated(
+            $result,
+            count($institutes['study']) + count($institutes['work']),
+            compact('user_id')
+        );
+    }
+
+
+    /**
+     * Get the root file folder of a user's file area.
+     *
+     * @get /user/:user_id/top_folder
+     */
+    public function getTopFolder($user_id)
+    {
+        //first we check if the user exists:
+        $user = \User::find($user_id);
+
+        if(!$user) {
+            $this->halt(404, 'User not found!');
+        }
+
+        if($user->id != \User::findCurrent()->id) {
+            $this->halt(403, "You are not allowed to see another user's personal file area!");
+        }
+
+        //then we can get the top folder:
+        $top_folder = \Folder::findTopFolder($user->id, 'user');
+
+        $top_folder_type = $top_folder->getTypedFolder();
+
+
+        if(!$top_folder_type->isReadable(\User::findCurrent()->id)) {
+            $this->halt(403, 'You are not allowed to read the top folder of another user\'s file area!');
+        }
+
+        return $top_folder->toRawArray();
+    }
+
+    /**
+     * Patches the course member data of a user and course. Pass data to be
+     * patched via a valid json object in the body. Fields that my be patched:
+     *
+     * - group - the associated group in the overview of the users's courses
+     * - visibility - visible state of the course
+     *
+     * @patch /user/:user_id/courses/:course_id
+     *
+     * @todo more patchable fields?
+     */
+    public function patchCourseGroup($user_id, $course_id)
+    {
+        $user = User::find($user_id);
+        if (!$user) {
+            $this->notFound('User not found');
+        }
+
+        if ($user->id !== $GLOBALS['user']->id) {
+            $this->halt(403, "You may not alter this user's data");
+        }
+
+        $member = CourseMember::find([$course_id, $user->id]);
+        if (!$member) {
+            $this->notFound('You are not a member of the course');
+        }
+
+        if (isset($this->data['group'])) {
+            if (!is_numeric($this->data['group']) || $this->data['group'] < 0 || $this->data['group'] > 8) {
+                $this->halt(400, 'Given group is not inside the valid range 0..8');
+            }
+            $member->gruppe = $this->data['group'];
+        }
+
+        if (isset($this->data['visibility'])) {
+            if (in_array($member->status, ['tutor', 'dozent'])) {
+                $this->halt(400, 'You may not change the visibility status for this course since you are a teacher.');
+            }
+            if (!in_array($this->data['visibility'], ['yes', 'no'])) {
+                $this->halt(400, 'Visibility may only be "yes" or "no".');
+            }
+            $member->visible = $this->data['visibility'];
+        }
+
+        if ($member->isDirty()) {
+            $member->store();
+        }
+
+        $this->halt(204);
     }
 }

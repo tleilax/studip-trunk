@@ -1,14 +1,14 @@
 <?php
 /**
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
- * @author      Till Glˆggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
  * @license     GPL 2 or later
  */
 class ActivityFeed extends StudIPPlugin implements PortalPlugin
 {
     public function getPluginName()
     {
-        return _('Aktivit‰ten');
+        return _('Aktivit√§ten');
     }
 
     public function getPortalTemplate()
@@ -21,12 +21,17 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
 
         $template->user_id = $GLOBALS['user']->id;
         $template->scrolledfrom = strtotime('+1 day');
+        $template->config = WidgetHelper::getWidgetUserConfig($GLOBALS['user']->id, 'ACTIVITY_FEED');
+
+        $navigation = new Navigation('', PluginEngine::getLink($this, array(), 'configuration'));
+        $navigation->setImage(Icon::create('edit', 'clickable', ["title" => _('Konfigurieren')]), array('data-dialog'=>'size=auto'));
+        $icons[] = $navigation;
 
         $navigation = new Navigation('', '#', array('cid' => null));
         $navigation->setImage(Icon::create('headache+visibility-visible', 'clickable'));
         $navigation->setLinkAttributes([
             'id'    => 'toggle-user-activities',
-            'title' => _('Eigene Aktivit‰ten ein-/ausblenden'),
+            'title' => _('Eigene Aktivit√§ten ein-/ausblenden'),
         ]);
         $icons[] = $navigation;
 
@@ -34,7 +39,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         $navigation->setImage(Icon::create('no-activity', 'clickable'));
         $navigation->setLinkAttributes([
             'id'    => 'toggle-all-activities',
-            'title' => _('Aktivit‰tsdetails ein-/ausblenden'),
+            'title' => _('Aktivit√§tsdetails ein-/ausblenden'),
         ]);
         $icons[] = $navigation;
 
@@ -43,7 +48,7 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
         return $template;
     }
 
-    public static function onEnable($plugin_id)
+    public static function onEnable($pluginId)
     {
         $errors = [];
         if (!Config::get()->API_ENABLED) {
@@ -64,11 +69,108 @@ class ActivityFeed extends StudIPPlugin implements PortalPlugin
             );
         }
 
-        if (count($errors) > 0) {
-            PageLayout::postInfo(
-                _('Das Aktivit‰ten-Plugin konnte nicht vollst‰ndig aktiviert werden.'),
-                $errors
+        return count($errors) === 0;
+    }
+
+    public function save_action()
+    {
+        if (get_config('ACTIVITY_FEED') === NULL) {
+            Config::get()->create('ACTIVITY_FEED', array(
+                'range' => 'user',
+                'type' => 'array',
+                'description' => 'Einstellungen des Activity-Widgets')
             );
         }
+
+        $provider = Request::getArray('provider');
+
+        WidgetHelper::addWidgetUserConfig($GLOBALS['user']->id, 'ACTIVITY_FEED', $provider);
+
+        header('X-Dialog-Close: 1');
+        header('X-Dialog-Execute: STUDIP.ActivityFeed.updateFilter');
+
+        echo json_encode($provider);
+    }
+
+    /**
+     * return a list for all providers for every context
+     *
+     * @return array
+     */
+    private function getAllModules()
+    {
+        $modules = array();
+
+        $modules['system'] = array(
+            'news'         => _('Ank√ºndigungen'),
+            'blubber'      => _('Blubber')
+        );
+
+        $modules[\Context::COURSE] = array(
+            'forum'        => _('Forum'),
+            'participants' => _('Teilnehmende'),
+            'documents'    => _('Dateien'),
+            'wiki'         => _('Wiki'),
+            'schedule'     => _('Ablaufplan'),
+            'literature'   => _('Literatur'),
+            'news'         => _('Ank√ºndigungen'),
+            'blubber'      => _('Blubber')
+        );
+
+        $modules[\Context::INSTITUTE] = $modules[\Context::COURSE];
+        unset($modules[\Context::INSTITUTE]['participants']);
+        unset($modules[\Context::INSTITUTE]['schedule']);
+
+        $standard_plugins = \PluginManager::getInstance()->getPlugins("StandardPlugin");
+        foreach ($standard_plugins as $plugin) {
+            if ($plugin instanceof \Studip\Activity\ActivityProvider) {
+                $modules[\Context::COURSE][$plugin->getPluginName()] = $plugin->getPluginName();
+                $modules[\Context::INSTITUTE][$plugin->getPluginName()] = $plugin->getPluginName();
+            }
+        }
+
+        $modules[\Context::USER] = array(
+            'message'      => _('Nachrichten'),
+            'news'         => _('Ank√ºndigungen'),
+            'blubber'      => _('Blubber'),
+        );
+
+        $homepage_plugins = \PluginEngine::getPlugins('HomepagePlugin');
+        foreach ($homepage_plugins as $plugin) {
+            if ($plugin->isActivated($GLOBALS['user']->id, 'user')) {
+                if ($plugin instanceof \Studip\ActivityProvider) {
+                    $modules[\Context::USER][] = $plugin;
+                }
+            }
+        }
+
+
+        if (!get_config('LITERATURE_ENABLE')) {
+            foreach ($modules as $context => $provider) {
+                unset($modules[$context]['literature']);
+            }
+        }
+
+        return $modules;
+    }
+
+    public function configuration_action()
+    {
+        $template_factory = new Flexi_TemplateFactory(__DIR__ . '/templates');
+        $template = $template_factory->open('edit');
+        $template->config = WidgetHelper::getWidgetUserConfig($GLOBALS['user']->id, 'ACTIVITY_FEED');
+        $template->plugin = $this;
+        $template->modules = $this->getAllModules();
+        $template->context_translations = array(
+            \Context::COURSE    => _('Veranstaltungen'),
+            \Context::INSTITUTE => _('Einrichtungen'),
+            \Context::USER      => _('Pers√∂nlich'),
+            'system'            => _('Global')
+        );
+
+        PageLayout::setTitle(_('Aktivit√§ten konfigurieren'));
+        header('X-Title: ' . rawurlencode(PageLayout::getTitle()));
+
+        echo $template->render();
     }
 }

@@ -2,10 +2,11 @@
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
-        <legend><?= _('Art des Termins') ?></legend>
+        <legend><?= _('Termin bearbeiten') ?></legend>
 
         <label>
-            <select name="dateType">
+            <?= _('Art des Termins') ?>
+            <select name="dateType" <?=$metadata_locked ? 'disabled' : ''?>>>
             <? foreach ($GLOBALS['TERMIN_TYP'] as $key => $val): ?>
                 <option value="<?= htmlReady($key) ?>" <? if ($date->date_typ == $key) echo 'selected'; ?>>
                     <?= htmlReady($val['name']) ?>
@@ -13,30 +14,32 @@
             <? endforeach; ?>
             </select>
         </label>
-    </fieldset>
 
-    <fieldset>
-        <legend><?= _('Themen') ?></legend>
+        <label for="new_topic">
+            <?= _('Themen') ?>
+        </label>
 
-        <ul class="themen_list">
+        <ul class="themen-list">
         <? foreach ($date->topics as $topic) : ?>
             <?= $this->render_partial('course/dates/_topic_li', compact('topic')) ?>
         <? endforeach ?>
         </ul>
 
-        <label class="undecorated packed">
+        <section class="hgroup">
             <input type="text" name="new_topic" id="new_topic"
                    placeholder="<?= _('Thema suchen oder neu anlegen') ?>">
+
             <?= Studip\Button::create(
-                _('Thema hinzufügen'), 'add_topic',
+                _('Thema hinzufÃ¼gen'), 'add_topic',
                 ['onclick' => 'STUDIP.Dates.addTopic(); return false;']
             ) ?>
-        </label>
+        </section>
+
     </fieldset>
 
 <? if (count($teachers) > 1): ?>
-    <fieldset class="studip-selection" data-attribute-name="assigned_teachers">
-        <legend><?= _('Durchführende Lehrende') ?></legend>
+    <fieldset class="studip-selection <?= $metadata_locked ? 'disabled' : ''?>" data-attribute-name="assigned_teachers">
+        <legend><?= _('DurchfÃ¼hrende Lehrende') ?></legend>
 
         <section class="studip-selection-selected">
             <h2><?= _('Zugewiesene Lehrende') ?></h2>
@@ -79,7 +82,7 @@
         <? endforeach; ?>
                 <li class="empty-placeholder">
                     <?= sprintf(
-                            _('Ihre Auswahl entspricht dem Zustand "%s" und wird beim Speichern zurückgesetzt'),
+                            _('Ihre Auswahl entspricht dem Zustand "%s" und wird beim Speichern zurÃ¼ckgesetzt'),
                             _('Kein spezieller Lehrender zugewiesen')
                     ) ?>
                 </li>
@@ -89,7 +92,7 @@
 <? endif; ?>
 
 <? if (count($groups) > 0): ?>
-    <fieldset class="studip-selection" data-attribute-name="assigned_groups">
+    <fieldset class="studip-selection <?= $metadata_locked ? 'disabled' : ''?>" data-attribute-name="assigned_groups">
         <legend><?= _('Beteiligte Gruppen') ?></legend>
 
         <section class="studip-selection-selected">
@@ -134,20 +137,22 @@
 <? endif; ?>
 
     <footer data-dialog-button>
-    <? if (!$dates_locked): ?>
-        <?= Studip\Button::createAccept(_('Speichern')); ?>
-        <?= Studip\LinkButton::create(
-            _('Termin bearbeiten'),
-            $controller->url_for('course/timesrooms', ['raumzeitFilter' => 'all'])
-        ) ?>
-    <? endif; ?>
-    <? if (!$cancelled_dates_locked): ?>
-        <?= Studip\LinkButton::create(
-            _('Ausfallen lassen'),
-            $controller->url_for('course/cancel_dates', ['termin_id' => $date->id]),
-            ['data-dialog' => '']
-        ) ?>
-    <? endif ?>
+        <? if (!$metadata_locked): ?>
+            <?= Studip\Button::createAccept(_('Speichern')); ?>
+        <? endif; ?>
+        <? if (!$dates_locked): ?>
+            <?= Studip\LinkButton::create(
+                _('Termin bearbeiten'),
+                $controller->url_for('course/timesrooms', ['raumzeitFilter' => 'all'])
+            ) ?>
+        <? endif; ?>
+        <? if (!$cancelled_dates_locked): ?>
+            <?= Studip\LinkButton::create(
+                _('Ausfallen lassen'),
+                $controller->url_for('course/cancel_dates', ['termin_id' => $date->id]),
+                ['data-dialog' => '']
+            ) ?>
+        <? endif ?>
     </footer>
 </form>
 

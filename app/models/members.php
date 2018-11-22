@@ -64,7 +64,7 @@ class MembersModel
 
                     StudipLog::log('SEM_CHANGED_RIGHTS', $this->course_id, $user_id, $next_status,
                             $this->getLogLevel($direction, $next_status));
-                    NotificationCenter::postNotification('CourseMemberStatusDidUpdate', $this->course_id, $user_id); 
+                    NotificationCenter::postNotification('CourseMemberStatusDidUpdate', $this->course_id, $user_id);
 
                     if (is_null($next_pos)) {
                         $next_pos = 0;
@@ -98,7 +98,7 @@ class MembersModel
             if ($sem->deleteMember($user_id)) {
                 $user = User::find($user_id);
                 setTempLanguage($user_id);
-                $message = sprintf(_("Ihre Anmeldung zur Veranstaltung **%s** wurde von Lehrenden  (%s) oder Admin aufgehoben."), $this->course_title, get_title_for_status('dozent', 1));
+                $message = sprintf(_('Ihre Anmeldung zur Veranstaltung **%1$s** wurde von Lehrenden  (%2$s) oder Admin aufgehoben.'), $this->course_title, get_title_for_status('dozent', 1));
                 restoreLanguage();
                 $messaging->insert_message($message, $user->username,
                                 '____%system%____', FALSE, FALSE, '1', FALSE, sprintf('%s %s', _('Systemnachricht:'),
@@ -125,16 +125,16 @@ class MembersModel
             if ($db->rowCount() > 0 || $prio_delete) {
                 setTempLanguage($user_id);
                 if ($status !== 'accepted') {
-                    $message = sprintf(_("Sie wurden von %s oder Admin von der Warteliste der Veranstaltung **%s** gestrichen und sind damit __nicht__ zugelassen worden."), get_title_for_status('dozent', 1),  $this->course_title);
+                    $message = sprintf(_('Sie wurden von %1$s oder Admin von der Warteliste der Veranstaltung **%2$s** gestrichen und sind damit __nicht__ zugelassen worden.'), get_title_for_status('dozent', 1),  $this->course_title);
                 } else {
-                    $message = sprintf(_("Sie wurden von %s oder Admin aus der Veranstaltung **%s** gestrichen und sind damit __nicht__ zugelassen worden."), get_title_for_status('dozent', 1), $this->course_title);
+                    $message = sprintf(_('Sie wurden von %1$s oder Admin aus der Veranstaltung **%2$s** gestrichen und sind damit __nicht__ zugelassen worden.'), get_title_for_status('dozent', 1), $this->course_title);
                 }
                 restoreLanguage();
                 $messaging->insert_message($message, $user->username,
                                 '____%system%____', FALSE, FALSE, '1', FALSE, sprintf('%s %s', _('Systemnachricht:'),
                                         _("nicht zugelassen in Veranstaltung")), TRUE);
-                StudipLog::log('SEM_USER_DEL', $this->course_id, $user_id, 'Wurde aus der Veranstaltung rausgeworfen');
-                NotificationCenter::postNotification('UserDidLeaveCourse', $this->course_id, $user_id); 
+                StudipLog::log('SEM_USER_DEL', $this->course_id, $user_id, 'Wurde aus der Veranstaltung entfernt');
+                NotificationCenter::postNotification('UserDidLeaveCourse', $this->course_id, $user_id);
 
                 $msgs[] = $user->getFullName();
             }
@@ -158,16 +158,16 @@ class MembersModel
                         restoreLanguage();
 
                         if ($cmd == "add_user") {
-                            $message = sprintf(_('Sie wurden von %s oder Admin
-                                in die Veranstaltung **%s** eingetragen.'), get_title_for_status('dozent', 1), $this->course_title);
+                            $message = sprintf(_('Sie wurden von %1$s oder Admin
+                                in die Veranstaltung **%2$s** eingetragen.'), get_title_for_status('dozent', 1), $this->course_title);
                         } else {
                             if (!$accepted) {
-                                $message = sprintf(_('Sie wurden von %s oder Admin
-                                    aus der Warteliste in die Veranstaltung **%s** aufgenommen und sind damit zugelassen.'),
+                                $message = sprintf(_('Sie wurden von %1$s oder Admin
+                                    aus der Warteliste in die Veranstaltung **%2$s** aufgenommen und sind damit zugelassen.'),
                                         get_title_for_status('dozent', 1), $this->course_title);
                             } else {
-                                $message = sprintf(_('Sie wurden von einem/einer %s oder Admin
-                                    vom Status **vorläufig akzeptiert** auf **teilnehmend** in der Veranstaltung **%s**
+                                $message = sprintf(_('Sie wurden von einem/einer %1$s oder Admin
+                                    vom Status **vorlÃ¤ufig akzeptiert** auf **teilnehmend** in der Veranstaltung **%2$s**
                                     hochgestuft und sind damit zugelassen.'), get_title_for_status('dozent', 1), $this->course_title);
                             }
                         }
@@ -199,20 +199,20 @@ class MembersModel
         // insert
         $copy_course = ($accepted || $consider_contingent) ? TRUE : FALSE;
         $admission_user = insert_seminar_user($this->course_id, $user_id, $status, $copy_course, $consider_contingent, true);
-        
+
         if ($admission_user) {
             setTempLanguage($user_id);
             if ($cmd == 'add_user') {
-                $message = sprintf(_('Sie wurden vom einem/einer %s oder Admin
-                    in die Veranstaltung **%s** eingetragen.'), get_title_for_status('dozent', 1), $this->course_title);
+                $message = sprintf(_('Sie wurden vom einem/einer %1$s oder Admin
+                    in die Veranstaltung **%2$s** eingetragen.'), get_title_for_status('dozent', 1), $this->course_title);
             } else {
                 if (!$accepted) {
-                    $message = sprintf(_('Sie wurden vom einem/einer %s oder Admin
-                        aus der Warteliste in die Veranstaltung **%s** aufgenommen und sind damit zugelassen.'),
+                    $message = sprintf(_('Sie wurden vom einem/einer %1$s oder Admin
+                        aus der Warteliste in die Veranstaltung **%2$s** aufgenommen und sind damit zugelassen.'),
                             get_title_for_status('dozent', 1), $this->course_title);
                 } else {
-                    $message = sprintf(_('Sie wurden von einem/einer %s oder Admin vom Status
-                        **vorläufig akzeptiert** auf "**teilnehmend** in der Veranstaltung **%s**
+                    $message = sprintf(_('Sie wurden von einem/einer %1$s oder Admin vom Status
+                        **vorlÃ¤ufig akzeptiert** auf "**teilnehmend** in der Veranstaltung **%2$s**
                         hochgestuft und sind damit zugelassen.'), get_title_for_status('dozent', 1), $this->course_title);
                 }
             }
@@ -227,19 +227,19 @@ class MembersModel
 
         if ($admission_user) {
             if ($cmd == 'add_user') {
-                $msg = MessageBox::success(sprintf(_('%s wurde in die Veranstaltung mit dem Status
-                    <b>%s</b> eingetragen.'), $user->getFullName(), $status));
+                $msg = MessageBox::success(sprintf(_('%1$s wurde in die Veranstaltung mit dem Status
+                    <b>%2$s</b> eingetragen.'), $user->getFullName(), $status));
             } else {
                 if (!$accepted) {
-                    $msg = MessageBox::success(sprintf(_('%s wurde aus der Anmelde bzw. Warteliste
-                        mit dem Status <b>%s</b> in die Veranstaltung eingetragen.'), $user->getFullName(), $status));
+                    $msg = MessageBox::success(sprintf(_('%1$s wurde aus der Anmelde bzw. Warteliste
+                        mit dem Status <b>%2$s</b> in die Veranstaltung eingetragen.'), $user->getFullName(), $status));
                 } else {
-                    $msg = MessageBox::success(sprintf(_('%s wurde mit dem Status <b>%s</b>
-                        endgültig akzeptiert und damit in die Veranstaltung aufgenommen.'), $user->getFullName(), $status));
+                    $msg = MessageBox::success(sprintf(_('%1$s wurde mit dem Status <b>%2$s</b>
+                        endgÃ¼ltig akzeptiert und damit in die Veranstaltung aufgenommen.'), $user->getFullName(), $status));
                 }
             }
         } else if ($consider_contingent) {
-            $msg = MessageBox::error(_('Es stehen keine weiteren Plätze mehr im Teilnehmerkontingent zur Verfügung.'));
+            $msg = MessageBox::error(_('Es stehen keine weiteren PlÃ¤tze mehr im Teilnehmendenkontingent zur VerfÃ¼gung.'));
         } else {
             $msg = MessageBox::error(_('Beim Eintragen ist ein Fehler aufgetreten.
                 Bitte versuchen Sie es erneut oder wenden Sie sich an einen Systemadministrator'));
@@ -261,8 +261,8 @@ class MembersModel
         // Insert user in waitlist at current position.
         if ($course->addToWaitlist($user_id, 'last')) {
             setTempLanguage($user_id);
-            $message = sprintf(_('Sie wurden von einem/einer Veranstaltungsleiter/-in (%s) ' .
-                'oder einem/einer Administrator/-in auf die Warteliste der Veranstaltung **%s** gesetzt.'),
+            $message = sprintf(_('Sie wurden von einem/einer Veranstaltungsleiter/-in (%1$s) ' .
+                'oder einem/einer Administrator/-in auf die Warteliste der Veranstaltung **%2$s** gesetzt.'),
                 get_title_for_status('dozent', 1), $this->course_title);
             restoreLanguage();
             messaging::sendSystemMessage($user_id, sprintf('%s %s', _('Systemnachricht:'),
@@ -380,6 +380,11 @@ class MembersModel
      */
     function getMembers($sort_status = 'autor', $order_by = 'nachname asc')
     {
+        list($order, $asc) = explode(' ', $order_by);
+        if ($order === 'nachname') {
+            $order_by = 'nachname ' . $asc . ',vorname ' . $asc;
+        }
+
         $query = "SELECT su.user_id,username,vorname,nachname,email,status,position,su.mkdate,su.visible,su.comment,
                 " . $GLOBALS['_fullname_sql']['full_rev'] . " as fullname
                 FROM seminar_user su INNER JOIN auth_user_md5 USING(user_id)
@@ -394,9 +399,9 @@ class MembersModel
         foreach (words('user autor tutor dozent') as $status) {
             $filtered_members[$status] = $members->findBy('status', $status);
             if ($status == $sort_status) {
-                $filtered_members[$status]->orderBy($order_by, (mb_strpos($order_by, 'nachname') === false ? SORT_NUMERIC : SORT_LOCALE_STRING));
+                $filtered_members[$status]->orderBy($order_by, $order !== 'nachname' ? SORT_NUMERIC : SORT_LOCALE_STRING);
             } else {
-                $filtered_members[$status]->orderBy(in_array($status, words('tutor dozent')) ? 'position,nachname' : 'nachname asc');
+                $filtered_members[$status]->orderBy(in_array($status, words('tutor dozent')) ? 'position,nachname,vorname' : 'nachname,vorname');
             }
         }
         return $filtered_members;
@@ -409,6 +414,11 @@ class MembersModel
      */
     function getAdmissionMembers($sort_status = 'autor', $order_by = 'nachname asc')
     {
+        list($order, $asc) = explode(' ', $order_by);
+        if ($order === 'nachname') {
+            $order_by = 'nachname ' . $asc . ',vorname ' . $asc;
+        }
+
         $cs = CourseSet::getSetForCourse($this->course_id);
         $claiming = array();
         if (is_object($cs) && !$cs->hasAlgorithmRun()) {
@@ -437,7 +447,7 @@ class MembersModel
         foreach (words('awaiting accepted claiming') as $status) {
             $filtered_members[$status] = $application_members->findBy('status', $status);
             if ($status == $sort_status) {
-                $filtered_members[$status]->orderBy($order_by, (mb_strpos($order_by, 'nachname') === false ? SORT_NUMERIC : SORT_LOCALE_STRING));
+                $filtered_members[$status]->orderBy($order_by, $order !== 'nachname' ? SORT_NUMERIC : SORT_LOCALE_STRING);
             }
         }
         return $filtered_members;

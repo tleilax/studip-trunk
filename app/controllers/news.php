@@ -6,7 +6,7 @@
 /*
  * news.php - News controller
  *
- * Copyright (C) 2007 - Marcus Lunzenauer <mlunzena@uos.de>, Rasmus Fuhse <fuhse@data-quest.de>, Arne Schröder <schroeder@data-quest.de>
+ * Copyright (C) 2007 - Marcus Lunzenauer <mlunzena@uos.de>, Rasmus Fuhse <fuhse@data-quest.de>, Arne SchrÃ¶der <schroeder@data-quest.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -15,7 +15,7 @@
  *
  * @author      Rasmus Fuhse <fuhse@data-quest.de>
  * @author      Marcus Lunzenauer <mlunzena@uos.de>
- * @author      Arne Schröder <schroeder@data-quest.de>
+ * @author      Arne SchrÃ¶der <schroeder@data-quest.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @package     news
@@ -31,7 +31,7 @@ class NewsController extends StudipController
     /**
      * Callback function being called before an action is executed.
      */
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
 
@@ -61,7 +61,7 @@ class NewsController extends StudipController
      * @param String $range_id range id of the news to get displayed
      * @return array() Array of votes
      */
-    function display_action($range_id)
+    public function display_action($range_id)
     {
         if (!$range_id) {
             $this->set_status(400);
@@ -76,11 +76,11 @@ class NewsController extends StudipController
         // Check if user wrote a comment
         if (Request::submitted('accept') && trim(Request::get('comment_content')) && Request::isPost()) {
             CSRFProtection::verifySecurityToken();
-            StudipComment::create(array(
-            'object_id' => Request::get('comsubmit'),
-            'user_id' => $GLOBALS['user']->id,
-            'content' => trim(Request::get('comment_content'))
-            ));
+            StudipComment::create([
+                'object_id' => Request::get('comsubmit'),
+                'user_id' => $GLOBALS['user']->id,
+                'content' => trim(Request::get('comment_content'))
+            ]);
         }
 
         // Check if user wants to remove a announcement
@@ -92,7 +92,7 @@ class NewsController extends StudipController
                     $news->deleteRange($range);
                     $news->store();
                 } else {
-                    $this->question = createQuestion(_('Ankündigung wirklich aus diesem Bereich entfernen?'), array('remove_news' => $news_id, 'news_range' => $range, 'confirm' => true));
+                    $this->question = createQuestion(_('AnkÃ¼ndigung wirklich aus diesem Bereich entfernen?'), array('remove_news' => $news_id, 'news_range' => $range, 'confirm' => true));
                 }
             }
         }
@@ -104,7 +104,7 @@ class NewsController extends StudipController
                 if (Request::get('confirm')) {
                     $news->delete();
                 } else {
-                    $this->question = createQuestion(_('Ankündigung wirklich löschen?'), array('delete_news' => $news_id, 'confirm' => true));
+                    $this->question = createQuestion(_('AnkÃ¼ndigung wirklich lÃ¶schen?'), array('delete_news' => $news_id, 'confirm' => true));
                 }
             }
         }
@@ -115,35 +115,28 @@ class NewsController extends StudipController
         if ($this->show_all_news) {
             URLHelper::addLinkParam('nshow_all', 1);
         }
-        $this->news = StudipNews::GetNewsByRange($range_id, !$this->show_all_news, true);
-        $this->count_all_news  = $this->show_all_news ? count($this->news) : count(StudipNews::GetNewsByRange($range_id, false));
-        $this->rss_id = get_config('NEWS_RSS_EXPORT_ENABLE') ? StudipNews::GetRssIdFromRangeId($range_id) : false;
-        $this->range = $range_id;
-        $this->nobody = !$GLOBALS['user']->id || $GLOBALS['user']->id == 'nobody';
+        $this->news           = StudipNews::GetNewsByRange($range_id, !$this->show_all_news, true);
+        $this->count_all_news = $this->show_all_news ? count($this->news) : count(StudipNews::GetNewsByRange($range_id, false));
+        $this->rss_id         = Config::get()->NEWS_RSS_EXPORT_ENABLE ? StudipNews::GetRssIdFromRangeId($range_id) : false;
+        $this->range          = $range_id;
+        $this->nobody         = !$GLOBALS['user']->id || $GLOBALS['user']->id === 'nobody';
 
         $this->visit();
-            }
+    }
 
-    function visit()
+    private function visit()
     {
-        if ($GLOBALS['user']->id && $GLOBALS['user']->id != 'nobody' && Request::option('contentbox_open') && Request::option('contentbox_type') === 'news') {
+        if ($GLOBALS['user']->id && $GLOBALS['user']->id !== 'nobody' && Request::option('contentbox_open') && Request::option('contentbox_type') === 'news') {
             object_add_view(Request::option('contentbox_open'));
             object_set_visit(Request::option('contentbox_open'), 'news'); //and, set a visittime
         }
     }
 
-    function visit_action()
+    public function visit_action()
     {
         $this->visit();
         $this->render_nothing();
     }
-
-    /**
-     * @addtogroup notifications
-     *
-     * Creating a news triggers a NewsDidCreate notification. The news's ID is
-     * transmitted as subject of the notification.
-     */
 
     /**
      * Builds news dialog for editing / adding news
@@ -153,49 +146,52 @@ class NewsController extends StudipController
      * @param string $template_id       template id (source of news template)
      *
      */
-    function edit_news_action($id = '', $context_range = '', $template_id = '')
+    public function edit_news_action($id = '', $context_range = '', $template_id = '')
     {
         // initialize
-        $this->news_isvisible = array('news_basic' => true, 'news_comments' => false, 'news_areas' => false);
-        $ranges = array();
-        $this->ranges = array();
-        $this->area_options_selectable = array();
-        $this->area_options_selected = array();
-        $this->may_delete = false;
-        $this->route = "news/edit_news/$id";
+        $ranges = [];
+
+        $this->ranges                  = [];
+        $this->area_options_selectable = [];
+        $this->area_options_selected   = [];
+        $this->may_delete              = false;
+        $this->route                   = "news/edit_news/{$id}";
+
+        $this->news_isvisible = [
+            'news_basic' => true,
+            'news_comments' => false,
+            'news_areas' => false,
+        ];
+
         if ($context_range) {
-            $this->route .= "/$context_range";
+            $this->route .= "/{$context_range}";
             if ($template_id)
-                $this->route .= "/$template_id";
+                $this->route .= "/{$template_id}";
         }
+
         $msg_object = new messaging();
 
-        if ($id == "new") {
+        if ($id === 'new') {
             unset($id);
-            $this->title = _("Ankündigung erstellen");
+            PageLayout::setTitle(_('AnkÃ¼ndigung erstellen'));
         } else
-            $this->title = _("Ankündigung bearbeiten");
+            PageLayout::setTitle(_('AnkÃ¼ndigung bearbeiten'));
 
         // user has to have autor permission at least
-        if (! $GLOBALS['perm']->have_perm(autor)) {
+        if (!$GLOBALS['perm']->have_perm(autor)) {
             $this->set_status(401);
             return $this->render_nothing();
-        }
-        // Output as dialog (Ajax-Request) or as Stud.IP page?
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-            PageLayout::setTitle($this->title);
-        } else {
-            $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
         }
 
         // load news and comment data and check if user has permission to edit
         $news = new StudipNews($id);
-        if (!$news->isNew())
+        if (!$news->isNew()) {
             $this->comments = StudipComment::GetCommentsForObject($id);
-        if ((!$news->havePermission('edit') AND (!$news->isNew()))) {
+        }
+
+        if (!$news->havePermission('edit') && !$news->isNew()) {
             $this->set_status(401);
-            PageLayout::postMessage(MessageBox::error(_('Keine Berechtigung!')));
+            PageLayout::postError(_('Keine Berechtigung!'));
             return $this->render_nothing();
         }
         // if form sent, get news data by post vars
@@ -205,8 +201,8 @@ class NewsController extends StudipController
             if (Request::isXhr()) {
                 $this->area_options_selected = studip_json_decode(Request::get('news_selected_areas'));
                 $this->area_options_selectable = studip_json_decode(Request::get('news_selectable_areas'));
-                $topic = studip_utf8decode(Request::get('news_topic'));
-                $body = transformBeforeSave(Studip\Markup::purifyHtml(studip_utf8decode(Request::get('news_body'))));
+                $topic = Request::get('news_topic');
+                $body = transformBeforeSave(Studip\Markup::purifyHtml(Request::get('news_body')));
             } else {
                 $this->area_options_selected = studip_json_decode(Request::get('news_selected_areas'));
                 $this->area_options_selectable = studip_json_decode(Request::get('news_selectable_areas'));
@@ -216,28 +212,15 @@ class NewsController extends StudipController
             $date = $this->getTimeStamp(Request::get('news_startdate'), 'start');
             $expire = $this->getTimeStamp(Request::get('news_enddate'), 'end') ? $this->getTimeStamp(Request::get('news_enddate'), 'end') - $this->getTimeStamp(Request::get('news_startdate'), 'start') : '';
             $allow_comments = Request::get('news_allow_comments') ? 1 : 0;
-            if (Request::submitted('comments_status_deny')) {
-                $this->anker = 'news_comments';
-                $allow_comments = 0;
-            } elseif (Request::submitted('comments_status_allow')) {
-                $this->anker = 'news_comments';
-                $allow_comments = 1;
-            }
-            if ($news->getValue('topic') != $topic
-                OR $news->getValue('body') != $body
-                OR $news->getValue('date') != $date
-                OR $news->getValue('allow_comments') != $allow_comments
-                OR $news->getValue('expire') != $expire)
-                $changed = true;
-            $news->setValue('topic', $topic);
-            $news->setValue('body', $body);
-            $news->setValue('date', $date);
-            $news->setValue('expire', $expire);
-            $news->setValue('allow_comments', $allow_comments);
+            $news->topic          = $topic;
+            $news->body           = $body;
+            $news->date           = $date;
+            $news->expire         = $expire;
+            $news->allow_comments = $allow_comments;
         } elseif ($id) {
             // if news id given check for valid id and load ranges
             if ($news->isNew()) {
-                PageLayout::postMessage(MessageBox::error(_('Die Ankündigung existiert nicht!')));
+                PageLayout::postError(_('Die AnkÃ¼ndigung existiert nicht!'));
                 return $this->render_nothing();
             }
             $ranges = $news->news_ranges->toArray();
@@ -245,7 +228,7 @@ class NewsController extends StudipController
             // otherwise, load data from template
             $news_template = new StudipNews($template_id);
             if ($news_template->isNew()) {
-                PageLayout::postMessage(MessageBox::error(_('Die Ankündigung existiert nicht!')));
+                PageLayout::postError(_('Die AnkÃ¼ndigung existiert nicht!'));
                 return $this->render_nothing();
             }
             // check for permission
@@ -261,20 +244,21 @@ class NewsController extends StudipController
                     $this->news_isvisible['news_areas'] = true;
                     unset($ranges[$key]);
                 }
-            if ($changed_areas == 1)
-                PageLayout::postMessage(MessageBox::info(_('1 zugeordneter Bereich wurde nicht übernommen, weil Sie dort keine Ankündigungen erstellen dürfen.')));
-            elseif ($changed_areas)
-                PageLayout::postMessage(MessageBox::info(sprintf(_('%s zugeordnete Bereiche wurden nicht übernommen, weil Sie dort keine Ankündigungen erstellen dürfen.'), $changed_areas)));
-            $news->setValue('topic', $news_template->getValue('topic'));
-            $news->setValue('body', $news_template->getValue('body'));
-            $news->setValue('date', $news_template->getValue('date'));
-            $news->setValue('expire', $news_template->getValue('expire'));
-            $news->setValue('allow_comments', $news_template->getValue('allow_comments'));
+            if ($changed_areas == 1) {
+                PageLayout::postInfo(_('1 zugeordneter Bereich wurde nicht Ã¼bernommen, weil Sie dort keine AnkÃ¼ndigungen erstellen dÃ¼rfen.'));
+            } elseif ($changed_areas) {
+                PageLayout::postInfo(sprintf(_('%s zugeordnete Bereiche wurden nicht Ã¼bernommen, weil Sie dort keine AnkÃ¼ndigungen erstellen dÃ¼rfen.'), $changed_areas));
+            }
+            $news->topic          = $news_template->topic;
+            $news->body           = $news_template->body;
+            $news->date           = $news_template->date;
+            $news->expire         = $news_template->expire;
+            $news->allow_comments = $news_template->allow_comments;
         } else {
             // for new news, set startdate to today and range to dialog context
-            $news->setValue('date', strtotime(date('Y-m-d')));// + 12*60*60;
-            $news->setValue('expire', 604800);
-            if (($context_range != '') AND ($context_range != 'template')) {
+            $news->date   = strtotime(date('Y-m-d'));// + 12*60*60;
+            $news->expire = 7 * 24 * 60 * 60;
+            if ($context_range && $context_range !== 'template') {
                 $add_range = new NewsRange(array('', $context_range));
                 $ranges[] = $add_range->toArray();
             }
@@ -285,52 +269,57 @@ class NewsController extends StudipController
         // treat faculties and institutes as one area group (inst)
         foreach ($ranges as $range) {
             switch ($range['type']) {
-                case 'fak' : $this->area_options_selected['inst'][$range['range_id']] = $range['name'];
-                break;
-                default : $this->area_options_selected[$range['type']][$range['range_id']] = $range['name'];
+                case 'fak' :
+                    $this->area_options_selected['inst'][$range['range_id']] = $range['name'];
+                    break;
+                default:
+                    $this->area_options_selected[$range['type']][$range['range_id']] = $range['name'];
             }
         }
 
         // define search presets
         $this->search_presets['user'] = _('Meine Profilseite');
-        if ($GLOBALS['perm']->have_perm('autor') AND !$GLOBALS['perm']->have_perm('admin')) {
+        if ($GLOBALS['perm']->have_perm('autor') && !$GLOBALS['perm']->have_perm('admin')) {
             $my_sem = $this->search_area('__THIS_SEMESTER__');
             if (count($my_sem['sem']))
-                $this->search_presets['sem'] = _('Meine Veranstaltungen im aktuellen Semester').' ('.count($my_sem['sem']).')';
+                $this->search_presets['sem'] = _('Meine Veranstaltungen im aktuellen Semester') . ' (' . count($my_sem['sem']) . ')';
         }
-        if ($GLOBALS['perm']->have_perm('dozent') AND !$GLOBALS['perm']->have_perm('root')) {
+        if ($GLOBALS['perm']->have_perm('dozent') && !$GLOBALS['perm']->have_perm('root')) {
             $my_inst = $this->search_area('__MY_INSTITUTES__');
             if (count($my_inst))
-                $this->search_presets['inst'] = _('Meine Einrichtungen').' ('.count($my_inst['inst']).')';
+                $this->search_presets['inst'] = _('Meine Einrichtungen') . ' (' . count($my_inst['inst']) . ')';
         }
         if ($GLOBALS['perm']->have_perm('root'))
             $this->search_presets['global'] = $this->area_structure['global']['title'];
 
         // perform search
-        if (Request::submitted('area_search') OR Request::submitted('area_search_preset')) {
+        if (Request::submitted('area_search') || Request::submitted('area_search_preset')) {
             $this->anker = 'news_areas';
-            $this->search_term = studip_utf8decode(Request::get('area_search_term'));
-            if (Request::submitted('area_search'))
+            $this->search_term = Request::get('area_search_term');
+            if (Request::submitted('area_search')) {
                 $this->area_options_selectable = $this->search_area($this->search_term);
-            else {
+            } else {
                 $this->current_search_preset = Request::option('search_preset');
-                if ($this->current_search_preset == 'inst')
+                if ($this->current_search_preset === 'inst') {
                     $this->area_options_selectable = $my_inst;
-                elseif ($this->current_search_preset == 'sem')
+                } elseif ($this->current_search_preset === 'sem') {
                     $this->area_options_selectable = $my_sem;
-                elseif ($this->current_search_preset == 'user')
-                    $this->area_options_selectable = array('user' => array($GLOBALS['auth']->auth['uid'] => get_fullname()));
-                elseif ($this->current_search_preset == 'global')
-                    $this->area_options_selectable = array('global' => array('studip' => _('Stud.IP')));
+                } elseif ($this->current_search_preset === 'user') {
+                    $this->area_options_selectable = ['user' => [$GLOBALS['user']->id => get_fullname()]];
+                } elseif ($this->current_search_preset === 'global') {
+                    $this->area_options_selectable = ['global' => ['studip' => _('Stud.IP')]];
+                }
             }
 
-            if (!count($this->area_options_selectable))
+            if (!count($this->area_options_selectable)) {
                 unset($this->search_term);
-            else {
+            } else {
                 // already assigned areas won't be selectable
-                foreach($this->area_options_selected as $type => $data)
-                    foreach ($data as $id => $title)
+                foreach($this->area_options_selected as $type => $data) {
+                    foreach ($data as $id => $title) {
                         unset($this->area_options_selectable[$type][$id]);
+                    }
+                }
             }
         }
         // delete comment(s)
@@ -342,11 +331,11 @@ class NewsController extends StudipController
             // reload comments
             if (!$this->flash['question_text']) {
                 $this->comments = StudipComment::GetCommentsForObject($id);
-                $changed = true;
             }
         }
-        if ($news->havePermission('delete'))
+        if ($news->havePermission('delete')) {
             $this->comments_admin = true;
+        }
         if (is_array($this->comments)) {
             foreach ($this->comments as $key => $comment) {
                 if (Request::submitted('news_delete_comment_'.$comment['comment_id'])) {
@@ -358,13 +347,14 @@ class NewsController extends StudipController
             }
         }
         // open / close category
-        foreach($this->news_isvisible as $category => $value)
-            if ((Request::submitted('toggle_'.$category)) OR (Request::get($category.'_js'))) {
-                $this->news_isvisible[$category] = $this->news_isvisible[$category] ? false : true;
+        foreach($this->news_isvisible as $category => $value) {
+            if (Request::get($category . '_js') == 'toggle') {
+                $this->news_isvisible[$category] = !$this->news_isvisible[$category];
                 $this->anker = $category;
             }
+        }
         // add / remove areas
-        if (Request::submitted('news_add_areas') AND is_array($this->area_options_selectable)) {
+        if (Request::submitted('news_add_areas') && is_array($this->area_options_selectable)) {
             $this->anker = 'news_areas';
             foreach (Request::optionArray('area_options_selectable') as $range_id) {
                 foreach ($this->area_options_selectable as $type => $data) {
@@ -375,7 +365,7 @@ class NewsController extends StudipController
                 }
             }
         }
-        if (Request::submitted('news_remove_areas') AND is_array($this->area_options_selected)) {
+        if (Request::submitted('news_remove_areas') && is_array($this->area_options_selected)) {
             $this->anker = 'news_areas';
             foreach (Request::optionArray('area_options_selected') as $range_id) {
                 foreach ($this->area_options_selected as $type => $data) {
@@ -387,11 +377,12 @@ class NewsController extends StudipController
             }
         }
         // prepare to save news
-        if (Request::submitted('save_news') AND Request::isPost()) {
+        if (Request::submitted('save_news') && Request::isPost()) {
             CSRFProtection::verifySecurityToken();
             //prepare ranges array for already assigned news_ranges
-            foreach($news->getRanges() as $range_id)
-                $this->ranges[$range_id] = get_object_type($range_id, array('global', 'fak', 'inst', 'sem', 'user'));
+            foreach($news->getRanges() as $range_id) {
+                $this->ranges[$range_id] = get_object_type($range_id, ['global', 'fak', 'inst', 'sem', 'user']);
+            }
 
             // check if new ranges must be added
             foreach ($this->area_options_selected as $type => $area_group) {
@@ -399,9 +390,8 @@ class NewsController extends StudipController
                     if (!isset($this->ranges[$range_id])) {
                         if ($news->haveRangePermission('edit', $range_id)) {
                             $news->addRange($range_id);
-                            $changed = true;
                         } else {
-                            PageLayout::postMessage(MessageBox::error(sprintf(_('Sie haben keine Berechtigung zum Ändern der Bereichsverknüpfung für "%s".'), htmlReady($area_title))));
+                            PageLayout::postError(sprintf(_('Sie haben keine Berechtigung zum Ã„ndern der BereichsverknÃ¼pfung fÃ¼r "%s".'), htmlReady($area_title)));
                             $error++;
                         }
                     }
@@ -411,52 +401,53 @@ class NewsController extends StudipController
             // check if assigned ranges must be removed
             foreach ($this->ranges as $range_id => $range_type) {
                 if (($range_type === 'fak' && !isset($this->area_options_selected['inst'][$range_id])) ||
-                   ($range_type !== 'fak' && !isset($this->area_options_selected[$range_type][$range_id]))) {
+                    ($range_type !== 'fak' && !isset($this->area_options_selected[$range_type][$range_id])))
+                {
                     if ($news->havePermission('unassign', $range_id)) {
                         $news->deleteRange($range_id);
-                        $changed = true;
                     } else {
-                        PageLayout::postMessage(MessageBox::error(_('Sie haben keine Berechtigung zum Ändern der Bereichsverknüpfung.')));
+                        PageLayout::postError(_('Sie haben keine Berechtigung zum Ã„ndern der BereichsverknÃ¼pfung.'));
                         $error++;
                     }
                 }
             }
 
             // save news
-            if ($news->validate() AND !$error) {
-                if (($news->getValue('user_id') != $GLOBALS['auth']->auth['uid'])) {
-                    $news->setValue('chdate_uid', $GLOBALS['auth']->auth['uid']);
-                    setTempLanguage($news->getValue('user_id'));
-                    $msg = sprintf(_('Ihre Ankündigung "%s" wurde von %s verändert.'), $news->getValue('topic'), get_fullname() . ' ('.get_username().')'). "\n";
-                    $msg_object->insert_message($msg, get_username($news->getValue('user_id')) , "____%system%____", FALSE, FALSE, "1", FALSE, _("Systemnachricht:")." "._("Ankündigung geändert"));
+            if ($news->validate() && !$error) {
+                if ($news->user_id !== $GLOBALS['user']->id) {
+                    $news->chdate_uid = $GLOBALS['user']->id;
+                    setTempLanguage($news->user_id);
+                    $msg = sprintf(_('Ihre AnkÃ¼ndigung "%s" wurde von %s verÃ¤ndert.'), $news->topic, get_fullname() . ' ('.get_username().')'). "\n";
+                    $msg_object->insert_message($msg, get_username($news->user_id) , "____%system%____", FALSE, FALSE, "1", FALSE, _("Systemnachricht:")." "._("AnkÃ¼ndigung geÃ¤ndert"));
                     restoreLanguage();
                 } else {
-                    $news->setValue('chdate_uid', '');
+                    $news->chdate_uid = '';
                 }
 
                 $news->store();
 
-                PageLayout::postMessage(MessageBox::success(_('Die Ankündigung wurde gespeichert.')));
-                // in fallback mode redirect to edit page with proper news id
-                if (!Request::isXhr() AND !$id)
-                    $this->redirect('news/edit_news/'.$news->getValue('news_id'));
-                // if in dialog mode send empty result (STUDIP.News closes dialog and initiates reload)
-                elseif (Request::isXhr())
+                PageLayout::postSuccess(_('Die AnkÃ¼ndigung wurde gespeichert.'));
+                if (!Request::isXhr() && !$id) {
+                    // in fallback mode redirect to edit page with proper news id
+                    $this->redirect('news/edit_news/' . $news->id);
+                } elseif (Request::isXhr()) {
+                    // if in dialog mode send empty result (STUDIP.News closes dialog and initiates reload)
                     $this->render_nothing();
+                }
             }
         }
         // check if user has full permission on news object
-        if ($news->havePermission('delete'))
+        if ($news->havePermission('delete')) {
             $this->may_delete = true;
+        }
     }
-
 
     /**
      * Show administration page for user's news
      *
      * @param string $area_type         area filter
      */
-    function admin_news_action($area_type = '')
+    public function admin_news_action($area_type = '')
     {
         // check permission
         if (!$GLOBALS['auth']->is_authenticated() || $GLOBALS['user']->id === 'nobody') {
@@ -467,25 +458,27 @@ class NewsController extends StudipController
         // initialize
         $news_result = array();
         $limit = 100;
-        if (Request::get('news_filter') == 'set') {
+        if (Request::get('news_filter') === 'set') {
             $this->news_searchterm = Request::option('news_filter_term');
-            $this->news_startdate = Request::int('news_filter_start');
-            $this->news_enddate = Request::int('news_filter_end');
+            $this->news_startdate  = Request::int('news_filter_start');
+            $this->news_enddate    = Request::int('news_filter_end');
         } else {
             $this->news_startdate = time();
         }
-        if (is_array($this->area_structure[$area_type]))
+        if (is_array($this->area_structure[$area_type])) {
             $this->area_type = $area_type;
-        $this->set_layout($GLOBALS['template_factory']->open('layouts/base'));
-        PageLayout::setTitle(_('Meine Ankündigungen'));
+        }
+        PageLayout::setTitle(_('Meine AnkÃ¼ndigungen'));
         PageLayout::setHelpKeyword('Basis.News');
         Navigation::activateItem('/tools/news');
+
         if (Request::submitted('reset_filter')) {
             $area_type = 'all';
             $this->news_searchterm = '';
             $this->news_startdate = '';
             $this->news_enddate = '';
         }
+
         // delete news
         if (Request::submitted('remove_marked_news')) {
             $remove_ranges = array();
@@ -499,56 +492,62 @@ class NewsController extends StudipController
         }
         // apply filter
         if (Request::submitted('apply_news_filter')) {
-            $this->news_isvisible['basic'] = $this->news_isvisible['basic'] ? false : true;
-            if (Request::get('news_searchterm') AND (mb_strlen(trim(Request::get('news_searchterm'))) < 3))
-                PageLayout::postMessage(MessageBox::error(_('Der Suchbegriff muss mindestens 3 Zeichen lang sein.')));
-            elseif ((Request::get('news_startdate') AND !$this->getTimeStamp(Request::get('news_startdate'), 'start')) OR (Request::get('news_enddate') AND !$this->getTimeStamp(Request::get('news_enddate'), 'end')))
-                PageLayout::postMessage(MessageBox::error(_('Ungültige Datumsangabe. Bitte geben Sie ein Datum im Format TT.MM.JJJJ ein.')));
-            elseif (Request::get('news_enddate') AND Request::get('news_enddate') AND ($this->getTimeStamp(Request::get('news_startdate'), 'start') > $this->getTimeStamp(Request::get('news_enddate'), 'end')))
-                PageLayout::postMessage(MessageBox::error(_('Das Startdatum muss vor dem Enddatum liegen.')));
+            $this->news_isvisible['basic'] = !$this->news_isvisible['basic'];
+            if (Request::get('news_searchterm') && mb_strlen(trim(Request::get('news_searchterm'))) < 3) {
+                PageLayout::postError(_('Der Suchbegriff muss mindestens 3 Zeichen lang sein.'));
+            } elseif ((Request::get('news_startdate') && !$this->getTimeStamp(Request::get('news_startdate'), 'start')) || (Request::get('news_enddate') && !$this->getTimeStamp(Request::get('news_enddate'), 'end'))) {
+                PageLayout::postError(_('UngÃ¼ltige Datumsangabe. Bitte geben Sie ein Datum im Format TT.MM.JJJJ ein.'));
+            } elseif (Request::get('news_startdate') && Request::get('news_enddate') && ($this->getTimeStamp(Request::get('news_startdate'), 'start') > $this->getTimeStamp(Request::get('news_enddate'), 'end'))) {
+                PageLayout::postError(_('Das Startdatum muss vor dem Enddatum liegen.'));
+            }
 
-            if (mb_strlen(trim(Request::get('news_searchterm'))) >= 3)
+            if (mb_strlen(trim(Request::get('news_searchterm'))) >= 3) {
                 $this->news_searchterm = Request::get('news_searchterm');
+            }
             $this->news_startdate = $this->getTimeStamp(Request::get('news_startdate'), 'start');
             $this->news_enddate = $this->getTimeStamp(Request::get('news_enddate'), 'end');
         }
         // fetch news list
-        $this->news_items = StudipNews::getNewsRangesByFilter($GLOBALS["auth"]->auth["uid"], $this->area_type, $this->news_searchterm, $this->news_startdate, $this->news_enddate, true, $limit+1);
+        $this->news_items = StudipNews::getNewsRangesByFilter($GLOBALS['user']->id, $this->area_type, $this->news_searchterm, $this->news_startdate, $this->news_enddate, true, $limit+1);
         // build area and filter description
-        if ($this->news_searchterm AND $this->area_type AND ($this->area_type != 'all')) {
-            if ($this->news_startdate AND $this->news_enddate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen im Bereich "%s" zum Suchbegriff "%s", die zwischen dem %s und dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], $this->news_searchterm, date('d.m.Y', $this->news_startdate), date('d.m.Y', $this->news_enddate));
-            elseif ($this->news_startdate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen im Bereich "%s" zum Suchbegriff "%s", die ab dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], $this->news_searchterm, date('d.m.Y', $this->news_startdate));
-            elseif ($this->news_enddate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen im Bereich "%s" zum Suchbegriff "%s", die vor dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], $this->news_searchterm, date('d.m.Y', $this->news_enddate));
-            else
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen im Bereich "%s" zum Suchbegriff "%s".'), $this->area_structure[$this->area_type]['title'], $this->news_searchterm);
-        } elseif ($this->area_type AND ($this->area_type != 'all')) {
-            if ($this->news_startdate AND $this->news_enddate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen im Bereich "%s", die zwischen dem %s und dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], date('d.m.Y', $this->news_startdate), date('d.m.Y', $this->news_enddate));
-            elseif ($this->news_startdate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen im Bereich "%s", die ab dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], date('d.m.Y', $this->news_startdate));
-            elseif ($this->news_enddate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen im Bereich "%s", die vor dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], date('d.m.Y', $this->news_enddate));
-            else
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen im Bereich "%s".'), $this->area_structure[$this->area_type]['title']);
+        if ($this->news_searchterm && $this->area_type && $this->area_type !== 'all') {
+            if ($this->news_startdate && $this->news_enddate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen im Bereich "%s" zum Suchbegriff "%s", die zwischen dem %s und dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], $this->news_searchterm, date('d.m.Y', $this->news_startdate), date('d.m.Y', $this->news_enddate));
+            } elseif ($this->news_startdate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen im Bereich "%s" zum Suchbegriff "%s", die ab dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], $this->news_searchterm, date('d.m.Y', $this->news_startdate));
+            } elseif ($this->news_enddate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen im Bereich "%s" zum Suchbegriff "%s", die vor dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], $this->news_searchterm, date('d.m.Y', $this->news_enddate));
+            } else {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen im Bereich "%s" zum Suchbegriff "%s".'), $this->area_structure[$this->area_type]['title'], $this->news_searchterm);
+            }
+        } elseif ($this->area_type && $this->area_type !== 'all') {
+            if ($this->news_startdate && $this->news_enddate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen im Bereich "%s", die zwischen dem %s und dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], date('d.m.Y', $this->news_startdate), date('d.m.Y', $this->news_enddate));
+            } elseif ($this->news_startdate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen im Bereich "%s", die ab dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], date('d.m.Y', $this->news_startdate));
+            } elseif ($this->news_enddate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen im Bereich "%s", die vor dem %s sichtbar sind.'), $this->area_structure[$this->area_type]['title'], date('d.m.Y', $this->news_enddate));
+            } else {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen im Bereich "%s".'), $this->area_structure[$this->area_type]['title']);
+            }
         } elseif ($this->news_searchterm) {
-            if ($this->news_startdate AND $this->news_enddate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen zum Suchbegriff "%s", die zwischen dem %s und dem %s sichtbar sind.'), $this->news_searchterm, date('d.m.Y', $this->news_startdate), date('d.m.Y', $this->news_enddate));
-            elseif ($this->news_startdate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen zum Suchbegriff "%s", die ab dem %s sichtbar sind.'), $this->news_searchterm, date('d.m.Y', $this->news_startdate));
-            elseif ($this->news_enddate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen zum Suchbegriff "%s", die vor dem %s sichtbar sind.'), $this->news_searchterm, date('d.m.Y', $this->news_enddate));
-            else
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen zum Suchbegriff "%s".'), $this->news_searchterm);
-        } elseif ($this->news_startdate OR $this->news_enddate) {
-            if ($this->news_startdate AND $this->news_enddate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen, die zwischen dem %s und dem %s sichtbar sind.'), date('d.m.Y', $this->news_startdate), date('d.m.Y', $this->news_enddate));
-            elseif ($this->news_startdate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen, die ab dem %s sichtbar sind.'), date('d.m.Y', $this->news_startdate));
-            elseif ($this->news_enddate)
-                $this->filter_text = sprintf(_('Angezeigt werden Ankündigungen, die vor dem %s sichtbar sind.'), date('d.m.Y', $this->news_enddate));
+            if ($this->news_startdate && $this->news_enddate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen zum Suchbegriff "%s", die zwischen dem %s und dem %s sichtbar sind.'), $this->news_searchterm, date('d.m.Y', $this->news_startdate), date('d.m.Y', $this->news_enddate));
+            } elseif ($this->news_startdate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen zum Suchbegriff "%s", die ab dem %s sichtbar sind.'), $this->news_searchterm, date('d.m.Y', $this->news_startdate));
+            } elseif ($this->news_enddate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen zum Suchbegriff "%s", die vor dem %s sichtbar sind.'), $this->news_searchterm, date('d.m.Y', $this->news_enddate));
+            } else {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen zum Suchbegriff "%s".'), $this->news_searchterm);
+            }
+        } elseif ($this->news_startdate || $this->news_enddate) {
+            if ($this->news_startdate && $this->news_enddate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen, die zwischen dem %s und dem %s sichtbar sind.'), date('d.m.Y', $this->news_startdate), date('d.m.Y', $this->news_enddate));
+            } elseif ($this->news_startdate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen, die ab dem %s sichtbar sind.'), date('d.m.Y', $this->news_startdate));
+            } elseif ($this->news_enddate) {
+                $this->filter_text = sprintf(_('Angezeigt werden AnkÃ¼ndigungen, die vor dem %s sichtbar sind.'), date('d.m.Y', $this->news_enddate));
+            }
         }
 
         // check for delete-buttons and news limit
@@ -556,15 +555,15 @@ class NewsController extends StudipController
             if (is_array($this->news_items[$type])) {
                 foreach($this->news_items[$type] as $key => $news) {
                     // has trash icon been clicked?
-                    if (Request::submitted('news_remove_'.$news['object']->news_id.'_'.$news['range_id']) AND Request::isPost()) {
+                    if (Request::submitted('news_remove_' . $news['object']->news_id . '_' . $news['range_id']) && Request::isPost()) {
                         $this->flash['question_text'] = remove_news(array($news['object']->news_id => $news['range_id']));
                         $this->flash['question_param'] = array('mark_news' => array($news['object']->news_id.'_'.$news['range_id']),
                                                                'remove_marked_news' => 1);
                     }
                     // check if result set too big
                     $counter++;
-                    if ($counter == $limit+1) {
-                        PageLayout::postMessage(MessageBox::info(sprintf(_('Es werden nur die ersten %s Ankündigungen angezeigt.'), $limit)));
+                    if ($counter == $limit + 1) {
+                        PageLayout::postInfo(sprintf(_('Es werden nur die ersten %s AnkÃ¼ndigungen angezeigt.'), $limit));
                         unset($this->news_items[$type][$key]);
                     }
                 }
@@ -572,27 +571,50 @@ class NewsController extends StudipController
         }
 
         // sort grouped list by title
-        foreach($this->area_structure as $type => $area_data)
-            if (count($this->news_groups[$type]))
+        foreach($this->area_structure as $type => $area_data) {
+            if (isset($this->news_groups[$type]) && count($this->news_groups[$type])) {
                 ksort($this->news_groups[$type]);
+            }
+        }
 
         $this->sidebar = Sidebar::get();
         $this->sidebar->setImage('sidebar/news-sidebar.png');
         if ($GLOBALS['perm']->have_perm('tutor')) {
             $widget = new ViewsWidget();
-            $widget->addLink(_('Alle Ankündigungen'), URLHelper::getURL('dispatch.php/news/admin_news/all'))->setActive(!$this->area_type);
+            $widget->addLink(
+                _('Alle AnkÃ¼ndigungen'),
+                $this->url_for('news/admin_news/all')
+            )->setActive(!$this->area_type);
             if ($GLOBALS['perm']->have_perm('root')) {
-                $widget->addLink(_('System'), URLHelper::getURL('dispatch.php/news/admin_news/global'))->setActive($this->area_type === 'global');
+                $widget->addLink(
+                    _('System'),
+                    $this->url_for('news/admin_news/global')
+                )->setActive($this->area_type === 'global');
             }
             if ($GLOBALS['perm']->have_perm('dozent')) {
-                $widget->addLink(_('Einrichtungen'), URLHelper::getURL('dispatch.php/news/admin_news/inst'))->setActive($this->area_type === 'inst');
+                $widget->addLink(
+                    _('Einrichtungen'),
+                    $this->url_for('news/admin_news/inst')
+                )->setActive($this->area_type === 'inst');
             }
-            $widget->addLink(_('Veranstaltungen'), URLHelper::getURL('dispatch.php/news/admin_news/sem'))->setActive($this->area_type === 'sem');
-            $widget->addLink(_('Profil'), URLHelper::getURL('dispatch.php/news/admin_news/user'))->setActive($this->area_type === 'user');
+            $widget->addLink(
+                _('Veranstaltungen'),
+                $this->url_for('news/admin_news/sem')
+            )->setActive($this->area_type === 'sem');
+            $widget->addLink(
+                _('Profil'),
+                $this->url_for('news/admin_news/user')
+            )->setActive($this->area_type === 'user');
             $this->sidebar->addWidget($widget);
         }
+
         $widget = new ActionsWidget();
-        $widget->addLink(_('Ankündigung erstellen'), URLHelper::getLink('dispatch.php/news/edit_news/new'), Icon::create('news+add', 'clickable'), array('rel'=>'get_dialog', 'target'=>'_blank'));
+        $widget->addLink(
+            _('AnkÃ¼ndigung erstellen'),
+            $this->url_for('news/edit_news/new'),
+            Icon::create('news+add', 'clickable'),
+            ['data-dialog' => 'size=auto', 'target' => '_blank']
+        );
         $this->sidebar->addWidget($widget);
     }
 
@@ -605,16 +627,22 @@ class NewsController extends StudipController
      */
     private function getTimeStamp($date, $mode = 'start')
     {
-        if ($date) {
-            $date_array = explode('.', $date);
-            if (checkdate($date_array[1], $date_array[0], $date_array[2])) {
-                if ($mode == 'end')
-                    return mktime(23,59,0,$date_array[1], $date_array[0], $date_array[2]);
-                else
-                    return mktime(0,0,0,$date_array[1], $date_array[0], $date_array[2]);
-            }
+        // No date given
+        if (!$date) {
+            return false;
         }
-        return false;
+
+        $date_array = explode('.', $date);
+
+        // Date is invalid
+        if (!checkdate($date_array[1], $date_array[0], $date_array[2])) {
+            return false;
+        }
+
+        $date = mktime(0, 0, 0, $date_array[1], $date_array[0], $date_array[2]);
+        return $mode === 'end'
+             ? strtotime('today 23:59', $date)
+             : $date;
     }
 
     /**
@@ -623,13 +651,16 @@ class NewsController extends StudipController
      * @param string $term search term
      * @return array area data
      */
-    function search_area($term) {
+    private function search_area($term)
+    {
         global $perm;
         $result = array();
         if (mb_strlen($term) < 3) {
-            PageLayout::postMessage(MessageBox::error(_('Der Suchbegriff muss mindestens drei Zeichen lang sein.')));
+            PageLayout::postError(_('Der Suchbegriff muss mindestens drei Zeichen lang sein.'));
             return $result;
-        } elseif ($term == '__THIS_SEMESTER__') {
+        }
+
+        if ($term === '__THIS_SEMESTER__') {
             $nr = 0;
             $current_semester = Semester::findCurrent();
             $query = "SELECT seminare.Name AS sem_name, seminare.Seminar_id, seminare.visible
@@ -638,7 +669,7 @@ class NewsController extends StudipController
                       AND seminare.start_time <= :start
                       AND (:start <= (seminare.start_time + seminare.duration_time)
                       OR seminare.duration_time = -1)";
-            if (get_config('DEPUTIES_ENABLE')) {
+            if (Config::get()->DEPUTIES_ENABLE) {
                 $query .= " UNION SELECT CONCAT(seminare.Name, ' ["._("Vertretung")."]') AS sem_name, seminare.Seminar_id,
                             seminare.visible
                             FROM deputies JOIN seminare ON (deputies.range_id=seminare.Seminar_id)
@@ -649,74 +680,86 @@ class NewsController extends StudipController
             }
             $query .= " ORDER BY sem_name ASC";
             $statement = DBManager::get()->prepare($query);
-            $statement->bindValue(':user_id', $GLOBALS['auth']->auth['uid']);
-            $statement->bindValue(':start', $current_semester["beginn"]);
+            $statement->bindValue(':user_id', $GLOBALS['user']->id);
+            $statement->bindValue(':start', $current_semester->beginn);
             $statement->execute();
             $seminars = $statement->fetchAll(PDO::FETCH_ASSOC);
-            foreach($seminars as $key => $sem)
-                    $tmp_result[$sem['Seminar_id']] = array(
-                        'name' => $sem['sem_name'],
-                        'type' => 'sem'
-                    );
+            foreach($seminars as $key => $sem) {
+                $tmp_result[$sem['Seminar_id']] = [
+                    'name' => $sem['sem_name'],
+                    'type' => 'sem',
+                ];
+            }
             $term = '';
-        } elseif ($term == '__MY_INSTITUTES__') {
+        } elseif ($term === '__MY_INSTITUTES__') {
             $term = '';
             if ($perm->have_perm('root')) {
-                $tmp_result['studip'] = array(
+                $tmp_result['studip'] = [
                     'name' => 'Stud.IP',
                     'type' => 'global'
-                );
+                ];
             }
             $inst_list = Institute::getMyInstitutes();
-            if (count($inst_list))
+            if (count($inst_list)) {
                 foreach($inst_list as $data) {
-                    $tmp_result[$data['Institut_id']] = array(
+                    $tmp_result[$data['Institut_id']] = [
                         'name' => $data['Name'],
-                        'type' => ($data['is_fak'] ? 'fak' : 'inst'));
+                        'type' => $data['is_fak'] ? 'fak' : 'inst'
+                    ];
                 }
+            }
         } else {
             $tmp_result = search_range($term, true);
             // add users
-            if (mb_stripos(get_fullname(), $term) !== false)
-                $tmp_result[$GLOBALS['auth']->auth['uid']] = array(
+            if (mb_stripos(get_fullname(), $term) !== false) {
+                $tmp_result[$GLOBALS['user']->id] = [
                     'name' => get_fullname(),
-                    'type' => 'user');
+                    'type' => 'user'
+                ];
+            }
             if (isDeputyEditAboutActivated()) {
-                $query = "SELECT DISTINCT a.user_id "
-                       . "FROM deputies d "
-                       . "JOIN auth_user_md5 a ON (d.range_id = a.user_id) "
-                       . "JOIN user_info u ON (a.user_id=u.user_id) "
-                       . "WHERE d.user_id = ? "
-                       . "AND CONCAT(u.title_front, ' ', a.Vorname, ' ', a.Nachname, ', ', u.title_rear) LIKE CONCAT('%',?,'%')";
+                $query = "SELECT DISTINCT a.user_id
+                          FROM deputies d
+                          JOIN auth_user_md5 a ON (d.range_id = a.user_id)
+                          JOIN user_info u ON (a.user_id=u.user_id)
+                          WHERE d.user_id = ?
+                            AND CONCAT(u.title_front, ' ', a.Vorname, ' ', a.Nachname, ', ', u.title_rear) LIKE CONCAT('%',?,'%')";
                 $statement = DBManager::get()->prepare($query);
-                $statement->execute(array($GLOBALS['auth']->auth['uid'], $term));
+                $statement->execute([$GLOBALS['user']->id, $term]);
                 while ($data = $statement->fetch(PDO::FETCH_ASSOC)) {
-                    $tmp_result[$data['user_id']] = array(
+                    $tmp_result[$data['user_id']] = [
                         'name' => get_fullname($data['user_id']),
-                        'type' => 'user');
+                        'type' => 'user',
+                    ];
                 }
             }
         }
         // workaround: apply search term (ignored by search_range below admin)
-        if ((count($tmp_result)) AND (!$GLOBALS['perm']->have_perm('admin')) AND ($term))
+        if (count($tmp_result) && !$GLOBALS['perm']->have_perm('admin') && $term) {
             foreach ($tmp_result as $id => $data) {
-                if (mb_stripos($data['name'], $term) === false)
+                if (mb_stripos($data['name'], $term) === false) {
                     unset($tmp_result[$id]);
+                }
             }
+        }
         // prepare result
+
         if (count($tmp_result)) {
             foreach ($tmp_result as $id => $data) {
-                $result[$data['type'] == 'fak' ? 'inst' : $data['type']][$id] = $data['name'];
+                $index = $data['type'] === 'fak'
+                       ? 'inst'
+                       : $data['type'];
+                $result[$index][$id] = $data['name'];
             }
         } elseif ($term) {
-            PageLayout::postMessage(MessageBox::error(_('Zu diesem Suchbegriff wurden keine Bereiche gefunden.')));
+            PageLayout::postError(_('Zu diesem Suchbegriff wurden keine Bereiche gefunden.'));
         }
         return $result;
     }
 
-    function rss_config_action($range_id)
+    public function rss_config_action($range_id)
     {
-        if (!get_config('NEWS_RSS_EXPORT_ENABLE') || !StudipNews::haveRangePermission('edit', $range_id)) {
+        if (!Config::get()->NEWS_RSS_EXPORT_ENABLE || !StudipNews::haveRangePermission('edit', $range_id)) {
             throw new AccessDeniedException();
         }
         if (Request::isPost()) {

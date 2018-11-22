@@ -2,8 +2,8 @@
 namespace RESTAPI\Routes;
 
 /**
- * @author      Till Glˆggler <tgloeggl@uos.de>
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
  * @license     GPL 2 or later
  *
  * @condition user_id ^[a-f0-9]{32}$
@@ -26,7 +26,7 @@ class Activity extends \RESTAPI\RouteMap
             $this->error(401);
         }
 
-        // failsafe einbauen - falls es keine ‰lteren Aktivit‰ten mehr im System gibt, Abbruch!
+        // failsafe einbauen - falls es keine √§lteren Aktivit√§ten mehr im System gibt, Abbruch!
 
         if ($oldest_activity = \Studip\Activity\Activity::getOldestActivity()) {
             $max_age = array_pop($oldest_activity)->mkdate;
@@ -71,7 +71,7 @@ class Activity extends \RESTAPI\RouteMap
 
 
         if (!empty($filtertype)) {
-            $filter->setType($filtertype);
+            $filter->setType(json_decode($filtertype));
         }
 
         if ($scrollfrom) {
@@ -132,7 +132,6 @@ class Activity extends \RESTAPI\RouteMap
         $stream = new \Studip\Activity\Stream($contexts, $filter);
         $data = $stream->toArray();
 
-
         foreach ($data as $key => $act) {
             $actor = array(
                 'type' => $data[$key]['actor_type'],
@@ -142,6 +141,10 @@ class Activity extends \RESTAPI\RouteMap
             if ($data[$key]['actor_type'] == 'user') {
                 $a_user = \User::findFull($data[$key]['actor_id']);
                 $actor['details'] = User::getMiniUser($this, $a_user ?: new \User());
+            } elseif ($data[$key]['actor_type'] === 'anonymous') {
+                $actor['details'] = [
+                    'name' => _('Anonym'),
+                ];
             }
 
             unset($data[$key]['actor_type']);

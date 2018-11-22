@@ -6,14 +6,14 @@ use Studip\Button, Studip\LinkButton;
 <?= $tpl ?>
 <br>
 <label for="conditionlist" class="caption">
-    <?= _('Anmeldebedingungen') ?>:
+    <span class="required"><?= _('Anmeldebedingungen') ?></span>
 </label>
 
 <br>
 
 <a href="<?= URLHelper::getURL('dispatch.php/userfilter/filter/configure/condadmission_conditions') ?>" onclick="return STUDIP.UserFilter.configureCondition('condition', this.href)">
-    <?= Icon::create('add', 'clickable', tooltip2(_('Bedingung hinzufügen')))->asImg() ?>
-    <?= _('Bedingung hinzufügen') ?>
+    <?= Icon::create('add', 'clickable', tooltip2(_('Bedingung hinzufÃ¼gen')))->asImg() ?>
+    <?= _('Bedingung hinzufÃ¼gen') ?>
 </a>
 
 <br>
@@ -39,13 +39,13 @@ use Studip\Button, Studip\LinkButton;
             <? foreach ($rule->getUngroupedConditions() as $condition): ?>
                 <? $condition->show_user_count = true; ?>
                 <div class="condition" id="condition_<?= $condition->getId() ?>">
-                <? if ($rule->conditiongroupsAllowed()): ?>
-                    <input type="checkbox" name="conditions_checkbox[]" value="<?= htmlReady(ObjectBuilder::exportAsJson($condition)) ?>">
-                <? endif; ?>
+                    <? if ($rule->conditiongroupsAllowed()): ?>
+                        <input type="checkbox" name="conditions_checkbox[]" value="<?= htmlReady(ObjectBuilder::exportAsJson($condition)) ?>">
+                    <? endif; ?>
                     <?= $condition->toString() ?>
                     <a href="#" onclick="return STUDIP.UserFilter.removeConditionField($(this).parent())"
                         class="conditionfield_delete">
-                    <?= Assets::img('icons/16/blue/trash.png'); ?></a>
+                    <?= Icon::create('trash', 'clickable')->asImg(); ?></a>
                     <input type="hidden" name="conditions[]" value="<?= htmlReady(ObjectBuilder::exportAsJson($condition)) ?>">
                     <input type="hidden" name="conditiongroup_<?=$condition->getId()?>" value="">
                 </div>
@@ -54,7 +54,7 @@ use Studip\Button, Studip\LinkButton;
         </div>
         <? if ($rule->conditiongroupsAllowed()): ?>
             <input type="hidden" name="conditiongroups_allowed" value="1">
-            <?= Button::create(_('Kontingent erstellen'), 'group_conditions', array('class' => 'group_conditions', 'onclick' => 'return STUDIP.UserFilter.groupConditions()', 'style' => (count($rule->getUngroupedConditions()) > 1 ? '' : 'display: none'))) ?>
+            <?= Button::create(_('Kontingent erstellen'), 'group_conditions', array('class' => 'group_conditions', 'onclick' => 'return STUDIP.UserFilter.groupConditions()', 'style' => $rule->getUngroupedConditions() ? '' : 'display: none')) ?>
             <? foreach ($rule->getConditiongroups() as $conditiongroup_id => $conditiongroup): ?>
             <div class="grouped_conditions" id="conditiongroup_<?=$conditiongroup_id?>" style="margin-bottom: 5px">
                 <div class="condition_list">
@@ -66,7 +66,7 @@ use Studip\Button, Studip\LinkButton;
                             <?= $condition->toString() ?>
                             <a href="#" onclick="return STUDIP.UserFilter.removeConditionField($(this).parent())"
                                         class="conditionfield_delete">
-                            <?= Assets::img('icons/16/blue/trash.png'); ?></a>
+                            <?= Icon::create('trash', 'clickable')->asImg(); ?></a>
                             <input type="hidden" name="conditions[]" value="<?= htmlReady(ObjectBuilder::exportAsJson($condition)) ?>">
                             <input type="hidden" name="conditiongroup_<?=$condition->getId()?>" value="<?= $conditiongroup_id ?>">
                         </div>

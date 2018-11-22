@@ -3,7 +3,7 @@
 ?>
 <html>
 <head>
-  <?= Assets::stylesheet('style.css') ?>
+  <?= Assets::stylesheet('studip-base.css') ?>
 </head>
 <body>
   <div style="background-color: white; margin: auto; max-width: 700px; padding: 4px;">
@@ -11,17 +11,17 @@
     <p>
       <?= formatReady($message, true, true) ?>
     </p>
-    <? if (is_array($attachments) && count($attachments)) : ?>
+    <? if (isset($attachments) && count($attachments)) : ?>
     <hr>
-    <span class="minor"> 
-      <?=_("Dateianhänge:")?>
-        <ul> 
-        <? foreach($attachments as $one) : ?>
-       	  <li> 
-            <a href="<?=GetDownloadLink($one['dokument_id'], $one['filename'], 7, 'force')?>"><?= htmlReady($one['filename'] . ' (' . relsize($one['filesize'], false) . ')') ?></a> 
+    <span class="minor">
+      <?=_("DateianhÃ¤nge:")?>
+        <ul>
+        <? foreach($attachments as $attachment) : ?>
+       	  <li>
+            <a href="<?= $attachment->getDownloadURL() ?>"><?= htmlReady($attachment->name . ' (' . relsize($attachment->file->size, false) . ')') ?></a>
           </li>
         <? endforeach;?>
-     	</ul> 
+     	</ul>
      </span>
   	<? endif;?>
     <hr>

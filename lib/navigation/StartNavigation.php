@@ -36,21 +36,23 @@ class StartNavigation extends Navigation
             }
 
             if (Config::get()->VOTE_ENABLE && WidgetHelper::hasWidget($GLOBALS['user']->id, 'Evaluations')) {
-                $threshold = Config::get()->NEW_INDICATOR_THRESHOLD ? strtotime("-{".Config::get()->NEW_INDICATOR_THRESHOLD."} days 0:00:00") : 0;
+                $threshold = object_get_visit_threshold();
                 $statement = DBManager::get()->prepare("
                     SELECT COUNT(*)
                     FROM questionnaire_assignments
                         INNER JOIN questionnaires ON (questionnaires.questionnaire_id = questionnaire_assignments.questionnaire_id)
-                    WHERE questionnaire_assignments.range_id = 'start'
-                        AND questionnaires.visible = 1
-                        AND questionnaires.startdate IS NOT NULL
-                        AND questionnaires.startdate > UNIX_TIMESTAMP()
-                        AND questionnaires.startdate > :threshold
-                        AND (questionnaires.stopdate IS NULL OR questionnaires.stopdate <= UNIX_TIMESTAMP())
-                ");
-                $statement->execute(array('threshold' => $threshold));
-                $vote = (int) $statement->fetchColumn();
+                    LEFT JOIN object_user_visits b ON (b.object_id = questionnaires.questionnaire_id AND b.user_id = :user_id AND b.type = 'vote')
 
+                    WHERE questionnaire_assignments.range_id = 'start'
+                        AND questionnaires.chdate > IFNULL(b.visitdate, :threshold)
+                        AND questionnaires.user_id <> :user_id
+                        AND questionnaires.startdate IS NOT NULL AND questionnaires.startdate < UNIX_TIMESTAMP()
+                AND (
+                    questionnaires.stopdate IS NULL OR questionnaires.stopdate > UNIX_TIMESTAMP() )
+                ");
+                $statement->execute(array('threshold' => $threshold,
+                    ':user_id' => $GLOBALS['user']->id));
+                $vote = (int) $statement->fetchColumn();
                 $query = "SELECT COUNT(IF(chdate > IFNULL(b.visitdate, :threshold) AND d.author_id != :user_id, a.eval_id, NULL))
                           FROM eval_range a
                           INNER JOIN eval d ON (a.eval_id = d.eval_id AND d.startdate < UNIX_TIMESTAMP() AND
@@ -60,7 +62,7 @@ class StartNavigation extends Navigation
                           GROUP BY a.range_id";
                 $statement = DBManager::get()->prepare($query);
                 $statement->bindValue(':user_id', $GLOBALS['user']->id);
-                $statement->bindValue(':threshold', ($threshold = Config::get()->NEW_INDICATOR_THRESHOLD) ? strtotime("-{$threshold} days 0:00:00") : 0);
+                $statement->bindValue(':threshold', $threshold);
                 $statement->execute();
                 $vote += (int)$statement->fetchColumn();
             }
@@ -69,11 +71,11 @@ class StartNavigation extends Navigation
         $homeinfo = _('Zur Startseite');
         if ($news) {
             $homeinfo .= ' - ';
-            $homeinfo .= sprintf(ngettext('%u neue Ankündigung', '%u neue Ankündigungen', $news), $news);
+            $homeinfo .= sprintf(ngettext('%u neue AnkÃ¼ndigung', '%u neue AnkÃ¼ndigungen', $news), $news);
         }
         if ($vote) {
             $homeinfo .= ' - ';
-            $homeinfo .= sprintf(ngettext('%u neuer Fragebogen', '%u neue Fragebögen', $vote), $vote);
+            $homeinfo .= sprintf(ngettext('%u neuer Fragebogen', '%u neue FragebÃ¶gen', $vote), $vote);
         }
         $this->setBadgeNumber($vote + $news);
 
@@ -107,14 +109,14 @@ class StartNavigation extends Navigation
 
         // my courses
         if ($perm->have_perm('root')) {
-            $navigation = new Navigation(_('Veranstaltungsübersicht'), 'dispatch.php/search/courses');
+            $navigation = new Navigation(_('VeranstaltungsÃ¼bersicht'), 'dispatch.php/admin/courses');
         } else if ($perm->have_perm('admin')) {
             $navigation = new Navigation(_('Veranstaltungen an meinen Einrichtungen'), 'dispatch.php/my_courses');
         } else {
             $navigation = new Navigation(_('Meine Veranstaltungen'), 'dispatch.php/my_courses');
 
             if (!$perm->have_perm('dozent')) {
-                $navigation->addSubNavigation('browse', new Navigation(_('Veranstaltung hinzufügen'), 'dispatch.php/search/courses'));
+                $navigation->addSubNavigation('browse', new Navigation(_('Veranstaltung hinzufÃ¼gen'), 'dispatch.php/search/courses'));
 
                 if ($perm->have_perm('autor') && get_config('STUDYGROUPS_ENABLE')) {
                     $navigation->addSubNavigation('new_studygroup', new Navigation(_('Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1'));
@@ -132,20 +134,20 @@ class StartNavigation extends Navigation
 
         $this->addSubNavigation('my_courses', $navigation);
 
-        // course administration 
-       if ($perm->have_perm('admin')) { 
-           $navigation = new Navigation(_('Verwaltung von Veranstaltungen'), 'dispatch.php/my_courses'); 
+        // course administration
+       if ($perm->have_perm('admin')) {
+           $navigation = new Navigation(_('Verwaltung von Veranstaltungen'), 'dispatch.php/my_courses');
 
-           if ($perm->have_perm($sem_create_perm)) { 
+           if ($perm->have_perm($sem_create_perm)) {
                $navigation->addSubNavigation('new_course', new Navigation(_('Neue Veranstaltung anlegen'), 'dispatch.php/course/wizard'));
-           } 
+           }
 
-           if (get_config('STUDYGROUPS_ENABLE')) { 
+           if (get_config('STUDYGROUPS_ENABLE')) {
                $navigation->addSubNavigation('new_studygroup', new Navigation(_('Studiengruppe anlegen'), 'dispatch.php/course/wizard?studygroup=1'));
-           } 
+           }
 
-           $this->addSubNavigation('admin_course', $navigation); 
-       } 
+           $this->addSubNavigation('admin_course', $navigation);
+       }
 
         // insitute administration
         if ($perm->have_perm('admin')) {
@@ -154,11 +156,8 @@ class StartNavigation extends Navigation
         }
 
         // user administration
-        if ($perm->have_perm('root')) {
-            $navigation = new Navigation(_('Verwaltung globaler Einstellungen'), 'admin_range_tree.php');
-            $this->addSubNavigation('admin_user', $navigation);
-        } else if ($perm->have_perm('admin') && !get_config('RESTRICTED_USER_MANAGEMENT')) {
-            $navigation = new Navigation(_('Globale Benutzerverwaltung'), 'dispatch.php/admin/user/');
+        if ($perm->have_perm('root') || $perm->have_perm('admin') && !get_config('RESTRICTED_USER_MANAGEMENT')) {
+            $navigation = new Navigation(_('Globale Benutzerverwaltung'), 'dispatch.php/admin/user');
             $this->addSubNavigation('admin_user', $navigation);
         }
 
@@ -244,7 +243,7 @@ class StartNavigation extends Navigation
 
         // tools
         $navigation = new Navigation(_('Tools'));
-        $navigation->addSubNavigation('news', new Navigation(_('Ankündigungen'), 'dispatch.php/news/admin_news'));
+        $navigation->addSubNavigation('news', new Navigation(_('AnkÃ¼ndigungen'), 'dispatch.php/news/admin_news'));
 
         if (get_config('VOTE_ENABLE')) {
             $navigation->addSubNavigation('vote', new Navigation(_('Umfragen und Tests'), 'dispatch.php/questionnaire/overview'));
@@ -268,6 +267,14 @@ class StartNavigation extends Navigation
 
         $this->addSubNavigation('tools', $navigation);
 
+        // files dashboard
+        $navigation = new Navigation(_('Dateien'), 'dispatch.php/files_dashboard');
+        $this->addSubNavigation('files_dashboard', $navigation);
+
+        //mvv pages
+        if (MVV::isVisible()) {
+            $this->addSubNavigation('mvv', new MVVNavigation());
+        }
 
         // external help
         $navigation = new Navigation(_('Hilfe'), format_help_url('Basis.Allgemeines'));

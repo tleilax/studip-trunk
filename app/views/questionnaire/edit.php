@@ -24,7 +24,7 @@
                 <a href="" onClick="STUDIP.Questionnaire.addQuestion('<?= htmlReady($class) ?>'); return false;">
                     <?= $class::getIcon(true, true)->asimg("20px", array('class' => "text-bottom")) ?>
                     <?= htmlReady($class::getName()) ?>
-                    <?= _("hinzufügen") ?>
+                    <?= _("hinzufÃ¼gen") ?>
                 </a>
             <? endif;
         endforeach ?>
@@ -33,36 +33,42 @@
     <fieldset class="questionnaire_metadata">
 
         <label>
-            <?= _("Startzeitpunkt (leer lassen für manuellen Start)") ?>
+            <?= _("Startzeitpunkt (leer lassen fÃ¼r manuellen Start)") ?>
             <input type="text" name="questionnaire[startdate]" value="<?= $questionnaire['startdate'] ? date("d.m.Y H:i", $questionnaire['startdate']) : ($questionnaire->isNew() ? _("sofort") : "") ?>" data-datetime-picker>
         </label>
 
         <label>
-            <?= _("Endzeitpunkt (leer lassen für manuelles Ende)") ?>
+            <?= _("Endzeitpunkt (leer lassen fÃ¼r manuelles Ende)") ?>
             <input type="text" name="questionnaire[stopdate]" value="<?= $questionnaire['stopdate'] ? date("d.m.Y H:i", $questionnaire['stopdate']) : "" ?>" data-datetime-picker>
         </label>
 
         <label>
-            <input type="checkbox" name="questionnaire[anonymous]" value="1"<?= $questionnaire['anonymous'] ? " checked" : "" ?>>
+            <input type="checkbox" name="questionnaire[copyable]" value="1"<?= $questionnaire['copyable'] ? " checked" : "" ?>>
+            <?= _("Frageboben zum Kopieren freigeben") ?>
+        </label>
+
+        <label>
+            <input type="checkbox" name="questionnaire[anonymous]" onChange="jQuery('#questionnaire_editanswers').toggle(!this.checked);" value="1"<?= $questionnaire['anonymous'] ? " checked" : "" ?>>
             <?= _("Anonym teilnehmen") ?>
         </label>
 
-        <label>
+        <label id="questionnaire_editanswers" <?= $questionnaire['anonymous'] ? 'style="display: none"' : '' ?>>
             <input type="checkbox" name="questionnaire[editanswers]" value="1"<?= $questionnaire['editanswers'] || $questionnaire->isNew() ? " checked" : "" ?>>
-            <?= _("Teilnehmer dürfen ihre Antworten revidieren") ?>
+            <?= _("Teilnehmende dÃ¼rfen ihre Antworten revidieren") ?>
         </label>
 
         <label>
-            <?= _("Ergebnisse an Teilnehmer") ?>
+            <?= _("Ergebnisse an Teilnehmende") ?>
             <select name="questionnaire[resultvisibility]">
-                <option value="always"<?= $questionnaire['resultvisibility'] === "always" ? " selected" : "" ?>><?= _("Wenn sie geantwortet haben.") ?></option>
+                <option value="always"<?= $questionnaire['resultvisibility'] === "always" ? " selected" : "" ?>><?= _("Immer.") ?></option>
                 <option value="afterending"<?= $questionnaire['resultvisibility'] === "afterending" ? " selected" : "" ?>><?= _("Nach Ende der Befragung.") ?></option>
                 <option value="never"<?= $questionnaire['resultvisibility'] === "never" ? " selected" : "" ?>><?= _("Niemals.") ?></option>
             </select>
         </label>
 
     </fieldset>
-    <div data-dialog-button>
+
+    <footer data-dialog-button>
         <?= \Studip\Button::create(_("Speichern"), 'questionnaire_store') ?>
-    </div>
+    </footer>
 </form>

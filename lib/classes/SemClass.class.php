@@ -9,10 +9,6 @@
  *  the License, or (at your option) any later version.
  */
 
-if (isset($GLOBALS['SEM_CLASS'])) {
-    $GLOBALS['SEM_CLASS_OLD_VAR'] = $GLOBALS['SEM_CLASS'];
-}
-
 /**
  * Class to define and manage attributes of seminar classes (or seminar categories).
  * Usually all sem-classes are stored in a global variable $SEM_CLASS which is
@@ -92,7 +88,8 @@ class SemClass implements ArrayAccess
             'calendar' => "CoreCalendar",
             'elearning_interface' => "CoreElearningInterface",
             'modules' => '{"CoreOverview":{"activated":1,"sticky":1},"CoreAdmin":{"activated":1,"sticky":1}, "CoreResources":{"activated":1,"sticky":0}}',
-            'visible' => 1
+            'visible' => 1,
+            'is_group' => false
         );
         return new SemClass($data);
     }
@@ -324,7 +321,7 @@ class SemClass implements ArrayAccess
     {
         $module = $this->getModule($slot);
         if ($module) {
-            return (array) $module->getTabNavigation($course_id ? $course_id : $_SESSION['SessionSeminar']);
+            return (array) $module->getTabNavigation($course_id ? $course_id : Context::getId());
         } else {
             return array();
         }
@@ -342,6 +339,23 @@ class SemClass implements ArrayAccess
     }
 
     /**
+     * Checks if the current sem class is usable for course grouping.
+     */
+    public function isGroup()
+    {
+        return $this->data['is_group'];
+    }
+
+    /**
+     * Checks if any SemClasses exist that provide grouping functionality.
+     * @return SimpleCollection
+     */
+    public static function getGroupClasses()
+    {
+        return SimpleCollection::createFromArray(self::getClasses())->findBy('is_group', true);
+    }
+
+    /**
      * stores all data in the database
      * @return boolean success
      */
@@ -353,11 +367,8 @@ class SemClass implements ArrayAccess
                 "SET name = :name, " .
                 "description = :description, " .
                 "create_description = :create_description, " .
-                "compact_mode = :compact_mode, " .
-                "workgroup_mode = :workgroup_mode, " .
                 "studygroup_mode = :studygroup_mode, " .
                 "only_inst_user = :only_inst_user, " .
-                "turnus_default = :turnus_default, " .
                 "default_read_level = :default_read_level, " .
                 "default_write_level = :default_write_level, " .
                 "bereiche = :bereiche, " .
@@ -389,6 +400,7 @@ class SemClass implements ArrayAccess
                 "admission_prelim_default = :admission_prelim_default, " .
                 "admission_type_default = :admission_type_default, " .
                 "show_raumzeit = :show_raumzeit, " .
+                "is_group = :is_group, " .
                 "chdate = UNIX_TIMESTAMP() " .
             "WHERE id = :id ".
         "");
@@ -397,11 +409,8 @@ class SemClass implements ArrayAccess
             'name' => $this->data['name'],
             'description' => $this->data['description'],
             'create_description' => $this->data['create_description'],
-            'compact_mode' => (int) $this->data['compact_mode'],
-            'workgroup_mode' => (int) $this->data['workgroup_mode'],
             'studygroup_mode' => (int) $this->data['studygroup_mode'],
             'only_inst_user' => (int) $this->data['only_inst_user'],
-            'turnus_default' => (int) $this->data['turnus_default'],
             'default_read_level' => (int) $this->data['default_read_level'],
             'default_write_level' => (int) $this->data['default_write_level'],
             'bereiche' => (int) $this->data['bereiche'],
@@ -444,7 +453,8 @@ class SemClass implements ArrayAccess
                 : null,
             'admission_prelim_default' => (int)$this->data['admission_prelim_default'],
             'admission_type_default' => (int)$this->data['admission_type_default'],
-            'show_raumzeit' => (int) $this->data['show_raumzeit']
+            'show_raumzeit' => (int) $this->data['show_raumzeit'],
+            'is_group' => (int) $this->data['is_group']
         ));
     }
 
@@ -510,14 +520,8 @@ class SemClass implements ArrayAccess
         switch ($offset) {
             case "name":
                 return gettext($this->data['name']);
-            case "compact_mode":
-                return (bool) $this->data['compact_mode'];
-            case "workgroup_mode":
-                return (bool) $this->data['workgroup_mode'];
             case "only_inst_user":
                 return (bool) $this->data['only_inst_user'];
-            case "turnus_default":
-                return (int) $this->data['turnus_default'];
             case "bereiche":
                 return (bool) $this->data['bereiche'];
             case "show_browse":
@@ -546,6 +550,8 @@ class SemClass implements ArrayAccess
                return (int) $this->data['admission_prelim_default'];
             case "admission_type_default":
                return (int) $this->data['admission_type_default'];
+            case "is_group":
+               return (bool) $this->data['is_group'];
         }
         //ansonsten
         return $this->data[$offset];
@@ -653,18 +659,19 @@ class SemClass implements ArrayAccess
         _("Community");
         _("Arbeitsgruppen");
         _("importierte Kurse");
+        _("Hauptveranstaltungen");
 
         _("Hier finden Sie alle in Stud.IP registrierten Lehrveranstaltungen");
         _("Verwenden Sie diese Kategorie, um normale Lehrveranstaltungen anzulegen");
-        _("Hier finden Sie virtuelle Veranstaltungen zum Thema Forschung an der Universität");
-        _("In dieser Kategorie können Sie virtuelle Veranstaltungen für Forschungsprojekte anlegen.");
-        _("Hier finden Sie virtuelle Veranstaltungen zu verschiedenen Gremien an der Universität");
-        _("Um virtuelle Veranstaltungen für Uni-Gremien anzulegen, verwenden Sie diese Kategorie");
+        _("Hier finden Sie virtuelle Veranstaltungen zum Thema Forschung an der UniversitÃ¤t");
+        _("In dieser Kategorie kÃ¶nnen Sie virtuelle Veranstaltungen fÃ¼r Forschungsprojekte anlegen.");
+        _("Hier finden Sie virtuelle Veranstaltungen zu verschiedenen Gremien an der UniversitÃ¤t");
+        _("Um virtuelle Veranstaltungen fÃ¼r Uni-Gremien anzulegen, verwenden Sie diese Kategorie");
         _("Hier finden Sie virtuelle Veranstaltungen zu unterschiedlichen Themen");
-        _("Wenn Sie Veranstaltungen als Diskussiongruppen zu unterschiedlichen Themen anlegen möchten, verwenden Sie diese Kategorie.");
+        _("Wenn Sie Veranstaltungen als Diskussiongruppen zu unterschiedlichen Themen anlegen mÃ¶chten, verwenden Sie diese Kategorie.");
         _("Hier finden Sie verschiedene Arbeitsgruppen an der %s");
         _("Verwenden Sie diese Kategorie, um unterschiedliche Arbeitsgruppen anzulegen.");
+        _("Veranstaltungen dieser Kategorie dienen als Gruppierungselement, um die ZusammengehÃ¶rigkeit von Veranstaltungen anderer Kategorien abzubilden.");
     }
 
 }
-

@@ -28,7 +28,6 @@ use Studip\Button,
 
 # Include all required files ================================================ #
 require_once 'lib/evaluation/evaluation.config.php';
-require_once 'lib/datei.inc.php';
 require_once HTML;
 require_once EVAL_LIB_COMMON;
 require_once EVAL_LIB_SHOW;
@@ -230,7 +229,7 @@ class EvalOverview {
                 $content[0] = $eval->getFullname() ? $eval->getFullname() : " ";
                 $content[1] = $eval->getChangedate() == NULL ? " " : date("d.m.Y", $eval->getChangedate());
 
-                $button = LinkButton::create(_('Vorschau'), URLHelper::getURL('show_evaluation.php?evalID=' . $evalID . '&isPreview=' . YES), array('title' => _('Vorschau dieser öffentlichen Evaluationsvorlage.'),
+                $button = LinkButton::create(_('Vorschau'), URLHelper::getURL('show_evaluation.php?evalID=' . $evalID . '&isPreview=' . YES), array('title' => _('Vorschau dieser Ã¶ffentlichen Evaluationsvorlage.'),
                             'onClick' => 'openEval(\'' . $evalID . '\'); return false;'));
                 $div = new HTML("div");
                 $div->addHTMLContent($button);
@@ -245,7 +244,7 @@ class EvalOverview {
                 $copyButton->addAttr("src", Icon::create('arr_2down', 'sort')->asImagePath());
                 $copyButton->addAttr("border", "0");
                 $copyButton->addAttr("alt", _("Kopieren"));
-                $copyButton->addAttr("title", _("Diese öffentliche Evaluationsvorlagen zu den eigenen Evaluationsvorlagen kopieren"));
+                $copyButton->addAttr("title", _("Diese Ã¶ffentliche Evaluationsvorlagen zu den eigenen Evaluationsvorlagen kopieren"));
                 $content[5] = $copyButton;
 
                 break;
@@ -259,15 +258,15 @@ class EvalOverview {
                 $shareButton->addAttr("name", "share_template_button");
                 $shareButton->addAttr("src", $isShared ? EVAL_PIC_SHARED : EVAL_PIC_NOTSHARED );
                 $shareButton->addAttr("border", "0");
-                $shareButton->addAttr("alt", $isShared ? _("als öffentliche Evaluationsvorlage Freigeben") : _("Freigabe entziehen"));
-                $shareButton->addAttr("title", $isShared ? _("Die Freigabe für diese Evaluationsvorlage entziehen") : _("Diese Evaluationsvorlage öffentlich freigeben"));
+                $shareButton->addAttr("alt", $isShared ? _("als Ã¶ffentliche Evaluationsvorlage Freigeben") : _("Freigabe entziehen"));
+                $shareButton->addAttr("title", $isShared ? _("Die Freigabe fÃ¼r diese Evaluationsvorlage entziehen") : _("Diese Evaluationsvorlage Ã¶ffentlich freigeben"));
 
                 $content[0] = $shareButton;
                 $content[3] = Button::create(_('Kopie erstellen'), 'copy_own_template_button', array('title' => _('Evaluationsvorlage kopieren')));
 
                 $content[4] = LinkButton::create(_('Bearbeiten'), URLHelper::getURL("admin_evaluation.php?page=edit&evalID=" . $evalID), array('title' => _('Evaluation bearbeiten')));
 
-                $content[5] = Button::create(_('Löschen'), 'delete_request_button', array('title' => _('Evaluation löschen')));
+                $content[5] = Button::create(_('LÃ¶schen'), 'delete_request_button', array('title' => _('Evaluation lÃ¶schen')));
                 break;
 
             case EVAL_STATE_NEW:
@@ -279,7 +278,7 @@ class EvalOverview {
 
                     $content[4] = LinkButton::create(_('Bearbeiten'), URLHelper::getURL("admin_evaluation.php?page=edit&evalID=" . $evalID), array('title' => _('Evaluation bearbeiten')));
 
-                    $content[5] = Button::create(_('Löschen'), 'delete_request_button', array('title' => _('Evaluation löschen')));
+                    $content[5] = Button::create(_('LÃ¶schen'), 'delete_request_button', array('title' => _('Evaluation lÃ¶schen')));
                 }
                 break;
 
@@ -291,9 +290,9 @@ class EvalOverview {
                     $content[2] = Button::createCancel(_('Stop'), 'stop_button', array('title' => _('Evaluation stoppen')));
                     ;
                     // Kann hier noch optimiert werden, da hasVoted () immer einen DB-Aufruf startet
-                    $content[3] = ($eval->hasVoted()) ? Button::create(_('Zurücksetzen'), 'restart_request_button', array('title' => _('Evaluation zurücksetzen'))) : Button::create(_('Zurücksetzen'), 'restart_confirmed_button', array('title' => _('Evaluation zurücksetzen')));
+                    $content[3] = ($eval->hasVoted()) ? Button::create(_('ZurÃ¼cksetzen'), 'restart_request_button', array('title' => _('Evaluation zurÃ¼cksetzen'))) : Button::create(_('ZurÃ¼cksetzen'), 'restart_confirmed_button', array('title' => _('Evaluation zurÃ¼cksetzen')));
                     $content[4] = Button::create(_('Export'), 'export_request_button', array('title' => _('Evaluation exportieren')));
-                    $content[5] = Button::create(_('Löschen'), 'delete_request_button', array('title' => _('Evaluation löschen')));
+                    $content[5] = Button::create(_('LÃ¶schen'), 'delete_request_button', array('title' => _('Evaluation lÃ¶schen')));
                     //$content[6] = EvalCommon::createSubmitButton ("auswertung", _("Auswertung"), "export_gfx_request_button");
                     $content[6] = LinkButton::create(_('Auswertung'), URLHelper::getURL("eval_summary.php?eval_id=" . $evalID), array('title' => _('Auswertung')));
                 }
@@ -305,9 +304,9 @@ class EvalOverview {
                 //$content[1] = $eval->isVisible() ? "yes" : "no";
                 if (!$no_buttons) {
                     $content[2] = Button::create(_('Fortsetzen'), 'continue_button', array('title' => _('Evaluation fortsetzen')));
-                    $content[3] = ($eval->hasVoted()) ? Button::create(_('Zurücksetzen'), 'restart_request_button', array('title' => _('Evaluation zurücksetzen'))) : Button::create(_('Zurücksetzen'), 'restart_confirmed_button', array('title' => _('Evaluation zurücksetzen')));
+                    $content[3] = ($eval->hasVoted()) ? Button::create(_('ZurÃ¼cksetzen'), 'restart_request_button', array('title' => _('Evaluation zurÃ¼cksetzen'))) : Button::create(_('ZurÃ¼cksetzen'), 'restart_confirmed_button', array('title' => _('Evaluation zurÃ¼cksetzen')));
                     $content[4] = Button::create(_('Export'), 'export_request_button', array('title' => _('Evaluation exportieren')));
-                    $content[5] = Button::create(_('Löschen'), 'delete_request_button', array('title' => _('Evaluation löschen')));
+                    $content[5] = Button::create(_('LÃ¶schen'), 'delete_request_button', array('title' => _('Evaluation lÃ¶schen')));
                     //$content[6] = EvalCommon::createSubmitButton ("auswertung", _("Auswertung"), "export_gfx_request_button");
                     $content[6] = LinkButton::create(_('Auswertung'), URLHelper::getURL("eval_summary.php?eval_id=" . $evalID), array('title' => _('Auswertung')));
                 }
@@ -517,7 +516,7 @@ class EvalOverview {
 
             $td2->addContent(new HTMLEmpty("br"));
 
-            $saveButton = Button::create(_('Übernehmen'), 'save_button', array('title' => _('Einstellungen speichern')));
+            $saveButton = Button::create(_('Ãœbernehmen'), 'save_button', array('title' => _('Einstellungen speichern')));
             $td2->addContent($saveButton);
         } else {
             $td2->addHTMLContent($this->createRuntimeSettings($eval, $state, $number % 2 ? "eval_grey_border" : "eval_light_border" ));
@@ -525,7 +524,7 @@ class EvalOverview {
             $td2->addHTMLContent($this->createDomainSettings($eval, $state, $number % 2 ? "eval_grey_border" : "eval_light_border" ));
             $td2->addContent(new HTMLEmpty("br"));
 
-            $saveButton = Button::create(_('Übernehmen'), 'save_button', array('title' => _('Einstellungen speichern')));
+            $saveButton = Button::create(_('Ãœbernehmen'), 'save_button', array('title' => _('Einstellungen speichern')));
 
             $td2->addContent($saveButton);
         }
@@ -554,8 +553,8 @@ class EvalOverview {
      *
      */
     function createHeader($safeguard, $templates = NULL, $foundTable = "") {
-        Helpbar::Get()->addPlainText(_('Übersicht'), _('Auf dieser Seite haben Sie eine Übersicht aller in dem ausgewählten Bereich existierenden Evaluationen sowie Ihrer eigenen Evaluationsvorlagen.'));
-        Helpbar::Get()->addPlainText(_('Ansicht'), _("Sie können eine Evaluation aufklappen und dann Bereichen zuordnen und ihre Laufzeit bestimmen."));
+        Helpbar::Get()->addPlainText(_('Ãœbersicht'), _('Auf dieser Seite haben Sie eine Ãœbersicht aller in dem ausgewÃ¤hlten Bereich existierenden Evaluationen sowie Ihrer eigenen Evaluationsvorlagen.'));
+        Helpbar::Get()->addPlainText(_('Ansicht'), _("Sie kÃ¶nnen eine Evaluation aufklappen und dann Bereichen zuordnen und ihre Laufzeit bestimmen."));
         $table = new HTML("table");
         $table->addAttr("border", "0");
         $table->addAttr("align", "center");
@@ -563,68 +562,19 @@ class EvalOverview {
         $table->addAttr("cellpadding", "5");
         $table->addAttr("width", "100%");
 
-        $tr = new HTML("tr");
-
         /* create new ---------------------------------------------------------- */
-        $td = new HTML("td");
-        $td->addAttr("class", "table_row_even");
-        $td->addAttr("valign", "top");
-        $td->addAttr("width", "100%");
-
-        $td->addHTMLContent($safeguard);
-        $td->addContent(new HTMLempty("br"));
-
-        $td->addContent(EvalOverview::createNewEvalForm());
-        $tr->addContent($td);
+        $actions = new ActionsWidget();
+        $actions->addLink(_('Neue Evaluationsvorlage'),
+                          URLHelper::getLink('?rangeID=' . $_SESSION['rangeID'] .'&page=edit&newButton=1'),
+                          Icon::create('add', 'clickable'));
+        Sidebar::get()->addWidget($actions);
         /* ----------------------------------------------------- end: create new */
-
-        /* Show logo ----------------------------------------------------------- */
-        $td = new HTML("td");
-        $td->addAttr("align", "right");
-        $td->addAttr("class", "table_row_even");
-        $td->addAttr("valign", "top");
-        $rows = 5;
-        if ($foundTable)
-            $rows++;
-        /* ----------------------------------------------------------- end: logo */
-
-        $table->addContent($tr);
-
-        /* show range ---------------------------------------------------------- */
-        /*
-          if ($this->db->getGlobalPerm() != "autor") {
-          $tr = new HTML ("tr");
-          $td = new HTML ("td");
-          $td->addAttr ("class", "content_body");
-          $td->addContent (" ");
-          $tr->addContent ($td);
-          $table->addContent ($tr);
-
-          $tr = new HTML ("tr");
-          $td = new HTML ("td");
-          $td->addAttr ("class", "table_row_odd");
-          $td->addAttr ("valign", "top");
-          $td->addContent (new HTMLempty ("br"));
-          $td->addContent (EvalOverview::createShowRangeForm ());
-          $tr->addContent ($td);
-          $table->addContent ($tr);
-          }
-         */
-        /* ----------------------------------------------------- end: show range */
 
         /* search template ----------------------------------------------------- */
         $tr = new HTML("tr");
         $td = new HTML("td");
-        $td->addAttr("class", "content_body");
-        $td->addAttr("valign", "top");
-        $td->addContent(" ");
-        $tr->addContent($td);
-        $table->addContent($tr);
-        $tr = new HTML("tr");
-        $td = new HTML("td");
         $td->addAttr("class", "table_row_odd");
         $td->addAttr("valign", "top");
-        $td->addContent(new HTMLempty("br"));
         $td->addContent(EvalOverview::createSearchTemplateForm());
         $tr->addContent($td);
         $table->addContent($tr);
@@ -661,6 +611,9 @@ class EvalOverview {
         $tr = new HTML("tr");
         $td = new HTML("td");
         $td->addAttr("class", "blank");
+
+        $tr->addHTMLContent($safeguard);
+
         $td->addContent($table);
         $tr->addContent($td);
         /* --------------------------------------------------------- end: result */
@@ -671,67 +624,22 @@ class EvalOverview {
     /**
      *
      */
-    function createNewEvalForm() {
-        $currentRangeID = $_SESSION['rangeID'];
-
-        $form = new HTML("form");
-        $form->addAttr("method", "post");
-        $form->addAttr("action", URLHelper::getLink());
-        $form->addHTMLContent(CSRFProtection::tokenTag());
-
-        $hidden = new HTMLempty("input");
-        $hidden->addAttr("type", "hidden");
-        $hidden->addAttr("name", "page");
-        $hidden->addAttr("value", "edit");
-        $form->addContent($hidden);
-
-        $form->addContent(_("Eine neue Evaluationsvorlage "));
-
-        /*
-          $select = new HTML ("select");
-          $select->addAttr ("name", "rangeID");
-          $select->addAttr ("style", "vertical-align:middle;");
-
-          $rangeIDs = $this->db->getValidRangeIDs ($this->perm,
-          $this->user,
-          $currentRangeID);
-          foreach ($rangeIDs as $rangeID => $object) {
-          $option = new HTML ("option");
-          if ($currentRangeID == $rangeID)
-          $option->addAttr ("selected", "selected");
-          $option->addAttr ("value", $rangeID);
-          $option->addContent ($object["name"]);
-          $select->addContent ($option);
-          }
-         */
-        /* --------------------------------------------------------------------- */
-
-#$form->addContent ($select);
-        $form->addContent(Button::create(_('Erstellen'), 'newButton', array('title' => _('Neue Evaluation erstellen'))));
-        $input = new HTMLempty("input");
-        $input->addAttr("type", "hidden");
-        $input->addAttr("name", "rangeID");
-        $input->addAttr("value", $currentRangeID);
-        $form->addContent($input);
-        $form->addContent(new HTMLempty("br"));
-        $form->addContent(new HTMLempty("br"));
-
-        return $form;
-    }
-
-    /**
-     *
-     */
     function createShowRangeForm() {
 
         $currentRangeID = $_SESSION['rangeID'];
 
         $form = new HTML("form");
+        $form->addAttr('class', 'default');
         $form->addAttr("method", "post");
         $form->addAttr("action", URLHelper::getLink());
         $form->addHTMLContent(CSRFProtection::tokenTag());
 
-        $form->addContent(_("Evaluationen aus dem Bereich "));
+        $form->addHTMLContent('<fieldset>');
+
+        $headline = new HTML ("legend");
+        $headline->addAttr("class","eval");
+        $headline->addContent(_("Evaluationen"));
+        $form->addContent($headline);
 
         $select = new HTML("select");
         $select->addAttr("name", "rangeID");
@@ -757,24 +665,28 @@ class EvalOverview {
         }
         /* --------------------------------------------------------------------- */
 
+        $form->addHTMLContent('<label>');
+        $form->addContent(_("Evaluationen aus folgendem Bereich anzeigen"));
         $form->addContent($select);
+        $form->addHTMLContent('</label>');
         $form->addContent(" ");
-        $form->addContent(Button::create(_('Anzeigen'), array('title' => _('Evaluationen aus gewähltem Bereich anzeigen'))));
-        $form->addContent(new HTMLempty("br"));
+        $form->addContent(Button::create(_('Anzeigen'), array('title' => _('Evaluationen aus gewÃ¤hltem Bereich anzeigen'))));
         $form->addContent(new HTMLempty("br"));
 
         /* search field for showing ranges (admin/root) */
         if ($GLOBALS["perm"]->have_perm("admin")) {
-            $form->addContent(_("Nach weiteren Bereichen suchen:"));
+            $form->addHTMLContent('<label>');
+            $form->addContent(_("Nach weiteren Bereichen suchen"));
             $input = new HTMLEmpty("input");
             $input->addAttr("type", "text");
             $input->addAttr("name", "search");
             $input->addAttr("size", "30");
             $form->addContent($input);
+            $form->addHTMLContent('</label>');
             $form->addContent(Button::create(_('Suchen'), 'search_showrange_button', array('title' => _('Weitere Bereiche suchen'))));
-            $form->addContent(new HTMLempty("br"));
-            $form->addContent(new HTMLempty("br"));
         }
+
+        $form->addHTMLContent('</fieldset>');
 
         return $form;
     }
@@ -784,11 +696,17 @@ class EvalOverview {
      */
     function createSearchTemplateForm() {
         $form = new HTML("form");
+        $form->addAttr('class', 'default');
         $form->addAttr("method", "post");
         $form->addAttr("action", URLHelper::getLink("?rangeID=" . $_SESSION["rangeID"]));
         $form->addHTMLContent(CSRFProtection::tokenTag());
 
-        $form->addContent(_("Öffentliche Evaluationsvorlage suchen: "));
+        $form->addHTMLContent('<fieldset><legend>');
+        $form->addContent(_("Ã–ffentliche Evaluationsvorlage suchen"));
+        $form->addHTMLContent('</legend>');
+
+        $form->addHTMLContent('<label>');
+        $form->addContent(_("Name der Vorlage"));
 
         $input = new HTMLempty("input");
         $input->addAttr("type", "text");
@@ -797,10 +715,11 @@ class EvalOverview {
         $input->addAttr("style", "vertical-align:middle;");
 
         $form->addContent($input);
+        $form->addHTMLContent('</label>');
 
-        $form->addContent(Button::create(_('Suchen'), 'search_template_button', array('title' => _('Öffentliche Vorlage suchen'))));
-        $form->addContent(new HTMLempty("br"));
-        $form->addContent(new HTMLempty("br"));
+        $form->addHTMLContent('</fieldset><footer>');
+        $form->addContent(Button::create(_('Suchen'), 'search_template_button', array('title' => _('Ã–ffentliche Vorlage suchen'))));
+        $form->addHTMLContent('</footer>');
 
         return $form;
     }
@@ -878,9 +797,9 @@ class EvalOverview {
                 if (mb_strlen($search) < EVAL_MIN_SEARCHLEN) {
                     $report = EvalCommon::createReportMessage(sprintf(_("Bitte einen Suchbegriff mit mindestens %d Buchstaben eingeben."), EVAL_MIN_SEARCHLEN), EVAL_PIC_ERROR, EVAL_CSS_ERROR);
                 } elseif (count($templates) == 0) {
-                    $report = EvalCommon::createReportMessage(_("Es wurden keine passenden öffentlichen Evaluationsvorlagen gefunden."), EVAL_PIC_ERROR, EVAL_CSS_ERROR);
+                    $report = EvalCommon::createReportMessage(_("Es wurden keine passenden Ã¶ffentlichen Evaluationsvorlagen gefunden."), EVAL_PIC_ERROR, EVAL_CSS_ERROR);
                 } else {
-                    $report = EvalCommon::createReportMessage(sprintf(_("Es wurde(n) %d passende öffentliche Evaluationsvorlagen gefunden."), count($templates)), EVAL_PIC_SUCCESS, EVAL_CSS_SUCCESS);
+                    $report = EvalCommon::createReportMessage(sprintf(_("Es wurde(n) %d passende Ã¶ffentliche Evaluationsvorlagen gefunden."), count($templates)), EVAL_PIC_SUCCESS, EVAL_CSS_SUCCESS);
                 }
                 $safeguard .= $report->createContent();
                 return $safeguard;
@@ -903,21 +822,13 @@ class EvalOverview {
                 /* -------------------------------------- end: export evaluation */
 
 
-                /* Create link ------------------------------------------------- */
-                $link = new HTML("a");
-                $link->addAttr('href', GetDownloadLink($exportManager->getTempFilename(), $exportManager->getFilename(), 2));
-                $link->addHTMLContent(GetFileIcon('csv')->asImg());
-                $link->addContent(_("auf diese Verknüpfung"));
-                /* -------------------------------------------- end: create link */
-
-
                 /* Create report ----------------------------------------------- */
                 if ($exportManager->isError()) {
                     $report = EvalCommon::createErrorReport($exportManager, _("Fehler beim Exportieren"));
                 } else {
-                    $report = EvalCommon::createReportMessage(_("Die Daten wurden erfolgreich exportiert. Sie können die Ausgabedatei jetzt herunterladen."), EVAL_PIC_SUCCESS, EVAL_CSS_SUCCESS);
+                    $report = EvalCommon::createReportMessage(_("Die Daten wurden erfolgreich exportiert. Sie kÃ¶nnen die Ausgabedatei jetzt herunterladen."), EVAL_PIC_SUCCESS, EVAL_CSS_SUCCESS);
                     $report = $report->createContent();
-                    $report .= sprintf(_("Bitte klicken Sie %s um die Datei herunter zu laden.") . "<br><br>", $link->createContent());
+                    $report .= sprintf(_("Bitte klicken Sie %s um die Datei herunter zu laden.") . "<br><br>", '<a href="' .FileManager::getDownloadLinkForTemporaryFile($exportManager->getTempFilename(), $exportManager->getFilename()) . '">' . _("auf diese VerknÃ¼pfung") . '</a>');
                 }
                 $safeguard .= $report;
                 /* ------------------------------------------ end: create report */
@@ -943,9 +854,9 @@ class EvalOverview {
 
             if ($no_permisson > 0) {
                 if ($no_permisson == 1)
-                    $no_permission_msg .= sprintf(_("Die Evaluation <b>%s</b> ist einem Bereich zugeordnet, für den Sie keine Veränderungsrechte besitzen."), $evalName);
+                    $no_permission_msg .= sprintf(_("Die Evaluation <b>%s</b> ist einem Bereich zugeordnet, fÃ¼r den Sie keine VerÃ¤nderungsrechte besitzen."), $evalName);
                 else
-                    $no_permission_msg .= sprintf(_("Die Evaluation <b>%s</b> ist %s Bereichen zugeordnet, für die Sie keine Veränderungsrechte besitzen."), $evalName, $no_permisson);
+                    $no_permission_msg .= sprintf(_("Die Evaluation <b>%s</b> ist %s Bereichen zugeordnet, fÃ¼r die Sie keine VerÃ¤nderungsrechte besitzen."), $evalName, $no_permisson);
 
                 if ($evalAction != "save") {
 
@@ -953,7 +864,7 @@ class EvalOverview {
 
                     $sms = new messaging();
                     $sms->insert_message(
-                            sprintf(_("Benutzer **%s** hat versucht eine unzulässige Änderung an Ihrer Evaluation **%s** vorzunehmen."), get_username($auth->auth["uid"]), $eval->getTitle()), get_username($eval->getAuthorID()), "____%system%____", FALSE, FALSE, "1", FALSE, _("Versuchte Änderung an Ihrer Evaluation"));
+                            sprintf(_("Benutzer **%s** hat versucht eine unzulÃ¤ssige Ã„nderung an Ihrer Evaluation **%s** vorzunehmen."), get_username($auth->auth["uid"]), $eval->getTitle()), get_username($eval->getAuthorID()), "____%system%____", FALSE, FALSE, "1", FALSE, _("Versuchte Ã„nderung an Ihrer Evaluation"));
                 }
             }
         } else if ($eval->isTemplate() &&
@@ -963,8 +874,8 @@ class EvalOverview {
 
             $sms = new messaging();
             $sms->insert_message(
-                    sprintf(_("Benutzer **%s** hat versucht eine unzulässige Änderung an Ihrem Template **%s** vorzunehmen."), get_username($auth->auth["uid"]), $eval->getTitle()), get_username($eval->getAuthorID()), "____%system%____", FALSE, FALSE, "1", FALSE, _("Versuchte Änderung an Ihrem Template"));
-            return $this->createSafeguard("ausruf", sprintf(_("Sie besitzen keine Rechte für das Tempate <b>%s</b>. Der Besitzer wurde durch eine systeminterne Nachricht informiert."), $evalName));
+                    sprintf(_("Benutzer **%s** hat versucht eine unzulÃ¤ssige Ã„nderung an Ihrem Template **%s** vorzunehmen."), get_username($auth->auth["uid"]), $eval->getTitle()), get_username($eval->getAuthorID()), "____%system%____", FALSE, FALSE, "1", FALSE, _("Versuchte Ã„nderung an Ihrem Template"));
+            return $this->createSafeguard("ausruf", sprintf(_("Sie besitzen keine Rechte fÃ¼r das Tempate <b>%s</b>. Der Besitzer wurde durch eine systeminterne Nachricht informiert."), $evalName));
         }
         /* ----------------------------------------- end: check for permissions */
 
@@ -1004,7 +915,7 @@ class EvalOverview {
                     $safeguard .= $this->createSafeguard("", EvalCommon::createErrorReport($newEval));
                     return $safeguard;
                 }
-                $safeguard .= $this->createSafeguard("ok", sprintf(_("Die öffentliche Evaluationsvorlage <b>%s</b> wurde zu den eigenen Evaluationsvorlagen kopiert."), $evalName));
+                $safeguard .= $this->createSafeguard("ok", sprintf(_("Die Ã¶ffentliche Evaluationsvorlage <b>%s</b> wurde zu den eigenen Evaluationsvorlagen kopiert."), $evalName));
                 break;
 
             case "start":
@@ -1057,15 +968,15 @@ class EvalOverview {
             case "restart_request":
 
                 if ($no_permission_msg)
-                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht zurücksetzen."));
+                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht zurÃ¼cksetzen."));
 
-                $safeguard .= $this->createSafeguard("ausruf", sprintf(_("Die Evaluation <b>%s</b> wirklich zurücksetzen? Dabei werden alle bisher abgegebenen Antworten gelöscht!"), $evalName), "restart_request", $evalID, $showrangeID, $referer);
+                $safeguard .= $this->createSafeguard("ausruf", sprintf(_("Die Evaluation <b>%s</b> wirklich zurÃ¼cksetzen? Dabei werden alle bisher abgegebenen Antworten gelÃ¶scht!"), $evalName), "restart_request", $evalID, $showrangeID, $referer);
                 break;
 
             case "restart_confirmed":
 
                 if ($no_permission_msg)
-                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht zurücksetzen."));
+                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht zurÃ¼cksetzen."));
 
                 $eval = new Evaluation($evalID, NULL, EVAL_LOAD_ALL_CHILDREN);
                 $eval->resetAnswers();
@@ -1078,12 +989,12 @@ class EvalOverview {
                     $safeguard .= $this->createSafeguard("", EvalCommon::createErrorReport($eval));
                     return $safeguard;
                 }
-                $safeguard .= $this->createSafeguard("ok", sprintf(_("Die Evaluation <b>%s</b> wurde zurückgesetzt."), $evalName));
+                $safeguard .= $this->createSafeguard("ok", sprintf(_("Die Evaluation <b>%s</b> wurde zurÃ¼ckgesetzt."), $evalName));
                 $evalChanged = YES;
                 break;
 
             case "restart_aborted":
-                $safeguard .= $this->createSafeguard("ok", sprintf(_("Die Evaluation <b>%s</b> wurde nicht zurückgesetzt."), $evalName), "", "", "", $referer);
+                $safeguard .= $this->createSafeguard("ok", sprintf(_("Die Evaluation <b>%s</b> wurde nicht zurÃ¼ckgesetzt."), $evalName), "", "", "", $referer);
                 break;
 
             case "copy_own_template":
@@ -1100,17 +1011,18 @@ class EvalOverview {
 
             case "delete_request":
 
-                if ($no_permission_msg)
-                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht gelöscht."));
+                if ($no_permission_msg) {
+                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht gelÃ¶scht."));
+                }
 
-                $text = $eval->isTemplate() ? sprintf(_("Die Evaluationsvorlage <b>%s </b>wirklich löschen?"), $evalName) : sprintf(_("Die Evaluation <b>%s </b>wirklich löschen?"), $evalName);
+                $text = $eval->isTemplate() ? sprintf(_("Die Evaluationsvorlage <b>%s </b>wirklich lÃ¶schen?"), $evalName) : sprintf(_("Die Evaluation <b>%s </b>wirklich lÃ¶schen?"), $evalName);
                 $safeguard .= $this->createSafeguard("ausruf", $text, "delete_request", $evalID, $showrangeID, $referer);
                 break;
 
             case "delete_confirmed":
 
                 if ($no_permission_msg)
-                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht gelöscht."));
+                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht gelÃ¶scht."));
 
                 $eval = new Evaluation($evalID, NULL, EVAL_LOAD_ALL_CHILDREN);
                 $eval->delete();
@@ -1119,25 +1031,25 @@ class EvalOverview {
                     return $safeguard;
                 }
 
-                $text = $eval->isTemplate() ? _("Die Evaluationsvorlage <b>%s</b> wurde gelöscht.") : _("Die Evaluation <b>%s</b> wurde gelöscht.");
+                $text = $eval->isTemplate() ? _("Die Evaluationsvorlage <b>%s</b> wurde gelÃ¶scht.") : _("Die Evaluation <b>%s</b> wurde gelÃ¶scht.");
                 $safeguard .= $this->createSafeguard("ok", sprintf($text, $evalName), "", "", "", $referer);
                 $evalChanged = YES;
                 break;
 
             case "delete_aborted":
-                $text = $eval->isTemplate() ? _("Die Evaluationsvorlage <b>%s</b> wurde nicht gelöscht.") : _("Die Evaluation <b>%s</b> wurde nicht gelöscht.");
+                $text = $eval->isTemplate() ? _("Die Evaluationsvorlage <b>%s</b> wurde nicht gelÃ¶scht.") : _("Die Evaluation <b>%s</b> wurde nicht gelÃ¶scht.");
                 $safeguard .= $this->createSafeguard("ok", sprintf($text, $evalName), "", "", "", $referer);
                 break;
 
             case "unlink_delete_aborted":
-                $text = _("Die Evaluation <b>%s</b> wurde nicht verändert.");
+                $text = _("Die Evaluation <b>%s</b> wurde nicht verÃ¤ndert.");
                 $safeguard .= $this->createSafeguard("ok", sprintf($text, $evalName), "", "", "", $referer);
                 break;
 
             case "unlink_and_move":
 
                 if ($no_permission_msg)
-                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht ausgehängt und zu den eigenen Evaluationsvorlagen verschoben."));
+                    return $this->createSafeguard("ausruf", $no_permission_msg . "<br>" . _("Die Evaluation wurde nicht ausgehÃ¤ngt und zu den eigenen Evaluationsvorlagen verschoben."));
 
                 $eval = new Evaluation($evalID, NULL, EVAL_LOAD_ALL_CHILDREN);
                 $eval->removeRangeIDs();
@@ -1151,7 +1063,7 @@ class EvalOverview {
                     $safeguard .= $this->createSafeguard("", EvalCommon::createErrorReport($eval));
                     return $safeguard;
                 }
-                $text = _("Die Evaluation <b>%s</b> wurde aus allen Bereichen ausgehängt und zu den eigenen Evaluationsvorlagen verschoben.");
+                $text = _("Die Evaluation <b>%s</b> wurde aus allen Bereichen ausgehÃ¤ngt und zu den eigenen Evaluationsvorlagen verschoben.");
                 $safeguard .= $this->createSafeguard("ok", sprintf($text, $evalName), "", "", "", $referer);
                 break;
 
@@ -1163,7 +1075,7 @@ class EvalOverview {
             case "save2":
             case "save":
                 $eval = new Evaluation($evalID, NULL, EVAL_LOAD_ALL_CHILDREN);
-                $update_message = sprintf(_("Die Evaluation <b>%s</b> wurde mit den Veränderungen gespeichert."), $evalName);
+                $update_message = sprintf(_("Die Evaluation <b>%s</b> wurde mit den VerÃ¤nderungen gespeichert."), $evalName);
 
 
                 /* Timesettings ---------------------------------------------------- */
@@ -1187,7 +1099,7 @@ class EvalOverview {
 
                     if ($no_permission_msg &&
                             ($eval->getStartdate != $startDate)) {
-                        $time_msg = $no_permission_msg . "<br>" . _("Die Einstellungen zur Startzeit wurden nicht verändert.");
+                        $time_msg = $no_permission_msg . "<br>" . _("Die Einstellungen zur Startzeit wurden nicht verÃ¤ndert.");
                     }
                 }
 
@@ -1214,7 +1126,7 @@ class EvalOverview {
                             ($eval->getStopdate != $stopDate &&
                             $eval->getTimespan != $timeSpan )) {
                         $time_msg = ($time_msg) ? $time_msg . "<br>" : $no_permission_msg;
-                        $time_msg .= _("Die Einstellungen zur Endzeit wurden nicht verändert.");
+                        $time_msg .= _("Die Einstellungen zur Endzeit wurden nicht verÃ¤ndert.");
                     }
                 }
                 /* ----------------------------------------------- end: timesettings */
@@ -1251,12 +1163,12 @@ class EvalOverview {
                         $newEval->save();
 
                     if ($newEval->isError()) {
-                        $safeguard .= $this->createSafeguard("ausruf", _("Fehler beim Einhängen von Bereichen.") . EvalCommon::createErrorReport($newEval));
+                        $safeguard .= $this->createSafeguard("ausruf", _("Fehler beim EinhÃ¤ngen von Bereichen.") . EvalCommon::createErrorReport($newEval));
                         return $safeguard;
                     }
 
                     $message .= $message ? "<br>" : " ";
-                    $message .= ($counter_linked > 1) ? sprintf(_("Die Evaluation wurde in %s Bereiche eingehängt."), $counter_linked) : sprintf(_("Die Evaluation wurde in einen Bereich eingehängt."), $counter_linked);
+                    $message .= ($counter_linked > 1) ? sprintf(_("Die Evaluation wurde in %s Bereiche eingehÃ¤ngt."), $counter_linked) : sprintf(_("Die Evaluation wurde in einen Bereich eingehÃ¤ngt."), $counter_linked);
                 }
                 /* ---------------------------------------- end: link eval to ranges */
 
@@ -1299,7 +1211,7 @@ class EvalOverview {
 
                     /* if all rangeIDs will be removed, so ask if it should be deleted -- */
                     if (sizeof($remove_range_Array) == $eval->getNumberRanges()) {
-                        $text = _("Sie wollen die Evaluation <b>%s</b> aus allen ihr zugeordneten Bereichen aushängen.<br>Soll die Evaluation gelöscht oder zu Ihren eigenen Evaluationsvorlagen verschoben werden?");
+                        $text = _("Sie wollen die Evaluation <b>%s</b> aus allen ihr zugeordneten Bereichen aushÃ¤ngen.<br>Soll die Evaluation gelÃ¶scht oder zu Ihren eigenen Evaluationsvorlagen verschoben werden?");
                         $safeguard .= $this->createSafeguard("ausruf", sprintf($text, $evalName), "unlink_delete_request", $evalID, $showrangeID, $referer);
                         $update_message = NULL;
                         return $safeguard;
@@ -1327,9 +1239,9 @@ class EvalOverview {
                     if ($counter_no_permisson > 0) {
 
                         if ($counter_no_permisson == 1)
-                            $safeguard .= $this->createSafeguard("ausruf", _("Sie wollen die Evaluation aus einem Bereich aushängen, für den Sie keine Berechtigung besitzten.<br> Die Aktion wurde nicht ausgeführt."));
+                            $safeguard .= $this->createSafeguard("ausruf", _("Sie wollen die Evaluation aus einem Bereich aushÃ¤ngen, fÃ¼r den Sie keine Berechtigung besitzten.<br> Die Aktion wurde nicht ausgefÃ¼hrt."));
                         else
-                            $safeguard .= $this->createSafeguard("ausruf", sprintf(_("Sie wollen die Evaluation aus %d Bereichen aushängen, für die Sie keine Berechtigung besitzten.<br> Die Aktion wurde nicht ausgeführt."), $counter_no_permisson));
+                            $safeguard .= $this->createSafeguard("ausruf", sprintf(_("Sie wollen die Evaluation aus %d Bereichen aushÃ¤ngen, fÃ¼r die Sie keine Berechtigung besitzten.<br> Die Aktion wurde nicht ausgefÃ¼hrt."), $counter_no_permisson));
                         return $safeguard;
                     }
 
@@ -1350,12 +1262,12 @@ class EvalOverview {
 
 
                     if ($eval->isError()) {
-                        $safeguard .= $this->createSafeguard("ausruf", _("Fehler beim Aushängen von Bereichen.") . EvalCommon::createErrorReport($eval));
+                        $safeguard .= $this->createSafeguard("ausruf", _("Fehler beim AushÃ¤ngen von Bereichen.") . EvalCommon::createErrorReport($eval));
                         return $safeguard;
                     }
 
                     $message .= $message ? "<br>" : " ";
-                    $message .= ($counter_copy > 1) ? sprintf(_("Die Evaluation wurde aus %s Bereichen ausgehängt."), $counter_copy) : sprintf(_("Die Evaluation wurde aus einem Bereich ausgehängt."), $counter_copy);
+                    $message .= ($counter_copy > 1) ? sprintf(_("Die Evaluation wurde aus %s Bereichen ausgehÃ¤ngt."), $counter_copy) : sprintf(_("Die Evaluation wurde aus einem Bereich ausgehÃ¤ngt."), $counter_copy);
 
                     if ($eval->getNumberRanges() == 0) {
                         $message .= $message ? "<br>" : "";
@@ -1374,11 +1286,11 @@ class EvalOverview {
                         $number_of_ranges = $eval->getNumberRanges();
 
                         if ($number_of_ranges == $no_permission_ranges) {
-                            $return["msg"] = $this->createSafeguard("ausruf", $message . "<br>" . sprintf(_("Sie haben die Evaluation <b>%s</b> aus allen ihren Bereichen ausgehängt."), $evalName));
+                            $return["msg"] = $this->createSafeguard("ausruf", $message . "<br>" . sprintf(_("Sie haben die Evaluation <b>%s</b> aus allen ihren Bereichen ausgehÃ¤ngt."), $evalName));
                             $return["option"] = DISCARD_OPENID;
                             $eval->save();
                             if ($eval->isError()) {
-                                $safeguard = $this->createSafeguard("ausruf", _("Fehler beim Aushängen einer Evaluationen aus allen Bereichen auf die Sie Zugriff haben.") . EvalCommon::createErrorReport($newEval));
+                                $safeguard = $this->createSafeguard("ausruf", _("Fehler beim AushÃ¤ngen einer Evaluationen aus allen Bereichen auf die Sie Zugriff haben.") . EvalCommon::createErrorReport($newEval));
                                 return $safeguard;
                             }
                             return $return;
@@ -1388,13 +1300,13 @@ class EvalOverview {
 
                 if ($eval->isTemplate()) {
                     if (empty($link_range) && empty($copy_range) && empty($remove_range)) {
-                        $update_message = sprintf(_("Es wurden keine Veränderungen an der Evaluationsvorlage <b>%s</b> gespeichert."), $evalName);
+                        $update_message = sprintf(_("Es wurden keine VerÃ¤nderungen an der Evaluationsvorlage <b>%s</b> gespeichert."), $evalName);
                     }
                 } else {
                     // nothing changed
                     if (! Request::option('startMode') && ! Request::option('stopMode') &&
                             empty($link_range) && empty($copy_range) && empty($remove_range))
-                        $update_message = _("Es wurden keine Veränderungen gespeichert.");
+                        $update_message = _("Es wurden keine VerÃ¤nderungen gespeichert.");
 
                     // set new start date
                     if (Request::option("startMode") && !$time_msg) {
@@ -1449,7 +1361,7 @@ class EvalOverview {
                 $search = Request::get("search");
 
                 if (EvaluationObjectDB::getGlobalPerm(YES) < 31) {
-                    $safeguard = $this->createSafeguard("ausruf", _("Sie besitzen keine Berechtigung eine Suche durchzuführen."));
+                    $safeguard = $this->createSafeguard("ausruf", _("Sie besitzen keine Berechtigung eine Suche durchzufÃ¼hren."));
                     return $safeguard;
                 }
 
@@ -1457,7 +1369,7 @@ class EvalOverview {
                 if (empty($search))
                     $safeguard .= $this->createSafeguard("ausruf", _("Bitte einen Suchbegriff eingeben."), $search);
                 elseif (sizeof($results) == 0)
-                    $safeguard .= $this->createSafeguard("ausruf", sprintf(_("Es wurde kein Bereich gefunden, der den Suchbegriff <b>%s</b> enthält."), htmlReady($search)), $search);
+                    $safeguard .= $this->createSafeguard("ausruf", sprintf(_("Es wurde kein Bereich gefunden, der den Suchbegriff <b>%s</b> enthÃ¤lt."), htmlReady($search)), $search);
                 else
                     $safeguard .= $this->createSafeguard("ok", sprintf(_("Es wurden %s Bereiche gefunden, die den Suchbegriff <b>%s</b> enthalten."), sizeof($results), htmlReady($search)), $search);
                 break;
@@ -1502,7 +1414,7 @@ class EvalOverview {
                 break;
 
             default:
-                $safeguard .= $this->createSafeguard("ausruf", _("Fehler! Es wurde versucht, eine nicht vorhandene Aktion auszuführen."));
+                $safeguard .= $this->createSafeguard("ausruf", _("Fehler! Es wurde versucht, eine nicht vorhandene Aktion auszufÃ¼hren."));
                 break;
         }
 
@@ -1510,7 +1422,7 @@ class EvalOverview {
         if (($evalChanged) && ($eval->getAuthorID() != $auth->auth["uid"])) {
 
             $sms = new messaging();
-            $sms->insert_message(sprintf(_("An Ihrer Evaluation \"%s\" wurden von %s Änderungen vorgenommen."), $eval->getTitle(), get_username($auth->auth["uid"])), get_username($eval->getAuthorID()), "____%system%____", FALSE, FALSE, "1");
+            $sms->insert_message(sprintf(_("An Ihrer Evaluation \"%s\" wurden von %s Ã„nderungen vorgenommen."), $eval->getTitle(), get_username($auth->auth["uid"])), get_username($eval->getAuthorID()), "____%system%____", FALSE, FALSE, "1");
         }
         /* ------------------------------------------------------ end: send SMS */
 
@@ -1519,8 +1431,9 @@ class EvalOverview {
             $return["msg"] = $safeguard;
             $return["option"] = DISCARD_OPENID;
             return $return;
-        } else
+        } else {
             return $safeguard;
+        }
     }
 
 // callSafeguard
@@ -1537,10 +1450,10 @@ class EvalOverview {
         //TODO: auf messagebox bzw. createQuestion umstellen!!!
 
         $label = array(
-            "referer" => _("Zum vorherigen Bereich zurückkehren."),
+            "referer" => _("Zum vorherigen Bereich zurÃ¼ckkehren."),
             "yes" => _("Ja!"),
             "no" => _("Nein!"),
-            "delete" => _("Löschen."),
+            "delete" => _("LÃ¶schen."),
             "template" => _("Zu den eigenen Evaluationsvorlagen verschieben."),
             "cancel" => _("Abbrechen.")
         );
@@ -1594,7 +1507,7 @@ class EvalOverview {
                 URLHelper::getURL('admin_evaluation.php?evalAction=unlink_delete_aborted&evalID=' . $evalID . '&rangeID=' . $showrangeID),
                 URLHelper::getURL('admin_evaluation.php?evalAction=unlink_and_move&evalID=' . $evalID . '&rangeID=' . $showrangeID . $add_cancel)
             );
-            $html .= LinkButton::create(_('Löschen'), $links[0], array('title' => $label["delete"])) . "\n";
+            $html .= LinkButton::create(_('LÃ¶schen'), $links[0], array('title' => $label["delete"])) . "\n";
             $html .= LinkButton::create(_('Verschieben'), $links[1], array('title' => $label["template"])) . "\n";
             $html .= LinkButton::createCancel(_('Abbrechen'), $links[2], array('title' => $label["cancel"])) . "\n";
             $html .= "<br><br>";
@@ -1664,8 +1577,8 @@ class EvalOverview {
         $html .= "<tr><td colspan=\"2\">\n";
         $html .= "<b>" . _("Einstellungen zur Start- und Endzeit:") . "</b>";
         $tooltip = $eval->isTemplate()
-                 ? _('Legen Sie fest, von wann bis wann alle eingehängten und kopierten Instanzen dieser Evaluationsvorlage in Stud.IP öffentlich sichtbar sein sollen.')
-                 : _('Legen Sie fest, von wann bis wann die Evaluation in Stud.IP öffentlich sichtbar sein soll.');
+                 ? _('Legen Sie fest, von wann bis wann alle eingehÃ¤ngten und kopierten Instanzen dieser Evaluationsvorlage in Stud.IP Ã¶ffentlich sichtbar sein sollen.')
+                 : _('Legen Sie fest, von wann bis wann die Evaluation in Stud.IP Ã¶ffentlich sichtbar sein soll.');
         $html .= " ";
         $html .= Icon::create('info-circle', 'inactive', ['title' => $tooltip])->asImg(['class' => 'middle']);
         $html .= "</td></tr>";
@@ -1688,7 +1601,7 @@ class EvalOverview {
         if ($state == EVAL_STATE_NEW || $eval->isTemplate()) {
             $html .= "<tr><td class=\"table_row_even\">";
             $html .= "<input type=radio name=\"startMode\" value=\"manual\" " . ($startMode == "manual" ? "checked" : "") . ">&nbsp;";
-            $html .= _("später manuell starten");
+            $html .= _("spÃ¤ter manuell starten");
             $html .= "</td></tr>";
 
             $html .= "<tr><td class=table_row_odd>";
@@ -1766,7 +1679,14 @@ class EvalOverview {
                 if ($timeSpan == $secs)
                     $html .= "selected";
                 $html .= ">";
-                $html .= sprintf($i == 1 ? _("%s Woche") : _("%s Wochen"), $i);
+                $html .= sprintf(
+                    ngettext(
+                        '%d Woche',
+                        '%d Wochen',
+                        $i
+                    ),
+                    $i
+                );
                 $html .= "</option>";
             }
             $html .= "</select>";
@@ -1846,13 +1766,13 @@ class EvalOverview {
                 "user" => _("Benutzer"),
                 "sem" => _("Veranstaltung"),
                 "inst" => _("Einrichtung"),
-                "fak" => _("Fakultät"));
+                "fak" => _("FakultÃ¤t"));
         elseif ($globalperm == "root")
             $range_types = array(
                 "user" => _("Benutzer"),
                 "sem" => _("Veranstaltung"),
                 "inst" => _("Einrichtung"),
-                "fak" => _("Fakultät"),
+                "fak" => _("FakultÃ¤t"),
                 "system" => _("System"));
 
 
@@ -1866,7 +1786,7 @@ class EvalOverview {
         $table_r->addAttr("width", "100%");
         $table_r->addAttr('class', 'default');
 
-        // Überschriften
+        // Ãœberschriften
         $tr_r = new HTML("tr");
 
         $td_r = new HTML("td");
@@ -1885,7 +1805,7 @@ class EvalOverview {
         $td_r->addAttr("align", "center");
         $td_r->addAttr("style", "vertical-align:bottom;");
         $b_r = new HTML("b");
-        $b_r->addContent(_("aushängen"));
+        $b_r->addContent(_("aushÃ¤ngen"));
         $td_r->addContent($b_r);
         $tr_r->addContent($td_r);
 
@@ -1893,14 +1813,14 @@ class EvalOverview {
 
         if ($rangeIDs) {
 
-            // die verknüpften bereiche
+            // die verknÃ¼pften bereiche
             foreach ($rangeIDs as $k => $assigned_rangeID) {
                 $tr_r = new HTML("tr");
 
                 // title
                 $td_r = new HTML("td");
                 $td_r->addHTMLContent("&nbsp;");
-                $td_r->addHTMLContent(($db->getRangename($assigned_rangeID, NO)));
+                $td_r->addContent($db->getRangename($assigned_rangeID, NO));
 #         $td_r->addContent ($db->getRangename($assigned_rangeID));
                 $tr_r->addContent($td_r);
 
@@ -1918,7 +1838,7 @@ class EvalOverview {
                     // no permission
                     $td_r = new HTML("td");
                     $td_r->addAttr("align", "center");
-                    $td_r->addContent(_("Sie haben keine Berechtigung die Evaluation aus diesem Bereich auszuhängen."));
+                    $td_r->addContent(_("Sie haben keine Berechtigung die Evaluation aus diesem Bereich auszuhÃ¤ngen."));
                 }
                 $tr_r->addContent($td_r);
                 $table_r->addContent($tr_r);
@@ -1954,7 +1874,7 @@ class EvalOverview {
         $b = new HTML("b");
         $b->addContent(_("Diese Evaluation ist folgenden Bereichen zugeordnet:"));
         $td->addContent($b);
-        $td->addContent(EvalCommon::createImage(EVAL_PIC_HELP, "", tooltip(_(" können Sie Ihre Evaluation aus den verknüpften Bereichen entfernen."), TRUE, TRUE)));
+        $td->addContent(EvalCommon::createImage(EVAL_PIC_HELP, "", tooltip(_(" kÃ¶nnen Sie Ihre Evaluation aus den verknÃ¼pften Bereichen entfernen."), TRUE, TRUE)));
         $tr->addContent($td);
         if (!$eval->isTemplate())
             $table->addContent($tr);
@@ -1989,7 +1909,7 @@ class EvalOverview {
 
             while (list($type_key, $type_value) = each($range_types)) {
 
-                // Überschriften
+                // Ãœberschriften
                 $tr_s = new HTML("tr");
 
                 // Typ
@@ -2011,7 +1931,7 @@ class EvalOverview {
                 $td_s->addAttr("align", "center");
                 $td_s->addAttr("style", "vertical-align:bottom;");
                 $b_s = new HTML("b");
-                $b_s->addContent(_("einhängen"));
+                $b_s->addContent(_("einhÃ¤ngen"));
                 $td_s->addContent($b_s);
                 $tr_s->addContent($td_s);
 
@@ -2107,11 +2027,11 @@ class EvalOverview {
             $b = new HTML("b");
 #       $b->addContent (_("Suchergebnisse:"));
             if (Request::get("search"))
-                $b->addContent(_("Sie können die Evaluation folgenden Bereichen zuordnen (Suchergebnisse):"));
+                $b->addContent(_("Sie kÃ¶nnen die Evaluation folgenden Bereichen zuordnen (Suchergebnisse):"));
             else
-                $b->addContent(_("Sie können die Evaluation folgenden Bereichen zuordnen:"));
+                $b->addContent(_("Sie kÃ¶nnen die Evaluation folgenden Bereichen zuordnen:"));
             $td->addContent($b);
-            $td->addContent(EvalCommon::createImage(EVAL_PIC_HELP, "", tooltip(_("Hängen Sie die Evaluation in die gewünschten Bereiche ein (abhängige Kopie mit gemeinsamer Auswertung) oder kopieren Sie sie in Bereiche (unabhängige Kopie mit getrennter Auswertung)."), TRUE, TRUE)));
+            $td->addContent(EvalCommon::createImage(EVAL_PIC_HELP, "", tooltip(_("HÃ¤ngen Sie die Evaluation in die gewÃ¼nschten Bereiche ein (abhÃ¤ngige Kopie mit gemeinsamer Auswertung) oder kopieren Sie sie in Bereiche (unabhÃ¤ngige Kopie mit getrennter Auswertung)."), TRUE, TRUE)));
             $td->addContent(($results) ? $table_s : _("Die Suche ergab keine Treffer."));
             $tr->addContent($td);
             $table->addContent($tr);
@@ -2166,14 +2086,14 @@ class EvalOverview {
                 "user" => _("Benutzer"),
                 "sem" => _("Veranstaltung"),
                 "inst" => _("Einrichtung"),
-                "fak" => _("Fakultät"));
+                "fak" => _("FakultÃ¤t"));
 
         elseif ($globalperm == "root")
             $range_types = array(
                 "user" => _("Benutzer"),
                 "sem" => _("Veranstaltung"),
                 "inst" => _("Einrichtung"),
-                "fak" => _("Fakultät"),
+                "fak" => _("FakultÃ¤t"),
                 "system" => _("System"));
 
         // display search_results
@@ -2196,7 +2116,7 @@ class EvalOverview {
 
             while (list($type_key, $type_value) = each($range_types)) {
 
-                // Überschriften
+                // Ãœberschriften
                 $tr = new HTML("tr");
 
                 // Typ

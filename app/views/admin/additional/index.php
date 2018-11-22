@@ -16,18 +16,21 @@
                 </select>
             </label>
             <label>
-                <?= _('Eingaben erzwingen') ?>
                 <input type='checkbox' name='forced' value='1' <?= $course->aux_lock_rule_forced ? "checked" : "" ?>>
+                <?= _('Eingaben erzwingen') ?>
             </label>
+
             <? if($count): ?>
-           <?= $count." "._('Datensätze vorhanden') ?>
-                        <label><?= _('Löschen?') ?>
-                <input type='checkbox' name='delete' value='1'>
-            </label>
+                <label>
+                    <input type='checkbox' name='delete' value='1'>
+                    <?= $count." "._('DatensÃ¤tze vorhanden') ?> -
+                    <?= _('LÃ¶schen?') ?>
+                </label>
             <? endif; ?>
         </fieldset>
+
         <footer>
-            <?= Studip\Button::create(_('Übernehmen'), 'save') ?>
+            <?= Studip\Button::create(_('Ãœbernehmen'), 'save') ?>
         </footer>
     </form>
 <? else: ?>

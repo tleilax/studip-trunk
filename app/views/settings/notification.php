@@ -1,7 +1,7 @@
 <? use Studip\Button, Studip\LinkButton; ?>
-<form method="post" action="<?= $controller->url_for('settings/notification/store') ?>">
+<form method="post" action="<?= $controller->url_for('settings/notification/store') ?>" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
 
     <table class="default" id="settings-notifications">
         <colgroup>
@@ -24,7 +24,7 @@
             </tr>
             <tr>
                 <td colspan="2">
-                    <?= _('Benachrichtigung für unten aufgeführte Veranstaltungen:') ?>
+                    <?= _('Benachrichtigung fÃ¼r unten aufgefÃ¼hrte Veranstaltungen:') ?>
                 </td>
                 <? for ($i = 0; $i < count($modules); $i += 1): ?>
                     <td>
@@ -47,12 +47,12 @@
                             <? if (isset($open[$id])): ?>
                             <a class="tree" style="font-weight:bold" name="<?= $id ?>"
                                href="<?= $controller->url_for('settings/notification/close', $id) ?>#<?= $id ?>"
-                                    <?= tooltip(_('Gruppierung schließen'), true) ?>>
+                                    <?= tooltip(_('Gruppierung schlieÃŸen'), true) ?>>
                                 <?= Icon::create('arr_1down', 'clickable')->asImg() ?>
                                 <? else: ?>
                                 <a class="tree" name="<?= $id ?>"
                                    href="<?= $controller->url_for('settings/notification/open', $id) ?>#<?= $id ?>"
-                                        <?= tooltip(_('Gruppierung öffnen'), true) ?>>
+                                        <?= tooltip(_('Gruppierung Ã¶ffnen'), true) ?>>
                                     <?= Icon::create('arr_1right', 'clickable')->asImg() ?>
                                     <? endif; ?>
                                     <?= htmlReady(my_substr(implode(' &gt; ', (array)$group_names[$id]), 0, 70)) ?>
@@ -90,13 +90,9 @@
                 <? endif; ?>
             </tbody>
         <? endforeach; ?>
-        <tfoot>
-            <tr>
-                <td colspan="<?= count($modules) + 3 ?>">
-                    <?= Button::create(_('Übernehmen'), 'store', ['title' => _('Änderungen übernehmen')]) ?>
-                    <?= LinkButton::create(_('Zurücksetzen'), $controller->url_for('settings/notification')) ?>
-                </td>
-            </tr>
-        </tfoot>
-    </table>
+        </table>
+        <footer>
+            <?= Button::create(_('Ãœbernehmen'), 'store', ['title' => _('Ã„nderungen Ã¼bernehmen')]) ?>
+            <?= LinkButton::create(_('Abbrechen'), $controller->url_for('settings/notification')) ?>
+        </footer>
 </form>

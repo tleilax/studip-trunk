@@ -10,7 +10,7 @@
 * or a timetable for a ressource like a room, a device or a building
 * 
 *
-* @author       AndrÈ Noack <noack@data-quest.de>
+* @author       Andr√© Noack <noack@data-quest.de>
 * @access       public
 * @package      resources
 * @modulegroup  resources_modules
@@ -20,8 +20,8 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ScheduleWeek.class.php
-// Modul zum Erstellen grafischer Belegungspl‰ne
-// Copyright (C) 2005 AndrÈ Noack <noack@data-quest.de>
+// Modul zum Erstellen grafischer Belegungspl√§ne
+// Copyright (C) 2005 Andr√© Noack <noack@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // +---------------------------------------------------------------------------+
-require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . "/views/ScheduleWeek.class.php";
+require_once "lib/resources/views/ScheduleWeek.class.php";
 
 class SemScheduleWeek  extends ScheduleWeek {
     

@@ -10,7 +10,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Till Glöggler <tgloeggl@uos.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
@@ -76,9 +76,7 @@ class Calendar_ScheduleController extends AuthenticatedController
         if ($inst_mode) {
 
             // try to find the correct institute-id
-            $institute_id = Request::option('institute_id',
-                            $SessSemName[1] ? $SessSemName[1] :
-                            Request::option('cid', false));
+            $institute_id = Request::option('institute_id', Context::getId());
 
 
             if (!$institute_id) {
@@ -98,18 +96,17 @@ class Calendar_ScheduleController extends AuthenticatedController
         $show_hidden = Request::int('show_hidden', 0);
 
         // load semester-data and current semester
-        $semdata = new SemesterData();
-        $this->semesters = array_reverse($semdata->getAllSemesterData());
+        $this->semesters = array_reverse(SemesterData::getAllSemesterData());
 
         if (Request::option('semester_id')) {
-            $this->current_semester = $semdata->getSemesterData(Request::option('semester_id'));
+            $this->current_semester = SemesterData::getSemesterData(Request::option('semester_id'));
             $schedule_settings['semester_id'] = Request::option('semester_id');
             UserConfig::get($user->id)->store('SCHEDULE_SETTINGS',
                 $schedule_settings);
         } else {
             $this->current_semester = $schedule_settings['semester_id'] ?
-                $semdata->getSemesterData($schedule_settings['semester_id']) :
-                $semdata->getCurrentSemesterData();
+                SemesterData::getSemesterData($schedule_settings['semester_id']) :
+                SemesterData::getCurrentSemesterData();
         }
 
         // check type-safe if days is false otherwise sunday (0) cannot be chosen
@@ -208,34 +205,18 @@ class Calendar_ScheduleController extends AuthenticatedController
         }
 
         $error = false;
-        if (Request::int('start_hour') !== null && Request::int('day') !== null && Request::int('end_hour') !== null) {
-            $data['start']   = Request::int('start_hour') * 100;
-            $data['end']     = Request::int('end_hour')   * 100;
-            $data['day']     = Request::int('day') + 1;
 
-            // validate the submitted data
-            if ($data['start'] >= $data['end'] || Request::int('start_hour') < 0 || Request::int('start_hour') > 23
-                || Request::int('end_hour') < 0 || Request::int('end_hour') > 24) {
-                $error = true;
-            }
-        } else {
-            $data['start'] = (Request::int('entry_start_hour') * 100) + Request::int('entry_start_minute');
-            $data['end']   = (Request::int('entry_end_hour')   * 100) + Request::int('entry_end_minute');
-            $data['day']   = Request::int('entry_day');
+        $data['start'] = (int)str_replace(':', '', Request::get('entry_start'));
+        $data['end']   = (int)str_replace(':', '', Request::get('entry_end'));
+        $data['day']   = Request::int('entry_day');
 
-            if ($data['start'] >= $data['end']
-                || Request::int('entry_start_hour')   < 0 || Request::int('entry_start_hour')   > 23
-                || Request::int('entry_end_hour')     < 0 || Request::int('entry_end_hour')     > 23
-                || Request::int('entry_start_minute') < 0 || Request::int('entry_start_minute') > 59
-                || Request::int('entry_end_minute')   < 0 || Request::int('entry_end_minute')   > 59
-            ) {
-                $error = true;
-            }
+        if ($data['start'] >= $data['end'] || !Request::int('entry_day')) {
+            $error = true;
         }
 
         if ($error) {
             $this->flash['messages'] = array('error' =>
-                array(_("Eintrag konnte nicht gespeichert werden, da die Start- und/oder Endzeit ungültigt ist!"))
+                array(_("Eintrag konnte nicht gespeichert werden, da die Start- und/oder Endzeit ungÃ¼ltig ist!"))
              );
         } else {
             $data['title']   = Request::get('entry_title');
@@ -264,7 +245,7 @@ class Calendar_ScheduleController extends AuthenticatedController
     function entry_action($id = false, $cycle_id = false)
     {
         if (Request::isXhr()) {
-            $this->response->add_header('Content-Type', 'text/html; charset=windows-1252');
+            $this->response->add_header('Content-Type', 'text/html; charset=utf-8');
             $this->layout = null;
 
             $this->entry = array(
@@ -301,7 +282,7 @@ class Calendar_ScheduleController extends AuthenticatedController
      */
     function entryajax_action($id, $cycle_id = false)
     {
-        $this->response->add_header('Content-Type', 'text/html; charset=windows-1252');
+        $this->response->add_header('Content-Type', 'text/html; charset=utf-8');
         if ($cycle_id) {
             $this->show_entry = array_pop(CalendarScheduleModel::getSeminarEntry($id, $GLOBALS['user']->id, $cycle_id));
             $this->show_entry['id'] = $id;
@@ -326,7 +307,7 @@ class Calendar_ScheduleController extends AuthenticatedController
      */
     function groupedentry_action($start, $end, $seminars, $day)
     {
-        $this->response->add_header('Content-Type', 'text/html; charset=windows-1252');
+        $this->response->add_header('Content-Type', 'text/html; charset=utf-8');
 
         // strucutre of an id: seminar_id-cycle_id
         // we do not need the cycle id here, so we trash it.
@@ -473,10 +454,8 @@ class Calendar_ScheduleController extends AuthenticatedController
     function settings_action()
     {
         if (Request::isXhr()) {
-            $this->response->add_header('Content-Type', 'text/html; charset=windows-1252');
+            $this->response->add_header('Content-Type', 'text/html; charset=utf-8');
             $this->layout = null;
-        } else {
-            $this->redirect('calendar/schedule/index?show_settings=true');
         }
 
         $this->settings = UserConfig::get($GLOBALS['user']->id)->SCHEDULE_SETTINGS;
@@ -515,7 +494,11 @@ class Calendar_ScheduleController extends AuthenticatedController
 
         UserConfig::get($user->id)->store('SCHEDULE_SETTINGS', $this->my_schedule_settings);
 
-        $this->redirect('calendar/schedule');
+        if (Context::isInstitute()) {
+            $this->redirect('calendar/instschedule');
+        } else {
+            $this->redirect('calendar/schedule');
+        }
     }
 
 }

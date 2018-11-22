@@ -28,10 +28,6 @@
  *     # construct the URL for the image "blank.gif"
  *     $url = Assets::image_path('blank.gif');
  *
- *     # DEPRECATED use class Icon instead
- *     # construct html tag for the download icon in blue
- *     $img = Assets::img('icons/16/blue/download.png');
- *
  * @package   studip
  *
  * @author    mlunzena
@@ -149,10 +145,6 @@ class Assets
 
         $parts = explode('/', $source);
 
-        if (($pos = array_search('icons', $parts)) !== false) {
-            return Icon::create2($source, $opt)->render();
-        }
-
         $size = $opt['size'];
 
         $opt = Assets::parse_attributes($opt);
@@ -194,13 +186,6 @@ class Assets
         }
 
         $parts = explode('/', $source);
-
-        if (($pos = array_search('icons', $parts)) !== false) {
-            $source = mb_substr($source, 6);
-            $source = preg_replace('/\.png$/', '', $source);
-
-            return Icon::create2($source, $opt)->render(Icon::SVG | Icon::INPUT);
-        }
 
         $size = $opt['size'];
 
@@ -340,7 +325,7 @@ class Assets
      *
      * @ignore
      */
-    private function compute_public_path($source, $dir, $ext)
+    private static function compute_public_path($source, $dir, $ext)
     {
 
         # add extension if not present
@@ -378,7 +363,7 @@ class Assets
         if (!$name)
             return '';
         ksort($options);
-        return '<' . $name . Assets::tag_options($options) . ($open ? '>' : '>');
+        return '<' . $name . ' ' . arrayToHtmlAttributes($options) . ($open ? '>' : '>');
     }
 
 
@@ -394,27 +379,10 @@ class Assets
     private static function content_tag($name, $content = '', $options = array())
     {
         if (!$name) return '';
-        return '<' . $name . Assets::tag_options($options) . '>' .
+        return '<' . $name . ' ' . arrayToHtmlAttributes($options) . '>' .
         $content .
         '</' . $name . '>';
     }
-
-
-    /**
-     * Create a viable HTML attribute string from a key-value map. No escpaping
-     * or encoding is taken into account.
-     *
-     * @ignore
-     */
-    private static function tag_options($options)
-    {
-        $result = '';
-        foreach ($options as $key => $value) {
-            $result .= sprintf(' %s="%s"', $key, $value);
-        }
-        return $result;
-    }
-
 
     /**
      * Parse a HTML attribute string into an array.

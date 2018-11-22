@@ -61,13 +61,6 @@ require_once EVAL_LIB_COMMON;
 require_once EVAL_LIB_SHOW;
 # ====================================================== end: including files #
 
-header('Content-Type:text/html;charset=windows-1252');
-if (Request::isXHR()) {
-    $request = Request::getInstance();
-    foreach ($request as $key => $value) {
-        $request[$key] = studip_utf8decode($value);
-    }
-}
 /* Create objects ---------------------------------------------------------- */
 $db  = new EvaluationDB();
 $lib = new EvalShow();
@@ -76,7 +69,7 @@ $lib = new EvalShow();
 #error_reporting( E_ALL & ~E_NOTICE );
 
 /* Set variables ----------------------------------------------------------- */
-$rangeID = Request::option('rangeID',$SessSemName[1]);
+$rangeID = Request::option('rangeID',Context::getId());
 if (empty ($rangeID)) {
     $rangeID = $user->id; }
 
@@ -135,7 +128,7 @@ if( $votedNow ) {
         )
     ) {
 
-    $eval->throwError( 1, _("Sie haben keine Antworten gew‰hlt.") );
+    $eval->throwError( 1, _("Sie haben keine Antworten gew√§hlt.") );
     $votedNow = NO;
 
     }

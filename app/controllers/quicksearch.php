@@ -18,8 +18,6 @@
  */
 class QuicksearchController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * the one action which is called by the QuickSearch-form when typed in
      * by user.
@@ -88,12 +86,16 @@ class QuicksearchController extends AuthenticatedController
                 'item_id'          => $result[0],
                 'item_name'        => $this->highlight($needle, $result[1]),
                 'item_description' => '',
-                'item_search_name' => end($result),
+                'item_search_name' => $result[1],
             );
 
             if ($this->search instanceof StandardSearch && $this->search->extendedLayout) {
                 $formatted['item_name'] = $this->search->getAvatarImageTag($result[0], Avatar::MEDIUM, array('title' => '')) . $formatted['item_name'];
-                $formatted['item_description'] = sprintf('%s (%s)', $result[2], $result[3]);
+                if($result[3]) {
+                    $formatted['item_description'] = sprintf('%s (%s)', $result[2], $result[3]);
+                } else {
+                    $formatted['item_description'] = $result[2];
+                }
             } else if ($this->search instanceof SearchType) {
                  $formatted['item_name'] = $this->search->getAvatarImageTag($result[0], Avatar::SMALL, array('title' => '')) . $formatted['item_name'];
             }

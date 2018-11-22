@@ -16,58 +16,61 @@
         </label>
         <label class="col-2">
             <?= _('Datum') ?>
-            <input class="has-date-picker size-s" type="text" name="date"
+            <input class="has-date-picker size-s" type="text" name="date" required
                    value="<?= $date->date ? strftime('%d.%m.%Y', $date->date) : '' ?>">
         </label>
         <label class="col-2">
             <?= _('Startzeit') ?>
-            <input class="studip-timepicker size-s" type="text" name="start_time" placeholder="HH:mm"
+            <input class="studip-timepicker size-s" type="text" name="start_time" required placeholder="HH:mm"
                    value="<?= $date->date ? strftime('%H:%M', $date->date) : '' ?>">
         </label>
         <label class="col-2">
             <?= _('Endzeit') ?>
-            <input class="studip-timepicker size-s" type="text" name="end_time" placeholder="HH:mm"
+            <input class="studip-timepicker size-s" type="text" name="end_time" required placeholder="HH:mm"
                    value="<?= $date->end_time ? strftime('%H:%M', $date->end_time) : '' ?>">
         </label>
     </fieldset>
-    <fieldset class="collapsed">
+    <fieldset>
         <legend><?= _('Raumangaben') ?></legend>
         <? if (Config::get()->RESOURCES_ENABLE && $resList->numberOfRooms()) : ?>
             <label>
                 <input style="display: inline;" type="radio" name="room" value="room"
                        id="room" <?= $date->room_assignment->resource_id ? 'checked' : '' ?>>
 
-                <select name="room_sd" style="display: inline-block; width: 50%; margin-left: 40px" class="single_room">
-                    <option value=""><?= _('Wählen Sie einen Raum aus') ?></option>
-                    <? foreach ($resList->resources as $room_id => $room) : ?>
+                <select name="room_sd" style="display: inline-block; width: 50%;" class="single_room">
+                    <option value=""><?= _('WÃ¤hlen Sie einen Raum aus') ?></option>
+                    <? foreach ($resList->getRooms() as $room_id => $room) : ?>
                         <option value="<?= $room_id ?>"
                             <?= $date->room_assignment->resource_id == $room_id ? 'selected' : '' ?>>
-                            <?= $room ?>
+                            <?= htmlReady($room->getName()) ?>
+                            <? if ($room->getSeats() > 1) : ?>
+                                <?= sprintf(_('(%d SitzplÃ¤tze)'), $room->getSeats()) ?>
+                            <? endif ?>
                         </option>
-                    <? endforeach; ?>
+                    <? endforeach ?>
                 </select>
+                <?= Icon::create('room-clear', 'clickable', array('class' => "bookable_rooms_action", 'title' => _("Nur buchbare RÃ¤ume anzeigen"))); ?>
             </label>
         <? endif; ?>
         <label class="horizontal">
-            <input type="radio" name="room" value="freetext" <?= $date->raum ? 'checked' : '' ?>
-                   style="display: inline">
-            <input style="display: inline-block; width: 50%; margin-left: 40px" type="text"
+            <input type="radio" name="room" value="freetext" <?= $date->raum ? 'checked' : '' ?>>
+            <input style="display: inline-block; width: 50%;" type="text"
                    name="freeRoomText_sd"
                    placeholder="<?= _('Freie Ortsangabe (keine Raumbuchung)') ?>"
                    value="<?= $date->raum ? htmlReady($date->raum) : '' ?>">
         </label>
 
         <label>
-            <input type="radio" name="room" style="display:inline;" value="noroom"
+            <input type="radio" name="room" value="noroom"
                 <?= (!empty($date->room_assignment->resource_id) || !empty($date->raum) ? '' : 'checked') ?>>
-            <span style="display: inline-block; margin-left: 40px"><?= _('Kein Raum') ?></span>
+            <span style="display: inline-block;"><?= _('Kein Raum') ?></span>
         </label>
 
     </fieldset>
 
 <? if (count($teachers) > 1): ?>
     <fieldset class="collapsed studip-selection" data-attribute-name="assigned_teachers">
-        <legend><?= _('Durchführende Lehrende') ?></legend>
+        <legend><?= _('DurchfÃ¼hrende Lehrende') ?></legend>
 
         <section class="studip-selection-selected">
             <h2><?= _('Zugewiesene Lehrende') ?></h2>
@@ -110,7 +113,7 @@
         <? endforeach; ?>
                 <li class="empty-placeholder">
                     <?= sprintf(
-                            _('Ihre Auswahl entspricht dem Zustand "%s" und wird beim Speichern zurückgesetzt'),
+                            _('Ihre Auswahl entspricht dem Zustand "%s" und wird beim Speichern zurÃ¼ckgesetzt'),
                             _('Kein spezieller Lehrender zugewiesen')
                     ) ?>
                 </li>
@@ -167,7 +170,7 @@
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Speichern'), 'save_dates') ?>
         <? if (Request::int('fromDialog')) : ?>
-            <?= Studip\LinkButton::create(_('Zurück zur Übersicht'),
+            <?= Studip\LinkButton::create(_('ZurÃ¼ck zur Ãœbersicht'),
                                           $controller->url_for('course/timesrooms',
                                                                array('fromDialog' => 1, 'contentbox_open' => $date->metadate_id)),
                                           array('data-dialog' => 'size=big')) ?>

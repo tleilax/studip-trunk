@@ -32,10 +32,6 @@ class Settings_CategoriesController extends Settings_SettingsController
         PageLayout::setHelpKeyword('Basis.HomepageSonstiges');
         PageLayout::setTitle(_('Eigene Kategorien bearbeiten'));
         SkipLinks::addIndex(_('Eigene Kategorien bearbeiten'), 'layout_content', 100);
-
-        if ($action === 'verify') {
-            $action = 'index';
-        }
     }
 
     /**
@@ -69,10 +65,13 @@ class Settings_CategoriesController extends Settings_SettingsController
 
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/category-sidebar.png');
-        
+
         $actions = new ActionsWidget();
-        $actions->addLink(_('Neue Kategorie anlegen'),
-                          $this->url_for('settings/categories/create'), Icon::create('add', 'clickable'));
+        $actions->addLink(
+            _('Neue Kategorie anlegen'),
+            $this->url_for('settings/categories/create'),
+            Icon::create('add', 'clickable')
+        );
         $sidebar->addWidget($actions);
     }
 
@@ -81,7 +80,7 @@ class Settings_CategoriesController extends Settings_SettingsController
      */
     public function create_action()
     {
-        Kategorie::increatePrioritiesByUserId($this->user->user_id);
+        Kategorie::increasePrioritiesByUserId($this->user->user_id);
 
         $category = new Kategorie;
         $category->range_id = $this->user->user_id;
@@ -111,9 +110,10 @@ class Settings_CategoriesController extends Settings_SettingsController
         $category = Kategorie::find($id);
         $name     = $category->name;
 
-        if ($category->range_id !== $GLOBALS['user']->user_id) {
-            PageLayout::postError(_('Sie haben leider nicht die notwendige Berechtigung für diese Aktion.'))
-                 ->redirect('settings/categories');
+        if ($category->range_id !== $GLOBALS['user']->user_id &&
+                (!isDeputyEditAboutActivated() || !isDeputy($GLOBALS['user']->user_id, $category->range_id, true))) {
+            PageLayout::postError(_('Sie haben leider nicht die notwendige Berechtigung fÃ¼r diese Aktion.'));
+            $this->redirect('settings/categories');
             return;
         }
 
@@ -123,10 +123,10 @@ class Settings_CategoriesController extends Settings_SettingsController
         }
 
         if ($category->delete()) {
-            PageLayout::postSuccess(_('Kategorie "%s" gelöscht!'), $name);
+            PageLayout::postSuccess(sprintf(_('Kategorie "%s" gelÃ¶scht!'), $name));
             Visibility::removePrivacySetting('kat_' . $id);
         } else {
-            PageLayout::postError(_('Kategorie "%s" konnte nicht gelöscht werden!'), $name);
+            PageLayout::postError(sprintf(_('Kategorie "%s" konnte nicht gelÃ¶scht werden!'), $name));
         }
 
         $this->redirect('settings/categories');
@@ -138,21 +138,26 @@ class Settings_CategoriesController extends Settings_SettingsController
     public function store_action()
     {
         $request = Request::getInstance();
+        $changed = false;
+
         $categories = $request['categories'];
         foreach ($categories as $id => $data) {
             if (empty($data['name'])) {
-                PageLayout::postError(_('Kategorien ohne Namen können nicht gespeichert werden!'));
+                PageLayout::postError(_('Kategorien ohne Namen kÃ¶nnen nicht gespeichert werden!'));
                 continue;
             }
             $category = Kategorie::find($id);
             $category->name    = $data['name'];
-            $category->content = $data['content'];
-            if ($category->store()) {
-                PageLayout::postSuccess(_('Kategorien geändert!'));
+            $category->content = Studip\Markup::purifyHtml($data['content']);
+            if ($category->isDirty() && $category->store()) {
+                $changed = true;
                 Visibility::renamePrivacySetting('kat_' . $category->id, $category->name);
             }
         }
 
+        if ($changed) {
+            PageLayout::postSuccess(_('Kategorien geÃ¤ndert!'));
+        }
         $this->redirect('settings/categories');
     }
 
@@ -175,6 +180,21 @@ class Settings_CategoriesController extends Settings_SettingsController
             PageLayout::postSuccess(_('Kategorien wurden neu geordnet'));
         } else {
             PageLayout::postError(_('Kategorien konnten nicht neu geordnet werden.'));
+        }
+
+        $this->redirect('settings/categories');
+    }
+
+    public function verify_action($action, $id = null)
+    {
+        if ($action === 'delete' && $id) {
+            PageLayout::postQuestion(
+                sprintf(
+                    _('MÃ¶chten Sie wirklich die Kategorie "%s" lÃ¶schen?'),
+                    Kategorie::find($id)->name
+                ),
+                $this->url_for("settings/categories/delete/{$id}/1")
+            )->includeTicket();
         }
 
         $this->redirect('settings/categories');

@@ -1,6 +1,6 @@
 <? $is_new = ($evaluation->chdate >= object_get_visit($evaluation->id, 'eval', false, false)) && ($evaluation->author_id != $GLOBALS['user']->id);
 ?>
-<article class="<?= ContentBoxHelper::classes($evaluation->id, $is_new) ?>" id="<?= $evaluation->id ?>" data-visiturl="<?=URLHelper::getScriptLink('dispatch.php/vote/visit')?>">
+<article class="studip toggle <?=($is_new ? 'new' : '')?>" id="<?= $evaluation->id ?>" data-visiturl="<?=URLHelper::getScriptLink('dispatch.php/vote/visit')?>">
     <header>
         <h1>
             <a href="<?= ContentBoxHelper::switchhref($evaluation->id, array('contentbox_type' => 'eval')) ?>">
@@ -25,7 +25,7 @@
                         <?= Icon::create('play', 'clickable')->asImg() ?>
                     </a>
                 <? endif; ?>
-                <a title="<?= _("Evaluation löschen") ?>" href="<?= URLHelper::getLink('admin_evaluation.php', array('evalID' => $evaluation->id, 'evalAction' => 'delete_request')) ?>">
+                <a title="<?= _("Evaluation lÃ¶schen") ?>" href="<?= URLHelper::getLink('admin_evaluation.php', array('evalID' => $evaluation->id, 'evalAction' => 'delete_request')) ?>">
                     <?= Icon::create('trash', 'clickable')->asImg() ?>
                 </a>
                 <a title="<?= _("Evaluation exportieren") ?>" href="<?= URLHelper::getLink('admin_evaluation.php', array('evalID' => $evaluation->id, 'evalAction' => 'export_request')) ?>">
@@ -45,7 +45,7 @@
     </section>
     <footer>
         <p>
-            <?= _('Teilnehmer') ?>: <?= $evaluation->getNumberOfVotes() ?>
+            <?= _('Teilnehmende') ?>: <?= $evaluation->getNumberOfVotes() ?>
         </p>
         <p>
             <?= _('Anonym') ?>: <?= $evaluation->anonymous ? _('Ja') : _('Nein') ?>

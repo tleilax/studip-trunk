@@ -10,18 +10,19 @@ class StudipSoapClient
 
     function __construct($path)
     {
-        global $RELATIVE_PATH_SOAP, $SOAP_ENABLE;
         require_once("vendor/nusoap/nusoap.php");
 
         $this->soap_client = new soap_client($path, true);
         $this->soap_client->soap_defencoding = 'UTF-8';
+        $this->soap_client->decode_utf8 = false;
+        $this->soap_client->setDebugLevel(0);
 
         $err = $this->soap_client->getError();
         if ($err)
             $this->error = "<b>Soap Constructor Error</b><br>" . $err . "<br><br>";
     }
 
-    function call($method, $params)
+    function _call($method, $params)
     {
         $this->faultstring = "";
         $result = $this->soap_client->call($method, $params);
@@ -40,7 +41,7 @@ class StudipSoapClient
             else
                 return $result;
         }
-        echo $this->error;
+        error_log($this->error);
         return false;
     }
 

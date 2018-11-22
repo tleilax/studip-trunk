@@ -1,10 +1,11 @@
 <? if ($archivedCourses) : ?>
-
-<? if (count($archivedCourses) == 1) : ?>
-<?= MessageBox::info(_('Veranstaltung erfolgreich archiviert!')) ?>
-<? else : ?>
-<?= MessageBox::info(_('Veranstaltungen erfolgreich archiviert!')) ?>
-<? endif ?>
+<?= MessageBox::info(
+        ngettext(
+            'Veranstaltung erfolgreich archiviert!',
+            'Veranstaltungen erfolgreich archiviert!',
+            count($archivedCourses)
+        )
+    ) ?>
 <script>
     STUDIP.Archive.removeArchivedCourses([
         <? for($i = 0; $i < count($archivedCourses); $i++ ) : ?>
@@ -38,5 +39,5 @@
     and we have to provide a link back to the course management page.
 */
 ?>
-    <a href="<?= $controller->url_for('admin/courses') ?>" ><?= _("Zurück zur Veranstaltungsverwaltung") ?></a>
+    <a href="<?= $controller->url_for('admin/courses') ?>" ><?= _("ZurÃ¼ck zur Veranstaltungsverwaltung") ?></a>
 <? endif ?>

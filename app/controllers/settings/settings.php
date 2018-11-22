@@ -28,9 +28,9 @@ class Settings_SettingsController extends AuthenticatedController
      */
     public function before_filter(&$action, &$args)
     {
-        // Abwärtskompatibilität, erst ab 1.1 bekannt
-        if (!isset($GLOBALS['ALLOW_CHANGE_NAME'])) {
-            $GLOBALS['ALLOW_CHANGE_NAME'] = TRUE;
+        // AbwÃ¤rtskompatibilitÃ¤t, erst ab 1.1 bekannt
+        if (!isset(Config::get()->ALLOW_CHANGE_NAME)) {
+            Config::get()->ALLOW_CHANGE_NAME = TRUE;
         }
 
         parent::before_filter($action, $args);
@@ -48,16 +48,16 @@ class Settings_SettingsController extends AuthenticatedController
             $username = $user->username;
             URLHelper::addLinkParam('username', $username);
         }
-        $this->user       = User::findByUsername($username);
+        $this->user = User::findByUsername($username);
 
         if (!$GLOBALS['perm']->get_profile_perm($this->user->user_id)) {
             PageLayout::postError(_('Zugriff verweigert.'), array(
                 _("Wahrscheinlich ist Ihre Session abgelaufen. Bitte "
                  ."nutzen Sie in diesem Fall den untenstehenden Link, "
-                 ."um zurück zur Anmeldung zu gelangen.\n\n"
+                 ."um zurÃ¼ck zur Anmeldung zu gelangen.\n\n"
                  ."Eine andere Ursache kann der Versuch des Zugriffs "
-                 ."auf Userdaten, die Sie nicht bearbeiten dürfen, sein. "
-                 ."Nutzen Sie den untenstehenden Link, um zurück auf "
+                 ."auf Userdaten, die Sie nicht bearbeiten dÃ¼rfen, sein. "
+                 ."Nutzen Sie den untenstehenden Link, um zurÃ¼ck auf "
                  ."die Startseite zu gelangen."),
                 sprintf(_('%s Hier%s geht es wieder zur Anmeldung beziehungsweise Startseite.'),
                         '<a href="index.php">', '</a>')
@@ -77,13 +77,10 @@ class Settings_SettingsController extends AuthenticatedController
             $this->user->auth_plugin = 'standard';
         }
 
-        PageLayout::addSqueezePackage('settings');
-
         // Show info message if user is not on his own profile
         if ($username != $GLOBALS['user']->username) {
-            $message = sprintf(_('Daten von: %s %s (%s), Status: %s'),
-                               htmlReady($this->user->Vorname),
-                               htmlReady($this->user->Nachname),
+            $message = sprintf(_('Daten von: %1$s (%2$s), Status: %3$s'),
+                               htmlReady($this->user->getFullName()),
                                htmlReady($username),
                                htmlReady($this->user->perms));
             $mbox = MessageBox::info($message);
@@ -100,7 +97,7 @@ class Settings_SettingsController extends AuthenticatedController
      */
     protected function check_ticket()
     {
-        $ticket = Request::get('studipticket');
+        $ticket = Request::get('studip_ticket');
         if (!$ticket || !check_ticket($ticket)) {
             throw new InvalidSecurityTokenException();
         }
@@ -179,39 +176,13 @@ class Settings_SettingsController extends AuthenticatedController
             'username' => 'ALLOW_CHANGE_USERNAME',
         );
 
-        if (isset($global_mapping[$attribute]) and !$GLOBALS[$global_mapping[$attribute]]) {
+        if (isset($global_mapping[$attribute]) and !Config::get()->{$global_mapping[$attribute]}) {
             return false;
         }
 
         return !($field && StudipAuthAbstract::CheckField($field, $this->user->auth_plugin))
             && !LockRules::check($this->user->user_id, $attribute)
             && (($value === null) || ($this->user->$column != $value));
-    }
-
-    /**
-     * Generic verififcation dialog
-     *
-     * @param String $message  Message to be displayed to the user
-     * @param mixed  $approved Arguments to pass to url_for if the user
-     *                         approves the question
-     * @param mixed  $rejected Arguments to pass to url_for if the user
-     *                         disapproves the question
-     * @return String Rendered output of the verification dialog.
-     */
-    public function verifyDialog($message, $approved, $rejected)
-    {
-        $template = $GLOBALS['template_factory']->open('shared/question');
-
-        // inject tickets into arguments
-        $arguments = is_array(end($approved)) ? array_pop($approved) : array();
-        $arguments['studipticket'] = get_ticket();
-        $approved[] = $arguments;
-
-        $template->approvalLink    = call_user_func_array(array($this, 'url_for'), $approved);
-        $template->disapprovalLink = call_user_func_array(array($this, 'url_for'), $rejected);
-        $template->question        = $message;
-
-        return $template->render();
     }
 
     /**
@@ -241,10 +212,10 @@ class Settings_SettingsController extends AuthenticatedController
         if ($this->restricted && count($this->private_messages) > 0) {
             setTempLanguage($this->user->user_id);
 
-            $message = _("Ihre persönliche Seite wurde von Admin verändert.\n "
-                        ."Folgende Veränderungen wurden vorgenommen:\n \n")
+            $message = _("Ihre persÃ¶nliche Seite wurde von Admin verÃ¤ndert.\n "
+                        ."Folgende VerÃ¤nderungen wurden vorgenommen:\n \n")
                         . '- ' . implode("\n- ", $this->private_messages);
-            $subject = _('Systemnachricht:') . ' ' . _('Profil verändert');
+            $subject = _('Systemnachricht: Profil verÃ¤ndert');
 
             restoreLanguage();
 

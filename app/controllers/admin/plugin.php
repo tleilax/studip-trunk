@@ -63,9 +63,8 @@ class Admin_PluginController extends AuthenticatedController
     private function check_ticket()
     {
         if (!check_ticket(Request::option('studip_ticket'))) {
-            throw new InvalidArgumentException(_('Das Ticket für diese Aktion ist ungültig.'));
+            throw new InvalidArgumentException(_('Das Ticket fÃ¼r diese Aktion ist ungÃ¼ltig.'));
         }
-
     }
 
     /**
@@ -80,8 +79,10 @@ class Admin_PluginController extends AuthenticatedController
         try {
             return $this->plugin_admin->getUpdateInfo($plugins);
         } catch (Exception $ex) {
-            $this->error = _('Informationen über Plugin-Updates sind nicht verfügbar.');
-            $this->error_detail = array($ex->getMessage());
+            PageLayout::postError(
+                _('Informationen Ã¼ber Plugin-Updates sind nicht verfÃ¼gbar.'),
+                [$ex->getMessage()]
+            );
 
             // Read current information from local files
             $update_info = array();
@@ -101,6 +102,16 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function index_action()
     {
+        // Check if an activation error has been flashed from the last request
+        if (isset($this->flash['activation-error'])) {
+            PageLayout::postError(
+                $this->get_template_factory()->render(
+                    'admin/plugin/activation-error-form.php',
+                    $this->flash['activation-error'] + ['controller' => $this]
+                )
+            );
+        }
+
         $plugin_manager = PluginManager::getInstance();
         $plugin_filter = Request::option('plugin_filter', '');
 
@@ -135,9 +146,14 @@ class Admin_PluginController extends AuthenticatedController
         $type = $plugin_filter != '' ? $plugin_filter : NULL;
         $plugins = $plugin_manager->getPluginInfos($type);
 
+        $force = (bool) Request::int('force');
+
         $this->check_ticket();
 
         // update enabled/disabled status and position if set
+        $messages = [];
+        $errors   = [];
+        $memory   = [];
         foreach ($plugins as $plugin){
             // Skip plugins that are currently not visible due to filter settings
             if (!Request::submittedSome('position_' . $plugin['id'], 'enabled_' . $plugin['id'])) {
@@ -147,14 +163,44 @@ class Admin_PluginController extends AuthenticatedController
             $enabled = Request::int('enabled_' . $plugin['id'], 0);
             $navpos = Request::int('position_' . $plugin['id']);
 
-            $plugin_manager->setPluginEnabled($plugin['id'], $enabled);
+            $result = $plugin_manager->setPluginEnabled($plugin['id'], $enabled, $force);
+            if ($result === false) {
+                $error = $enabled
+                       ? _('Plugin "%s" hat die Aktivierung verhindert')
+                       : _('Plugin "%s" hat die Deaktivierung verhindert');
+                $errors[$plugin['id']] = sprintf($error, $plugin['name']);
+
+                $memory[$plugin['id']] = $enabled;
+            } elseif ($result === true) {
+                $message = $enabled
+                         ? _('Plugin "%s" wurde aktiviert')
+                         : _('Plugin "%s" wurde deaktiviert');
+                $messages[] = sprintf($message, $plugin['name']);
+            }
 
             if (isset($navpos)) {
-                $plugin_manager->setPluginPosition($plugin['id'], max($navpos, 1));
+                $result = $plugin_manager->setPluginPosition($plugin['id'], max($navpos, 1));
+                if ($result) {
+                    $messages[] = sprintf(
+                        _('Die Position von Plugin "%s" wurde verÃ¤ndert.'),
+                        $plugin['name']
+                    );
+                    $changed = true;
+                }
             }
         }
 
-        $this->flash['message'] = _('Die Änderungen wurden gespeichert.');
+        if (count($errors) > 0) {
+            // Unfortunately, we need to flash this since it needs a fresh
+            // ticket (the current one is invalid due to the redirection)
+            $this->flash['activation-error'] = compact('memory', 'errors');
+        }
+        if (count($messages) > 0) {
+            PageLayout::postSuccess(
+                _('Die folgenden Ã„nderungen wurden durchgefÃ¼hrt:'),
+                array_map('htmlReady', $messages)
+            );
+        }
         $this->redirect('admin/plugin?plugin_filter=' . $plugin_filter);
     }
 
@@ -163,7 +209,7 @@ class Admin_PluginController extends AuthenticatedController
      */
     private function compare_score($plugin1, $plugin2)
     {
-        return $plugin2['score'] - $plugin1['score'];
+        return ($plugin2['score'] ?: 0) - ($plugin1['score'] ?: 0);
     }
 
     /**
@@ -173,7 +219,7 @@ class Admin_PluginController extends AuthenticatedController
     public function search_action()
     {
         Helpbar::Get()->addPlainText(_('Empfohlene Plugins'), _('In der Liste "Empfohlene Plugins" finden Sie von anderen Betreibern empfohlene Plugins.'), Icon::create('info'));
-        Helpbar::Get()->addPlainText(_('Upload'), _('Alternativ können Plugins und Plugin-Updates auch als ZIP-Datei hochgeladen werden.'), Icon::create('info'));
+        Helpbar::Get()->addPlainText(_('Upload'), _('Alternativ kÃ¶nnen Plugins und Plugin-Updates auch als ZIP-Datei hochgeladen werden.'), Icon::create('info'));
 
         $search = Request::get('search');
 
@@ -209,8 +255,17 @@ class Admin_PluginController extends AuthenticatedController
         $this->unknown_plugins = $this->plugin_admin->scanPluginDirectory();
 
         $actions = new ActionsWidget();
-        $actions->addLink(_('Pluginverwaltung'), $this->url_for('admin/plugin'), Icon::create('plugin', 'clickable'));
-        $actions->addLink(_('Alle Plugins im Plugin-Marktplatz'), 'http://plugins.studip.de/', Icon::create('export', 'clickable'), ['target' => '_blank']);
+        $actions->addLink(
+            _('Pluginverwaltung'),
+            $this->url_for('admin/plugin'),
+            Icon::create('plugin', 'clickable')
+        );
+        $actions->addLink(
+            _('Alle Plugins im Plugin-Marktplatz'),
+            'http://plugins.studip.de/',
+            Icon::create('export', 'clickable'),
+            ['target' => '_blank', 'rel' => 'noopener noreferrer']
+        );
         Sidebar::Get()->addWidget($actions);
     }
 
@@ -220,22 +275,48 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function install_action()
     {
-        $plugin_url = Request::get('plugin_url');
-
         $this->check_ticket();
+
+        $plugin_manager = PluginManager::getInstance();
+        $this->flash['plugins_disabled'] = $plugin_manager->isPluginsDisabled();
+        $this->flash['plugin_url'] = Request::get('plugin_url');
+
+        if (isset($_FILES['upload_file'])) {
+            $upload_file = tempnam(get_config('TMP_PATH'), 'plugin');
+
+            if (move_uploaded_file($_FILES['upload_file']['tmp_name'], $upload_file)) {
+                $this->flash['upload_file'] = $upload_file;
+            }
+        }
+
+        $plugin_manager->setPluginsDisabled(true);
+        $this->redirect('admin/plugin/internal_install');
+    }
+
+    /**
+     * Install a given plugin, either by URL (from the repository)
+     * or using a file uploaded by the administrator.
+     * Note: This action is only called internally via redirect.
+     */
+    public function internal_install_action()
+    {
+        $plugin_manager = PluginManager::getInstance();
+        $plugin_manager->setPluginsDisabled($this->flash['plugins_disabled']);
+
+        $plugin_url = $this->flash['plugin_url'];
 
         try {
             if (isset($plugin_url)) {
                 $this->plugin_admin->installPluginFromURL($plugin_url);
             } else if (get_config('PLUGINS_UPLOAD_ENABLE')) {
                 // process the upload and register plugin in the database
-                $upload_file = $_FILES['upload_file']['tmp_name'];
+                $upload_file = $this->flash['upload_file'];
                 $this->plugin_admin->installPlugin($upload_file);
             }
 
-            $this->flash['message'] = _('Das Plugin wurde erfolgreich installiert.');
+            PageLayout::postSuccess(_('Das Plugin wurde erfolgreich installiert.'));
         } catch (PluginInstallationException $ex) {
-            $this->flash['error'] = $ex->getMessage();
+            PageLayout::postError($ex->getMessage());
         }
 
         if (isset($upload_file)) {
@@ -252,19 +333,19 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function ask_delete_action($plugin_id)
     {
-        $plugin_manager = PluginManager::getInstance();
-
-        $plugin = $plugin_manager->getPluginInfoById($plugin_id);
-
-        $this->plugins       = $plugin_manager->getPluginInfos();
-        $this->plugin_types  = $this->plugin_admin->getPluginTypes();
-        $this->update_info   = $this->get_update_info($this->plugins);
+        $plugin = PluginManager::getInstance()->getPluginInfoById($plugin_id);
 
         if (!$plugin['core']) {
-            $this->delete_plugin = $this->plugins[$plugin_id];
+            PageLayout::postQuestion(
+                sprintf(
+                    _('Wollen Sie wirklich "%s" deinstallieren?'),
+                    $plugin['name']
+                ),
+                $this->url_for("admin/plugin/delete/{$plugin_id}")
+            )->includeTicket();
         }
 
-        $this->render_action('index');
+        $this->redirect('admin/plugin');
     }
 
     /**
@@ -282,6 +363,10 @@ class Admin_PluginController extends AuthenticatedController
 
         if (isset($plugin) && !$plugin['core']) {
             $this->plugin_admin->uninstallPlugin($plugin);
+            PageLayout::postSuccess(sprintf(
+                _('Das Plugin "%s" wurde deinstalliert.'),
+                $plugin['name']
+            ));
         }
 
         $this->redirect('admin/plugin?plugin_filter=' . $plugin_filter);
@@ -303,10 +388,13 @@ class Admin_PluginController extends AuthenticatedController
         $filename = $plugin['class'] . '-' . $manifest['version'] . '.zip';
         $filepath = get_config('TMP_PATH') . '/' . $filename;
 
-        create_zip_from_directory($pluginpath, $filepath);
+        FileArchiveManager::createArchiveFromPhysicalFolder(
+            $pluginpath,
+            $filepath
+        );
 
         header('Content-Type: application/zip');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Disposition: attachment; ' . encode_header_parameter('filename', $filename));
         header('Content-Length: ' . filesize($filepath));
         header('Pragma: public');
 
@@ -321,14 +409,32 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function install_updates_action()
     {
-        $plugins = PluginManager::getInstance()->getPluginInfos();
-        $plugin_filter = Request::option('plugin_filter', '');
+        $this->check_ticket();
+
+        $plugin_manager = PluginManager::getInstance();
+        $this->flash['plugins_disabled'] = $plugin_manager->isPluginsDisabled();
+        $this->flash['plugin_filter'] = Request::option('plugin_filter', '');
+        $this->flash['update'] = Request::intArray('update');
+
+        $plugin_manager->setPluginsDisabled(true);
+        $this->redirect('admin/plugin/internal_install_updates');
+    }
+
+    /**
+     * Install updates for all selected plugins.
+     * Note: This action is only called internally via redirect.
+     */
+    public function internal_install_updates_action()
+    {
+        $plugin_manager = PluginManager::getInstance();
+        $plugin_manager->setPluginsDisabled($this->flash['plugins_disabled']);
+
+        $plugins = $plugin_manager->getPluginInfos();
+        $plugin_filter = $this->flash['plugin_filter'];
         $update_info = $this->plugin_admin->getUpdateInfo($plugins);
 
-        $update = Request::intArray('update');
+        $update = $this->flash['update'];
         $update_status = array();
-
-        $this->check_ticket();
 
         // update each plugin in turn
         foreach ($update as $id) {
@@ -344,12 +450,14 @@ class Admin_PluginController extends AuthenticatedController
 
         // collect and report errors
         if (isset($update_errors)) {
-            $this->flash['error'] = ngettext(
+            $error = ngettext(
                 'Beim Update ist ein Fehler aufgetreten:',
-                'Beim Update sind Fehler aufgetreten:', count($update_errors));
-            $this->flash['error_detail'] = $update_errors;
+                'Beim Update sind Fehler aufgetreten:',
+                count($update_errors)
+            );
+            PageLayout::postError($error, $update_errors);
         } else {
-            $this->flash['message'] = _('Update erfolgreich installiert.');
+            PageLayout::postSuccess(_('Update erfolgreich installiert.'));
         }
 
         $this->redirect('admin/plugin?plugin_filter=' . $plugin_filter);
@@ -361,10 +469,10 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function manifest_action($plugin_id)
     {
-
         $plugin_manager = PluginManager::getInstance();
         $plugin = $plugin_manager->getPluginInfoById($plugin_id);
         PageLayout::setTitle(sprintf(_('Details von %s'), $plugin['name']));
+
         // retrieve manifest
         $pluginpath = Config::get()->PLUGINS_PATH . '/' . $plugin['path'];
         $manifest = $plugin_manager->getPluginManifest($pluginpath);
@@ -378,7 +486,7 @@ class Admin_PluginController extends AuthenticatedController
      */
     public function default_activation_action($plugin_id)
     {
-        Helpbar::Get()->addPlainText(_('Einrichtungen'), _('Wählen Sie die Einrichtungen, in deren Veranstaltungen das Plugin automatisch aktiviert sein soll.'), Icon::create('info'));
+        Helpbar::Get()->addPlainText(_('Einrichtungen'), _('WÃ¤hlen Sie die Einrichtungen, in deren Veranstaltungen das Plugin automatisch aktiviert sein soll.'), Icon::create('info'));
         $actions = new ActionsWidget();
         $actions->addLink(_('Pluginverwaltung'), $this->url_for('admin/plugin'), Icon::create('plugin', 'clickable'));
         Sidebar::Get()->addWidget($actions);
@@ -405,13 +513,15 @@ class Admin_PluginController extends AuthenticatedController
         // save selected institutes (if any)
         $plugin_manager->setDefaultActivations($plugin_id, $selected_inst);
 
-        if (count($selected_inst) == 0) {
-            $this->flash['message'] = _('Die Default-Aktivierung wurde ausgeschaltet.');
+        if (count($selected_inst) === 0) {
+            PageLayout::postSuccess(_('Die Default-Aktivierung wurde ausgeschaltet.'));
         } else {
-            $this->flash['message'] = ngettext(
-                'Für die ausgewählte Einrichtung wurde das Plugin standardmäßig aktiviert.',
-                'Für die ausgewählten Einrichtungen wurde das Plugin standardmäßig aktiviert.',
-                count($selected_inst));
+            $message = ngettext(
+                'FÃ¼r die ausgewÃ¤hlte Einrichtung wurde das Plugin standardmÃ¤ÃŸig aktiviert.',
+                'FÃ¼r die ausgewÃ¤hlten Einrichtungen wurde das Plugin standardmÃ¤ÃŸig aktiviert.',
+                count($selected_inst)
+            );
+            PageLayout::postSuccess($message);
         }
 
         $this->redirect('admin/plugin/default_activation/' . $plugin_id);
@@ -429,9 +539,9 @@ class Admin_PluginController extends AuthenticatedController
         $plugin = $plugin_manager->getPluginInfoById($plugin_id);
         $log = $this->plugin_admin->migratePlugin($plugin_id);
         if ($log) {
-            PageLayout::postMessage(MessageBox::success(_('Die Migration wurde durchgeführt.'), array_map('htmlReady', explode("\n", trim($log)))));
+            PageLayout::postMessage(MessageBox::success(_('Die Migration wurde durchgefÃ¼hrt.'), array_map('htmlReady', explode("\n", trim($log)))));
         } else {
-            PageLayout::postMessage(MessageBox::error(_('Die Migration konnte nicht durchgeführt werden.')));
+            PageLayout::postMessage(MessageBox::error(_('Die Migration konnte nicht durchgefÃ¼hrt werden.')));
         }
         $this->redirect('admin/plugin?plugin_filter=' . $plugin_filter);
     }
@@ -450,9 +560,9 @@ class Admin_PluginController extends AuthenticatedController
 
         try {
             $this->plugin_admin->registerPlugin($plugin['path']);
-            $this->flash['message'] = _('Das Plugin wurde erfolgreich installiert.');
+            PageLayout::postSuccess(_('Das Plugin wurde erfolgreich installiert.'));
         } catch (PluginInstallationException $ex) {
-            $this->flash['error'] = $ex->getMessage();
+            PageLayout::postError($ex->getMessage());
         }
         $this->redirect('admin/plugin');
     }
@@ -483,13 +593,13 @@ class Admin_PluginController extends AuthenticatedController
             ));
             PageLayout::postMessage(MessageBox::success(_("Daten gespeichert.")));
             if (Request::get("use_security_token")) {
-                PageLayout::postMessage(MessageBox::info(_("Unten können Sie den Security Token jetzt heraus kopieren.")));
+                PageLayout::postMessage(MessageBox::info(_("Unten kÃ¶nnen Sie den Security Token jetzt heraus kopieren.")));
             }
             $this->redirect("admin/plugin/edit_automaticupdate/".$plugin_id);
         }
 
         if ($plugin_id) {
-            PageLayout::setTitle(sprintf(_("Automatisches Update für %s"), $this->plugin['name']));
+            PageLayout::setTitle(sprintf(_("Automatisches Update fÃ¼r %s"), $this->plugin['name']));
         } else {
             PageLayout::setTitle(_("Plugin von URL installieren"));
         }

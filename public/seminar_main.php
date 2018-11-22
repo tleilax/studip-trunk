@@ -38,7 +38,22 @@ include ('lib/seminar_open.php'); // initialise Stud.IP-Session
 
 // -- here you have to put initialisations for the current page
 
-$course_id = $_SESSION['SessionSeminar'];
+$course_id = Context::getId();
+
+if (!$course_id && Request::get('cid')) {
+    $archive_id = Request::get('cid');
+    $archived = ArchivedCourse::find($archive_id);
+    if ($archived) {
+        header('Location: ' . URLHelper::getURL('dispatch.php/search/archive', [
+            'criteria' => $archived->name,
+        ]));
+        die;
+    }
+}
+
+if (!$course_id) {
+    throw new CheckObjectException(_('Sie haben kein Objekt gewählt.'));
+}
 
 //set visitdate for course, when coming from my_courses
 if (Request::get('auswahl')) {
@@ -51,6 +66,11 @@ if (Request::get('redirect_to')) {
     list( , $where_to) = explode('=', array_shift($query_parts));
     $new_query = $where_to . '?' . join('&', $query_parts);
     $new_query = preg_replace('/[^:0-9a-z+_\-.#?&=\/]/i', '', $new_query);
+
+    if (preg_match('~^(\w+:)?//~', $new_query) && !is_internal_url($new_query)) {
+        throw new Exception('Invalid redirection');
+    }
+
     header('Location: '.URLHelper::getURL($new_query, array('cid' => $course_id)));
     die;
 }
@@ -66,7 +86,7 @@ if ($sem_class->getSlotModule("overview")) {
     $Modules = new Modules();
     $course_modules = $Modules->getLocalModules($course_id);
     if (!$course_modules['overview'] && !$sem_class->isSlotMandatory("overview")) {
-        //Keine �bersichtsseite. Anstatt eines Fehler wird der Nutzer zum ersten
+        //Keine Übersichtsseite. Anstatt eines Fehler wird der Nutzer zum ersten
         //Reiter der Veranstaltung weiter geleitet.
         if (Navigation::hasItem("/course")) {
             foreach (Navigation::getItem("/course")->getSubNavigation() as $navigation) {

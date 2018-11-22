@@ -28,7 +28,7 @@
  *
  *
  *
- * @author   Andr� Noack <noack@data-quest>, Suchi & Berg GmbH <info@data-quest.de>
+ * @author   André Noack <noack@data-quest>, Suchi & Berg GmbH <info@data-quest.de>
  * @access   public
  *
  * @property string comment_id database column
@@ -41,7 +41,7 @@
  * @property StudipNews news belongs_to StudipNews
  */
 
-class StudipComment extends SimpleORMap
+class StudipComment extends SimpleORMap implements PrivacyObject
 {
 
     static function NumCommentsForObject($object_id)
@@ -89,5 +89,28 @@ class StudipComment extends SimpleORMap
             'foreign_key' => 'object_id',
         );
         parent::configure($config);
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('comments', $field_data, $user);
+            }
+        }
+        return [_('Ankündigungen Kommentare') => $storage];
     }
 }

@@ -97,7 +97,7 @@ abstract class StudIPPlugin {
             if ($type == 'user') {
                 $context = get_userid(Request::username('username', $user->username));
             } else {
-                $context = $_SESSION['SessionSeminar'];
+                $context = Context::getId();
             }
         }
 
@@ -108,6 +108,17 @@ abstract class StudIPPlugin {
         }
 
         return $activated;
+    }
+
+    /**
+     * Returns whether the plugin may be activated in a certain context.
+     *
+     * @param Range $context
+     * @return bool
+     */
+    public function isActivatableForContext(Range $context)
+    {
+        return true;
     }
 
     /**
@@ -155,22 +166,20 @@ abstract class StudIPPlugin {
      * Callback function called after enabling a plugin.
      * The plugin's ID is transmitted for convenience.
      *
-     * @param $pluginId string The ID of the plugin just enabled.
+     * @param $plugin_id string The ID of the plugin just enabled.
      */
-    public static function onEnable($pluginId)
+    public static function onEnable($plugin_id)
     {
-        # implement this in your own plugin
     }
 
     /**
      * Callback function called after disabling a plugin.
      * The plugin's ID is transmitted for convenience.
      *
-     * @param $pluginId string The ID of the plugin just disabled.
+     * @param $plugin_id string The ID of the plugin just disabled.
      */
-    public static function onDisable($pluginId)
+    public static function onDisable($plugin_id)
     {
-        # implement this in your own plugin
     }
 
     /**

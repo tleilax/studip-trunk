@@ -39,7 +39,7 @@
 use Studip\Button,
     Studip\LinkButton;
 
-require_once $RELATIVE_PATH_RESOURCES . '/views/ShowTreeRow.class.php';
+require_once 'lib/resources/views/ShowTreeRow.class.php';
 
 
 /*****************************************************************************
@@ -54,7 +54,7 @@ class ShowThread extends ShowTreeRow {
 
     function showThreadLevel ($root_id, $level=0, $lines='')
     {
-        global $edit_structure_object, $RELATIVE_PATH_RESOURCES, $ActualObjectPerms;
+        global $edit_structure_object, $ActualObjectPerms;
 
         // Prepare statement that obtains all children of a given resource
         $query = "SELECT resource_id
@@ -120,16 +120,17 @@ class ShowThread extends ShowTreeRow {
             if (($link) && ($edit_structure_object != $resObject->id))
                 $titel = "<a href=\"$link\" class=\"tree\" >$titel</a>";
 
-            if ($resObject->getOwnerLink())
+            if ($resObject->getOwnerLink()) {
                 $zusatz=sprintf (_("verantwortlich:") . " <a href=\"%s\"><font color=\"#333399\">%s</font></a>", $resObject->getOwnerLink(), htmlReady($resObject->getOwnerName()));
-            else
+            } else {
                 $zusatz=sprintf (_("verantwortlich:") . " %s", htmlReady($resObject->getOwnerName()));
+            }
 
             $new = true;
 
             $edit .= '<div style="text-align: center"><div class="button-group">';
 
-            if ($open == 'open') {
+            if ($open === 'open') {
                 //load the perms
                 if (($ActualObjectPerms) && ($ActualObjectPerms->getId() == $resObject->getId())) {
                     $perms = $ActualObjectPerms->getUserPerm();
@@ -140,7 +141,7 @@ class ShowThread extends ShowTreeRow {
 
                 if ($edit_structure_object==$resObject->id) {
                     $content.= "<br><textarea name=\"change_description\" rows=3 cols=40>".htmlReady($resObject->getDescription())."</textarea><br>";
-                    $content .= Button::create(_('Übernehmen'), 'send', array('value' => _('Änderungen speichern')));
+                    $content .= Button::create(_('Ãœbernehmen'), 'send', array('value' => _('Ã„nderungen speichern')));
                     $content .= LinkButton::createCancel(_('Abbrechen'), URLHelper::getURL('?cancel_edit=' . $resObject->id));
                     $content.= "<input type=\"hidden\" name=\"change_structure_object\" value=\"".$resObject->getId()."\">";
                     $open="open";
@@ -150,7 +151,7 @@ class ShowThread extends ShowTreeRow {
                 if ($_SESSION['resources_data']["move_object"] == $resObject->id) {
                     $content .= '<br>';
                     $content .= sprintf(_('Dieses Objekt wurde zum Verschieben markiert. '
-                                         .'Bitte wählen Sie das Einfügen-Symbol %s, um es in die gewünschte Ebene zu verschieben.'),
+                                         .'Bitte wÃ¤hlen Sie das EinfÃ¼gen-Symbol %s, um es in die gewÃ¼nschte Ebene zu verschieben.'),
                                         Icon::create('arr_2right', 'sort', ['title' => _('Klicken Sie auf dieses Symbol, um dieses Objekt in eine andere Ebene zu verschieben')])->asImg(16));
                 }
 
@@ -160,7 +161,7 @@ class ShowThread extends ShowTreeRow {
                 $edit .= LinkButton::create(_('Eigenschaften'), URLHelper::getURL('?view=view_details&show_object=' . $resObject->id));
 
 
-                if ($perms == "admin") {
+                if ($perms === 'admin') {
                     if ($resObject->isRoom()) {
                         $edit .= LinkButton::create(_('Benachrichtigung'), UrlHelper::getScriptURL('dispatch.php/resources/helpers/resource_message/' . $resObject->id), array('data-dialog' => ''));
                     }
@@ -172,17 +173,17 @@ class ShowThread extends ShowTreeRow {
                 $edit.= "&nbsp;&nbsp;&nbsp;&nbsp;";
 
                 if ($weitere) {
-                    $edit .= LinkButton::create(_('Liste öffnen'), URLHelper::getURL('?open_list=' . $resObject->id));
+                    $edit .= LinkButton::create(_('Liste Ã¶ffnen'), URLHelper::getURL('?open_list=' . $resObject->id));
                 }
 
                 if ($_SESSION['resources_data']["move_object"] == $resObject->id) {
                     $edit .= LinkButton::createCancel(_('Abbrechen'), URLHelper::getURL('?cancel_move=TRUE'));
-                } else if ($perms == "admin") {
+                } else if ($perms === 'admin') {
                     $edit .= LinkButton::create(_('Verschieben'), URLHelper::getURL('?pre_move_object=' . $resObject->id));
                 }
 
-                if (!$weitere && $perms == "admin" && $resObject->isDeletable()) {
-                    $edit .= LinkButton::create(_('Löschen'), '?kill_object=' . $resObject->id);
+                if ($perms === 'admin' && $resObject->isDeletable()) {
+                    $edit .= LinkButton::create(_('LÃ¶schen'), '?kill_object=' . $resObject->id);
                 }
             }
 

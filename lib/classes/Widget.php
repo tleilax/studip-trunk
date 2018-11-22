@@ -34,6 +34,11 @@ class Widget
     protected $forced_rendering = false;
 
     /**
+     * @var array classes for the layout <div> around the widget
+     */
+    protected $layout_css_classes = array();
+
+    /**
      * Add an element to the widget.
      *
      * @param WidgetElement $element The actual element
@@ -174,6 +179,24 @@ class Widget
     }
 
     /**
+     * Adds a css class to the layout <div> around the widget.
+     */
+    public function addLayoutCSSClass($css_class)
+    {
+        if (!in_array($css_class, $this->layout_css_classes)) {
+            $this->layout_css_classes[] = $css_class;
+        }
+    }
+
+    /**
+     * Removes a css class from the layout <div> around the widget.
+     */
+    public function removeLayoutCSSClass($css_class)
+    {
+        $this->layout_classes = array_diff($this->layout_css_class, array($css_class));
+    }
+
+    /**
      * Renders the widget.
      * The widget will only be rendered if it contains at least one element.
      *
@@ -191,6 +214,7 @@ class Widget
 
             if ($this->layout) {
                 $layout = $GLOBALS['template_factory']->open($this->layout);
+                $layout->layout_css_classes = $this->layout_css_classes;
                 $template->set_layout($layout);
             }
 

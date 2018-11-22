@@ -1,46 +1,24 @@
-<?
-# Lifter002: TODO
+<?php
 # Lifter007: TODO
 # Lifter003: TODO
-# Lifter010: TODO
-// +---------------------------------------------------------------------------+
-// This file is part of Stud.IP
-// SemTree.class.php
-// Class to handle structure of the "seminar tree"
-//
-// Copyright (c) 2003 AndrÈ Noack <noack@data-quest.de>
-// Suchi & Berg GmbH <info@data-quest.de>
-// +---------------------------------------------------------------------------+
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or any later version.
-// +---------------------------------------------------------------------------+
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-// +---------------------------------------------------------------------------+
 
 /**
-* class to handle the seminar tree
-*
-* This class provides an interface to the structure of the seminar tree
-*
-* @access   public
-* @author   AndrÈ Noack <noack@data-quest.de>
-* @package
-*/
-class StudipSemTree extends TreeAbstract {
-
-    var $sem_dates = array();
-    var $sem_number = null;
-    var $enable_lonely_sem = true;
-    var $visible_only = false;
-    var $sem_status = array();
+ * class to handle the seminar tree
+ *
+ * This class provides an interface to the structure of the seminar tree
+ *
+ * @access    public
+ * @author    Andr√© Noack <noack@data-quest.de>
+ * @license   GPL2 or any later version
+ * @copyright 2003 Andr√© Noack <noack@data-quest.de>,
+ *                 Suchi & Berg GmbH <info@data-quest.de>
+ */
+class StudipSemTree extends TreeAbstract
+{
+    public $sem_dates = [];
+    public $sem_number = null;
+    public $visible_only = false;
+    public $sem_status = [];
 
     /**
     * constructor
@@ -48,12 +26,13 @@ class StudipSemTree extends TreeAbstract {
     * do not use directly, call TreeAbstract::GetInstance("StudipRangeTree")
     * @access private
     */
-    function __construct($args) {
+    public function __construct($args)
+    {
         DbView::addView('sem_tree');
 
-        $this->root_name = $GLOBALS['UNI_NAME_CLEAN'];
-        if (isset($args['visible_only'])){
-            $this->visible_only = (int)$args['visible_only'];
+        $this->root_name = Config::get()->UNI_NAME_CLEAN;
+        if (isset($args['visible_only'])) {
+            $this->visible_only = (int) $args['visible_only'];
         }
         if (isset($args['sem_number']) ){
             $this->sem_number = array_map('intval', $args['sem_number']);
@@ -81,7 +60,6 @@ class StudipSemTree extends TreeAbstract {
         }
 
         $this->sem_dates = SemesterData::GetSemesterArray();
-
     }
 
     /**
@@ -90,7 +68,8 @@ class StudipSemTree extends TreeAbstract {
     * stores all rows from table sem_tree in array $tree_data
     * @access public
     */
-    function init(){
+    public function init()
+    {
         parent::init();
 
         $db = $this->view->get_query("view:SEM_TREE_GET_DATA_NO_ENTRIES");
@@ -106,7 +85,8 @@ class StudipSemTree extends TreeAbstract {
         }
     }
 
-    function initEntries(){
+    public function initEntries()
+    {
         $this->view->params[0] = $this->sem_status;
         $this->view->params[1] = $this->visible_only ? "visible=1" : "1";
         $this->view->params[1] .= (isset($this->sem_number)) ? " AND ((" . $this->view->sem_number_sql
@@ -122,11 +102,18 @@ class StudipSemTree extends TreeAbstract {
         $this->entries_init_done = true;
     }
 
-    function isModuleItem($item_id){
+    public function isModuleItem($item_id)
+    {
         return isset($GLOBALS['SEM_TREE_TYPES'][$this->getValue($item_id, 'type')]['is_module']);
     }
 
-    function getSemIds($item_id,$ids_from_kids = false){
+    public function isHiddenItem($item_id)
+    {
+        return (bool) $GLOBALS['SEM_TREE_TYPES'][$this->getValue($item_id, 'type')]['hidden'];
+    }
+
+    public function getSemIds($item_id,$ids_from_kids = false)
+    {
         if (!$this->tree_data[$item_id])
             return false;
         $this->view->params[0] = $this->sem_status;
@@ -150,7 +137,8 @@ class StudipSemTree extends TreeAbstract {
         return $ret;
     }
 
-    function getSemData($item_id,$sem_data_from_kids = false){
+    public function getSemData($item_id,$sem_data_from_kids = false)
+    {
         if (!$this->tree_data[$item_id])
             return false;
         $this->view->params[0] = $this->sem_status;
@@ -170,7 +158,8 @@ class StudipSemTree extends TreeAbstract {
         return new DbSnapshot($rs);
     }
 
-    function getLonelySemData($item_id){
+    public function getLonelySemData($item_id)
+    {
         if (!$institut_id = $this->tree_data[$item_id]['studip_object_id'])
             return false;
         $this->view->params[0] = $this->sem_status;
@@ -180,22 +169,16 @@ class StudipSemTree extends TreeAbstract {
         return new DbSnapshot($this->view->get_query("view:SEM_TREE_GET_LONELY_SEM_DATA"));
     }
 
-    function getNumEntries($item_id, $num_entries_from_kids = false){
-        if (!$this->tree_data[$item_id])
+    public function getNumEntries($item_id, $num_entries_from_kids = false)
+    {
+        if (!$this->tree_data[$item_id]) {
             return false;
-        if (!$this->entries_init_done) $this->initEntries();
-
-        if ($this->enable_lonely_sem && $this->tree_data[$item_id]["studip_object_id"] && !isset($this->tree_data[$item_id]["lonely_sem"])){
-            $this->view->params[0] = $this->sem_status;
-            $this->view->params[1] = $this->visible_only ? "visible=1" : "1";
-            $this->view->params[2] = $this->tree_data[$item_id]["studip_object_id"];
-            $this->view->params[3] = (isset($this->sem_number)) ? " HAVING sem_number IN (" . join(",",$this->sem_number) .") OR (sem_number <= " . $this->sem_number[count($this->sem_number)-1] . "  AND (sem_number_end >= " . $this->sem_number[count($this->sem_number)-1] . " OR sem_number_end = -1)) " : "";
-            $db2 = $this->view->get_query("view:SEM_TREE_GET_NUM_LONELY_SEM");
-            while ($db2->next_record()){
-                $this->tree_data[$item_id]['entries'] += $db2->f(0);
-                $this->tree_data[$item_id]['lonely_sem'] += $db2->f(0);
-            }
         }
+
+        if (!$this->entries_init_done) {
+            $this->initEntries();
+        }
+
         return parent::getNumEntries($item_id, $num_entries_from_kids);
         /*
         if (!$num_entries_from_kids){
@@ -213,7 +196,8 @@ class StudipSemTree extends TreeAbstract {
         */
     }
 
-    function getAdminRange($item_id){
+    public function getAdminRange($item_id)
+    {
         if (!$this->tree_data[$item_id])
             return false;
         if ($item_id == "root")
@@ -227,27 +211,30 @@ class StudipSemTree extends TreeAbstract {
         return $ret_id;
     }
 
-    function InsertItem($item_id, $parent_id, $item_name, $item_info, $priority, $studip_object_id, $type){
+    public function InsertItem($item_id, $parent_id, $item_name, $item_info, $priority, $studip_object_id, $type)
+    {
         $view = new DbView();
         $view->params = array($item_id,$parent_id,$item_name,$priority,$item_info,$studip_object_id, $type);
         $rs = $view->get_query("view:SEM_TREE_INS_ITEM");
         // Logging
         StudipLog::log("STUDYAREA_ADD",$item_id);
-        NotificationCenter::postNotification("StudyAreaDidCreate", $item_id, $GLOBALS['user']->id); 
+        NotificationCenter::postNotification("StudyAreaDidCreate", $item_id, $GLOBALS['user']->id);
 
         return $rs->affected_rows();
     }
 
-    function UpdateItem($item_id, $item_name, $item_info, $type){
+    public function UpdateItem($item_id, $item_name, $item_info, $type)
+    {
         $view = new DbView();
         $view->params = array($item_name,$item_info,$type,$item_id);
         $rs = $view->get_query("view:SEM_TREE_UPD_ITEM");
-        NotificationCenter::postNotification("StudyAreaDidUpdate", $item_id, $GLOBALS['user']->id); 
+        NotificationCenter::postNotification("StudyAreaDidUpdate", $item_id, $GLOBALS['user']->id);
 
         return $rs->affected_rows();
     }
 
-    function DeleteItems($items_to_delete){
+    public function DeleteItems($items_to_delete)
+    {
         $view = new DbView();
         $view->params[0] = (is_array($items_to_delete)) ? $items_to_delete : array($items_to_delete);
         $view->auto_free_params = false;
@@ -263,7 +250,8 @@ class StudipSemTree extends TreeAbstract {
         return $deleted;
     }
 
-    function DeleteSemEntries($item_ids = null, $sem_entries = null){
+    public function DeleteSemEntries($item_ids = null, $sem_entries = null)
+    {
         $view = new DbView();
         if ($item_ids && $sem_entries) {
             $sem_tree_ids = $view->params[0] = (is_array($item_ids)) ? $item_ids : array($item_ids);
@@ -309,7 +297,8 @@ class StudipSemTree extends TreeAbstract {
         return $ret;
     }
 
-    function InsertSemEntry($sem_tree_id, $seminar_id){
+    public function InsertSemEntry($sem_tree_id, $seminar_id)
+    {
         $view = new DbView();
         $view->params[0] = $seminar_id;
         $view->params[1] = $sem_tree_id;
@@ -325,8 +314,3 @@ class StudipSemTree extends TreeAbstract {
         return $ret;
     }
 }
-//$test = TreeAbstract::GetInstance("StudipSemTree");
-//echo "<pre>";
-//echo mb_strtolower(get_class($test)) .  "\n";
-//print_r($test->tree_data);
-?>

@@ -1,21 +1,28 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <? $attributes['search_plugin'] = $attributes['text']; ?>
-<? $attributes['search_plugin']['onChange'] = 'document.' . $search->outer_form->form_name . '.submit()'; ?>
+<? $attributes['search_plugin']['class'] = 'submit-upon-select'; ?>
 <?= $search->outer_form->getFormStart(URLHelper::getLink('dispatch.php/literature/search?return_range=' . $return_range), array('class' => 'default')); ?>
 
-
-    <section>
+    <fieldset>
+        <legend>
+            <?= _('Katalog auswÃ¤hlen') ?>
+        </legend>
         <?= $search->outer_form->getFormFieldCaption('search_plugin', array('info' => true)); ?>
         <?= $search->outer_form->getFormField('search_plugin', $attributes['search_plugin']); ?>
-        <footer>
-            <?= $search->outer_form->getFormButton('change'); ?>
-        </footer>
-    </section>
+    </fieldset>
 
-    <h2><?= _("Ausgewählter Katalog:") ?></h2>
+    <footer>
+        <?= $search->outer_form->getFormButton('change'); ?>
+    </footer>
+
+
+    <h2><?= _("AusgewÃ¤hlter Katalog:") ?></h2>
     <p><?= $search->search_plugin->description ?></p>
 
-    <section>
+    <fieldset>
+        <legend>
+            <?= _('Im Katalog suchen') ?>
+        </legend>
         <? for ($i = 0; $i < $search->term_count; ++$i) : ?>
             <? if ($i > 0) : ?>
                 <section>
@@ -36,18 +43,18 @@
                 <?= $search->inner_form->getFormField("search_term_" . $i, $attributes['text']); ?>
             </section>
         <? endfor ?>
-        <footer>
-            <?= $search->outer_form->getFormButton('search', $attributes['button']); ?>
+    </fieldset>
 
-            <?= $search->outer_form->getFormButton('reset', $attributes['button']); ?>
+    <footer>
+        <?= $search->outer_form->getFormButton('search', $attributes['button']); ?>
 
-            <?= $search->outer_form->getFormButton('search_add'); ?>
-            <? if ($search->term_count > 1): ?>
-                <?= $search->outer_form->getFormButton('search_sub'); ?>
-            <? endif ?>
-        </footer>
+        <?= $search->outer_form->getFormButton('reset', $attributes['button']); ?>
 
-    </section>
+        <?= $search->outer_form->getFormButton('search_add'); ?>
+        <? if ($search->term_count > 1): ?>
+            <?= $search->outer_form->getFormButton('search_sub'); ?>
+        <? endif ?>
+    </footer>
 
 <?= $search->outer_form->getFormEnd(); ?>
 
@@ -76,7 +83,7 @@
     <? for ($i = $search->start_result; $i <= $end_result; ++$i) : ?>
         <? $element = $search->getSearchResult($i); ?>
         <? if ($element) : ?>
-            <section class="contentbox">
+            <article class="studip">
                 <header>
                     <h1>
                         <? $link = URLHelper::getLink('', array('cmd'        => 'add_to_clipboard',
@@ -118,7 +125,7 @@
                         <? endif ?>
 
                         <? if ($subject = $element->getValue('dc_subject')) : ?>
-                            <dt><?= _('Schlagwörter:') ?></dt>
+                            <dt><?= _('SchlagwÃ¶rter:') ?></dt>
                             <dd><?= htmlReady($subject, true, true) ?></dd>
                         <? endif ?>
 
@@ -143,7 +150,7 @@
                         <?= LinkButton::create(_('In Merkliste'), $link); ?>
                     <? endif ?>
                 </footer>
-            </section>
+            </article>
         <? endif ?>
     <? endfor ?>
     <p style="text-align: right">

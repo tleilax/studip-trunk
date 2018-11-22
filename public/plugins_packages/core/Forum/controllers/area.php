@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (C) 2011 - Till Glˆggler     <tgloeggl@uos.de>
+ * Copyright (C) 2011 - Till Gl√∂ggler     <tgloeggl@uos.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -16,14 +16,9 @@ class AreaController extends ForumController
         ForumPerm::check('add_area', $this->getId());
 
         $new_id = md5(uniqid(rand()));
-        
-        if (Request::isXhr()) {
-            $name    = studip_utf8decode(Request::get('name', _('Kein Titel')));
-            $content = studip_utf8decode(Request::get('content'));
-        } else {
-            $name    = Request::get('name', _('Kein Titel'));
-            $content = Request::get('content');
-        }
+
+        $name    = Request::get('name', _('Kein Titel'));
+        $content = Request::get('content');
 
         ForumEntry::insert(array(
             'topic_id'    => $new_id,
@@ -32,7 +27,7 @@ class AreaController extends ForumController
             'name'        => $name,
             'content'     => $content,
             'author'      => get_fullname($GLOBALS['user']->id),
-            'author_host' => getenv('REMOTE_ADDR')
+            'author_host' => ($GLOBALS['user']->id == 'nobody') ? getenv('REMOTE_ADDR') : ''
         ), $this->getId());
 
         ForumCat::addArea($category_id, $new_id);
@@ -51,11 +46,11 @@ class AreaController extends ForumController
         ForumPerm::check('edit_area', $this->getId(), $area_id);
 
         if (Request::isAjax()) {
-            ForumEntry::update($area_id, studip_utf8decode(Request::get('name')), studip_utf8decode(Request::get('content')));
-            $this->render_json(array('content' => ForumEntry::killFormat(ForumEntry::killEdit(studip_utf8decode(Request::get('content'))))));
+            ForumEntry::update($area_id, Request::get('name'), Request::get('content'));
+            $this->render_json(array('content' => ForumEntry::killFormat(ForumEntry::killEdit(Request::get('content')))));
         } else {
             ForumEntry::update($area_id, Request::get('name'), Request::get('content'));
-            $this->flash['messages'] = array('success' => _('Die ƒnderungen am Bereich wurden gespeichert.'));
+            $this->flash['messages'] = array('success' => _('Die √Ñnderungen am Bereich wurden gespeichert.'));
             $this->redirect(PluginEngine::getLink('coreforum/index/index'));
         }
 

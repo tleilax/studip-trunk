@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @author      Till Glˆggler <tgloeggl@uos.de>
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
  * @license     GPL 2 or later
  */
 
@@ -17,6 +17,8 @@ class WikiProvider implements ActivityProvider
      */
     public function getActivityDetails($activity)
     {
+        $activity->content = \htmlReady($activity->content);
+
         if ($activity->context == "course") {
             $url = \URLHelper::getUrl("wiki.php?cid={$activity->context_id}&keyword={$activity->object_id}");
             $route = \URLHelper::getURL('api.php/course/' . $activity->context_id . '/wiki/' . $activity->object_id, NULL, true);
@@ -45,12 +47,12 @@ class WikiProvider implements ActivityProvider
      * posts an activity for a given notification event
      *
      * @param String $event a notification for an activity
-     * @param Array  $info information which a relevant for the activity
+     * @param \WikiPage  $info information which a relevant for the activity
      */
     public function postActivity($event, $info)
     {
-        $range_id = $info[0];
-        $keyword = $info[1];
+        $range_id = $info['range_id'];
+        $keyword = $info['keyword'];
 
         $type     = get_object_type($range_id);
         if ($type == 'sem') {
@@ -79,9 +81,9 @@ class WikiProvider implements ActivityProvider
         } elseif ($event == 'WikiPageDidDelete') {
             $verb = 'voided';
             if ($type == 'sem') {
-                $summary = _('Die Wiki-Seite %s wurde von %s in der Veranstaltung "%s" gelˆscht.');
+                $summary = _('Die Wiki-Seite %s wurde von %s in der Veranstaltung "%s" gel√∂scht.');
             } else {
-                $summary = _('Die Wiki-Seite %s wurde von %s in der Einrichtung "%s" gelˆscht.');
+                $summary = _('Die Wiki-Seite %s wurde von %s in der Einrichtung "%s" gel√∂scht.');
             }
         }
 

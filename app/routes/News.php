@@ -14,7 +14,7 @@ class News extends \RESTAPI\RouteMap
 {
     public static function before()
     {
-        require_once 'lib/classes/StudipNews.class.php';
+        require_once 'lib/models/StudipNews.class.php';
     }
 
     /**
@@ -75,7 +75,7 @@ class News extends \RESTAPI\RouteMap
     }
 
     /**
-     * News löschen
+     * News lÃ¶schen
      *
      * @delete /news/:news_id
      */
@@ -246,7 +246,7 @@ class News extends \RESTAPI\RouteMap
     }
 
     /**
-     * News-Comment löschen
+     * News-Comment lÃ¶schen
      *
      * @delete /comment/:comment_id
      */

@@ -39,9 +39,9 @@
 
 
 function object_set_visit_module($type){
-    global $SessSemName;
-    if (object_get_visit($SessSemName[1], $type, false, false) < object_get_visit($SessSemName[1], $SessSemName['class'], false, false)){
-        object_set_visit($SessSemName[1], $type);
+    if (object_get_visit(Context::getId(), $type, false, false)
+            < object_get_visit(Context::getId(), Context::getClass(), false, false)){
+        object_set_visit(Context::getId(), $type);
     }
 }
 
@@ -63,7 +63,7 @@ function object_set_visit($object_id, $type, $user_id = '')
     $last_visit = object_get_visit($object_id, $type, FALSE, false , $user_id);
 
     if ($last_visit === false) {
-        $last_visit = 0;
+        $last_visit = object_get_visit_threshold();
     }
 
     $query = "INSERT INTO object_user_visits (object_id, user_id, type, visitdate, last_visitdate)
@@ -133,12 +133,24 @@ function object_get_visit($object_id, $type, $mode = "last", $open_object_id = '
                  ? $temp['last_visitdate']
                  : $temp['visitdate'];
         } else {
-            return false;
+            return object_get_visit_threshold();
         }
 
     } else {
-        return false;
+        return object_get_visit_threshold();
     }
+}
+
+/**
+ * This function gets the cutoff value for object visit dates as defined by the NEW_INDICATOR_THRESHOLD setting.
+ *
+ * @return   int the timestamp of the oldest possible visit or 0
+ */
+function object_get_visit_threshold()
+{
+    $threshold = Config::get()->NEW_INDICATOR_THRESHOLD;
+
+    return $threshold ? strtotime("-{$threshold} days 0:00:00") : 0;
 }
 
 function object_kill_visits($user_id, $object_ids = false)
@@ -211,5 +223,3 @@ function object_return_views ($object_id)
     $statement->execute(array($object_id));
     return $statement->fetchColumn() ?: 0;
 }
-
-

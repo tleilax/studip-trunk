@@ -55,9 +55,10 @@ html.no-js #forum {
         display: inline;
     }
 
-    img {
+    .postbody img {
         border: none;
-        max-width: 600px;
+        max-width: 100%;
+        height: auto;
     }
 
     span.highlight {
@@ -183,6 +184,15 @@ html.no-js #forum {
         background-color: @forum_light;
         a {
             word-break: break-all;
+
+            &.link-extern,
+            &.link-intern {
+                display: inline-block;
+                max-width: 50vw;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                vertical-align: top;
+            }
         }
     }
 
@@ -246,13 +256,6 @@ html.no-js #forum {
 
     span.username {
         font-weight: bold;
-    }
-
-    div#new_entry_box div.posting {
-        flex-wrap: wrap;
-        .postbody:first-child {
-            flex: 0
-        }
     }
 
     .postprofile {
@@ -403,13 +406,19 @@ html.no-js #forum {
         background-color: #DDDDFF;
     }
 
-    #forum_new_entry {
-        display: flex;
-        flex-direction: row;
-        background-color: @forum_light;
-    }
-
     div.posting.bg2 {
         flex: 1;
+    }
+
+    #tutorBreadcrumb {
+        float: left;
+        margin-bottom: 1em;
+        font-size: 1.4em;
+    }
+
+    #page-chooser {
+        float: right;
+        padding-right: 10px;
+        margin-bottom: 1em;
     }
 }

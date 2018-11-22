@@ -24,14 +24,14 @@
         </tr>
     <? if (count($date->dozenten) > 0): ?>
         <tr>
-            <td><strong><?= _('Durchführende Dozenten') ?></strong></td>
+            <td><strong><?= _('DurchfÃ¼hrende Dozenten') ?></strong></td>
             <td>
                 <ul class="dozenten_list clean">
                 <? foreach ($date->dozenten as $teacher): ?>
                     <li>
                         <a href="<?= $controller->link_for('profile?username=' . $teacher->username) ?>">
                             <?= Avatar::getAvatar($teacher->user_id)->getImageTag(Avatar::SMALL) ?>
-                            <?= htmlReady($teacher->getUserFullName()) ?>
+                            <?= htmlReady($teacher->getFullname()) ?>
                         </a>
                     </li>
                 <? endforeach ?>
@@ -53,3 +53,43 @@
     <? endif; ?>
     </tbody>
 </table>
+
+<? extract($date->getAccessibleFolderFiles($GLOBALS['user']->id))?>
+<? if (count($files) > 0): ?>
+    <? $one_folder = current($folders); ?>
+    <form method="post" action="<?= $controller->link_for('file/bulk/' . $one_folder->id) ?>">
+        <?= CSRFProtection::tokenTag() ?>
+        <article class="studip">
+            <header>
+                <h1><?= _('Dateien') ?></h1>
+            </header>
+            <section>
+                <table id="course_date_files" class="default sortable-table documents" data-sortlist="[[2, 0]]">
+                    <?= $this->render_partial('files/_files_thead') ?>
+                    <? foreach($files as $file_ref): ?>
+                        <?= $this->render_partial('files/_fileref_tr', [
+                            'file_ref'       => $file_ref,
+                            'current_folder' => $folders[$file_ref->folder_id],
+                            'last_visitdate' => time(),
+                        ]) ?>
+                    <? endforeach ?>
+                    <tfoot>
+                        <tr>
+                            <td colspan="7">
+                                <span class="multibuttons">
+                                <?= Studip\Button::create(_('Herunterladen'), 'download', [
+                                    'data-activates-condition' => 'table.documents tr[data-permissions*=d] :checkbox:checked'
+                                ]) ?>
+                                <?= Studip\Button::create(_('Kopieren'), 'copy', ['data-dialog' => '']) ?>
+                                 </span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </section>
+        </article>
+    </form>
+    <script>
+        STUDIP.Table.enhanceSortableTable($('#course_date_files'));
+    </script>
+<? endif; ?>

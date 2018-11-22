@@ -1,8 +1,5 @@
 <?php
-# Lifter002: DONE - not applicable
 # Lifter007: TODO
-# Lifter003: TEST
-# Lifter010: DONE - not applicable
 /**
  * UserManagement.class.php
  *
@@ -24,99 +21,9 @@
 
 // Imports
 require_once 'lib/admission.inc.php';   // remove user from waiting lists
-require_once 'lib/datei.inc.php';   // remove documents of user
 require_once 'lib/statusgruppe.inc.php';    // remove user from statusgroups
-require_once 'lib/dates.inc.php';   // remove appointments of user
 require_once 'lib/messaging.inc.php';   // remove messages send or recieved by user
 require_once 'lib/object.inc.php';
-
-/**
- * Adapter to fake user_data property in UserManagement
- *
- * @author noack
- *
- */
-class UserDataAdapter implements ArrayAccess, Countable, IteratorAggregate
-{
-    private $user;
-
-    function __construct(User $user)
-    {
-        $this->user = $user;
-    }
-
-    /**
-     * @param string $offset
-     * @return string
-     */
-    function adaptOffset($offset)
-    {
-        $adapted = trim(mb_strstr($offset, '.'), '.');
-        return $adapted ?: $offset;
-    }
-
-    /**
-    * ArrayAccess: Check whether the given offset exists.
-    */
-    function offsetExists($offset)
-    {
-
-        return $this->user->offsetExists($this->adaptOffset($offset));
-    }
-
-    /**
-     * ArrayAccess: Get the value at the given offset.
-     */
-    function offsetGet($offset)
-    {
-        return $this->user->offsetGet($this->adaptOffset($offset));
-    }
-
-    /**
-     * ArrayAccess: Set the value at the given offset.
-     */
-    function offsetSet($offset, $value)
-    {
-        return $this->user->offsetSet($this->adaptOffset($offset), $value);
-    }
-
-    /**
-     * ArrayAccess: unset the value at the given offset.
-     */
-    function offsetUnset($offset)
-    {
-        return $this->user->offsetUnset($this->adaptOffset($offset));
-    }
-
-    /**
-     * @see Countable::count()
-     */
-    function count()
-    {
-        return $this->user->count();
-    }
-
-    /**
-     * @see IteratorAggregate::getIterator()
-     */
-    function getIterator()
-    {
-        return $this->user->getIterator();
-    }
-
-    /**
-      * @param array $data
-      * @param bool $reset
-      */
-    function setData($data, $reset = false)
-    {
-        $adapted_data = array();
-        foreach ($data as $k => $v) {
-            $adapted_data[$this->adaptOffset($k)] = $v;
-        }
-        $this->user->setData($adapted_data, $reset);
-    }
-}
 
 /**
  * UserManagement.class.php
@@ -137,7 +44,7 @@ class UserManagement
     public static function getPwdHasher()
     {
         if (self::$pwd_hasher === null) {
-            self::$pwd_hasher = new PasswordHash(8, $GLOBALS['PHPASS_USE_PORTABLE_HASH']);
+            self::$pwd_hasher = new PasswordHash(8, Config::get()->PHPASS_USE_PORTABLE_HASH);
         }
         return self::$pwd_hasher;
     }
@@ -146,28 +53,27 @@ class UserManagement
     * Constructor
     *
     * Pass nothing to create a new user, or the user_id from an existing user to change or delete
-    * @access   public
     * @param    string  $user_id    the user which should be retrieved
     */
-    function __construct($user_id = FALSE)
+    public function __construct($user_id = FALSE)
     {
         $this->validator = new email_validation_class;
         $this->validator->timeout = 10;                 // How long do we wait for response of mailservers?
         $this->getFromDatabase($user_id);
     }
 
-    function __get($attr)
+    public function __get($attr)
     {
         if ($attr === 'user_data') {
             return $this->user_data;
         }
     }
 
-    function __set($attr, $value)
+    public function __set($attr, $value)
     {
         if ($attr === 'user_data') {
             if (!is_array($value)) {
-                throw InvalidArgumentException('user_data only accepts array');
+                throw new InvalidArgumentException('user_data only accepts array');
             }
             return $this->user_data->setData($value, true);
         }
@@ -176,10 +82,9 @@ class UserManagement
     /**
     * load user data from database into internal array
     *
-    * @access   private
     * @param    string  $user_id    the user which should be retrieved
     */
-    function getFromDatabase($user_id)
+    public function getFromDatabase($user_id)
     {
         $this->user = User::toObject($user_id);
         if (!$this->user) {
@@ -194,7 +99,7 @@ class UserManagement
     * @access   private
     * @return   bool all data stored?
     */
-    function storeToDatabase()
+    private function storeToDatabase()
     {
         if ($this->user->isNew()) {
             if ($this->user->store()) {
@@ -278,25 +183,26 @@ class UserManagement
         }
 
         $changed = $this->user->store();
-        return (bool)$changed;
+        return (bool) $changed;
     }
 
 
     /**
     * generate a secure password of $length characters [a-z0-9]
     *
-    * @access   private
     * @param    integer $length number of characters
     * @return   string password
     */
-    function generate_password($length) {
-        mt_srand((double)microtime()*1000000);
-        for ($i=1;$i<=$length;$i++) {
+    public function generate_password($length)
+    {
+        mt_srand((double)microtime() * 1000000);
+        for ($i = 1; $i <= $length; $i++) {
             $temp = mt_rand() % 36;
-            if ($temp < 10)
+            if ($temp < 10) {
                 $temp += 48;     // 0 = chr(48), 9 = chr(57)
-            else
+            } else {
                 $temp += 87;     // a = chr(97), z = chr(122)
+            }
             $pass .= chr($temp);
         }
         return $pass;
@@ -306,23 +212,23 @@ class UserManagement
     /**
     * Check if Email-Adress is valid and reachable
     *
-    * @access   private
     * @param    string  Email-Adress to check
     * @return   bool Email-Adress valid and reachable?
     */
-    function checkMail($Email) {
+    private function checkMail($Email)
+    {
         // Adress correkt?
         if (!$this->validator->ValidateEmailAddress($Email)) {
-            $this->msg .= "error§" . _("E-Mail-Adresse syntaktisch falsch!") . "§";
+            $this->msg .= "errorÂ§" . _("E-Mail-Adresse syntaktisch falsch!") . "Â§";
             return FALSE;
         }
         // E-Mail reachable?
         if (!$this->validator->ValidateEmailHost($Email)) {      // Mailserver nicht erreichbar, ablehnen
-            $this->msg .= "error§" . _("Mailserver ist nicht erreichbar!") . "§";
+            $this->msg .= "errorÂ§" . _("Mailserver ist nicht erreichbar!") . "Â§";
             return FALSE;
         }
         if (!$this->validator->ValidateEmailBox($Email)) {      // aber user unbekannt, ablehnen
-            $this->msg .= "error§" . sprintf(_("E-Mail an <em>%s</em> ist nicht zustellbar!"), $Email) . "§";
+            $this->msg .= "errorÂ§" . sprintf(_("E-Mail an <em>%s</em> ist nicht zustellbar!"), $Email) . "Â§";
             return FALSE;
         }
         return TRUE;
@@ -331,36 +237,36 @@ class UserManagement
     /**
     * Create a new studip user with the given parameters
     *
-    * @access   public
     * @param    array   structure: array('string table_name.field_name'=>'string value')
     * @return   bool Creation successful?
     */
-    function createNewUser($newuser) {
+    public function createNewUser($newuser)
+    {
         global $perm;
 
         // Do we have permission to do so?
         if (!$perm->have_perm("admin")) {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung Accounts anzulegen.") . "§";
+            $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung Accounts anzulegen.") . "Â§";
             return FALSE;
         }
         if (!$perm->is_fak_admin() && $newuser['auth_user_md5.perms'] == "admin") {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung <em>>Admin-Accounts</em> anzulegen.") . "§";
+            $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung <em>>Admin-Accounts</em> anzulegen.") . "Â§";
             return FALSE;
         }
         if (!$perm->have_perm("root") && $newuser['auth_user_md5.perms'] == "root") {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> anzulegen.") . "§";
+            $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> anzulegen.") . "Â§";
             return FALSE;
         }
 
         // Do we have all necessary data?
         if (empty($newuser['auth_user_md5.username']) || empty($newuser['auth_user_md5.perms']) || empty ($newuser['auth_user_md5.Email'])) {
-            $this->msg .= "error§" . _("Bitte geben Sie <em>Username</em>, <em>Status</em> und <em>E-Mail</em> an!") . "§";
+            $this->msg .= "errorÂ§" . _("Bitte geben Sie <em>Username</em>, <em>Status</em> und <em>E-Mail</em> an!") . "Â§";
             return FALSE;
         }
 
         // Is the username correct?
         if (!$this->validator->ValidateUsername($newuser['auth_user_md5.username'])) {
-            $this->msg .= "error§" .  _("Der gewählte Benutzername ist zu kurz oder enthält unzulässige Zeichen!") . "§";
+            $this->msg .= "errorÂ§" .  _("Der gewÃ¤hlte Benutzername ist zu kurz oder enthÃ¤lt unzulÃ¤ssige Zeichen!") . "Â§";
             return FALSE;
         }
 
@@ -378,7 +284,7 @@ class UserManagement
         $this->user_data->setData($newuser);
 
         if ($this->user_data['auth_user_md5.auth_plugin'] == 'standard') {
-            $password = $this->generate_password(6);
+            $password = $this->generate_password(8);
             $this->user_data['auth_user_md5.password'] = self::getPwdHasher()->HashPassword($password);
         }
 
@@ -386,31 +292,32 @@ class UserManagement
         // NOTE: This should be a transaction, but it is not...
         $temp = User::findByUsername($newuser['auth_user_md5.username']);
         if ($temp) {
-            $this->msg .= "error§" . sprintf(_("BenutzerIn <em>%s</em> ist schon vorhanden!"), $newuser['auth_user_md5.username']) . "§";
+            $this->msg .= "errorÂ§" . sprintf(_("BenutzerIn <em>%s</em> ist schon vorhanden!"), $newuser['auth_user_md5.username']) . "Â§";
             return FALSE;
         }
 
         if (!$this->storeToDatabase()) {
-            $this->msg .= "error§" . sprintf(_("BenutzerIn \"%s\" konnte nicht angelegt werden."), $newuser['auth_user_md5.username']) . "§";
+            $this->msg .= "errorÂ§" . sprintf(_("BenutzerIn \"%s\" konnte nicht angelegt werden."), $newuser['auth_user_md5.username']) . "Â§";
             return FALSE;
         }
 
-        $this->msg .= "msg§" . sprintf(_("BenutzerIn \"%s\" angelegt."), $newuser['auth_user_md5.username']) . "§";
+        $this->msg .= "msgÂ§" . sprintf(_("BenutzerIn \"%s\" angelegt."), $newuser['auth_user_md5.username']) . "Â§";
 
         // Automated entering new users, based on their status (perms)
         $result = AutoInsert::instance()->saveUser($this->user_data['auth_user_md5.user_id'],$this->user_data['auth_user_md5.perms']);
 
         foreach ($result['added'] as $item) {
-            $this->msg .= "msg§".sprintf(_("Das automatische Eintragen in die Veranstaltung <em>%s</em> wurde durchgeführt."), $item) . "§";
+            $this->msg .= "msgÂ§".sprintf(_("Das automatische Eintragen in die Veranstaltung <em>%s</em> wurde durchgefÃ¼hrt."), $item) . "Â§";
         }
         foreach ($result['removed'] as $item) {
-            $this->msg .= "msg§".sprintf(_("Das automatische Austragen aus der Veranstaltung <em>%s</em> wurde durchgeführt."), $item) . "§";
+            $this->msg .= "msgÂ§".sprintf(_("Das automatische Austragen aus der Veranstaltung <em>%s</em> wurde durchgefÃ¼hrt."), $item) . "Â§";
         }
 
         // include language-specific subject and mailbody
-        $user_language = getUserLanguagePath($this->user_data['auth_user_md5.user_id']); // user has been just created, so we will get $DEFAULT_LANGUAGE
+        $user_language = $this->user_data['user_info.preferred_language'] ?: Config::get()->DEFAULT_LANGUAGE;
+
         $Zeit=date("H:i:s, d.m.Y",time());
-        include("locale/$user_language/LC_MAILS/create_mail.inc.php");
+        include("locale/" . $GLOBALS['INSTALLED_LANGUAGES'][$user_language]['path'] . "/LC_MAILS/create_mail.inc.php");
 
         // send mail
         StudipMail::sendMessage($this->user_data['auth_user_md5.Email'],$subject, $mailbody);
@@ -424,22 +331,22 @@ class UserManagement
     /**
      * Create a new preliminary studip user with the given parameters
      *
-     * @access   public
      * @param    array   structure: array('string table_name.field_name'=>'string value')
      * @return   bool Creation successful?
      */
-    function createPreliminaryUser($newuser) {
+    public function createPreliminaryUser($newuser)
+    {
         global $perm;
 
         $this->getFromDatabase(null);
         $this->user_data->setData($newuser);
         // Do we have permission to do so?
         if (!$perm->have_perm("admin")) {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung Accounts anzulegen.") . "§";
+            $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung Accounts anzulegen.") . "Â§";
             return FALSE;
         }
         if (in_array($this->user->perms, words('root admin'))) {
-            $this->msg .= "error§" . _("Es können keine vorläufigen Administrationsaccounts angelegt werden.") . "§";
+            $this->msg .= "errorÂ§" . _("Es kÃ¶nnen keine vorlÃ¤ufigen Administrationsaccounts angelegt werden.") . "Â§";
             return FALSE;
         }
         if (!$this->user->id) {
@@ -453,13 +360,13 @@ class UserManagement
 
         // Do we have all necessary data?
         if (empty ($this->user->perms) || empty ($this->user->vorname) || empty ($this->user->nachname)) {
-            $this->msg .= "error§" . _("Bitte geben Sie <em>Status</em>, <em>Vorname</em> und <em>Nachname</em> an!") . "§";
+            $this->msg .= "errorÂ§" . _("Bitte geben Sie <em>Status</em>, <em>Vorname</em> und <em>Nachname</em> an!") . "Â§";
             return FALSE;
         }
 
         // Is the username correct?
         if (!$this->validator->ValidateUsername($this->user->username)) {
-            $this->msg .= "error§" .  _("Der gewählte Benutzername ist zu kurz oder enthält unzulässige Zeichen!") . "§";
+            $this->msg .= "errorÂ§" .  _("Der gewÃ¤hlte Benutzername ist zu kurz oder enthÃ¤lt unzulÃ¤ssige Zeichen!") . "Â§";
             return FALSE;
         }
 
@@ -467,16 +374,16 @@ class UserManagement
         // NOTE: This should be a transaction, but it is not...
         $temp = User::findByUsername($this->user->username);
         if ($temp) {
-            $this->msg .= "error§" . sprintf(_("BenutzerIn <em>%s</em> ist schon vorhanden!"), $this->user->username) . "§";
+            $this->msg .= "errorÂ§" . sprintf(_("BenutzerIn <em>%s</em> ist schon vorhanden!"), $this->user->username) . "Â§";
             return FALSE;
         }
 
         if (!$this->storeToDatabase()) {
-            $this->msg .= "error§" . sprintf(_("BenutzerIn \"%s\" konnte nicht angelegt werden."), $this->user->username) . "§";
+            $this->msg .= "errorÂ§" . sprintf(_("BenutzerIn \"%s\" konnte nicht angelegt werden."), $this->user->username) . "Â§";
             return FALSE;
         }
 
-        $this->msg .= "msg§" . sprintf(_("BenutzerIn \"%s\" (vorläufig) angelegt."), $this->user->username) . "§";
+        $this->msg .= "msgÂ§" . sprintf(_("BenutzerIn \"%s\" (vorlÃ¤ufig) angelegt."), $this->user->username) . "Â§";
 
         // add default visibility settings
         Visibility::createDefaultCategories($this->user->id);
@@ -487,38 +394,38 @@ class UserManagement
     /**
     * Change an existing studip user according to the given parameters
     *
-    * @access   public
     * @param    array   structure: array('string table_name.field_name'=>'string value')
     * @return   bool Change successful?
     */
-    function changeUser($newuser) {
+    public function changeUser($newuser)
+    {
         global $perm;
 
         // Do we have permission to do so?
         if (!$perm->have_perm("admin")) {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung Accounts zu verändern.") . "§";
+            $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung Accounts zu verÃ¤ndern.") . "Â§";
             return FALSE;
         }
         if (!$perm->is_fak_admin() && $newuser['auth_user_md5.perms'] == "admin") {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung, <em>Admin-Accounts</em> anzulegen.") . "§";
+            $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung, <em>Admin-Accounts</em> anzulegen.") . "Â§";
             return FALSE;
         }
         if (!$perm->have_perm("root") && $newuser['auth_user_md5.perms'] == "root") {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung, <em>Root-Accounts</em> anzulegen.") . "§";
+            $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung, <em>Root-Accounts</em> anzulegen.") . "Â§";
             return FALSE;
         }
         if (!$perm->have_perm("root")) {
             if (!$perm->is_fak_admin() && $this->user_data['auth_user_md5.perms'] == "admin") {
-                $this->msg .= "error§" . _("Sie haben keine Berechtigung <em>Admin-Accounts</em> zu verändern.") . "§";
+                $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung <em>Admin-Accounts</em> zu verÃ¤ndern.") . "Â§";
                 return FALSE;
             }
             if ($this->user_data['auth_user_md5.perms'] == "root") {
-                $this->msg .= "error§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> zu verändern.") . "§";
+                $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> zu verÃ¤ndern.") . "Â§";
                 return FALSE;
             }
             if ($perm->is_fak_admin() && $this->user_data['auth_user_md5.perms'] == "admin") {
                 if (!$this->adminOK()) {
-                    $this->msg .= "error§" . _("Sie haben keine Berechtigung diesen Admin-Account zu verändern.") . "§";
+                    $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung diesen Admin-Account zu verÃ¤ndern.") . "Â§";
                     return FALSE;
                 }
             }
@@ -546,7 +453,7 @@ class UserManagement
             $count = $statement->fetchColumn();
         }
         if ($count && isset($newuser['auth_user_md5.perms']) && $newuser['auth_user_md5.perms'] != "dozent") {
-            $this->msg .= sprintf("error§" . _("Der Benutzer <em>%s</em> ist alleiniger Dozent in %s aktiven Veranstaltungen und kann daher nicht in einen anderen Status versetzt werden!") . "§", $this->user_data['auth_user_md5.username'], $count);
+            $this->msg .= sprintf("errorÂ§" . _("Der Benutzer <em>%s</em> ist alleiniger Dozent in %s aktiven Veranstaltungen und kann daher nicht in einen anderen Status versetzt werden!") . "Â§", $this->user_data['auth_user_md5.username'], $count);
             return FALSE;
         }
 
@@ -562,7 +469,7 @@ class UserManagement
 
             // if there are institutes with admin-perms, add error-message and deny change
             if ($count = $statement->fetchColumn()) {
-                $this->msg .= sprintf('error§'. _("Der Benutzer <em>%s</em> ist Admin in %s Einrichtungen und kann daher nicht in einen anderen Status versetzt werden!") .'§', $this->user_data['auth_user_md5.username'], $count);
+                $this->msg .= sprintf('errorÂ§'. _("Der Benutzer <em>%s</em> ist Admin in %s Einrichtungen und kann daher nicht in einen anderen Status versetzt werden!") .'Â§', $this->user_data['auth_user_md5.username'], $count);
                 return false;
             }
         }
@@ -571,15 +478,15 @@ class UserManagement
         if (isset($newuser['auth_user_md5.username'])) {
             if ($this->user_data['auth_user_md5.username'] != $newuser['auth_user_md5.username']) {
                 if (!$this->validator->ValidateUsername($newuser['auth_user_md5.username'])) {
-                    $this->msg .= "error§" .  _("Der gewählte Benutzername ist zu kurz oder enthält unzulässige Zeichen!") . "§";
+                    $this->msg .= "errorÂ§" .  _("Der gewÃ¤hlte Benutzername ist zu kurz oder enthÃ¤lt unzulÃ¤ssige Zeichen!") . "Â§";
                     return FALSE;
                 }
                 $check_uname = StudipAuthAbstract::CheckUsername($newuser['auth_user_md5.username']);
                 if ($check_uname['found']) {
-                    $this->msg .= "error§" . _("Der Benutzername wird bereits von einem anderen Benutzer verwendet. Bitte wählen Sie einen anderen Benutzernamen!") . "§";
+                    $this->msg .= "errorÂ§" . _("Der Benutzername wird bereits von einem anderen Benutzer verwendet. Bitte wÃ¤hlen Sie einen anderen Benutzernamen!") . "Â§";
                     return false;
                 } else {
-                    //$this->msg .= "info§" . $check_uname['error'] ."§";
+                    //$this->msg .= "infoÂ§" . $check_uname['error'] ."Â§";
                 }
             } else
             unset($newuser['auth_user_md5.username']);
@@ -599,25 +506,25 @@ class UserManagement
             if (!StudipAuthAbstract::CheckField($key, $auth_plugin)) {
                 $this->user_data[$key] = $value;
             } else {
-                $this->msg .= "error§" .  sprintf(_("Das Feld <em>%s</em> können Sie nicht ändern!"), $key) . "§";
+                $this->msg .= "errorÂ§" .  sprintf(_("Das Feld <em>%s</em> kÃ¶nnen Sie nicht Ã¤ndern!"), $key) . "Â§";
                 return FALSE;
             }
         }
 
         if (!$this->storeToDatabase()) {
-            $this->msg .= "info§" . _("Es wurden keine Veränderungen der Grunddaten vorgenommen.") . "§";
+            $this->msg .= "infoÂ§" . _("Es wurden keine VerÃ¤nderungen der Grunddaten vorgenommen.") . "Â§";
             return false;
         }
 
-        $this->msg .= "msg§" . sprintf(_("Benutzer \"%s\" verändert."), $this->user_data['auth_user_md5.username']) . "§";
+        $this->msg .= "msgÂ§" . sprintf(_("Benutzer \"%s\" verÃ¤ndert."), $this->user_data['auth_user_md5.username']) . "Â§";
         if ($auth_plugin !== null) {
             // Automated entering new users, based on their status (perms)
             $result = AutoInsert::instance()->saveUser( $this->user_data['auth_user_md5.user_id'],$newuser['auth_user_md5.perms']);
             foreach ($result['added'] as $item) {
-                $this->msg .= "msg§".sprintf(_("Das automatische Eintragen in die Veranstaltung <em>%s</em> wurde durchgeführt."), $item) . "§";
+                $this->msg .= "msgÂ§".sprintf(_("Das automatische Eintragen in die Veranstaltung <em>%s</em> wurde durchgefÃ¼hrt."), $item) . "Â§";
             }
             foreach ($result['removed'] as $item) {
-                $this->msg .= "msg§".sprintf(_("Das automatische Austragen aus der Veranstaltung <em>%s</em> wurde durchgeführt."), $item) . "§";
+                $this->msg .= "msgÂ§".sprintf(_("Das automatische Austragen aus der Veranstaltung <em>%s</em> wurde durchgefÃ¼hrt."), $item) . "Â§";
             }
             // include language-specific subject and mailbody
             $user_language = getUserLanguagePath($this->user_data['auth_user_md5.user_id']);
@@ -642,7 +549,7 @@ class UserManagement
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($this->user_data['auth_user_md5.user_id']));
             if (($db_ar = $statement->rowCount()) > 0) {
-                $this->msg .= "info§" . sprintf(_("%s Einträge aus Veranstaltungen gelöscht."), $db_ar) . "§";
+                $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus Veranstaltungen gelÃ¶scht."), $db_ar) . "Â§";
                 array_map('update_admission', $seminar_ids);
             }
             // delete all entries from waiting lists
@@ -655,7 +562,7 @@ class UserManagement
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($this->user_data['auth_user_md5.user_id']));
             if (($db_ar = $statement->rowCount()) > 0) {
-                $this->msg .= "info§" . sprintf(_("%s Einträge aus Wartelisten gelöscht."), $db_ar) . "§";
+                $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus Wartelisten gelÃ¶scht."), $db_ar) . "Â§";
                 array_map('update_admission', $seminar_ids);
             }
             // delete 'Studiengaenge'
@@ -663,11 +570,11 @@ class UserManagement
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($this->user_data['auth_user_md5.user_id']));
             if (($db_ar = $statement->rowCount()) > 0) {
-                $this->msg .= "info§" . sprintf(_("%s Zuordnungen zu Studiengängen gelöscht."), $db_ar) . "§";
+                $this->msg .= "infoÂ§" . sprintf(_("%s Zuordnungen zu StudiengÃ¤ngen gelÃ¶scht."), $db_ar) . "Â§";
             }
             // delete all private appointments of this user
             if ($db_ar = delete_range_of_dates($this->user_data['auth_user_md5.user_id'], FALSE) > 0) {
-                $this->msg .= "info§" . sprintf(_("%s Einträge aus den Terminen gelöscht."), $db_ar) . "§";
+                $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus den Terminen gelÃ¶scht."), $db_ar) . "Â§";
             }
         }
 
@@ -678,7 +585,7 @@ class UserManagement
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($this->user_data['auth_user_md5.user_id']));
             if (($db_ar = $statement->rowCount()) > 0) {
-                $this->msg .= "info§" . sprintf(_("%s Einträge aus MitarbeiterInnenlisten gelöscht."), $db_ar) . "§";
+                $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus MitarbeiterInnenlisten gelÃ¶scht."), $db_ar) . "Â§";
             }
         }
         if ($newuser['auth_user_md5.perms'] == "root") {
@@ -688,13 +595,12 @@ class UserManagement
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($this->user_data['auth_user_md5.user_id']));
             if (($db_ar = $statement->rowCount()) > 0) {
-                $this->msg .= "info§" . sprintf(_("%s Einträge aus MitarbeiterInnenlisten gelöscht."), $db_ar) . "§";
+                $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus MitarbeiterInnenlisten gelÃ¶scht."), $db_ar) . "Â§";
             }
         }
 
         return TRUE;
     }
-
 
     private function logInstUserDel($user_id, $condition = NULL)
     {
@@ -709,30 +615,30 @@ class UserManagement
             StudipLog::log('INST_USER_DEL', $institute_id, $user_id);
         }
     }
+
     /**
     * Create a new password and mail it to the user
     *
-    * @access   public
     * @return   bool Password change successful?
     */
-    function setPassword()
+    public function setPassword()
     {
         global $perm;
 
         // Do we have permission to do so?
         if (!$perm->have_perm("admin")) {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung Accounts zu verändern.") . "§";
+            $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung Accounts zu verÃ¤ndern.") . "Â§";
             return FALSE;
         }
 
         if (!$perm->have_perm("root")) {
             if ($this->user_data['auth_user_md5.perms'] == "root") {
-                $this->msg .= "error§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> zu verändern.") . "§";
+                $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> zu verÃ¤ndern.") . "Â§";
                 return FALSE;
             }
             if ($perm->is_fak_admin() && $this->user_data['auth_user_md5.perms'] == "admin"){
                 if (!$this->adminOK()) {
-                    $this->msg .= "error§" . _("Sie haben keine Berechtigung diesen Admin-Account zu verändern.") . "§";
+                    $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung diesen Admin-Account zu verÃ¤ndern.") . "Â§";
                     return FALSE;
                 }
             }
@@ -743,14 +649,14 @@ class UserManagement
             return FALSE;
         }
 
-        $password = $this->generate_password(6);
+        $password = $this->generate_password(8);
         $this->user_data['auth_user_md5.password'] = self::getPwdHasher()->HashPassword($password);
 
         if (!$this->storeToDatabase()) {
-            $this->msg .= "info§" . _("Es wurden keine Veränderungen vorgenommen.") . "§";
+            $this->msg .= "infoÂ§" . _("Es wurden keine VerÃ¤nderungen vorgenommen.") . "Â§";
         }
 
-        $this->msg .= "msg§" . _("Das Passwort wurde neu gesetzt.") . "§";
+        $this->msg .= "msgÂ§" . _("Das Passwort wurde neu gesetzt.") . "Â§";
 
         // include language-specific subject and mailbody
         $user_language = getUserLanguagePath($this->user_data['auth_user_md5.user_id']);
@@ -767,27 +673,26 @@ class UserManagement
     /**
     * Delete an existing user from the database and tidy up
     *
-    * @access   public
     * @param    bool delete all documents belonging to the user
     * @return   bool Removal successful?
     */
-    function deleteUser($delete_documents = true)
+    public function deleteUser($delete_documents = true)
     {
         global $perm;
 
         // Do we have permission to do so?
         if (!$perm->have_perm("admin")) {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung Accounts zu löschen.") . "§";
+            $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung Accounts zu lÃ¶schen.") . "Â§";
             return FALSE;
         }
 
         if (!$perm->have_perm("root")) {
             if ($this->user_data['auth_user_md5.perms'] == "root") {
-                $this->msg .= "error§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> zu löschen.") . "§";
+                $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> zu lÃ¶schen.") . "Â§";
                 return FALSE;
             }
             if ($this->user_data['auth_user_md5.perms'] == "admin" && !$this->adminOK()) {
-                $this->msg .= "error§" . _("Sie haben keine Berechtigung diesen Admin-Account zu löschen.") . "§";
+                $this->msg .= "errorÂ§" . _("Sie haben keine Berechtigung diesen Admin-Account zu lÃ¶schen.") . "Â§";
                 return FALSE;
             }
         }
@@ -821,7 +726,7 @@ class UserManagement
         $active_count = $statement->fetchColumn() ?: 0;
 
         if ($active_count) {
-            $this->msg .= sprintf("error§" . _("<em>%s</em> ist Lehrkraft in %s aktiven Veranstaltungen und kann daher nicht gelöscht werden.") . "§", $this->user_data['auth_user_md5.username'], $active_count);
+            $this->msg .= sprintf("errorÂ§" . _("<em>%s</em> ist Lehrkraft in %s aktiven Veranstaltungen und kann daher nicht gelÃ¶scht werden.") . "Â§", $this->user_data['auth_user_md5.username'], $active_count);
             return FALSE;
 
         //founder of studygroup?
@@ -871,64 +776,18 @@ class UserManagement
         // store user preferred language for sending mail
         $user_language = getUserLanguagePath($this->user_data['auth_user_md5.user_id']);
 
+        $user_folder = Folder::findTopFolder($this->user->id);
+        $this->msg .= "infoÂ§" . _("PersÃ¶nlicher Dateibereich gelÃ¶scht.") . "Â§";
+        $user_folder->delete();
+
         // delete documents of this user
         if ($delete_documents) {
-            // Remove private file space of this user
-            if (Config::get()->PERSONALDOCUMENT_ENABLE) {
-                $root_dir = new RootDirectory($this->user_data['auth_user_md5.user_id']);
-                $root_dir->delete();
-            }
-
-            // Remove other files
-            $temp_count = 0;
-            $query = "SELECT dokument_id FROM dokumente WHERE user_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-            while ($document_id = $statement->fetchColumn()) {
-                if (delete_document($document_id)) {
-                    $temp_count++;
-                }
-            }
-
-            if ($temp_count) {
-                $this->msg .= "info§" . sprintf(_("%s Dokumente gelöscht."), $temp_count) . "§";
-            }
-
-            // delete empty folders of this user
-            $temp_count = 0;
-
-            $query = "SELECT COUNT(*) FROM folder WHERE range_id = ?";
-            $count_content = DBManager::get()->prepare($query);
-
-            $query = "DELETE FROM folder WHERE folder_id = ?";
-            $delete_folder = DBManager::get()->prepare($query);
-
-            $query = "SELECT folder_id FROM folder WHERE user_id = ? ORDER BY mkdate DESC";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-            while ($folder_id = $statement->fetchColumn()) {
-                $count_content->execute(array($folder_id));
-                $count = $count_content->fetchColumn();
-                $count_content->closeCursor();
-
-                if (!$count && !doc_count($folder_id)) {
-                    $delete_folder->execute(array($folder_id));
-                    $temp_count += $delete_folder->rowCount();
-                }
-            }
-            if ($temp_count) {
-                $this->msg .= "info§" . sprintf(_("%s leere Ordner gelöscht."), $temp_count) . "§";
-            }
-
-            // folder left?
-            $query = "SELECT COUNT(*) FROM folder WHERE user_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-            $count = $statement->fetchColumn();
-            if ($count) {
-                $this->msg .= sprintf("info§" . _("%s Ordner konnten nicht gelöscht werden, da sie noch Dokumente anderer BenutzerInnen enthalten.") . "§", $count);
+            $db_filecount = FileRef::deleteBySQL('user_id = ?', [$this->user_data['auth_user_md5.user_id']]);
+            if ($db_filecount > 0) {
+                $this->msg .= "infoÂ§" . sprintf(_("%s Dateien aus Veranstaltungen und Einrichtungen gelÃ¶scht."), $db_filecount) . "Â§";
             }
         }
+
         // kill all the ressources that are assigned to the user (and all the linked or subordinated stuff!)
         if (Config::get()->RESOURCES_ENABLE) {
             $killAssign = new DeleteResourcesUser($this->user_data['auth_user_md5.user_id']);
@@ -942,7 +801,7 @@ class UserManagement
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->user_data['auth_user_md5.user_id']));
         if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus Veranstaltungen gelöscht."), $db_ar) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus Veranstaltungen gelÃ¶scht."), $db_ar) . "Â§";
         }
 
         // delete user from waiting lists
@@ -955,7 +814,7 @@ class UserManagement
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->user_data['auth_user_md5.user_id']));
         if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus Wartelisten gelöscht."), $db_ar) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus Wartelisten gelÃ¶scht."), $db_ar) . "Â§";
             array_map('update_admission', $seminar_ids);
         }
 
@@ -966,12 +825,12 @@ class UserManagement
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->user_data['auth_user_md5.user_id']));
         if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus MitarbeiterInnenlisten gelöscht."), $db_ar) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus MitarbeiterInnenlisten gelÃ¶scht."), $db_ar) . "Â§";
         }
 
         // delete user from Statusgruppen
         if ($db_ar = StatusgruppeUser::deleteBySQL('user_id = ?', [$this->user_data['auth_user_md5.user_id']]) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus Funktionen / Gruppen gelöscht."), $db_ar) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus Funktionen / Gruppen gelÃ¶scht."), $db_ar) . "Â§";
         }
 
         // delete user from archiv
@@ -979,15 +838,15 @@ class UserManagement
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->user_data['auth_user_md5.user_id']));
         if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus den Zugriffsberechtigungen für das Archiv gelöscht."), $db_ar) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus den Zugriffsberechtigungen fÃ¼r das Archiv gelÃ¶scht."), $db_ar) . "Â§";
         }
 
         // delete all personal news from this user
         if (($db_ar = StudipNews::DeleteNewsByAuthor($this->user_data['auth_user_md5.user_id']))) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus den Ankündigungen gelöscht."), $db_ar) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus den AnkÃ¼ndigungen gelÃ¶scht."), $db_ar) . "Â§";
         }
         if (($db_ar = StudipNews::DeleteNewsRanges($this->user_data['auth_user_md5.user_id']))) {
-            $this->msg .= "info§" . sprintf(_("%s Verweise auf Ankündigungen gelöscht."), $db_ar) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s Verweise auf AnkÃ¼ndigungen gelÃ¶scht."), $db_ar) . "Â§";
         }
 
         //delete entry in news_rss_range
@@ -998,7 +857,7 @@ class UserManagement
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->user_data['auth_user_md5.user_id']));
         if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Zuordnungen zu Studiengängen gelöscht."), $db_ar) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s Zuordnungen zu StudiengÃ¤ngen gelÃ¶scht."), $db_ar) . "Â§";
         }
 
         // delete all private appointments of this user
@@ -1006,14 +865,14 @@ class UserManagement
             $appkills = CalendarEvent::deleteBySQL('range_id = ?',
                     array($this->user_data['auth_user_md5.user_id']));
             if ($appkills) {
-                $this->msg .= "info§" . sprintf(_("%s Einträge aus den Terminen gelöscht."), $appkills) ."§";
+                $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus den Terminen gelÃ¶scht."), $appkills) ."Â§";
             }
             // delete membership in group calendars
             if (get_config('CALENDAR_GROUP_ENABLE')) {
                 $membershipkills = CalendarUser::deleteBySQL('owner_id = :user_id OR user_id = :user_id',
                         array(':user_id' => $this->user_data['auth_user_md5.user_id']));
                 if ($membershipkills) {
-                    $this->msg .= 'info§' . sprintf(_('%s Verknüpfungen mit Gruppenterminkalendern gelöscht.'));
+                    $this->msg .= 'infoÂ§' . sprintf(_('%s VerknÃ¼pfungen mit Gruppenterminkalendern gelÃ¶scht.'));
                 }
             }
         }
@@ -1025,11 +884,11 @@ class UserManagement
         // delete user from all foreign adressbooks and empty own adressbook
         $buddykills = Contact::deleteBySQL('user_id = ?', array($this->user_data['auth_user_md5.user_id']));
         if ($buddykills > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus Adressbüchern gelöscht."), $buddykills) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s EintrÃ¤ge aus AdressbÃ¼chern gelÃ¶scht."), $buddykills) . "Â§";
         }
         $contactkills = Contact::deleteBySQL('owner_id = ?', array($this->user_data['auth_user_md5.user_id']));
         if ($contactkills) {
-            $this->msg .= sprintf(_('Adressbuch mit %d Einträgen gelöscht.'), $contactkills);
+            $this->msg .= sprintf(_('Adressbuch mit %d EintrÃ¤gen gelÃ¶scht.'), $contactkills);
         }
 
         // delete users groups
@@ -1048,13 +907,14 @@ class UserManagement
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->user_data['auth_user_md5.user_id']));
         if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Blubber gelöscht."), $db_ar) . "§";
+            $this->msg .= "infoÂ§" . sprintf(_("%s Blubber gelÃ¶scht."), $db_ar) . "Â§";
         }
 
         // delete the datafields
         $localEntries = DataFieldEntry::removeAll($this->user_data['auth_user_md5.user_id']);
 
-        UserConfigEntry::deleteByUser($this->user_data['auth_user_md5.user_id']);
+        // delete user config values
+        ConfigValue::deleteBySQL('range_id = ?', array($this->user_data['auth_user_md5.user_id']));
 
         // delete all remaining user data
         $queries = array(
@@ -1097,7 +957,7 @@ class UserManagement
         $avatar = Avatar::getAvatar($this->user_data["auth_user_md5.user_id"]);
         if ($avatar->is_customized()) {
             $avatar->reset();
-            $this->msg .= "info§" . _("Bild gelöscht.") . "§";
+            $this->msg .= "infoÂ§" . _("Bild gelÃ¶scht.") . "Â§";
         }
 
         // delete visibility settings
@@ -1114,7 +974,7 @@ class UserManagement
                         $connected_user = new $userclass($cms->cms_type, $this->user_data['auth_user_md5.user_id']);
                         if($ok = $connected_user->deleteUser()){
                             if($connected_user->is_connected){
-                                $this->msg .= "info§" . sprintf(_("Der verknüpfte Nutzer %s wurde im System %s gelöscht."), $connected_user->login, $connected_user->cms_type) . "§";
+                                $this->msg .= "infoÂ§" . sprintf(_("Der verknÃ¼pfte Nutzer %s wurde im System %s gelÃ¶scht."), $connected_user->login, $connected_user->cms_type) . "Â§";
                             }
                         }
                         $cms->USER_AUTO_CREATE = $user_auto_create;
@@ -1129,7 +989,7 @@ class UserManagement
         $statement->execute(array($this->user_data['auth_user_md5.user_id']));
         $deputyEntries = $statement->rowCount();
         if ($deputyEntries) {
-            $this->msg .= "info§".sprintf(_("%s Einträge in den Vertretungseinstellungen gelöscht."), $deputyEntries)."§";
+            $this->msg .= "infoÂ§".sprintf(_("%s EintrÃ¤ge in den Vertretungseinstellungen gelÃ¶scht."), $deputyEntries)."Â§";
         }
 
         // delete Stud.IP account
@@ -1137,10 +997,10 @@ class UserManagement
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($this->user_data['auth_user_md5.user_id']));
         if (!$statement->rowCount()) {
-            $this->msg .= "error§<em>" . _("Fehler:") . "</em> " . $query . "§";
+            $this->msg .= "errorÂ§<em>" . _("Fehler:") . "</em> " . $query . "Â§";
             return FALSE;
         } else {
-            $this->msg .= "msg§" . sprintf(_("Benutzer \"%s\" gelöscht."), $this->user_data['auth_user_md5.username']) . "§";
+            $this->msg .= "msgÂ§" . sprintf(_("Benutzer \"%s\" gelÃ¶scht."), $this->user_data['auth_user_md5.username']) . "Â§";
         }
         StudipLog::log("USER_DEL",$this->user_data['auth_user_md5.user_id'],NULL,sprintf("%s %s (%s)", $this->user_data['auth_user_md5.Vorname'], $this->user_data['auth_user_md5.Nachname'], $this->user_data['auth_user_md5.username'])); //log with Vorname Nachname (username) as info string
 
@@ -1186,7 +1046,7 @@ class UserManagement
         return $ok;
     }
 
-    function re_sort_position_in_seminar_user()
+    private function re_sort_position_in_seminar_user()
     {
         $query = "SELECT Seminar_id, position, status
                   FROM seminar_user
@@ -1208,14 +1068,14 @@ class UserManagement
     * @param string $password
     * @return bool change successful?
     */
-    function changePassword($password)
+    public function changePassword($password)
     {
         global $perm;
 
         $this->user_data['auth_user_md5.password'] = self::getPwdHasher()->HashPassword($password);
         $this->storeToDatabase();
 
-        $this->msg .= "msg§" . _("Das Passwort wurde neu gesetzt.") . "§";
+        $this->msg .= "msgÂ§" . _("Das Passwort wurde neu gesetzt.") . "Â§";
 
         // include language-specific subject and mailbody
         $user_language = getUserLanguagePath($this->user_data['auth_user_md5.user_id']);

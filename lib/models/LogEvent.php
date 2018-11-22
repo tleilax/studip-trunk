@@ -27,7 +27,7 @@
  */
 
 
-class LogEvent extends SimpleORMap
+class LogEvent extends SimpleORMap implements PrivacyObject
 {
 
     protected $formatted_text = '';
@@ -43,8 +43,6 @@ class LogEvent extends SimpleORMap
             'class_name' => 'User',
             'foreign_key' => 'user_id',
         );
-        $config['notification_map']['after_create'] = 'LogEventDidCreate';
-        $config['notification_map']['before_create'] = 'LogEventWillCreate';
         parent::configure($config);
     }
 
@@ -111,6 +109,7 @@ class LogEvent extends SimpleORMap
             '/%singledate\(%affected\)/',
             '/%semester\(%coaffected\)/',
             '/%plugin\(%coaffected\)/',
+            '/%group\(%coaffected\)/',
         ];
 
         $text = preg_replace_callback($replace_callbacks, [$this, 'formatCallback'], $text);
@@ -128,6 +127,7 @@ class LogEvent extends SimpleORMap
             'res'  => 'Resource',
             'inst' => 'Institute',
             'user' => 'Username',
+            'group' => 'Statusgruppe'
         ];
         $ret = '';
         if (preg_match_all('/%([a-z]+)/', $m[0], $found)) {
@@ -269,14 +269,37 @@ class LogEvent extends SimpleORMap
      * @return string The name of semester or the id.
      */
     protected function formatSemester($field) {
-        $semester = new SemesterData();
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
         foreach ($all_semester as $val) {
             if ($val['beginn'] == $this->$field) {
                 return '<em>' . $val['name'] . '</em>';
             }
         }
         return $this->$field;
+    }
+
+    /**
+     * Returns the name of the statusgroup for the id found in the given
+     * field or the id if the group is unknown.
+     *
+     * @param string $field The name of the table field.
+     * @return string The name of statusgruppe or the id.
+     */
+    protected function formatStatusgruppe($field)
+    {
+        $group = Statusgruppen::find($this->$field);
+
+        if (!$group) {
+            return $this->$field;
+        }
+        $course = Course::find($group->range_id);
+        return sprintf(
+            '<a href="%s">%s</a>',
+            URLHelper::getLink('dispatch.php/course/statusgroups', array(
+                'contentbox_open' => $group->getId()
+            )),
+            htmlReady($group->name. ($course ? " (VA: ".$course->name.")" : ""))
+        );
     }
 
     protected function formatObject()
@@ -303,7 +326,8 @@ class LogEvent extends SimpleORMap
                     break;
                 case 'core':
                     $class_name = $this->action->class;
-                    if ($class_name instanceof Loggable) {
+                    $interfaces = class_implements($class_name);
+                    if (isset($interfaces['Loggable'])) {
                         return $class_name::logFormat($this);
                     }
             }
@@ -311,4 +335,67 @@ class LogEvent extends SimpleORMap
         return $this->action->info_template;
     }
 
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $user_id = $user->user_id;
+        $templates = [];
+
+        $query = "SELECT *
+                  FROM log_events
+                  WHERE :user_id IN (user_id, affected_range_id, coaffected_range_id)";
+        $log = DBManager::get()->fetchAll($query, [':user_id' => $user_id]);
+
+        foreach ($log as $pos => $event) {
+            if (!array_key_exists($event['action_id'], $templates)) {
+                $log_action = LogAction::find($event["action_id"]);
+                $templates[$event['action_id']] = $log_action->info_template;
+            }
+            $template = $templates[$event['action_id']];
+            $log_event = LogEvent::find($event['event_id']);
+
+            // anonymize
+            $was_censored = false;
+            if ($event['user_id'] && substr_count($template, '%user ') && $event['user_id'] !== $user_id) {
+                $event['user_id'] = preg_replace('/[^w]/', '#', $event['user_id']);
+                $log_event->user_id = $event['user_id'];
+                $was_censored = true;
+            }
+            if ($event['affected_range_id'] && substr_count($template, '%user(%affected)') && $event['affected_range_id'] !== $user_id) {
+                $event['affected_range_id'] = preg_replace('/[^w]/', '#', $event['affected_range_id']);
+                $log_event->affected_range_id = $event['affected_range_id'];
+                $was_censored = true;
+            }
+            if ($event['coaffected_range_id'] && substr_count($template, '%user(%coaffected)') && $event['coaffected_range_id'] !== $user_id) {
+                $event['coaffected_range_id'] = preg_replace('/[^w]/', '#', $event['coaffected_range_id']);
+                $log_event->coaffected_range_id = $event['coaffected_range_id'];
+                $was_censored = true;
+            }
+
+            //censore possible info
+            if ($was_censored) {
+                if (!empty($event['info'])) {
+                    $event['info'] = preg_replace('/[^w]/', '#', $event['info']);
+                }
+                if (!empty($event["dbg_info"])) {
+                    $event['dbg_info'] = preg_replace('/[^w]/', '#', $event['dbg_info']);
+                }
+            }
+
+            $a['readable_entry'] = $log_event->formatEvent();
+            $log[$pos]= array_merge($a, $event);
+        }
+
+        if ($log) {
+            $storage->addTabularData('log_events', $log, $user);
+        }
+        return [_('Logs') => $storage];
+    }
 }

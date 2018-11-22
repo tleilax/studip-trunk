@@ -62,15 +62,11 @@ class ExternEditGeneric extends ExternEdit {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr" . $this->css->getFullClass() . "><td{$this->width_1} nowrap=\"nowrap\"><font size=\"2\">";
-        $out .= "$title</font></td>\n";
-        $out .= "<td{$this->width_2} nowrap=\"nowrap\"><select name=\"$form_name\" size=\"1\">\n";
+        $out = "<label $invalidClass>$title\n";
+        $out .= tooltipIcon($info);
+        $out .= "<select name=\"$form_name\" size=\"1\">\n";
         foreach ($faces as $face_type => $face_name) {
             if ($value == $face_type)
                 $out .= "<option selected=\"selected\" ";
@@ -79,10 +75,8 @@ class ExternEditGeneric extends ExternEdit {
             $out .= "value=\"$face_type\">";
             $out .= $face_name . "</option>";
         }
-        $out .= "</select>\n";
-        $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
-        $this->css->switchClass();
+        $out .= "</select>";
+        $out .= "</label>";
 
         return $out;
     }
@@ -100,50 +94,28 @@ class ExternEditGeneric extends ExternEdit {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($title == "") {
-            $title = "&nbsp;";
-            $width_1 = " width=\"1%\"";
-            $width_2 = " width=\"99%\"";
-        }
-        else {
-            $width_1 = $this->width_1;
-            $width_2 = $this->width_2;
-        }
-
         if (is_array($title)) {
             $out = "";
             for($i = 0; $i < sizeof($title); $i++) {
 
-                if ($this->faulty_values[$form_name][$i])
-                    $error_sign = $this->error_sign;
-                else
-                    $error_sign = "";
+                $invalidClass = $this->faulty_values[$form_name][$i] ? "class=\"invalid\" " : "";
 
-                $out .= "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-                $out .= "<tr" . $this->css->getFullClass() . "><td$width_1 nowrap=\"nowrap\"><font size=\"2\">";
-                $out .= "{$title[$i]}</font></td>\n";
-                $out .= "<td$width_2 nowrap=\"nowrap\"><input type=\"text\" name=\"{$form_name}[]\" size=\"$size\"";
-                $out .= " maxlength=\"$maxlength\" value=\"{$value[$i]}\">&nbsp; \n";
+                $out .= "<label $invalidClass>{$title[$i]}\n";
                 $out .= tooltipIcon(is_array($info) ? $info[$i] : $info);
-                $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
-                $this->css->switchClass();
+                $out .= "<input type=\"text\" name=\"{$form_name}[]\" size=\"$size\"";
+                $out .= " maxlength=\"$maxlength\" value=\"{$value[$i]}\">";
+                $out .= "</label>";
             }
             return $out;
         }
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        $out .= "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr" . $this->css->getFullClass() . "><td$width_1 nowrap=\"nowrap\"><font size=\"2\">";
-        $out .= "$title</font></td>\n";
-        $out .= "<td$width_2 nowrap=\"nowrap\"><input type=\"text\" name=\"$form_name\" size=\"$size\"";
-        $out .= " maxlength=\"$maxlength\" value=\"$value\">&nbsp; \n";
+        $out .= "<label $invalidClass>$title\n";
         $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
-        $this->css->switchClass();
+        $out .= "<input type=\"text\" name=\"$form_name\" size=\"$size\"";
+        $out .= " maxlength=\"$maxlength\" value=\"$value\">";
+        $out .= "</label>";
 
         return $out;
     }
@@ -161,31 +133,14 @@ class ExternEditGeneric extends ExternEdit {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($title == "") {
-            $title = "&nbsp;";
-            $width_1 = " width=\"1%\"";
-            $width_2 = " width=\"99%\"";
-        }
-        else {
-            $width_1 = $this->width_1;
-            $width_2 = $this->width_2;
-        }
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
-
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr" . $this->css->getFullClass() . "><td$width_1 nowrap=\"nowrap\"><font size=\"2\">";
-        $out .= "$title</font></td>\n";
-        $out .= "<td$width_2 nowrap=\"nowrap\">";
+        $out = "<label $invalidClass>$title";
+        $out .= tooltipIcon($info);
         $out .= "<textarea name=\"$form_name\" cols=\"$cols\" rows=\"$rows\" wrap=\"virtual\">";
         $out .= $value;
-        $out .= "</textarea>&nbsp; \n";
-        $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
-        $this->css->switchClass();
+        $out .= "</textarea>";
+        $out .= "</label>";
 
         return $out;
     }
@@ -203,84 +158,71 @@ class ExternEditGeneric extends ExternEdit {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($title == "") {
-            $title = "&nbsp;";
-            $width_1 = " width=\"1%\"";
-            $width_2 = " width=\"99%\"";
-        }
-        else {
-            $width_1 = $this->width_1;
-            $width_2 = $this->width_2;
-        }
-
         $size = sizeof($check_values);
-        $out .= "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
+        $out = "";
 
         if ($size > 1) {
         //  $form_name .= "[]";
             if (is_array($title)) {
                 for ($i = 0; $i < $size; $i++) {
-                    if ($this->faulty_values[$form_name][$i])
-                        $error_sign = $this->error_sign;
-                    else
-                        $error_sign = "";
 
-                    $out .= "<tr" . $this->css->getFullClass() . "><td$width_1 nowrap=\"nowrap\"><font size=\"2\">";
-                    $out .= "$title[$i]</font></td>\n";
-                    $out .= "<td$width_2 nowrap=\"nowrap\">";
+                    $invalidClass = $this->faulty_values[$form_name][$i] ? "class=\"invalid\" " : "";
+
+                    $out .= "<label $invalidClass>";
                     $out .= "<input type=\"checkbox\" name=\"{$form_name}[]\" value=\"{$check_values[$i]}\"";
-                    if (is_array($value) && in_array($check_values[$i], $value))
+                    if (is_array($value) && in_array($check_values[$i], $value)) {
                         $out .= " checked";
-                    if ($size == 1)
-                        $out .= "></td></tr>\n";
-                    else
-                        $out .= "><font size=\"2\">{$check_names[$i]}&nbsp; &nbsp;</font>";
+                    }
+
+                    if ($size == 1) {
+                        $out .= ">";
+                    } else {
+                        $out .= ">{$check_names[$i]}";
+                    }
+
+                    $out .= $title[$i];
                     $out .= tooltipIcon($info);
-                    $out .= "$error_sign</td></tr>\n";
-                    $this->css->switchClass();
+                    $out .= "</label>";
                 }
             }
             else {
-                if ($this->faulty_values[$form_name][0])
-                    $error_sign = $this->error_sign;
-                else
-                    $error_sign = "";
+                $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-                $out .= "<tr" . $this->css->getFullClass() . "><td$width_1 nowrap=\"nowrap\"><font size=\"2\">";
-                $out .= "$title</font></td>\n";
-                $out .= "<td$width_2 nowrap=\"nowrap\">";
+                $out .= "<label $invalidClass>";
                 for ($i = 0; $i < $size; $i++) {
                     $out .= "<input type=\"checkbox\" name=\"{$form_name}[]\" value=\"{$check_values[$i]}\"";
-                    if (is_array($value) && in_array($check_values[$i], $value))
+                    if (is_array($value) && in_array($check_values[$i], $value)) {
                         $out .= " checked";
-                    if ($size == 1)
-                        $out .= "> &nbsp;\n";
-                    else
-                        $out .= "><font size=\"2\">{$check_names[$i]}&nbsp; &nbsp;</font>\n";
+                    }
+
+                    if ($size == 1) {
+                        $out .= ">";
+                    } else {
+                        $out .= ">{$check_names[$i]}";
+                    }
                 }
+
+                $out .= $title;
                 $out .= tooltipIcon($info);
-                $out .= "$error_sign</td></tr>\n";
+                $out .= "</label>";
             }
         }
         else {
-            if ($this->faulty_values[$form_name][0])
-                $error_sign = $this->error_sign;
-            else
-                $error_sign = "";
+            $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-            $out .= "<tr" . $this->css->getFullClass() . "><td$width_1 nowrap=\"nowrap\"><font size=\"2\">";
-            $out .= "$title</font></td>\n";
-            $out .= "<td$width_2 nowrap=\"nowrap\">";
+            $out .= "<label $invalidClass>";
             $out .= "<input type=\"checkbox\" name=\"{$form_name}\" value=\"$check_values\"";
-            if ($value == $check_values)
-                $out .= " checked";
-            $out .= "> &nbsp;\n";
-            $out .= tooltipIcon($info);
-            $out .= "$error_sign</td></tr>\n";
-        }
 
-        $out .= "</table>\n</td></tr>\n";
-        $this->css->switchClass();
+            if ($value == $check_values) {
+                $out .= " checked";
+            }
+
+            $out .= ">";
+
+            $out .= $title;
+            $out .= tooltipIcon($info);
+            $out .= "</label>";
+        }
 
         return $out;
     }
@@ -298,36 +240,19 @@ class ExternEditGeneric extends ExternEdit {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($title == "") {
-            $title = "&nbsp;";
-            $width_1 = " width=\"1%\"";
-            $width_2 = " width=\"99%\"";
-        }
-        else {
-            $width_1 = $this->width_1;
-            $width_2 = $this->width_2;
-        }
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
+        $out = "<label $invalidClass>$title\n";
+        $out .= tooltipIcon($info);
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr" . $this->css->getFullClass() . "><td$width_1 nowrap=\"nowrap\"><font size=\"2\">";
-        $out .= "$title</font></td>\n";
-        $out .= "<td$width_2 nowrap=\"nowrap\">";
-
+        $out .= "<br>";
         for ($i = 0; $i < sizeof($radio_values); $i++) {
             $out .= "<input type=\"radio\" name=\"$form_name\" value=\"{$radio_values[$i]}\"";
             if ($value == $radio_values[$i])
                 $out .= " checked";
-            $out .= "><font size=\"2\">{$radio_names[$i]}&nbsp; &nbsp;</font>\n";
+            $out .= ">{$radio_names[$i]}";
         }
-        
-        $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
-        $this->css->switchClass();
+        $out .= "</label>";
 
         return $out;
     }
@@ -349,25 +274,10 @@ class ExternEditGeneric extends ExternEdit {
         $form_name = $this->element_name . "_" . $attribute;
         $value = $this->getValue($attribute);
 
-        if ($title == "") {
-            $title = "&nbsp;";
-            $width_1 = " width=\"1%\"";
-            $width_2 = " width=\"99%\"";
-        }
-        else {
-            $width_1 = $this->width_1;
-            $width_2 = $this->width_2;
-        }
+        $invalidClass = $this->faulty_values[$form_name][0] ? "class=\"invalid\" " : "";
 
-        if ($this->faulty_values[$form_name][0])
-            $error_sign = $this->error_sign;
-        else
-            $error_sign = "";
-
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
-        $out .= "<tr" . $this->css->getFullClass() . "><td$width_1 nowrap=\"nowrap\"><font size=\"2\">";
-        $out .= "$title</font></td>\n";
-        $out .= "<td$width_2 nowrap=\"nowrap\">";
+        $out = "<label $invalidClass>$title\n";
+        $out .= tooltipIcon($info);
         if ($multiple)
             $out .= "<select name=\"{$form_name}[]\" size=\"$size\" multiple>";
         else
@@ -387,10 +297,8 @@ class ExternEditGeneric extends ExternEdit {
             $out .= ">{$option_names[$i]}</option>\n";
         }
 
-        $out .= "</select>\n";
-        $out .= tooltipIcon($info);
-        $out .= "$error_sign</td></tr>\n</table>\n</td></tr>\n";
-        $this->css->switchClass();
+        $out .= "</select>";
+        $out .= "</label>";
 
         return $out;
     }

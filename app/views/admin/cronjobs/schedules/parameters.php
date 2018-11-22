@@ -1,12 +1,10 @@
-<?
+<?php
     $selected   = !$schedule->isNew() && $schedule->task_id === $task->task_id;
-    $parameters = $selected
-                ? $schedule->parameters
-                : array_fill_keys(array_keys($task->parameters), null);
+    $parameters = $schedule->parameters;
 ?>
 
 <h3><?= _('Parameter') ?></h3>
-<ul>
+<ul class="clean">
 <? foreach ($task->parameters as $key => $data): ?>
     <li class="<? if ($data['status'] === 'mandatory') echo 'required'; ?> parameter">
     <? if ($data['type'] === 'boolean'): ?>
@@ -14,7 +12,7 @@
         <label>
             <input type="checkbox" name="parameters[<?= $task->task_id ?>][<?= htmlReady($key) ?>]" value="1"
                    id="parameter-<?= htmlReady($key) ?>"
-                   <? if ($selected && $parameters[$key]) echo 'checked'; ?>>
+                   <? if ($selected ? $parameters[$key] : $data['default']) echo 'checked'; ?>>
             <?= htmlReady($data['description']) ?>
         </label>
     <? else: ?>
@@ -23,7 +21,7 @@
         <? if ($data['status'] !== 'mandatory'): ?>
             [<?= _('optional') ?>]
         <? endif; ?>
-        </label>
+
     <? endif; ?>
     <? if ($data['type'] === 'string'): ?>
         <input type="text" name="parameters[<?= $task->task_id ?>][<?= htmlReady($key) ?>]"
@@ -46,7 +44,7 @@
     <? elseif ($data['type'] === 'select'): ?>
         <select name="parameters[<?= $task->task_id ?>][<?= htmlReady($key) ?>]">
         <? if ($data['status'] === 'optional'): ?>
-            <option value=""><?= _('Bitte wählen Sie einen Wert aus') ?></option>
+            <option value=""><?= _('Bitte wÃ¤hlen Sie einen Wert aus') ?></option>
         <? endif; ?>
         <? foreach ($data['values'] as $k => $l): ?>
             <option value="<?= htmlReady($k) ?>"
@@ -56,6 +54,7 @@
         <? endforeach; ?>
         </select>
     <? endif; ?>
+        </label>
     </li>
 <? endforeach; ?>
 </ul>

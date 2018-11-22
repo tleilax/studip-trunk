@@ -6,7 +6,7 @@
 /**
 * ZusatzLockRules.class.php - Sichtbarkeits-Administration fuer Zusatzangaben bei Teilnehmerlisten
 *
-* Copyright (C) 2006 Till Glöggler <tgloeggl@inspace.de>
+* Copyright (C) 2006 Till GlÃ¶ggler <tgloeggl@inspace.de>
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
@@ -26,18 +26,18 @@
 class AuxLockRules
 {
 
-    static function _toArray($data) 
+    static function _toArray($data)
     {
         return array(
             'lock_id' => $data['lock_id'],
             'name' => $data['name'],
             'description' => $data['description'],
-            'attributes' => unserialize($data['attributes']),
-            'order' => unserialize($data['sorting'])
+            'attributes' => json_decode($data['attributes'], true),
+            'order' => json_decode($data['sorting'], true)
         );
     }
 
-    static function getAllLockRules() 
+    static function getAllLockRules()
     {
         $ret = array();
         $db = DBManager::get()->query("SELECT * FROM aux_lock_rules");
@@ -48,7 +48,7 @@ class AuxLockRules
         return $ret;
     }
 
-    static function getLockRuleById($id) 
+    static function getLockRuleById($id)
     {
         $stmt = DBManager::get()->prepare("SELECT * FROM aux_lock_rules WHERE lock_id = ?");
         $stmt->execute(array($id));
@@ -56,7 +56,7 @@ class AuxLockRules
         return AuxLockRules::_toArray($data);
     }
 
-    static function getLockRuleBySemId($sem_id) 
+    static function getLockRuleBySemId($sem_id)
     {
         $stmt = DBManager::get()->prepare("SELECT aux_lock_rule FROM seminare WHERE Seminar_id = ?");
         $stmt->execute(array($sem_id));
@@ -66,11 +66,11 @@ class AuxLockRules
         return NULL;
     }
 
-    static function createLockRule($name, $description, $fields, $order) 
+    static function createLockRule($name, $description, $fields, $order)
     {
         $id = md5(uniqid(rand()));
-        $attributes = serialize($fields);
-        $sorting = serialize($order);
+        $attributes = json_encode($fields);
+        $sorting = json_encode($order);
         $stmt = DBManager::get()->prepare('INSERT INTO aux_lock_rules '
                     . '(lock_id, name, description, attributes, sorting) '
                 . 'VALUES (?, ?, ?, ?, ?)');
@@ -78,27 +78,27 @@ class AuxLockRules
         return $id;
     }
 
-    static function updateLockRule($id, $name, $description, $fields, $order) 
+    static function updateLockRule($id, $name, $description, $fields, $order)
     {
-        $attributes = serialize($fields);
-        $sorting = serialize($order);
+        $attributes = json_encode($fields);
+        $sorting = json_encode($order);
         $stmt = DBManager::get()->prepare('UPDATE aux_lock_rules '
                     . 'SET name = ?, description = ?, attributes = ?, sorting = ? '
                     . 'WHERE lock_id = ?');
         return $stmt->execute(array($name, $description, $attributes, $sorting, $id));
     }
 
-    static function deleteLockRule($id) 
+    static function deleteLockRule($id)
     {
         $stmt = DBManager::get()->prepare('SELECT COUNT(*) as c FROM seminare WHERE aux_lock_rule = ?');
         $stmt->execute(array($id));
         if ($stmt->fetchColumn() > 0) return false;
-    
+
         $stmt = DBManager::get()->prepare('DELETE FROM aux_lock_rules WHERE lock_id = ?');
         return $stmt->execute(array($id));
     }
 
-    static function getSemFields() 
+    static function getSemFields()
     {
         return array(
             'vasemester' => 'Semester',

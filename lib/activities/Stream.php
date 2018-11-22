@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @author      Till Glˆggler <tgloeggl@uos.de>
- * @author      AndrÈ Klaﬂen <klassen@elan-ev.de>
+ * @author      Till Gl√∂ggler <tgloeggl@uos.de>
+ * @author      Andr√© Kla√üen <klassen@elan-ev.de>
  * @license     GPL 2 or later
  */
 
@@ -38,7 +38,7 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
         }
 
         //fetch avaible contextes in given timespan
-        $available_contexts = \DbManager::get()->fetchGroupedPairs(
+        $available_contexts = \DBManager::get()->fetchGroupedPairs(
             "SELECT DISTINCT context,context_id FROM activities WHERE mkdate BETWEEN ? AND ?",
             array($filter->getStartDate(), $filter->getEndDate()));
 
@@ -144,6 +144,8 @@ class Stream implements \ArrayAccess, \Countable, \IteratorAggregate
 
             if (in_array($activity->actor_id, array('____%system%____', 'system')) !== false) {
                 $actor = _('Stud.IP');
+            } elseif ($activity->actor_type === 'anonymous') {
+                $actor = _('Anonym');
             } else {
                 $actor = get_fullname($activity->actor_id);
             }

@@ -111,7 +111,7 @@ class OpenGraphURL extends SimpleORMap
      * Only $url['is_opengraph'] === '0' indicates that the site is no
      * opengraph node at all.
      *
-     * @todo The combination of parse_link() and the following request
+     * @todo The combination of FileManager::fetchURLMetadata() and the following request
      *       leads to two requests for the open graph data. This should
      *       be fixed due to performance reasons.
      */
@@ -121,12 +121,12 @@ class OpenGraphURL extends SimpleORMap
             return;
         }
 
-        $response = parse_link($this['url']);
+        $response = FileManager::fetchURLMetadata($this['url']);
         if ($response['response_code'] == 200 && mb_strpos($response['Content-Type'],'html') !== false) {
             if (preg_match('/(?<=charset=)[^;]*/i', $response['Content-Type'], $match)) {
                 $currentEncoding = $match[0];
             } else {
-                $currentEncoding = 'ISO-8859-1';
+                $currentEncoding = 'UTF-8';
             }
 
             $context = stream_context_create(array(
@@ -161,7 +161,7 @@ class OpenGraphURL extends SimpleORMap
                     $key = mb_strtolower(mb_substr($tag->getAttribute('name'), 3));
                 }
                 if ($key) {
-                    $content = studip_utf8decode($tag->getAttribute('content'));
+                    $content = $tag->getAttribute('content');
                     $data[] = array('og:'.$key => $content);
                     $ogTags[$key] = $content;
                     $isOpenGraph = true;
@@ -175,7 +175,7 @@ class OpenGraphURL extends SimpleORMap
             if (!$this['title'] && $isOpenGraph) {
                 $titles = $doc->getElementsByTagName('title');
                 if ($titles->length > 0) {
-                    $this['title'] = studip_utf8decode($titles->item(0)->textContent);
+                    $this['title'] = $titles->item(0)->textContent;
                 }
             }
             if (!$this['description'] && $isOpenGraph) {
@@ -183,7 +183,7 @@ class OpenGraphURL extends SimpleORMap
                     if (mb_stripos($tag->getAttribute('name'), "description") !== false
                         || mb_stripos($tag->getAttribute('property'), "description") !== false)
                     {
-                        $this['description'] = studip_utf8decode($tag->getAttribute('content'));
+                        $this['description'] = $tag->getAttribute('content');
                     }
                 }
             }

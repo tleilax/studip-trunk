@@ -276,7 +276,7 @@ function export_inst($inst_id, $ex_sem_id = "all")
     default:
         echo "</td></tr>";
         echo '<tr><td>';
-        echo MessageBox::error(_('Der gewählte Exportmodus wird nicht unterstützt.'));
+        echo MessageBox::error(_('Der gewÃ¤hlte Exportmodus wird nicht unterstÃ¼tzt.'));
         echo '</td></tr>';
         echo "</table></td></tr></table>";
         die();
@@ -363,7 +363,7 @@ function export_sem($inst_id, $ex_sem_id = 'all')
     if (count($ex_sem_class) > 0) {
         $allowed_sem_types = array();
         foreach(array_keys($ex_sem_class) as $semclassid) {
-            $allowed_sem_types += array_keys(SeminarCategories::get($semclassid)->getTypes());
+            $allowed_sem_types = array_merge($allowed_sem_types, array_keys(SeminarCategories::get($semclassid)->getTypes()));
         }
         $addquery .= " AND seminare.status IN (:status) ";
         $parameters[':status'] = $allowed_sem_types;
@@ -425,14 +425,14 @@ function export_sem($inst_id, $ex_sem_id = 'all')
         $data_object .= xml_open_tag($xml_groupnames_lecture['object'], $row['seminar_id']);
         $sem_obj = new Seminar($row['seminar_id']);
         while ( list($key, $val) = each($xml_names_lecture)) {
-            if ($val == '') {
+            if (!$val) {
                 $val = $key;
             }
-            if ($key == 'status') {
+            if ($key === 'status') {
                 $data_object .= xml_tag($val, $SEM_TYPE[$row[$key]]['name']);
-            } elseif ($key == 'ort') {
+            } elseif ($key === 'ort') {
                 $data_object .= xml_tag($val, $sem_obj->getDatesTemplate('dates/seminar_export_location'));
-            } elseif ($key == 'bereich' && $SEM_CLASS[$SEM_TYPE[$row['status']]['class']]['bereiche']) {
+            } elseif ($key === 'bereich' && $SEM_CLASS[$SEM_TYPE[$row['status']]['class']]['bereiche']) {
                 $data_object .= xml_open_tag($xml_groupnames_lecture['childgroup3']);
                 $pathes = get_sem_tree_path($row['seminar_id']);
                 if (is_array($pathes)) {
@@ -443,17 +443,50 @@ function export_sem($inst_id, $ex_sem_id = 'all')
                     $data_object .= xml_tag($val, 'n.a.');
                 }
                 $data_object .= xml_close_tag($xml_groupnames_lecture['childgroup3']);
-            } elseif ($key == 'admission_turnout') {
+            } elseif ($key === 'lvgruppe' && $SEM_CLASS[$SEM_TYPE[$row['status']]['class']]['module']) {
+                $data_object .= xml_open_tag($xml_groupnames_lecture['childgroup3a']);
+                ModuleManagementModelTreeItem::setObjectFilter('Modul', function ($modul) use ($sem_obj) {
+                    // check for public status
+                    if (!$GLOBALS['MVV_MODUL']['STATUS']['values'][$modul->stat]['public']) {
+                        return false;
+                    }
+                    $modul_start = Semester::find($modul->start)->beginn ?: 0;
+                    $modul_end = Semester::find($modul->end)->beginn ?: PHP_INT_MAX;
+                    return $sem_obj->start_time <= $modul_end &&
+                           ($modul_start <= $sem_obj->start_time + $sem_obj->duration_time || $sem_obj->duration_time == -1);
+                });
+                ModuleManagementModelTreeItem::setObjectFilter('StgteilVersion', function ($version) {
+                    return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
+                });
+                $trail_classes = ['StgteilabschnittModul', 'Studiengang'];
+                $mvv_object_paths = MvvCourse::get($sem_obj->id)->getTrails($trail_classes);
+                $mvv_paths = [];
+
+                foreach ($mvv_object_paths as $mvv_object_path) {
+                    // show only complete paths
+                    if (count($mvv_object_path) === 2) {
+                        $mvv_object_names = [];
+                        foreach ($mvv_object_path as $mvv_object) {
+                            $mvv_object_names[] = $mvv_object->getDisplayName();
+                        }
+                        $mvv_paths[] = implode(' > ', $mvv_object_names);
+                    }
+                }
+                foreach (array_unique_recursive($mvv_paths, SORT_REGULAR) as $mvv_path) {
+                    $data_object .= xml_tag($val, $mvv_path);
+                }
+                $data_object .= xml_close_tag($xml_groupnames_lecture['childgroup3a']);
+            } elseif ($key === 'admission_turnout') {
                     $data_object .= xml_open_tag($val, $row['admission_type'] ? _('max.') : _('erw.'));
                     $data_object .= $row[$key];
                     $data_object .= xml_close_tag($val);
-            } elseif ($key == 'teilnehmer_anzahl_aktuell') {
+            } elseif ($key === 'teilnehmer_anzahl_aktuell') {
                 $count_statement->execute(array($row['seminar_id']));
                 $count = $count_statement->fetchColumn();
                 $count_statement->closeCursor();
 
                 $data_object .= xml_tag($val, $count);
-            } elseif ($key == 'metadata_dates') {
+            } elseif ($key === 'metadata_dates') {
                 $data_object .= xml_open_tag( $xml_groupnames_lecture['childgroup1'] );
                 $vorb = vorbesprechung($row['seminar_id'], 'export');
                 if ($vorb != false) {
@@ -467,9 +500,9 @@ function export_sem($inst_id, $ex_sem_id = 'all')
                 }
                 $data_object .= xml_tag($val[2], $sem_obj->getDatesExport());
                 $data_object .= xml_close_tag( $xml_groupnames_lecture["childgroup1"] );
-            } elseif ($key == 'Institut_id') {
+            } elseif ($key === 'Institut_id') {
                 $data_object .= xml_tag($val, $row['heimateinrichtung'] , array('key' => $row[$key]));
-            } elseif ($row[$key] != '')
+            } elseif ($row[$key] !== '')
                 $data_object .= xml_tag($val, $row[$key]);
         }
 
@@ -523,7 +556,7 @@ function export_sem($inst_id, $ex_sem_id = 'all')
 */
 function export_teilis($inst_id, $ex_sem_id = "no")
 {
-    global $range_id, $xml_file, $o_mode, $xml_names_person, $xml_groupnames_person, $xml_names_studiengaenge, $xml_groupnames_studiengaenge, $object_counter, $filter, $SEM_CLASS, $SEM_TYPE, $SessSemName;
+    global $range_id, $xml_file, $o_mode, $xml_names_person, $xml_groupnames_person, $xml_names_studiengaenge, $xml_groupnames_studiengaenge, $object_counter, $filter, $SEM_CLASS, $SEM_TYPE;
 
     if ($filter == 'status') {
         $query = "SELECT statusgruppe_id, name
@@ -538,23 +571,13 @@ function export_teilis($inst_id, $ex_sem_id = "no")
     } else {
 
         if (!in_array($filter, words('awaiting claiming'))) {
-            if (!$SEM_CLASS[$SEM_TYPE[$SessSemName['art_num']]['class']]['workgroup_mode']) {
-                $gruppe = array(
-                    'dozent'   => _('Lehrende'),
-                    'tutor'    => _('Tutor/-innen'),
-                    'autor'    => _('Studierende'),
-                    'user'     => _('Leser/-innen'),
-                    'accepted' => _('Vorläufig akzeptierte Personen')
-                );
-            } else {
-                $gruppe = array(
-                    'dozent'   => _('Leitung'),
-                    'tutor'    => _('Mitglieder'),
-                    'autor'    => _('Autor/-innen'),
-                    'user'     => _('Leser/-innen'),
-                    'accepted' => _('Vorläufig akzeptierte Personen')
-                );
-            }
+            $gruppe = array(
+                'dozent'   => get_title_for_status('dozent', 2),
+                'tutor'    => get_title_for_status('tutor', 2),
+                'autor'    => get_title_for_status('autor', 2),
+                'user'     => get_title_for_status('user', 2),
+                'accepted' => get_title_for_status('accepted', 2)
+            );
         } else {
             $gruppe[$filter] = _('Anmeldeliste');
         }
@@ -577,7 +600,7 @@ function export_teilis($inst_id, $ex_sem_id = "no")
                           LEFT JOIN abschluss AS a USING (abschluss_id)
                           WHERE seminar_id = :seminar_id
                           GROUP BY aum.user_id
-                          ORDER BY Nachname";
+                          ORDER BY Nachname, Vorname";
                 $parameters[':seminar_id'] = $ex_sem_id;
             } else {
                 $query = "SELECT DISTINCT ui.*, aum.*, su.*, FROM_UNIXTIME(su.mkdate) AS registration_date,
@@ -591,7 +614,7 @@ function export_teilis($inst_id, $ex_sem_id = "no")
                           LEFT JOIN abschluss AS a USING (abschluss_id)
                           WHERE statusgruppe_id = :statusgruppe_id AND seminar_id = :seminar_id
                           GROUP BY aum.user_id
-                          ORDER BY Nachname";
+                          ORDER BY Nachname, Vorname";
                 $parameters[':seminar_id']      = $ex_sem_id;
                 $parameters[':statusgruppe_id'] = $key1;
             }
@@ -608,7 +631,7 @@ function export_teilis($inst_id, $ex_sem_id = "no")
                       LEFT JOIN abschluss AS a USING (abschluss_id)
                       WHERE seminar_id = :seminar_id AND asu.status = 'accepted'
                       GROUP BY aum.user_id
-                      ORDER BY Nachname";
+                      ORDER BY Nachname, Vorname";
             $parameters[':seminar_id'] = $ex_sem_id;
         } elseif ($key1 == 'awaiting') {
             $query = "SELECT ui.*, aum.*, asu.comment,
@@ -639,7 +662,7 @@ function export_teilis($inst_id, $ex_sem_id = "no")
                         LEFT JOIN fach AS sg ON (user_studiengang.fach_id = sg.fach_id)
                         LEFT JOIN abschluss AS a USING (abschluss_id)
                         WHERE aum.user_id IN (:users)
-                        GROUP BY aum.user_id ORDER BY Nachname";
+                        GROUP BY aum.user_id ORDER BY Nachname, Vorname";
         } else {
             $query = "SELECT ui.*, aum.*, su.*, FROM_UNIXTIME(su.mkdate) AS registration_date,
                              GROUP_CONCAT(CONCAT_WS(',', sg.name, a.name, us.semester) SEPARATOR '; ') AS nutzer_studiengaenge
@@ -651,7 +674,7 @@ function export_teilis($inst_id, $ex_sem_id = "no")
                       LEFT JOIN abschluss AS a USING (abschluss_id)
                       WHERE seminar_id = :seminar_id AND su.status = :status
                       GROUP BY aum.user_id
-                      ORDER BY " . ($key1 == 'dozent' ? 'position, ' : '') . "Nachname";
+                      ORDER BY " . ($key1 == 'dozent' ? 'position, ' : '') . "Nachname, Vorname";
             $parameters[':seminar_id'] = $ex_sem_id;
             $parameters[':status']     = $key1;
         }
@@ -659,7 +682,12 @@ function export_teilis($inst_id, $ex_sem_id = "no")
         $statement = DBManager::get()->prepare($query);
         $statement->execute($parameters);
         $data = $statement->fetchAll(PDO::FETCH_ASSOC);
-
+        $course = Course::find($ex_sem_id);
+        if ($course->aux) {
+            $zusatzangaben = array_keys($course->aux->datafields);
+        } else {
+            $zusatzangaben = array();
+        }
         $data_object_tmp = '';
         $object_counter_tmp = $object_counter;
         if (count($data) > 0) {
@@ -682,7 +710,7 @@ function export_teilis($inst_id, $ex_sem_id = "no")
                     }
                     // freie Datenfelder ausgeben
                     $data_object_tmp .= export_datafields($row['user_id'], $xml_groupnames_person['childgroup1'], $xml_groupnames_person['childobject1'], 'user');
-
+                    $data_object_tmp .= export_datafields([$row['user_id'], $ex_sem_id] , 'zusatzangaben', 'zusatzangabe', 'usersemdata', null, $zusatzangaben);
                     $data_object_tmp .= xml_close_tag( $xml_groupnames_person['object'] );
                     $person_out[$row['user_id']] = true;
                 }
@@ -745,29 +773,37 @@ function export_pers($inst_id)
     $group_tab_zelle = 'name';
     $do_group        = true;
 
-    $data_object = xml_open_tag($xml_groupnames_person['group']);
+    // fetch all statusgroups and their hierarchical structure
+    $roles = GetRoleNames(GetAllStatusgruppen($inst_id), 0, '', true) ?: [];
 
-    $query = "SELECT statusgruppen.name,aum.user_id,
-                     aum.Nachname, aum.Vorname, ui.inst_perms, ui.raum,
-                     ui.sprechzeiten, ui.Telefon, ui.Fax, aum.Email,
-                     aum.username, info.Home, info.geschlecht, info.title_front, info.title_rear
-              FROM statusgruppen
-              LEFT JOIN statusgruppe_user sgu USING(statusgruppe_id)
-              LEFT JOIN user_inst ui ON (ui.user_id = sgu.user_id AND ui.Institut_id = range_id AND ui.inst_perms!='user')
-              LEFT JOIN auth_user_md5 aum ON (ui.user_id = aum.user_id)
-              LEFT JOIN user_info info ON (ui.user_id = info.user_id)
-              WHERE range_id = ?
-              ORDER BY statusgruppen.position, sgu.position";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($inst_id));
-    while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+    // traverse and join statusgroups with memberdates
+    $rows = [];
+    foreach ($roles as $group_id => $data) {
+        $query = "SELECT statusgruppen.name, statusgruppen.statusgruppe_id, aum.user_id,
+                         aum.Nachname, aum.Vorname, ui.inst_perms, ui.raum,
+                         ui.sprechzeiten, ui.Telefon, ui.Fax, aum.Email,
+                         aum.username, info.Home, info.geschlecht, info.title_front, info.title_rear
+                  FROM statusgruppen
+                  JOIN statusgruppe_user sgu USING(statusgruppe_id)
+                  JOIN user_inst ui ON (ui.user_id = sgu.user_id AND ui.Institut_id = ? AND ui.inst_perms!='user')
+                  JOIN auth_user_md5 aum ON (ui.user_id = aum.user_id)
+                  LEFT JOIN user_info info ON (ui.user_id = info.user_id)
+                  WHERE statusgruppe_id = ?
+                  ORDER BY sgu.position";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($inst_id, $group_id));
+        $rows = array_merge($rows, $statement->fetchAll(PDO::FETCH_ASSOC));
+    }
+    // create xml-output
+    $data_object = xml_open_tag($xml_groupnames_person['group']);
+    foreach ($rows as $row) {
         $data_found = true;
         $group_string = '';
         if ($do_group && $group != $row[$group_tab_zelle]) {
             if ($group != 'FIRSTGROUP') {
                 $group_string .= xml_close_tag($xml_groupnames_person['subgroup1']);
             }
-            $group_string .= xml_open_tag($xml_groupnames_person['subgroup1'], $row[$group_tab_zelle]);
+            $group_string .= xml_open_tag($xml_groupnames_person['subgroup1'], $roles[$row['statusgruppe_id']]);
             $group = $row[$group_tab_zelle];
         }
         $data_object .= $group_string;
@@ -857,13 +893,18 @@ function export_persons($persons)
 * @param    string  $childgroup_tag name of outer tag
 * @param    string  $childobject_tag    name of inner tags
 */
-function export_datafields($range_id, $childgroup_tag, $childobject_tag, $object_type = null, $object_class_hint = null){
+function export_datafields($range_id, $childgroup_tag, $childobject_tag, $object_type = null, $object_class_hint = null, $only_these = null){
     $ret = '';
     $d_fields = false;
     $localEntries = DataFieldEntry::getDataFieldEntries($range_id, $object_type, $object_class_hint);
-    if(is_array($localEntries )){
+    if(is_array($localEntries)){
         foreach ($localEntries as $entry){
-            if ($entry->isVisible() && $entry->getDisplayValue()) {
+            if (is_array($only_these)) {
+                if (!in_array($entry->getId(), $only_these)) {
+                    continue;
+                }
+            }
+            if ($entry->isVisible(null, false) && ($entry->getDisplayValue() || $only_these)) {
                 if (!$d_fields) $ret .= xml_open_tag( $childgroup_tag );
                 $ret .= xml_open_tag($childobject_tag , $entry->getName());
                 $ret .= xml_escape($entry->getDisplayValue(false));
@@ -875,4 +916,3 @@ function export_datafields($range_id, $childgroup_tag, $childobject_tag, $object
     if ($d_fields) $ret .= xml_close_tag( $childgroup_tag );
     return $ret;
 }
-

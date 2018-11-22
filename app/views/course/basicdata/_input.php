@@ -3,21 +3,22 @@
 $is_locked = $input['locked'] ? 'disabled readonly' : '';
 $is_locked_array = $input['locked'] ? array('disabled' => true, 'readonly' => true) : array();
 $is_required_array = $input['must'] ? array('required' => true) : array();
+$is_pattern_array = $input['pattern'] ? array('pattern' => $input['pattern']) : array();
 if ($input['type'] === "text") : ?>
     <? if ($input['i18n']) : ?>
-        <?= I18N::input($input['name'], $input['value'], $is_locked_array + $is_required_array) ?>
+        <?= I18N::input($input['name'], $input['value'], $is_locked_array + $is_required_array + $is_pattern_array) ?>
     <? else : ?>
-        <input <?=$is_locked ?> type="text" name="<?= $input['name'] ?>" value="<?= htmlReady($input['value']) ?>" <? if ($input['must']) echo 'required'; ?>>
+        <input <?=$is_locked ?> type="text" name="<?= $input['name'] ?>" value="<?= htmlReady($input['value']) ?>" <? if ($input['must']) echo 'required'; ?> <? if ($input['pattern']) : ?>pattern="<?= htmlReady($input['pattern']) ?>"<? endif ?>>
     <? endif ?>
 <? endif;
 
 if ($input['type'] === "number") : ?>
     <input <?=$is_locked ?> type="number" name="<?= $input['name'] ?>" value="<?= htmlReady($input['value']) ?>" min="<?= $input['min'] ?>" <? if ($input['must']) echo 'required'; ?>>
-<? endif; 
+<? endif;
 
 if ($input['type'] === "textarea") : ?>
     <? if ($input['i18n']) : ?>
-        <?= I18N::textarea($input['name'], $input['value'], $is_required_array) ?>
+        <?= I18N::textarea($input['name'], $input['value'], $is_locked_array + $is_required_array) ?>
     <? else : ?>
         <textarea <?=$is_locked ?> name="<?= $input['name'] ?>" <? if ($input['must']) echo 'required'; ?>><?=
             htmlReady($input['value'])
@@ -27,7 +28,7 @@ if ($input['type'] === "textarea") : ?>
 
 if ($input['type'] === "select") : ?>
     <? if (!$input['choices'][$input['value']] && !(isset($input['changable'])  && $input['changable'])): ?>
-        <?= _("Keine Änderung möglich") ?>
+        <?= _("Keine Ã„nderung mÃ¶glich") ?>
     <? else: ?>
     <select <?=$is_locked ?> name="<?= $input['name'] ?>" <? if ($input['must']) echo 'required'; ?>>
 <? foreach ($input['choices'] as $choice_value => $choice_name): ?>
@@ -62,7 +63,7 @@ if ($input['type'] === "multiselect") : ?>
 
 if ($input['type'] === 'nested-select'): ?>
 <? if (isset($input['changable']) && !$input['changable']): ?>
-        <?= _("Keine Änderung möglich") ?>
+        <?= _("Keine Ã„nderung mÃ¶glich") ?>
 <? else: ?>
     <select <?= $is_locked ?> name="<?= $input['name'] ?>" class="nested-select" <? if ($input['must']) echo 'required'; ?> <? if ($input['multiple']) echo 'multiple'; ?>>
   <? foreach ($input['choices'] as $outer_id => $group): ?>
@@ -78,14 +79,9 @@ if ($input['type'] === 'nested-select'): ?>
     <? endforeach; ?>
   <? endforeach; ?>
     </select>
-<? endif; 
-endif; 
+<? endif;
+endif;
 
 if ($input['type'] === 'datafield'): ?>
-    <div style="padding-right:0.5em;">
         <?= $input['locked'] ? $input['display_value'] : $input['html_value'] ?>
-    </div>
-    <?if ($input['description']): ?>
-        <?=tooltipIcon($input['description'])?>
-    <? endif; ?>
 <? endif;

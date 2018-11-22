@@ -40,7 +40,7 @@ class ParticipantRestrictedAdmission extends AdmissionRule
     {
         parent::__construct($ruleId, $courseSetId);
         $this->first_come_first_served_allowed = (bool)Config::get()->ENABLE_COURSESET_FCFS;
-        $this->default_message = _('Es stehen keine weiteren Pl‰tze zur Verf¸gung.');
+        $this->default_message = _('Es stehen keine weiteren Pl√§tze zur Verf√ºgung.');
         if ($ruleId) {
             $this->load();
         } else {
@@ -74,7 +74,7 @@ class ParticipantRestrictedAdmission extends AdmissionRule
      * subclass) does.
      */
     public static function getDescription() {
-        return _("Anmelderegeln dieses Typs legen fest, ob die zugeordneten Veranstaltungen eine maximale Teilnehmeranzahl haben. Die Platzverteilung erfolgt automatisiert.");
+        return _("Anmelderegeln dieses Typs legen fest, ob die zugeordneten Veranstaltungen eine maximale Teilnehmendenanzahl haben. Die Platzverteilung erfolgt automatisiert.");
     }
 
     /**
@@ -91,7 +91,7 @@ class ParticipantRestrictedAdmission extends AdmissionRule
      * Return this rule's name.
      */
     public static function getName() {
-        return _("Beschr‰nkte Teilnehmeranzahl");
+        return _("Beschr√§nkte Teilnehmendenanzahl");
     }
 
     /**
@@ -210,7 +210,10 @@ class ParticipantRestrictedAdmission extends AdmissionRule
         }
         $ddate = strtotime($data['distributiondate'] . ' ' . $data['distributiontime']);
         if (!$data['enable_FCFS'] && (!$data['distributiondate'] || $ddate < (time() + $this->minimum_timespan_to_distribution_time*60))) {
-            $errors[] = sprintf(_('Bitte geben Sie f¸r die Platzverteilung ein Datum an, das weiter in der Zukunft liegt. Das fr¸hestmˆgliche Datum ist %s.'), strftime('%x %R', time() + $this->minimum_timespan_to_distribution_time*60));
+            $errors[] = sprintf(_('Bitte geben Sie f√ºr die Platzverteilung ein Datum an, das weiter in der Zukunft liegt. Das fr√ºhestm√∂gliche Datum ist %s.'), strftime('%x %R', time() + $this->minimum_timespan_to_distribution_time*60));
+        }
+        if ($data['enable_FCFS'] && $data['distributiondate']) {
+            $errors[] = _('Sie k√∂nnen kein Datum f√ºr die automatische Platzverteilung einstellen und gleichzeitig die automatische Platzverteilung ausschalten.');
         }
         return $errors;
     }

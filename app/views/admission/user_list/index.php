@@ -1,14 +1,14 @@
 <?php
 Helpbar::get()->addPlainText(_('Info'),"Personenlisten erfassen eine Menge von Personen, die ".
                                        "mit modifizierten Chancen in die Platzverteilung bei ".
-                                       "Anmeldeverfahren eingehen. Dies können z.B. ".
-                                       "Härtefälle sein, die bevorzugt einen Platz in ".
+                                       "Anmeldeverfahren eingehen. Dies kÃ¶nnen z.B. ".
+                                       "HÃ¤rtefÃ¤lle sein, die bevorzugt einen Platz in ".
                                        "Veranstaltungen erhalten sollen.");
 Helpbar::get()->addPlainText(_('Info'), "Hier sehen Sie alle Personenlisten, auf die Sie Zugriff ".
                                         "haben.");
 ?>
 <?= $this->render_partial('dialog/confirm_dialog') ?>
-<h1><?= _('Personenlisten') ?></h1>
+
 <?php
 if ($userlists) {
 ?>
@@ -25,10 +25,10 @@ if ($userlists) {
         <a href="<?= $controller->url_for('admission/userlist/delete',
             $list->getId()) ?>"
             onclick="return STUDIP.Dialogs.showConfirmDialog('<?=
-                sprintf(_('Soll die Nutzerliste %s wirklich gelöscht werden?'), htmlReady($list->getName())) ?>', '<?=
+                sprintf(_('Soll die Nutzerliste %s wirklich gelÃ¶scht werden?'), htmlReady($list->getName())) ?>', '<?=
                 URLHelper::getURL('dispatch.php/admission/userlist/delete/'.
                 $list->getId(), array('really' => 1)) ?>')">
-            <?= Icon::create('trash', 'clickable', ['title' => _('Personenliste löschen')]) ?>
+            <?= Icon::create('trash', 'clickable', ['title' => _('Personenliste lÃ¶schen')]) ?>
         </a>
     </div>
     <div id="userlist_details_<?= $list->getId() ?>" style="display: none; margin-left: 20px;">
@@ -39,7 +39,7 @@ if ($userlists) {
 <?php
 } else {
 ?>
-<?= MessageBox::info(sprintf(_('Es wurden keine Personenlisten gefunden. Sie können eine '.
+<?= MessageBox::info(sprintf(_('Es wurden keine Personenlisten gefunden. Sie kÃ¶nnen eine '.
     'neue %sPersonenliste anlegen%s.'), '<a href="'.
     $controller->url_for('admission/userlist/configure').'">',
     '</a>')); ?>

@@ -1,5 +1,5 @@
 <? if ($admin || $evaluations): ?>
-<section class="contentbox">
+<article class="studip">
     <header>
         <h1>
             <?= Icon::create('vote', 'info')->asImg(); ?>
@@ -8,7 +8,7 @@
         <nav>
         <? if ($admin): ?>
             <a href="<?= URLHelper::getLink('admin_evaluation.php', array('rangeID' => $range_id)) ?>">
-                <?= Icon::create('admin', 'clickable')->asImg(); ?>
+                <?= Icon::create('edit', 'clickable')->asImg(); ?>
             </a>
         <? endif; ?>
         </nav>
@@ -16,12 +16,12 @@
 
     <? if (!$evaluations): ?>
         <section>
-            <?= _('Keine Evaluationen vorhanden. Um neue Umfragen zu erstellen, klicken Sie rechts auf die Zahnräder.') ?>
+            <?= _('Keine Evaluationen vorhanden. Um neue Umfragen zu erstellen, klicken Sie rechts auf die ZahnrÃ¤der.') ?>
         </section>
     <? else: ?>
         <? foreach ($evaluations as $evaluation): ?>
             <?= $this->render_partial('evaluation/_evaluation.php', array('evaluation' => $evaluation)); ?>
         <? endforeach; ?>
     <? endif; ?>
-</section>
+</article>
 <? endif; ?>

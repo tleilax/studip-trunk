@@ -7,7 +7,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Till Glöggler <till.gloeggler@elan-ev.de>
+ * @author      Till GlÃ¶ggler <till.gloeggler@elan-ev.de>
  * @copyright   2011 ELAN e.V. <http://www.elan-ev.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -47,20 +47,16 @@ class CoreForum extends StudipPlugin implements ForumModule
     /* interface method */
     public function getTabNavigation($course_id)
     {
-        if (!$this->isActivated($course_id)) {
-            return;
-        }
-
         $navigation = new Navigation(_('Forum'), PluginEngine::getURL($this, array(), 'index'));
         $navigation->setImage(Icon::create('forum', 'info_alt'));
 
         // add main third-level navigation-item
-        $navigation->addSubNavigation('index', new Navigation(_('Übersicht'), PluginEngine::getURL($this, array(), 'index')));
+        $navigation->addSubNavigation('index', new Navigation(_('Ãœbersicht'), PluginEngine::getURL($this, array(), 'index')));
 
         if (ForumPerm::has('fav_entry', $course_id)) {
-            $navigation->addSubNavigation('newest', new Navigation(_("Neue Beiträge"), PluginEngine::getURL($this, array(), 'index/newest')));
-            $navigation->addSubNavigation('latest', new Navigation(_("Letzte Beiträge"), PluginEngine::getURL($this, array(), 'index/latest')));
-            $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte Beiträge'), PluginEngine::getURL($this, array(), 'index/favorites')));
+            $navigation->addSubNavigation('newest', new Navigation(_("Neue BeitrÃ¤ge"), PluginEngine::getURL($this, array(), 'index/newest')));
+            $navigation->addSubNavigation('latest', new Navigation(_("Letzte BeitrÃ¤ge"), PluginEngine::getURL($this, array(), 'index/latest')));
+            $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte BeitrÃ¤ge'), PluginEngine::getURL($this, array(), 'index/favorites')));
 
             // mass-administrate the forum
             if (ForumPerm::has('admin', $course_id)) {
@@ -74,10 +70,6 @@ class CoreForum extends StudipPlugin implements ForumModule
     /* interface method */
     function getIconNavigation($course_id, $last_visit, $user_id = null)
     {
-        if (!$this->isActivated($course_id)) {
-            return;
-        }
-
         if ($GLOBALS['perm']->have_studip_perm('user', $course_id)) {
             $num_entries = ForumVisit::getCount($course_id, ForumVisit::getVisit($course_id));
             $text = ForumHelpers::getVisitText($num_entries, $course_id);
@@ -146,7 +138,7 @@ class CoreForum extends StudipPlugin implements ForumModule
 
     function setThreadForIssue($issue_id, $title, $content)
     {
-        ForumIssue::setThreadForIssue($GLOBALS['SessSemName'][1], $issue_id, $title, $content);
+        ForumIssue::setThreadForIssue(Context::getId(), $issue_id, $title, $content);
     }
 
     function getNumberOfPostingsForUser($user_id, $seminar_id = null)
@@ -203,8 +195,8 @@ class CoreForum extends StudipPlugin implements ForumModule
     }
 
     static function getDescription() {
-        return _('Textbasierte und zeit- und ortsunabhängige '.
-            'Diskursmöglichkeit. Lehrende können parallel zu '.
+        return _('Textbasierte und zeit- und ortsunabhÃ¤ngige '.
+            'DiskursmÃ¶glichkeit. Lehrende kÃ¶nnen parallel zu '.
             'Veranstaltungsthemen Fragen stellen, die von den Studierenden '.
             'per Meinungsaustausch besprochen werden.');
     }

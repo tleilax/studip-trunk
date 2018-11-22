@@ -7,7 +7,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      Nico Müller <nico.mueller@uni-oldenburg.de>
+ * @author      Nico MÃ¼ller <nico.mueller@uni-oldenburg.de>
  * @copyright   2012 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -205,8 +205,8 @@ class Banner extends SimpleORMap
         }
 
         if ($this->target_type === 'url') {
-            $template = '<a href="%s" target="_blank">%s</a>';
-        } else if ($this->target_type === 'none') {
+            $template = '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>';
+        } elseif ($this->target_type === 'none') {
             $template = '%2$s';
         } else {
             $template = '<a href="%s">%s</a>';

@@ -17,8 +17,6 @@
 
 class Admin_RoleController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-    
     /**
      *
      */
@@ -58,7 +56,7 @@ class Admin_RoleController extends AuthenticatedController
     private function check_ticket()
     {
         if (!check_ticket(Request::option('studip_ticket'))) {
-            throw new InvalidArgumentException(_('Das Ticket für diese Aktion ist ungültig.'));
+            throw new InvalidArgumentException(_('Das Ticket fÃ¼r diese Aktion ist ungÃ¼ltig.'));
         }
 
     }
@@ -140,13 +138,17 @@ class Admin_RoleController extends AuthenticatedController
      *
      * @param integer   id of role to delete
      */
-    public function ask_remove_role_action($roleid)
+    public function ask_remove_role_action($role_id)
     {
-        $this->delete_role = $roleid;
-        $this->roles = RolePersistence::getAllRoles();
-        $this->stats = $this->get_role_stats($this->roles);
+        PageLayout::postQuestion(
+            sprintf(
+                _('Wollen Sie wirklich die Rolle "%s" lÃ¶schen?'),
+                self::getRole($role_id)->getRolename()
+            ),
+            $this->url_for("admin/role/remove_role/{$role_id}")
+        )->includeTicket();
 
-        $this->render_action('index');
+        $this->redirect('admin/role');
     }
 
     /**
@@ -161,7 +163,7 @@ class Admin_RoleController extends AuthenticatedController
         $role = self::getRole($roleid);
         RolePersistence::deleteRole($role);
 
-        $message = _('Die Rolle und alle dazugehörigen Zuweisungen wurden gelöscht.');
+        $message = _('Die Rolle und alle dazugehÃ¶rigen Zuweisungen wurden gelÃ¶scht.');
         PageLayout::postSuccess($message);
 
         $this->redirect('admin/role');
@@ -196,6 +198,11 @@ class Admin_RoleController extends AuthenticatedController
     public function assign_role_action($userid = NULL)
     {
         $usersel = Request::option('usersel', $userid);
+
+        if (isset($usersel) && Request::isPost()) {
+            $this->redirect("admin/role/assign_role/{$usersel}");
+            return;
+        }
 
         // user search was started
         if (Request::submitted('search')) {
@@ -373,8 +380,8 @@ class Admin_RoleController extends AuthenticatedController
             RolePersistence::assignRole($user, $role);
         }
 
-        $template = ngettext('Der Rolle wurde eine weitere Person hinzugefügt.',
-                             'Der Rolle wurden %u weitere Personen hinzugefügt.',
+        $template = ngettext('Der Rolle wurde eine weitere Person hinzugefÃ¼gt.',
+                             'Der Rolle wurden %u weitere Personen hinzugefÃ¼gt.',
                              count($ids));
         $message = sprintf($template, count($ids));
         PageLayout::postSuccess($message);
@@ -411,7 +418,7 @@ class Admin_RoleController extends AuthenticatedController
      */
     public function add_plugin_action($role_id)
     {
-        PageLayout::setTitle(_('Plugins zur Rolle hinzufügen'));
+        PageLayout::setTitle(_('Plugins zur Rolle hinzufÃ¼gen'));
 
         if (Request::isPost()) {
             CSRFProtection::verifyUnsafeRequest();
@@ -423,8 +430,8 @@ class Admin_RoleController extends AuthenticatedController
                     RolePersistence::assignPluginRoles($id, array($role_id));
                 }
 
-                $template = ngettext('Der Rolle wurde ein weiteres Plugin hinzugefügt.',
-                                     'Der Rolle wurden %u weitere Plugins hinzugefügt.',
+                $template = ngettext('Der Rolle wurde ein weiteres Plugin hinzugefÃ¼gt.',
+                                     'Der Rolle wurden %u weitere Plugins hinzugefÃ¼gt.',
                                      count($plugin_ids));
                 $message = sprintf($template, count($plugin_ids));
                 PageLayout::postSuccess($message);
@@ -521,8 +528,8 @@ class Admin_RoleController extends AuthenticatedController
                   ORDER BY fullname ASC";
         $url = URLHelper::getURL('dispatch.php/admin/role/add_user/' . $role_id . '/bulk');
         return MultiPersonSearch::get('add_role_users')
-            ->setLinkText(_('Personen hinzufügen'))
-            ->setTitle(_('Personen zur Rolle hinzufügen'))
+            ->setLinkText(_('Personen hinzufÃ¼gen'))
+            ->setTitle(_('Personen zur Rolle hinzufÃ¼gen'))
             ->setExecuteURL($url)
             ->setSearchObject(new SQLSearch($query, _('Nutzer suchen'), 'user_id'));
     }

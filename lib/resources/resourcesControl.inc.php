@@ -28,7 +28,7 @@ Requires & Registers
 /*****************************************************************************/
 
 
-require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/views/Msg.class.php';
+require_once 'lib/resources/views/Msg.class.php';
 
 $_SESSION['resources_data'] = @unserialize($_SESSION['resources_data']);
 if (empty($_SESSION['resources_data'])) {
@@ -62,12 +62,12 @@ if ($view == "edit_request") {
     }
 
     $_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["reload"] = TRUE;
-    //hmm, zu früh an dieser Stelle. Notwendig?
+    //hmm, zu frÃ¼h an dieser Stelle. Notwendig?
     //page_close(NULL);
 }
 
 //handle values
-include ("$RELATIVE_PATH_RESOURCES/lib/evaluate_values.php");
+include ("lib/resources/lib/evaluate_values.php");
 /*****************************************************************************
 Navigation aufbauen
 /*****************************************************************************/
@@ -75,12 +75,12 @@ Navigation aufbauen
 $resources_nav = Navigation::getItem('/resources');
 
 // Reiter "Uebersicht"
-$navigation = new Navigation(_('Übersicht'));
+$navigation = new Navigation(_('Ãœbersicht'));
 $navigation->addSubNavigation('hierarchy', new Navigation(_('Struktur'), 'resources.php#a', array('view' => 'resources')));
 
 if (get_config('RESOURCES_ENABLE_GROUPING')) {
-    $navigation->addSubNavigation('group_schedule_daily', new Navigation(_('Gruppen-Belegungspläne'), 'resources.php', array('view' => 'view_group_schedule_daily')));
-    $navigation->addSubNavigation('group_schedule', new Navigation(_('Gruppen-Belegungspläne (Semester)'), 'resources.php', array('view' => 'view_group_schedule')));
+    $navigation->addSubNavigation('group_schedule_daily', new Navigation(_('Gruppen-BelegungsplÃ¤ne'), 'resources.php', array('view' => 'view_group_schedule_daily')));
+    $navigation->addSubNavigation('group_schedule', new Navigation(_('Gruppen-BelegungsplÃ¤ne (Semester)'), 'resources.php', array('view' => 'view_group_schedule')));
 }
 
 if (get_config('RESOURCES_ALLOW_CREATE_TOP_LEVEL') || getGlobalPerms($user->id) == 'admin') {
@@ -129,7 +129,7 @@ if ($perm->have_perm('admin')) {
     $resList = new ResourcesUserRoomsList($user_id, TRUE, FALSE);
     if ($resList->roomsExist() && get_config('RESOURCES_ALLOW_ROOM_REQUESTS')) {
         $navigation = new Navigation(_('Raumplanung'));
-        $navigation->addSubNavigation('start', new Navigation(_('Übersicht'), 'resources.php?cancel_edit_request_x=1', array('view' => 'requests_start')));
+        $navigation->addSubNavigation('start', new Navigation(_('Ãœbersicht'), 'resources.php?cancel_edit_request_x=1', array('view' => 'requests_start')));
 
         $edit_nav = new Navigation(_('Anfragen bearbeiten'), 'resources.php', array('view' => 'edit_request'));
         $list_nav = new Navigation(_('Anfragenliste'), 'resources.php', array('view' => 'list_requests'));
@@ -145,6 +145,20 @@ if ($perm->have_perm('admin')) {
         }
 
         $resources_nav->addSubNavigation('room_requests', $navigation);
+
+        // CSV EXPORT
+        if ($view == "list_requests") {
+            // Set default sidebar image
+            $sidebar = Sidebar::get();
+            $sidebar->setImage('sidebar/person-sidebar.png');
+
+            if (Config::get()->EXPORT_ENABLE) {
+                $widget = new ExportWidget();
+                $link = URLHelper::getLink('dispatch.php/resources/helpers/export_requestlist');
+                $widget->addLink(_('Anfragenliste als CSV-Dokument exportieren'), $link, Icon::create('file-office'));
+                $sidebar->addWidget($widget);
+            }
+        }
     }
 }
 
@@ -162,8 +176,28 @@ if ((getGlobalPerms($user->id) == 'admin') || ($perm->have_perm('root'))) {
     $resources_nav->addSubNavigation('settings', $navigation);
 }
 
+/*****************************************************************************
+Belegungen exportieren, views: export_list
+/*****************************************************************************/
+if (Request::submitted('export_list')) {
+    require_once 'lib/resources/views/ShowSchedules.class.php';
+    if ($_SESSION['resources_data']['actual_object']) {
+        $ViewSchedules=new ShowSchedules($_SESSION['resources_data']['actual_object']);
+        $ViewSchedules->setStartTime($_SESSION['resources_data']['schedule_start_time']);
+        $ViewSchedules->setEndTime($_SESSION['resources_data']['schedule_end_time']);
+        $ViewSchedules->setLengthFactor($_SESSION['resources_data']['schedule_length_factor']);
+        $ViewSchedules->setLengthUnit($_SESSION['resources_data']['schedule_length_unit']);
+        $ViewSchedules->setWeekOffset($_SESSION['resources_data']['schedule_week_offset']);
+        $ViewSchedules->exportScheduleList();
+
+        $_SESSION['resources_data'] = serialize($_SESSION['resources_data']);
+        page_close();
+        die();
+    }
+}
+
 //load content, text, pictures and stuff
-include ("$RELATIVE_PATH_RESOURCES/views/page_intros.inc.php");
+include ("lib/resources/views/page_intros.inc.php");
 //save messages from
 $pmessages = PageLayout::getMessages();
 ob_start();
@@ -207,7 +241,7 @@ Treeview, die Strukturdarstellung, views: resources, make_hierarchie
 
 $edit_structure_object = Request::option('edit_structure_object');
 if ($view == "resources"){
-    require_once $RELATIVE_PATH_RESOURCES . '/views/ShowThread.class.php';
+    require_once 'lib/resources/views/ShowThread.class.php';
 
 
     if ($edit_structure_object) {
@@ -241,7 +275,7 @@ if ($view == "resources"){
 Listview, die Listendarstellung, views: lists, openobject_main
 /*****************************************************************************/
 if ($view == "lists" || $view == "openobject_main") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/ShowList.class.php");
+    require_once "lib/resources/views/ShowList.class.php";
 
     $list=new ShowList();
 
@@ -259,7 +293,7 @@ if ($view == "lists" || $view == "openobject_main") {
     }
 
     if ($view == "openobject_main") {
-        if (!$list->showRangeList($SessSemName[1])) {
+        if (!$list->showRangeList(Context::getId())) {
             echo "</td></tr>";
             $msg->displayMsg(13);
         }
@@ -279,7 +313,7 @@ if ($view == "lists" || $view == "openobject_main") {
 Objecteigenschaften bearbeiten, views: edit_object_properties
 /*****************************************************************************/
 if ($view == "edit_object_properties" || $view == "objects") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/EditResourceData.class.php");
+    require_once "lib/resources/views/EditResourceData.class.php";
 
     if ($_SESSION['resources_data']["actual_object"]) {
         $editObject=new EditResourceData($_SESSION['resources_data']["actual_object"]);
@@ -295,7 +329,7 @@ if ($view == "edit_object_properties" || $view == "objects") {
 Objecteigenschaften anzeigen, views: openobject_details
 /*****************************************************************************/
 if (($view == "openobject_details")  || ($view == "view_details")) {
-    require_once $RELATIVE_PATH_RESOURCES . '/views/ShowObject.class.php';
+    require_once 'lib/resources/views/ShowObject.class.php';
 
     //$perms = new ResourceObjectPerms($_SESSION['resources_data']["actual_object"]);
     //echo $perms->getUserPerm();
@@ -313,7 +347,7 @@ if (($view == "openobject_details")  || ($view == "view_details")) {
 Objectberechtigungen bearbeiten, views: edit_object_perms
 /*****************************************************************************/
 if ($view == "edit_object_perms") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/EditResourceData.class.php");
+    require_once "lib/resources/views/EditResourceData.class.php";
 
     if ($_SESSION['resources_data']["actual_object"]) {
         $editObject=new EditResourceData($_SESSION['resources_data']["actual_object"]);
@@ -328,7 +362,7 @@ if ($view == "edit_object_perms") {
 Objectbelegung bearbeiten, views: edit_object_assign, openobject_assign
 /*****************************************************************************/
 if ($view == "edit_object_assign" || $view == "openobject_assign") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/EditResourceData.class.php");
+    require_once "lib/resources/views/EditResourceData.class.php";
 
     if ($view == "edit_object_assign") {
         ?>                      </td>
@@ -370,7 +404,7 @@ if ($view == "edit_object_assign" || $view == "openobject_assign") {
 Typen verwalten, views: edit_types
 /*****************************************************************************/
 if ($view == "edit_types") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/EditSettings.class.php");
+    require_once "lib/resources/views/EditSettings.class.php";
 
     $editSettings=new EditSettings;
     $editSettings->showTypesForms();
@@ -380,7 +414,7 @@ if ($view == "edit_types") {
 Eigenschaften verwalten, views: edit_properties
 /*****************************************************************************/
 if ($view == "edit_properties") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/EditSettings.class.php");
+    require_once "lib/resources/views/EditSettings.class.php";
 
     $editSettings=new EditSettings;
     $editSettings->showPropertiesForms();
@@ -390,7 +424,7 @@ if ($view == "edit_properties") {
 Berechtigungen verwalten, views: edit_perms
 /*****************************************************************************/
 if ($view == "edit_perms") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/EditSettings.class.php");
+    require_once "lib/resources/views/EditSettings.class.php";
 
     $editSettings=new EditSettings;
     $editSettings->showPermsForms();
@@ -400,7 +434,7 @@ if ($view == "edit_perms") {
 Belegungen ausgeben, views: view_schedule, openobject_schedule
 /*****************************************************************************/
 if ($view == "view_schedule" || $view == "openobject_schedule") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/ShowSchedules.class.php");
+    require_once "lib/resources/views/ShowSchedules.class.php";
     if ($_SESSION['resources_data']["actual_object"] &&
             ResourceObject::isScheduleViewAllowed($_SESSION['resources_data']["actual_object"])) {
         $ViewSchedules=new ShowSchedules($_SESSION['resources_data']["actual_object"]);
@@ -450,7 +484,7 @@ if ($view == "view_schedule" || $view == "openobject_schedule") {
 Belegungen ausgeben, views: view_schedule, openobject_schedule
 /*****************************************************************************/
 if ($view == "view_sem_schedule") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/ShowSemSchedules.class.php");
+    require_once "lib/resources/views/ShowSemSchedules.class.php";
     if ($_SESSION['resources_data']["actual_object"]) {
         $ViewSchedules = new ShowSemSchedules($_SESSION['resources_data']["actual_object"], $_SESSION['resources_data']['sem_schedule_semester_id'],$_SESSION['resources_data']['sem_schedule_timespan']);
         $ViewSchedules->setUsedView($view);
@@ -493,10 +527,10 @@ if ($view == "view_group_schedule" || $view == "view_group_schedule_daily") {
     }
     if ($room_group->getGroupCount($_SESSION['resources_data']["actual_room_group"])) {
         if ($view == "view_group_schedule") {
-            require_once $RELATIVE_PATH_RESOURCES."/views/ShowGroupSchedules.class.php";
+            require_once "lib/resources/views/ShowGroupSchedules.class.php";
             $ViewSchedules = new ShowGroupSchedules($_SESSION['resources_data']['actual_room_group'], $_SESSION['resources_data']['sem_schedule_semester_id'],$_SESSION['resources_data']['sem_schedule_timespan'], $_SESSION['resources_data']['group_schedule_dow']);
         } elseif ($view == "view_group_schedule_daily"){
-            require_once $RELATIVE_PATH_RESOURCES."/views/ShowGroupSchedulesDaily.class.php";
+            require_once "lib/resources/views/ShowGroupSchedulesDaily.class.php";
             $ViewSchedules = new ShowGroupSchedulesDaily($_SESSION['resources_data']['actual_room_group'], $_SESSION['resources_data']["schedule_start_time"],$room_group);
         }
         $ViewSchedules->setUsedView($view);
@@ -527,13 +561,13 @@ if ($view == "view_group_schedule" || $view == "view_group_schedule_daily") {
 }
 
 if ($view == "openobject_group_schedule") {
-    $resources_groups = ResourcesOpenObjectGroups::GetInstance($SessSemName[1]);
+    $resources_groups = ResourcesOpenObjectGroups::GetInstance(Context::getId());
     if(!$resources_groups->isGroup($_SESSION['resources_data']["actual_room_group"])){
         $_SESSION['resources_data']["actual_room_group"] = 0;
     }
 
     if ($resources_groups->getGroupCount($_SESSION['resources_data']["actual_room_group"])) {
-        require_once $RELATIVE_PATH_RESOURCES."/views/ShowGroupSchedulesDaily.class.php";
+        require_once "lib/resources/views/ShowGroupSchedulesDaily.class.php";
         $ViewSchedules = new ShowGroupSchedulesDaily($_SESSION['resources_data']['actual_room_group'], $_SESSION['resources_data']["schedule_start_time"],$resources_groups);
         $ViewSchedules->setUsedView($view);
         $ViewSchedules->navigator(Request::option('print_view'));
@@ -564,7 +598,7 @@ if ($view == "openobject_group_schedule") {
 persoenliche Einstellungen verwalten, views: edit_personal_settings
 /*****************************************************************************/
 if ($view == "edit_settings") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/EditSettings.class.php");
+    require_once "lib/resources/views/EditSettings.class.php";
 
     $editSettings=new EditSettings;
     $editSettings->showSettingsForms();
@@ -574,7 +608,7 @@ if ($view == "edit_settings") {
 Search
 /*****************************************************************************/
 if ($view == "search") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/ResourcesBrowse.class.php");
+    require_once "lib/resources/views/ResourcesBrowse.class.php";
 
     $search=new ResourcesBrowse;
     $search->setStartLevel('');
@@ -592,25 +626,25 @@ if ($view == "search") {
 Roomplanning
 /*****************************************************************************/
 if ($view == "requests_start") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/ShowToolsRequests.class.php");
-    $toolReq=new ShowToolsRequests($_SESSION['resources_data']["sem_schedule_semester_id"],$_SESSION['resources_data']["resolve_requests_no_time"],$_SESSION['resources_data']["resolve_requests_sem_type"],$_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"]);
+    require_once "lib/resources/views/ShowToolsRequests.class.php";
+    $toolReq=new ShowToolsRequests($_SESSION['resources_data']["sem_schedule_semester_id"],$_SESSION['resources_data']["resolve_requests_no_time"],$_SESSION['resources_data']["resolve_requests_sem_type"],$_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"], $_SESSION['resources_data']["resolve_requests_regular"]);
     $toolReq->showToolStart();
 }
 
 if ($view == "edit_request") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/ShowToolsRequests.class.php");
+    require_once "lib/resources/views/ShowToolsRequests.class.php";
 
     $toolReq=new ShowToolsRequests($_SESSION['resources_data']["sem_schedule_semester_id"]);
     $toolReq->showRequest($_SESSION['resources_data']["requests_working_on"][$_SESSION['resources_data']["requests_working_pos"]]["request_id"]);
 }
 
 if ($view == "list_requests") {
-        require_once ($RELATIVE_PATH_RESOURCES."/views/ShowToolsRequests.class.php");
-        $toolReq=new ShowToolsRequests($_SESSION['resources_data']["sem_schedule_semester_id"],$_SESSION['resources_data']["resolve_requests_no_time"],$_SESSION['resources_data']["resolve_requests_sem_type"],$_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"]);
+        require_once "lib/resources/views/ShowToolsRequests.class.php";
+        $toolReq=new ShowToolsRequests($_SESSION['resources_data']["sem_schedule_semester_id"],$_SESSION['resources_data']["resolve_requests_no_time"],$_SESSION['resources_data']["resolve_requests_sem_type"],$_SESSION['resources_data']["resolve_requests_faculty"], $_SESSION['resources_data']["resolve_requests_tagged"], $_SESSION['resources_data']["resolve_requests_regular"]);
         $toolReq->showRequestList();
 }
 if ($view == "view_requests_schedule") {
-    require_once ($RELATIVE_PATH_RESOURCES."/views/ShowSchedulesRequests.class.php");
+    require_once "lib/resources/views/ShowSchedulesRequests.class.php";
     if ($_SESSION['resources_data']["resolve_requests_one_res"]) {
         $ViewSchedules=new ShowSchedulesRequests($_SESSION['resources_data']["resolve_requests_one_res"]);
         $ViewSchedules->setStartTime($_SESSION['resources_data']["schedule_start_time"]);
@@ -660,7 +694,7 @@ if ($quick_view_mode === 'no_nav' || Request::get('print_view')) {
     PageLayout::disableHeader();
 }
 if (Request::get('print_view')){
-    PageLayout::removeStylesheet('style.css');
+    PageLayout::removeStylesheet('studip-base.css');
     PageLayout::addStylesheet('print.css'); // use special stylesheet for printing
 }
 

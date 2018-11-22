@@ -16,8 +16,6 @@
 
 class Admission_RuleController extends AuthenticatedController
 {
-    protected $utf8decode_xhr = true;
-
     /**
      * @see AuthenticatedController::before_filter
      */
@@ -25,8 +23,11 @@ class Admission_RuleController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
+        if ($GLOBALS['perm']->have_perm('admin') || ($GLOBALS['perm']->have_perm('dozent') && get_config('ALLOW_DOZENT_COURSESET_ADMIN'))) {
+            Navigation::activateItem('/tools/coursesets');
+        }
         PageLayout::setTitle(_('Anmeldesets'));
-        Navigation::activateItem('/tools/coursesets');
+
     }
 
     /**

@@ -20,7 +20,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ScheduleWeek.class.php
-// Modul zum Erstellen grafischer Belegungspl‰ne
+// Modul zum Erstellen grafischer Belegungspl√§ne
 // Copyright (C) 2002 Cornelis Kater <ckater@gwdg.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -336,7 +336,7 @@ class ScheduleView
         }
 
         if ($print_view) {
-            echo "<tr><td colspan=$glb_colspan><i>"._("Erstellt am")." ",date("d.m.y")," um ", date("G:i")," Uhr.</i></td>";
+            echo "<tr><td colspan=$glb_colspan><i>"._("Erstellt am")." ",date("d.m.y")," um ", date("H:i")," Uhr.</i></td>";
             echo "<td align=\"right\">";
             echo Assets::img('logos/logo2b.png');
             echo "</td></tr></tr>";
@@ -351,13 +351,19 @@ class ScheduleView
     public function getAddLink($l, $i)
     {
         $add_link_timestamp = $this->base_date + (($l-1) * 24 * 60 * 60) + ($i * 60 * 60);
-        return sprintf("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s%s\">%s</a></td>",
-                       $this->add_link,
-                       $add_link_timestamp,
-                       Assets::img('calplus.gif',
-                                   tooltip2(sprintf(_('Eine neue Belegung von %s bis %s Uhr anlegen'),
-                                                    date('H:i', $add_link_timestamp),
-                                                    date('H:i', $add_link_timestamp + 2 * 60 * 60)))));
+        return sprintf("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s\">%s</a></td>",
+                       URLHelper::getLink($this->add_link . $add_link_timestamp),
+                       Icon::create(
+                           'add',
+                           Icon::ROLE_INACTIVE,
+                           tooltip2(
+                               sprintf(_('Eine neue Belegung von %s bis %s Uhr anlegen'),
+                                    date('H:i', $add_link_timestamp),
+                                    date('H:i', $add_link_timestamp + 2 * 60 * 60)
+                                )
+                            )
+                        )->asImg(8)
+                    );
 
     }
 

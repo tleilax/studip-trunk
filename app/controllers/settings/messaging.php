@@ -19,10 +19,6 @@ class Settings_MessagingController extends Settings_SettingsController
 {
     public function before_filter(&$action, &$args)
     {
-        if ($action === 'verify') {
-            $action = 'index';
-        }
-
         parent::before_filter($action, $args);
 
         PageLayout::setHelpKeyword('Basis.MyStudIPMessaging');
@@ -33,7 +29,7 @@ class Settings_MessagingController extends Settings_SettingsController
         $this->settings = $this->config->MESSAGING_SETTINGS;
     }
 
-    public function index_action($verify_action = null)
+    public function index_action()
     {
         if (Request::submitted('store')) {
             $this->check_ticket();
@@ -62,7 +58,7 @@ class Settings_MessagingController extends Settings_SettingsController
             $settings['request_mail_forward'] = Request::int('request_mail_forward', 0);
 
             $this->config->store('MESSAGING_SETTINGS', $settings);
-    
+
             PageLayout::postSuccess(_('Ihre Einstellungen wurden erfolgreich gespeichert.'));
             $this->redirect('settings/messaging');
         }
@@ -86,8 +82,27 @@ class Settings_MessagingController extends Settings_SettingsController
             $matches = false;
         }
 
-        $this->matches       = $matches;
-        $this->verify_action = $verify_action;
+        $this->matches = $matches;
+    }
+
+    public function verify_action($action)
+    {
+        if ($action === 'reset') {
+            $question = _('Durch das Zurücksetzen werden die persönliche Messaging-Einstellungen '
+                         .'auf die Startwerte zurückgesetzt und die persönlichen Nachrichten-Ordner '
+                         .'gelöscht. ' . "\n\n" . 'Nachrichten werden nicht entfernt.');
+            PageLayout::postQuestion(
+                $question,
+                $this->url_for('settings/messaging/reset/reset/1')
+            )->includeTicket();
+        } elseif ($action === 'forward_receiver') {
+            PageLayout::postQuestion(
+                _('Wollen Sie wirklich die eingestellte Weiterleitung entfernen?'),
+                $this->url_for('settings/messaging/reset/forward_receiver/1')
+            )->includeTicket();
+        }
+
+        $this->redirect('settings/messaging');
     }
 
     public function reset_action($action = 'reset', $verified = false)
@@ -106,13 +121,13 @@ class Settings_MessagingController extends Settings_SettingsController
 
                 $this->config->delete('MESSAGING_SETTINGS');
 
-                PageLayout::postSuccess(_('Ihre Einstellungen wurden erfolgreich zur�ckgesetzt.'));
+                PageLayout::postSuccess(_('Ihre Einstellungen wurden erfolgreich zurückgesetzt.'));
             } else if ($action === 'forward_receiver') {
                 $this->user->smsforward_rec  = '';
                 $this->user->smsforward_copy = 0;
                 $this->user->store();
 
-                PageLayout::postSuccess(_('Empf�nger und Weiterleitung wurden erfolgreich gel�scht'));
+                PageLayout::postSuccess(_('Empfänger und Weiterleitung wurden erfolgreich gelöscht'));
             }
         }
         $this->redirect('settings/messaging');

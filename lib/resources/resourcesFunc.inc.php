@@ -268,7 +268,7 @@ function getFormattedResult($result, $mode="bad", $bad_message_text = '', $good_
     //create bad message
     if ((is_array($overlaps)) && (($mode == "bad") || ($mode == "booth"))) {
         $i=0;
-        $bad_message = "error§"._("Folgende gewünschte Raumbelegungen überschneiden sich mit bereits vorhandenen Belegungen. Bitte ändern Sie die Räume oder Zeiten!");
+        $bad_message = "errorÂ§"._("Folgende gewÃ¼nschte Raumbelegungen Ã¼berschneiden sich mit bereits vorhandenen Belegungen. Bitte Ã¤ndern Sie die RÃ¤ume oder Zeiten!");
         //the overlaps (show only the earliest here, plus a message when more)
         foreach ($overlaps as $val) {
             $resObj = ResourceObject::Factory($val["resource_id"]);
@@ -277,19 +277,19 @@ function getFormattedResult($result, $mode="bad", $bad_message_text = '', $good_
             list(, $val2) = each($val["overlap_assigns"]);
             $bad_message.=date("d.m, H:i",$val2["begin"])." - ".date("H:i",$val2["end"]);
             if (sizeof($val["overlap_assigns"]) >1)
-                $bad_message.=", ... (".sprintf (_("und %s weitere Überschneidungen"), (sizeof($val["overlap_assigns"])-1)).")";
+                $bad_message.=", ... (".sprintf (_("und %s weitere Ãœberschneidungen"), (sizeof($val["overlap_assigns"])-1)).")";
             $bad_message.= ", ".$resObj->getFormattedLink($val2["begin"], _("Raumplan anzeigen"));
             $i++;
         }
-        
+
         if ($locks) {
-            $bad_message.="<br><span style=\"color: red\">"._("Die gewünschten Belegungen kollidieren mit folgenden Sperrzeiten:")."</span>";
+            $bad_message.="<br><span style=\"color: red\">"._("Die gewÃ¼nschten Belegungen kollidieren mit folgenden Sperrzeiten:")."</span>";
             $bad_message.="<br>";
             foreach ($locks as $val) {
                 $bad_message.=date("d.m.Y, H:i",$val["begin"])." - ".date("d.m.Y, H:i",$val["end"])."<br>";
             }
         }
-        $bad_message.="§";
+        $bad_message.="Â§";
     }
 
 
@@ -308,9 +308,9 @@ function getFormattedResult($result, $mode="bad", $bad_message_text = '', $good_
 
     if ($rooms_booked)
         if ($i == 1)
-            $good_message.= sprintf ("msg§"._("Die Belegung des Raumes %s wurde in die Ressourcenverwaltung übernommen.")."§", $rooms_booked);
+            $good_message.= sprintf ("msgÂ§"._("Die Belegung des Raumes %s wurde in die Ressourcenverwaltung Ã¼bernommen.")."Â§", $rooms_booked);
         elseif ($i)
-            $good_message.= sprintf ("msg§"._("Die Belegung der Räume %s wurden in die Ressourcenverwaltung übernommen.")."§", $rooms_booked);
+            $good_message.= sprintf ("msgÂ§"._("Die Belegung der RÃ¤ume %s wurden in die Ressourcenverwaltung Ã¼bernommen.")."Â§", $rooms_booked);
     }
 
     if ($mode == "bad")
@@ -362,12 +362,9 @@ function getResourceObjectCategory($id)
     return $statement->fetchColumn() ?: false;
 }
 
-function getMyRoomRequests($user_id = '', $semester_id = null, $only_not_closed = true, $single_request = null, $sem_type = null, $faculty = null, $tagged = null)
+function getMyRoomRequests($user_id = '', $semester_id = null, $only_not_closed = true, $single_request = null, $sem_type = null, $faculty = null, $tagged = null, $regular = null)
 {
-    global $user, $perm, $RELATIVE_PATH_RESOURCES;
-
-    $db = DBManager::get();
-
+    global $user;
 
     if (!$user_id) {
         $user_id = $user->id;
@@ -394,6 +391,9 @@ function getMyRoomRequests($user_id = '', $semester_id = null, $only_not_closed 
         }
         if ($tagged) {
             $criteria .= " AND NOT EXISTS (SELECT * FROM resources_requests_user_status WHERE resources_requests_user_status.request_id=rr.request_id AND resources_requests_user_status.user_id=".DBManager::get()->quote($user_id).") ";
+        }
+        if ($regular) {
+            $criteria .= " AND rr.termin_id = '' AND EXISTS (SELECT * FROM termine WHERE range_id=rr.seminar_id AND date > UNIX_TIMESTAMP() AND metadate_id IS NOT NULL AND metadate_id != '') ";
         }
     }
 
@@ -671,9 +671,8 @@ function search_administrable_seminars ($search_string = '', $user_id = '')
             $type = _('Veranstaltungen');
             $query = "SELECT Seminar_id AS id, Name AS name,
                              '{$type}' AS art, 'admin' AS perms
-                      FROM seminar_inst
-                      LEFT JOIN seminare USING (seminar_id)
-                      WHERE seminar_inst.institut_id IN (:inst_ids) AND ({$search_sql})
+                      FROM seminare
+                      WHERE Institut_id IN (:inst_ids) AND ({$search_sql})
                       ORDER BY Name";
             $parameters[':inst_ids'] = $institute_ids;
         break;
@@ -814,13 +813,11 @@ function search_administrable_objects($search_string='', $user_id='', $sem=TRUE)
 
         if ($sem && count($my_inst_ids) > 0) {
             $type = _('Veranstaltungen');
-            $query = "SELECT a.seminar_id AS id, Name AS name,
+            $query = "SELECT Seminar_id AS id, Name AS name,
                              '{$type}' AS art, 'admin' AS perms
-                      FROM  seminar_inst AS a
-                      LEFT JOIN seminare USING (seminar_id)
-                      WHERE a.Institut_id IN (:inst_ids)
+                      FROM seminare
+                      WHERE Institut_id IN (:inst_ids)
                         AND ({$search_sql['seminar']})
-                      GROUP BY a.seminar_id
                       ORDER BY Name";
             $statement = DBManager::get()->prepare($query);
             $statement->bindValue(':inst_ids', array_keys($my_inst_ids));

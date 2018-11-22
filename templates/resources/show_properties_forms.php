@@ -2,74 +2,54 @@
 # Lifter010: TEST
 use Studip\Button, Studip\LinkButton;
 ?>
-<form method="post" action="<?= URLHelper::getLink('?change_object_properties='. $resObject->getId()) ?>">
+<form method="post" action="<?= URLHelper::getLink('?change_object_properties='. $resObject->getId()) ?>" class="default">
     <?= CSRFProtection::tokenTag() ?>
     <input type="hidden" name="view" value="edit_object_properties">
 
-<table class="default">
-    <colgroup>
-        <col width="4%">
-        <col>
-        <col width="40%">
-        <col>
-    </colgroup>
-    <tbody>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <label>
-                    <?= _('Name:') ?><br>
-                    <input name="change_name" value="<?= htmlReady($resObject->getName()) ?>" size="60" maxlength="255">
-                </label>
-            </td>
-            <td>
-                <label>
-                    <?= _('Typ des Objektes:') ?><br>
-                <? if (!$resObject->isAssigned()): ?>
-                    <select name="change_category_id">
-                    <? if (!$resObject->getCategoryId()) : ?>
-                        <option value=""><?= _('nicht zugeordnet') ?></option>
-                    <? endif; ?>
-                    <? foreach ($EditResourceData->selectCategories(allowCreateRooms()) as $category_id => $name): ?>
-                        <option value="<?= $category_id ?>"
-                                <? if ($category_id == $resObject->getCategoryId()) echo 'selected'; ?>>
-                            <?= htmlReady($name) ?>
-                        </option>
-                    <? endforeach; ?>
-                    </select>
-                    <?= Button::create(_('Zuweisen'), 'assign')?>
-                <? else : ?>
-                    <b><?=  htmlReady($resObject->getCategoryName()) ?></b>
-                    <input type="hidden" name="change_category_id" value="<?= $resObject->getCategoryId() ?>">
-                <? endif; ?>
-                </label>
-            </td>
+    <fieldset>
+        <legend><?= htmlReady($resObject->getName()) ?></legend>
 
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <label>
-                    <?= _('Beschreibung:') ?><br>
-                    <textarea name="change_description" rows="3" cols="60"><?= htmlReady($resObject->getDescription()) ?></textarea>
-                </label>
-            </td>
-            <td valign="top">
-                <?= _('verantwortlich:') ?><br>
-                <a href="<?= $resObject->getOwnerLink()?>"><?= htmlReady($resObject->getOwnerName(true)) ?></a>
-            </td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td colspan="2">
-                <b><?= _('Eigenschaften') ?></b><br>
-            </td>
-        </tr>
+        <label>
+            <?= _('Name:') ?><br>
+            <input type="text" name="change_name" value="<?= htmlReady($resObject->getName()) ?>" maxlength="255">
+        </label>
+
+        <label>
+            <?= _('Typ des Objektes:') ?><br>
+        <? if (!$resObject->isAssigned()): ?>
+            <select name="change_category_id">
+            <? if (!$resObject->getCategoryId()) : ?>
+                <option value=""><?= _('nicht zugeordnet') ?></option>
+            <? endif; ?>
+            <? foreach ($EditResourceData->selectCategories(allowCreateRooms()) as $category_id => $name): ?>
+                <option value="<?= $category_id ?>"
+                        <? if ($category_id == $resObject->getCategoryId()) echo 'selected'; ?>>
+                    <?= htmlReady($name) ?>
+                </option>
+            <? endforeach; ?>
+            </select>
+            <?= Button::create(_('Zuweisen'), 'assign')?>
+        <? else : ?>
+            <b><?=  htmlReady($resObject->getCategoryName()) ?></b>
+            <input type="hidden" name="change_category_id" value="<?= $resObject->getCategoryId() ?>">
+        <? endif; ?>
+        </label>
+
+        <?= _('verantwortlich:') ?><br>
+        <a href="<?= $resObject->getOwnerLink()?>"><?= htmlReady($resObject->getOwnerName(true)) ?></a>
+
+        <label>
+            <?= _('Beschreibung:') ?><br>
+            <textarea name="change_description" rows="3" cols="60"><?= htmlReady($resObject->getDescription()) ?></textarea>
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend><?= _('Eigenschaften') ?></legend>
+
     <? if ($resObject->isRoom() && get_config('RESOURCES_ENABLE_ORGA_CLASSIFY')): ?>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <?= _('organisatorische Einordnung:') ?><br>
+        <label>
+            <?= _('organisatorische Einordnung:') ?>
             <? if ($resObject->getInstitutId()) : ?>
                 <a href="<?= $resObject->getOrgaLink() ?>">
                     <?= htmlReady($resObject->getOrgaName(TRUE)) ?>
@@ -77,10 +57,8 @@ use Studip\Button, Studip\LinkButton;
             <? else : ?>
                 <?= _('keine Zuordnung') ?>
             <? endif ?>
-            </td>
-            <td>
+
             <? if ($ObjectPerms->havePerm('admin')) : ?>
-                <br>
                 <select name="change_institut_id" class="nested-select">
                     <option value="" class="is-placeholder">
                         &lt;<?= _('keine Zuordnung') ?>&gt;
@@ -99,41 +77,38 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach; ?>
                 </select>
             <? else : ?>
-                <?= MessageBox::info(_('Sie können die Einordnung in die Orga-Struktur nicht ändern.')) ?>
+                <?= MessageBox::info(_('Sie kÃ¶nnen die Einordnung in die Orga-Struktur nicht Ã¤ndern.')) ?>
             <? endif; ?>
-            </td>
-        </tr>
+        </label>
     <? endif; ?>
+
 <? if ($resObject->getCategoryId()) : ?>
     <? foreach ($EditResourceData->selectProperties() as $property): ?>
     	<? $protected_property = getGlobalPerms($user->id) != 'admin' && $property['protected']; ?>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <label for="property_<?= $property['property_id'] ?>">
-                    <?= htmlReady($property['name']); ?>
-                </label>
-            </td>
-            <td width="40%">
-                <input type="hidden" name="change_property_val[]" value="_id_<?= $property['property_id'] ?>">
+
+        <label for="property_<?= $property['property_id'] ?>">
+            <input type="hidden" name="change_property_val[]" value="_id_<?= $property['property_id'] ?>">
+
             <? if ($property['type'] == 'bool'): ?>
-                <label>
-                    <input id="property_<?= $property['property_id'] ?>" type="checkbox"
-                           name="change_property_val[]" <? if ($property['state']) echo 'checked'; ?><? if ($protected_property) echo ' disabled '; ?>>
-                        <?= htmlReady($property['options']) ?>
-                </label>
+                <input id="property_<?= $property['property_id'] ?>" type="checkbox"
+                       name="change_property_val[]" <? if ($property['state']) echo 'checked'; ?><? if ($protected_property) echo ' disabled '; ?>>
+                <?= htmlReady($property['name']); ?> <?= htmlReady($property['options']) ?>
             <? elseif ($property['type'] == 'num' && $property['system'] == 2): ?>
+                <?= htmlReady($property['name']); ?>
                 <input id="property_<?= $property['property_id'] ?>" type="text"
                        name="change_property_val[]" value="<?= htmlReady($property['state']) ?>"
                        size="5" maxlength="10" <? if ($protected_property) echo ' disabled '; ?>>
             <? elseif ($property['type'] == 'num'): ?>
+                <?= htmlReady($property['name']); ?>
                 <input id="property_<?= $property['property_id'] ?>" type="text"
                        name="change_property_val[]" value="<?= htmlReady($property['state']) ?>"
                        size="30" maxlength="255" <? if ($protected_property) echo ' disabled '; ?>>
             <? elseif ($property['type'] == 'text'): ?>
-                <textarea id="property_<?= $property['property_id'] ?>" name="change_property_val[]" 
+                <?= htmlReady($property['name']); ?>
+                <textarea id="property_<?= $property['property_id'] ?>" name="change_property_val[]"
                           cols="30" rows="2" <? if ($protected_property) echo ' disabled '; ?>><?= htmlReady($property['state']) ?></textarea>
             <? elseif ($property['type'] == 'select'): ?>
+                <?= htmlReady($property['name']); ?>
                 <select id="property_<?= $property['property_id'] ?>" name="change_property_val[]" <? if ($protected_property) echo ' disabled '; ?>>
                 <? foreach (explode(';', $property['options']) as $option): ?>
                     <option value="<?= $option ?>" <? if ($property['state'] == $option) echo 'selected'; ?>>
@@ -142,66 +117,42 @@ use Studip\Button, Studip\LinkButton;
                 <? endforeach; ?>
                 </select>
             <? endif; ?>
-            </td>
-        </tr>
+
+        </label>
     <? endforeach; ?>
 <? else : ?>
-        <tr>
-            <td>&nbsp;</td>
-            <td colspan="2" style="color: red">
-                <?= _('Das Objekt wurde noch keinem Typ zugewiesen. Um Eigenschaften bearbeiten zu können, müssen Sie vorher einen Typ festlegen!') ?>
-            </td>
-        </tr>
+    <span style="color: red">
+        <?= _('Das Objekt wurde noch keinem Typ zugewiesen. Um Eigenschaften bearbeiten zu kÃ¶nnen, mÃ¼ssen Sie vorher einen Typ festlegen!') ?>
+    </span>
 <? endif; ?>
     <? if ($resObject->getCategoryId() && getGlobalPerms($user->id) == 'admin') : ?>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <b><?= _('gleichzeitige Belegung') ?></b><br>
-                <br>
-                <label for="change_multiple_assign">
-                    <?= _('Die Ressource darf mehrfach zur gleichen Zeit belegt werden - <br>Überschneidungschecks finden <u>nicht</u> statt!') ?>
-                </label>
-            </td>
-            <td>
-                <input type="checkbox" id="change_multiple_assign" name="change_multiple_assign" value="1"
-                       <? if ($resObject->getMultipleAssign()) echo 'checked'; ?>>
-            </td>
-        </tr>
-        <? if ($resObject->isRoom()): ?>
-        <tr>
-            <td>&nbsp;</td>
-            <td>
-                <b><?= _('wünschbar') ?></b><br>
-                <br>
-                <label for="change_requestable">
-                    <?= _('legt fest ob ein Raum wünschbar ist') ?>
-                </label>
-            </td>
-            <td>
-                <input type="checkbox" id="change_requestable" name="change_requestable" value="1"
-                       <? if ($resObject->getRequestable()) echo 'checked'; ?>>
-            </td>
-        </tr>
-        <? endif; ?>
-        
-    <? endif; ?>
-        <tr>
-            <td>&nbsp;</td>
-            <td colspan="2" align="center">
-                <br>
-                <?= Button::create(_('Übernehmen'))?>
-                <? if ($resObject->isUnchanged()) : ?>
-                    <?= LinkButton::createCancel(_('Abbrechen'), URLHelper::getLink('?cancel_edit='. $resObject->id))?>
-                <? endif; ?>
-                <br>&nbsp;
-            </td>
-        </tr>
-    </tbody>
-</table>
 
+            <label for="change_multiple_assign">
+                <input type="checkbox" id="change_multiple_assign" name="change_multiple_assign" value="1"
+                   <? if ($resObject->getMultipleAssign()) echo 'checked'; ?>>
+               <b><?= _('gleichzeitige Belegung') ?></b>
+               <?= tooltipIcon(_('Die Ressource darf mehrfach zur gleichen Zeit belegt werden - Ãœberschneidungschecks finden nicht statt!')) ?>
+           </label>
+
+        <? if ($resObject->isRoom()): ?>
+            <label for="change_requestable">
+                <input type="checkbox" id="change_requestable" name="change_requestable" value="1"
+                    <? if ($resObject->getRequestable()) echo 'checked'; ?>>
+
+                <b><?= _('wÃ¼nschbar') ?></b>
+                <?= tooltipIcon(_('Legt fest ob ein Raum wÃ¼nschbar ist')) ?>
+           </label>
+        <? endif; ?>
+    <? endif; ?>
+    </fieldset>
+    <footer>
+        <?= Button::create(_('Ãœbernehmen'))?>
+        <? if ($resObject->isUnchanged()) : ?>
+            <?= LinkButton::createCancel(_('Abbrechen'), URLHelper::getLink('?cancel_edit='. $resObject->id))?>
+        <? endif; ?>
+    </footer>
 </form>
-<br><br>
+
 <?
 $sidebar = Sidebar::Get();
 $sidebar->setTitle(htmlReady($resObject->getName()));

@@ -16,7 +16,7 @@ namespace Studip {
 namespace {
 
     //software version - please leave it as it is!
-    $SOFTWARE_VERSION = '4.0.alpha-svn';
+    $SOFTWARE_VERSION = '4.2.alpha-svn';
 
     global $PHP_SELF, $STUDIP_BASE_PATH;
 
@@ -28,105 +28,64 @@ namespace {
         . PATH_SEPARATOR . $STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'config'
         . PATH_SEPARATOR . get_include_path()
     );
-    !ini_get('register_globals') OR require 'templates/register_globals_on.php';
+    !ini_get('register_globals') || require 'templates/register_globals_on.php';
 
-    // Setup autoloading
-    require 'lib/classes/StudipAutoloader.php';
-    StudipAutoloader::register();
+    $ABSOLUTE_PATH_STUDIP = $STUDIP_BASE_PATH . '/public/';
 
-    // General classes folders
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/models');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes', 'Studip');
+    $CANONICAL_RELATIVE_PATH_STUDIP = dirname($_SERVER['PHP_SELF']);
+    if (DIRECTORY_SEPARATOR != '/') {
+        $CANONICAL_RELATIVE_PATH_STUDIP = str_replace(DIRECTORY_SEPARATOR, '/', $CANONICAL_RELATIVE_PATH_STUDIP);
+    }
+    // CANONICAL_RELATIVE_PATH_STUDIP should end with a '/'
+    if (substr($CANONICAL_RELATIVE_PATH_STUDIP,-1) != "/"){
+        $CANONICAL_RELATIVE_PATH_STUDIP .= "/";
+    }
 
-    // Plugins
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/db');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/engine');
+    $ABSOLUTE_URI_STUDIP = "";
 
-    // Specialized folders
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/admission');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/admission/userfilter');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/auth_plugins');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/exportdocument');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/helpbar');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/searchtypes');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/sidebar');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/visibility');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/classes/coursewizardsteps');
+    // automagically compute ABSOLUTE_URI_STUDIP if $_SERVER['SERVER_NAME'] is set
+    if (isset($_SERVER['SERVER_NAME'])) {
+        // work around possible bug in lighttpd
+        if (mb_strpos($_SERVER['SERVER_NAME'], ':') !== false) {
+            list($_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT']) =
+                explode(':', $_SERVER['SERVER_NAME']);
+        }
 
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/calendar');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/exceptions');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/files');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/modules');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/navigation');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/raumzeit');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/activities', 'Studip\\Activity');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/evaluation/classes');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/evaluation/classes/db');
+        $ABSOLUTE_URI_STUDIP = $_SERVER['HTTPS'] == 'on' ? 'https' : 'http';
+        $ABSOLUTE_URI_STUDIP .= '://'.$_SERVER['SERVER_NAME'];
 
-    // Classes in /app
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models');
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models', 'Studip');
-    // Special treatment for the Wysiwyg namespace
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models/Wysiwyg', 'Studip\\Wysiwyg');
+        if ($_SERVER['HTTPS'] == 'on' && $_SERVER['SERVER_PORT'] != 443 ||
+            $_SERVER['HTTPS'] != 'on' && $_SERVER['SERVER_PORT'] != 80) {
+            $ABSOLUTE_URI_STUDIP .= ':'.$_SERVER['SERVER_PORT'];
+        }
 
-    // Messy file names
-    StudipAutoloader::addClassLookups(array(
-        'email_validation_class' => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/phplib/email_validation.class.php',
-        'messaging'              => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/messaging.inc.php',
-        'MediaProxy'             => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/media_proxy.php',
-        'MyRealmModel'           => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/my_realm.php',
-        'StudygroupModel'        => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/studygroup.php',
-        'StudipPlugin'           => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/plugins/core/StudIPPlugin.class.php',
-        'Migration'              => $GLOBALS['STUDIP_BASE_PATH'] . '/lib/migrations/migration.php',
-        'PluginAdministration'  => $GLOBALS['STUDIP_BASE_PATH'] . '/app/models/plugin_administration.php',
-    ));
+        $ABSOLUTE_URI_STUDIP .= $CANONICAL_RELATIVE_PATH_STUDIP;
+    }
 
-    // Trails
-    $trails_classes = array(
-        'Trails_Dispatcher', 'Trails_Response', 'Trails_Controller',
-        'Trails_Inflector', 'Trails_Flash',
-        'Trails_Exception', 'Trails_DoubleRenderError', 'Trails_MissingFile',
-        'Trails_RoutingError', 'Trails_UnknownAction', 'Trails_UnknownController',
-        'Trails_SessionRequiredException',
-    );
-    StudipAutoloader::addClassLookup($trails_classes,
-                                     $GLOBALS['STUDIP_BASE_PATH'] . '/vendor/trails/trails.php');
-    StudipAutoloader::addClassLookup('StudipController',
-                                     $GLOBALS['STUDIP_BASE_PATH'] . '/app/controllers/studip_controller.php');
-    StudipAutoloader::addClassLookup('AuthenticatedController',
-                                     $GLOBALS['STUDIP_BASE_PATH'] . '/app/controllers/authenticated_controller.php');
-    StudipAutoloader::addClassLookup('PluginController',
-                                     $GLOBALS['STUDIP_BASE_PATH'] . '/app/controllers/plugin_controller.php');
+    // default ASSETS_URL, customize if required
+    $GLOBALS['ASSETS_URL'] = $ABSOLUTE_URI_STUDIP . 'assets/';
 
-    // Vendor
-    StudipAutoloader::addClassLookups(array(
-        'PasswordHash' => $GLOBALS['STUDIP_BASE_PATH'] . '/vendor/phpass/PasswordHash.php',
-        'TCPDF'        => $GLOBALS['STUDIP_BASE_PATH'] . '/vendor/tcpdf/tcpdf.php',
-    ));
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/vendor/mishal-iless/lib/ILess', 'ILess');
+    require 'lib/classes/StudipFileloader.php';
+    StudipFileloader::load('config_defaults.inc.php config_local.inc.php', $GLOBALS, compact('STUDIP_BASE_PATH', 'ABSOLUTE_URI_STUDIP', 'ASSETS_URL', 'CANONICAL_RELATIVE_PATH_STUDIP'), true);
 
-    // sample the request time and number of db queries every tenth time
-    register_shutdown_function(function ($timer) {
-        $timer('core.request_time', 0.1);
+    require __DIR__ . '/bootstrap-autoload.php';
 
-        $query_count = DBManager::get()->query_count;
-        Metrics::gauge('core.database.queries', $query_count, 0.1);
-    }, Metrics::startTimer());
-
-    require 'lib/phplib/page_open.php';
-
-    StudipFileloader::load('config_local.inc.php', $GLOBALS, compact('STUDIP_BASE_PATH'));
+    // construct absolute URL for ASSETS_URL
+    if ($GLOBALS['ASSETS_URL'][0] === '/') {
+        $host = preg_replace('%^([a-z]+:/*[^/]*).*%', '$1', $GLOBALS['ABSOLUTE_URI_STUDIP']);
+        $GLOBALS['ASSETS_URL'] = $host . $GLOBALS['ASSETS_URL'];
+    } else if (!preg_match('/^[a-z]+:/', $GLOBALS['ASSETS_URL'])) {
+        $GLOBALS['ASSETS_URL'] = $GLOBALS['ABSOLUTE_URI_STUDIP'] . $GLOBALS['ASSETS_URL'];
+    }
 
     require 'config.inc.php';
 
+    require 'lib/phplib/page_open.php';
     require_once 'lib/functions.php';
     require_once 'lib/language.inc.php';
     require_once 'lib/visual.inc.php';
     require_once 'lib/deputies_functions.inc.php';
-    
+
     //setup default logger
     Log::get()->setHandler($GLOBALS['TMP_PATH'] . '/studip.log');
     if (Studip\ENV == 'development') {
@@ -135,9 +94,6 @@ namespace {
         Log::get()->setLogLevel(Log::ERROR);
     }
 
-    // set default time zone
-    date_default_timezone_set($DEFAULT_TIMEZONE ? : @date_default_timezone_get());
-
     // set assets url
     Assets::set_assets_url($GLOBALS['ASSETS_URL']);
 
@@ -145,28 +101,31 @@ namespace {
     require_once 'vendor/flexi/lib/flexi.php';
     $GLOBALS['template_factory'] =
         new Flexi_TemplateFactory($STUDIP_BASE_PATH . '/templates');
+    Renderable::setTemplateFactory($GLOBALS['template_factory']);
 
-    // set default exception handler
-    // command line or http request?
-    if (isset($_SERVER['REQUEST_METHOD'])) {
-        set_exception_handler('studip_default_exception_handler');
-    }
 
     // set default pdo connection
-    DBManager::getInstance()
-        ->setConnection('studip',
-            'mysql:host=' . $GLOBALS['DB_STUDIP_HOST'] .
-            ';dbname=' . $GLOBALS['DB_STUDIP_DATABASE'],
-            $GLOBALS['DB_STUDIP_USER'],
-            $GLOBALS['DB_STUDIP_PASSWORD']);
-
+    try {
+        DBManager::getInstance()
+            ->setConnection('studip',
+                'mysql:host=' . $GLOBALS['DB_STUDIP_HOST'] .
+                ';dbname=' . $GLOBALS['DB_STUDIP_DATABASE'] .
+                ';charset=utf8mb4',
+                $GLOBALS['DB_STUDIP_USER'],
+                $GLOBALS['DB_STUDIP_PASSWORD']);
+    } catch (PDOException $exception) {
+        header('HTTP/1.1 500 Internal Server Error');
+        die(sprintf('database connection %s failed', 'mysql:host=' . $GLOBALS['DB_STUDIP_HOST'] .
+        ';dbname=' . $GLOBALS['DB_STUDIP_DATABASE']));
+    }
     // set slave connection
     if (isset($GLOBALS['DB_STUDIP_SLAVE_HOST'])) {
         try {
             DBManager::getInstance()
                 ->setConnection('studip-slave',
                     'mysql:host=' . $GLOBALS['DB_STUDIP_SLAVE_HOST'] .
-                    ';dbname=' . $GLOBALS['DB_STUDIP_SLAVE_DATABASE'],
+                    ';dbname=' . $GLOBALS['DB_STUDIP_SLAVE_DATABASE'] .
+                    ';charset=utf8mb4',
                     $GLOBALS['DB_STUDIP_SLAVE_USER'],
                     $GLOBALS['DB_STUDIP_SLAVE_PASSWORD']);
         } catch (PDOException $exception) {
@@ -176,6 +135,48 @@ namespace {
     } else {
         DBManager::getInstance()->aliasConnection('studip', 'studip-slave');
     }
+
+    // set default exception handler
+    // command line or http request?
+    if (isset($_SERVER['REQUEST_METHOD'])) {
+        set_exception_handler('studip_default_exception_handler');
+    }
+
+    // Prime autoloader if cache is enabled (this cannot be in autoloader's
+    // bootstrap because the stud.ip cache needs to have a db conenction)
+    if ($GLOBALS['CACHING_ENABLE']) {
+        $cached = StudipCacheFactory::getCache()->read('STUDIP#autoloader-classes');
+        if ($cached) {
+            $class_lookup = json_decode($cached, true);
+            if (is_array($class_lookup)) {
+                $lookup_hash = md5($cached);
+                StudipAutoloader::addClassLookups($class_lookup);
+            }
+        }
+
+        register_shutdown_function(function () use ($lookup_hash) {
+            $cached = json_encode(StudipAutoloader::$class_lookup, JSON_UNESCAPED_UNICODE);
+            if (md5($cached) !== $lookup_hash) {
+                StudipCacheFactory::getCache()->write(
+                    'STUDIP#autoloader-classes',
+                    $cached,
+                    7 * 24 * 60 * 60
+                );
+            }
+        });
+    }
+
+    // set default time zone
+    date_default_timezone_set(Config::get()->DEFAULT_TIMEZONE ? : @date_default_timezone_get());
+
+    // sample the request time and number of db queries every tenth time
+    register_shutdown_function(function ($timer) {
+        $timer('core.request_time', 0.1);
+
+        $query_count = DBManager::get()->query_count;
+        Metrics::gauge('core.database.queries', $query_count, 0.1);
+    }, Metrics::startTimer());
+
     //include 'tools/debug/StudipDebugPDO.class.php';
 
     /**
@@ -193,26 +194,16 @@ namespace {
         }
     }
 
-    // Add paths to autoloader that were defined in config_local.inc.php and
-    // may be optional
-    
-    StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib');
-    require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/resourcesFunc.inc.php';
-    require_once $GLOBALS['RELATIVE_PATH_RESOURCES'] . '/lib/list_assign.inc.php';
+    require_once 'lib/resources/resourcesFunc.inc.php';
+    require_once 'lib/resources/lib/list_assign.inc.php';
 
     if (Config::get()->EXTERN_ENABLE) {
-        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib');
-        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/extern_config.inc.php';
-        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_EXTERN'] . '/lib/extern_functions.inc.php';
+        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/lib/extern/extern_config.inc.php';
+        require_once $GLOBALS['STUDIP_BASE_PATH'] . '/lib/extern/lib/extern_functions.inc.php';
     }
 
     if (Config::get()->CALENDAR_ENABLE) {
-        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_CALENDAR'] . '/lib');
         require_once 'lib/calendar_functions.inc.php';
-    }
-
-    if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
-        StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/' . $GLOBALS['RELATIVE_PATH_ELEARNING_INTERFACE']);
     }
 
     // set dummy navigation until db is ready
@@ -223,6 +214,7 @@ namespace {
 
     // init notification observers
     Studip\Activity\ActivityObserver::initialize();
+    FilesSearch\NotificationObserver::initialize();
 
     //Besser hier globale Variablen definieren...
     $GLOBALS['_fullname_sql'] = array();
@@ -259,8 +251,8 @@ namespace {
         include 'vendor/email_message/smtp.php';
         $mail_transporter->localhost = ($GLOBALS['MAIL_LOCALHOST'] == "") ? $_SERVER["SERVER_NAME"] : $GLOBALS['MAIL_LOCALHOST'];
         $mail_transporter->smtp_host = ($GLOBALS['MAIL_HOST_NAME'] == "") ? $_SERVER["SERVER_NAME"] : $GLOBALS['MAIL_HOST_NAME'];
-        if (is_array($MAIL_SMTP_OPTIONS)) {
-            foreach ($MAIL_SMTP_OPTIONS as $key => $value) {
+        if (is_array($GLOBALS['MAIL_SMTP_OPTIONS'])) {
+            foreach ($GLOBALS['MAIL_SMTP_OPTIONS'] as $key => $value) {
                 $mail_transporter->{"smtp_$key"} = $value;
             }
             if ($mail_transporter->smtp_user !== '') {
@@ -268,7 +260,7 @@ namespace {
             }
         }
     }
-    $mail_transporter->default_charset = 'WINDOWS-1252';
+    $mail_transporter->default_charset = 'UTF-8';
     $mail_transporter->SetBulkMail((int)$GLOBALS['MAIL_BULK_DELIVERY']);
     StudipMail::setDefaultTransporter($mail_transporter);
     unset($mail_transporter);

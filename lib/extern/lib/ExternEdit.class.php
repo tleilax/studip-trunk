@@ -168,9 +168,8 @@ class ExternEdit {
     }
 
     function editSubmit ($module_name, $config_id, $element_name = "", $hidden = NULL) {
-        $out = "<tr><td align=\"center\" colspan=\"2\" nowrap=\"nowrap\">&nbsp;";
-        $out .= Button::createAccept(_("Übernehmen"), "submit"); 
-        $out .= "&nbsp; &nbsp; &nbsp;";
+        $out = "<footer>";
+        $out .= Button::createAccept(_("Ãœbernehmen"), "submit");
         $out .= LinkButton::createCancel(_("Abbrechen"), URLHelper::getURL('?list=TRUE'));
         $out .= "<input type=\"hidden\" name=\"config_id\" value=\"$config_id\">";
         $out .= "<input type=\"hidden\" name=\"mod\" value=\"$module_name\">";
@@ -182,18 +181,13 @@ class ExternEdit {
                 $out .= "<input type=\"hidden\" name=\"$name\" value=\"$value\">";
             }
         }
-        $out .= "</td></tr>";
+        $out .= "</footer>";
 
         return $out;
     }
-    
+
     function editHeadline ($headline) {
-        $headline = "&nbsp; $headline";
-
-        $out = "<table class=\"blank\" width=\"100%\" cellpadding=\"0\" ";
-        $out .= "cellspacing=\"0\" border=\"0\">\n<tr><td class=\"table_header\" width=\"100%\"><font size=\"2\"><b>$headline</b></font>";
-        $out .= "</td></tr>\n</table>\n";
-
+        $out = "<legend>" . $headline . "</legend>";
         return $out;
     }
 
@@ -227,37 +221,28 @@ class ExternEdit {
 
     function editContentTable ($header, $body) {
         $out = "\n<!-- BEGIN ContentTable -->\n";
-        $out .= "<table width=\"90%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
-        $out .= "<tr><td class=\"blank\" width=\"100%\">\n";
-        $out .= "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
-        $out .= "<tr><td class=\"blank\" width=\"100%\">\n" . $header;
-        $out .= "</td></tr>\n</table>\n";
-        $out .= "<table width=\"100%\" style=\"border-style:solid; border-width:1px; ";
-        $out .= "border-color:#000000;\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
-        $out .= $body . "</table>\n</td></tr>\n</table>\n";
+        $out .= "<fieldset>" . $header . $body . "</fieldset>";
+
         $out .= "<!-- END ContentTable -->\n";
 
         return $out;
     }
 
     function editContent ($content, $submit, $class = "") {
-        $out = "\n<!-- BEGIN Content -->\n";
-        $out .= "<tr><td class=\"$class\" width=\"100%\" align=\"left\">\n";
-        $out .= '<form name="edit_form" action="' . URLHelper::getLink('?com=store#anker') .  '" method="post">';
+        $out = "<tr><td class=\"$class\" width=\"100%\" align=\"left\">\n";
+        $out .= '<form name="edit_form" class="default method-'.__METHOD__.'" action="' . URLHelper::getLink('?com=store#anker') .  '" method="post">';
         $out .= CSRFProtection::tokenTag();
-        $out .= "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\">\n";
-        $out .= "<tr>" . printcontent("100%", FALSE, $content, "", FALSE) . "</tr>";
-        $out .= "$submit</table>\n</form>\n</td></tr>\n";
-        $out .= "<!-- END Content -->\n";
+
+        $noTdTag = true;
+        $out .= printcontent("100%", FALSE, $content, "", FALSE, "", $noTdTag);
+        $out .= "$submit</form>\n";
+        $out .= "</td></tr>\n";
 
         return $out;
     }
 
     function editBlankContent ($class = "") {
-        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
-        $out .= "<tr><td class=\"$class\">&nbsp;</td></tr>\n";
-        $out .= "</table>\n";
-
+        $out = "";
         return $out;
     }
 
@@ -270,9 +255,7 @@ class ExternEdit {
     }
 
     function editBlank ($class = "") {
-        $out = "<tr><td class=\"$class\" colspan=\"2\">&nbsp;</td></tr>\n";
-        $out .= "</td></tr>\n";
-
+        $out = '';
         return $out;
     }
 

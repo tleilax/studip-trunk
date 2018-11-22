@@ -39,28 +39,19 @@
  * @property SimpleORMapCollection courses has_and_belongs_to_many Course
  */
 
-class Institute extends SimpleORMap
+class Institute extends SimpleORMap implements Range
 {
-
-    private static $current_institute;
 
     /**
     * Returns the currently active course or false if none is active.
     *
-    * @return mixed Course object of currently active course, false otherwise
+    * @return Institute object of currently active institute
     * @since 3.0
     */
     public static function findCurrent()
     {
-        if (empty($GLOBALS['SessionSeminar'])) {
-            return null;
-        }
-        if (isset(self::$current_institute) && $GLOBALS['SessionSeminar'] === self::$current_institute->id) {
-            return self::$current_institute;
-        }
-        $found = Institute::find($GLOBALS['SessionSeminar']);
-        if ($found) {
-            return self::$current_institute = $found;
+        if (Context::isInstitute()) {
+            return Context::get();
         }
     }
 
@@ -101,20 +92,20 @@ class Institute extends SimpleORMap
             $user_id = $user->id;
         }
         $db = DBManager::get();
-        if (!$perm->have_perm("admin")) {
+        if (!$perm->have_perm("admin", $user_id)) {
             $result = $db->query("SELECT user_inst.Institut_id, Institute.Name, Institute.fakultaets_id, IF(user_inst.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, user_inst.inst_perms " .
                 "FROM user_inst " .
                     "LEFT JOIN Institute USING (institut_id) " .
                 "WHERE (user_id = ".$db->quote($user_id)." " .
                     "AND (inst_perms = 'dozent' OR inst_perms = 'tutor')) " .
                 "ORDER BY Institute.Name ASC")->fetchAll(PDO::FETCH_ASSOC);
-        } else if (!$perm->have_perm("root")) {
+        } else if (!$perm->have_perm("root", $user_id)) {
             $result = $db->query("SELECT user_inst.Institut_id, Institute.Name, Institute.fakultaets_id, IF(user_inst.Institut_id=Institute.fakultaets_id,1,0) AS is_fak, user_inst.inst_perms " .
                 "FROM user_inst " .
                     "LEFT JOIN Institute USING (institut_id) " .
                 "WHERE (user_id = ".$db->quote($user_id)." AND inst_perms = 'admin') " .
                 "ORDER BY Institute.Name ASC")->fetchAll(PDO::FETCH_ASSOC);
-            if ($perm->is_fak_admin()) {
+            if ($perm->is_fak_admin($user_id)) {
                 foreach($result as $fak) {
                     $combined_result[] = $fak;
                     $institutes = $db->query("SELECT Institut_id, Name, fakultaets_id, 0 as is_fak, 'admin' as inst_perms
@@ -231,4 +222,79 @@ class Institute extends SimpleORMap
         return trim(vsprintf($template[$format], array_map('trim', $data)));
     }
 
+    /**
+     * Returns a descriptive text for the range type.
+     *
+     * @return string
+     */
+    public function describeRange()
+    {
+        return _('Einrichtung');
+    }
+
+    /**
+     * Returns a unique identificator for the range type.
+     *
+     * @return string
+     */
+    public function getRangeType()
+    {
+        return 'institute';
+    }
+
+    /**
+     * Returns the id of the current range
+     *
+     * @return mixed (string|int)
+     */
+    public function getRangeId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Decides whether the user may access the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     * @todo Check permissions
+     */
+    public function userMayAccessRange($user_id = null)
+    {
+        return true;
+    }
+
+    /**
+     * Decides whether the user may edit/alter the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     * @todo Check permissions
+     */
+    public function userMayEditRange($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        $member = $this->members->findOneBy('user_id', $user_id);
+        return ($member && in_array($member->status, ['tutor', 'dozent', 'admin']))
+            || User::find($user_id)->perms === 'root';
+    }
+
+    /**
+     * Decides whether the user may administer the range.
+     *
+     * @param string $user_id Optional id of a user, defaults to current user
+     * @return bool
+     * @todo Check permissions
+     */
+    public function userMayAdministerRange($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+        $member = $this->members->findOneBy('user_id', $user_id);
+        return ($member && $member->status === 'admin')
+            || User::find($user_id)->perms === 'root';
+    }
 }

@@ -56,7 +56,7 @@ class Admin_CourseWizardStepsController extends AuthenticatedController
             $title = _('Schritt bearbeiten');
             $this->step = CourseWizardStepRegistry::find($id);
         } else {
-            $title = _('Schritt hinzufügen');
+            $title = _('Schritt hinzufÃ¼gen');
             $this->step = new CourseWizardStepRegistry();
             $this->step->name = '';
             $this->step->classname = '';
@@ -81,7 +81,7 @@ class Admin_CourseWizardStepsController extends AuthenticatedController
      * Saves data for a new or existing step.
      * @param string $id ID of the step to save; if empty, create new step.
      */
-    public function save_action($id='')
+    public function save_action($id = '')
     {
         CSRFProtection::verifyUnsafeRequest();
         if (Request::submitted('submit')) {
@@ -122,7 +122,7 @@ class Admin_CourseWizardStepsController extends AuthenticatedController
         }
         $this->redirect($this->url_for('admin/coursewizardsteps'));
     }
-    
+
     /**
      * Deletes the given entry from step registry.
      * @param $id ID of the entry to delete
@@ -134,12 +134,33 @@ class Admin_CourseWizardStepsController extends AuthenticatedController
         if ($step) {
             $name = $step->name;
             if (CourseWizardStepRegistry::unregisterStep($id)) {
-                PageLayout::postSuccess(sprintf(_('Der Schritt "%s" wurde gelöscht.'), $name));
+                PageLayout::postSuccess(sprintf(_('Der Schritt "%s" wurde gelÃ¶scht.'), $name));
             } else {
-                PageLayout::postError(sprintf(_('Der Schritt %s konnte nicht gelöscht werden.'), $name));
+                PageLayout::postError(sprintf(_('Der Schritt %s konnte nicht gelÃ¶scht werden.'), $name));
             }
         }
         $this->redirect($this->url_for('admin/coursewizardsteps'));
+    }
+
+    /**
+     * Toggles the activation state of a step.
+     *
+     * @param string $id Id of the step
+     */
+    public function toggle_enabled_action($id)
+    {
+        $step = CourseWizardStepRegistry::find($id);
+        $step->enabled = !$step->enabled;
+        $step->store();
+
+        if (!Request::isXhr()) {
+            $message = $step->enabled
+                     ? _('Der Schritt wurde aktiviert')
+                     : _('Der Schritt wurde deaktiviert');
+            PageLayout::postSuccess($message);
+        }
+
+        $this->redirect("admin/coursewizardsteps#wizard-step-{$id}");
     }
 
 }

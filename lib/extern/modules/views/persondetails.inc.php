@@ -341,8 +341,7 @@ function lehre (&$module, $row, $alias_content, $text_div, $text_div_end)
 {
     global $attr_text_td, $end, $start;
 
-    $semester = new SemesterData();
-    $all_semester = $semester->getAllSemesterData();
+    $all_semester = SemesterData::getAllSemesterData();
     // old hard coded $SEMESTER-array starts with index 1
     array_unshift($all_semester, 0);
 
@@ -630,7 +629,7 @@ function kontakt ($module, $row, $separate = FALSE) {
                     $url = htmlReady(trim($row['url']));
                     if (!mb_stristr($url, "http://"))
                         $url = "http://$url";
-                    $out .= "<br><br><a href=\"$url\" target=\"_blank\">";
+                    $out .= "<br><br><a href=\"$url\" target=\"_blank\" rel=\"noopener noreferrer\">";
                     $out .= htmlReady($row['Name'], TRUE) . "</a><br>";
                 }
                 else
@@ -671,7 +670,7 @@ function kontakt ($module, $row, $separate = FALSE) {
                 break;
             case 'Home' :
                 if (($separate || !$module->config->getValue('Contact', 'separatelinks')) &&
-                       true || Visibility::verify('homepage', $row['user_id'])) {
+                       trueÂ || Visibility::verify('homepage', $row['user_id'])) {
                     $out .= "<tr$attr_tr>";
                     $out .= "<td$attr_td>";
                     $out .= "<font$attr_fonttitle>";

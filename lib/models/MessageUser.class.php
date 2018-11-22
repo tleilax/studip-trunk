@@ -24,7 +24,7 @@
  * @property Message message belongs_to Message
  */
 
-class MessageUser extends SimpleORMap
+class MessageUser extends SimpleORMap implements PrivacyObject
 {
     protected static function configure($config = array())
     {
@@ -43,17 +43,22 @@ class MessageUser extends SimpleORMap
         parent::configure($config);
     }
 
-    static function findSendedByMessageId($message_id)
+    public static function hasUnreadByUserId($user_id)
+    {
+        return self::countBySql("snd_rec = 'rec' AND readed = 0 AND user_id = ? AND deleted = 0", [$user_id]) > 0;
+    }
+
+    public static function findSentByMessageId($message_id)
     {
         return self::findOneBySQL("message_id=? AND snd_rec='snd'", array($message_id));
     }
 
-    static function findReceivedByMessageId($message_id)
+    public static function findReceivedByMessageId($message_id)
     {
         return self::findBySQL("message_id=? AND snd_rec='rec'", array($message_id));
     }
 
-    function cleanUpTags($callback)
+    public function cleanUpTags($callback)
     {
         $query = "DELETE FROM message_tags
                       WHERE message_id = :message_id AND user_id = :user_id";
@@ -68,5 +73,28 @@ class MessageUser extends SimpleORMap
             $this->message->removeIfOrphaned();
         }
         return true;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        if ($sorm) {
+            $field_data = [];
+            foreach ($sorm as $row) {
+                $field_data[] = $row->toRawArray();
+            }
+            if ($field_data) {
+                $storage->addTabularData('message_user', $field_data, $user);
+            }
+        }
+        return [_('MessageUser') => $storage];
     }
 }

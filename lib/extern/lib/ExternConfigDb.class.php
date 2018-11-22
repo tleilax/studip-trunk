@@ -5,9 +5,9 @@
 # Lifter010: TODO
 /**
 * ExternConfigDb.class.php
-* 
+*
 * This class is a wrapper class for configuration files.
-* 
+*
 *
 * @author       Peter Thienel <thienel@data-quest.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -51,10 +51,10 @@ class ExternConfigDb extends ExternConfig {
     */
     function store () {
         parent::store();
-        $serialized_config = serialize($this->config);
+        $serialized_config = json_encode($this->config);
 
         if (mb_strlen($serialized_config)) {
-            $stmt = DBManager::get()->prepare("UPDATE extern_config 
+            $stmt = DBManager::get()->prepare("UPDATE extern_config
                 SET config = ?, chdate = UNIX_TIMESTAMP()
                 WHERE config_id = ? AND range_id = ?");
             $stmt->execute($data = array($serialized_config, $this->id, $this->range_id));
@@ -64,9 +64,9 @@ class ExternConfigDb extends ExternConfig {
             ExternModule::printError();
             return FALSE;
         }
-        
+
     }
-    
+
     /**
     *
     */
@@ -77,17 +77,17 @@ class ExternConfigDb extends ExternConfig {
         $statement->execute($parameters);
         $row = $statement->fetchColumn();
         if ($row) {
-            $this->config = unserialize(stripslashes($row));
+            $this->config = json_decode($row, true);
         } else {
             ExternModule::printError();
         }
     }
-    
+
     function insertConfiguration () {
         if (!parent::insertConfiguration()) {
             return false;
         }
-         $serialized_config = serialize($config_obj->config);
+         $serialized_config = json_encode($config_obj->config);
          $time = time();
          $query = "INSERT INTO extern_config VALUES (?,?,?,?,0,?,?,?)";
          $statement = DBManager::get()->prepare($query);
@@ -98,7 +98,7 @@ class ExternConfigDb extends ExternConfig {
                 return FALSE;
             }
         return TRUE;
-    }    
+    }
 }
 
 ?>

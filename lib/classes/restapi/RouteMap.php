@@ -1,6 +1,6 @@
 <?php
 namespace RESTAPI;
-use Request, Config;
+use Request, Config, DocBlock;
 
 /**
  * RouteMaps define and group routes to resources.
@@ -180,22 +180,15 @@ abstract class RouteMap
      * @param Array          $route  The matched route out of
      *                               Router::matchRoute; an array with keys
      *                               'handler', 'conditions' and 'source'
-     * @param mixed          $request_body Request body to use (optional,
-     *                                     should be removed when Stud.IP
-     *                                     requires PHP >= 5.6)
      */
-    public function init($router, $route, $request_body = null)
+    public function init($router, $route)
     {
         $this->router   = $router;
         $this->route    = $route;
         $this->response = new Response();
 
-        if ($request_body !== null) {
-            self::$_request_body = $request_body;
-        }
-
         if ($mediaType = $this->getRequestMediaType()) {
-            $this->data = studip_utf8decode($this->parseRequestBody($mediaType));
+            $this->data = $this->parseRequestBody($mediaType);
         }
     }
 
@@ -324,7 +317,7 @@ abstract class RouteMap
         }
 
         if (isset(self::$mediaTypes[$mediaType])) {
-            $result = call_user_func(array(__CLASS__, self::$mediaTypes[$mediaType]), self::$_request_body);
+            $result = call_user_func([__CLASS__, self::$mediaTypes[$mediaType]], self::$_request_body);
             if ($result) {
                 return $result;
             }
@@ -378,7 +371,7 @@ abstract class RouteMap
                         $tmpheaders[] = array('index' => mb_strtolower(trim($matches[1])), 'value' => trim($matches[2]));
                     }
                 } else {
-                    //noch zur letzten Zeile hinzuzählen
+                    //noch zur letzten Zeile hinzuzÃ¤hlen
                     end($tmpheaders);
                     $lastkey = key($tmpheaders);
                     $tmpheaders[$lastkey]['value'] .= " ".mb_substr($headline, 1);
@@ -525,7 +518,7 @@ abstract class RouteMap
     public function contentType($mime_type, $params = array())
     {
         if (!isset($params['charset'])) {
-            $params['charset'] = 'windows-1252';
+            $params['charset'] = 'utf-8';
         }
 
         if (mb_strpos($mime_type, 'charset') !== FALSE) {
@@ -852,6 +845,10 @@ abstract class RouteMap
     {
         $path = realpath($_path);
 
+        if (!file_exists($path)) {
+            $this->notFound('File to send does not exist');
+        }
+
         if (isset($opts['type'])) {
             $this->contentType($opts['type']);
         } else if (!isset($this->response['Content-Type'])) {
@@ -859,9 +856,9 @@ abstract class RouteMap
         }
 
         if ($opts['disposition'] === 'attachment' || isset($opts['filename'])) {
-            $this->response['Content-Disposition'] = 'attachment';
+            $this->response['Content-Disposition'] = 'attachment; ';
             $filename = $opts['filename'] ?: $path;
-            $this->response['Content-Disposition'] .= sprintf('; filename="%s"', basename($filename));
+            $this->response['Content-Disposition'] .= encode_header_parameter('filename', basename($filename));
         }
 
         elseif ($opts['disposition'] === 'inline') {
@@ -920,5 +917,92 @@ abstract class RouteMap
     public function urlf($addr_f, $format_params, $url_params = null)
     {
         return $this->url(vsprintf($addr_f, $format_params), $url_params);
+    }
+
+    /**
+     * Returns a list of all the routes this routemap provides.
+     *
+     * @param string $http_method Return only the routes for this specific
+     *                            http method (optional)
+     *
+     * @return array of all routes grouped by method
+     */
+    public function getRoutes($http_method = null)
+    {
+        $ref      = new \ReflectionClass($this);
+        $docblock = DocBlock::ofClass($this);
+        $class_conditions = $this->extractConditions($docblock);
+
+        // Create result array by creating an associative array from all
+        // supported methods as keys
+        $routes = array_fill_keys(Router::getSupportedMethods(), []);
+
+        // Restrict routes to given http method (if given)
+        if ($http_method !== null) {
+            $routes = [$http_method => []];
+        }
+
+        // Iterate through all methods of the routemap
+        foreach ($ref->getMethods() as $ref_method) {
+            // Not public? Not an api route!
+            if (!$ref_method->isPublic()) {
+                continue;
+            }
+
+            // Parse docblock
+            $docblock = DocBlock::ofMethod($ref_method->class, $ref_method->name);
+
+            // No docblock tags? Not an api route!
+            if (!$docblock->tags) {
+                continue;
+            }
+
+            // Any specific condition to consider?
+            $conditions = $this->extractConditions($docblock, $class_conditions);
+
+            // Iterate through all possible methods in order to identify
+            // any according docblock tags
+            foreach (array_keys($routes) as $http_method) {
+                if (!isset($docblock->tags[$http_method])) {
+                    continue;
+                }
+
+                // Route all defined method and uri template combinations to
+                // the according methods of the object.
+                foreach ($docblock->tags[$http_method] as $uri_template) {
+                    $routes[$http_method][$uri_template] = [
+                        'handler'     => [$this, $ref_method->name],
+                        'conditions'  => $conditions,
+                        'description' => $docblock->desc ?: false,
+                    ];
+                }
+            }
+        }
+
+        // Return all routes grouped or just the routes for the wanted method
+        return func_num_args() === 1
+             ? reset($routes)
+             : $routes;
+    }
+
+    /**
+     * Extracts defined conditions from a given docblock.
+     *
+     * @param DocBlock $docblock   DocBlock to examine
+     * @param Array    $conditions Optional array of already defined
+     *                             conditions to extend
+     * @return Array of all extracted conditions with the variable name
+     *         as key and pattern to match as value
+     */
+    protected function extractConditions($docblock, $conditions = array())
+    {
+        if (!empty($docblock->tags['condition'])) {
+            foreach ($docblock->tags['condition'] as $condition) {
+                list($var, $pattern) = explode(' ', $condition, 2);
+                $conditions[$var] = $pattern;
+            }
+        }
+
+        return $conditions;
     }
 }

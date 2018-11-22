@@ -48,9 +48,6 @@ class ExternConfig {
     var $range_id;
 
     function GetInstance ($range_id, $module_name, $config_id = '') {
-        
-    //  require_once($GLOBALS["RELATIVE_PATH_EXTERN"] . '/lib/ExternConfig' . ucfirst(mb_strtolower($GLOBALS['EXTERN_CONFIG_STORAGE_CONTAINER'])) . '.class.php');
-        
         $class_name = 'ExternConfig' . ucfirst(mb_strtolower($GLOBALS['EXTERN_CONFIG_STORAGE_CONTAINER']));
         $instance = new $class_name($range_id, $module_name, $config_id);
         return $instance;
@@ -152,7 +149,7 @@ class ExternConfig {
         if ($this->insertConfiguration()) {
             $this->store();
         } else {
-            echo MessageBox::error(_("Sie haben die maximale Anzahl an Konfigurationen für dieses Modul erreicht! Kopieren fehlgeschlagen!"));
+            echo MessageBox::error(_("Sie haben die maximale Anzahl an Konfigurationen fÃ¼r dieses Modul erreicht! Kopieren fehlgeschlagen!"));
             ExternModule::printError();
         }
     }
@@ -646,8 +643,9 @@ class ExternConfig {
     }
     
     function GetStandardConfiguration ($range_id, $type) {
+        // pick the first one if none is explicitly marked
         $query = "SELECT config_id FROM extern_config WHERE range_id = ? AND ";
-        $query .= "config_type = ? AND is_standard = 1";
+        $query .= "config_type = ? ORDER BY is_standard DESC, name";
         $params = array($range_id, $type);
         $state = DBManager::get()->prepare($query);
         $state->execute($params);
@@ -690,7 +688,7 @@ class ExternConfig {
             return true;
         }
         
-        throw new Exception(_("Sie verfügen nicht über ausreichend Rechte für diese Aktion."));
+        throw new Exception(_("Sie verfÃ¼gen nicht Ã¼ber ausreichend Rechte fÃ¼r diese Aktion."));
     }
     
 }

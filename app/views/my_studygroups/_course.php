@@ -2,10 +2,8 @@
     <tr>
         <td class="gruppe<?= $group['gruppe'] ?>"></td>
         <td>
-            <?=
-            CourseAvatar::getAvatar($group['seminar_id'])->is_customized()
-                ? CourseAvatar::getAvatar($group['seminar_id'])->getImageTag(Avatar::SMALL, tooltip2(htmlReady($group['name'])))
-                : Icon::create('studygroup', 'clickable', ['title' => htmlReady($group['name'])])->asImg(20) ?>
+            <?= CourseAvatar::getAvatar($group['seminar_id'])->getImageTag(Avatar::SMALL, tooltip2(htmlReady($group['name'])))
+            ?>
         </td>
         <td style="text-align: left">
             <a href="<?= URLHelper::getLink('seminar_main.php', array('auswahl' => $group['seminar_id'])) ?>"
@@ -13,10 +11,10 @@
                 <?= htmlReady($group['name']) ?>
             </a>
             <? if ($group['visible'] == 0) : ?>
-                <? $infotext = _("Versteckte Studiengruppen können über die Suchfunktionen nicht gefunden werden."); ?>
+                <? $infotext = _("Versteckte Studiengruppen kÃ¶nnen Ã¼ber die Suchfunktionen nicht gefunden werden."); ?>
                 <? $infotext .= " "; ?>
                 <? if (Config::get()->ALLOW_DOZENT_VISIBILITY) : ?>
-                    <? $infotext .= _("Um die Studiengruppe sichtbar zu machen, wählen Sie den Punkt \"Sichtbarkeit\" im Administrationsbereich der Veranstaltung."); ?>
+                    <? $infotext .= _("Um die Studiengruppe sichtbar zu machen, wÃ¤hlen Sie den Punkt \"Sichtbarkeit\" im Administrationsbereich der Veranstaltung."); ?>
                 <? else : ?>
                     <? $infotext .= _("Um die Studiengruppe sichtbar zu machen, wenden Sie sich an die Admins."); ?>
                 <? endif ?>
@@ -59,7 +57,7 @@
                 </a>
             <?
             else : ?>
-                <a href="<?= URLHelper::getLink('', array('auswahl' => $group['seminar_id'], 'cmd' => 'suppose_to_kill')) ?>">
+                <a href="<?= URLHelper::getLink("dispatch.php/my_courses/decline/{$group['seminar_id']}", ['cmd' => 'suppose_to_kill']) ?>">
                     <?= Icon::create('door-leave', 'inactive', ['title' => _("aus der Studiengruppe abmelden")])->asImg(20) ?>
                 </a>
             <? endif ?>

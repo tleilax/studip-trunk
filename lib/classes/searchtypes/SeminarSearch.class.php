@@ -9,7 +9,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest>, Suchi & Berg GmbH <info@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest>, Suchi & Berg GmbH <info@data-quest.de>
  * @copyright   2010 Stud.IP Core-Group
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
@@ -17,17 +17,6 @@
 
 class SeminarSearch extends SearchType
 {
-    private $styles = array(
-                    'name' => 'Name',
-                    'number-name' => "TRIM(CONCAT_WS(' ', VeranstaltungsNummer, Name))",
-                    'number-name-lecturer' => "CONCAT_WS(' ', TRIM(CONCAT_WS(' ', VeranstaltungsNummer, Name)), CONCAT('(', GROUP_CONCAT(Nachname ORDER BY position,Nachname SEPARATOR ', '),')'))"
-                    );
-    private $resultstyle;
-
-    function __construct($resultstyle = 'name')
-    {
-        $this->resultstyle = $resultstyle;
-    }
 
     /**
      * title of the search like "search for courses" or just "courses"
@@ -73,18 +62,21 @@ class SeminarSearch extends SearchType
          if (empty($result)) {
              return array();
          }
-         $style = $this->styles[$this->resultstyle] ?: $this->styles['name'];
 
-         $query = "SELECT s.Seminar_id, {$style}, Name
+         $query = "SELECT s.Seminar_id, CONCAT_WS(' ', s.VeranstaltungsNummer, s.name, CONCAT(' (', 
+            IF(s.duration_time = -1, CONCAT_WS(' - ', sem1.name, '" . _('unbegrenzt') . "'),
+                IF(s.duration_time != 0, CONCAT_WS(' - ', sem1.name, sem2.name), sem1.name)), ')')) AS Name
                    FROM seminare AS s
+                   JOIN `semester_data` sem1 ON (s.`start_time` = sem1.`beginn`)
+                        LEFT JOIN `semester_data` sem2 ON (s.`start_time` + s.`duration_time` = sem2.`beginn`)
                    LEFT JOIN seminar_user AS su ON (su.Seminar_id = s.Seminar_id AND su.status='dozent')
                    LEFT JOIN auth_user_md5 USING (user_id)
                    WHERE s.Seminar_id IN (?)
                    GROUP BY s.Seminar_id";
          if (Config::get()->IMPORTANT_SEMNUMBER) {
-             $query .= " ORDER BY s.VeranstaltungsNummer, s.Name";
+             $query .= " ORDER BY IFNULL(sem2.beginn, sem1.beginn) DESC, s.VeranstaltungsNummer, s.Name";
          } else {
-             $query .= " ORDER BY s.Name";
+             $query .= " ORDER BY IFNULL(sem2.beginn, sem1.beginn) DESC, s.Name";
          }
          $statement = DBManager::get()->prepare($query);
          $statement->execute(array(
@@ -103,6 +95,6 @@ class SeminarSearch extends SearchType
      */
     public function includePath()
     {
-        return __FILE__;
+        return studip_relative_path(__FILE__);
     }
 }

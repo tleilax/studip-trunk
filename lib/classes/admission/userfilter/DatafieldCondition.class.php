@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author      André Noack <noack@data-quest.de>
+ * @author      AndrÃ© Noack <noack@data-quest.de>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  */
@@ -24,7 +24,7 @@ class DatafieldCondition extends UserFilterField
         $ret = array();
         try {
             foreach (DataField::findBySQL("object_type='user' AND (object_class & (1|2|4|8) OR object_class IS NULL) AND is_userfilter = 1 ORDER BY priority") as $df) {
-                $ret[__CLASS__ . '_' . $df->id] = chr(160) . _("Datenfeld") . ': ' . $df->name;
+                $ret[__CLASS__ . '_' . $df->id] = utf8_encode(chr(160)) . _("Datenfeld") . ': ' . $df->name;
             }
         } catch (PDOException $e) {} //migration 128 chokes on this...
         return $ret;
@@ -36,7 +36,7 @@ class DatafieldCondition extends UserFilterField
     {
         $this->validCompareOperators = array(
             '>=' => _('mindestens'),
-            '<=' => _('höchstens'),
+            '<=' => _('hÃ¶chstens'),
             '=' => _('ist'),
             '!=' => _('ist nicht')
         );
@@ -62,7 +62,7 @@ class DatafieldCondition extends UserFilterField
             unset($this->validCompareOperators['!=']);
             $this->null_yields = 0;
         } else if ($typed_df instanceof DataFieldSelectboxEntry) {
-            list($valid_values, $is_assoc) = $typed_df->getParams();
+            list($valid_values, $is_assoc) = $typed_df->getParameters();
             if (!$is_assoc) {
                 $valid_values = array_combine($valid_values, $valid_values);
             }
@@ -92,7 +92,7 @@ class DatafieldCondition extends UserFilterField
         $select = "SELECT user_id FROM
                     auth_user_md5 LEFT JOIN
                   datafields_entries ON range_id = user_id AND datafield_id = ?
-                  WHERE IFNULL(content, ?)
+                  WHERE perms IN ('user','autor','tutor','dozent') AND IFNULL(content, ?)
                   " . $this->compareOperator . " ?";
         $users = $db->fetchFirst($select, array($this->datafield_id, $this->null_yields,$this->value));
         return $users;
@@ -110,7 +110,7 @@ class DatafieldCondition extends UserFilterField
         $result = DBManager::get()->fetchColumn(
             "SELECT content FROM datafields_entries
             WHERE datafield_id = ? AND range_id = ?", array($this->datafield_id, $userId));
-        return array(is_null($result) ? $this->null_yields : $result);
+        return array($result === null || $result === false ? $this->null_yields : $result);
     }
 
     /**

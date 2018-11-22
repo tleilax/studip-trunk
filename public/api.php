@@ -2,16 +2,16 @@
 
 /** @file
  *
- * Diese Datei stellt den Ausgangspunkt für alle Zugriffe auf die
+ * Diese Datei stellt den Ausgangspunkt fÃ¼r alle Zugriffe auf die
  * RESTful Web Services von Stud.IP dar.
- * Grob betrachtet läuft das Routings so ab:
+ * Grob betrachtet lÃ¤uft das Routings so ab:
  *
  * Ein HTTP-Request geht ein. Falls dort eine inkompatible Version der
  * REST-API verlangt wird, bricht das Skript ab. Die Authentifizierung
- * wird durchgeführt. Bei Erfolg wird die PATH_INFO und die HTTP
+ * wird durchgefÃ¼hrt. Bei Erfolg wird die PATH_INFO und die HTTP
  * Methode im Router verwendet, um die passende Funktion zu
  * finden. Der Router liefert in jedem Fall ein Response-Objekt
- * zurück, dass dann anschließende ausgegeben wird, d.h. die Header
+ * zurÃ¼ck, dass dann anschlieÃŸende ausgegeben wird, d.h. die Header
  * werden gesendet und dann das Ergebnis ausgegeben oder gestreamt.
  */
 
@@ -37,8 +37,7 @@ namespace RESTAPI {
 
         require 'lib/bootstrap-api.php';
 
-        $uri    = $_SERVER['PATH_INFO'];
-        $method = $_SERVER['REQUEST_METHOD'];
+        $uri = $_SERVER['PATH_INFO'];
 
         // Check version
         if (defined('RESTAPI\\VERSION') && preg_match('~^/v(\d+)~i', $uri, $match)) {
@@ -51,25 +50,13 @@ namespace RESTAPI {
             header('X-API-Version: ' . VERSION);
         }
 
-        // Preserve request body for php < 5.6
-        // The oauth library as well as the RouteMap access php://input
-        // which will fail until PHP >= 5.6 where it becomes reusable.
-        //
-        // @todo Remove this when Stud.IP requires PHP >= 5.6
-        // @see https://develop.studip.de/trac/ticket/6358
-        if (version_compare(phpversion(), '5.6', '<')) {
-            $request_body = file_get_contents('php://input');
-        } else {
-            $request_body = null;
-        }
-
         // Get router instance
         $router = Router::getInstance();
 
-        $user_id = setupAuth($router, $request_body);
+        $user_id = setupAuth($router);
 
         // Actual dispatch
-        $response = $router->dispatch($uri, $method, $request_body);
+        $response = $router->dispatch($uri);
 
         // Tear down
         if ($user_id) {
@@ -87,7 +74,7 @@ namespace RESTAPI {
         $status = trim($status);
         if (!headers_sent()) {
             if ($e->getCode() === 401) {
-                header('WWW-Authenticate: Basic realm="' . $GLOBALS['STUDIP_INSTALLATION_ID'] . '"');
+                header('WWW-Authenticate: Basic realm="' . Config::get()->STUDIP_INSTALLATION_ID . '"');
             }
             header($status, true, $e->getCode());
             echo $status;
@@ -96,10 +83,10 @@ namespace RESTAPI {
         }
     }
 
-    function setupAuth($router, $request_body)
+    function setupAuth($router)
     {
         // Detect consumer
-        $consumer = Consumer\Base::detectConsumer(null, null, $request_body);
+        $consumer = Consumer\Base::detectConsumer();
         if (!$consumer) {
             throw new RouterException(401, 'Unauthorized (no consumer)');
         }

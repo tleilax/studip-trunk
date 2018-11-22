@@ -1,16 +1,22 @@
 <?php use Studip\Button, Studip\LinkButton;?>
-<form action="<?= $controller->url_for('profilemodules/update', compact('username')) ?>" method="post">
+<form action="<?= $controller->url_for('profilemodules/update', compact('username')) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
+    <input name="uebernehmen" value="1" type="hidden">
     <table class="default nohover plus" id="profile_modules">
         <!-- <caption><?=_("Inhaltselemente")?></caption> -->
         <tbody>
 
 <?
     foreach ($sortedList as $category => $pluginlist) {
-        if ($_SESSION['profile_plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') continue;
-        if (isset($_SESSION['profile_plus']) && !$_SESSION['profile_plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') continue;
+        $visibility = "";
+        if ($_SESSION['profile_plus']['displaystyle'] != 'category' && $category != 'Funktionen von A-Z') {
+            $visibility = "invisible";
+        }
+        if (isset($_SESSION['profile_plus']) && !$_SESSION['profile_plus']['Kategorie'][$category] && $category != 'Funktionen von A-Z') {
+            $visibility = "invisible";
+        }
 ?>
-        <tr>
+        <tr class="<?= $visibility; ?>">
             <th colspan = 3>
                 <?= $category ?>
             </th>
@@ -22,16 +28,18 @@
             $info = $plugin->getMetadata();
             $pluginname = isset($info['displayname']) ? $info['displayname'] : $plugin->getPluginname();
             $URL = $plugin->getPluginURL();
+            $anchor = 'p_' . $plugin->getPluginId();
             //if(isset($info['complexity']) && isset($_SESSION['profile_plus']) && !$_SESSION['profile_plus']['Komplex'][$info['complexity']])continue;
     ?>
 
-        <tr class="<?= $pre_check != null ? ' quiet' : '' ?>">
+        <tr id="<?= htmlReady($anchor);?>" class="<?= $visibility; ?> <?= $pre_check != null ? ' quiet' : '' ?>">
             <td colspan = 3>
 
                 <div class="plus_basic">
 
                     <!-- checkbox -->
-                    <input type="checkbox" id="<?= $pluginname ?>" name="modules[]" value="<?= $plugin->getPluginId() ?>" <?= $val['activated'] ? 'checked' : '' ?>>
+                    <input type="checkbox" id="<?= $pluginname ?>" name="modules[]" value="<?= $plugin->getPluginId() ?>" <?= $val['activated'] ? 'checked' : '' ?>
+                    onClick="form.submit()">
 
                     <div class="element_header">
 
@@ -60,7 +68,7 @@
                             $border_color3 = isset($info['complexity']) && $info['complexity']>2 ? "hsl( 15, 100%, 45%)" : "hsl(0, 0%, 80%)";
 
                         ?>
-                        <div class="complexity" title="Komplexität: <?= $complexname ?>">
+                        <div class="complexity" title="KomplexitÃ¤t: <?= $complexname ?>">
                             <div class="complexity_element" style="background-color: <?= $color1?>; border-color: <?= $border_color1?>;"></div>
                             <div class="complexity_element" style="background-color: <?= $color2?>; border-color: <?= $border_color2?>;"></div>
                             <div class="complexity_element" style="background-color: <?= $color3?>; border-color: <?= $border_color3?>;"></div>
@@ -81,7 +89,7 @@
                             <? if (isset($info['descriptionshort'])) : ?>
                                 <? foreach (explode('\n', $info['descriptionshort']) as $descriptionshort) { ?>
                                     <?= htmlReady($descriptionshort) ?>
-                                <? } ?>   
+                                <? } ?>
                             <? endif ?>
                             <? if (!isset($info['descriptionshort'])) : ?>
                                 <? if (isset($info['summary'])) : ?>
@@ -91,11 +99,11 @@
                         </strong>
 
                     </div>
-                    
-                    <!-- inhaltlöschenbutton -->
-                    <? if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                    <? if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                         
+
+                    <!-- inhaltlÃ¶schenbutton -->
+                    <? if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte lÃ¶schen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
+                    <? if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte lÃ¶schen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
+
                 </div>
 
               <? if ($_SESSION['profile_plus']['View'] == 'openall' || !isset($_SESSION['profile_plus'])){?>
@@ -103,17 +111,17 @@
                 <div class="plus_expert">
 
                     <div class="screenshot_holder">
-                        <? if (isset($info['screenshot']) || isset($info['screenshots'])) : 
-                                if(isset($info['screenshots'])){      
+                        <? if (isset($info['screenshot']) || isset($info['screenshots'])) :
+                                if(isset($info['screenshots'])){
                                     $title = $info['screenshots']['pictures'][0]['title'];
-                                    $source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][0]['source'];                                   
+                                    $source = $info['screenshots']['path'].'/'.$info['screenshots']['pictures'][0]['source'];
                                 } else {
                                     $fileext = end(explode(".", $info['screenshot']));
                                     $title = str_replace("_"," ",basename($info['screenshot'], ".".$fileext));
                                     $source = $info['screenshot'];
                                 }
                                 ?>
-                                
+
                                 <a href="<?= $URL . "/" . $source ?>"
                                    data-lightbox="<?= $pluginname ?>" data-title="<?= $title ?>">
                                     <img class="big_thumb" src="<?= $URL . "/" . $source ?>"
@@ -132,8 +140,8 @@
                                             $counter = count($info['additionalscreenshots']);
                                             $cstart = 0;
                                         } ?>
-                                        
-                                        <? for ($i = $cstart; $i < $counter; $i++) { 
+
+                                        <? for ($i = $cstart; $i < $counter; $i++) {
 
                                             if (isset($info['screenshots'])){
                                                 $title = $info['screenshots']['pictures'][$i]['title'];
@@ -143,7 +151,7 @@
                                                 $title = str_replace("_"," ",basename($info['additionalscreenshots'][$i], ".".$fileext));
                                                 $source = $info['additionalscreenshots'][$i];
                                             }
-                                                                                    
+
                                              ?>
 
                                             <a href="<?= $URL . "/" . $source ?>"
@@ -165,10 +173,10 @@
 
                     <div class="descriptionbox">
 
-                        <!-- inhaltlöschenbutton -->
-                        <?// if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                        <?// if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte löschen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
-                            
+                        <!-- inhaltlÃ¶schenbutton -->
+                        <?// if ($val['type'] == 'plugin' && method_exists($plugin, 'deleteContent')) echo LinkButton::create(_('Inhalte lÃ¶schen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
+                        <?// if ($val['type'] == 'modul' && $studip_module instanceOf StudipModule && method_exists($studip_module, 'deleteContent')) echo LinkButton::create(_('Inhalte lÃ¶schen'), URLHelper::getURL("?deleteContent=true&name=" . $key), array('style' => 'float:right; z-index: 1;')); ?>
+
                         <!-- tags -->
                         <? if (isset($info['keywords'])) : ?>
                         <ul class="keywords">
@@ -183,7 +191,7 @@
                             <p class="longdesc">
                                 <?= htmlReady($descriptionlong) ?>
                             </p>
-                        <? } ?>   
+                        <? } ?>
                         <? endif ?>
 
                         <? if (!isset($info['descriptionlong'])) : ?>
@@ -223,9 +231,9 @@
 
         </tbody>
         <tfoot>
-            <tr>
-                <td colspan="3">
-                    <?= Studip\Button::createAccept(_('Übernehmen'), 'submit') ?>
+            <tr class="hidden-js">
+                <td align="center" colspan="3">
+                    <?= Button::create(_('An- / Ausschalten'), 'uebernehmen') ?>
                 </td>
             </tr>
         </tfoot>

@@ -9,7 +9,7 @@
 // StudipLitList.class.php
 //
 //
-// Copyright (c) 2003 André Noack <noack@data-quest.de>
+// Copyright (c) 2003 AndrÃ© Noack <noack@data-quest.de>
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -32,10 +32,10 @@
 * This class provides
 *
 * @access   public
-* @author   André Noack <noack@data-quest.de>
+* @author   AndrÃ© Noack <noack@data-quest.de>
 * @package
 */
-class StudipLitList extends TreeAbstract {
+class StudipLitList extends TreeAbstract implements PrivacyObject {
 
     var $format_default = "**{authors}** - {dc_title} - %%{published}%%";
     var $cat_element;
@@ -115,7 +115,7 @@ class StudipLitList extends TreeAbstract {
 
     function getVisibleListIds(){
         $ret = false;
-        $lists = $this->getKids('root');
+        $lists = $this->getKids('root') ?: [];
         for ($i = 0; $i < count($lists); ++$i){
             if ($this->tree_data[$lists[$i]]['visibility']){
                 $ret[] = $lists[$i];
@@ -208,10 +208,16 @@ class StudipLitList extends TreeAbstract {
             $this->view->params[] = $list_element_id;
             $rs = $this->view->get_query("view:LIT_UPD_LIST_CONTENT");
             if ($ar = $rs->affected_rows()){
-                $list_id = $rs->Record['list_id'];
-                $name = $rs->Record['short_name'];
+                $list_id  = $fields['list_id'] ?: $this->tree_data[$list_element_id]['parent_id'];
+                $name     = $this->tree_data[$list_element_id]['name'];
                 $range_id = (isset($fields['range_id'])) ? $fields['range_id'] : $this->range_id;
-                NotificationCenter::postNotification('LitListElementDidUpdate', array('list_id' => $list_id, 'name' => $name, 'range_id' =>  $range_id));
+
+                NotificationCenter::postNotification('LitListElementDidUpdate', array(
+                    'list_id'  => $list_id,
+                    'name'     => $name,
+                    'range_id' =>  $range_id
+                ));
+
                 $this->triggerListChdate($list_id);
             }
             return $ar;
@@ -230,12 +236,17 @@ class StudipLitList extends TreeAbstract {
             $this->view->params[] = (isset($fields['priority'])) ? $fields['priority'] : $this->tree_data[$list_element_id]['priority'];
             $this->view->params[] = $list_element_id;
             $rs = $this->view->get_query("view:LIT_INS_LIST_CONTENT");
-            if ($ar = $rs->affected_rows()){
-                $list_id = $rs->Record['list_id'];
-                $name = $rs->Record['short_name'];
+            if ($ar = $rs->affected_rows()) {
+                $list_id  = $fields['list_id'] ?: $this->tree_data[$list_element_id]['parent_id'];
                 $range_id = (isset($fields['range_id'])) ? $fields['range_id'] : $this->range_id;
-                NotificationCenter::postNotification('LitListElementDidInsert', array('list_id' => $list_id, 'name' => $name, 'range_id' =>  $range_id));
-                $this->triggerListChdate($list_id);
+
+                NotificationCenter::postNotification('LitListElementDidInsert', array(
+                    'list_id'  => $list_id,
+                    'name'     => '',
+                    'range_id' =>  $range_id
+                ));
+
+                $this->triggerListChdate($this->tree_data[$element_id]['parent_id']);
             }
             return $ar;
         } else {
@@ -247,11 +258,15 @@ class StudipLitList extends TreeAbstract {
         $this->view->params[] = $element_id;
         $rs = $this->view->get_query("view:LIT_DEL_LIST_CONTENT");
         if ($ar = $rs->affected_rows()){
-            $list_id = $rs->Record['list_id'];
-            $name = $rs->Record['short_name'];
-            $range_id = (isset($fields['range_id'])) ? $fields['range_id'] : $this->range_id;
-            NotificationCenter::postNotification('LitListElementDidDelete', array('list_id' => $list_id, 'name' => $name, 'range_id' =>  $range_id));
-            $this->triggerListChdate($this->tree_data[$element_id]['parent_id']);
+            $list_id = $this->tree_data[$element_id]['parent_id'];
+
+            NotificationCenter::postNotification('LitListElementDidDelete', array(
+                'list_id'  => $list_id,
+                'name'     => $this->tree_data[$element_id]['name'],
+                'range_id' =>  $this->range_id
+            ));
+
+            $this->triggerListChdate($list_id);
         }
         return $ar;
     }
@@ -267,7 +282,13 @@ class StudipLitList extends TreeAbstract {
             $this->view->params[] = (isset($fields['visibility'])) ? $fields['visibility'] : $this->tree_data[$list_id]['visibility'];
             $this->view->params[] = $list_id;
             $rs = $this->view->get_query("view:LIT_UPD_LIST");
-            NotificationCenter::postNotification('LitListDidUpdate', array('range_id' => $this->range_id ,'name' => $this->tree_data[$list_id]['name']));
+
+            NotificationCenter::postNotification('LitListDidUpdate', array(
+                'list_id'  => $list_id,
+                'range_id' => $this->range_id,
+                'name'     => $this->tree_data[$list_id]['name']
+            ));
+
             return $rs->affected_rows();
         } else {
             return false;
@@ -285,7 +306,13 @@ class StudipLitList extends TreeAbstract {
             $this->view->params[] = (isset($fields['visibility'])) ? $fields['visibility'] : (int)$this->tree_data[$list_id]['visibility'];
             $this->view->params[] = $list_id;
             $rs = $this->view->get_query("view:LIT_INS_LIST");
-            NotificationCenter::postNotification('LitListDidCreate', array('range_id' => $this->range_id ,'name' => $this->tree_data[$list_id]['name']));
+
+            NotificationCenter::postNotification('LitListDidCreate', array(
+                'list_id'  => $list_id,
+                'range_id' => $this->range_id,
+                'name'     => $fields['name']
+            ));
+
             return $rs->affected_rows();
         } else {
             return false;
@@ -300,7 +327,13 @@ class StudipLitList extends TreeAbstract {
         $this->view->params[] = array($list_id);
         $rs = $this->view->get_query("view:LIT_DEL_LIST_CONTENT_ALL");
         $deleted += $rs->affected_rows();
-        NotificationCenter::postNotification('LitListDidDelete', array('list_id' => $list_id, 'range_id' => $this->range_id, 'name' => $this->tree_data[$list_id]['name']));
+
+        NotificationCenter::postNotification('LitListDidDelete', array(
+            'list_id'  => $list_id,
+            'range_id' => $this->range_id,
+            'name'     => $this->tree_data[$list_id]['name']
+        ));
+
         return $deleted;
     }
 
@@ -392,7 +425,7 @@ class StudipLitList extends TreeAbstract {
                 if ( ($tree->tree_data[$lists[$i]]['user_id'] != $GLOBALS['auth']->auth['uid'])
                 && ($last_modified_since !== false)
                 && ($tree->tree_data[$lists[$i]]['chdate'] > $last_modified_since) ){
-                    $ret .= '<div align="left" style="color:red" title="' . htmlReady(sprintf(_("Letzte Änderung am %s von %s"),
+                    $ret .= '<div align="left" style="color:red" title="' . htmlReady(sprintf(_("Letzte Ã„nderung am %s von %s"),
                     date('d M Y H:i',$tree->tree_data[$lists[$i]]['chdate']),
                     $tree->tree_data[$lists[$i]]['fullname'])) . '">';
                     $ret .=  "<b><u>" . htmlReady($tree->tree_data[$lists[$i]]['name']) . "</u></b>\n<br>\n";
@@ -415,7 +448,7 @@ class StudipLitList extends TreeAbstract {
                         if ( ($tree->tree_data[$rs->f('list_element_id')]['user_id'] != $GLOBALS['auth']->auth['uid'])
                         && ($last_modified_since !== false)
                         && ($tree->tree_data[$rs->f('list_element_id')]['chdate'] > $last_modified_since) ){
-                            $ret .= '<li style="color:red" title="' . htmlReady(sprintf(_("Letzte Änderung am %s von %s"),
+                            $ret .= '<li style="color:red" title="' . htmlReady(sprintf(_("Letzte Ã„nderung am %s von %s"),
                             date('d M Y H:i',$tree->tree_data[$rs->f('list_element_id')]['chdate']),
                             $tree->tree_data[$rs->f('list_element_id')]['fullname'])) . '">';
                             $ret .=  formatReady($tree->getFormattedEntry($rs->f('list_element_id'), $rs->Record), false, true) . "\n<br>\n";
@@ -429,6 +462,28 @@ class StudipLitList extends TreeAbstract {
             }
         }
         return $ret;
+    }
+
+    /**
+     * Return a storage object (an instance of the StoredUserData class)
+     * enriched with the available data of a given user.
+     *
+     * @param User $user User object to acquire data for
+     * @return array of StoredUserData objects
+     */
+    public static function getUserdata(User $user)
+    {
+        $storage = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM lit_list WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage->addTabularData('lit_list', $field_data, $user);
+        }
+        $storage2 = new StoredUserData($user);
+        $field_data = DBManager::get()->fetchAll("SELECT * FROM lit_list_content WHERE user_id = ?", [$user->user_id]);
+        if ($field_data) {
+            $storage2->addTabularData('lit_list_content', $field_data, $user);
+        }
+        return [_('Literaturlisten') => $storage, _('Literaturlisten Inhalte') => $storage2];
     }
 }
 ?>

@@ -2,8 +2,8 @@
         $subject="Account deletion in the Stud.IP-System";
         
         $mailbody="This is a Stud.IP system information mail\n"
-        ."(Studienbegleitender Internetsupport von Präsenzlehre)\n"
-        ."- " . $GLOBALS['UNI_NAME_CLEAN'] . " -\n\n"
+        ."(Studienbegleitender Internetsupport von PrÃ¤senzlehre)\n"
+        ."- " . Config::get()->UNI_NAME_CLEAN . " -\n\n"
         ."Your account\n\n"
         ."Username: " . $this->user_data['auth_user_md5.username'] . "\n"
         ."Status: " . $this->user_data['auth_user_md5.perms'] . "\n"

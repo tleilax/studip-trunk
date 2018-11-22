@@ -78,9 +78,9 @@ if (!is_array($stat)) {
     $stat['num_registered_users'] = User::countBySQL();
     $cache->write('LOGINFORM_STATISTICS', $stat, 3600);
 }
-$index_nobody_template->set_attributes(array_merge($stat,
-    ['num_online_users'     => get_users_online_count(10)] // Should be the same value as in lib/navigation/CommunityNavigation.php
-));
+$index_nobody_template->set_attributes(array_merge($stat, [
+    'num_online_users' => get_users_online_count(),
+]));
 
 if (Request::get('logout'))
 {
@@ -92,7 +92,7 @@ echo $index_nobody_template->render();
 
 $layout = $GLOBALS['template_factory']->open('shared/index_box');
 
-// Prüfen, ob PortalPlugins vorhanden sind.
+// PrÃ¼fen, ob PortalPlugins vorhanden sind.
 $portalplugins = PluginEngine::getPlugins('PortalPlugin');
 
 foreach ($portalplugins as $portalplugin) {

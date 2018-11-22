@@ -32,7 +32,7 @@
 // +---------------------------------------------------------------------------+
 
 
-require_once $GLOBALS['RELATIVE_PATH_EXTERN'] . '/views/extern_html_templates.inc.php';
+require_once 'lib/extern/views/extern_html_templates.inc.php';
 require_once 'lib/dates.inc.php';
 
 class ExternModuleTemplateSemBrowse extends ExternModule {
@@ -91,11 +91,11 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
         $this->elements['LinkInternLecturedetails']->link_module_type = array(4, 13);
         $this->elements['LinkInternPersondetails']->real_name = _("Verlinkung zum Modul MitarbeiterInnendetails");
         $this->elements['LinkInternPersondetails']->link_module_type = array(2, 14);
-        $this->elements['LinkInternSearchForm']->real_name = _("Ziel für Suchformular");
+        $this->elements['LinkInternSearchForm']->real_name = _("Ziel fÃ¼r Suchformular");
         $this->elements['LinkInternSearchForm']->link_module_type = array(15);
-        $this->elements['LinkInternTree']->real_name = _("Ziel für Links auf Ebenen");
+        $this->elements['LinkInternTree']->real_name = _("Ziel fÃ¼r Links auf Ebenen");
         $this->elements['LinkInternTree']->link_module_type = array(15);
-        $this->elements['LinkInternShowCourses']->real_name = _("Ziel für Links auf Ebenen zur Anzeige von Veranstaltungen");
+        $this->elements['LinkInternShowCourses']->real_name = _("Ziel fÃ¼r Links auf Ebenen zur Anzeige von Veranstaltungen");
         $this->elements['LinkInternShowCourses']->link_module_type = array(15);
         $this->elements['TemplateSimpleSearch']->real_name = _("Template einfaches Suchformular");
         $this->elements['TemplateExtendedSearch']->real_name = _("Template erweitertes Suchformular");
@@ -119,9 +119,10 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
     function getMarkerDescription ($element_name) {
         $markers['TemplateMain'] = array(
-            array('__GLOBAL__', _("Globale Variablen (gültig im gesamten Template).")),
+            array('__GLOBAL__', _("Globale Variablen (gÃ¼ltig im gesamten Template).")),
             array('###CURRENT_SEMESTER###', _("Name des aktuellen Semesters")),
             array('###CURRENT_LEVEL_NAME###', _("Name der aktuelllen Ebene")),
+            array('###CURRENT_LEVEL_ID###', _("ID der aktuellen Ebene")),
             array('###CURRENT_LEVEL_INFO###', _("Infotext zur aktuellen Ebene")),
             array('###TREE_LEVEL_NAME_x###', _("Name der Ebene an Stelle x des Pfades")),
             array('###TREE_LEVEL_ID_x###', _("Interne ID der Ebene an Stelle x des Pfades")),
@@ -141,28 +142,28 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
         $markers['TemplateSimpleSearch'] = array(
             array('<!-- BEGIN SEARCH_FORM -->', ''),
-            array('###SEARCHFORM_ACTION_SELECT_SEM###', _("URL zum ändern des Semesters, ohne eine Suche auszulösen")),
-            array('###SEARCHFORM_ACTION###', _("URL, um Suche auszulösen")),
-            array('###SELECT_FIELD###', _("Optionen für Suchfeld")),
-            array('###SELECT_SEMESTER', _("Optionen für Semesterauswahl")),
-            array('###INPUT_SEARCH_TERM###', _("Eingabefeld für Suchbegriff")),
-        //  array('###AJAX_AUTOCOMPLETE###', _("JavaScript für Autovervollständigen des Suchfeldes")),
-            array('###HREF_RESET_SEARCH###', _("Link, der das Suchformular zurücksetzt")),
+            array('###SEARCHFORM_ACTION_SELECT_SEM###', _("URL zum Ã¤ndern des Semesters, ohne eine Suche auszulÃ¶sen")),
+            array('###SEARCHFORM_ACTION###', _("URL, um Suche auszulÃ¶sen")),
+            array('###SELECT_FIELD###', _("Optionen fÃ¼r Suchfeld")),
+            array('###SELECT_SEMESTER', _("Optionen fÃ¼r Semesterauswahl")),
+            array('###INPUT_SEARCH_TERM###', _("Eingabefeld fÃ¼r Suchbegriff")),
+        //  array('###AJAX_AUTOCOMPLETE###', _("JavaScript fÃ¼r AutovervollstÃ¤ndigen des Suchfeldes")),
+            array('###HREF_RESET_SEARCH###', _("Link, der das Suchformular zurÃ¼cksetzt")),
             array('<!-- END SEARCH_FORM -->', ''));
 
         $markers['TemplateExtendedSearch'] = array(
             array('<!-- BEGIN SEARCH_FORM-->', ''),
             array('###SEARCHFORM_ACTION###', ''),
-            array('###INPUT_TITLE###', _("Eingabefeld für Titel")),
-            array('###INPUT_SUBTITLE###', _("Eingabefeld für Untertitel")),
-            array('###INPUT_NUMBER###', _("Eingabefeld für Veranstaltungsnummer")),
-            array('###INPUT_COMMENT###', _("Eingabefeld für Kommentar zur Veranstaltung")),
-            array('###INPUT_LECTURER###', _("Eingabefeld für Dozentenname")),
-            array('###INPUT_SUBJECTAREAS###', _("Eingabefeld für Studienbereich")),
-            array('###SELECT_TYPE###', _("Optionen für Veranstaltungstyp")),
-            array('###SELECT_SEMESTER###', _("Optionen für Semesterauswahl")),
-            array('###SELECT_COMBINATION###', _("Optionen für logische Verknüpfung")),
-            array('###HREF_RESET_SEARCH###', _("Link, der das Suchformular zurücksetzt")),
+            array('###INPUT_TITLE###', _("Eingabefeld fÃ¼r Titel")),
+            array('###INPUT_SUBTITLE###', _("Eingabefeld fÃ¼r Untertitel")),
+            array('###INPUT_NUMBER###', _("Eingabefeld fÃ¼r Veranstaltungsnummer")),
+            array('###INPUT_COMMENT###', _("Eingabefeld fÃ¼r Kommentar zur Veranstaltung")),
+            array('###INPUT_LECTURER###', _("Eingabefeld fÃ¼r Dozentenname")),
+            array('###INPUT_SUBJECTAREAS###', _("Eingabefeld fÃ¼r Studienbereich")),
+            array('###SELECT_TYPE###', _("Optionen fÃ¼r Veranstaltungstyp")),
+            array('###SELECT_SEMESTER###', _("Optionen fÃ¼r Semesterauswahl")),
+            array('###SELECT_COMBINATION###', _("Optionen fÃ¼r logische VerknÃ¼pfung")),
+            array('###HREF_RESET_SEARCH###', _("Link, der das Suchformular zurÃ¼cksetzt")),
             array('<!-- END SEARCH_FORM -->', ''));
 
         $markers['TemplateTree'] = array(
@@ -174,7 +175,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             array('###COURSES_LEVEL-HREF###', _("URL zur Liste mit allen Veranstaltungen der aktuellen Ebene")),
             array('###COURSE_COUNT_SUBLEVELS###', _("Anzahl der Veranstaltungen aller untergeordneten Ebenen")),
             array('###COURSES_SUBLEVELS-HREF###', _("URL zur Liste mit allen Veranstaltungen der untergeordneten Ebenen")),
-            array('###ONE_LEVEL_UP-HREF###', _("URL zur übergeordneten Ebene")),
+            array('###ONE_LEVEL_UP-HREF###', _("URL zur Ã¼bergeordneten Ebene")),
             array('###CURRENT_LEVEL_NAME###', _("Name des aktuellen Levels")),
             array('<!-- BEGIN LEVEL_TREE -->', ''),
             array('<!-- BEGIN LEVEL_PATH -->', _("Anfang des Bereichspfades")),
@@ -197,7 +198,8 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             array('###SUBLEVEL-HREF_x###', ''),
             array('###SUBLEVEL-HREF_SHOW_COURSES_x###', ''),
             array('###SUBLEVEL_NAME_x###', ''),
-            array('###SUBLEVEL_COURSE_COUNT_x###', _("Anzahl der Veranstaltungen in der Ebene x (einschließlich Unterebenen)")),
+            array('###SUBLEVEL_ID_x###', ''),
+            array('###SUBLEVEL_COURSE_COUNT_x###', _("Anzahl der Veranstaltungen in der Ebene x (einschlieÃŸlich Unterebenen)")),
             array('###SUBLEVEL_NO_x###', ''),
             array('###SUBLEVEL_INFO_x###', _("Weitere Informationen zur Ebene x")),
             array('<!-- BEGIN SUBLEVEL_NO_INFO_x -->', ''),
@@ -207,7 +209,8 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             array('###SUBLEVEL-HREF_x###', ''),
             array('###SUBLEVEL-HREF_SHOW_COURSES_x###', ''),
             array('###SUBLEVEL_NAME_x###', ''),
-            array('###SUBLEVEL_COURSE_COUNT_x###', _("Anzahl der Veranstaltungen in der Ebene x (einschließlich Unterebenen)")),
+            array('###SUBLEVEL_ID_x###', ''),
+            array('###SUBLEVEL_COURSE_COUNT_x###', _("Anzahl der Veranstaltungen in der Ebene x (einschlieÃŸlich Unterebenen)")),
             array('###SUBLEVEL_NO_x###', ''),
             array('<!-- END LINK_TO_COURSES_x -->', ''),
             array('<!-- END SUBLEVEL_x -->', ''),
@@ -215,16 +218,16 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             array('<!-- END LEVEL_TREE -->', ''));
 
         $markers['TemplateResult'] = array(
-            array('__GLOBAL__', _("Globale Variablen (gültig im gesamten Template).")),
+            array('__GLOBAL__', _("Globale Variablen (gÃ¼ltig im gesamten Template).")),
             array('###COURSES_COUNT###', _("Anzahl der Veranstaltungen in der Liste")),
-            array('###COURSES_SUBSTITUTE-GROUPED-BY###', _("Textersetzung für Gruppierungsart")),
+            array('###COURSES_SUBSTITUTE-GROUPED-BY###', _("Textersetzung fÃ¼r Gruppierungsart")),
             array('###COURSES_GROUPING###', _("Gruppierungsart")),
             array('###XLS_EXPORT-HREF###', _("URL zum Export der Veranstaltungsliste")),
-            array('###GROUP_BY_TYPE-HREF###', _("URL für Gruppierung nach Typ")),
-            array('###GROUP_BY_SEMESTER-HREF###', _("URL für Gruppierung nach Semester")),
-            array('###GROUP_BY_RANGE-HREF###', _("URL für Gruppierung nach Studienbereich")),
-            array('###GROUP_BY_LECTURER-HREF###', _("URL für Gruppierung nach Dozent")),
-            array('###GROUP_BY_INSTITUTE-HREF###', _("URL für Gruppierung nach Einrichtung")),
+            array('###GROUP_BY_TYPE-HREF###', _("URL fÃ¼r Gruppierung nach Typ")),
+            array('###GROUP_BY_SEMESTER-HREF###', _("URL fÃ¼r Gruppierung nach Semester")),
+            array('###GROUP_BY_RANGE-HREF###', _("URL fÃ¼r Gruppierung nach Studienbereich")),
+            array('###GROUP_BY_LECTURER-HREF###', _("URL fÃ¼r Gruppierung nach Dozent")),
+            array('###GROUP_BY_INSTITUTE-HREF###', _("URL fÃ¼r Gruppierung nach Einrichtung")),
             array('###CURRENT_RESULT_PAGE###', _("Nummer der Ergebnisseite der Suche")),
             array('###NUMBER_OF_RESULT_PAGES###', _("Anzahl der Ergenisseiten der Suche")),
             array('<!-- BEGIN NO_COURSES -->', _("Ausgabe, wenn keine Veranstaltungen gefunden wurden")),
@@ -234,8 +237,8 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             array('###GROUP_NAME###', ''),
             array('<!-- BEGIN NO_GROUP_NAME -->', _("Geben Sie einen Text ein, der Angezeigt wird, wenn Lehrveranstaltungen vorliegen, die keinem Bereich zugeordnet sind. Nur wirksam in Gruppierung nach Bereich.")),
             array('<!-- END NO_GROUP_NAME -->', ''),
-            array('###GROUP_INFO###', _("Info-Text für Studienbereiche. Wird nur angezeigt bei Gruppierung nach Bereich.")),
-            array('<!-- BEGIN NO_GROUP_INFO -->', _("Wird angezeigt, wenn kein Info-Text für Bereiche verfügbar ist. Nur bei Gruppierung nach Bereich.")),
+            array('###GROUP_INFO###', _("Info-Text fÃ¼r Studienbereiche. Wird nur angezeigt bei Gruppierung nach Bereich.")),
+            array('<!-- BEGIN NO_GROUP_INFO -->', _("Wird angezeigt, wenn kein Info-Text fÃ¼r Bereiche verfÃ¼gbar ist. Nur bei Gruppierung nach Bereich.")),
             array('<!-- END NO_GROUP_INFO -->', ''),
             array('###GROUP-NO###', _("Fortlaufende Gruppennummer")),
             array('<!-- BEGIN COURSE -->', ''),
@@ -360,15 +363,14 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             'show_result' => '0'
         );
 
-        // Daten aus config übernehmen
+        // Daten aus config Ã¼bernehmen
         $this->sem_browse_data['group_by'] = $this->config->getValue('Main', 'grouping');
 
         $level_change = $args['start_item_id'];
 
         $this->search_obj = new StudipSemSearchHelper(null, true);
 
-        $semester = new SemesterData();
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
         array_unshift($all_semester,0);
 
         $switch_time = mktime(0, 0, 0, date('m'), date('d') + 7 * $this->config->getValue('Main', 'semswitch'), date('Y'));
@@ -460,7 +462,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             $tmp_file = basename($this->createResultXls());
             if ($tmp_file) {
                 ob_end_clean();
-                header('Location: ' . getDownloadLink($tmp_file, _("ErgebnisVeranstaltungssuche.xls"), 4));
+                header('Location: ' . FileManager::getDownloadURLForTemporaryFile($tmp_file, _("ErgebnisVeranstaltungssuche.xls"), 4));
                 page_close();
                 die;
             }
@@ -623,18 +625,12 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
         $j = 0;
         if ($parents = $tree->getParents($this->sem_browse_data['start_item_id'])) {
             for ($i = count($parents) - 2; $i >= 0; --$i) {
-                /*
-                if ($tree->isModuleItem($parents[$i]) && $studienmodulmanagement = PluginEngine::getPlugin('StudienmodulManagement')) {
-                    $info = $studienmodulmanagement->getModuleDescription($parents[$i], SemesterData::GetSemesterIdByIndex($this->sem_browse_data['sem']));
+                if (trim($tree->tree_data[$parents[$i]]['info'])) {
+                    $info = kill_format(trim($tree->tree_data[$parents[$i]]['info']));
                 } else {
-                */
-                    if (trim($tree->tree_data[$parents[$i]]['info'])) {
-                        $info = kill_format(trim($tree->tree_data[$parents[$i]]['info']));
-                    } else {
-                        $info = '';
-                        $content['LEVEL_TREE']['LEVEL_PATH']['LEVEL_PATH_ITEM'][$j]['LEVEL_NO_INFO'] = true;
-                    }
-            //  }
+                    $info = '';
+                    $content['LEVEL_TREE']['LEVEL_PATH']['LEVEL_PATH_ITEM'][$j]['LEVEL_NO_INFO'] = true;
+                }
                 $content['LEVEL_TREE']['LEVEL_PATH']['LEVEL_PATH_ITEM'][$j] = array(
                         'LEVEL-HREF' => $this->getLinkToSelf(array('start_item_id' => $parents[$i], 'do_search' => '0', 'show_result' => (($parents[$i] == $this->getRootStartItemId()) ? '1' : '0')), true, 'LinkInternTree'),
                         'LEVEL_NAME' => ExternModule::ExtHtmlReady($tree->tree_data[$parents[$i]]['name']),
@@ -651,15 +647,10 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             }
             // set this as global marker in getContent()
             $this->global_markers['CURRENT_LEVEL_NAME'] = $tree->getValue($this->sem_browse_data['start_item_id'], 'name');
-            /*
-            if ($tree->isModuleItem($parents[$i]) && $studienmodulmanagement = PluginEngine::getPlugin('StudienmodulManagement')) {
-                $this->global_markers['CURRENT_LEVEL_NAME'] = $studienmodulmanagement->getModuleDescription($parents[$i], SemesterData::GetSemesterIdByIndex($this->sem_browse_data['sem']));
-            } else {
-            */
-                if (trim($tree->tree_data[$this->sem_browse_data['start_item_id']]['info'])) {
-                    $this->global_markers['CURRENT_LEVEL_INFO'] = ExternModule::ExtFormatReady($tree->tree_data[$this->sem_browse_data['start_item_id']]['info']);
-                }
-        //  }
+            $this->global_markers['CURRENT_LEVEL_ID'] = $this->sem_browse_data['start_item_id'];
+            if (trim($tree->tree_data[$this->sem_browse_data['start_item_id']]['info'])) {
+                $this->global_markers['CURRENT_LEVEL_INFO'] = ExternModule::ExtFormatReady($tree->tree_data[$this->sem_browse_data['start_item_id']]['info']);
+            }
         }
 
         $content['LEVEL_TREE']['LEVEL_PATH']['LEVEL_PATH_ITEM'][$j] = array(
@@ -670,6 +661,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
         $content['LEVEL_TREE']['SUBLEVELS_1'] = $this->getAllTreeLevelContent($tree, $this->sem_browse_data['start_item_id'], ($this->config->getValue('Main', 'countshowsublevels') ? $this->config->getValue('Main', 'countshowsublevels') : 0));
 
+        $content['__GLOBAL__'] = $this->global_markers;
         if ($tree->hasKids($this->sem_browse_data['start_item_id']) && ($num_entries = $tree->getNumEntries($this->sem_browse_data['start_item_id'], true))) {
             $content['__GLOBAL__']['COURSE_COUNT_SUBLEVELS'] = $num_entries;
             $content['__GLOBAL__']['COURSES_SUBLEVELS-HREF'] = $this->getLinkToSelf(array('start_item_id' => $this->sem_browse_data['start_item_id'], 'show_result' => '1', 'withkids' => '1', 'do_search' => '0'), true, 'LinkInternTree');
@@ -704,20 +696,15 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
             foreach ($kids as $kid) {
                 $num_entries = $tree->getNumEntries($kid, true);
                 if (!($this->config->getValue('Main', 'disableemptylevels') && $num_entries == 0)) {
-                    /*
-                    if ($tree->isModuleItem($kid) && $studienmodulmanagement = PluginEngine::getPlugin('StudienmodulManagement')) {
-                        $info = 'An dieser Stelle nicht verwendet';
+                    if (trim($tree->tree_data[$kid]['info'])) {
+                        $info = kill_format(trim($tree->tree_data[$kid]['info']));
                     } else {
-                    */
-                        if (trim($tree->tree_data[$kid]['info'])) {
-                            $info = kill_format(trim($tree->tree_data[$kid]['info']));
-                        } else {
-                            $info = '';
-                            $content['SUBLEVEL_' . $level][$count]['SUBLEVEL_NO_INFO_' . $level] = true;
-                        }
-                //  }
+                        $info = '';
+                        $content['SUBLEVEL_' . $level][$count]['SUBLEVEL_NO_INFO_' . $level] = true;
+                    }
                     $level_content = array(
                             'SUBLEVEL_NAME_' . $level => ExternModule::ExtHtmlReady($tree->tree_data[$kid]['name']),
+                            'SUBLEVEL_ID_' . $level => $kid,
                             'SUBLEVEL_COURSE_COUNT_' . $level => $num_entries,
                             'SUBLEVEL_NO_' . $level => $count + 1,
                             'SUBLEVEL_INFO_' . $level => $info
@@ -746,7 +733,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
     function getContentResult ($level_id = null) {
         global $_fullname_sql, $SEM_TYPE, $SEM_CLASS;
-        $content = null;
+        $content['__GLOBAL__'] = $this->global_markers;
         if (is_array($this->sem_browse_data['search_result']) && count($this->sem_browse_data['search_result'])) {
             list($group_by_data, $sem_data) = $this->getResult($level_id);
             if (count($sem_data)) {
@@ -760,7 +747,6 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
                 $content['__GLOBAL__']['GROUP_BY_RANGE-HREF'] = $this->getLinkToSelf(array('group_by' => '1'), true);
                 $content['__GLOBAL__']['GROUP_BY_LECTURER-HREF'] = $this->getLinkToSelf(array('group_by' => '2'), true);
                 $content['__GLOBAL__']['GROUP_BY_INSTITUTE-HREF'] = $this->getLinkToSelf(array('group_by' => '4'), true);
-                $content['__GLOBAL__'] = array_merge($content['__GLOBAL__'], $this->global_markers);
                 $j = 0;
                 $semester = SemesterData::GetSemesterArray();
                 foreach ($group_by_data as $group_field => $sem_ids) {
@@ -775,13 +761,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
                             if ($this->sem_tree->tree_data[$group_field]) {
                                 $range_path_level = $this->config->getValue('Main', 'rangepathlevel');
                                 $content['RESULT']['GROUP'][$j]['GROUP_NAME'] = ExternModule::ExtHtmlReady($this->sem_tree->getShortPath($group_field, NULL, '>', $range_path_level ? $range_path_level - 1 : 0));
-                                /*
-                                if ($this->sem_tree->isModuleItem($group_field) && $studienmodulmanagement = PluginEngine::getPlugin('StudienmodulManagement')) {
-                                    $content['RESULT']['GROUP'][$j]['GROUP_INFO'] = $studienmodulmanagement->getModuleDescription($group_field, SemesterData::GetSemesterIdByIndex($this->sem_browse_data['sem']));
-                                } else {
-                                */
-                                    $content['RESULT']['GROUP'][$j]['NO_GROUP_INFO'] = true;
-                            //  }
+                                $content['RESULT']['GROUP'][$j]['NO_GROUP_INFO'] = true;
                             } else {
                                 $content['RESULT']['GROUP'][$j]['NO_GROUP_NAME'] = true;
                             }
@@ -964,7 +944,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
     function getDates ($seminar_id, $start_time = 0, $end_time = 0) {
         $dow_array = array(_("So"), _("Mo"), _("Di"), _("Mi"), _("Do"), _("Fr"), _("Sa"));
-        $cycles_array = array(_("wöchentlich"), _("zweiwöchentlich"), _("dreiwöchentlich"));
+        $cycles_array = array(_("wÃ¶chentlich"), _("zweiwÃ¶chentlich"), _("dreiwÃ¶chentlich"));
 
         $cont = array();
         // irregular dates
@@ -1208,7 +1188,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
                 } else {
                     $name = mb_strtolower(key($sem_data[$seminar_id]["VeranstaltungsNummer"]));
                 }
-                $name = str_replace(array('ä', 'ö', 'ü'), array('ae', 'oe', 'ue'), $name);
+                $name = str_replace(array('Ã¤', 'Ã¶', 'Ã¼'), array('ae', 'oe', 'ue'), $name);
                 $group_by_data[$group_field]['Seminar_id'][$seminar_id] = $name;
             }
             uasort($group_by_data[$group_field]['Seminar_id'], 'strnatcmp');
@@ -1271,8 +1251,8 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
     }
 
     function printout ($args) {
-        if (!$language = $this->config->getValue("Main", "language"))
-            $language = "de_DE";
+            if (!$language = $this->config->getValue("Main", "language"))
+                    $language = "de_DE";
         init_i18n($language);
 
         echo $this->elements['TemplateMain']->toString(array('content' => $this->getContent(), 'subpart' => 'LECTURES'));
@@ -1280,8 +1260,8 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
     }
 
     function printoutPreview () {
-        if (!$language = $this->config->getValue("Main", "language"))
-            $language = "de_DE";
+            if (!$language = $this->config->getValue("Main", "language"))
+                    $language = "de_DE";
         init_i18n($language);
 
         echo $this->elements['TemplateMain']->toString(array('content' => $this->getContent(), 'subpart' => 'LECTURES', 'hide_markers' => FALSE));
@@ -1294,10 +1274,10 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
         }
         $db = DBManager::get();
         if ($this->config->getValue('Main', 'mode') == 'show_sem_range') {
-            $stmt = $db->prepare("SELECT sem_tree_id AS item_id FROM sem_tree WHERE studip_object_id = ? AND parent_id = 'root'");
-        } else {
-            $stmt = $db->prepare("SELECT item_id FROM range_tree WHERE studip_object_id = ? AND parent_id = 'root'");
-        }
+                    $stmt = $db->prepare("SELECT sem_tree_id AS item_id FROM sem_tree WHERE studip_object_id = ? AND parent_id = 'root'");
+                } else {
+                    $stmt = $db->prepare("SELECT item_id FROM range_tree WHERE studip_object_id = ? AND parent_id = 'root'");
+                }
         $stmt->execute(array($this->config->range_id));
         return $stmt->fetchColumn() ?: false;
     }
@@ -1310,11 +1290,12 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
         global $_fullname_sql, $SEM_TYPE, $SEM_CLASS, $TMP_PATH;
 
+        $headline = _("Stud.IP Veranstaltungen") . ' - ' . Config::get()->UNI_NAME_CLEAN;
         if (is_array($this->sem_browse_data['search_result']) && count($this->sem_browse_data['search_result'])) {
             if (!is_object($this->sem_tree)){
-                $the_tree = TreeAbstract::GetInstance("StudipSemTree");
+                $the_tree = TreeAbstract::GetInstance("StudipSemTree", false);
             } else {
-                $the_tree =& $this->sem_tree;
+                $the_tree = $this->sem_tree;
             }
             list($group_by_data, $sem_data) = $this->getResult();
             $tmpfile = $TMP_PATH . '/' . md5(uniqid('write_excel',1));
@@ -1355,13 +1336,13 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
 
             // Creating the first worksheet
-            $worksheet1 =& $workbook->addworksheet(_("Veranstaltungen"));
+            $worksheet1 = $workbook->addworksheet(_("Veranstaltungen"));
             $worksheet1->set_row(0, 20);
-            $worksheet1->write_string(0, 0, _("Stud.IP Veranstaltungen") . ' - ' . $GLOBALS['UNI_NAME_CLEAN'] ,$head_format);
+            $worksheet1->write_string(0, 0, mb_convert_encoding($headline, 'WINDOWS-1252') ,$head_format);
             $worksheet1->set_row(1, 20);
-            $worksheet1->write_string(1, 0, sprintf(_(" %s Veranstaltungen gefunden %s, Gruppierung: %s"),count($sem_data),
-                (($this->sem_browse_data['do_search']) ? _("(Suchergebnis)") : ''),
-                $this->group_by_fields[$this->sem_browse_data['group_by']]['name']), $caption_format);
+            $worksheet1->write_string(1, 0, mb_convert_encoding(sprintf(_(" %s Veranstaltungen gefunden %s, Gruppierung: %s"),count($sem_data),
+                (($this->sem_browse_data['sset']) ? _("(Suchergebnis)") : ""),
+                $this->group_by_fields[$this->sem_browse_data['group_by']]['name']), 'WINDOWS-1252'), $caption_format);
 
             $worksheet1->write_blank(0,1,$head_format);
             $worksheet1->write_blank(0,2,$head_format);
@@ -1403,7 +1384,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
 
                 }
                 ++$row;
-                $worksheet1->write_string($row, 0 , $headline, $caption_format);
+                $worksheet1->write_string($row, 0 , mb_convert_encoding($headline, 'WINDOWS-1252') , $caption_format);
                 $worksheet1->write_blank($row,1, $caption_format);
                 $worksheet1->write_blank($row,2, $caption_format);
                 $worksheet1->write_blank($row,3, $caption_format);
@@ -1421,23 +1402,41 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
                         } elseif ($this->sem_browse_data['group_by']) {
                             $sem_name .= ' (' . $semester[$sem_number_start]['name'] . ")";
                         }
-                        $worksheet1->write_string($row, 0, $sem_name, $data_format);
                         //create Turnus field
-                        $temp_turnus_string = Seminar::GetInstance($seminar_id)->getFormattedTurnus(true);
+                        $seminar_obj = new Seminar($seminar_id);
+                        // is this sem a studygroup?
+                        $studygroup_mode = SeminarCategories::GetByTypeId($seminar_obj->getStatus())->studygroup_mode;
+                        if ($studygroup_mode) {
+                            $sem_name = $seminar_obj->getName() . ' ('. _("Studiengruppe");
+                            if ($seminar_obj->admission_prelim) $sem_name .= ', '. _("Zutritt auf Anfrage");
+                            $sem_name .= ')';
+                        }
+                        $worksheet1->write_string($row, 0, mb_convert_encoding($sem_name, 'WINDOWS-1252'), $data_format);
+                        $temp_turnus_string = $seminar_obj->getFormattedTurnus(true);
                         //Shorten, if string too long (add link for details.php)
                         if (mb_strlen($temp_turnus_string) > 245) {
                             $temp_turnus_string = mb_substr($temp_turnus_string, 0, mb_strpos(mb_substr($temp_turnus_string, 245, mb_strlen($temp_turnus_string)), ",") + 246);
-                            $temp_turnus_string .= "...(mehr)";
+                            $temp_turnus_string .= " ... ("._("mehr").")";
                         }
-                        $worksheet1->write_string($row, 1, $seminar_number, $data_format);
-                        $worksheet1->write_string($row, 2, $temp_turnus_string, $data_format);
+                        $worksheet1->write_string($row, 1, mb_convert_encoding($seminar_number, 'WINDOWS-1252'), $data_format);
+                        $worksheet1->write_string($row, 2, mb_convert_encoding($temp_turnus_string, 'WINDOWS-1252'), $data_format);
 
-                        $doz_name = array_keys($sem_data[$seminar_id]['fullname']);
+                        $doz_name = array();
+                        $c = 0;
+                        reset($sem_data[$seminar_id]['fullname']);
+                        foreach($sem_data[$seminar_id]['username'] as $anzahl1){
+                            if($c == 0){
+                                list($d_name, $anzahl2) = each($sem_data[$seminar_id]['fullname']);
+                                $c = $anzahl2/$anzahl1;
+                                $doz_name = array_merge($doz_name, array_fill(0, $c, $d_name));
+                            }
+                            --$c;
+                        }
                         $doz_position = array_keys($sem_data[$seminar_id]['position']);
                         if (is_array($doz_name)){
                             if(count($doz_position) != count($doz_name)) $doz_position = range(1, count($doz_name));
                             array_multisort($doz_position, $doz_name);
-                            $worksheet1->write_string($row, 3, join(', ', $doz_name), $data_format);
+                            $worksheet1->write_string($row, 3, mb_convert_encoding(join(', ', $doz_name), 'WINDOWS-1252'), $data_format);
                         }
                         ++$row;
                     }
@@ -1456,7 +1455,7 @@ class ExternModuleTemplateSemBrowse extends ExternModule {
         if (is_array($data['regular']['turnus_data'])) {
             foreach ($data['regular']['turnus_data'] as $cycle_id => $cycle) {
                 $date[$i]['time'] = sprintf('%02d:%02d - %02d:%02d', $cycle['start_hour'], $cycle['start_minute'], $cycle['end_hour'], $cycle['end_minute']);
-                $date[$i]['interval'] = (empty($data['regular']['turnus']) ? '' : _("14-täglich"));
+                $date[$i]['interval'] = (empty($data['regular']['turnus']) ? '' : _("14-tÃ¤glich"));
                 if (Config::get()->RESOURCES_ENABLE) {
                     if ($room_ids = $seminar->metadate->cycles[$cycle_id]->getPredominantRoom($start, $end)) {
                         foreach ($room_ids as $room_id) {

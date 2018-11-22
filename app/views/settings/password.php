@@ -2,10 +2,10 @@
 
 <form id="edit_password" method="post" action="<?= $controller->url_for('settings/password/store') ?>" class="default">
     <?= CSRFProtection::tokenTag() ?>
-    <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
     <fieldset>
         <legend>
-            <?= _('Passwort ändern') ?>
+            <?= _('Passwort Ã¤ndern') ?>
         </legend>
         <label>
             <span class="required"><?= _('Aktuelles Passwort') ?></span>
@@ -13,16 +13,16 @@
         </label>
         <label>
             <span class="required"><?= _('Neues Passwort') ?></span>
-            <input required type="password" pattern=".{4,}"
+            <input required type="password" pattern=".{8,}"
                    id="new_password" name="new_password"
-                   data-message="<?= _('Das Passwort ist zu kurz - es sollte mindestens 4 Zeichen lang sein.') ?>">
+                   data-message="<?= _('Das Passwort ist zu kurz - es sollte mindestens 8 Zeichen lang sein.') ?>">
         </label>
         <label>
-            <span class="required"><?= _('Passwort bestätigen') ?></span>
-            <input required type="password" pattern=".{4,}"
+            <span class="required"><?= _('Passwort bestÃ¤tigen') ?></span>
+            <input required type="password" pattern=".{8,}"
                    id="new_password_confirm" name="new_password_confirm"
                    data-must-equal="#new_password">
         </label>
     </fieldset>
-    <footer><?= Button::create(_('Übernehmen'), 'store', ['title' => _('Änderungen übernehmen')]) ?></footer>
+    <footer><?= Button::create(_('Ãœbernehmen'), 'store', ['title' => _('Ã„nderungen Ã¼bernehmen')]) ?></footer>
 </form>

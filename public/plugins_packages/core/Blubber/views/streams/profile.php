@@ -53,5 +53,7 @@
 $sidebar = Sidebar::get();
 $sidebar->setImage("sidebar/blubber-sidebar");
 $sidebar->setContextAvatar(Avatar::getAvatar($user->getId()));
-URLHelper::addLinkParam('user_id', $user->getId());
+if ($user instanceof BlubberExternalContact) {
+    URLHelper::addLinkParam('user_id', $user->getId());
+}
 $controller->addTagCloudWidgetToSidebar($tags, 'profile');

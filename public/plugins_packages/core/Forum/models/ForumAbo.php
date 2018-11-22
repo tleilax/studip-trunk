@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 3 of
  * the License, or (at your option) any later version.
  *
- * @author      Till Glöggler <tgloeggl@uos.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
  * @license     http://www.gnu.org/licenses/gpl-3.0.html GPL version 3
  * @category    Stud.IP
  */
@@ -18,7 +18,7 @@ require_once('lib/messaging.inc.php');
 class ForumAbo
 {
     /**
-     * add the passed user as a watcher for the passed topic (including all 
+     * add the passed user as a watcher for the passed topic (including all
      * current and future childs)
      *
      * @param string $topic_id
@@ -85,14 +85,11 @@ class ForumAbo
         // get all parent topic-ids, to find out which users to notify
         $path = ForumEntry::getPathToPosting($topic_id);
 
-        // fetch all users to notify, exlcude current user and users which are not in the seminar any more
-        $stmt = $db->prepare("SELECT DISTINCT fau.user_id
-            FROM forum_abo_users fau
-                JOIN forum_entries fe USING (topic_id)
-                JOIN seminar_user su ON (su.seminar_id = fe.seminar_id AND su.user_id = fau.user_id)
+        // fetch all users to notify, exclude current user
+        $stmt = $db->prepare("SELECT DISTINCT user_id
+            FROM forum_abo_users
             WHERE topic_id IN (:topic_ids)
-                AND fau.user_id != :user_id");
-
+                AND user_id != :user_id");
         $stmt->bindParam(':topic_ids', array_keys($path), StudipPDO::PARAM_ARRAY);
         $stmt->bindParam(':user_id', $GLOBALS['user']->id);
         $stmt->execute();
@@ -107,13 +104,22 @@ class ForumAbo
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user_id = $data['user_id'];
 
-            // create subject and content
-            setTempLanguage(get_userid($user_id));
+            // don't notify user if view permission is not granted
+            if (!ForumPerm::has('view', $topic['seminar_id'], $user_id)) {
+                continue;
+            }
+
+            $user = User::find($user_id);
 
             // check if user wants an email for all or selected messages only
             $force_email = false;
             if ($messaging->user_wants_email($user_id)) {
                 $force_email = true;
+            }
+            // do not send mails when account is locked or expired
+            $expiration = UserConfig::get($user->id)->EXPIRATION_DATE;
+            if ($user->locked || ($expiration > 0 && $expiration < time())) {
+                $force_email = false;
             }
             $parent_id = ForumEntry::getParentTopicId($topic['topic_id']);
 
@@ -136,9 +142,7 @@ class ForumAbo
             if ($force_email) {
                 $title = implode(' >> ', ForumEntry::getFlatPathToPosting($topic_id));
 
-                $subject = addslashes(
-                    _('[Forum]') . ' ' . ($title ?: _('Neuer Beitrag'))
-                );
+                $subject = _('[Forum]') . ' ' . ($title ?: _('Neuer Beitrag'));
 
                 $htmlMessage = $template->render(
                     compact('user_id', 'topic', 'path')
@@ -146,17 +150,15 @@ class ForumAbo
 
                 $textMessage = trim(kill_format($htmlMessage));
 
-                $userWantsHtml = UserConfig::get($user_id)
-                    ->getValue('MAIL_AS_HTML');
+                $userWantsHtml = UserConfig::get($user_id)->MAIL_AS_HTML;
 
                 StudipMail::sendMessage(
-                    User::find($user_id)->email,
+                    $user->email,
                     $subject,
-                    addslashes($textMessage),
+                    $textMessage,
                     $userWantsHtml ? $htmlMessage : null
                 );
             }
-            restoreLanguage();
         }
 
         $messaging->bulkSend();

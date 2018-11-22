@@ -16,7 +16,7 @@
  * @author      Cornelis Kater <ckater@gwdg.de>
  * @author      Suchi & Berg GmbH <info@data-quest.de>
  * @author      Ralf Stockmann <rstockm@gwdg.de>
- * @author      André Noack <andre.noack@gmx.net>
+ * @author      AndrÃ© Noack <andre.noack@gmx.net>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category    Stud.IP
  * @access      public
@@ -30,7 +30,7 @@
 // functions.php
 // Stud.IP Kernfunktionen
 // Copyright (C) 2002 Cornelis Kater <ckater@gwdg.de>, Suchi & Berg GmbH <info@data-quest.de>,
-// Ralf Stockmann <rstockm@gwdg.de>, André Noack André Noack <andre.noack@gmx.net>
+// Ralf Stockmann <rstockm@gwdg.de>, AndrÃ© Noack AndrÃ© Noack <andre.noack@gmx.net>
 // +---------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -49,33 +49,6 @@
 
 require_once 'lib/object.inc.php';
 require_once 'lib/user_visible.inc.php';
-
-/**
- * This function creates the header line for studip-objects
- *
- * you will get a line like this "Veranstaltung: Name..."
- *
- * @param string $id          the id of the Veranstaltung
- * @param string $object_name the name of the object (optional)
- *
- * @return string  the header-line
- *
- */
-function getHeaderLine($id, $object_name = null)
-{
-    if(!$object_name){
-        $object_name = get_object_name($id, get_object_type($id));
-    }
-    $header_line = $object_name['type'];
-    if ($object_name['name']) $header_line.=": ";
-    if (mb_strlen($object_name['name']) > 60){
-            $header_line .= studip_substr($object_name['name'], 0, 60);
-            $header_line .= "... ";
-    } else {
-        $header_line .= $object_name['name'];
-    }
-    return $header_line;
-}
 
 /**
  * returns an array containing name and type of the passed objeact
@@ -142,186 +115,7 @@ function get_object_by_range_id($range_id) {
 }
 
 /**
- * This function "selects" a Veranstaltung to work with it
- *
- * The following variables will bet set:
- *   $SessionSeminar                 Veranstaltung id<br>
- *   $SessSemName[0]                 Veranstaltung name<br>
- *   $SessSemName[1]                 Veranstaltung id<br>
- *   $SessSemName[2]                 Veranstaltung ort (room)<br>
- *   $SessSemName[3]                 Veranstaltung Untertitel (subtitle)<br>
- *   $SessSemName[4]                 Veranstaltung start_time (the Semester start_time)<br>
- *   $SessSemName[5]                 Veranstaltung institut_id (the home-intitute)<br>
- *   $SessSemName["art"]             Veranstaltung type in alphanumeric form<br>
- *   $SessSemName["art_num"]         Veranstaltung type in numeric form<br>
- *   $SessSemName["art_generic"]     Veranstaltung generic type in alhanumeric form (self description)<br>
- *   $SessSemName["class"]               Veranstaltung class (sem or inst, in this function always sem)<br>
- *   $SessSemName["header_line"]     the header-line to use on every page of the Veranstaltung<br>
- *
- * @param string $sem_id the id of the Veranstaltung
- *
- * @return boolean  true if successful
- *
- */
-function selectSem ($sem_id)
-{
-    global $perm, $SEM_TYPE, $SEM_TYPE_MISC_NAME, $SessionSeminar, $SessSemName, $SemUserStatus, $rechte, $auth;
-
-    closeObject();
-    $SessionSeminar = $sem_id;
-    $course = Course::findCurrent();
-    if ($course) {
-        $rechte = $perm->have_studip_perm("tutor", $course["Seminar_id"]);
-        if( !($SemUserStatus = $perm->get_studip_perm($course["Seminar_id"])) ){
-            $SemUserStatus = "nobody";
-            if ($course['lesezugriff'] > 0 || !get_config('ENABLE_FREE_ACCESS')) {
-                // redirect to login page if user is not logged in
-                $auth->login_if($auth->auth["uid"] == "nobody");
-                throw new AccessDeniedException();
-            }
-        }
-        $SessionSeminar = $course["Seminar_id"];
-        $SessSemName[0] = $course["Name"];
-        $SessSemName[1] = $course["Seminar_id"];
-        $SessSemName[3] = $course["Untertitel"];
-        $SessSemName[4] = $course["start_time"];
-        $SessSemName[5] = $course["Institut_id"];
-        $SessSemName["art_generic"] = _("Veranstaltung");
-        $SessSemName["class"] = "sem";
-        $SessSemName["art_num"] = $course["status"];
-        if ($SEM_TYPE[$row["status"]]["name"] == $SEM_TYPE_MISC_NAME) {
-            $SessSemName["art"] = _("Veranstaltung");
-        } else {
-            $SessSemName["art"] = $SEM_TYPE[$row["status"]]["name"];
-        }
-        $SessSemName["header_line"] = $course->getFullname();
-
-        $_SESSION['SessionSeminar'] =& $SessionSeminar;
-        $_SESSION['SessSemName'] =& $SessSemName;
-
-        URLHelper::addLinkParam('cid', $SessionSeminar);
-
-                // if the aux data is forced for this seminar forward all user that havent made an input to this site
-        if ($course["aux_lock_rule_forced"] && !$perm->have_studip_perm('tutor', $course["Seminar_id"]) && !in_array($_SERVER['PATH_INFO'], array('/course/members/additional_input', '/course/change_view'))) {
-            $statement = DBManager::get()->prepare("SELECT 1 FROM datafields_entries WHERE range_id = ? AND sec_range_id = ? LIMIT 1");
-            $statement->execute(array($GLOBALS['user']->id, $course["Seminar_id"]));
-            if (!$statement->rowCount()) {
-                header('location: ' . URLHelper::getURL('dispatch.php/course/members/additional_input'));
-                page_close();
-                die;
-            }
-        }
-
-        return true;
-    } else {
-        $SessionSeminar = null;
-        return false;
-    }
-}
-
-/**
- * This function "selects" an Einrichtung to work with it
- *
- * Note: Stud.IP treats Einrichtungen like Veranstaltungen, yu can see this
- * especially if you look at the variable names....
- *
- * The following variables will bet set:
- *   $SessionSeminar                 Einrichtung id<br>
- *   $SessSemName[0]                 Einrichtung name<br>
- *   $SessSemName[1]                 Einrichtung id<br>
- *   $SessSemName["art"]             Einrichtung type in alphanumeric form<br>
- *   $SessSemName["art_num"]         Einrichtung type in numeric form<br>
- *   $SessSemName["art_generic"]     Einrichtung generic type in alhanumeric form (self description)<br>
- *   $SessSemName["class"]               Einrichtung class (sem or inst, in this function always inst)<br>
- *   $SessSemName["header_line"]     the header-line to use on every page of the Einrichtung<br>
- *
- * @param string $inst_id the id of the Veranstaltung
- *
- * @return boolean  true if successful
- *
- */
-function selectInst ($inst_id)
-{
-    global $SessionSeminar, $SessSemName, $INST_TYPE, $SemUserStatus, $rechte, $perm, $auth;
-
-    closeObject();
-
-    if (!get_config('ENABLE_FREE_ACCESS') && !$perm->have_perm('user')) {
-        // redirect to login page if user is not logged in
-        $auth->login_if($auth->auth["uid"] == "nobody");
-        throw new AccessDeniedException();
-    }
-
-    $SessionSeminar = $inst_id;
-    $institute = Institute::findCurrent();
-    if ($institute) {
-        if ( !($SemUserStatus = $perm->get_studip_perm($institute["Institut_id"])) ) {
-            $SemUserStatus = 'nobody';
-        }
-        $rechte = $perm->have_studip_perm("tutor", $institute["Institut_id"]);
-        $SessionSeminar = $institute["Institut_id"];
-        $SessSemName[0] = $institute["Name"];
-        $SessSemName[1] = $institute["Institut_id"];
-        $SessSemName["art_generic"] = _("Einrichtung");
-        $SessSemName["art"] = $INST_TYPE[$row["type"]]["name"];
-        if (!$SessSemName["art"]) {
-            $SessSemName["art"] = $SessSemName["art_generic"];
-        }
-        $SessSemName["class"] = "inst";
-        $SessSemName["is_fak"] = $institute["is_fak"];
-        $SessSemName["art_num"] = $institute["type"];
-        $SessSemName["fak"] = $institute["fakultaets_id"];
-        $SessSemName["header_line"] = $institute->getFullname();
-
-        $_SESSION['SessionSeminar'] =& $SessionSeminar;
-        $_SESSION['SessSemName'] =& $SessSemName;
-
-        URLHelper::addLinkParam('cid', $SessionSeminar);
-        return true;
-    } else {
-        $SessionSeminar = null;
-        return false;
-    }
-}
-
-/**
- * This function "opens" a course to work with it. Does the same
- * as selectSem() but also sets the visit date.
- *
- * @param string $sem_id the id of the course
- *
- * @return boolean  true if successful
- */
-function openSem ($sem_id)
-{
-    if (($result = selectSem($sem_id))) {
-        object_set_visit($sem_id, "sem");
-    }
-
-    return $result;
-}
-
-/**
- * This function "opens" an institute to work with it. Does the same
- * as selectInst() but also sets the visit date.
- *
- * @param string $inst_id the id of the institute
- *
- * @return boolean  true if successful
- */
-function openInst ($inst_id)
-{
-    if (($result = selectInst($inst_id))) {
-        object_set_visit($inst_id, "inst");
-    }
-
-    return $result;
-}
-
-/**
  * This function checks, if there is an open Veranstaltung or Einrichtung
- *
- * @global array $SessSemName
  *
  * @throws CheckObjectException
  *
@@ -329,10 +123,8 @@ function openInst ($inst_id)
  */
 function checkObject()
 {
-    global $SessSemName;
-
-    if ($SessSemName[1] == "") {
-        throw new CheckObjectException(_('Sie haben kein Objekt gewählt.'));
+    if (!Context::get()) {
+        throw new CheckObjectException(_('Sie haben kein Objekt gewÃ¤hlt.'));
     }
 }
 
@@ -341,22 +133,18 @@ function checkObject()
  * This function checks, if given old style module "wiki","scm" (not "CoreWiki") etc.
  * is allowed in this stud.ip-object.
  *
- * @global array $SessSemName
- *
  * @param string $module the module to check for
  *
  * @return void
  */
 function checkObjectModule($module)
 {
-    global $SessSemName;
-
-    if ($SessSemName[1]) {
+    if ($context = Context::get()) {
         $modules = new Modules();
-        $local_modules = $modules->getLocalModules($SessSemName[1], $SessSemName['class']);
+        $local_modules = $modules->getLocalModules($context['id'], Context::getClass());
         $checkslot = $module;
-        if ($SessSemName['class'] == 'sem' && $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$SessSemName['art_num']]['class']]) {
-            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][$SessSemName['art_num']]['class']];
+        if (Context::isCourse() && $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][Context::getArtNum()]['class']]) {
+            $sem_class = $GLOBALS['SEM_CLASS'][$GLOBALS['SEM_TYPE'][Context::getArtNum()]['class']];
             $new_module_name = "Core".ucfirst($module);
             $mandatory = false;
             foreach (SemClass::getSlots() as $slot) {
@@ -368,8 +156,9 @@ function checkObjectModule($module)
                 }
             }
         }
+
         if (!$local_modules[$checkslot] && !$mandatory) {
-            throw new CheckObjectException(sprintf(_('Das Inhaltselement "%s" ist für dieses Objekt leider nicht verfügbar.'), ucfirst($module)));
+            throw new CheckObjectException(sprintf(_('Das Inhaltselement "%s" ist fÃ¼r dieses Objekt leider nicht verfÃ¼gbar.'), ucfirst($module)));
         }
     }
 }
@@ -377,32 +166,11 @@ function checkObjectModule($module)
 /**
  * This function closes a opened Veranstaltung or Einrichtung
  *
- * @global string  $SessionSeminar
- * @global array   $SessSemName
- * @global string  $SemSecLevelRead
- * @global string  $SemSecLevelWrite
- * @global string  $SemUserStatus
- * @global boolean $rechte
- * @global object  $sess
- *
  * @return void
  */
 function closeObject()
 {
-    global $SessionSeminar, $SessSemName, $SemSecLevelRead, $SemSecLevelWrite, $SemUserStatus, $rechte, $sess;
-
-    $SessionSeminar = null;
-    $SessSemName = array();
-    $SemSecLevelRead = null;
-    $SemSecLevelWrite = null;
-    $SemUserStatus = null;
-    $rechte = false;
-
-    unset($_SESSION['SessionSeminar']);
-    unset($_SESSION['SessSemName']);
-    unset($_SESSION['raumzeitFilter']);
-
-    URLHelper::removeLinkParam('cid');
+    Context::close();
 }
 
 /**
@@ -446,7 +214,7 @@ function get_object_type($id, $check_only = array())
         'date'       => "SELECT 1 FROM termine WHERE termin_id = ?",
         'user'       => "SELECT 1 FROM auth_user_md5 WHERE user_id = ?",
         'group'      => "SELECT 1 FROM statusgruppen WHERE statusgruppe_id = ?",
-        'dokument'   => "SELECT 1 FROM dokumente WHERE dokument_id = ?",
+        'dokument'   => "SELECT 1 FROM file_refs WHERE id = ?",
         'range_tree' => "SELECT 1 FROM range_tree WHERE item_id = ?",
     );
 
@@ -529,31 +297,11 @@ function my_substr($what, $start, $end)
     $what_length = mb_strlen($what);
     // adding 5 because: mb_strlen("[...]") == 5
     if ($what_length > $length + 5) {
-        $what=studip_substr($what, $start, round(($length / 3) * 2))."[...]".studip_substr($what, $what_length - round($length / 3), $what_length);
+        $what = mb_substr($what, $start, round(($length / 3) * 2))
+              . "[...]" . mb_substr($what, $what_length - round($length / 3), $what_length);
     }
     return $what;
 }
-
-/**
- * Returns permission for given range_id and user_id
- *
- * Function works for Veranstaltungen, Einrichtungen, Fakultaeten.
- * admins get status 'admin' if range_id is a seminar
- *
- * @deprecated  use $GLOBALS['perm']->get_studip_perm($range_id, $user_id)
- *
- * @param string $range_id an id a Veranstaltung, Einrichtung or Fakultaet
- * @param string $user_id  if omitted,current user_id is used
- *
- * @return string  the perm level
- */
-function get_perm($range_id, $user_id = "")
-{
-    global $perm;
-    $status = $perm->get_studip_perm($range_id,$user_id);
-    return (!$status) ? _("Fehler!") : $status;
-}
-
 
 /**
  * Retrieves the fullname for a given user_id
@@ -620,52 +368,6 @@ function get_fullname_from_uname($uname = "", $format = "full", $htmlready = fal
 }
 
 /**
- * Retrieves the Vorname for a given user_id
- *
- * @param string $user_id if omitted, current user_id is used
- *
- * @return string
- */
-function get_vorname($user_id = "")
-{
-    global $user;
-
-    if (!$user_id) {
-        $user_id = $user->id;
-    }
-
-    $query = "SELECT Vorname FROM auth_user_md5 WHERE user_id = ?";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($user_id));
-    $author = $statement->fetchColumn() ?: _('unbekannt');
-
-    return $author;
-}
-
-/**
- * Retrieves the Nachname for a given user_id
- *
- * @param string $user_id if omitted, current user_id is used
- *
- * @return string
- */
-function get_nachname($user_id = "")
-{
-    global $user;
-
-    if (!$user_id) {
-        $user_id = $user->id;
-    }
-
-    $query = "SELECT Nachname FROM auth_user_md5 WHERE user_id = ?";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($user_id));
-    $author = $statement->fetchColumn() ?: _('unbekannt');
-
-    return $author;
-}
-
-/**
  * Retrieves the username for a given user_id
  *
  * @global object $auth
@@ -729,28 +431,6 @@ function get_userid($username = "")
 
 
 /**
- * This function tracks user acces to several Data (only dokuments by now, to be extended)
- *
- * @param string $id          the id of the object to track
- * @param string $object_type the object type (optional)
- *
- * @return void
- */
-function TrackAccess ($id, $object_type = null)
-{
-    if (!$object_type){
-        $object_type = get_object_type($id, array('dokument'));
-    }
-    switch ($object_type) {         // what kind ob object shall we track
-        case "dokument":                // the object is a dokument, so downloads will be increased
-            $query = "UPDATE dokumente SET downloads = downloads + 1 WHERE dokument_id = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($id));
-            break;
-    }
-}
-
-/**
  * Return an array containing the nodes of the sem-tree-path
  *
  * @param string $seminar_id the seminar to get the path for
@@ -771,29 +451,6 @@ function get_sem_tree_path($seminar_id, $depth = false, $delimeter = ">")
     }
     return $ret;
 }
-
-/**
- * Return an array containing the nodes of the range-tree-path
- *
- * @param string $institut_id the institute to get the path for
- * @param int    $depth       the depth
- * @param string $delimeter   a string to separate the path parts
- *
- * @return array
- */
-function get_range_tree_path($institut_id, $depth = false, $delimeter = ">")
-{
-    $the_tree = TreeAbstract::GetInstance("StudipRangeTree");
-    $view = DbView::getView('sem_tree');
-    $ret = null;
-    $view->params[0] = $institut_id;
-    $rs = $view->get_query("view:TREE_ITEMS_OBJECT");
-    while ($rs->next_record()){
-        $ret[$rs->f('item_id')] = $the_tree->getShortPath($rs->f('item_id'), NULL, $delimeter, $depth ? $depth - 1 : 0);
-    }
-    return $ret;
-}
-
 
 /**
  * check_and_set_date
@@ -869,41 +526,6 @@ function get_config($key)
 }
 
 /**
- * get the lecturers and their order-positions in the passed seminar
- *
- * folgende Funktion ist nur notwendig, wenn die zu kopierende Veranstaltung nicht
- * vom Dozenten selbst, sondern vom Admin oder vom root kopiert wird (sonst wird
- * das Dozentenfeld leer gelassen, was ja keiner will...)
- *
- * @param string $seminar_id the seminar to get the lecturers from
- *
- * @return array  an array containing user_ids as key and positions as value
- */
-function get_seminar_dozent($seminar_id)
-{
-    $query = "SELECT user_id, position
-              FROM seminar_user
-              WHERE Seminar_id = ? AND status = 'dozent'
-              ORDER BY position";
-    $statement = DBManager::get()->prepare($query);
-    $result = $statement->execute(array($seminar_id));
-
-    if (!$result) {
-        echo 'Fehler bei DB-Abfrage in get_seminar_user!';
-        return 0;
-    }
-
-    $dozenten = $statement->fetchGrouped(PDO::FETCH_COLUMN);
-
-    if (empty($dozenten)) {
-        echo 'Fehler in get_seminar_dozent: Kein Dozent gefunden';
-        return 0;
-    }
-
-    return $dozenten;
-}
-
-/**
  * reset the order-positions for the lecturers in the passed seminar,
  * starting at the passed position
  *
@@ -957,72 +579,6 @@ function get_next_position($status, $seminar_id)
     $statement->execute(array($seminar_id, $status));
 
    return $statement->fetchColumn() ?: 0;
-}
-
-/**
- * get the tutors and their order-positions in the passed seminar
- *
- * @param string $seminar_id the seminar to get the tutors from
- *
- * @return array  an array containing user_ids as key and positions as value
- */
-function get_seminar_tutor($seminar_id)
-{
-    $query = "SELECT user_id, position
-              FROM seminar_user
-              WHERE Seminar_id = ? AND status = 'tutor'
-              ORDER BY position";
-    $statement = DBManager::get()->prepare($query);
-    $result = $statement->execute(array($seminar_id));
-
-    if (!$result) {
-        echo 'Fehler bei DB-Abfrage in get_seminar_user!';
-        return 0;
-    }
-
-    $tutoren = $statement->fetchGrouped(PDO::FETCH_COLUMN);
-
-    return empty($tutoren) ? null : $tutoren;
-}
-
-/**
- * return all sem_tree-entries for the passed seminar
- *
- * @param string $seminar_id the seminar
- *
- * @return array  a list of sem_tree_id's
- */
-function get_seminar_sem_tree_entries($seminar_id)
-{
-    $view = DbView::getView('sem_tree');
-    $ret = null;
-    $view->params[0] = $seminar_id;
-    $rs = $view->get_query("view:SEMINAR_SEM_TREE_GET_IDS");
-    while ($rs->next_record()){
-        $ret[] = $rs->f('sem_tree_id');
-    }
-    return $ret;
-}
-
-/**
- * return an array of all seminars for the passed user, containing
- * the name, id, makedate and sem-number.
- *
- * @param string $user_id the user's id
- *
- * @return array the user seminars as an array of four fields
- */
-function get_seminars_user($user_id)
-{
-    $query = "SELECT Seminar_id, Name, sem.mkdate, VeranstaltungsNummer AS va_nummer
-              FROM seminare AS sem
-              JOIN seminar_user USING (Seminar_id)
-              WHERE user_id = ?";
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($user_id));
-    $seminars = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-    return $seminars;
 }
 
 /**
@@ -1154,18 +710,17 @@ function get_users_online($active_time = 5, $name_format = 'full_rev')
  *
  * @return int
  */
-function get_users_online_count($active_time = 5)
+function get_users_online_count($active_time = 10)
 {
     $cache = StudipCacheFactory::getCache();
-    $online_count = $cache->read('online_count');
+    $online_count = $cache->read("online_count/{$active_time}");
     if ($online_count === false) {
         $query = "SELECT COUNT(*) FROM user_online
                   WHERE last_lifesign > ?";
         $statement = DBManager::get()->prepare($query);
         try {
-            $statement->execute(array(time() - $active_time * 60));
+            $statement->execute([time() - $active_time * 60]);
         } catch (PDOException $e) {
-            require_once 'lib/migrations/db_schema_version.php';
             $version = new DBSchemaVersion('studip');
             if ($version->get() < 98) {
                 Log::ALERT('get_users_online_count() failed. Check migration no. 98!');
@@ -1174,9 +729,9 @@ function get_users_online_count($active_time = 5)
             }
         }
         $online_count = $statement->fetchColumn();
-        $cache->write('online_count', $online_count, 180);
+        $cache->write("online_count/{$active_time}", $online_count, 180);
     }
-    if ($GLOBALS['user']->id && $GLOBALS['user']->id != 'nobody') {
+    if ($GLOBALS['user']->id && $GLOBALS['user']->id !== 'nobody') {
         --$online_count;
     }
     return $online_count > 0 ? $online_count : 0;
@@ -1490,74 +1045,9 @@ function format_help_url($keyword)
     preg_match('/^(\d+\.\d+)/', $GLOBALS['SOFTWARE_VERSION'], $v);
     $version = $v[0];
 
-    $help_query = sprintf('http://docs.studip.de/help/%s/%s/%s%s',
+    $help_query = sprintf('https://hilfe.studip.de/help/%s/%s/%s%s',
                           $version, $lang, $loc, $helppage);
     return $help_query;
-}
-
-/**
- * Remove slashes if magic quotes are enabled
- *
- * @param mixed $mixed string or array to strip slashes from
- *
- * @return mixed cleaned string or array
- */
-function remove_magic_quotes($mixed)
-{
-    if (get_magic_quotes_gpc()) {
-        if (is_array($mixed)) {
-            foreach ($mixed as $k => $v) {
-                $mixed[$k] = remove_magic_quotes($v);
-            }
-        }
-        else {
-            $mixed = stripslashes($mixed);
-        }
-    }
-    return $mixed;
-}
-
-/**
-  * Extracts an excerpt from the 'text' surrounding the 'phrase' with a number
-  * of characters on each side determined by 'radius'. If the phrase isn't
-  * found, null is returned.
-  * Ex: text_excerpt("hello my world", "my", 3) => "...lo my wo..."
-  *
-  * @param string  $text           the text to excerpt
-  * @param string  $phrase         the search phrase
-  * @param integer $radius         the radius around the phrase
-  * @param integer $length         the maximum length of the excerpt string
-  * @param string  $excerpt_string the excerpt string
-  *
-  * @return string
-*/
-function text_excerpt($text, $phrase, $radius = 100, $length = 200,
-                      $excerpt_string = '...')
-{
-  if ($text == '' || $phrase == '') {
-    return '';
-  }
-
-  $found_pos = mb_strpos(mb_strtolower($text), mb_strtolower($phrase));
-
-  if ($found_pos === FALSE) {
-    $start_pos = 0;
-  }
-  else {
-    $start_pos = max($found_pos - $radius, 0);
-  }
-
-  $end_pos = $start_pos + $length - mb_strlen($excerpt_string);
-  if ($start_pos !== 0) {
-    $end_pos -= mb_strlen($excerpt_string);
-  }
-
-  $end_pos = min($end_pos, mb_strlen($text));
-
-  $prefix = $start_pos > 0 ? $excerpt_string : '';
-  $postfix = $end_pos < mb_strlen($text) ? $excerpt_string : '';
-
-  return $prefix.mb_substr($text, $start_pos, $end_pos - $start_pos).$postfix;
 }
 
 /**
@@ -1573,32 +1063,31 @@ function words($string)
 }
 
 /**
- * Encodes a string or array from Stud.IP encoding (WINDOWS-1252/ISO-8859-1 with numeric HTML-ENTITIES) to UTF-8
+ * Does not encode anything anymore and just returns the data it received.
  *
- * @param mixed $data a string or an array with strings to encode in WINDOWS-1252/HTML-ENTITIES
+ * @deprecated
  *
- * @return string  the string in UTF-8
+ * @param mixed $data
+ *
+ * @return mixed unaltered input $data
  */
 function studip_utf8encode($data)
 {
-    if (is_array($data)) {
-        $new_data = array();
-        foreach ($data as $key => $value) {
-            $key = studip_utf8encode($key);
-            $new_data[$key] = studip_utf8encode($value);
-        }
-        return $new_data;
-    }
+    return $data;
+}
 
-    if (!preg_match('/[\200-\377]/', $data) && !preg_match("'&#[0-9]+;'", $data)) {
-        return $data;
-    } else {
-        return mb_decode_numericentity(
-            mb_convert_encoding($data,'UTF-8', 'WINDOWS-1252'),
-            array(0x100, 0xffff, 0, 0xffff),
-            'UTF-8'
-        );
-    }
+/**
+ * Does not decode anything anymore and just returns the data it received.
+ *
+ * @deprecated
+ *
+ * @param mixed $data
+ *
+ * @return mixed unaltered input $data
+ */
+function studip_utf8decode($data)
+{
+    return $data;
 }
 
 /**
@@ -1608,13 +1097,13 @@ function studip_utf8encode($data)
  *
  * @return string  the string in WINDOWS-1252/HTML-ENTITIES
  */
-function studip_utf8decode($data)
+function legacy_studip_utf8decode($data)
 {
     if (is_array($data)) {
         $new_data = array();
         foreach ($data as $key => $value) {
-            $key = studip_utf8decode($key);
-            $new_data[$key] = studip_utf8decode($value);
+            $key = legacy_studip_utf8decode($key);
+            $new_data[$key] = legacy_studip_utf8decode($value);
         }
         return $new_data;
     }
@@ -1680,7 +1169,6 @@ function studip_utf8decode($data)
 function studip_json_decode($json, $assoc = true, $depth = 512, $options = 0)
 {
     $data = json_decode($json, $assoc, $depth, $options);
-    $data = studip_utf8decode($data);
 
     return $data;
 }
@@ -1695,10 +1183,28 @@ function studip_json_decode($json, $assoc = true, $depth = 512, $options = 0)
  */
 function studip_json_encode($data, $options = 0)
 {
-    $data = studip_utf8encode($data);
     $json = json_encode($data, $options);
 
     return $json;
+}
+
+/**
+ * Encode an HTTP header parameter (e.g. filename for 'Content-Disposition').
+ *
+ * @param string $name  parameter name
+ * @param string $value parameter value
+ *
+ * @return string encoded header text (using RFC 2616 or 5987 encoding)
+ */
+function encode_header_parameter($name, $value)
+{
+    if (preg_match('/[\200-\377]/', $value)) {
+        // use RFC 5987 encoding (ext-parameter)
+        return $name . "*=UTF-8''" . rawurlencode($value);
+    } else {
+        // use RFC 2616 encoding (quoted-string)
+        return $name . '="' . addslashes($value) . '"';
+    }
 }
 
 /**
@@ -1706,7 +1212,6 @@ function studip_json_encode($data, $options = 0)
  * specified SEM_TYPE. Alternative titles can be defined in the config.inc.php.
  *
  * @global array $SEM_TYPE
- * @global array $SessSemName
  * @global array $DEFAULT_TITLE_FOR_STATUS
  *
  * @param string $type     status ('dozent', 'tutor', 'autor', 'user' or 'accepted')
@@ -1717,10 +1222,10 @@ function studip_json_encode($data, $options = 0)
  */
 function get_title_for_status($type, $count, $sem_type = NULL)
 {
-    global $SEM_TYPE, $SessSemName, $DEFAULT_TITLE_FOR_STATUS;
+    global $SEM_TYPE, $DEFAULT_TITLE_FOR_STATUS;
 
     if (is_null($sem_type)) {
-        $sem_type = $SessSemName['art_num'];
+        $sem_type = Context::getArtNum();
     }
 
     $atype = 'title_'.$type;
@@ -1734,44 +1239,6 @@ function get_title_for_status($type, $count, $sem_type = NULL)
     }
 
     return ngettext($title[0], $title[1], $count);
-}
-
-/**
- * Stud.IP encoding aware version of good ol' mb_substr(), treats numeric HTML-ENTITIES as one character
- * use only if really necessary
- *
- * @param string  $string string to shorten
- * @param integer $offset position to start with
- * @param integer $length maximum length
- *
- * @return string  the part of the string
- */
-function studip_substr($string, $offset, $length = false)
-{
-    if(!preg_match("'&#[0-9]+;'", $string)){
-        return mb_substr($string, $offset, $length);
-    }
-    $utf8string = studip_utf8encode($string);
-    if ($length === false) {
-        return studip_utf8decode(mb_substr($utf8string, $offset, mb_strlen($utf8string, 'UTF-8'), 'UTF-8'));
-    } else {
-        return studip_utf8decode(mb_substr($utf8string, $offset, $length, 'UTF-8'));
-    }
-}
-
-/**
- * Stud.IP encoding aware version of good ol' mb_strlen(), treats numeric HTML-ENTITIES as one character
- * use only if really necessary
- *
- * @param string $string the string to measure
- *
- * @return integer  the number of characters in string
- *
- * @deprecated
- */
-function studip_strlen($string)
-{
-    return mb_strlen($string);
 }
 
 /**
@@ -2164,4 +1631,204 @@ function strtosnakecase($string) {
 function count_table_rows($table) {
     $stat = DbManager::get()->fetchOne("SHOW TABLE STATUS LIKE ?", array($table));
     return (int)$stat['Rows'];
+}
+
+/**
+ * get the file path relative to the STUDIP_BASE_PATH
+ *
+ * @param string path of the file
+ * @return string relative path of the file
+ */
+function studip_relative_path($filepath)
+{
+    return str_replace($GLOBALS['STUDIP_BASE_PATH'] . '/', '', $filepath);
+}
+
+
+/**
+ * converts a given array to a csv format
+ *
+ * @param array $data the data to convert, each row should be an array
+ * @param string $filename full path to a file to write to, if omitted the csv content is returned
+ * @param array $caption assoc array with captions, is written to the first line, $data is filtered by keys
+ * @param string $delimiter sets the field delimiter (one character only)
+ * @param string $enclosure sets the field enclosure (one character only)
+ * @param string $eol sets the end of line format
+ * @return mixed if $filename is given the number of written bytes, else the csv content as string
+ */
+function array_to_csv($data, $filename = null, $caption = null, $delimiter = ';' , $enclosure = '"', $eol = "\r\n", $add_bom = true )
+{
+    $fp = fopen('php://temp', 'r+');
+    $fp2 = fopen('php://temp', 'r+');
+    if ($add_bom) {
+        fwrite($fp2, "\xEF\xBB\xBF");
+    }
+    if (is_array($caption)) {
+        fputcsv($fp, array_values($caption), $delimiter, $enclosure);
+        rewind($fp);
+        $csv = stream_get_contents($fp);
+        if ($eol != PHP_EOL) {
+            $csv = trim($csv);
+            $csv .= $eol;
+        }
+        fwrite($fp2, $csv);
+        ftruncate($fp, 0);
+        rewind($fp);
+    }
+    foreach ($data as $row) {
+        if (is_array($caption)) {
+            $fields = array();
+            foreach(array_keys($caption) as $fieldname) {
+                $fields[] = $row[$fieldname];
+            }
+        } else {
+            $fields = $row;
+        }
+        fputcsv($fp, $fields, $delimiter, $enclosure);
+        rewind($fp);
+        $csv = stream_get_contents($fp);
+        if ($eol != PHP_EOL) {
+            $csv = trim($csv);
+            $csv .= $eol;
+        }
+        fwrite($fp2, $csv);
+        ftruncate($fp, 0);
+        rewind($fp);
+    }
+    fclose($fp);
+    rewind($fp2);
+    if ($filename === null) {
+        return stream_get_contents($fp2);
+    } else {
+        return file_put_contents($filename, $fp2);
+    }
+}
+
+
+/**
+* Delete a file, or a folder and its contents
+*
+* @author      Aidan Lister <aidan@php.net>
+* @version     1.0
+* @param       string   $dirname    The directory to delete
+* @return      bool     Returns true on success, false on failure
+*/
+function rmdirr($dirname){
+    // Simple delete for a file
+    if (is_file($dirname)) {
+        return @unlink($dirname);
+    } else if (!is_dir($dirname)) {
+        return false;
+    }
+
+    // Loop through the folder
+    $dir = dir($dirname);
+    while (false !== ($entry = $dir->read())) {
+        // Skip pointers
+        if ($entry == '.' || $entry == '..') {
+            continue;
+        }
+
+        // Deep delete directories
+        if (is_dir("$dirname/$entry") && !is_link("$dirname/$entry")) {
+            rmdirr("$dirname/$entry");
+        } else {
+            @unlink("$dirname/$entry");
+        }
+    }
+    // Clean up
+    $dir->close();
+    return @rmdir($dirname);
+}
+
+
+/**
+ * Determines an appropriate MIME type for a file based on the
+ * extension of the file name.
+ *
+ * @param string $filename      file name to check
+ */
+function get_mime_type($filename)
+{
+    static $mime_types = array(
+        // archive types
+        'gz'   => 'application/x-gzip',
+        'tgz'  => 'application/x-gzip',
+        'bz2'  => 'application/x-bzip2',
+        'zip'  => 'application/zip',
+        // document types
+        'txt'  => 'text/plain',
+        'css'  => 'text/css',
+        'csv'  => 'text/csv',
+        'rtf'  => 'application/rtf',
+        'pdf'  => 'application/pdf',
+        'doc'  => 'application/msword',
+        'xls'  => 'application/ms-excel',
+        'ppt'  => 'application/ms-powerpoint',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'swf'  => 'application/x-shockwave-flash',
+        'odp'  => 'application/vnd.oasis.opendocument.presentation',
+        'ods'  => 'application/vnd.oasis.opendocument.spreadsheet',
+        'odt'  => 'application/vnd.oasis.opendocument.text',
+        // image types
+        'gif'  => 'image/gif',
+        'jpeg' => 'image/jpeg',
+        'jpg'  => 'image/jpeg',
+        'jpe'  => 'image/jpeg',
+        'png'  => 'image/png',
+        'bmp'  => 'image/x-ms-bmp',
+        // audio types
+        'mp3'  => 'audio/mp3',
+        'oga'  => 'audio/ogg',
+        'wav'  => 'audio/wave',
+        'ra'   => 'application/x-pn-realaudio',
+        'ram'  => 'application/x-pn-realaudio',
+        // video types
+        'mpeg' => 'video/mpeg',
+        'mpg'  => 'video/mpeg',
+        'mpe'  => 'video/mpeg',
+        'qt'   => 'video/quicktime',
+        'mov'  => 'video/quicktime',
+        'avi'  => 'video/x-msvideo',
+        'flv'  => 'video/x-flv',
+        'ogg'  => 'application/ogg',
+        'ogv'  => 'video/ogg',
+        'mp4'  => 'video/mp4',
+        'webm' => 'video/webm',
+    );
+
+    $extension = mb_strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+    if (isset($mime_types[$extension])) {
+        return $mime_types[$extension];
+    } else {
+        return 'application/octet-stream';
+    }
+}
+
+
+function readfile_chunked($filename, $start = null, $end = null) {
+    if (isset($start) && $start < $end) {
+        $chunksize = 1024 * 1024; // how many bytes per chunk
+        $bytes = 0;
+        $handle = fopen($filename, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+        fseek($handle, $start);
+        while (!feof($handle) && ($p = ftell($handle)) <= $end) {
+            if ($p + $chunksize > $end) {
+                $chunksize = $end - $p + 1;
+            }
+            $buffer = fread($handle, $chunksize);
+            $bytes += strlen($buffer);
+            echo $buffer;
+        }
+        fclose($handle);
+        return $bytes; // return num. bytes delivered like readfile() does.
+    } else {
+        return readfile($filename);
+    }
 }

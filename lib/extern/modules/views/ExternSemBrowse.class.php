@@ -5,9 +5,9 @@
 # Lifter010: TODO
 /**
 * ExternSemBrowse.class.php
-* 
-* 
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <pthienel@web.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -19,7 +19,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ExternSemBrowse.class.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -41,20 +41,19 @@
 require_once 'lib/dates.inc.php';
 
 class ExternSemBrowse extends SemBrowse {
-    
+
     var $module;
     var $config;
     var $sem_types_position;
-    
+
     function __construct(&$module, $start_item_id) {
-        
+
         global $SEM_TYPE,$SEM_CLASS;
         // prevent warnings if snapshot of database is empty
         ob_start();
-        $semester = new SemesterData;
-        $all_semester = $semester->getAllSemesterData();
+        $all_semester = SemesterData::getAllSemesterData();
         array_unshift($all_semester,0);
-        
+
         $this->group_by_fields = array( array('name' => _("Semester"), 'group_field' => 'sem_number'),
                                         array('name' => _("Bereich"), 'group_field' => 'bereich'),
                                         array('name' => _("Lehrende"), 'group_field' => 'fullname', 'unique_field' => 'username'),
@@ -66,7 +65,7 @@ class ExternSemBrowse extends SemBrowse {
         $this->sem_browse_data["group_by"] = $this->config->getValue("Main", "grouping");
         $this->sem_dates = $all_semester;
         $this->sem_dates[0] = array("name" => sprintf(_("vor dem %s"),$this->sem_dates[1]['name']));
-        
+
         // reorganize the $SEM_TYPE-array
         foreach ($SEM_CLASS as $key_class => $class) {
             $i = 0;
@@ -77,12 +76,12 @@ class ExternSemBrowse extends SemBrowse {
                 }
             }
         }
-        
+
         $switch_time = mktime(0, 0, 0, date("m"),
                 date("d") + 7 * $this->config->getValue("Main", "semswitch"), date("Y"));
         // get current semester
         $current_sem = get_sem_num($switch_time) + 1;
-        
+
         switch ($this->config->getValue("Main", "semstart")) {
             case "previous" :
                 if (isset($all_semester[$current_sem - 1]))
@@ -98,30 +97,30 @@ class ExternSemBrowse extends SemBrowse {
                 if (isset($all_semester[$this->config->getValue("Main", "semstart")]))
                     $current_sem = $this->config->getValue("Main", "semstart");
         }
-        
+
         $last_sem = $current_sem + $this->config->getValue("Main", "semrange");
         if ($last_sem < $current_sem)
             $last_sem = $current_sem;
         if (!isset($all_semester[$last_sem]))
             $last_sem = sizeof($all_semester);
-        
+
         for ($i = $last_sem; $i > $current_sem; $i--)
             $this->sem_number[] = $i - 1;
-        
+
         $semclasses = $this->config->getValue("Main", "semclasses");
         foreach ($SEM_TYPE as $key => $type) {
             if (in_array($type["class"], $semclasses))
                 $this->sem_browse_data['sem_status'][] = $key;
         }
 
-        $this->get_sem_range_tree($start_item_id, true);        
+        $this->get_sem_range_tree($start_item_id, true);
     }
-    
-    function print_result ($args) {
+
+    function print_result () {
         global $_fullname_sql,$SEM_TYPE,$SEM_CLASS;
 
         if (is_array($this->sem_browse_data['search_result']) && count($this->sem_browse_data['search_result'])) {
-            
+
             // show only selected subject areas
             $selected_ranges = $this->config->getValue('SelectSubjectAreas', 'subjectareasselected');
             if ($stid = Request::option('sem_tree_id')) {
@@ -143,7 +142,7 @@ class ExternSemBrowse extends SemBrowse {
             } else {
                 $sem_range_query = '';
             }
-            
+
             // show only selected SemTypes
             $selected_semtypes = $this->config->getValue('ReplaceTextSemType', 'visibility');
             if (Request::get('semstatus')) {
@@ -151,8 +150,9 @@ class ExternSemBrowse extends SemBrowse {
             }
             $sem_types_array = array();
             if (count($selected_semtypes)) {
-                for ($i = 0; $i < count($selected_semtypes); $i++) {
-                    if ($selected_semtypes[$i] == '1') {
+                //for ($i = 0; $i < count($selected_semtypes); $i++) {
+                foreach ($selected_semtypes as $i => $active) {
+                    if ($active == '1') {
                         $sem_types_array[] = $i + 1;
                     }
                 }
@@ -160,7 +160,7 @@ class ExternSemBrowse extends SemBrowse {
             } else {
                 $sem_types_query = '';
             }
-            
+
             if ($this->sem_browse_data['group_by'] == 1){
                 if (!is_object($this->sem_tree)){
                     $the_tree = TreeAbstract::GetInstance("StudipSemTree");
@@ -169,41 +169,44 @@ class ExternSemBrowse extends SemBrowse {
                 }
                 $the_tree->buildIndex();
             }
-            
+
             if (!$this->config->getValue("Main", "allseminars") && !Request::get('allseminars')) {
                 $sem_inst_query = " AND seminare.Institut_id='{$this->config->range_id}' ";
             }
             if (Request::option('aggregation')) {
                 $i = Institute::find($this->config->range_id);
                 $children = $i->sub_institutes->pluck('institut_id');
+                $children[] = $i->institut_id;
                 $sem_inst_query = " AND seminare.Institut_id IN ('".(implode("', '", $children))."')";
             }
 
             $dbv = DbView::getView('sem_tree');
-            
+
             if (!$nameformat = $this->config->getValue("Main", "nameformat"))
                 $nameformat = "no_title_short";
-            $query = "SELECT seminare.Seminar_id, seminare.status, seminare.Name  
+            $query = "SELECT seminare.Seminar_id, seminare.status, seminare.Name
                 , seminare.Institut_id, Institute.Name AS Institut,Institute.Institut_id,
                 seminar_sem_tree.sem_tree_id AS bereich, "
                 . $_fullname_sql[$nameformat]
                 . " AS fullname, auth_user_md5.username,
-                " . $dbv->sem_number_sql . " AS sem_number, " . $dbv->sem_number_end_sql . " AS sem_number_end, " . 
-            " seminar_user.position AS position " . 
-            " FROM seminare 
-                LEFT JOIN seminar_user ON (seminare.Seminar_id=seminar_user.Seminar_id AND seminar_user.status='dozent') 
-                LEFT JOIN auth_user_md5 USING (user_id) 
-                LEFT JOIN user_info USING (user_id) 
+                " . $dbv->sem_number_sql . " AS sem_number, " . $dbv->sem_number_end_sql . " AS sem_number_end, " .
+            " seminar_user.position AS position, seminare.parent_course, seminare.visible " .
+            " FROM seminare
+                LEFT JOIN seminar_user ON (seminare.Seminar_id=seminar_user.Seminar_id AND seminar_user.status='dozent')
+                LEFT JOIN auth_user_md5 USING (user_id)
+                LEFT JOIN user_info USING (user_id)
                 LEFT JOIN seminar_sem_tree ON (seminare.Seminar_id = seminar_sem_tree.seminar_id)
-                LEFT JOIN seminar_inst ON (seminare.Seminar_id = seminar_inst.Seminar_id) 
-                LEFT JOIN Institute ON (seminar_inst.institut_id = Institute.Institut_id) 
-                WHERE seminare.Seminar_id IN('" . join("','", array_keys($this->sem_browse_data['search_result']))
-                 . "')$sem_inst_query $sem_range_query $sem_types_query";
-            
+                LEFT JOIN seminar_inst ON (seminare.Seminar_id = seminar_inst.Seminar_id)
+                LEFT JOIN Institute ON (seminar_inst.institut_id = Institute.Institut_id)
+                WHERE (seminare.Seminar_id IN('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "')
+                    OR seminare.parent_course IN ('" . join("','", array_keys($this->sem_browse_data['search_result'])) . "'))
+                 $sem_inst_query $sem_range_query $sem_types_query";
+
             $db = new DB_Seminar($query);
             $snap = new DbSnapshot($db);
-            if (isset($args['group']) && $args['group'] >= 0 && $args['group'] < 5) {
-                $this->sem_browse_data['group_by'] = $args['group'];
+            $group = Request::int('group');
+            if (isset($group) && $group >= 0 && $group < 5) {
+                $this->sem_browse_data['group_by'] = $group;
             }
             $group_field = $this->group_by_fields[$this->sem_browse_data['group_by']]['group_field'];
             $data_fields[0] = "Seminar_id";
@@ -212,7 +215,7 @@ class ExternSemBrowse extends SemBrowse {
             }
             $group_by_data = $snap->getGroupedResult($group_field, $data_fields);
             $sem_data = $snap->getGroupedResult("Seminar_id");
-            
+
             if ($this->sem_browse_data['group_by'] == 0){
                 $group_by_duration = $snap->getGroupedResult("sem_number_end", array("sem_number","Seminar_id"));
                 foreach ($group_by_duration as $sem_number_end => $detail){
@@ -250,31 +253,31 @@ class ExternSemBrowse extends SemBrowse {
                     }
                 }
             }
-            
+
             foreach ($group_by_data as $group_field => $sem_ids){
                 foreach ($sem_ids['Seminar_id'] as $seminar_id => $foo){
                     $name = mb_strtolower(key($sem_data[$seminar_id]["Name"]));
-                    $name = str_replace("ä","ae",$name);
-                    $name = str_replace("ö","oe",$name);
-                    $name = str_replace("ü","ue",$name);
+                    $name = str_replace("Ã¤","ae",$name);
+                    $name = str_replace("Ã¶","oe",$name);
+                    $name = str_replace("Ã¼","ue",$name);
                     $group_by_data[$group_field]['Seminar_id'][$seminar_id] = $name;
                 }
                 uasort($group_by_data[$group_field]['Seminar_id'], 'strnatcmp');
             }
-            
+
             switch ($this->sem_browse_data["group_by"]){
                     case 0:
                     krsort($group_by_data, SORT_NUMERIC);
                     break;
-                    
+
                     case 1:
                     uksort($group_by_data, create_function('$a,$b',
                             '$the_tree = TreeAbstract::GetInstance("StudipSemTree");
                             return (int)($the_tree->tree_data[$a]["index"] - $the_tree->tree_data[$b]["index"]);
                             '));
-                            
+
                     break;
-                    
+
                     case 3:
                     if ($order = $this->module->config->getValue("ReplaceTextSemType", "order")) {
                         foreach ($order as $position) {
@@ -291,12 +294,12 @@ class ExternSemBrowse extends SemBrowse {
                                                 $SEM_TYPE[$b]["name"]." (". $SEM_CLASS[$SEM_TYPE[$b]["class"]]["name"].")");'));
                     }
                     break;
-                    
+
                     default:
                     uksort($group_by_data, 'strnatcasecmp');
                     break;
             }
-            
+
             $show_time = $this->config->getValue("Main", "time");
             $show_lecturer = $this->config->getValue("Main", "lecturer");
             if ($show_time && $show_lecturer) {
@@ -323,7 +326,8 @@ class ExternSemBrowse extends SemBrowse {
                 echo "\n<tr" . $this->config->getAttributes("InfoCountSem", "tr") . ">";
                 echo "<td" . $this->config->getAttributes("InfoCountSem", "td") . ">";
                 echo "<font" . $this->config->getAttributes("InfoCountSem", "font") . ">&nbsp;";
-                echo count($sem_data);
+                $visibles = array_filter($sem_data, function ($c) { return key($c['visible']) == 1; });
+                echo count($visibles);
                 echo $this->config->getValue("Main", "textlectures");
                 echo ", " . $this->config->getValue("Main", "textgrouping");
                 $group_by_name = $this->config->getValue("Main", "aliasesgrouping");
@@ -339,7 +343,7 @@ class ExternSemBrowse extends SemBrowse {
                         case 0:
                         echo $this->sem_dates[$group_field]['name'];
                         break;
-                        
+
                         case 1:
                         if ($the_tree->tree_data[$group_field]) {
                             $range_path_level = $this->config->getValue("Main", "rangepathlevel");
@@ -362,11 +366,11 @@ class ExternSemBrowse extends SemBrowse {
                             echo $this->config->getValue("Main", "textnogroups");
                         */
                         break;
-                        
+
                         case 2:
                         echo htmlReady($group_field);
                         break;
-                        
+
                         case 3:
                         $aliases_sem_type = $this->config->getValue("ReplaceTextSemType",
                                 "class_{$SEM_TYPE[$group_field]['class']}");
@@ -377,90 +381,159 @@ class ExternSemBrowse extends SemBrowse {
                                     ." (". $SEM_CLASS[$SEM_TYPE[$group_field]["class"]]["name"].")");
                         }
                         break;
-                        
+
                         case 4:
                         echo htmlReady($group_field);
                         break;
-                        
+
                     }
                     echo "</font></td></tr>";
                     if (is_array($sem_ids['Seminar_id'])) {
                         $zebra = 0;
+
+                        $group_sem_types = SemType::getGroupingSemTypes();
+
+                        $table_data = compact('zebra', 'colspan', 'show_time',
+                            'show_lecturer', 'td_time', 'td_lecturer', 'group_sem_types');
+
                         while (list($seminar_id,) = each($sem_ids['Seminar_id'])) {
-                            $sem_name = key($sem_data[$seminar_id]["Name"]);
-                            $sem_number_start = key($sem_data[$seminar_id]["sem_number"]);
-                            $sem_number_end = key($sem_data[$seminar_id]["sem_number_end"]);
-                            if ($sem_number_start != $sem_number_end){
-                                $sem_name .= " (" . $this->sem_dates[$sem_number_start]['name'] . " - ";
-                                $sem_name .= (($sem_number_end == -1) ? _("unbegrenzt") : $this->sem_dates[$sem_number_end]['name']) . ")";
-                            }
-                            echo "\n<tr" . $this->config->getAttributes("LecturesInnerTable", "tr").">";
-                            if ($zebra % 2 && $this->config->getValue("LecturesInnerTable", "td_bgcolor2_"))
-                                echo "<td width=\"100%\"".$this->config->getAttributes("LecturesInnerTable", "td", TRUE)."\">\n";
-                            else
-                                echo "<td width=\"100%\"".$this->config->getAttributes("LecturesInnerTable", "td")."\">\n";
-                            $zebra++;
-                            echo "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
-                            echo "<tr" . $this->config->getAttributes("LecturesInnerTable", "tr1") . ">";
-                            echo "<td$colspan" . $this->config->getAttributes("LecturesInnerTable", "td1") . ">";
-                            echo "<font" . $this->config->getAttributes("LecturesInnerTable", "font1") . ">";
-                            $sem_link["module"] = "Lecturedetails";
-                            $sem_link["link_args"] = "seminar_id=$seminar_id";
-                            $sem_link["content"] = htmlReady($sem_name);
-                            $this->module->elements["SemLink"]->printout($sem_link);
-                            echo "</font></td></tr>\n";
-                            //create Turnus field
-                            $temp_turnus_string = Seminar::GetInstance($seminar_id)->getDatesExport(array('show_room' => true));
-                            //Shorten, if string too long (add link for details.php)
-                            if (mb_strlen($temp_turnus_string) >70) {
-                                $temp_turnus_string = mb_substr($temp_turnus_string, 0, mb_strpos(mb_substr($temp_turnus_string, 70, mb_strlen($temp_turnus_string)), ',') +71);
-                                $temp_turnus_string .= '...';
-                            }
-                            if ($show_time || $show_lecturer) {
-                                echo "\n<tr" . $this->config->getAttributes('LecturesInnerTable', 'tr2') . '>';
-                                if ($show_time) {
-                                    echo "<td$td_time>";
-                                    echo '<font' . $this->config->getAttributes('LecturesInnerTable', 'font2') . '>';
-                                    echo $temp_turnus_string . "</font></td>\n";
-                                }
-                                if ($show_lecturer) {
-                                    echo "<td$td_lecturer>";
-                                    echo '<font' . $this->config->getAttributes('LecturesInnerTable', 'font2') . '>(';
-                                    $doz_position = array_keys($sem_data[$seminar_id]['position']);
-                                    $doz_name = array_keys($sem_data[$seminar_id]['fullname']);
-                                    $doz_uname = array_keys($sem_data[$seminar_id]['username']);
-                                    if (is_array($doz_name)){
-                                        $lecturer_link['module'] = 'Persondetails';
-                                        if(count($doz_position) != count($doz_uname)) $doz_position = range(1, count($doz_uname));
-                              array_multisort($doz_position, $doz_name, $doz_uname); 
-                                        $i = 0;
-                                        foreach ($doz_name as $index => $value) {
-                                            if ($i == 4) { 
-                                                echo '...';
-                                                break;
-                                            }
-                                            $lecturer_link['link_args'] = "username={$doz_uname[$index]}&seminar_id=$seminar_id";
-                                            $lecturer_link['content'] = htmlReady($value);
-                                            $this->module->elements['LecturerLink']->printout($lecturer_link);
-                                            if ($i != count($doz_name) - 1) {
-                                                echo ', ';
-                                            }
-                                            ++$i;
-                                        }
-                                        echo ') ';
-                                    }
-                                    echo '</font></td>';
-                                }
-                                echo '</tr>';
-                            }
-                            echo "</table></td></tr>\n";
+                            $this->printCourseRow($seminar_id, $sem_data, $table_data);
                         }
+
+                        echo '<script type="text/javascript">
+                            function toggleChildren(showhide) {
+                                var children = document.getElementsByName("child-course");
+
+                                var display = "none";
+                                if (showhide == "show") {
+                                    display = "block";
+                                }
+
+                                for (var i = 0 ; i < children.length ; i++) {
+                                    if (children[i].style.display == "") {
+                                        children[i].style.display = "none";
+                                    } else {
+                                        children[i].style.display = "";
+                                    }
+                                }
+                                return false;
+                            }
+                            window.onload = function() { toggleChildren(); };
+                            </script>';
                     }
                 }
             }
             echo "</table>";
         }
     }
-    
+
+    /**
+     * Generate output for a single course (including children, if applicable)
+     * @param string $seminar_id the course ID to show
+     * @param mixed $sem_data global data with all found courses
+     * @param bool $table_data some variables needed for displaying
+     * @param bool $child are we showing a child or a normal or parent course?
+     */
+    private function printCourseRow($seminar_id, &$sem_data, $table_data, $child = false)
+    {
+        /*
+         * Generate output only if parent course is not already present
+         * because the current course will be sorted there as a child.
+         */
+        if (!key($sem_data[$seminar_id]['parent_course']) || !$sem_data[key($sem_data[$seminar_id]['parent_course'])] || $child) {
+            extract($table_data);
+
+            $sem_name = key($sem_data[$seminar_id]["Name"]);
+            $sem_number_start = key($sem_data[$seminar_id]["sem_number"]);
+            $sem_number_end = key($sem_data[$seminar_id]["sem_number_end"]);
+            if ($sem_number_start != $sem_number_end) {
+                $sem_name .= " (" . $this->sem_dates[$sem_number_start]['name'] . " - ";
+                $sem_name .= (($sem_number_end == -1) ? _("unbegrenzt") : $this->sem_dates[$sem_number_end]['name']) . ")";
+            }
+            echo "\n<tr" . $this->config->getAttributes("LecturesInnerTable", "tr") . ($child ? ' name="child-course"' : '') . ">";
+            if ($zebra % 2 && $this->config->getValue("LecturesInnerTable", "td_bgcolor2_"))
+                echo "<td width=\"100%\"" . $this->config->getAttributes("LecturesInnerTable", "td", TRUE) . "\">\n";
+            else
+                echo "<td width=\"100%\"" . $this->config->getAttributes("LecturesInnerTable", "td") . "\">\n";
+            $zebra++;
+            echo "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n";
+            echo "<tr" . $this->config->getAttributes("LecturesInnerTable", "tr1") . ">";
+            echo "<td$colspan" . $this->config->getAttributes("LecturesInnerTable", "td1") . ">";
+            echo "<font" . $this->config->getAttributes("LecturesInnerTable", "font1") . ">";
+            $sem_link["module"] = "Lecturedetails";
+            $sem_link["link_args"] = "seminar_id=$seminar_id";
+            $sem_link["content"] = htmlReady($sem_name);
+            $this->module->elements["SemLink"]->printout($sem_link);
+            echo "</font>";
+            $children = array();
+            if (in_array(key($sem_data[$seminar_id]['status']), $table_data['group_sem_types'])) {
+                $children = array_filter(Course::findByParent_Course($seminar_id), function ($c) {
+                    return $c->visible == 1;
+                });
+                if (count($children) > 0) {
+                    echo '<br><a href="" onclick="return toggleChildren()">' .
+                        sprintf(
+                            ngettext('%s Unterveranstaltung', '%s Unterveranstaltungen', count($children)),
+                            count($children)) . '</a>';
+                }
+            }
+            echo "</td></tr>\n";
+            //create Turnus field
+            $temp_turnus_string = Seminar::GetInstance($seminar_id)->getDatesExport(array('show_room' => true));
+            //Shorten, if string too long (add link for details.php)
+            if (mb_strlen($temp_turnus_string) > 70) {
+                $temp_turnus_string = mb_substr($temp_turnus_string, 0,
+                    mb_strpos(mb_substr($temp_turnus_string, 70,
+                        mb_strlen($temp_turnus_string)), ',') + 71);
+                $temp_turnus_string .= '...';
+            }
+            if ($show_time || $show_lecturer) {
+                echo "\n<tr" . $this->config->getAttributes('LecturesInnerTable', 'tr2') . '>';
+                if ($show_time) {
+                    echo "<td$td_time>";
+                    echo '<font' . $this->config->getAttributes('LecturesInnerTable', 'font2') . '>';
+                    echo $temp_turnus_string . "</font></td>\n";
+                }
+                if ($show_lecturer) {
+                    echo "<td$td_lecturer>";
+                    echo '<font' . $this->config->getAttributes('LecturesInnerTable', 'font2') . '>(';
+                    $doz_position = array_keys($sem_data[$seminar_id]['position']);
+                    $doz_name = array_keys($sem_data[$seminar_id]['fullname']);
+                    $doz_uname = array_keys($sem_data[$seminar_id]['username']);
+                    if (is_array($doz_name)) {
+                        $lecturer_link['module'] = 'Persondetails';
+                        if (count($doz_position) != count($doz_uname)) $doz_position = range(1, count($doz_uname));
+                        array_multisort($doz_position, $doz_name, $doz_uname);
+                        $i = 0;
+                        foreach ($doz_name as $index => $value) {
+                            if ($i == 4) {
+                                echo '...';
+                                break;
+                            }
+                            $lecturer_link['link_args'] = "username={$doz_uname[$index]}&seminar_id=$seminar_id";
+                            $lecturer_link['content'] = htmlReady($value);
+                            $this->module->elements['LecturerLink']->printout($lecturer_link);
+                            if ($i != count($doz_name) - 1) {
+                                echo ', ';
+                            }
+                            ++$i;
+                        }
+                        echo ') ';
+                    }
+                    echo '</font></td>';
+                }
+                echo '</tr>';
+            }
+            echo "</table>";
+            echo "</td></tr>\n";
+
+            if (count($children) > 0) {
+                foreach ($children as $child) {
+                    $this->printCourseRow($child->id, $sem_data, $table_data, true);
+                }
+            }
+        }
+    }
+
 }
 ?>

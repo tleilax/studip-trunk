@@ -30,6 +30,8 @@ class StgteilabschnittModul extends ModuleManagementModelTreeItem
             'class_name' => 'StgteilAbschnitt',
             'foreign_key' => 'abschnitt_id'
         );
+        
+        $config['i18n_fields']['bezeichnung'] = true;
 
         parent::configure($config);
     }
@@ -50,12 +52,13 @@ class StgteilabschnittModul extends ModuleManagementModelTreeItem
             : _('Modul'));
     }
 
-    public function getDisplayName(/*$with_code = false*/)
+    public function getDisplayName($options = self::DISPLAY_DEFAULT)
     {
-        $args = func_get_args();
-        $with_code = array_key_exists(0, $args)? $args[0] : false;
+        $options = ($options !== self::DISPLAY_DEFAULT)
+                ? $options : self::DISPLAY_CODE;
+        $with_code = $options & self::DISPLAY_CODE;
         if ($this->isNew()) {
-            return parent::getDisplayName();
+            return parent::getDisplayName($options);
         }
 
         /* Augsburg
@@ -73,10 +76,10 @@ class StgteilabschnittModul extends ModuleManagementModelTreeItem
         $name .= trim($this->bezeichnung) ?: trim($this->modul->getDeskriptor()->bezeichnung);
         if ($end_sem || $start_sem) {
             if ($end_sem) {
-                $name .= sprintf(_(', gültig %s bis %s'),
+                $name .= sprintf(_(', gÃ¼ltig %s bis %s'),
                         $start_sem->name, $end_sem->name);
             } else {
-                $name .= sprintf(_(', gültig ab %s'), $start_sem->name);
+                $name .= sprintf(_(', gÃ¼ltig ab %s'), $start_sem->name);
             }
         }
 
@@ -86,7 +89,9 @@ class StgteilabschnittModul extends ModuleManagementModelTreeItem
     /**
      * Retrieves all Modul assignments to the given Studiengangteil-Abschnitt.
      *
-     * @param type $abschnitt_id The id of a Studiengangteil-Abschnitt.
+     * @param string $abschnitt_id The id of a Studiengangteil-Abschnitt.
+     * @param array $filter An array of filter definitions,
+     * see ModuleManagementModel::getFilterSql().
      * @return array Array of Modul assignments.
      */
     public static function findByStgteilAbschnitt($abschnitt_id, $filter)
@@ -103,13 +108,6 @@ class StgteilabschnittModul extends ModuleManagementModelTreeItem
          . 'WHERE mvv_stgteilabschnitt_modul.abschnitt_id = ? '
          . self::getFilterSql($filter)
          . ' ORDER BY position, mkdate', array($abschnitt_id));
-
-        /*
-        return parent::findBySql('abschnitt_id = '
-                . DbManager::get()->quote($abschnitt_id)
-                . ' ORDER BY position, chdate ASC');
-         *
-         */
     }
 
     /**
@@ -220,10 +218,13 @@ class StgteilabschnittModul extends ModuleManagementModelTreeItem
      */
     public function getStatus()
     {
+        // workaround to copy module with assignments to Studiengangteil-Version
+        // check first whether it is new
+        if ($this->isNew()) {
+            return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['default'];
+        }
         if ($this->abschnitt) {
             return $this->abschnitt->getStatus();
-        } elseif ($this->isNew()) {
-            return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['default'];
         }
         return parent::getStatus();
     }

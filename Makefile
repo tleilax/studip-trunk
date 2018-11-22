@@ -1,16 +1,5 @@
-PHP = php
-PLESSC = $(PHP) vendor/mishal-iless/bin/iless
-JLESSC = $(shell which lessc)
 CODECEPT_VENDOR = $(shell which composer/bin/codecept)
 CODECEPT = $(shell which codecept)
-STYLES = public/assets/stylesheets
-JAVA   = $(shell which java)
-
-ifneq ($(wildcard $(JLESSC)),)
-	LESSC = $(JLESSC) -sm=on
-else
-	LESSC = $(PLESSC) -sm=on
-endif
 
 ifneq ($(wildcard $(CODECEPT_VENDOR)),)
 	RUN_TESTS = $(CODECEPT_VENDOR) run unit
@@ -21,10 +10,7 @@ else
 endif
 
 
-build: less squeeze
-
-squeeze: less force_update
-	php cli/squeeze.php
+build: webpack-prod
 
 doc: force_update
 	doxygen Doxyfile
@@ -32,15 +18,14 @@ doc: force_update
 test: force_update
 	$(RUN_TESTS)
 
-# recipe to compile all .less files to CSS
-less: $(STYLES)/style.css $(STYLES)/print.css  $(STYLES)/statusgroups.css $(STYLES)/studip-jquery-ui.css
+webpack-dev: force_update
+	npm run webpack-dev
 
-$(STYLES)/style.css: $(wildcard $(STYLES)/less/*.less)
-$(STYLES)/studip-jquery-ui.css: $(wildcard $(STYLES)/less/jquery-ui/*.less)
-$(STYLES)/statusgroups.css: $(STYLES)/vendor/jquery-nestable.css
+webpack-prod: force_update
+	npm run webpack-prod
 
-%.css: %.less $(STYLES)/mixins.less $(wildcard $(STYLES)/mixins/*.less) 
-	$(LESSC) $< $@
+wds: force_update
+	npm run wds
 
 # dummy target to force update of "doc" target
 force_update:

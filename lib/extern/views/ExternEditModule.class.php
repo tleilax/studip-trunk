@@ -40,7 +40,7 @@ use Studip\Button, Studip\LinkButton;
 // +---------------------------------------------------------------------------+
 
 
-require_once($GLOBALS["RELATIVE_PATH_EXTERN"]."/views/ExternEditHtml.class.php");
+require_once "lib/extern/views/ExternEditHtml.class.php";
 
 class ExternEditModule extends ExternEditHtml {
 
@@ -69,14 +69,11 @@ class ExternEditModule extends ExternEditHtml {
         if (!is_array($hide))
             $hide = array();
 
-        $this->css->resetClass();
-        $this->css->switchClass();
-
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
-        $out .= "<tr" . $this->css->getFullClass() . ">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
+        $out .= "<tr>\n";
         $out .= "<td><font size=\"2\"><b>" . _("Datenfeld") . "</b></font></td>\n";
         if (!in_array('aliases', $hide))
-            $out .= "<td><font size=\"2\"><b>" . _("Überschrift") . "</b></font></td>\n";
+            $out .= "<td><font size=\"2\"><b>" . _("Ãœberschrift") . "</b></font></td>\n";
         if (!in_array("width", $hide))
             $out .= "<td><font size=\"2\"><b>" . _("Breite") . "</b></font></td>\n";
         if (!in_array("sort", $hide))
@@ -84,12 +81,11 @@ class ExternEditModule extends ExternEditHtml {
         if (!in_array("visible", $hide))
             $out .= "<td><font size=\"2\"><b>" . _("Reihenfolge/<br>Sichtbarkeit") . "</b></font></td>\n";
         $out .= "</tr>\n";
-        $this->css->switchClass();
 
         for ($i = 0; $i < sizeof($field_names); $i++) {
 
             // name of column
-            $out .= "<tr" . $this->css->getFullClass() . " valign=\"middle\">\n";
+            $out .= "<tr valign=\"middle\">\n";
             $out .= '<td>&nbsp;' . htmlReady($field_names[$order[$i]]) . '</td>';
 
             // column headline
@@ -154,30 +150,24 @@ class ExternEditModule extends ExternEditHtml {
                 // visible
                 if ($visible[$order[$i]]) {
                 $out .= "\n";
-                $out .= Icon::create('checkbox-checked', 'clickable', ['title' => _('Datenfeld ausblenden')])->asInput(["type" => "image", "class" => "middle", "name" => $this->element_name."_hide[{
-$order[$i]}
-]"]);
+                $out .= Icon::create('checkbox-checked', 'clickable', ['title' => _('Datenfeld ausblenden')])->asInput(["type" => "image", "class" => "middle", "name" => $this->element_name."_hide[".$order[$i]."]"]);
                 } else {
                     $out .= "\n";
-                    $out .= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Datenfeld einblenden')])->asInput(["type" => "image", "class" => "middle", "name" => $this->element_name."_show[{
-$order[$i]}
-]"]);
+                    $out .= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Datenfeld einblenden')])->asInput(["type" => "image", "class" => "middle", "name" => $this->element_name."_show[".$order[$i]."]"]);
                     $out .= "</td>\n";
                 }
            }
 
-            $out .= "</tr>\n";
-            $this->css->switchClass();
         }
 
         // width in pixels or percent
         if (!in_array("widthpp", $hide) && !in_array('width', $hide)) {
             $colspan = 4 - sizeof($hide);
             $title = _("Breite in:");
-            $info = _("Wählen Sie hier, ob die Breiten der Tabellenspalten als Prozentwerte oder Pixel interpretiert werden sollen.");
+            $info = _("WÃ¤hlen Sie hier, ob die Breiten der Tabellenspalten als Prozentwerte oder Pixel interpretiert werden sollen.");
             $width_values = array("%", "");
             $width_names = array(_("Prozent"), _("Pixel"));
-            $out .= "<tr" . $this->css->getFullClass() . ">\n";
+            $out .= "<tr>\n";
             $out .= "<td><font size=\"2\">&nbsp;$title</font></td>";
             $out .= "<td colspan=\"$colspan\"><input type=\"radio\" name=\"{$this->element_name}_widthpp\" value=\"%\"";
             if (mb_substr($widths[0], -1) == "%")
@@ -191,7 +181,7 @@ $order[$i]}
             $out .= "$error_sign</td></tr>\n";
         }
 
-        $out .= "</table>\n</td></tr>\n";
+        $out .= "</table>\n";
 
         return $out;
     }
@@ -202,17 +192,14 @@ $order[$i]}
         }
         $sort = $this->getValue("sort");
 
-        $this->css->resetClass();
-        $this->css->switchClass();
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
-        $out .= "<tr" . $this->css->getFullClass() . ">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
+        $out .= "<tr>\n";
         $out .= "<td><font size=\"2\"><b>" . _("Datenfeld") . "</b></font></td>\n";
         $out .= "<td><font size=\"2\"><b>" . _("Sortierung") . "</b></font></td>\n";
 
         for ($i = 0; $i < sizeof($field_names); $i++) {
-            $this->css->switchClass();
-            $out .= "<tr" . $this->css->getFullClass() . " valign=\"middle\">\n";
+            $out .= "<tr valign=\"middle\">\n";
             $out .= "<td><font size=\"2\">&nbsp;{$field_names[$i]}</font></td>";
             if (!in_array($i, $hide_fields)) {
                 $out .= "<td><select name=\"{$this->element_name}_sort[$i]\" ";
@@ -235,7 +222,7 @@ $order[$i]}
             }
         }
 
-        $out .= "</table>\n</td></tr>\n";
+        $out .= "</table>\n";
 
         return $out;
     }
@@ -252,8 +239,8 @@ $order[$i]}
         if (!$groups_db)
             return FALSE;
 
-        $title = _("Gruppen auswählen:");
-        $info = _("Wählen Sie die Statusgruppen aus, die ausgegeben werden sollen.");
+        $title = _("Gruppen auswÃ¤hlen:");
+        $info = _("WÃ¤hlen Sie die Statusgruppen aus, die ausgegeben werden sollen.");
         $groups_config = $this->getValue("groups");
 
         // this value is always necessary, even there is an error in the users inputs, so
@@ -283,21 +270,18 @@ $order[$i]}
             }
         }
 
-        $this->css->resetClass();
-        $this->css->switchClass();
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
-        $out .= "<tr" . $this->css->getFullClass() . ">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
+        $out .= "<tr>\n";
         $out .= "<td width=\"42%\"><font size=\"2\"><b>" . _("Gruppenname") . "</b></font></td>\n";
         $out .= "<td width=\"48%\"><font size=\"2\"><b>" . _("alternativer Gruppenname") . "</b></font></td>\n";
         $out .= "<td width=\"1%\"><font size=\"2\"><b>" . _("Sichtbarkeit") . "</b></font></td>\n";
         $out .= "<td width=\"9%\"><font size=\"2\">&nbsp;</font></td>\n";
         $out .= "</tr>\n";
-        $this->css->switchClass();
         $i = 0;
         foreach ($groups_db as $id => $name) {
 
             // name of group
-            $out .= "<tr" . $this->css->getFullClass() . ">\n";
+            $out .= "<tr>\n";
             $out .= "<td nowrap=\"nowrap\" style=\"max-width: 40em; overflow: hidden; text-overflow: ellipsis;\" title=\"" . htmlReady($name) . "\"><font size=\"2\">&nbsp;" . htmlReady($name) . "</font></td>";
 
             // column headline
@@ -320,11 +304,10 @@ $order[$i]}
             }
             $out .= '></td>';
             $out .= "<td>&nbsp;</td></tr>\n";
-            $this->css->switchClass();
             $i++;
         }
 
-        $out .= "</table>\n</td></tr>\n";
+        $out .= "</table>\n";
 
         return $out;
     }
@@ -350,17 +333,14 @@ $order[$i]}
             $order = array_keys($SEM_TYPE);
         }
 
-        $this->css->resetClass();
-        $this->css->switchClass();
 
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
-        $out .= "<tr" . $this->css->getFullClass() . ">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n";
+        $out .= "<tr>\n";
         $out .= "<td><font size=\"2\"><b>" . _("Datenfeld") . "</b></font></td>\n";
-        $out .= "<td><font size=\"2\"><b>" . _("Überschrift") . "</b></font></td>\n";
+        $out .= "<td><font size=\"2\"><b>" . _("Ãœberschrift") . "</b></font></td>\n";
         $out .= "<td align=\"center\"><font size=\"2\"><b>" . _("Reihenfolge") . "</b></font></td>\n";
         $out .= "<td align=\"center\"><font size=\"2\"><b>" . _("Sichtbarkeit") . "</b></font></td>\n";
         $out .= "</tr>\n";
-        $this->css->switchClass();
 
         foreach ($SEM_CLASS as $class_index => $foo) {
             $i = 0;
@@ -376,7 +356,7 @@ $order[$i]}
             if ($SEM_TYPE[$order[$i]]) {
                 $new_order[] = $order[$i];
                 // name of column
-                $out .= "<tr" . $this->css->getFullClass() . ">\n";
+                $out .= "<tr>\n";
                 $out .= "<td><font size=\"2\">&nbsp;";
                 if (mb_strlen($SEM_TYPE[$order[$i]]["name"]) > 25) {
                     $out .= htmlReady(mb_substr($SEM_TYPE[$order[$i]]["name"], 0, 22)
@@ -421,11 +401,10 @@ $order[$i]}
                 $out .= '>';
 
                 $out .= "</td>\n</tr>\n";
-                $this->css->switchClass();
             }
         }
 
-        $out .= "</table>\n</td></tr>\n";
+        $out .= "</table>\n";
         $out .= "<input type=\"hidden\" name=\"count_semtypes\" value=\"$i\">\n";
 
         // update order
@@ -437,10 +416,8 @@ $order[$i]}
     }
 
     function editSelectSubjectAreas ($selector) {
-        $info = _("Wählen Sie die Studienbereiche aus, deren Veranstaltungen angezeigt werden sollen.");
-        $info2 = _("Sie können beliebig viele Studienbereiche auswählen.");
-        $this->css->resetClass();
-        $this->css->switchClass();
+        $info = _("WÃ¤hlen Sie die Studienbereiche aus, deren Veranstaltungen angezeigt werden sollen.");
+        $info2 = _("Sie kÃ¶nnen beliebig viele Studienbereiche auswÃ¤hlen.");
         $form_name = $this->element_name . "_" . 'subjectareasselected';
 
         if ($this->faulty_values[$form_name][0]) {
@@ -464,7 +441,7 @@ $order[$i]}
         $form_name_tmp = $selector->form_name;
         $selector->form_name = 'SelectSubjectAreas';
         $selector->doSearch();
-        $out = '<tr' . $this->css->getFullClass() . '><td>';
+        $out = '<tr><td>';
         $out .= "<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
         $out .= '<tr><td align="left" style="font-size: smaller;" width="100%" nowrap="nowrap" colspan="2">' . _("Suche") . ': ';
         $out .= $selector->getSearchField(array('size' => 30 ,'style' => 'vertical-align:middle;'));
@@ -490,63 +467,52 @@ $order[$i]}
     }
 
     function editMarkerDescription ($markers, $new_datafields = FALSE) {
-        $this->css->resetClass();
-        $this->css->switchClass();
-
-        $out = "<tr><td><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\" style=\"font-size: 0.7em\">\n";
-        $out .= '<tr' . $this->css->getFullClass() . ">\n";
+        $out = "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\" style=\"font-size: 0.7em\">\n";
+        $out .= "<tr>\n";
         $out .= '<td><font size="2"><b>' . _("Marker") . "</b></font></td>\n";
         $out .= '<td><font size="2"><b>' . _("Beschreibung") . "</b></font></td>\n";
         $out .= "</tr>\n";
-        $this->css->switchClass();
+
         $spacer = 0;
         $global_vars = FALSE;
         foreach ((array) $markers as $marker) {
             $mark = $marker[0];
             $description = $marker[1];
             if ($mark == '__GLOBAL__') {
-                $out .= '<tr' . $this->css->getFullClass() . ">\n";
+                $out .= "<tr>\n";
                 $out .= '<td colspan="2"><strong>' . htmlReady(_("Globale Variablen")) . '</strong></td>';
                 $spacer++;
                 $global_vars = TRUE;
-                $this->css->switchClass();
             } else if ($mark{0} == '<') {
                 if ($global_vars) {
-                    $out .= '<tr' . $this->css->getFullClass() . ">\n";
+                    $out .= "<tr>\n";
                     $out .= '<td colspan="2">&nbsp;</td>';
                     $spacer--;
                     $global_vars = FALSE;
-                    $this->css->switchClass();
                 }
                 if (mb_substr($mark, 0, 8) == '<!-- END') {
                     $spacer--;
-                    $this->css->switchClass();
-                    $out .= '<tr' . $this->css->getFullClass() . ">\n";
+                    $out .= "<tr>\n";
                     $out .= '<td colspan="2">&nbsp;</td>';
-                    $this->css->switchClass();
-                    $out .= '<tr' . $this->css->getFullClass() . ">\n";
+                    $out .= "<tr>\n";
                     $out .= '<td nowrap="nowrap">' . str_repeat('&nbsp;', $spacer * 4);
                     $out .= htmlReady($mark) . '</td><td>' . htmlReady($description);
                     $out .= '</td>';
                 } else {
                     if ($spacer > 0 && mb_substr($mark, 0, 10) != '<!-- BEGIN') {
-                        $this->css->switchClass();
-                        $out .= '<tr' . $this->css->getFullClass() . ">\n";
+                        $out .= "<tr>\n";
                         $out .= '<td colspan="2">&nbsp;</td>';
-                        $this->css->switchClass();
                     }
-                    $out .= '<tr' . $this->css->getFullClass() . ">\n";
+                    $out .= "<tr>\n";
                     $out .= '<td nowrap="nowrap">' . str_repeat('&nbsp;', $spacer * 4);
                     $out .= htmlReady($mark) . '</td><td>' . htmlReady($description);
                     $out .= '</td>';
                     $spacer++;
-                    $this->css->switchClass();
-                    $out .= '<tr' . $this->css->getFullClass() . ">\n";
+                    $out .= "<tr>\n";
                     $out .= '<td colspan="2">&nbsp;</td>';
-                    $this->css->switchClass();
                 }
             } else {
-                $out .= '<tr' . $this->css->getFullClass() . ">\n";
+                $out .= "<tr>\n";
                 $out .= '<td>' . str_repeat('&nbsp;', $spacer * 4);
                 $out .= $mark . '</td><td>' . htmlReady($description);
                 $out .= '</td>';
@@ -554,13 +520,12 @@ $order[$i]}
             $out .= "</tr>\n";
         }
         if ($new_datafields) {
-            $this->css->resetClass();
-            $out .= '<tr' . $this->css->getFullClass() . ">\n";
+            $out .= "<tr>\n";
             $out .= "<td colspan=\"2\">&nbsp;</td></tr>\n";
-            $out .= '<tr' . $this->css->getFullClass() . ">\n";
+            $out .= "<tr>\n";
             $out .= '<td colspan="2" align="center">' . Button::create(_('Aktualisieren')). "</td></tr>\n";
         }
-        $out .= "</table></td></tr>\n";
+        $out .= "</table>\n";
 
         return $out;
     }
@@ -588,7 +553,7 @@ $order[$i]}
             $stm_inst->execute(array($row_fak['Institut_id']));
             $out .= sprintf('<div style="margin-top: 5px; font-weight: bold; color: red;">%s</div>', htmlReady(my_substr($row_fak['Name'], 0, 70)));
             $out .= '<div style="font-weight: bold; color: red;">';
-            $out .= str_repeat("¯", 70);
+            $out .= str_repeat("Â¯", 70);
             $out .= '</div>';
             while ($row_inst = $stm_inst->fetch(PDO::FETCH_ASSOC)) {
                 $is_selected = in_array($row_inst['Institut_id'], $selected);

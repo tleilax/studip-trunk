@@ -11,11 +11,11 @@
         <legend><?= _("Freigaben bearbeiten") ?></legend>
         <label>
             <input type="checkbox" name="user" value="1"<?= $profile ? " checked" : "" ?>>
-            <?= _("Auf der persönlichen Profilseite") ?>
+            <?= _("Auf der persÃ¶nlichen Profilseite") ?>
         </label>
         <label>
             <input type="checkbox" name="public" value="1"<?= $public ? " checked" : "" ?>>
-            <?= _("Als öffentlicher Link für unangemeldete Nutzer") ?>
+            <?= _("Als Ã¶ffentlicher Link fÃ¼r unangemeldete Nutzer") ?>
         </label>
         <? if ($GLOBALS['perm']->have_perm("root")) : ?>
             <label>
@@ -31,7 +31,10 @@
                 <li>
                     <label>
                         <input type="checkbox" name="remove_sem[]" value="<?= htmlReady($assignment['range_id']) ?>" style="display: none;">
-                        <span><?= htmlReady(Course::find($assignment['range_id'])->name) ?></span>
+                        <? $course = Course::find($assignment['range_id']) ?>
+                        <a href="<?= URLHelper::getLink("seminar_main.php", array('auswahl' => $course->getId())) ?>">
+                            <?= htmlReady((Config::get()->IMPORTANT_SEMNUMBER ? $course->veranstaltungsnummer." " : "").$course->name) ?>
+                        </a>
                         <?= Icon::create("trash", "clickable")->asimg("20px", array('class' => "text-bottom", 'title' => _("Zuweisung zur Veranstaltung aufheben."))) ?>
                     </label>
                 </li>
@@ -60,7 +63,7 @@
 
     </fieldset>
 
-    <div data-dialog-button>
+    <footer data-dialog-button>
         <?= \Studip\Button::create(_("Speichern"), 'questionnaire_store_relations') ?>
-    </div>
+    </footer>
 </form>

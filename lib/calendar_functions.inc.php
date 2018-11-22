@@ -77,14 +77,14 @@ function holiday ($tmstamp, $mod = "") {
     // die unveraenderlichen Feiertage
     switch ($doy) {
         case   1: $name = _("Neujahr"); $col = 3; break;
-        case   6: $name = _("Hl. Drei Könige"); $col = 1; break;
+        case   6: $name = _("Hl. Drei KÃ¶nige"); $col = 1; break;
     }
 
     // Schaltjahre nicht vergessen
     if (date("L", $tmstamp))
         $doy--;
     switch ($doy) {
-        case  79: $name = _("Frühlingsanfang"); $col = 1; break;
+        case  79: $name = _("FrÃ¼hlingsanfang"); $col = 1; break;
         case 121: $name = _("Maifeiertag"); $col = 3; break;
 //      case 125: $name = _("Europatag"); $col = 1; break;
         case 172: $name = _("Sommeranfang"); $col = 1; break;
@@ -98,7 +98,12 @@ function holiday ($tmstamp, $mod = "") {
         case 358: $name = _("Hl. Abend"); $col = 1; break;
         case 359: $name = _("1. Weihnachtstag"); $col = 3; break;
         case 360: $name = _("2. Weihnachtstag"); $col = 3; break;
-        case 365: $name = _("Sylvester"); $col = 1; break;
+        case 365: $name = _("Silvester"); $col = 1; break;
+    }
+
+    // special handling of Reformation Day in 2017
+    if ($doy == 304 && $year == 2017) {
+        $col = 3;
     }
 
     // Die Sonntagsfeiertage
@@ -144,7 +149,7 @@ function holiday ($tmstamp, $mod = "") {
 }
 
 // ueberprueft eine Datumsangabe, die in einen Timestamp gewandelt werden soll
-// gibt bei Erfolg den timestamp zurück mit DST
+// gibt bei Erfolg den timestamp zurÃ¼ck mit DST
 function check_date ($month, $day, $year, $hour = 0, $min = 0) {
     if (!preg_match("/^\d{1,2}$/", $day) || !preg_match("/^\d{1,2}$/", $month)
             || !preg_match("/^\d{1,2}$/", $hour) || !preg_match("/^\d{1,2}$/", $min)

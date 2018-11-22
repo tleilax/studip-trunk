@@ -1,4 +1,4 @@
-<? if (!$dates['regular']['turnus_data'] && (!sizeof($dates['irregular']))) : ?>
+<? if (!$dates['regular']['turnus_data'] && empty($dates['irregular'])) : ?>
     <? if ($dates['ort'] && $show_room) : ?>
         <?= htmlReady($dates['ort']) ?>
     <? else : ?>
@@ -40,19 +40,16 @@
     echo implode('<br>', $output);
     echo sizeof($output) ? '<br>' : '';
 
-    $presence_types = getPresenceTypes();
     $freetext_rooms = array();
 
     if (is_array($dates['irregular'])):
         foreach ($dates['irregular'] as $date) :
-            if (in_array($date['typ'], $presence_types) !== false) :
-                $irregular[] = $date;
-                $irregular_strings[] = $date['tostring'];
-                if ($date['resource_id']) :
-                    $irregular_rooms[$date['resource_id']]++;
-                elseif ($date['raum']) :
-                    $freetext_rooms['(' . htmlReady($date['raum']) . ')']++;
-                endif;
+            $irregular[] = $date;
+            $irregular_strings[] = $date['tostring'];
+            if ($date['resource_id']) :
+                $irregular_rooms[$date['resource_id']]++;
+            elseif ($date['raum']) :
+                $freetext_rooms['(' . htmlReady($date['raum']) . ')']++;
             endif;
         endforeach;
         unset($irregular_rooms['']);

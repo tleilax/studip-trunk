@@ -4,8 +4,8 @@ use Studip\Button, Studip\LinkButton;
 
 ?>
 <? if ($deputies): ?>
-    <form method="post" action="<?= $controller->url_for('settings/deputies/store') ?>">
-        <input type="hidden" name="studipticket" value="<?= get_ticket() ?>">
+    <form method="post" action="<?= $controller->url_for('settings/deputies/store') ?>" class="default">
+        <input type="hidden" name="studip_ticket" value="<?= get_ticket() ?>">
         <?= CSRFProtection::tokenTag() ?>
 
         <table class="default no-hover">
@@ -25,7 +25,7 @@ use Studip\Button, Studip\LinkButton;
                 <? if ($edit_about_enabled): ?>
                     <th><?= _('darf mein Profil bearbeiten'); ?></th>
                 <? endif; ?>
-                <th><?= _('löschen'); ?></th>
+                <th><?= _('lÃ¶schen'); ?></th>
             </tr>
             </thead>
             <tbody>
@@ -37,17 +37,19 @@ use Studip\Button, Studip\LinkButton;
                     </td>
                     <? if ($edit_about_enabled): ?>
                         <td align="center">
-                            <label>
-                                <input type="radio" name="edit_about[<?= $deputy['user_id'] ?>]" value="1"
-                                    <? if ($deputy['edit_about']) echo 'checked'; ?>>
-                                <?= _('ja') ?>
-                            </label>
+                            <div class="hgroup">
+                                <label>
+                                    <input type="radio" name="edit_about[<?= $deputy['user_id'] ?>]" value="1"
+                                        <? if ($deputy['edit_about']) echo 'checked'; ?>>
+                                    <?= _('ja') ?>
+                                </label>
 
-                            <label>
-                                <input type="radio" name="edit_about[<?= $deputy['user_id'] ?>]" value="0"
-                                    <? if (!$deputy['edit_about']) echo 'checked'; ?>>
-                                <?= _('nein') ?>
-                            </label>
+                                <label>
+                                    <input type="radio" name="edit_about[<?= $deputy['user_id'] ?>]" value="0"
+                                        <? if (!$deputy['edit_about']) echo 'checked'; ?>>
+                                    <?= _('nein') ?>
+                                </label>
+                            </div>
                         </td>
                     <? endif; ?>
                     <td align="center">
@@ -59,7 +61,7 @@ use Studip\Button, Studip\LinkButton;
             <tfoot>
             <tr>
                 <td colspan="<?= 2 + (int)$edit_about_enabled ?>">
-                    <?= Button::create(_('Übernehmen'), 'store', array('title' => _('Änderungen speichern'))) ?>
+                    <?= Button::create(_('Ãœbernehmen'), 'store', array('title' => _('Ã„nderungen speichern'))) ?>
                 </td>
             </tr>
             </tfoot>

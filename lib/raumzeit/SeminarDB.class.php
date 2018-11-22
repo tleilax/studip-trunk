@@ -7,7 +7,7 @@
 // This file is part of Stud.IP
 // SeminarDB.class.php
 //
-// Datenbank-Abfragen für Seminar.class.php
+// Datenbank-Abfragen fÃ¼r Seminar.class.php
 //
 // +--------------------------------------------------------------------------+
 // This program is free software; you can redistribute it and/or
@@ -29,19 +29,19 @@
  * SeminarDB.class.php
  *
  *
- * @author      Till Glöggler <tgloeggl@uos.de>
+ * @author      Till GlÃ¶ggler <tgloeggl@uos.de>
  * @version     19. Oktober 2005
  * @access      protected
  * @package     raumzeit
+ * @deprecated
  */
 
 class SeminarDB
 {
-    function getIssues($seminar_id)
+    public static function getIssues($seminar_id)
     {
-        $query = "SELECT themen.*, folder.range_id, folder.folder_id
+        $query = "SELECT *
                   FROM themen
-                  LEFT JOIN folder ON (range_id = issue_id)
                   WHERE themen.seminar_id = ?
                   ORDER BY priority";
         $statement = DBManager::get()->prepare($query);
@@ -49,7 +49,7 @@ class SeminarDB
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    function getSingleDates($seminar_id, $start = 0, $end = 0)
+    public static function getSingleDates($seminar_id, $start = 0, $end = 0)
     {
         $query = "SELECT termine.*, resources_assign.resource_id, GROUP_CONCAT(DISTINCT trp.user_id) AS related_persons,  GROUP_CONCAT(DISTINCT trg.statusgruppe_id) AS related_groups
                   FROM termine
@@ -78,14 +78,14 @@ class SeminarDB
             if ($data['related_groups']) {
                 $data['related_groups'] = explode(',', $data['related_groups']);
             }
-            
+
             $ret[] = $data;
         }
 
         return $ret;
     }
 
-    function getStatOfNotBookedRooms($cycle_id, $seminar_id, $filterStart = 0, $filterEnd = 0)
+    public static function getStatOfNotBookedRooms($cycle_id, $seminar_id, $filterStart = 0, $filterEnd = 0)
     {
         $stat = array(
             'booked'         => 0,
@@ -144,7 +144,7 @@ class SeminarDB
         return $stat;
     }
 
-    function countRequestsForSingleDates($cycle_id, $seminar_id, $filterStart = 0, $filterEnd = 0)
+    public static function countRequestsForSingleDates($cycle_id, $seminar_id, $filterStart = 0, $filterEnd = 0)
     {
         $query = "SELECT COUNT(*)
                   FROM termine AS t
@@ -162,7 +162,7 @@ class SeminarDB
         return $statement->fetchColumn();
     }
 
-    function hasDatesOutOfDuration($start, $end, $seminar_id)
+    public static function hasDatesOutOfDuration($start, $end, $seminar_id)
     {
         $query = "SELECT COUNT(*)
                   FROM termine
@@ -172,40 +172,37 @@ class SeminarDB
         return $statement->fetchColumn();
     }
 
-    function getFirstDate($seminar_id)
+    public static function getFirstDate($seminar_id)
     {
         $termine = array();
 
-        $presence_types = getPresenceTypes();
-        if (count($presence_types) > 0) {
-            $query = "SELECT termin_id, date, end_time
-                      FROM termine
-                      WHERE range_id = ? AND date_typ IN (?)
-                      ORDER BY date";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute(array($seminar_id, $presence_types));
+        $query = "SELECT termin_id, date, end_time
+                    FROM termine
+                    WHERE range_id = ?
+                    ORDER BY date";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($seminar_id));
 
-            $start = 0;
-            $end = 0;
+        $start = 0;
+        $end = 0;
 
-            while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-                if (($start == 0 && $end == 0) || ($start == $row['date'] && $end == $row['end_time'])) {
-                    $termine[] = $row['termin_id'];
-                    $start     = $row['date'];
-                    $end       = $row['end_time'];
-                }
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            if (($start == 0 && $end == 0) || ($start == $row['date'] && $end == $row['end_time'])) {
+                $termine[] = $row['termin_id'];
+                $start     = $row['date'];
+                $end       = $row['end_time'];
             }
         }
 
         return $termine ?: false;
     }
 
-    function getNextDate($seminar_id)
+    public static function getNextDate($seminar_id)
     {
         $termin = array();
 
         $query = "SELECT termin_id, date, end_time
-                  FROM termine 
+                  FROM termine
                   WHERE range_id = ? AND date > UNIX_TIMESTAMP(NOW() - INTERVAL 1 HOUR)
                   ORDER BY date, end_time";
         $stmt = DBManager::get()->prepare($query);
@@ -222,7 +219,7 @@ class SeminarDB
         $ex_termin = array();
 
         $query = "SELECT termin_id
-                  FROM ex_termine 
+                  FROM ex_termine
                   WHERE range_id = ? AND date > UNIX_TIMESTAMP(NOW() - INTERVAL 1 HOUR)
                     AND content != '' AND content IS NOT NULL
                   ORDER BY date
@@ -238,12 +235,12 @@ class SeminarDB
     }
 
     /**
-     * vergisst die Einträge in resources_requests_properties
+     * vergisst die EintrÃ¤ge in resources_requests_properties
      * @deprecated
      * @param unknown_type $id
      * @return boolean
      */
-    function deleteRequest($id)
+    public static function deleteRequest($id)
     {
         $query = "DELETE FROM resources_requests
                   WHERE seminar_id = ?
@@ -253,8 +250,8 @@ class SeminarDB
 
         return true;
     }
-    
-    function getDeletedSingleDates($seminar_id, $start = 0, $end = 0)
+
+    public static function getDeletedSingleDates($seminar_id, $start = 0, $end = 0)
     {
         $ret = array();
         if (($start != 0) || ($end != 0)) {

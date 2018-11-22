@@ -38,19 +38,19 @@
 
 use Studip\Button, Studip\LinkButton;
 
-require_once ("$PATH_EXPORT/export_xslt_vars.inc.php");   // XSLT-Variablen
+require_once ("lib/export/export_xslt_vars.inc.php");   // XSLT-Variablen
 
 $semester = new SemesterData;
 
 $export_pagename = _("Datenexport - Startseite");
 
-$export_info = _("Bitte wählen Sie Datenart und Einrichtung.") . "<br>";
+$export_info = null;
 
-$export_pagecontent .= "<form method=\"POST\" action=\"" . URLHelper::getURL() . "\">";
+$export_pagecontent .= "<form class=\"default\" method=\"POST\" action=\"" . URLHelper::getURL() . "\">";
 
 $export_pagecontent .= CSRFProtection::tokenTag();
-
-$export_pagecontent .="<br><b>". _("Bitte wählen Sie eine Einrichtung: ") .  "</b><br><select name=\"range_id\" class=\"nested-select\">";
+$export_pagecontent .= "<fieldset><legend>"._("Bitte wÃ¤hlen Sie Datenart und Einrichtung.")."</legend>";
+$export_pagecontent .="<label>". _("Bitte wÃ¤hlen Sie eine Einrichtung: ") .  "<br><select name=\"range_id\" class=\"nested-select\">";
 
 // Prepare institutes statement for faculty
 $query = "SELECT Institut_id, Name
@@ -91,9 +91,9 @@ if ($perm->have_perm("root")) {
     $export_pagecontent .= "<option class=\"nested-item-header\" value=\"root\">Alle Einrichtungen";
 }
 
-$export_pagecontent .= "</select><br><br>";
+$export_pagecontent .= "</select></label>";
 
-$export_pagecontent .= "<b>"._("Art der auszugebenden Daten: ") .  "</b><br><select name=\"ex_type\">";
+$export_pagecontent .= "<label>"._("Art der auszugebenden Daten: ") .  "<select name=\"ex_type\">";
 
 $export_pagecontent .= "<option";
 if ($ex_type=="veranstaltung")
@@ -106,16 +106,16 @@ if ($ex_type=="person") {
 }
 $export_pagecontent .= " value=\"person\">" . _("MitarbeiterInnendaten") .  "</option>";
 
-$export_pagecontent .= "</select><br><br><br><br>";
+$export_pagecontent .= "</select></label>";
 
-$export_pagecontent .="<b>". _("Aus welchem Semester sollen die Daten exportiert werden (für Veranstaltungsexport): ") .  "</b><br>";
+$export_pagecontent .="<label>". _("Aus welchem Semester sollen die Daten exportiert werden (fÃ¼r Veranstaltungsexport): ");
 if (!isset($ex_sem)) {
     $ex_sem = (Semester::findCurrent() ? Semester::findCurrent()->getId() : null);
 }
 $export_pagecontent .= SemesterData::GetSemesterSelector(array('name' => 'ex_sem'), $ex_sem, 'semester_id', true);
-$export_pagecontent .= "<br><br>";
+$export_pagecontent .="</label>";
 
-$export_pagecontent .="<b>". _("Welche Arten von Veranstaltungen sollen exportiert werden? ") .  "</b><br>";
+$export_pagecontent .="<label>". _("Welche Arten von Veranstaltungen sollen exportiert werden? ") . "<br>";
 
 if (!count($ex_sem_class)) {
     $ex_sem_class[1] = 1;
@@ -128,10 +128,12 @@ foreach (SeminarCategories::getAll() as $sem_class) {
         $export_pagecontent .= ">&nbsp;" . htmlready($sem_class->name) . "&nbsp;&nbsp;";
     }
 }
+$export_pagecontent .= "</label>";
 
 $export_pagecontent .= "<input type=\"hidden\" name=\"o_mode\" value=\"choose\">";
 $export_pagecontent .= "<input type=\"hidden\" name=\"xslt_filename\" value=\"" . htmlReady($xslt_filename) . "\">";
 $export_pagecontent .= "<input type=\"hidden\" name=\"choose\" value=\"" . htmlReady($choose) . "\">";
 $export_pagecontent .= "<input type=\"hidden\" name=\"format\" value=\"" . htmlReady($format) . "\">";
+$export_pagecontent .= "</fieldset>";
 
-$export_weiter_button = "<center>" . Button::create(_('Weiter') . ' >>' ) . "</center></form>";
+$export_weiter_button = "<footer>" . Button::create(_('Weiter') . ' >>' ) . "</footer></form>";

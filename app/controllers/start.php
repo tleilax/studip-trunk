@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  *
- * @author   AndrÈ Klaﬂen <klassen@elan-ev.de>
+ * @author   Andr√© Kla√üen <klassen@elan-ev.de>
  * @author   Nadine Werner <nadine.werner@uni-osnabrueck.de>
  * @license  http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  * @category Stud.IP
@@ -67,7 +67,7 @@ class StartController extends AuthenticatedController
         $actions = new ActionsWidget();
 
         if (WidgetHelper::getAvailableWidgets($GLOBALS['user']->id)) {
-            $actions->addLink(_('Widgets hinzuf¸gen'),
+            $actions->addLink(_('Widgets hinzuf√ºgen'),
                               $this->url_for('start/add'),
                               Icon::create('add', 'clickable'))
                     ->asDialog();
@@ -87,33 +87,36 @@ class StartController extends AuthenticatedController
                 $settings->addElement(new LinkElement(
                     ucfirst($permission),
                     $this->url_for('start/edit_defaults/' . $permission),
-                    Icon::create('link-intern', 'clickable'), array('data-dialog' => '')
+                    Icon::create('link-intern', 'clickable'), ['data-dialog' => '']
                 ));
             }
 
             $sidebar->addWidget($settings);
         }
         if ($GLOBALS['perm']->get_perm() == 'user') {
-            PageLayout::postMessage(MessageBox::info(_('Sie haben noch nicht auf Ihre Best‰tigungsmail geantwortet.'),
-                array(
-                    _('Bitte holen Sie dies nach, um Stud.IP Funktionen wie das Belegen von Veranstaltungen nutzen zu kˆnnen.'),
+            PageLayout::postMessage(MessageBox::info(_('Sie haben noch nicht auf Ihre Best√§tigungsmail geantwortet.'),
+                [
+                    _('Bitte holen Sie dies nach, um Stud.IP Funktionen wie das Belegen von Veranstaltungen nutzen zu k√∂nnen.'),
                     sprintf(_('Bei Problemen wenden Sie sich an: %s'), '<a href="mailto:'.$GLOBALS['UNI_CONTACT'].'">'.$GLOBALS['UNI_CONTACT'].'</a>')
-                )
+                ]
             ));
 
+            $details = Studip\LinkButton::create(_('Best√§tigungsmail erneut verschicken'),
+                    $this->url_for('start/resend_validation_mail')
+                );
+
+            if(!StudipAuthAbstract::CheckField('auth_user_md5.Email', $GLOBALS['user']->auth_plugin) && !LockRules::check($GLOBALS['user']->id, 'email')) {
+                $details .= ' ';
+                $details .= Studip\LinkButton::create(_('Email-Adresse √§ndern'),
+                    $this->url_for('start/edit_mail_address'),
+                    [
+                        'data-dialog' => 'size=auto',
+                        'title'       => _('Email-Adresse')
+                    ]);
+            }
             PageLayout::postMessage(MessageBox::info(
-                    sprintf(_('Haben Sie die Best‰tigungsmail an Ihre Adresse "%s" nicht erhalten?'), htmlReady($GLOBALS['user']->Email)),
-                    array(
-                        Studip\LinkButton::create(_('Best‰tigungsmail erneut verschicken'),
-                            $this->url_for('start/resend_validation_mail')
-                        ) . ' '
-                        . Studip\LinkButton::create(_('Email-Adresse ‰ndern'),
-                            $this->url_for('start/edit_mail_address'), array(
-                                'data-dialog' => "size=auto",
-                                'title'       => _('Email-Adresse')
-                            )
-                        ),
-                    )
+                    sprintf(_('Haben Sie die Best√§tigungsmail an Ihre Adresse "%s" nicht erhalten?'), htmlReady($GLOBALS['user']->Email)),
+                    [$details]
             ));
         }
     }
@@ -125,7 +128,7 @@ class StartController extends AuthenticatedController
      */
     public function add_action()
     {
-        PageLayout::setTitle(_('Widgets hinzuf¸gen'));
+        PageLayout::setTitle(_('Widgets hinzuf√ºgen'));
 
         if (Request::isPost()) {
             $ticket   = Request::get('studip_ticket');
@@ -160,7 +163,7 @@ class StartController extends AuthenticatedController
             throw new InvalidArgumentException('There is no such permission!');
         }
 
-        PageLayout::setTitle(sprintf(_('Standard-Startseite f¸r "%s" bearbeiten'), ucfirst($permission)));
+        PageLayout::setTitle(sprintf(_('Standard-Startseite f√ºr "%s" bearbeiten'), ucfirst($permission)));
 
         $this->widgets = WidgetHelper::getAvailableWidgets();
         $this->permission = $permission;
@@ -202,23 +205,27 @@ class StartController extends AuthenticatedController
      *
      * @return void
      */
-    function delete_action($id)
+    public function delete_action($id)
     {
         if (Request::isPost()) {
             if (Request::submitted('yes')) {
                 $name = WidgetHelper::getWidgetName($id);
                 if (WidgetHelper::removeWidget($id, $name, $GLOBALS['user']->id)) {
                     $message = sprintf(_('Widget "%s" wurde entfernt.'), $name);
-                    PageLayout::postMessage(MessageBox::success($message));
+                    PageLayout::postSuccess($message);
                 } else {
                     $message = sprintf(_('Widget "%s" konnte nicht entfernt werden.'), $name);
-                    PageLayout::postMessage(MessageBox::error($message));
+                    PageLayout::postError($message);
                 }
             }
         } else {
-            $message = sprintf(_('Sind Sie sicher, dass Sie das Widget "%s" von der Startseite entfernen mˆchten?'),
-                               WidgetHelper::getWidgetName($id));
-            $this->flash['question'] = createQuestion2($message, array(), array(), $this->url_for('start/delete/' . $id));
+            PageLayout::postQuestion(
+                sprintf(
+                    _('Sind Sie sicher, dass Sie das Widget "%s" von der Startseite entfernen m√∂chten?'),
+                    WidgetHelper::getWidgetName($id)
+                ),
+                $this->url_for('start/delete/' . $id)
+            );
         }
         $this->redirect('start');
     }
@@ -240,7 +247,7 @@ class StartController extends AuthenticatedController
 
         WidgetHelper::setInitialPositions();
 
-        $message = _('Die Widgets wurden auf die Standardkonfiguration zur¸ckgesetzt.');
+        $message = _('Die Widgets wurden auf die Standardkonfiguration zur√ºckgesetzt.');
         PageLayout::postMessage(MessageBox::success($message));
         $this->redirect('start');
     }
@@ -250,7 +257,7 @@ class StartController extends AuthenticatedController
      *
      * @return void
      */
-    function storeNewOrder_action()
+    public function storeNewOrder_action()
     {
         WidgetHelper::storeNewPositions(Request::get('widget'), Request::get('position'), Request::get('column'));
         $this->render_nothing();
@@ -261,12 +268,12 @@ class StartController extends AuthenticatedController
      *
      * @return void
      */
-    function resend_validation_mail_action()
+    public function resend_validation_mail_action()
     {
         if ($GLOBALS['perm']->get_perm() == 'user') {
             Seminar_Register_Auth::sendValidationMail($GLOBALS['user']);
             PageLayout::postMessage(MessageBox::success(
-                _('Die Best‰tigungsmail wurde erneut verschickt.')
+                _('Die Best√§tigungsmail wurde erneut verschickt.')
             ));
         }
 
@@ -278,14 +285,14 @@ class StartController extends AuthenticatedController
      *
      * @return void
      */
-    function edit_mail_address_action()
+    public function edit_mail_address_action()
     {
         // only allow editing of mail-address here if user has not yet validated
         if ($GLOBALS['perm']->get_perm() != 'user') {
             $this->redirect('start');
             return;
         }
-
+        $this->restricted = (StudipAuthAbstract::CheckField('auth_user_md5.Email', $GLOBALS['user']->auth_plugin) && LockRules::check($GLOBALS['user']->id, 'email'));
         $this->email = $GLOBALS['user']->Email;
     }
 
@@ -294,21 +301,29 @@ class StartController extends AuthenticatedController
      *
      * @return void
      */
-    function change_mail_address_action()
+    public function change_mail_address_action()
     {
+        $email1 = Request::get('email1');
+        $email2 = Request::get('email2');
         if ($GLOBALS['perm']->get_perm() == 'user') {
+
+            if($email1 != $email2) {
+                PageLayout::postError(_('Die Wiederholung der E-Mail-Adresse stimmt nicht mit Ihrer Eingabe √ºberein.'));
+                $this->redirect('start/edit_mail_address');
+                return;
+            }
             $user = new User($GLOBALS['user']->id);
-            $user->Email = Request::get('email');
+            $user->Email = $email1;
             $user->store();
 
             $GLOBALS['user']->Email = $user->Email;
 
             Seminar_Register_Auth::sendValidationMail($user);
             PageLayout::postMessage(MessageBox::success(
-                _('Ihre Mailadresse wurde ge‰ndert und die Best‰tigungsmail erneut verschickt.')
+                _('Ihre Mailadresse wurde ge√§ndert und die Best√§tigungsmail erneut verschickt.')
             ));
         }
 
-        $this->redirect('start');
+        $this->relocate('start');
     }
 }

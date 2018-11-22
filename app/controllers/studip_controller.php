@@ -1,6 +1,4 @@
 <?php
-
-# Lifter010: TODO
 /*
  * studip_controller.php - studip controller base class
  * Copyright (c) 2009  Elmar Ludwig
@@ -15,11 +13,9 @@ abstract class StudipController extends Trails_Controller
 {
     protected $with_session = false; //do we need to have a session for this controller
     protected $allow_nobody = true; //should 'nobody' allowed for this controller or redirected to login?
-    protected $encoding = "windows-1252";
-    protected $utf8decode_xhr = false; //uf8decode request parameters from XHR ?
     protected $_autobind = false;
 
-    function before_filter(&$action, &$args)
+    public function before_filter(&$action, &$args)
     {
         $this->current_action = $action;
         // allow only "word" characters in arguments
@@ -71,15 +67,8 @@ abstract class StudipController extends Trails_Controller
                      : 'layouts/base.php';
         $layout = $GLOBALS['template_factory']->open($layout_file);
         $this->set_layout($layout);
-        if ($this->encoding) {
-            $this->set_content_type('text/html;charset=' . $this->encoding);
-        }
-        if (Request::isXhr() && $this->utf8decode_xhr) {
-            $request = Request::getInstance();
-            foreach ($request as $key => $value) {
-                $request[$key] = studip_utf8decode($value);
-            }
-        }
+
+        $this->set_content_type('text/html;charset=utf-8');
     }
 
     /**
@@ -136,12 +125,12 @@ abstract class StudipController extends Trails_Controller
      *
      * @return void
      */
-    function after_filter($action, $args)
+    public function after_filter($action, $args)
     {
         parent::after_filter($action, $args);
 
         if (Request::isXhr() && !isset($this->response->headers['X-Title']) && PageLayout::hasTitle()) {
-            $this->response->add_header('X-Title', PageLayout::getTitle());
+            $this->response->add_header('X-Title', rawurlencode(PageLayout::getTitle()));
         }
 
         if ($this->with_session) {
@@ -281,9 +270,9 @@ abstract class StudipController extends Trails_Controller
 
         // Restore arguments
         $args[0] = $to;
-        $url = call_user_func_array('parent::url_for', $args);
-
-        // Restore fragment (if any)
+        $url = preg_match('#^(/|\w+://)#', $to)
+             ? $to
+             : call_user_func_array('parent::url_for', $args);
         if ($fragment) {
             $url .= '#' . $fragment;
         }
@@ -339,7 +328,7 @@ abstract class StudipController extends Trails_Controller
      *
      * @param  object     the thrown exception
      */
-    function rescue($exception)
+    public function rescue($exception)
     {
         throw $exception;
     }
@@ -349,10 +338,43 @@ abstract class StudipController extends Trails_Controller
      *
      * @param unknown $data
      */
-    function render_json($data)
+    public function render_json($data)
     {
         $this->set_content_type('application/json;charset=utf-8');
-        return $this->render_text(json_encode(studip_utf8encode($data)));
+        return $this->render_text(json_encode($data));
+    }
+
+    /**
+     * Render given data as csv, data is assumed to be utf-8.
+     * The first row of data may contain column titles.
+     *
+     * @param array $data       data as two dimensional array
+     * @param string $filename  download file name (optional)
+     * @param string $delimiter field delimiter char (optional)
+     * @param string $enclosure field enclosure char (optional)
+     */
+    public function render_csv($data, $filename = null, $delimiter = ';', $enclosure = '"')
+    {
+        $this->set_content_type('text/csv; charset=UTF-8');
+
+        $output = fopen('php://temp', 'rw');
+        fputs($output, "\xEF\xBB\xBF");
+
+        foreach ($data as $row) {
+            fputcsv($output, $row, $delimiter, $enclosure);
+        }
+
+        rewind($output);
+        $csv_data = stream_get_contents($output);
+        fclose($output);
+
+        if (isset($filename)) {
+            $this->response->add_header('Content-Disposition', 'attachment; ' . encode_header_parameter('filename', $filename));
+        }
+
+        $this->response->add_header('Content-Length', strlen($csv_data));
+
+        return $this->render_text($csv_data);
     }
 
     /**
@@ -363,7 +385,7 @@ abstract class StudipController extends Trails_Controller
      * @param string $to_uri a trails route
      * @return Trails_Response
      */
-    function relay($to_uri/* , ... */)
+    public function relay($to_uri/* , ... */)
     {
         $args = func_get_args();
         $uri = array_shift($args);
@@ -389,7 +411,7 @@ abstract class StudipController extends Trails_Controller
      * @param string $unconsumed
      * @return Trails_Response
      */
-    function perform_relayed($unconsumed/* , ... */)
+    public function perform_relayed($unconsumed/* , ... */)
     {
         $args = func_get_args();
         $unconsumed = array_shift($args);
@@ -419,7 +441,7 @@ abstract class StudipController extends Trails_Controller
      * @param mixed  $layout   Optional layout
      * @return string
      */
-    function render_template_as_string($template, $layout = null)
+    public function render_template_as_string($template, $layout = null)
     {
         $template = $this->get_template_factory()->open($template);
         $template->set_layout($layout);
