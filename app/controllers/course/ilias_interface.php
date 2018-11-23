@@ -15,7 +15,7 @@
  */
 
 require_once("lib/ilias_interface/ConnectedIlias.class.php");
-require_once("lib/ilias_interface/ObjectContentmodules.class.php");
+require_once("lib/ilias_interface/IliasObjectConnections.class.php");
 
 class Course_IliasInterfaceController extends AuthenticatedController
 {
@@ -33,8 +33,8 @@ class Course_IliasInterfaceController extends AuthenticatedController
         if (Request::isXhr()) {
             $this->dialog = true;
         }
-        if (!Config::Get()->ELEARNING_INTERFACE_ENABLE ) {
-            throw new AccessDeniedException(_('Elearning-Interface ist nicht aktiviert.'));
+        if (!Config::Get()->ILIAS_INTERFACE_ENABLE ) {
+            throw new AccessDeniedException(_('ILIAS-Interface ist nicht aktiviert.'));
         } else
             $this->elearning_active = true;
 
@@ -42,14 +42,16 @@ class Course_IliasInterfaceController extends AuthenticatedController
         PageLayout::setTitle(Context::getHeaderLine(). " - " . _("ILIAS"));
 
         checkObject(); // do we have an open object?
-        checkObjectModule('elearning_interface');
-        object_set_visit_module('elearning_interface');
+        checkObjectModule('ilias_interface');
+        object_set_visit_module('ilias_interface');
 
+        $this->ilias_interface_config = Config::get()->getValue('ILIAS_INTERFACE_BASIC_SETTINGS');
+        
         $this->search_key = Request::get('search_key');
         $this->anker_target = Request::get('anker_target');
         $this->seminar_id = Context::getId();
         $this->edit_permission = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id);
-        $this->author_permission = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id);
+        $this->author_permission = false;
         $this->course_permission = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id);
         
         $this->sidebar = Sidebar::get();
@@ -75,7 +77,7 @@ class Course_IliasInterfaceController extends AuthenticatedController
     width: calc(30% - 10px);
     max-width: calc(30% - 10px);
 }
-file_management_forms, div#preview_container {
+div#preview_container {
     width: calc(70% - 10px);
     max-width: calc(70% - 10px);
 }
@@ -92,7 +94,10 @@ file_management_forms, div#preview_container {
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
             if ($ilias_config['is_active']) {
                 $this->ilias_list[$ilias_index] = new ConnectedILIAS($ilias_index);
-                $crs_id = ObjectContentmodules::getConnectionModuleId($this->seminar_id, "crs", $ilias_index);
+                if ($GLOBALS['perm']->have_perm($this->ilias_list[$ilias_index]->ilias_config['author_perm'])) {
+                    $this->author_permission = true;
+                }
+                $crs_id = IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $ilias_index);
                 if (!$crs_id) {
                     $missing_course = true;
                 } else {
@@ -104,12 +109,11 @@ file_management_forms, div#preview_container {
 
         // Zugeordnete Ilias-Kurse ermitteln und ggf. aktualisieren
         // Instanz mit den Zuordnungen von Content-Modulen zur Veranstaltung
-        $object_connections = new ObjectContentmodules($this->seminar_id);
+        $object_connections = new IliasObjectConnections($this->seminar_id);
         $connected_systems = $object_connections->getConnections();
         $module_count = 0;
         foreach ($this->ilias_list as $ilias_index => $ilias) {
             if ($object_connections->isConnected($ilias_index)) {
-//                var_dump($this->ilias_list[$ilias_index]->soap_client->getTreeChilds(78, array(), 419));
                 foreach ($connected_systems[$ilias_index] as $module_id => $module_data) {
                     if ($this->ilias_list[$ilias_index]->isAllowedModuleType($module_data['type'])) {
                         $this->ilias_list[$ilias_index]->addCourseModule($module_id, $module_data);
@@ -118,7 +122,7 @@ file_management_forms, div#preview_container {
                 }
             }
         }
-        if ($this->module_count == 0) {
+        if (($this->module_count == 0) && (!$this->courses)) {
             if (Context::isInstitute()) {
                 PageLayout::postInfo(_('Momentan sind dieser Einrichtung keine Lernobjekte zugeordnet.'));
             } else {
@@ -129,19 +133,25 @@ file_management_forms, div#preview_container {
         if ($this->edit_permission) {
             $widget = new ActionsWidget();
             $widget->setTitle(_('Lernobjekte hinzufügen'));
-            $widget->addLink(
+            if ($this->ilias_interface_config['search_active']) {
+                $widget->addLink(
                     _('Lernobjekte suchen'),
                     $this->url_for('course/ilias_interface/add_object/search'),
                     Icon::create('add', 'clickable'),
                     ['data-dialog' => '']
                     );
-            $widget->addLink(
+            }
+            if ($this->author_permission) {
+                $widget->addLink(
                     _('Meine Lernobjekte'),
                     $this->url_for('course/ilias_interface/add_object/my_modules'),
                     Icon::create('add', 'clickable'),
                     ['data-dialog' => '']
                     );
-            $this->sidebar->addWidget($widget);
+            }                
+            if ($this->ilias_interface_config['search_active'] || $this->author_permission) {
+                    $this->sidebar->addWidget($widget);
+            }
         }
         
         $widget = new ActionsWidget();
@@ -182,7 +192,7 @@ file_management_forms, div#preview_container {
         
         if ($this->author_permission || $this->edit_permission) {
             $widget = new ActionsWidget();
-            if ($this->edit_permission) {
+            if ($this->edit_permission && $this->ilias_interface_config['add_statusgroups']) {
                 $widget->addLink(
                         _('Statusgruppen übertragen'),
                         $this->url_for('course/ilias_interface/add_groups'),
@@ -196,7 +206,7 @@ file_management_forms, div#preview_container {
                         $this->url_for('my_ilias_accounts'),
                         Icon::create('person', 'clickable'));
             }
-            if ($this->edit_permission) {
+            if ($this->edit_permission && $this->ilias_interface_config['edit_moduletitle']) {
                 $widget->addLink(
                         _('Seite umbenennen'),
                         $this->url_for('course/ilias_interface/edit_moduletitle'),
@@ -258,7 +268,7 @@ file_management_forms, div#preview_container {
      * Add module to course
      * @param $index Index of ILIAS installation
      */
-    public function add_object_action($mode = 'search', $index)
+    public function add_object_action($mode = 'search', $index = '')
     {
         PageLayout::setTitle(_('Lernobjekt hinzufügen'));
         
@@ -278,7 +288,7 @@ file_management_forms, div#preview_container {
         if (($mode == 'new_course') || ($mode == 'assign_course')) {
             // allow add course only if no course exists
             foreach ($this->ilias_list as $ilias_index => $ilias) {
-                if (ObjectContentmodules::getConnectionModuleId($this->seminar_id, "crs", $ilias_index)) {
+                if (IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $ilias_index)) {
                     unset($ilias_list[$ilias_index]);
                 } else {
                     $last_ilias_index = $ilias_index;
@@ -298,7 +308,7 @@ file_management_forms, div#preview_container {
             $this->ilias = $this->ilias_list[$index];
             $this->ilias_index = $index;
             $this->ilias_modules = array();
-            $object_connections = new ObjectContentmodules($this->seminar_id);
+            $object_connections = new IliasObjectConnections($this->seminar_id);
             $course_modules = $object_connections->getConnections();
             
             if ($mode == 'search') {
@@ -351,9 +361,9 @@ file_management_forms, div#preview_container {
                 }
 
                 if (Request::get('cmd') ==  'assign_course') {
-                    $crs_id = ObjectContentmodules::getConnectionModuleId($this->seminar_id, "crs", $this->index);
+                    $crs_id = IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $this->index);
                     if (!$crs_id) {
-                        ObjectContentmodules::setConnection($this->seminar_id, Request::get(ilias_course_id), "crs", $this->index);
+                        IliasObjectConnections::setConnection($this->seminar_id, Request::get(ilias_course_id), "crs", $this->index);
                         PageLayout::postInfo(_('Kurs wurde zugeordnet.'));
                         $this->redirect($this->url_for('course/ilias_interface'));
                     }
@@ -373,7 +383,7 @@ file_management_forms, div#preview_container {
     }
     
     /**
-     * Add module to course
+     * Add/Update status groups
      * @param $index Index of ILIAS installation
      */
     public function add_groups_action($index)
@@ -389,7 +399,7 @@ file_management_forms, div#preview_container {
         // get active ILIAS installations
         $this->ilias_list = array();
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
-            if ($ilias_config['is_active'] && ObjectContentmodules::getConnectionModuleId($this->seminar_id, "crs", $ilias_index)) {
+            if ($ilias_config['is_active'] && IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $ilias_index)) {
                 $this->ilias_list[$ilias_index] = new ConnectedILIAS($ilias_index);
                 $last_ilias_index = $ilias_index;
             }
@@ -408,13 +418,13 @@ file_management_forms, div#preview_container {
             $this->ilias_index = $index;
             $this->ilias_groups = array();
             $this->submit_text =  _('Gruppen übertragen');
-            $course_id = ObjectContentmodules::getConnectionModuleId($this->seminar_id, "crs", $this->ilias_index);
+            $course_id = IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $this->ilias_index);
                 
             if ((Request::get('cmd') == 'create_groups') && $course_id) {
                 // add groups
                 foreach ($this->groups as $group) {
                     $update = false;
-                    if ($group_id = ObjectContentmodules::getConnectionModuleId($group->getId(), "group", $this->ilias_index)) {
+                    if ($group_id = IliasObjectConnections::getConnectionModuleId($group->getId(), "group", $this->ilias_index)) {
                         // delete existing group
                         $this->ilias->soap_client->deleteObject($group_id);
                         $update = true;
@@ -425,7 +435,7 @@ file_management_forms, div#preview_container {
                                     'owner' => $this->ilias->user->getId()
                     );
                     if ($group_id = $this->ilias->soap_client->addGroup($group_data, $course_id)) {
-                        ObjectContentmodules::setConnection($group->getId(), $group_id, 'group', $this->ilias_index);
+                        IliasObjectConnections::setConnection($group->getId(), $group_id, 'group', $this->ilias_index);
                         // add members
                         $member_count = 0;
                         foreach ($group->members as $member) {
@@ -468,7 +478,7 @@ file_management_forms, div#preview_container {
         
         $this->ilias = new ConnectedILIAS($index);
         if ($this->ilias->isActive()) {
-            if (ObjectContentmodules::DeleteAllConnections($this->seminar_id, $index)) {
+            if (IliasObjectConnections::DeleteAllConnections($this->seminar_id, $index)) {
                 PageLayout::postSuccess(_("Kurs-Verknüpfung entfernt."));
             }
         } else {
@@ -488,7 +498,7 @@ file_management_forms, div#preview_container {
         if ($this->ilias->isActive()) {
             //TODO: check context
             $this->module = $this->ilias->getModule($module_id);
-            $this->module->setConnectionType(ObjectContentmodules::isObjectConnected($index, $module_id));
+            $this->module->setConnectionType(IliasObjectConnections::isObjectConnected($index, $module_id));
             $this->module_id = $module_id;
             $this->ilias_search = Request::get('ilias_search');
             $this->mode = Request::get('mode');

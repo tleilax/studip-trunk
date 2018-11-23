@@ -307,7 +307,7 @@ class IliasModule
     function setConnection($seminar_id)
     {
         $this->is_connected = true;
-        return ObjectContentmodules::setConnection($seminar_id, $this->id, $this->module_type, $this->cms_type);
+        return IliasObjectConnections::setConnection($seminar_id, $this->id, $this->module_type, $this->cms_type);
     }
 
     /**
@@ -321,7 +321,7 @@ class IliasModule
     function unsetConnection($seminar_id)
     {
         $this->is_connected = false;
-        return ObjectContentmodules::unsetConnection($seminar_id, $this->id, $this->module_type, $this->cms_type);
+        return IliasObjectConnections::unsetConnection($seminar_id, $this->id, $this->module_type, $this->cms_type);
     }
 
     /**

@@ -108,7 +108,7 @@ file_management_forms, div#preview_container {
                             $this->ilias_list[$ilias_index]->user->setId($user_id);
                             $this->ilias_list[$ilias_index]->user->setConnection(USER_TYPE_ORIGINAL);
                             PageLayout::postSuccess(_("ILIAS-Account zugeordnet."));
-                            //TODO: reset soap connection
+                            $this->ilias_list[$ilias_index]->soap_client->clearCache();
                         }
                     } else {
                         // wrong login
@@ -194,7 +194,7 @@ file_management_forms, div#preview_container {
             $this->ilias = new ConnectedILIAS($index);
             $token = $this->ilias->user->getToken();
             $session_id = $this->ilias->soap_client->loginUser($this->ilias->user->getUsername(), $token);
-
+            var_dump($session_id);echo $this->ilias->soap_client->getError();die();
             // display error message if session is invalid
             if (!$session_id) {
                 PageLayout::postError(sprintf(_("Automatischer Login für %s-Installation (Nutzername %s) fehlgeschlagen."),

@@ -77,7 +77,13 @@ class ToolsNavigation extends Navigation
             $navigation = new Navigation(_('Lernmodule'), 'dispatch.php/elearning/my_accounts');
             $this->addSubNavigation('my_elearning', $navigation);
         }
-
+        if (get_config('ILIAS_INTERFACE_ENABLE')) {
+            if ($perm->have_perm('tutor')) {
+                $navigation = new Navigation(_('ILIAS'), 'dispatch.php/my_ilias_accounts');
+                $this->addSubNavigation('my_ilias_accounts', $navigation);
+            }
+        }
+        
         // export
         if (get_config('EXPORT_ENABLE') && $perm->have_perm('tutor')) {
             $navigation = new Navigation(_('Export'), 'export.php');

@@ -158,6 +158,10 @@ class AdminNavigation extends Navigation
                 $navigation->addSubNavigation('elearning', new Navigation(_('Lernmodule'), 'admin_elearning_interface.php'));
             }
 
+            if (Config::get()->ILIAS_INTERFACE_ENABLE) {
+                $navigation->addSubNavigation('ilias_interface', new Navigation(_('ILIAS-Schnittstelle'), 'dispatch.php/admin/ilias_interface'));
+            }
+            
             if (Config::get()->WEBSERVICES_ENABLE) {
                 $navigation->addSubNavigation('webservice_access', new Navigation(_('Webservices'), 'dispatch.php/admin/webservice_access'));
             }

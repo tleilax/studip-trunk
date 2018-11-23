@@ -59,7 +59,8 @@ class IliasUser
     {
         global $auth;
 
-        $this->studip_id = $user_id ? $user_id : $GLOBALS['auth']->auth["uid"];
+        $this->studip_id = $user_id ? $user_id : $GLOBALS['user']->id;
+        $this->auth_plugin = DBManager::get()->query("SELECT IFNULL(auth_plugin, 'standard') FROM auth_user_md5 WHERE user_id = '" . $this->studip_id. "'")->fetchColumn();
         $this->index = $index;
         $this->version = $version;
         

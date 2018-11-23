@@ -218,7 +218,8 @@
             'wiki' => array('name' => _("Wiki")),
             'resources' => array('name' => _("Ressourcen")),
             'calendar' => array('name' => _("Kalender")),
-            'elearning_interface' => array('name' => _("Lernmodule"))
+            'elearning_interface' => array('name' => _("Lernmodule")),
+            'ilias_interface' => array('name' => _("ILIAS-Lernobjekte"))
         );
         ?>
         <? foreach ($container as $container_id => $container_attributes) : ?>

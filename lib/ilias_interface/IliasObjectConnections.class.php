@@ -10,11 +10,11 @@
 *
 * @author   Arne Schröder <schroeder@data-quest.de>
 * @access   public
-* @modulegroup  elearning_interface_modules
-* @module       ObjectConnections
-* @package  ELearning-Interface
+* @modulegroup  ilias_interface_modules
+* @module       IliasObjectConnections
+* @package  Ilias-Interface
 */
-class ObjectContentmodules
+class IliasObjectConnections
 {
     var $id;
     var $object_connections;

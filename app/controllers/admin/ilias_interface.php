@@ -42,7 +42,7 @@ class Admin_IliasInterfaceController extends AuthenticatedController
         }
 
         // check if interface is active
-        if (!Config::Get()->ELEARNING_INTERFACE_ENABLE ) {
+        if (!Config::Get()->ILIAS_INTERFACE_ENABLE ) {
             throw new AccessDeniedException(_('Ilias-Interface ist nicht aktiviert.'));
         } else {
             $this->ilias_active = true;
@@ -51,12 +51,7 @@ class Admin_IliasInterfaceController extends AuthenticatedController
         // get basic settings
         $this->ilias_interface_config = Config::get()->getValue('ILIAS_INTERFACE_BASIC_SETTINGS');
         if (!is_array($this->ilias_interface_config)) {
-            $this->ilias_interface_config = array(
-                            'moduletitle' => _('ILIAS'),
-                            'edit_moduletitle' => false,
-                            'cache' => true
-            );
-            Config::get()->create('ILIAS_INTERFACE_BASIC_SETTINGS', array('type' => 'array', 'value' => json_encode($this->ilias_interface_config)));
+            throw new AccessDeniedException(_('ILIAS-Grundeinstellungen nicht gefunden.'));
         }
         if (!Config::get()->offsetExists('ILIAS_INTERFACE_MODULETITLE')) {
             $this->ilias_interface_moduletitle = _('ILIAS');
@@ -68,14 +63,7 @@ class Admin_IliasInterfaceController extends AuthenticatedController
         
         // get ILIAS installation settings
         $this->ilias_configs = Config::get()->getValue('ILIAS_INTERFACE_SETTINGS');
-        if (!is_array($this->ilias_configs)) {
-            $this->ilias_configs = array();
-            Config::get()->create('ILIAS_INTERFACE_SETTINGS', array('type' => 'array', 'value' => json_encode($this->ilias_configs)));
-        }
-        
         PageLayout::setHelpKeyword('Basis.Ilias');
-
-        $this->anker_target = Request::option('anker_target');
 
         $this->modules_available = ConnectedIlias::getSupportedModuleTypes();
         $this->sidebar = Sidebar::get();
@@ -123,6 +111,7 @@ class Admin_IliasInterfaceController extends AuthenticatedController
         if (Request::submitted('submit')) {
             $this->ilias_interface_config['edit_moduletitle'] = (boolean)Request::get('ilias_interface_edit_moduletitle');
             $this->ilias_interface_config['show_offline'] = (boolean)Request::get('ilias_interface_show_offline');
+            $this->ilias_interface_config['search_active'] = (boolean)Request::get('ilias_interface_search_active');
             $this->ilias_interface_config['add_statusgroups'] = (boolean)Request::get('ilias_interface_add_statusgroups');
             $this->ilias_interface_config['cache'] = (boolean)Request::get('ilias_interface_cache');
             
@@ -152,6 +141,7 @@ class Admin_IliasInterfaceController extends AuthenticatedController
                             'version' => '',
                             'url' => _('https://<URL zur ILIAS-Installation>'),
                             'client' => '',
+                            'ldap_enable' => '',
                             'admin' => 'ilias_soap_admin',
                             'admin_pw' => '',
                             
@@ -159,6 +149,10 @@ class Admin_IliasInterfaceController extends AuthenticatedController
                             'root_category' => '',
                             'user_prefix' => 'studip_',
                             'user_data_category' => '',
+                            'category_to_desktop' => false,
+                            'cat_semester' => '',
+                            'course_semester' => '',
+                            'course_veranstaltungsnummer' => false,
                             'modules' => array(),
                             
                             'author_role_name' => 'Author',
@@ -218,6 +212,13 @@ class Admin_IliasInterfaceController extends AuthenticatedController
         } else {
             $this->valid_url = true;
             $this->ilias_config = $this->ilias_configs[$index];
+            $ldap_options = array();
+            foreach (StudipAuthAbstract::GetInstance() as $plugin) {
+                if ($plugin instanceof StudipAuthLdap) {
+                    $ldap_options[] = '<option '.($plugin->plugin_name == $this->ilias_config['ldap_enable'] ? 'selected' : '').'>' . $plugin->plugin_name . '</option>';
+                }
+            }
+            $this->ldap_options = count($ldap_options) ? join("\n", array_merge(array('<option></option>'), $ldap_options)) : '';
             if (Request::get('ilias_name')) {
                 $this->ilias_config['name'] = Request::get('ilias_name');
                 $this->ilias_config['url'] = Request::get('ilias_url');
@@ -290,6 +291,9 @@ class Admin_IliasInterfaceController extends AuthenticatedController
                 if (Request::getInstance()->offsetExists('ilias_client')) {
                     $this->ilias_configs[$index]['client'] = Request::get('ilias_client');
                 }
+                if (Request::getInstance()->offsetExists('ilias_ldap_enable')) {
+                    $this->ilias_configs[$index]['ldap_enable'] = Request::get('ilias_ldap_enable');
+                }
                 $this->ilias_configs[$index]['admin'] = Request::get('ilias_admin');
                 $this->ilias_configs[$index]['admin_pw'] = Request::get('ilias_admin_pw');
                 
@@ -314,6 +318,12 @@ class Admin_IliasInterfaceController extends AuthenticatedController
                     }
                     if (Request::getInstance()->offsetExists('ilias_course_semester')) {
                         $this->ilias_configs[$index]['course_semester'] = Request::get('ilias_course_semester');
+                    }
+                    if (Request::getInstance()->offsetExists('ilias_course_veranstaltungsnummer')) {
+                        $this->ilias_configs[$index]['course_veranstaltungsnummer'] = Request::get('ilias_course_veranstaltungsnummer');
+                    }
+                    if (Request::getInstance()->offsetExists('ilias_category_to_desktop')) {
+                        $this->ilias_configs[$index]['category_to_desktop'] = Request::get('ilias_category_to_desktop');
                     }
                     foreach ($this->modules_available as $module_index => $module_name) {
                         if (Request::get('ilias_modules_'.$module_index)) {
@@ -415,16 +425,8 @@ class Admin_IliasInterfaceController extends AuthenticatedController
             } elseif (Request::get('ilias_call')) {
                 foreach ($this->soap_methods[Request::get('ilias_call')] as $param) {
                     $params[$param] = Request::get('ilias_soap_param_'.$param);
-/*                    switch ($param) {
-                        case "sid" : $params[$param] = $ilias->soap_client->loginAdmin();
-                        break;
-                        case "user_id" : $params[$param] = $ilias->user->getId();
-                        break;
-                    }/**/
                 }
                 $this->result = $ilias->soap_client->call(Request::get('ilias_call'), $params);
-//                echo Request::get('ilias_call');
-//                var_dump($this->result);die();                
                 preg_match_all('/\<[^>]*\>/', $xml_tags);
             }
         }

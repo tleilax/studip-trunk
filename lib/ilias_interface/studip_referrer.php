@@ -1,5 +1,5 @@
 <?php
-/* Copyright (c) 1998-2014 ILIAS open source, Extended GPL, see docs/LICENSE */
+/* Copyright (c) 1998-2018 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 /**
 * redirect script for studip-users
@@ -9,7 +9,7 @@
 *
 */
 
-/* ILIAS Version 4.4.x */
+/* ILIAS Version 5.1.x */
 
 if(file_exists("./ilias.ini.php")){
     require_once("./Services/Init/classes/class.ilIniFile.php");

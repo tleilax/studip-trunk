@@ -49,6 +49,19 @@
             <? endif ?>
         </label>
         <label>
+            <span><?= _('LDAP-Einstellung') ?></span>
+            <? if ($ldap_options) : ?>
+                <select name="ilias_ldap_enable">
+                <?=$ldap_options;?>
+                </select><br>
+                <?=_("Authentifizierungsplugin (nur LDAP) beim Anlegen von externen Accounts übernehmen.");?>
+                <?=Icon::create('info-circle', 'inactive', ['title' => _("Wählen Sie hier ein Authentifizierungsplugin, damit neu angelegte ILIAS-Accounts den Authentifizierungsmodus LDAP erhalten, wenn dieser Modus auch für den vorhandenen Stud.IP-Account gilt. Andernfalls erhalten alle ILIAS-Accounts den default-Modus")])->asImg(16);?>
+            <? else : ?>
+                <br><?=_("(Um diese Einstellung zu nutzen muss zumindest ein LDAP Authentifizierungsplugin aktiviert sein.)");?>
+                <input type="hidden" name="ilias_ldap_enable" value="">
+            <? endif ?>
+        </label>
+        <label>
             <span class="required">  <?= _('Admin-Account') ?></span>
             <input type="text" name="ilias_admin" size="50" maxlength="255" value="<?= $ilias_config['admin'] ?>" required>
         </label>

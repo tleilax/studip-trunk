@@ -46,7 +46,7 @@ class IliasSoap extends StudipSoapClient
      * @param string $admin_login ILIAS admin account login
      * @param string $admin_password ILIAS admin account password
      */
-    public function __construct($index, $soap_path, $ilias_client, $ilias_version, $admin_login, $admin_password)
+    public function __construct($index, $soap_path, $ilias_client = '', $ilias_version = '', $admin_login = '', $admin_password = '')
     {
         $this->index = $index;
         $this->ilias_client = $ilias_client;
@@ -470,7 +470,6 @@ class IliasSoap extends StudipSoapClient
         if ($result != false)
         {
             $objects = $this->parseIliasObject($result);
-//            $objects = $this->parseXML($result);
             foreach($objects as $index => $object_data)
             {
                 if (($type != "") AND ($object_data["type"] != $type))
@@ -478,12 +477,11 @@ class IliasSoap extends StudipSoapClient
                 elseif (mb_strpos(mb_strtolower($object_data["title"]), mb_strtolower(trim($key)) ) === false)
                     unset($objects[$index]);
             }
-//            var_dump($objects);die();
             if (sizeof($objects) > 0)
                 foreach($objects as $object_data)
                     if (sizeof($object_data["references"]) > 0)
                     {
-                        return reset($object_data["references"]);
+                        return key($object_data["references"]);
                         //return $object_data["references"][0]["ref_id"];
                     }
         }
@@ -501,11 +499,12 @@ class IliasSoap extends StudipSoapClient
     */
     function addObject($object_data, $ref_id)
     {
-    $type = $object_data["type"];
-    $title = htmlReady($object_data["title"]);
-    $description = htmlReady($object_data["description"]);
+        $this->clearCache();
+        $type = $object_data["type"];
+        $title = htmlReady($object_data["title"]);
+        $description = htmlReady($object_data["description"]);
 
-    $xml = "<!DOCTYPE Objects SYSTEM \"http://www.ilias.uni-koeln.de/download/dtd/ilias_object_0_1.dtd\">
+        $xml = "<!DOCTYPE Objects SYSTEM \"http://www.ilias.uni-koeln.de/download/dtd/ilias_object_0_1.dtd\">
 <Objects>
   <Object type=\"$type\">
     <Title>
@@ -535,6 +534,7 @@ class IliasSoap extends StudipSoapClient
     */
     function deleteObject($reference_id)
     {
+        $this->clearCache();
         $param = array(
             'sid' => $this->getSID(),
             'reference_id' => $reference_id
@@ -553,6 +553,7 @@ class IliasSoap extends StudipSoapClient
     */
     function addReference($object_id, $ref_id)
     {
+        $this->clearCache();
         $param = array(
             'sid' => $this->getSID(),
             'source_id' => $object_id,
@@ -561,6 +562,26 @@ class IliasSoap extends StudipSoapClient
         return $this->call('addReference', $param);
     }
 
+    /**
+     * add references to desktop
+     *
+     * adds references to personal desktop
+     * @access public
+     * @param string object_id source-object-id
+     * @param string ref_id target-id
+     * @return string created reference-id
+     */
+    function addDesktopItems($user_id, $ref_ids)
+    {
+        $this->clearCache();
+        $param = array(
+                        'sid' => $this->getSID(),
+                        'user_id' => $user_id,
+                        'reference_ids' => $ref_ids
+        );
+        return $this->call('addDesktopItems', $param);
+    }
+    
     /**
     * get tree childs
     *
@@ -703,11 +724,12 @@ class IliasSoap extends StudipSoapClient
     */
     function addRole($role_data, $ref_id)
     {
-    $type = "role";
-    $title = htmlReady($role_data["title"]);
-    $description = htmlReady($role_data["description"]);
+        $this->clearCache();
+        $type = "role";
+        $title = htmlReady($role_data["title"]);
+        $description = htmlReady($role_data["description"]);
 
-    $xml = "<!DOCTYPE Objects SYSTEM \"http://www.ilias.uni-koeln.de/download/dtd/ilias_object_0_1.dtd\">
+        $xml = "<!DOCTYPE Objects SYSTEM \"http://www.ilias.uni-koeln.de/download/dtd/ilias_object_0_1.dtd\">
 <Objects>
   <Object type=\"$type\">
     <Title>
@@ -743,11 +765,12 @@ class IliasSoap extends StudipSoapClient
     */
     function addRoleFromTemplate($role_data, $ref_id, $role_id)
     {
-    $type = "role";
-    $title = htmlReady($role_data["title"]);
-    $description = htmlReady($role_data["description"]);
+        $this->clearCache();
+        $type = "role";
+        $title = htmlReady($role_data["title"]);
+        $description = htmlReady($role_data["description"]);
 
-    $xml = "<!DOCTYPE Objects SYSTEM \"http://www.ilias.uni-koeln.de/download/dtd/ilias_object_0_1.dtd\">
+        $xml = "<!DOCTYPE Objects SYSTEM \"http://www.ilias.uni-koeln.de/download/dtd/ilias_object_0_1.dtd\">
 <Objects>
   <Object type=\"$type\">
     <Title>
@@ -783,6 +806,7 @@ class IliasSoap extends StudipSoapClient
     */
     function deleteUserRoleEntry($user_id, $role_id)
     {
+        $this->clearCache();
         $param = array(
             'sid' => $this->getSID(),
             'user_id' => $user_id,
@@ -802,6 +826,7 @@ class IliasSoap extends StudipSoapClient
     */
     function addUserRoleEntry($user_id, $role_id)
     {
+        $this->clearCache();
         $param = array(
             'sid' => $this->getSID(),
             'user_id' => $user_id,
@@ -822,6 +847,7 @@ class IliasSoap extends StudipSoapClient
     */
     function grantPermissions($operations, $role_id, $ref_id)
     {
+        $this->clearCache();
         $param = array(
             'sid' => $this->getSID(),
             'ref_id' => $ref_id,
@@ -842,6 +868,7 @@ class IliasSoap extends StudipSoapClient
     */
     function revokePermissions($role_id, $ref_id)
     {
+        $this->clearCache();
         $param = array(
             'sid' => $this->getSID(),
             'ref_id' => $ref_id,
@@ -984,6 +1011,7 @@ class IliasSoap extends StudipSoapClient
      */
     function addUser($user_data, $role_id)
     {
+        $this->clearCache();
         foreach($user_data as $key => $value) {
             $user_data[$key] = htmlReady($user_data[$key]);
         }
@@ -1044,6 +1072,7 @@ class IliasSoap extends StudipSoapClient
      */
     function copyObject($source_id, $target_id)
     {
+        $this->clearCache();
         $type = $object_data["type"];
         $title = $object_data["title"];
         $description = $object_data["description"];
@@ -1157,6 +1186,7 @@ class IliasSoap extends StudipSoapClient
      */
     function getInstallationInfoXML()
     {
+        $this->clearCache();
         $param = array(
         );
         $result = $this->call('getInstallationInfoXML', $param);
@@ -1184,6 +1214,7 @@ class IliasSoap extends StudipSoapClient
     */
 /*    function updateUser($user_data)
     {
+        $this->clearCache();
         $param = array(
             'sid' => $this->getSID(),
             'user_data' => $user_data
@@ -1202,6 +1233,7 @@ class IliasSoap extends StudipSoapClient
     */
 /*    function updatePassword($user_id, $password)
     {
+        $this->clearCache();
         $param = array(
             'sid'          => $this->getSID(),
             'user_id'      => $user_id,
@@ -1220,6 +1252,7 @@ class IliasSoap extends StudipSoapClient
     */
     function deleteUser($user_id)
     {
+        $this->clearCache();
         $param = array(
             'sid' => $this->getSID(),
             'user_id'         => $user_id
@@ -1266,6 +1299,7 @@ class IliasSoap extends StudipSoapClient
     */
     function addMember($user_id, $type, $course_id)
     {
+        $this->clearCache();
         $param = array(
             'sid' => $this->getSID(),
             'course_id'         => $course_id,
@@ -1286,6 +1320,7 @@ class IliasSoap extends StudipSoapClient
      */
     function addCourse($course_data, $ref_id)
     {
+        $this->clearCache();
         foreach($course_data as $key => $value) {
             $course_data[$key] = htmlReady($course_data[$key]);
         }
@@ -1311,6 +1346,7 @@ class IliasSoap extends StudipSoapClient
      */
     function addGroup($group_data, $ref_id)
     {
+        $this->clearCache();
         foreach($group_data as $key => $value) {
             $group_data[$key] = htmlReady($group_data[$key]);
         }
@@ -1336,6 +1372,7 @@ class IliasSoap extends StudipSoapClient
      */
     function assignGroupMember($group_id, $user_id, $type = "Member")
     {
+        $this->clearCache();
         $param = array(
                         'sid' => $this->getSID(),
                         'group_id' => $group_id,
@@ -1355,6 +1392,7 @@ class IliasSoap extends StudipSoapClient
      */
     function excludeGroupMember($group_id, $user_id, $type = "Member")
     {
+        $this->clearCache();
         $param = array(
                         'sid' => $this->getSID(),
                         'group_id' => $group_id,

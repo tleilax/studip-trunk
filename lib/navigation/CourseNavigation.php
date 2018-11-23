@@ -194,6 +194,16 @@ class CourseNavigation extends Navigation
             }
         }
 
+        // ilias learning objects
+        if (($modules['ilias_interface'] || $sem_class->isSlotMandatory("ilias_interface"))
+                && $sem_class->isModuleAllowed($sem_class->getSlotModule("ilias_interface"))) {
+            foreach ($sem_class->getNavigationForSlot("ilias_interface") as $nav_name => $navigation) {
+                if ($nav_name && is_a($navigation, "Navigation")) {
+                    $this->addSubNavigation($nav_name, $navigation);
+                }
+            }
+        }
+
         //plugins
         $standard_plugins = PluginManager::getInstance()->getPlugins("StandardPlugin", Context::getId());
         foreach ($standard_plugins as $plugin) {

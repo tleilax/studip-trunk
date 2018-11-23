@@ -17,6 +17,10 @@
         <span><?= _('Lehrende können Statusgruppen nach ILIAS übertragen') ?></span>
     </label>
     <label>
+        <input type="checkbox" name="ilias_interface_search_active" value="1" <?= $ilias_interface_config['search_active'] ? 'checked' : '' ?>>
+        <span><?= _('Suche nach Lernobjekten verfügbar') ?></span>
+    </label>
+    <label>
         <input type="checkbox" name="ilias_interface_cache" value="1" <?= $ilias_interface_config['cache'] ? 'checked' : '' ?>>
         <span><?= _('SOAP-Cache') ?></span>
     </label>

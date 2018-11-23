@@ -16,6 +16,10 @@
     </label>
     <? endif ?>
     <label>
+        <input type="checkbox" name="ilias_category_to_desktop" value="1" <?= $ilias_config['category_to_desktop'] ? 'checked' : '' ?>>
+        <span><?= _('Persönliche ILIAS-Kategorie auf den Schreibtisch legen') ?></span>
+    </label>
+    <label>
         <span class="required"><?= _('Prefix für automatisch angelegte Usernamen') ?></span>
         <? if ($ilias_config['is_active']) : ?>
             <div><?=$ilias_config['user_prefix'] ? htmlReady($ilias_config['user_prefix']) : _('Kein Präfix')?></div>
@@ -56,6 +60,10 @@
     <label>
         <input type="radio" name="ilias_course_semester" value="bracket" required <?=$ilias_config['course_semester'] == "bracket" ? ' checked' : ''?>>
         <span><?= _('Veranstaltungsname (Semester)') ?></span>
+    </label>
+    <label>
+        <input type="checkbox" name="ilias_course_veranstaltungsnummer" value="1" <?= $ilias_config['course_veranstaltungsnummer'] ? 'checked' : '' ?>>
+        <span><?= _('Stud.IP-Veranstaltungsnummer im ILIAS-Kurstitel anzeigen') ?></span>
     </label>
     <label>
     <span>  <?= _('Module') ?></span>
