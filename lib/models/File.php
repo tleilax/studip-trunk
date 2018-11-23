@@ -171,7 +171,7 @@ class File extends SimpleORMap
         } else if (!@copy($path_to_file, $newpath)) {
             return false;
         }
-
+        $this->size = filesize($newpath);
         return true;
 
     }
