@@ -24,9 +24,65 @@ class WikiController extends AuthenticatedController
     public function create_action()
     {
         Navigation::activateItem('/course/wiki/show');
+        $range_id = Context::getId();
+        $this->storedStatusStandard = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
 
         $this->keyword  = Request::get('keyword');
         getShowPageInfobox($keyword, true);
+    }
+
+    /**
+     * change course permissions of wiki pages
+     */
+    public function change_courseperms_action()
+    {
+        Navigation::activateItem('/course/wiki/show');
+        $range_id = Context::getId();
+        $this->storedStatus = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
+        $this->keyword  = Request::get('keyword');
+        $keyword = $this->keyword;
+        $perm = $GLOBALS['perm'];
+
+        getShowPageInfobox($keyword, true);
+
+        if (!$perm->have_studip_perm("autor", $range_id)) {
+            throw new AccessDeniedException(_('Sie haben keine Berechtigung, Berechtigungen Wiki-Seiten zu ändern!'));
+        }
+
+        // prevent malformed urls: keyword must be set
+        if (!$keyword) {
+            throw new InvalidArgumentException(_('Es wurde keine Seite übergeben!'));
+        }
+
+    }
+
+    public function change_pageperms_action()
+    {
+        Navigation::activateItem('/course/wiki/show');
+        $this->keyword  = Request::get('keyword');
+        $keyword = $this->keyword;
+        $this->version = Request::int('version');
+        $version = $this->version;
+
+        $range_id = Context::getId();
+        $row = WikiPageConfig::find([$range_id, $keyword]);
+        $this->storedStatusEdit = $row->edit_perms;
+        $this->storedStatusRead = $row->read_perms;
+
+        $range_id = Context::getId();
+        $this->storedStatusStandard = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
+
+        if ($this->storedStatusRead == "") {
+            $this->storedStatusRead = "autor";
+        }
+
+        getShowPageInfobox($keyword, true);
+
+        // prevent malformed urls: keyword must be set
+        if (!$keyword) {
+            throw new InvalidArgumentException(_('Es wurde keine Seite übergeben!'));
+        }
+
     }
 
     public function store_action($version)

@@ -27,6 +27,7 @@ $wiki_extended_link_regex = "\[\[(([\w\.\-\:\(\)_§\/@# ]|&[AOUaou]uml;|&szlig;)
 **/
 function getWikiPage($keyword, $version, $db = NULL)
 {
+    global $perm;
     $query = "SELECT *
               FROM wiki
               WHERE keyword = :keyword AND range_id = :range_id";
@@ -49,7 +50,19 @@ function getWikiPage($keyword, $version, $db = NULL)
 
     if (!$row) {
         if ($keyword == 'WikiWikiWeb') {
-            $body = _("Dieses Wiki ist noch leer. Bearbeiten Sie es!\nNeue Seiten oder Links werden einfach durch Eingeben von [nop][[Wikinamen]][/nop] in doppelten eckigen Klammern angelegt.");
+            $range_id = Context::getId();
+            $row = WikiPageConfig::find([$range_id, $keyword]);
+            if ($row["edit_perms"] == "") {
+                $edit_perms = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
+            } else {
+                $edit_perms = $row["edit_perms"];
+            }
+
+            if ($perm->have_studip_perm($edit_perms, $range_id)) {
+                $body = _("Dieses Wiki ist noch leer. Bearbeiten Sie es!\nNeue Seiten oder Links werden einfach durch Eingeben von [nop][[Wikinamen]][/nop] in doppelten eckigen Klammern angelegt.");
+            } else {
+                $body = _("Dieses Wiki ist noch leer.");
+            }
             $wikidata = array('body' => $body, 'user_id' => 'nobody',  'version' => 0);
         } else {
             return NULL;
@@ -73,6 +86,7 @@ function getWikiPage($keyword, $version, $db = NULL)
 **/
 function submitWikiPage($keyword, $version, $body, $user_id, $range_id) {
 
+    global $perm;
     releasePageLocks($keyword, $user_id); // kill lock that was set when starting to edit
     // write changes to db, show new page
     $latestVersion=getWikiPage($keyword,false);
@@ -93,7 +107,20 @@ function submitWikiPage($keyword, $version, $body, $user_id, $range_id) {
         if ($wp) {
             // apply replace-before-save transformations
             $wp->body = transformBeforeSave($body);
-            $wp->store();
+
+            $range_id = Context::getId();
+            $row = WikiPageConfig::find([$range_id, $keyword]);
+            if ($row["edit_perms"] == "") {
+                $edit_perms = "autor";
+            } else {
+                $edit_perms = $row["edit_perms"];
+            }
+            if ($perm->have_studip_perm($edit_perms, $range_id)) {
+                $wp->store();
+            } else {
+                $message = MessageBox::info(_('Keine Änderung vorgenommen, da zwischenzeitlich die Editier-Berechtigung entzogen wurde.'));
+                PageLayout::postMessage($message);
+            }
         }
     } else {
         if ($version === null) {
@@ -522,6 +549,7 @@ function deleteWikiPage($keyword, $version, $range_id) {
     }
 
     if (!keywordExists($keyword)) { // all versions have gone
+        WikiPageConfig::deleteBySQL('range_id = ? AND keyword = ?', [$range_id, $keyword]);
         $addmsg = '<br>' . sprintf(_("Damit ist die Seite %s mit allen Versionen gelöscht."),'<b>'.htmlReady($keyword).'</b>');
         $newkeyword = "WikiWikiWeb";
     } else {
@@ -556,6 +584,7 @@ function deleteAllWikiPage($keyword, $range_id) {
     }
 
     WikiPage::deleteBySQL("keyword = ? AND range_id = ?", [$keyword, $range_id]);
+    WikiPageConfig::deleteBySQL('range_id = ? AND keyword = ?', [$range_id, $keyword]);
     $message = MessageBox::info(sprintf(_('Die Seite %s wurde mit allen Versionen gelöscht.'), '<b>'.htmlReady($keyword).'</b>'));
     PageLayout::postMessage($message);
     refreshBacklinks($keyword, "");
@@ -572,6 +601,7 @@ function deleteAllWikiPage($keyword, $range_id) {
 **/
 function listPages($mode, $sortby = NULL)
 {
+    global $perm;
     if ($mode=="all") {
         $selfurl = "?view=listall";
         $sort = "ORDER by lastchange DESC"; // default sort order for "all pages"
@@ -684,20 +714,32 @@ function listPages($mode, $sortby = NULL)
             $user_id = $temp['user_id'];
             $version = $temp['version'];
 
-            $tdheadleft="<td class=\"$class\" align=\"left\"><font size=\"-1\">";
-            $tdheadcenter="<td class=\"$class\" align=\"center\"><font size=\"-1\">";
-            $tdtail="</font></td>";
-            print("<tr>".$tdheadleft."&nbsp;"."$tdtail");
-            print($tdheadleft."<a href=\"".URLHelper::getLink("?keyword=" . urlencode($keyword) . "")."\">");
-            print(htmlReady($keyword) ."</a>");
-            print($tdtail);
-            print($tdheadcenter.$version . $tdtail);
-            print($tdheadleft.date("d.m.Y, H:i", $lastchange));
-            if ($mode=="new" && $version > 1) {
-                print("&nbsp;(<a href=\"".URLHelper::getLink("?view=diff&keyword=".urlencode($keyword)."&versionssince=$lastlogindate")."\">"._("Änderungen")."</a>)");
+            $range_id = Context::getId();
+            $row = WikiPageConfig::find([$range_id, $keyword]);
+            if ($row["read_perms"] == "") {
+                $read_perms = "autor";
+            } else {
+                $read_perms = $row["read_perms"];
             }
-            print($tdtail);
-            print($tdheadleft.get_fullname($user_id,'full',TRUE).$tdtail."</tr>");
+
+            if ($perm->have_studip_perm($read_perms, $range_id)) {
+
+                $tdheadleft="<td class=\"$class\" align=\"left\"><font size=\"-1\">";
+                $tdheadcenter="<td class=\"$class\" align=\"center\"><font size=\"-1\">";
+                $tdtail="</font></td>";
+                print("<tr>".$tdheadleft."&nbsp;"."$tdtail");
+                print($tdheadleft."<a href=\"".URLHelper::getLink("?keyword=" . urlencode($keyword) . "")."\">");
+                print(htmlReady($keyword) ."</a>");
+                print($tdtail);
+                print($tdheadcenter.$version . $tdtail);
+                print($tdheadleft.date("d.m.Y, H:i", $lastchange));
+                if ($mode=="new" && $version > 1) {
+                    print("&nbsp;(<a href=\"".URLHelper::getLink("?view=diff&keyword=".urlencode($keyword)."&versionssince=$lastlogindate")."\">"._("Änderungen")."</a>)");
+                }
+                print($tdtail);
+                print($tdheadleft.get_fullname($user_id,'full',TRUE).$tdtail."</tr>");
+
+            }
         }
         echo '</tr></table>';
     }
@@ -1245,6 +1287,17 @@ function getShowPageInfobox($keyword, $latest_version)
         Icon::create('add'),
         ['data-dialog' => 'size=auto']
     );
+
+    // Change wiki course permissions
+    if ($GLOBALS['perm']->have_studip_perm('tutor', Context::getId())) {
+        $widget->addLink(
+            _('Wiki-Einstellungen ändern'),
+            URLHelper::getLink('dispatch.php/wiki/change_courseperms', compact('keyword')),
+            Icon::create('edit'),
+            ['data-dialog' => 'size=auto']
+        );
+    }
+
     $widget->addLink(
         _('Seiten importieren'),
         URLHelper::getLink('dispatch.php/wiki/import/' . Context::getId()),
@@ -1465,13 +1518,24 @@ function showWikiPage($keyword, $version, $special="", $show_comments="icon", $h
             $edit .= _("Ältere Version, nicht bearbeitbar!");
         } else {
             $edit="";
-            if ($perm->have_studip_perm("autor", Context::getId())) {
+
+            $range_id = Context::getId();
+            $row = WikiPageConfig::find([$range_id, $keyword]);
+            if ($row["edit_perms"] != "") {
+                $edit_perms = $row["edit_perms"];
+            } else {
+                $edit_perms = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
+            }
+            if ($perm->have_studip_perm($edit_perms, $range_id)) {
                 $edit.=LinkButton::create(_('Bearbeiten'), URLHelper::getURL("?keyword=".urlencode($keyword)."&view=edit"));
             }
             if ($perm->have_studip_perm("tutor", Context::getId())) {
                 $edit.=LinkButton::create(_('Löschen'),URLHelper::getURL("?keyword=".urlencode($keyword)."&cmd=delete&version=latest"));
                 // Neuer Button zum Löschen aller Versionen auf der Ebene des Bearbeitens und Löschens statt im Bestätigungsdialog des Löschens
                 $edit.=LinkButton::create(_('Alle Versionen löschen'), URLHelper::getURL('?cmd=delete_all&keyword='.urlencode($keyword)));
+            }
+            if ($perm->have_studip_perm("tutor", Context::getId()) && $wikiData["version"]) {
+                $edit.=LinkButton::create(_('Seiten-Einstellungen'),URLHelper::getURL('dispatch.php/wiki/change_pageperms', compact('keyword')),['data-dialog' => 'size=auto']);
             }
         }
         $edit .= "<br>&nbsp;";
