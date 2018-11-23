@@ -1,6 +1,17 @@
 <?php
+/**
+ * Representation of a user's booking of a consultation slots.
+ *
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license GPL2 or any later version
+ * @since   Stud.IP 4.3
+ */
 class ConsultationBooking extends SimpleORMap
 {
+    /**
+     * Configures the model.
+     * @param array  $config Configuration
+     */
     protected static function configure($config = [])
     {
         $config['db_table'] = 'consultation_bookings';
@@ -21,6 +32,8 @@ class ConsultationBooking extends SimpleORMap
         ];
 
         $config['registered_callbacks']['before_create'][] = function ($booking) {
+            setTempLanguage($booking->user_id);
+
             $event = $booking->slot->createEvent($booking->user);
             $event->category_intern = 1;
             $event->summary = sprintf(
@@ -29,6 +42,8 @@ class ConsultationBooking extends SimpleORMap
             );
             $event->description = $booking->reason;
             $event->store();
+
+            restoreLanguage();
 
             $booking->student_event_id = $event->id;
         };

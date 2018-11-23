@@ -42,7 +42,7 @@
                     Icon::create('comment'),
                     ['data-dialog' => 'size=auto']
                 )->addLink(
-                    $controller->url_for("consultation/admin/print/{$block->id}"),
+                    $controller->url_for("consultation/export/print/{$block->id}"),
                     _('Druckansicht anzeigen'),
                     Icon::create('print'),
                     ['target' => '_blank']

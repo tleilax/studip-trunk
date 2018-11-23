@@ -1,6 +1,13 @@
 <?php
 require_once __DIR__ . '/consultation_controller.php';
 
+/**
+ * Overview/Student controller for the consultation app.
+ *
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license GPL2 or any later version
+ * @since   Stud.IP 4.3
+ */
 class Consultation_OverviewController extends ConsultationController
 {
     public function before_filter(&$action, &$args)

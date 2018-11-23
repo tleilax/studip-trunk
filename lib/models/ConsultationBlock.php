@@ -1,6 +1,17 @@
 <?php
+/**
+ * Representation of a block of consultation slots - defining metadata.
+ *
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license GPL2 or any later version
+ * @since   Stud.IP 4.3
+ */
 class ConsultationBlock extends SimpleORMap
 {
+    /**
+     * Configures the model.
+     * @param array  $config Configuration
+     */
     protected static function configure($config = [])
     {
         $config['db_table'] = 'consultation_blocks';
@@ -31,7 +42,21 @@ class ConsultationBlock extends SimpleORMap
         parent::configure($config);
     }
 
-    public static function createBlocks($user_id, $start, $end, $week_day, $interval)
+    /**
+     * Generate blocks according to the given data.
+     *
+     * Be aware, that this is an actual generator that yields the results. You
+     * cannot count the generated blocks without iterating over them.
+     *
+     * @param  string $user_id  Id of the user
+     * @param  int    $start    Start of the time range as unix timestamp
+     * @param  int    $end      End of the time range as unix timestamp
+     * @param  int    $week_day Day of the week the blocks should be created
+     *                          (0 = sunday, 1 = monday ...)
+     * @param  int    $interval Week interval (skip $interval weeks between
+     *                          blocks)
+     */
+    public static function generateBlocks($user_id, $start, $end, $week_day, $interval)
     {
         $start_time = date('H:i', $start);
         $end_time   = date('H:i', $end);
@@ -77,6 +102,15 @@ class ConsultationBlock extends SimpleORMap
         }
     }
 
+    /**
+     * Checks if there any consultation slots already exist in the given
+     * time range for the given user.
+     *
+     * @param  string $user_id Id of the user
+     * @param  int    $start   Start of the time range as unix timestamp
+     * @param  int    $end     End of the time range as unix timestamp
+     * @return array of overlapping consultation slots
+     */
     protected static function checkOverlaps($user_id, $start, $end)
     {
         $query = "SELECT DISTINCT `block_id`
@@ -95,6 +129,12 @@ class ConsultationBlock extends SimpleORMap
         return self::findMany($ids);
     }
 
+    /**
+     * Creates individual slots according to the defined data and given
+     * duration.
+     *
+     * @param  int $duration Duration of a slot in minutes
+     */
     public function createSlots($duration)
     {
         $start = $this->start;
@@ -110,6 +150,12 @@ class ConsultationBlock extends SimpleORMap
         }
     }
 
+    /**
+     * Returns whether this slot is visible for a user.
+     *
+     * @param  mixed $user_id Id of the user (optional, defaults to current user)
+     * @return boolean defining whether the slot is visible
+     */
     public function isVisibleForUser($user_id = null)
     {
         if ($user_id === null) {
@@ -117,7 +163,6 @@ class ConsultationBlock extends SimpleORMap
         }
 
         return $this->teacher_id === $user_id
-//            || $GLOBALS['user']->perms === 'root'
             || !$this->course_id
             || (bool) $this->course->members->findOneBy('user_id', $user_id);
     }

@@ -1,6 +1,13 @@
 <?php
 require_once __DIR__ . '/consultation_controller.php';
 
+/**
+ * Administration controller for the consultation app.
+ *
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license GPL2 or any later version
+ * @since   Stud.IP 4.3
+ */
 class Consultation_AdminController extends ConsultationController
 {
     public function before_filter(&$action, &$args)
@@ -60,7 +67,7 @@ class Consultation_AdminController extends ConsultationController
         CSRFProtection::verifyUnsafeRequest();
 
         try {
-            $blocks = ConsultationBlock::createBlocks(
+            $blocks = ConsultationBlock::generateBlocks(
                 $this->current_user->id,
                 $this->getDateAndTime('start'),
                 $this->getDateAndTime('end'),
@@ -135,14 +142,6 @@ class Consultation_AdminController extends ConsultationController
 
             $this->redirect("consultation/admin/index#block-{$block_id}");
         }
-    }
-
-    public function print_action($block_id)
-    {
-        $this->blocks = $block_id === 'bulk'
-                      ? $this->loadBlock(Request::intArray('ids'))
-                      : [$this->loadBlock($block_id)];
-        $this->set_layout(null);
     }
 
     public function remove_action($block_id, $slot_id = null)
@@ -389,6 +388,13 @@ class Consultation_AdminController extends ConsultationController
             UserConfig::get($this->current_user->id)->CONSULTATION_SEND_MESSAGES,
             $this->url_for("consultation/admin/toggle/messages/1"),
             $this->url_for("consultation/admin/toggle/messages/0")
+        );
+
+        $export = $sidebar->addWidget(new ExportWidget());
+        $export->addLink(
+            _('Anmeldungen exportieren'),
+            $this->url_for('consultation/export/bookings'),
+            Icon::create('file-excel+export')
         );
     }
 

@@ -1,6 +1,17 @@
 <?php
+/**
+ * Representation of a consultation slot.
+ *
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license GPL2 or any later version
+ * @since   Stud.IP 4.3
+ */
 class ConsultationSlot extends SimpleORMap
 {
+    /**
+     * Configures the model.
+     * @param array  $config Configuration
+     */
     protected static function configure($config = [])
     {
         $config['db_table'] = 'consultation_slots';
@@ -32,6 +43,13 @@ class ConsultationSlot extends SimpleORMap
         parent::configure($config);
     }
 
+    /**
+     * Returns whether this slot is occupied (by a given user).
+     *
+     * @param  mixed $user_id Id of the user (optional)
+     * @return boolean indicating whether the slot is occupied (by the given
+     *                 user)
+     */
     public function isOccupied($user_id = null)
     {
         return $user->id === null
@@ -39,6 +57,12 @@ class ConsultationSlot extends SimpleORMap
              : (bool) $this->bookings->fineOneBy('user_id', $user_id);
     }
 
+    /**
+     * Creates a Stud.IP calendar event relating to the slot.
+     *
+     * @param  User $user User object to create the event for
+     * @return EventData Created event
+     */
     public function createEvent(User $user)
     {
         $event = new EventData();
@@ -62,17 +86,29 @@ class ConsultationSlot extends SimpleORMap
         return $event;
     }
 
+    /**
+     * Returns a unique event id.
+     *
+     * @param  User $user [description]
+     * @return string unique event id
+     */
     protected function createEventId(User $user)
     {
         $rand_id = md5(uniqid(self::class, true));
         return "Termin{$rand_id}-{$user->id}";
     }
 
+    /**
+     * Updates the teacher event that belongs to the slot. This will either be
+     * set to be unoccupied, occupied by only one user or by a group of user.
+     */
     public function updateEvent()
     {
         if (!$this->event) {
             return;
         }
+
+        setTempLanguage($this->block->teacher_id);
 
         if (count($this->bookings) === 0) {
             $this->event->category_intern = 9;
@@ -99,6 +135,8 @@ class ConsultationSlot extends SimpleORMap
                 }));
             }
         }
+
+        restoreLanguage();
 
         $this->event->store();
     }

@@ -1,4 +1,11 @@
 <?php
+/**
+ * Abstract controller for the consultation app.
+ *
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license GPL2 or any later version
+ * @since   Stud.IP 4.3
+ */
 abstract class ConsultationController extends AuthenticatedController
 {
     public function before_filter(&$action, &$args)
