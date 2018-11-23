@@ -158,12 +158,16 @@ abstract class StudipController extends Trails_Controller
      * @param array   an array of arguments to the action
      * @param array   list of argument types (optional)
      */
-    public function validate_args(&$args, $types = NULL)
+    public function validate_args(&$args, $types = null)
     {
         $class_infos = [];
 
         if ($types === null) {
-            $types = array_fill(0, count($args), 'option');
+            // TODO: Remove ternary operator when devboard runs completely on
+            //       PHP7
+            $types = count($args) > 0
+                   ? array_fill(0, count($args), 'option')
+                   : [];
         }
 
         if ($this->has_action($this->current_action)) {
