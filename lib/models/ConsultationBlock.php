@@ -109,4 +109,16 @@ class ConsultationBlock extends SimpleORMap
             $start = $slot->end_time;
         }
     }
+
+    public function isVisibleForUser($user_id = null)
+    {
+        if ($user_id === null) {
+            $user_id = $GLOBALS['user']->id;
+        }
+
+        return $this->teacher_id === $user_id
+//            || $GLOBALS['user']->perms === 'root'
+            || !$this->course_id
+            || (bool) $this->course->members->findOneBy('user_id', $user_id);
+    }
 }

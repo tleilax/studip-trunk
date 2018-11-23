@@ -21,4 +21,11 @@ class ConsultationSlot extends SimpleORMap
 
         parent::configure($config);
     }
+
+    public function isOccupied($user_id = null)
+    {
+        return $user->id === null
+             ? count($this->bookings) >= $this->block->size
+             : (bool) $this->bookings->fineOneBy('user_id', $user_id);
+    }
 }

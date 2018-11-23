@@ -1,22 +1,3 @@
-<?php
-$displayNote = function ($what, $length = 40) {
-    $what = trim($what);
-    if (!$what) {
-        return '';
-    }
-
-    if (mb_strlen($what)  < $length) {
-        return '<div class="consultation-note">' . $what . '</div>';
-    }
-
-    return sprintf(
-        '<div class="consultation-note shortened" data-tooltip="%s">%s&hellip;</div>',
-        htmlReady($what),
-        htmlReady(substr($what, 0, $length))
-    );
-};
-?>
-
 <? if (count($blocks) === 0): ?>
 
 <?= MessageBox::info(sprintf(
@@ -49,26 +30,10 @@ $displayNote = function ($what, $length = 40) {
         </tr>
     </thead>
 <? foreach ($blocks as $block): ?>
-    <tbody id="block-<?= $block->id ?>">
+    <tbody id="block-<?= htmlReady($block->id) ?>">
         <tr>
             <th colspan="4">
-                <?= strftime('%A, %x', $block->start) ?>,
-                <?= sprintf(
-                    _('%s bis %s Uhr'),
-                    date('H:i', $block->start),
-                    date('H:i', $block->end)
-                ) ?>
-                (
-                    <?= _('Raum') ?> <?= htmlReady($block->room) ?>
-                <? if ($block->course): ?>
-                    /
-                    <a href="<?= URLHelper::getLink('dispatch.php/course/details', ['sem_id' => $block->course_id]) ?>">
-                        <?= htmlReady($block->course->getFullName()) ?>
-                    </a>
-                <? endif; ?>
-                )
-
-                <?= $displayNote($block->note, 300) ?>
+                <?= $this->render_partial('consultation/block-description.php', compact('block')) ?>
             </th>
             <th class="actions">
                 <?= ActionMenu::get()->addLink(
@@ -90,7 +55,10 @@ $displayNote = function ($what, $length = 40) {
                     'remove',
                     _('Sprechstundentermine entfernen'),
                     Icon::create('trash'),
-                    ['formaction'   => $controller->url_for("consultation/admin/remove/{$block->id}")]
+                    [
+                        'formaction'   => $controller->url_for("consultation/admin/remove/{$block->id}"),
+                        'data-confirm' => _('Wollen Sie diese Sprechtstundentermine wirklich löschen?'),
+                    ]
                 ) ?>
             </th>
         </tr>

@@ -7,14 +7,8 @@ class Consultation_AdminController extends ConsultationController
     {
         parent::before_filter($action, $args);
 
-        $this->current_user = User::findByUsername(Request::username('username', $GLOBALS['user']->username));
-
         if ($this->current_user !== $GLOBALS['user']->id && $GLOBALS['user']->perms !== 'root') {
             throw new AccessDeniedException();
-        }
-
-        if ($this->current_user->id !== $GLOBALS['user']->id) {
-            URLHelper::addLinkParam('username', $this->current_user->username);
         }
 
         Navigation::activateItem('/profile/consultation/admin');
@@ -158,7 +152,26 @@ class Consultation_AdminController extends ConsultationController
         }
 
         if ($slot_id === null) {
-            $this->block = $this->loadBlock($block_id);
+            $block = $this->loadBlock($block_id);
+
+            $invalid = 0;
+            foreach ($block->slots as $slot) {
+                if (count($slot->bookings) > 0) {
+                    $invalid += 1;
+                } else {
+                    $slot->delete();
+                }
+            }
+
+            if ($invalid > 0) {
+                PageLayout::postError(implode(' ', [
+                    _('Sie können mindestens einen Sprechstundentermin nicht löschen, da er bereits belegt ist.'),
+                    _('Bitte sagen Sie diese Termine erst ab.')
+                ]));
+            } else {
+                $block->delete();
+                PageLayout::postSuccess(_('Die Sprechstundentermine wurden gelöscht'));
+            }
 
         } else {
             $this->slot = $this->loadSlot($block_id, $slot_id);
@@ -171,9 +184,9 @@ class Consultation_AdminController extends ConsultationController
                 $this->slot->delete();
                 PageLayout::postSuccess(_('Der Sprechstundentermin wurde gelöscht'));
             }
-
-            $this->redirect("consultation/admin/block-{$this->slot->block_id}");
         }
+
+        $this->redirect("consultation/admin#block-{$block_id}");
     }
 
     public function book_action($block_id, $slot_id)
@@ -202,8 +215,8 @@ class Consultation_AdminController extends ConsultationController
         if (Request::isPost()) {
             CSRFProtection::verifyUnsafeRequest();
 
-            if (count($this->slot->bookings) >= $this->slot->block->size) {
-                PageLayout::postError(_('Dieser Sprechstundentermin ist bereits belegt'));
+            if ($this->slot->isOccupied()) {
+                PageLayout::postError(_('Dieser Sprechstundentermin ist bereits belegt.'));
             } else {
                 $booking = new ConsultationBooking();
                 $booking->slot_id = $this->slot->id;
@@ -211,7 +224,25 @@ class Consultation_AdminController extends ConsultationController
                 $booking->reason  = trim(Request::get('reason'));
                 $booking->store();
 
-                PageLayout::postSuccess(_('Der Sprechstundentermin wurde reserviert'));
+                $this->sendMessage(
+                    $booking->user,
+                    $this->slot,
+                    _('Sprechstundentermin zugesagt'),
+                    $reason,
+                    $this->slot->block->teacher
+                );
+
+                if ($GLOBALS['user']->id !== $slot->block->teacher_id) {
+                    $this->sendMessage(
+                        $this->slot->block->teacher,
+                        $this->slot,
+                        _('Sprechstundentermin zugesagt'),
+                        $reason,
+                        $booking->user
+                    );
+                }
+
+                PageLayout::postSuccess(_('Der Sprechstundentermin wurde reserviert.'));
             }
 
             $this->redirect("consultation/admin#block-{$this->slot->block_id}");
@@ -234,22 +265,25 @@ class Consultation_AdminController extends ConsultationController
                         $booking->user,
                         $slot,
                         _('Sprechstundentermin abgesagt'),
-                        $reason
+                        $reason,
+                        $this->block->teacher
                     );
+
+                    if ($GLOBALS['user']->id !== $slot->block->teacher_id) {
+                        $this->sendMessage(
+                            $slot->block->teacher,
+                            $slot,
+                            _('Sprechstundentermin abgesagt'),
+                            $reason,
+                            $booking->user
+                        );
+                    }
 
                     $booking->delete();
                 }
-
-                if ($GLOBALS['user']->id !== $slot->block->teacher_id) {
-                    $this->sendMessage(
-                        $slot->block->teacher,
-                        $slot,
-                        _('Sprechstundentermin abgesagt'),
-                        $reason
-                    );
-                }
             }
 
+            PageLayout::postSuccess(_('Die Sprechstundentermine wurden abgesagt.'));
             $this->redirect("consultation/admin#block-{$block_id}");
         }
     }
@@ -269,21 +303,24 @@ class Consultation_AdminController extends ConsultationController
                     $booking->user,
                     $this->slot,
                     _('Sprechstundentermin abgesagt'),
-                    $reason
+                    $reason,
+                    $this->slot->block->teacher
                 );
+
+                if ($GLOBALS['user']->id !== $this->slot->block->teacher_id) {
+                    $this->sendMessage(
+                        $this->slot->block->teacher,
+                        $this->slot,
+                        _('Sprechstundentermin abgesagt'),
+                        $reason,
+                        $booking->user
+                    );
+                }
 
                 $booking->delete();
             }
 
-            if ($GLOBALS['user']->id !== $this->slot->block->teacher_id) {
-                $this->sendMessage(
-                    $this->slot->block->teacher,
-                    $this->slot,
-                    _('Sprechstundentermin abgesagt'),
-                    $reason
-                );
-            }
-
+            PageLayout::postSuccess(_('Der Sprechstundentermin wurde abgesagt.'));
             $this->redirect("consultation/admin#block-{$block_id}");
         }
     }
@@ -304,7 +341,8 @@ class Consultation_AdminController extends ConsultationController
                 $this->booking->user,
                 $this->booking->slot,
                 _('Grund des Sprechstundentermins bearbeitet'),
-                $this->booking->reason
+                $this->booking->reason,
+                $this->booking->slot->block->teacher
             );
 
             if ($GLOBALS['user']->id !== $this->booking->slot->block->teacher_id) {
@@ -312,7 +350,8 @@ class Consultation_AdminController extends ConsultationController
                     $this->booking->slot->block->teacher,
                     $this->booking->slot,
                     _('Grund des Sprechstundentermins bearbeitet'),
-                    $this->booking->reason
+                    $this->booking->reason,
+                    $this->booking->user
                 );
             }
 
@@ -363,44 +402,5 @@ class Consultation_AdminController extends ConsultationController
             Request::get("{$index}-date"),
             Request::get("{$index}-time")
         ]));
-    }
-
-    private function loadBlock($block_id)
-    {
-        if (is_array($block_id)) {
-            return array_map([$this, 'loadBlock'], $block_id);
-        }
-
-        $block = ConsultationBlock::find($block_id);
-
-        if ($block->teacher_id !== $this->current_user->id) {
-            throw new AccessDeniedException();
-        }
-
-        return $block;
-    }
-
-    private function loadSlot($block_id, $slot_id)
-    {
-        $block = $this->loadBlock($block_id);
-        $slot  = $block->slots->find($slot_id);
-
-        if (!$slot) {
-            throw new Exception(_('Dieser Sprechstundentermin existiert nicht'));
-        }
-
-        return $slot;
-    }
-
-    private function loadBooking($block_id, $slot_id, $booking_id)
-    {
-        $slot    = $this->loadSlot($block_id, $slot_id);
-        $booking = $slot->bookings->find($booking_id);
-
-        if (!$booking) {
-            throw new Exception(_('Dieser Sprechstundenbuchung existiert nicht'));
-        }
-
-        return $booking;
     }
 }
