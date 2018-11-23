@@ -245,6 +245,7 @@ use Studip\Button, Studip\LinkButton;
                             <option value=""><?= _('Bitte wählen') ?></option>
                             <option value="send_message"><?= _('Nachricht senden') ?></option>
                             <option value="delete"><?= _('Löschen') ?></option>
+                            <option value="anonymize"><?= _('Anonymisieren') ?></option>
                         </select>
 
                     <?= Button::create(_('Ausführen'),

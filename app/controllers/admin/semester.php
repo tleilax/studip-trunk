@@ -298,6 +298,12 @@ class Admin_SemesterController extends AuthenticatedController
                         foreach ($courses as $course) {
                             $course->visible = 0;
                             if ($lock_enroll) {
+
+                                $cset = CourseSet::getSetForCourse($course->seminar_id);
+                                if($cset){
+                                    CourseSet::removeCourseFromSet($cset->getId(), $course->seminar_id);
+                                }
+
                                 CourseSet::addCourseToSet($course_set_id, $course->seminar_id);
                             }
                             if ($course->lock_rule != $lock_rule) {
