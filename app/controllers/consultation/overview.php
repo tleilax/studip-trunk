@@ -26,6 +26,14 @@ class Consultation_OverviewController extends ConsultationController
         )->filter(function ($block) {
             return $block->isVisibleForUser();
         });
+
+        if ($course_id = Request::option('course_id')) {
+            $this->blocks = $this->blocks->filter(function ($block) use ($course_id) {
+                return $block->course_id === $course_id;
+            });
+        }
+
+        $this->setupSidebar($this->blocks);
     }
 
     public function book_action($block_id, $slot_id)
@@ -86,5 +94,30 @@ class Consultation_OverviewController extends ConsultationController
 
             $this->redirect("consultation/overview#block-{$block_id}");
         }
+    }
+
+    private function setupSidebar(Iterable $blocks)
+    {
+        $course_ids = array_unique(array_filter($this->blocks->pluck('course_id')));
+
+        if (count($course_ids) === 0) {
+            return;
+        }
+
+        $courses = Course::findMany(
+            $course_ids,
+            Config::get()->IMPORTANT_SEMNUMBER ? 'ORDER BY VeranstaltungsNummer, Name' : 'ORDER BY Name'
+        );
+
+        $options = ['' => _('Alle Sprechstunden anzeigen')];
+        foreach ($courses as $course) {
+            $options[$course->id] = $course->getFullName();
+        }
+
+        $filter = Sidebar::get()->addWidget(new SelectWidget(
+            _('Veranstaltungs-Filter'),
+            $this->url_for('consultation/overview'),
+            'course_id'));
+        $filter->setOptions($options);
     }
 }

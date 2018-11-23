@@ -129,35 +129,35 @@ class ProfileNavigation extends Navigation
                 $this->addSubNavigation('settings', $navigation);
             }
 
-            // Add consultations if activated
-            // TODO: i'm really not proud of this condition mess <tlx>
-            if (Config::get()->CONSULTATION_ENABLED
-                && UserConfig::get($current_user->id)->CONSULTATION_ENABLED_ON_PROFILE
-                && $perm->have_perm(Config::get()->CONSULTATION_REQUIRED_PERMISSION, $current_user->id)
-                && (
-                    $GLOBALS['user']->id === $current->user_id
-                    || in_array($GLOBALS['user']->perms, ['autor', 'user', 'tutor', 'root'])
-                    || (
-                        Config::get()->CONSULTATION_ALLOW_DOCENTS_RESERVING
-                        && $GLOBALS['user']->perms === 'dozent'
-                    )
-                ))
-            {
-                $navigation = new Navigation(_('Sprechstunden'), 'dispatch.php/consultation/overview');
-                if ($current_user->id !== $GLOBALS['user']->id) {
-                    $navigation->addSubNavigation('overview', new Navigation(_('Übersicht'), 'dispatch.php/consultation/overview'));
-                }
-                if ($current_user->id === $GLOBALS['user']->id || $GLOBALS['user']->perms === 'root') {
-                    $navigation->setURL('dispatch.php/consultation/admin');
-                    $navigation->addSubNavigation('admin', new Navigation(_('Verwaltung'), 'dispatch.php/consultation/admin'));
-                }
-
-                $this->addSubNavigation('consultation', $navigation);
-            }
-
             // user defined sections
             $navigation = new Navigation(_('Kategorien'), 'dispatch.php/settings/categories');
             $this->addSubNavigation('categories', $navigation);
+        }
+
+        // Add consultations if activated
+        // TODO: i'm really not proud of this condition mess <tlx>
+        if (Config::get()->CONSULTATION_ENABLED
+            && UserConfig::get($current_user->id)->CONSULTATION_ENABLED_ON_PROFILE
+            && $perm->have_perm(Config::get()->CONSULTATION_REQUIRED_PERMISSION, $current_user->id)
+            && (
+                $GLOBALS['user']->id === $current->user_id
+                || in_array($GLOBALS['user']->perms, ['autor', 'user', 'tutor', 'root'])
+                || (
+                    Config::get()->CONSULTATION_ALLOW_DOCENTS_RESERVING
+                    && $GLOBALS['user']->perms === 'dozent'
+                )
+            ))
+        {
+            $navigation = new Navigation(_('Sprechstunden'), 'dispatch.php/consultation/overview');
+            if ($current_user->id !== $GLOBALS['user']->id) {
+                $navigation->addSubNavigation('overview', new Navigation(_('Übersicht'), 'dispatch.php/consultation/overview'));
+            }
+            if ($current_user->id === $GLOBALS['user']->id || $GLOBALS['user']->perms === 'root') {
+                $navigation->setURL('dispatch.php/consultation/admin');
+                $navigation->addSubNavigation('admin', new Navigation(_('Verwaltung'), 'dispatch.php/consultation/admin'));
+            }
+
+            $this->addSubNavigation('consultation', $navigation);
         }
     }
 }
