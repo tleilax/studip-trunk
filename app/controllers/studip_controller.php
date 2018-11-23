@@ -13,6 +13,7 @@ abstract class StudipController extends Trails_Controller
 {
     protected $with_session = false; //do we need to have a session for this controller
     protected $allow_nobody = true; //should 'nobody' allowed for this controller or redirected to login?
+    protected $_autobind = false;
 
     public function before_filter(&$action, &$args)
     {
@@ -139,20 +140,55 @@ abstract class StudipController extends Trails_Controller
 
     /**
      * Validate arguments based on a list of given types. The types are:
-     * 'int', 'float', 'option' and 'string'. If the list of types is NULL
+     * 'int', 'float', 'option'. If the list of types is NULL
      * or shorter than the argument list, 'option' is assumed for all
      * remaining arguments. 'option' differs from Request::option() in
      * that it also accepts the charaters '-' and ',' in addition to all
      * word charaters.
+     *
+     * Since Stud.IP 4.0 it is also possible to directly inject
+     * SimpleORMap objects. If types is NULL, the signature of the called
+     * action is analyzed and any type hint that matches a sorm class
+     * will be used to create an object using the argument as the id
+     * that is passed to the object's constructor.
+     *
+     * If $_autobind is set to true, the created object is also assigned
+     * to the controller so that it is available in a view.
      *
      * @param array   an array of arguments to the action
      * @param array   list of argument types (optional)
      */
     public function validate_args(&$args, $types = NULL)
     {
-        foreach ($args as $i => &$arg) {
-            $type = isset($types[$i]) ? $types[$i] : 'option';
+        $class_infos = [];
 
+        if ($types === null) {
+            $types = array_fill(0, count($args), 'option');
+        }
+
+        if ($this->has_action($this->current_action)) {
+            $reflection = new \ReflectionMethod($this, $this->current_action . '_action');
+            $parameters = $reflection->getParameters();
+            $parameters = array_slice($parameters, 0, count($args));
+            foreach ($parameters as $i => $parameter) {
+                $class_type = $parameter->getClass();
+
+                if (!$class_type || !class_exists($class_type->name)) {
+                    continue;
+                }
+
+                if (is_a($class_type->name, 'SimpleORMap', true)) {
+                    $types[$i] = 'sorm';
+                    $class_infos[$i] = [
+                        'model' => $class_type->name,
+                        'var'   => $parameter->getName(),
+                    ];
+                }
+            }
+        }
+
+        foreach ($args as $i => &$arg) {
+            $type = $types[$i] ?: 'option';
             switch ($type) {
                 case 'int':
                     $arg = (int) $arg;
@@ -166,6 +202,19 @@ abstract class StudipController extends Trails_Controller
                     if (preg_match('/[^\\w,-]/', $arg)) {
                         throw new Trails_Exception(400);
                     }
+                    break;
+
+                case 'sorm':
+                    $info = $class_infos[$i];
+
+                    $arg = new $info['model']($arg);
+                    if ($this->_autobind) {
+                        $this->{$info['var']} =& $arg;
+                    }
+                    break;
+
+                default:
+                    throw new Trails_Exception(500, 'Unknown type "' . $type . '"');
             }
         }
 
@@ -186,20 +235,40 @@ abstract class StudipController extends Trails_Controller
     public function url_for($to = ''/* , ... */)
     {
         $args = func_get_args();
+
+        // Extract parameters (if any)
+        $params = [];
         if (is_array(end($args))) {
             $params = array_pop($args);
-        } else {
-            $params = array();
         }
+
         //preserve fragment
         list($to, $fragment) = explode('#', $to);
+
+        // Try to create route if none given
         if (!$to) {
-            $to = '/' . ($this->parent_controller ? $this->parent_controller->current_action : $this->current_action);
+            $to  = '/';
+            $to .= $this->parent_controller
+                 ? $this->parent_controller->current_action
+                 : $this->current_action;
         }
+
+        // Create url for a specific action
+        // TODO: This seems odd. You kinda specify an absolute path
+        //       to receive a relative url. Meh...
         if ($to[0] === '/') {
-            $prefix = str_replace('_', '/', mb_strtolower(mb_strstr(get_class($this->parent_controller ?: $this), 'Controller', true)));
-            $to = $prefix . $to;
+            $to = $this->controller_path() . $to;
         }
+
+        // Map any sorm objects to their ids
+        $args = array_map(function ($arg) {
+            if (is_object($arg) && $arg instanceof SimpleORMap) {
+                return $arg->id;
+            }
+            return $arg;
+        }, $args);
+
+        // Restore arguments
         $args[0] = $to;
         $url = preg_match('#^(/|\w+://)#', $to)
              ? $to
@@ -380,4 +449,81 @@ abstract class StudipController extends Trails_Controller
         return $template->render();
     }
 
+    /**
+     * Magic methods that intercepts all unknown method calls.
+     * If a method is called that matches an action on this controller,
+     * an url to that action is generated.
+     *
+     * Basically, this:
+     *
+     *    <code>$controller->url_for('foo/bar/baz/' . $param)</code>
+     *
+     * is equal to calling this on the Foo_BarController:
+     *
+     *    <code>$controller->baz($param)</code>
+     *
+     * @param String $method    Called method name
+     * @param array  $argumetns Provided arguments
+     * @return url to the requested action
+     * @throws Trails_UnknownAction if no action matches the method
+     */
+    public function __call($method, $arguments)
+    {
+        if (!$this->has_action($method)) {
+            throw new Trails_UnknownAction("Unknown action '{$method}'");
+        }
+
+        array_unshift($arguments, $method);
+        return call_user_func_array([$this, 'action_url'], $arguments);
+    }
+
+    /**
+     * Returns whether this controller has the specificed action.
+     *
+     * @param string $action Name of the action
+     * @return true if action is defined, false otherwise
+     */
+    public function has_action($action)
+    {
+        return method_exists($this, $action . '_action')
+            || ($this->parent_controller
+                && $this->parent_controller->has_action($action));
+    }
+
+    /**
+     * Generates the url for an action on this controller without the
+     * neccessity to provide the full "path" to the action (since it
+     * is implicitely known).
+     *
+     * Basically, this:
+     *
+     *    <code>$controller->url_for('foo/bar/baz/' . $param)</code>
+     *
+     * is equal to calling this on the Foo_BarController:
+     *
+     *    <code>$controller->action_url('baz/' . $param)</code>
+     *
+     * @param string $action Name of the action
+     * @return url to the requested action
+     */
+    public function action_url($action)
+    {
+        $arguments = func_get_args();
+        array_unshift($arguments, $this->controller_path());
+
+        return call_user_func_array([$this, 'url_for'], $arguments);
+    }
+
+    /**
+     * Returns the url path to this controller.
+     *
+     * @return url path to this controller
+     */
+    protected function controller_path()
+    {
+        $class = get_class($this->parent_controller ?: $this);
+        $controller = mb_substr($class, 0, -mb_strlen('Controller'));
+        $controller = strtosnakecase($controller);
+        return preg_replace('/_+/', '/', $controller);
+    }
 }
