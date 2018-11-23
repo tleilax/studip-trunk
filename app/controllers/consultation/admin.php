@@ -7,7 +7,7 @@ class Consultation_AdminController extends ConsultationController
     {
         parent::before_filter($action, $args);
 
-        if ($this->current_user !== $GLOBALS['user']->id && $GLOBALS['user']->perms !== 'root') {
+        if ($this->current_user->id !== $GLOBALS['user']->id && $GLOBALS['user']->perms !== 'root') {
             throw new AccessDeniedException();
         }
 

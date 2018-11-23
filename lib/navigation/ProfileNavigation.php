@@ -140,7 +140,7 @@ class ProfileNavigation extends Navigation
             && UserConfig::get($current_user->id)->CONSULTATION_ENABLED_ON_PROFILE
             && $perm->have_perm(Config::get()->CONSULTATION_REQUIRED_PERMISSION, $current_user->id)
             && (
-                $GLOBALS['user']->id === $current->user_id
+                $GLOBALS['user']->id === $current_user->id
                 || in_array($GLOBALS['user']->perms, ['autor', 'user', 'tutor', 'root'])
                 || (
                     Config::get()->CONSULTATION_ALLOW_DOCENTS_RESERVING
