@@ -20,6 +20,14 @@ class ConsultationBlock extends SimpleORMap
             'foreign_key' => 'course_id',
         ];
 
+        $config['additional_fields']['has_bookings']['get'] = function ($block) {
+            $count = 0;
+            foreach ($block->slots as $slot) {
+                $count += count($slot->bookings);
+            }
+            return $count > 0;
+        };
+
         parent::configure($config);
     }
 

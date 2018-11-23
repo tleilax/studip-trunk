@@ -1,4 +1,33 @@
+<?php
+$displayNote = function ($what, $length = 40) {
+    $what = trim($what);
+    if (!$what) {
+        return '';
+    }
+
+    if (mb_strlen($what)  < $length) {
+        return '<div class="consultation-note">' . $what . '</div>';
+    }
+
+    return sprintf(
+        '<div class="consultation-note shortened" data-tooltip="%s">%s&hellip;</div>',
+        htmlReady($what),
+        htmlReady(substr($what, 0, $length))
+    );
+};
+?>
+
 <? if (count($blocks) === 0): ?>
+
+<?= MessageBox::info(sprintf(
+    implode('<br>', [
+        _('Derzeit sind keine Sprechstundentermine eingetragen.'),
+        '<a href="%s" class="button" data-dialog="size=auto">%s</a>',
+    ]),
+    $controller->link_for('consultation/admin/create'),
+    _('Sprechstundenblöcke anlegen')
+))->hideClose() ?>
+
 <? else: ?>
 
 <form action="<?= $controller->link_for("consultation/admin/bulk") ?>" method="post">
@@ -38,6 +67,8 @@
                     </a>
                 <? endif; ?>
                 )
+
+                <?= $displayNote($block->note, 300) ?>
             </th>
             <th class="actions">
                 <?= ActionMenu::get()->addLink(
@@ -50,7 +81,12 @@
                     _('Druckansicht anzeigen'),
                     Icon::create('print'),
                     ['target' => '_blank']
-                )->addButton(
+                )->condition($block->has_bookings)->addLink(
+                    $controller->url_for("consultation/admin/cancel_block/{$block->id}"),
+                    _('Sprechstundentermine absagen'),
+                    Icon::create('consultation+remove'),
+                    ['data-dialog' => 'size=auto']
+                )->condition(!$block->has_bookings)->addButton(
                     'remove',
                     _('Sprechstundentermine entfernen'),
                     Icon::create('trash'),
@@ -64,15 +100,14 @@
                 <?= date('H:i', $slot->start_time) ?>
                 -
                 <?= date('H:i', $slot->end_time) ?>
-            <? if ($slot->note): ?>
-                <div class="note"><?= htmlReady($slot->note) ?></div>
-            <? endif; ?>
+
+                <?= $displayNote($slot->note) ?>
             </td>
             <td>
             <? if (count($slot->bookings) < $slot->block->size): ?>
                 <span class="consultation-free"><?= _('frei') ?></span>
             <? else: ?>
-                <span class="consultatin-occupied"><?= _('belegt') ?></span>
+                <span class="consultation-occupied"><?= _('belegt') ?></span>
             <? endif; ?>
             </td>
             <td>
@@ -107,7 +142,12 @@
                 </ul>
             </td>
             <td class="actions">
-                <?= ActionMenu::get()->condition(count($slot->bookings) < $slot->block->size)->addLink(
+                <?= ActionMenu::get()->addLink(
+                    $controller->url_for("consultation/admin/note/{$block->id}/{$slot->id}"),
+                    _('Anmerkung bearbeiten'),
+                    Icon::create('comment'),
+                    ['data-dialog' => 'size=auto']
+                )->condition(count($slot->bookings) < $slot->block->size)->addLink(
                     $controller->url_for("consultation/admin/book/{$block->id}/{$slot->id}"),
                     _('Sprechstundentermin reservieren'),
                     Icon::create('consultation+add'),
@@ -118,20 +158,18 @@
                     Icon::create('edit'),
                     ['data-dialog' => 'size=auto']
                 )->condition(count($slot->bookings) > 0)->addLink(
-                    $controller->url_for("consultation/admin/cancel/{$block->id}/{$slot->id}"),
+                    $controller->url_for("consultation/admin/cancel_slot/{$block->id}/{$slot->id}"),
                     _('Sprechstundentermin absagen'),
                     Icon::create('consultation+remove'),
                     ['data-dialog' => 'size=auto']
-                )->addLink(
-                    $controller->url_for("consultation/admin/note/{$block->id}/{$slot->id}"),
-                    _('Anmerkung bearbeiten'),
-                    Icon::create('comment'),
-                    ['data-dialog' => 'size=auto']
-                )->addButton(
+                )->condition(count($slot->bookings) === 0)->addButton(
                     'delete',
                     _('Sprechstundentermin entfernen'),
                     Icon::create('trash'),
-                    ['formaction' => $controller->url_for("consultation/admin/remove/{$block->id}/{$slot->id}")]
+                    [
+                        'formaction'   => $controller->url_for("consultation/admin/remove/{$block->id}/{$slot->id}"),
+                        'data-confirm' => _('Wollen Sie diesen Sprechstundentermin wirklich entfernen?'),
+                    ]
                 ) ?>
             </td>
         </tr>
