@@ -1,6 +1,6 @@
 <form class="default" method="post"
-      data-dialog="<? if ($show_wiki_page_form) echo 'reload-on-close'; ?>"
-      action="<?= $controller->link_for("/wiki/import/{$course->id}") ?>">
+      data-dialog="<?= $show_wiki_page_form ? 'reload-on-close' : '' ?>"
+      action="<?= $controller->link_for("wiki/import/{$course->id}") ?>'"
     <?= CSRFProtection::tokenTag() ?>
 
 <? if (!$show_wiki_page_form && !$success): ?>
@@ -59,7 +59,7 @@
     <div data-dialog-button>
         <?= Studip\LinkButton::create(
             _('Import neu starten'),
-            $this->url_for("wiki/import/{$course->id}"),
+            $controller->url_for("wiki/import/{$course->id}"),
             ['data-dialog' => '']
         ) ?>
     </div>

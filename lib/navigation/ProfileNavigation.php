@@ -130,6 +130,7 @@ class ProfileNavigation extends Navigation
             }
 
             // Add consultations if activated
+            // TODO: i'm really not proud of this condition mess <tlx>
             if (Config::get()->CONSULTATION_ENABLED
                 && UserConfig::get($current_user->id)->CONSULTATION_ENABLED_ON_PROFILE
                 && $perm->have_perm(Config::get()->CONSULTATION_REQUIRED_PERMISSION, $current_user->id)

@@ -27,9 +27,7 @@ require 'studip_cli_env.inc.php';
 function should_skip_file($filename, $realfile) {
     $exclude = array(
         'locale/*',
-        'public/assets/javascripts/jquery/*',
-        'public/assets/javascripts/ckeditor/*',
-        'public/assets/javascripts/mathjax/*',
+        'node_modules/*',
         'public/assets/*',
         'public/pictures/*',
         'public/plugins_packages/*',
@@ -37,7 +35,6 @@ function should_skip_file($filename, $realfile) {
         'vendor/*',
     );
     $include = array(
-        'public/assets/javascripts*',
         'public/plugins_packages/core*',
     );
     $mime_types = array(

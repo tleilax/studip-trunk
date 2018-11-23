@@ -152,7 +152,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
 
     /**
      * Saves the content as a file in the filesystem and returns a FileRef object.
-     * 
+     *
      * @param string $filename name of the future file without the extension.
      * @param mixed $folder_id md5-id of a given folder in database or null for nothing
      * @return FileRef of the exported file or false if creation of the FileRef or its associated File object failed.
@@ -160,24 +160,24 @@ class ExportPDF extends TCPDF implements ExportDocument {
     public function save($filename, $folder_id = null)
     {
         global $user;
-        
+
         //get folder:
         $folder = Folder::find($folder_id);
         if(!$folder) {
             return false;
         }
         $folder = $folder->getTypedFolder();
-        
+
         //Create a File:
         $file = new File();
         $file->user_id = $user->id;
         $file->mime_type = 'application/pdf';
-        $file->name = FileMananger::cleanFileName($filename);
+        $file->name = FileManager::cleanFileName($filename);
         $file->storage = 'disk';
         if(!$file->store()) {
             return false;
         }
-        
+
         //...and a FileRef:
         $file_ref = new FileRef();
         $file_ref->file_id = $file->id;
@@ -187,7 +187,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
         if(!$file_ref->store()) {
             return false;
         }
-        
+
         //Now we can create the PDF file and store it in the file's path:
         $path = $file->getPath();
         $this->Output($path, 'F');
@@ -195,7 +195,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
         if($file->store()) {
             return $file_ref;
         }
-        
+
         return false;
     }
 

@@ -246,7 +246,7 @@ class StudipLitList extends TreeAbstract implements PrivacyObject {
                     'range_id' =>  $range_id
                 ));
 
-                $this->triggerListChdate($this->tree_data[$element_id]['parent_id']);
+                $this->triggerListChdate($this->tree_data[$list_element_id]['parent_id']);
             }
             return $ar;
         } else {
@@ -401,7 +401,7 @@ class StudipLitList extends TreeAbstract implements PrivacyObject {
         $dbv->params[0] = $range_id;
         $rs = $dbv->get_query("view:LIT_GET_LIST_COUNT_BY_RANGE");
         $rs->next_record();
-        return array("visible_list" => $rs->f("visible_list"),"invisible_list" => $rs->f("invisible_list"));;
+        return array("visible_list" => $rs->f("visible_list"),"invisible_list" => $rs->f("invisible_list"));
     }
 
     function GetListsByRange($range_id, $format = 'default'){

@@ -90,12 +90,20 @@ class WikiController extends AuthenticatedController
 
         $this->course_search = new QuickSearch(
             'selected_course_id',
-            new MyCoursesSearch('Seminar_id', $GLOBALS['perm']->get_perm(), [
-                'userid'    => $GLOBALS['user']->id,
-                'semtypes'  => SemType::getGroupingSemTypes(),
-                'exclude'   => [Context::getId()],
-                'semesters' => $all_semester_ids,
-            ])
+            new MyCoursesSearch(
+                'Seminar_id',
+                $GLOBALS['perm']->get_perm(),
+                [
+                    'userid'    => $GLOBALS['user']->id,
+                    'semtypes'  => SemType::getGroupingSemTypes(),
+                    'exclude'   => [Context::getId()],
+                    'semesters' => $all_semester_ids,
+                ],
+                's.`Seminar_id` IN (
+                    SELECT range_id FROM wiki
+                    WHERE range_id = s.`Seminar_id`
+                )'
+            )
         );
         $this->course_search->fireJSFunctionOnSelect(
             "function() {jQuery(this).closest('form').submit();}"
@@ -178,8 +186,8 @@ class WikiController extends AuthenticatedController
                 $this->success = true;
                 PageLayout::postSuccess(
                     ngettext(
-                        'Die Wikiseite wurde importiert!',
-                        'Die Wikiseiten wurden importiert!',
+                        'Die Wikiseite wurde importiert! Sie ist unter dem Navigationspunkt "Alle Seiten" erreichbar.',
+                        'Die Wikiseiten wurden importiert! Sie sind unter dem Navigationspunkt "Alle Seiten" erreichbar.',
                         count($selected_wiki_pages)
                     )
                 );

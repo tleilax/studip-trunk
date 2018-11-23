@@ -131,7 +131,8 @@ class FileArchiveManager
                     $file_list[] = [
                         'name' => $file_ref->name,
                         'size' => $file_ref->size,
-                        'author' => $file_ref->author_name,
+                        'first_name' => isset($file_ref->owner) ? $file_ref->owner->vorname : '',
+                        'last_name' => isset($file_ref->owner) ? $file_ref->owner->nachname : '',
                         'downloads' => $file_ref->downloads,
                         'mkdate' => date('d.m.Y H:i', $file_ref->mkdate),
                         'path' => ($archive_fs_path . $file_ref->name)
@@ -384,7 +385,8 @@ class FileArchiveManager
                         [
                             _('Name'),
                             _('Größe'),
-                            _('Autor/-in'),
+                            _('Vorname'),
+                            _('Nachname'),
                             _('Downloads'),
                             _('Datum'),
                             _('Pfad')

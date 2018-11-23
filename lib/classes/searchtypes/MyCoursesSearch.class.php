@@ -20,19 +20,31 @@ class MyCoursesSearch extends StandardSearch
 
     private $perm_level;
     private $parameters;
+    protected $additional_sql_conditions;
 
     /**
      *
      * @param string $search
+     *
      * @param string $perm_level
+     *
+     * @param string $additional_sql_conditions An additional SQL snippet
+     *      consisting of conditions. This snippet is appended to the
+     *      default conditions.
      *
      * @return void
      */
-    public function __construct($search, $perm_level = 'dozent', $parameters = array())
+    public function __construct(
+        $search,
+        $perm_level = 'dozent',
+        $parameters = array(),
+        $additional_sql_conditions = ''
+    )
     {
         $this->avatarLike = $this->search = $search;
         $this->perm_level = $perm_level;
         $this->parameters = $parameters;
+        $this->additional_sql_conditions = $additional_sql_conditions;
         $this->sql = $this->getSQL();
     }
 
@@ -110,6 +122,9 @@ class MyCoursesSearch extends StandardSearch
                         AND s.`status` NOT IN (:semtypes)
                         AND s.`Seminar_id` NOT IN (:exclude)
                         AND sem1.`semester_id` IN (:semesters)";
+                if ($this->additional_sql_conditions) {
+                    $query .= ' AND ' . $this->additional_sql_conditions . ' ';
+                }
                 if ($semnumber) {
                     $query .= " ORDER BY IFNULL(sem2.`beginn`, sem1.`beginn`) DESC, s.`VeranstaltungsNummer`, s.`Name`";
                 } else {
@@ -129,6 +144,9 @@ class MyCoursesSearch extends StandardSearch
                         AND si.`institut_id` IN (:institutes)
                         AND s.`Seminar_id` NOT IN (:exclude)
                         AND sem1.`semester_id` IN (:semesters)";
+                if ($this->additional_sql_conditions) {
+                    $query .= ' AND ' . $this->additional_sql_conditions . ' ';
+                }
                 if ($semnumber) {
                     $query .= " ORDER BY IFNULL(sem2.`beginn`, sem1.`beginn`) DESC, s.`VeranstaltungsNummer`, s.`Name`";
                 } else {
@@ -163,6 +181,38 @@ class MyCoursesSearch extends StandardSearch
                             AND d.`user_id` = :userid
                             AND s.`Seminar_id` NOT IN (:exclude)
                             AND sem1.`semester_id` IN (:semesters)";
+                }
+                if ($this->additional_sql_conditions) {
+                    $query .= ' AND ' . $this->additional_sql_conditions . ' ';
+                }
+                if ($semnumber) {
+                    $query .= " ORDER BY IFNULL(b2, b1) DESC, num, `Name`";
+                } else {
+                    $query .= " ORDER BY IFNULL(b2, b1) DESC, `Name`";
+                }
+                return $query;
+            case 'tutor':
+                //Tutors see the courses where they either have
+                //"dozent" permissions or where they have "tutor"
+                //permissions.
+                $query = "SELECT DISTINCT s.`Seminar_id`,
+                          CONCAT(s.`VeranstaltungsNummer`, ' ', s.`Name`, " . $semester_text . "),
+                          sem1.`beginn` AS b1, sem2.`beginn` AS b2,
+                          s.`VeranstaltungsNummer` AS num, s.`Name`
+                    FROM `seminare` s
+                        JOIN `seminar_user` su ON (s.`Seminar_id`=su.`Seminar_id`)
+                        JOIN `semester_data` sem1 ON (s.`start_time` = sem1.`beginn`)
+                        LEFT JOIN `semester_data` sem2
+                        ON (s.`start_time` + s.`duration_time` = sem2.`beginn`)
+                    WHERE (s.`VeranstaltungsNummer` LIKE :input
+                            OR s.`Name` LIKE :input)
+                        AND su.`user_id` = :userid
+                        AND su.`status` IN ( 'dozent', 'tutor' )
+                        AND s.`status` NOT IN (:semtypes)
+                        AND s.`Seminar_id` NOT IN (:exclude)
+                        AND sem1.`semester_id` IN (:semesters)";
+                if ($this->additional_sql_conditions) {
+                    $query .= ' AND ' . $this->additional_sql_conditions . ' ';
                 }
                 if ($semnumber) {
                     $query .= " ORDER BY IFNULL(b2, b1) DESC, num, `Name`";
