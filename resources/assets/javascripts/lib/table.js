@@ -42,7 +42,8 @@ function enhanceSortableTable(table) {
     }
 
     $(table).tablesorter({
-        headers: headers
+        headers: headers,
+        sortLocaleCompare : true
     });
 }
 
