@@ -12,10 +12,11 @@ class ContactRework extends Migration
         DBManager::get()->exec("CREATE TABLE `contact_new` (
           `owner_id` varchar(32) NOT NULL DEFAULT '',
           `user_id` varchar(32) NOT NULL DEFAULT '',
+          `calpermission` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
           PRIMARY KEY (`owner_id`,`user_id`),
           KEY `user_id` (`user_id`)
         ) ENGINE=MyISAM");
-        DBManager::get()->exec("INSERT INTO `contact_new` SELECT DISTINCT `owner_id`,`user_id` FROM `contact`");
+        DBManager::get()->exec("INSERT INTO `contact_new` SELECT `owner_id`,`user_id`, MAX(`calpermission`) FROM `contact` GROUP BY `owner_id`,`user_id`");
         DBManager::get()->exec("DROP TABLE `contact`");
         DBManager::get()->exec("RENAME TABLE `contact_new` TO `contact`");
         Config::get()->delete("FOAF_ENABLE");
