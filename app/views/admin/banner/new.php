@@ -86,7 +86,7 @@
 
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Anlegen'), 'anlegen') ?>
-        <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->index()) ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->indexURL()) ?>
     </footer>
 </form>
 

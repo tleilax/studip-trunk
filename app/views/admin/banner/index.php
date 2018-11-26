@@ -3,7 +3,7 @@
         _('Wollen Sie das Banner wirklich löschen?'),
         ['delete' => 1],
         ['back' => 1],
-        $controller->delete($flash['delete']['banner_id'])
+        $controller->deleteURL($flash['delete']['banner_id'])
     ) ?>
 <? endif; ?>
 

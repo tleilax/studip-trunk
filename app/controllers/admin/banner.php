@@ -16,7 +16,7 @@
 class Admin_BannerController extends AuthenticatedController
 {
     protected $_autobind = true;
-    
+
     /**
      * Common tasks for all actions.
      */
@@ -167,7 +167,7 @@ class Admin_BannerController extends AuthenticatedController
             }
 
             if (count($errors) > 0) {
-                PageLayout::postMessage(MessageBox::error(_('Es sind folgende Fehler aufgetreten:'), $errors));
+                PageLayout::postError(_('Es sind folgende Fehler aufgetreten:'), $errors);
             } else {
                 $banner->banner_path = $banner_path;
                 $banner->description = $description;
@@ -179,7 +179,7 @@ class Admin_BannerController extends AuthenticatedController
                 $banner->priority    = $priority;
                 $banner->store();
 
-                PageLayout::postMessage(MessageBox::success(_('Der Banner wurde erfolgreich gespeichert.')));
+                PageLayout::postSuccess(_('Der Banner wurde erfolgreich gespeichert.'));
                 $this->redirect('admin/banner');
             }
         }
@@ -290,7 +290,7 @@ class Admin_BannerController extends AuthenticatedController
             }
 
             if (count($errors) > 0) {
-                PageLayout::postMessage(MessageBox::error(_('Es sind folgende Fehler aufgetreten:'), $errors));
+                PageLayout::postError(_('Es sind folgende Fehler aufgetreten:'), $errors);
             } else {
                 $banner = new Banner();
                 $banner->banner_path = $banner_path;
@@ -303,7 +303,7 @@ class Admin_BannerController extends AuthenticatedController
                 $banner->priority    = $priority;
                 $banner->store();
 
-                PageLayout::postMessage(MessageBox::success(_('Der Banner wurde erfolgreich gespeichert.')));
+                PageLayout::postSuccess(_('Der Banner wurde erfolgreich gespeichert.'));
                 $this->redirect('admin/banner');
             }
         }
@@ -321,7 +321,7 @@ class Admin_BannerController extends AuthenticatedController
         $banner->store();
 
         $message = _('Die Klick- und Viewzahlen des Banners wurden zurückgesetzt');
-        PageLayout::postMessage(MessageBox::success($message));
+        PageLayout::postSuccess($message);
         $this->redirect('admin/banner');
     }
 
@@ -333,7 +333,7 @@ class Admin_BannerController extends AuthenticatedController
     {
         if (Request::int('delete') == 1) {
             $banner->delete();
-            PageLayout::postMessage(MessageBox::success(_('Das Banner wurde erfolgreich gelöscht!')));
+            PageLayout::postSuccess(_('Das Banner wurde erfolgreich gelöscht!'));
         } elseif (!Request::get('back')) {
             $this->flash['delete'] = ['banner_id' => $banner->id];
         }

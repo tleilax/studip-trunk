@@ -473,12 +473,20 @@ abstract class StudipController extends Trails_Controller
      */
     public function __call($method, $arguments)
     {
+        $function = 'action_link';
+        if (mb_strpos($method, 'Link') === mb_strlen($method) - 4) {
+            $method = mb_substr($method, 0, -4);
+        } elseif (mb_strpos($method, 'URL') === mb_strlen($method) - 3) {
+            $function = 'action_url';
+            $method = mb_substr($method, 0, -3);
+        }
+
         if (!$this->has_action($method)) {
             throw new Trails_UnknownAction("Unknown action '{$method}'");
         }
 
         array_unshift($arguments, $method);
-        return call_user_func_array([$this, 'action_url'], $arguments);
+        return call_user_func_array([$this, $function], $arguments);
     }
 
     /**
@@ -516,6 +524,30 @@ abstract class StudipController extends Trails_Controller
         array_unshift($arguments, $this->controller_path());
 
         return call_user_func_array([$this, 'url_for'], $arguments);
+    }
+
+    /**
+     * Generates the link for an action on this controller without the
+     * neccessity to provide the full "path" to the action (since it
+     * is implicitely known).
+     *
+     * Basically, this:
+     *
+     *    <code>$controller->link_for('foo/bar/baz/' . $param)</code>
+     *
+     * is equal to calling this on the Foo_BarController:
+     *
+     *    <code>$controller->action_link('baz/' . $param)</code>
+     *
+     * @param string $action Name of the action
+     * @return url to the requested action
+     */
+    public function action_link($action)
+    {
+        $arguments = func_get_args();
+        array_unshift($arguments, $this->controller_path());
+
+        return call_user_func_array([$this, 'link_for'], $arguments);
     }
 
     /**
