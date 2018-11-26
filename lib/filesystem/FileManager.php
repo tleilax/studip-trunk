@@ -1533,21 +1533,24 @@ class FileManager
         $array_walker = function ($top_folder) use (
             &$array_walker, &$folders, &$files, $user_id, $check_file_permissions
         ) {
-            if ($top_folder->isVisible($user_id) && $top_folder->isReadable($user_id)) {
+            if ($top_folder->isVisible($user_id)) {
                 $folders[$top_folder->getId()] = $top_folder;
-                if ($check_file_permissions) {
-                    //We must check for each file if it is downloadable for the user
-                    //specified by user_id:
-                    $top_folder_file_refs = $top_folder->getFiles();
-                    foreach ($top_folder_file_refs as $file_ref) {
-                        if ($top_folder->isFileDownloadable($file_ref->id, $user_id)) {
-                            $files[] = $file_ref;
+                if ($top_folder->isReadable($user_id)) {
+
+                    if ($check_file_permissions) {
+                        //We must check for each file if it is downloadable for the user
+                        //specified by user_id:
+                        $top_folder_file_refs = $top_folder->getFiles();
+                        foreach ($top_folder_file_refs as $file_ref) {
+                            if ($top_folder->isFileDownloadable($file_ref->id, $user_id)) {
+                                $files[] = $file_ref;
+                            }
                         }
+                    } else {
+                        $files = array_merge($files, $top_folder->getFiles());
                     }
-                } else {
-                    $files = array_merge($files, $top_folder->getFiles());
+                    array_walk($top_folder->getSubFolders(), $array_walker);
                 }
-                array_walk($top_folder->getSubFolders(), $array_walker);
             }
         };
 
@@ -1600,7 +1603,7 @@ class FileManager
         array_walk($top_folders, $array_walker);
         return $folders;
     }
- 
+
     /**
      * Returns a FolderType instance for a given folder-ID.
      * This method can also get FolderType instances which are defined
