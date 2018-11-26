@@ -1567,7 +1567,7 @@ class FileManager
     {
         $folders = [];
         $array_walker = function ($top_folder) use (&$array_walker, &$folders,$user_id) {
-            if ($top_folder->isVisible($user_id) && $top_folder->isReadable($user_id)) {
+            if ($top_folder->isReadable($user_id)) {
                 $folders[$top_folder->getId()] = $top_folder;
                 array_walk($top_folder->getSubFolders(), $array_walker);
             }
@@ -1590,7 +1590,7 @@ class FileManager
     {
         $folders = [];
         $array_walker = function ($top_folder) use (&$array_walker, &$folders,$user_id) {
-            if (!($top_folder->isVisible($user_id) && $top_folder->isReadable($user_id))) {
+            if (!$top_folder->isReadable($user_id)) {
                 $folders[$top_folder->getId()] = $top_folder;
             }
             array_walk($top_folder->getSubFolders(), $array_walker);
