@@ -23,6 +23,7 @@ class Course_Gradebook_StudentsController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         $this->setDefaultPageTitle();
+        $this->setupStudentsSidebar();
     }
 
     /**
@@ -35,11 +36,11 @@ class Course_Gradebook_StudentsController extends AuthenticatedController
         }
 
         $course = \Context::get();
-        $user = $this->getCurrentUser();
+        $user = \User::findCurrent();
 
         $this->gradingDefinitions = Definition::findByCourse($course);
         $this->groupedDefinitions = $this->getGroupedDefinitions($this->gradingDefinitions);
-        $this->categories = $this->getCategories($course);
+        $this->categories = Definition::getCategoriesByCourse($course);
         $this->groupedInstances = $this->groupedInstances($course, $user);
         $this->sumOfWeights = $this->getSumOfWeights($this->gradingDefinitions);
         $this->subtotals = $this->getSubtotalGrades();
@@ -51,24 +52,20 @@ class Course_Gradebook_StudentsController extends AuthenticatedController
      */
     public function export_action()
     {
-        $this->response->add_header(
-            'Cache-Control',
-            'on' === $_SERVER['HTTPS'] ? 'private' : 'no-cache, no-store, must-revalidate'
-        );
-
         $filename = preg_replace(
-            '/[^a-zA-Z0-9-_.]+/', '-',
+            '/[^a-zA-Z0-9-_.]+/',
+            '-',
             sprintf(
-                'gradebook-%s.json',
+                'gradebook-%s.csv',
                 \Context::getHeaderLine()
             )
         );
 
         $course = \Context::get();
-        $user = $this->getCurrentUser();
+        $user = \User::findCurrent();
         $this->gradingDefinitions = Definition::findByCourse($course);
         $this->groupedDefinitions = $this->getGroupedDefinitions($this->gradingDefinitions);
-        $this->categories = $this->getCategories($course);
+        $this->categories = Definition::getCategoriesByCourse($course);
         $this->groupedInstances = $this->groupedInstances($course, $user);
 
         $lines = [];
@@ -92,17 +89,9 @@ class Course_Gradebook_StudentsController extends AuthenticatedController
             _('Fortschritt'),
             _('Feedback'),
         ];
-
         $data = array_merge([$headerLine], $lines);
-        $exportString = array_to_csv($data);
 
-        $this->response->add_header('Content-Disposition', 'attachment;filename="'.$filename.'"');
-        $this->response->add_header('Content-Description', 'File Transfer');
-        $this->response->add_header('Content-Transfer-Encoding', 'binary');
-        $this->response->add_header('Content-Type', 'text/csv;charset=utf-8');
-        $this->response->add_header('Content-Length', strlen($exportString));
-
-        $this->render_text($exportString);
+        $this->render_csv($data, $filename);
     }
 
     private function groupedInstances(\Course $course, \User $user)

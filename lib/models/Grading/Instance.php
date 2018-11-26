@@ -2,7 +2,7 @@
 
 namespace Grading;
 
-class Instance extends \SimpleORMap
+class Instance extends \SimpleORMap implements \PrivacyObject
 {
     protected static function configure($config = [])
     {
@@ -13,7 +13,7 @@ class Instance extends \SimpleORMap
             'foreign_key' => 'user_id',
         ];
         $config['belongs_to']['definition'] = [
-            'class_name' => Definition::class,
+            'class_name' => '\\Grading\\Definition',
             'foreign_key' => 'definition_id',
         ];
 
@@ -30,7 +30,7 @@ class Instance extends \SimpleORMap
             [$course->id]
         );
 
-        return \SimpleORMapCollection::createFromArray(self::findBySql('definition_id IN (?)', [$definitionIds]));
+        return self::findBySql('definition_id IN (?)', [$definitionIds]);
     }
 
     public function findByCourseAndUser(\Course $course, \User $user)
@@ -43,8 +43,31 @@ class Instance extends \SimpleORMap
             [$course->id]
         );
 
-        return \SimpleORMapCollection::createFromArray(
-            self::findBySql('definition_id IN (?) AND user_id = ?', [$definitionIds, $user->id])
-        );
+        return self::findBySql('definition_id IN (?) AND user_id = ?', [$definitionIds, $user->id]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getUserdata(\User $user)
+    {
+        $storage = new \StoredUserData($user);
+        if ($instances = self::findBySql('user_id = ?', [$user->id])) {
+            $fieldData = array_map(
+                function ($instance) {
+                    return
+                        array_merge(
+                            $instance->definition->toRawArray('course_id item name tool category weight'),
+                            $instance->toRawArray('rawgrade feedback mkdate chdate')
+                        );
+                },
+                $instances
+            );
+            if ($fieldData) {
+                $storage->addTabularData('fach', $fieldData, $user);
+            }
+        }
+
+        return [_('Leistungen') => $storage];
     }
 }

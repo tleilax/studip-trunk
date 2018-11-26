@@ -1,12 +1,3 @@
-<?
-if (isset($flash['success'])) {
-    echo MessageBox::success($flash['success']);
-}
-if (isset($flash['error'])) {
-    echo MessageBox::error($flash['error']);
-}
-?>
-
 <form class="default" action="<?= $controller->url_for('course/gradebook/lecturers/store_grades') ?>" method="POST">
     <div style="overflow-x:auto;">
         <table class="default gradebook-lecturer-custom-definitions">
