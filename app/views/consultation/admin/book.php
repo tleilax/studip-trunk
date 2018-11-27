@@ -1,4 +1,4 @@
-<form name="reason_form" action="<?= $controller->url_for("consultation/admin/book/{$slot->block_id}/{$slot->id}") ?>" method="post" class="default">
+<form action="<?= $controller->url_for("consultation/admin/book/{$slot->block_id}/{$slot->id}") ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
@@ -20,14 +20,16 @@
         </label>
 
         <label>
-        <? if ($slot->block->course): ?>
-            <?= htmlReady(sprintf(
-                _('Teilnehmer der Veranstaltung "%s" suchen'),
-                $slot->block->course->getFullName()
-            )) ?>
-        <? else: ?>
-            <?= _('Person suchen') ?>
-        <? endif; ?>
+            <span class="required">
+            <? if ($slot->block->course): ?>
+                <?= htmlReady(sprintf(
+                    _('Teilnehmer der Veranstaltung "%s" suchen'),
+                    $slot->block->course->getFullName()
+                )) ?>
+            <? else: ?>
+                <?= _('Person suchen') ?>
+            <? endif; ?>
+            </span>
 
             <?= QuickSearch::get('user_id', $search_object)->setAttributes([
                 'required' => '',
