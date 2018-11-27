@@ -52,9 +52,9 @@ class ConsultationSlot extends SimpleORMap
      */
     public function isOccupied($user_id = null)
     {
-        return $user->id === null
+        return $user_id === null
              ? count($this->bookings) >= $this->block->size
-             : (bool) $this->bookings->fineOneBy('user_id', $user_id);
+             : (bool) $this->bookings->findOneBy('user_id', $user_id);
     }
 
     /**
