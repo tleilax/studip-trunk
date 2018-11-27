@@ -205,7 +205,7 @@ class Consultation_AdminController extends ConsultationController
                 'sem_perm'   => $permissions,
             ]);
         } else {
-            $this->search_object = new PermissionSearch('user_id', '', 'user_id', [
+            $this->search_object = new PermissionSearch('user', '', 'user_id', [
                 'permission'   => $permissions,
                 'exclude_user' => '',
             ]);
