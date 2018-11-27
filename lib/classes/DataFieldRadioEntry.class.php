@@ -31,9 +31,9 @@ class DataFieldRadioEntry extends DataFieldSelectboxEntry
      */
     public function getHTML($name = '', $variables = array())
     {
-        return parent::getHTML($name, array(
+        return parent::getHTML($name, $variables + [
             'type_param' => $this->type_param,
-            'is_assoc'   => $this->is_assoc_param,
-        ));
+            'is_assoc'   => $this->is_assoc_param
+        ]);
     }
 }
