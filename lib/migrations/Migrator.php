@@ -216,7 +216,12 @@ class Migrator
             $time_start = microtime(true);
             $migration->migrate($this->direction);
             $this->log("\n\nmigration: %s took %s s\n\n", $class, round(microtime(true) - $time_start, 3));
-            $this->schema_version->set($this->is_down() ? $version - 1 : $version);
+
+            if ($this->is_down()) {
+                $this->schema_version->remove($version);
+            } else {
+                $this->schema_version->add($version);
+            }
         }
     }
 
@@ -285,10 +290,10 @@ class Migrator
         $current_version = $this->schema_version->get();
 
         if ($this->is_up()) {
-            return $current_version < $version
+            return !$this->schema_version->contains($version)
                 && $version <= $this->target_version;
         } elseif ($this->is_down()) {
-            return $current_version >= $version
+            return $this->schema_version->contains($version)
                 && $version > $this->target_version;
         }
 
@@ -353,7 +358,7 @@ class Migrator
      */
     protected function migration_files()
     {
-        $files = glob($this->migrations_path . '/[0-9]*_*.php');
+        $files = glob($this->migrations_path . '/[0-9]*[_-]*.php');
         return $files;
     }
 
@@ -367,7 +372,7 @@ class Migrator
     protected function migration_version_and_name($migration_file)
     {
         $matches = [];
-        preg_match('/\b([0-9]+)_([_a-z0-9]*)\.php$/', $migration_file, $matches);
+        preg_match('/\b([0-9]+)[_-]([_a-z0-9]*)\.php$/', $migration_file, $matches);
         return [(int) $matches[1], $matches[2]];
     }
 

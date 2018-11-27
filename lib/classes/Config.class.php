@@ -220,18 +220,11 @@ class Config implements ArrayAccess, Countable, IteratorAggregate
         } else {
             $this->data = array();
             $db = DBManager::get();
-            $version = new DBSchemaVersion();
-            if ($version->get() < 226) {
-                $query = "SELECT field, value, type, section, `range`, description, comment, is_default
-                          FROM `config`
-                          ORDER BY is_default DESC, section, field";
-            } else {
-                $query = "SELECT config.field, IFNULL(config_values.value, config.value) AS value, type, section, `range`, description,
-                                 config_values.comment, config_values.value IS NULL AS is_default
-                          FROM config
-                          LEFT JOIN config_values ON config.field = config_values.field AND range_id = 'studip'
-                          ORDER BY section, config.field";
-            }
+            $query = "SELECT config.field, IFNULL(config_values.value, config.value) AS value, type, section, `range`, description,
+                             config_values.comment, config_values.value IS NULL AS is_default
+                      FROM config
+                      LEFT JOIN config_values ON config.field = config_values.field AND range_id = 'studip'
+                      ORDER BY section, config.field";
             $rs = $db->query($query);
             while ($row = $rs->fetch(PDO::FETCH_ASSOC)) {
                 // set the the type of the default entry for the modified entry
