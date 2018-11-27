@@ -227,7 +227,7 @@ class Consultation_AdminController extends ConsultationController
                     $booking->user,
                     $this->slot,
                     _('Sprechstundentermin zugesagt'),
-                    $reason,
+                    $booking->reason,
                     $this->slot->block->teacher
                 );
 
@@ -236,7 +236,7 @@ class Consultation_AdminController extends ConsultationController
                         $this->slot->block->teacher,
                         $this->slot,
                         _('Sprechstundentermin zugesagt'),
-                        $reason,
+                        $booking->reason,
                         $booking->user
                     );
                 }

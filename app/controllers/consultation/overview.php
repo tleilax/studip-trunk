@@ -63,7 +63,7 @@ class Consultation_OverviewController extends ConsultationController
                     $this->slot->block->teacher,
                     $this->slot,
                     _('Sprechstundentermin zugesagt'),
-                    $reason,
+                    $booking->reason,
                     $booking->user
                 );
 
