@@ -225,13 +225,27 @@ class TourController extends AuthenticatedController
         $sidebar = Sidebar::get();
 
         $widget = new ViewsWidget();
-        $widget->addLink(_('Übersicht'), $this->url_for('tour/admin_overview'))->setActive(true);
-        $widget->addLink(_('Konflikte'), $this->url_for('tour/admin_conflicts'));
+        $widget->addLink(
+            _('Übersicht'),
+            $this->url_for('tour/admin_overview')
+        )->setActive(true);
+        $widget->addLink(
+            _('Konflikte'),
+            $this->url_for('tour/admin_conflicts')
+        );
         $sidebar->addWidget($widget);
 
         $widget = new ActionsWidget();
-        $widget->addLink(_('Tour erstellen'), $this->url_for('tour/admin_details'), Icon::create('add', 'clickable'));
-        $widget->addLink(_('Tour importieren'), $this->url_for('tour/import'), Icon::create('add', 'clickable'), array('data-dialog' => 'size=auto'));
+        $widget->addLink(
+            _('Tour erstellen'),
+            $this->url_for('tour/admin_details'),
+            Icon::create('add')
+        );
+        $widget->addLink(
+            _('Tour importieren'),
+            $this->url_for('tour/import'),
+            Icon::create('add')
+        )->asDialog('size=auto');
         $sidebar->addWidget($widget);
 
         $search = new SearchWidget('?apply_tour_filter=1');
@@ -241,23 +255,21 @@ class TourController extends AuthenticatedController
 
     /**
      * import help tour
-     *
      */
     public function import_action()
     {
         // check permission
         $GLOBALS['perm']->check('root');
-        
+
         PageLayout::setTitle(_('Hilfe-Tour importieren'));
-        
+
         if ($_FILES['tour_file']['tmp_name']) {
-            //if (move_uploaded_file($_FILES['tour_file']['tmp_name'], $temp_filename))
             $tour_json_data = file_get_contents($_FILES['tour_file']['tmp_name']);
             $tour_data = json_decode($tour_json_data, true);
-            
+
             $this->metadata = $tour_data['metadata'];
             $this->tourdata = $tour_data['tour'];
-            
+
             // import basic data
             $imported_tour = new HelpTour($tour_data['tour']['tour_id']);
             if (!$imported_tour->isNew()) {
@@ -265,23 +277,22 @@ class TourController extends AuthenticatedController
             } else {
                 $imported_tour->setData($tour_data['tour'], true);
                 if ($imported_tour->store()) {
-                    
                     // import steps
-                    foreach($tour_data['tour']['steps'] as $step_data) {
-                        $import_step = new HelpTourStep(array($step_data['tour_id'],$step_data['step']));
+                    foreach ($tour_data['tour']['steps'] as $step_data) {
+                        $import_step = new HelpTourStep(array($step_data['tour_id'], $step_data['step']));
                         $import_step->setData($step_data, true);
                         $import_step->store();
                     }
-                    
+
                     // import audiences
                     if (is_array($tour_data['tour']['audiences'])) {
-                        foreach($tour_data['tour']['audiences'] as $audience_data) {
+                        foreach ($tour_data['tour']['audiences'] as $audience_data) {
                             $import_audience = new HelpTourAudiences(array($audience_data['tour_id'], $audience_data['range_id'], $audience_data['type']));
                             $import_audience->setData($audience_data, true);
                             $import_audience->store();
                         }
                     }
-                    
+
                     // import settings
                     $import_settings = new HelpTourSettings($tour_data['tour']['settings']['tour_id']);
                     $import_settings->setData($tour_data['tour']['settings'], true);
@@ -293,7 +304,7 @@ class TourController extends AuthenticatedController
             }
         }
     }
-    
+
     /**
      * export help tour
      *
@@ -303,18 +314,18 @@ class TourController extends AuthenticatedController
     {
         // check permission
         $GLOBALS['perm']->check('root');
-        
+
         //load tour
         $tour  = new HelpTour($tour_id);
         $tour_object = array();
         $tour_object['metadata'] = array('source' => $GLOBALS['UNI_INFO'], 'url' => $GLOBALS['UNI_URL'], 'version' => $GLOBALS['SOFTWARE_VERSION']);
         $tour_object['tour'] = $tour->toArrayRecursive();
-        
+
         //set header
         header("Content-Type: application/force-download; name=\"". $tour->name ."\"");
         header("Content-Disposition: attachment; filename=\"". date("Y-m-d")." - ".$tour->name.".json\"");
         header("Expires: 0");
-        
+
         $this->render_text(json_encode($tour_object));
     }
 
