@@ -211,7 +211,8 @@ abstract class StudipController extends Trails_Controller
                 case 'sorm':
                     $info = $class_infos[$i];
 
-                    $arg = new $info['model']($arg);
+                    $reflection = new ReflectionClass($info['model']);
+                    $arg = $reflection->newInstanceArgs(explode(SimpleORMap::ID_SEPARATOR, $arg));
                     if ($this->_autobind) {
                         $this->{$info['var']} =& $arg;
                     }
