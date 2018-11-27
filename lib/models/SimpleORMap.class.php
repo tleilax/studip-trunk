@@ -882,8 +882,8 @@ class SimpleORMap implements ArrayAccess, Countable, IteratorAggregate
 
     /**
      * sets internal used id value (multiple keys concatenated with _)
-     * @param [type] $field [description]
-     * @param [type] $value [description]
+     * @param string $field Field to set (unused since it's always the id)
+     * @param string $value Value for id field
      */
     protected function _setId($field, $value)
     {
