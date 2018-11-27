@@ -140,13 +140,11 @@ class Consultations extends Migration
 
         // Migrate blocks
         $query = "INSERT INTO `consultation_blocks` (
-                    `block_id`, `teacher_id`, `start`, `end`, `week_day`,
-                    `room`, `interval`, `duration`,
-                    `calendar_events`, `note`, `size`
+                    `block_id`, `teacher_id`, `start`, `end`,
+                    `room`, `calendar_events`, `note`, `size`
                   )
-                  SELECT `id`, `dozent_id`, `start_date`, `end_date`, `am`,
-                         `ort`, `intervall`, `dauer`,
-                         `in_calendar`, `note_on_schedule`, {$size_col}
+                  SELECT `id`, `dozent_id`, `start_date`, `end_date`,
+                         `ort`, `in_calendar`, `note_on_schedule`, {$size_col}
                   FROM `SprechstundenTerminDesc`";
         DBManager::get()->exec($query);
 
