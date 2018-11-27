@@ -50,14 +50,14 @@ class EventLogController extends AuthenticatedController
     {
         $this->action_id = Request::option('action_id');
         $this->object_id = Request::option('object_id');
-        $this->format = Request::quoted('format');
-        $this->search = Request::get('search');
+        $this->format = Request::option('format');
+        $this->search = trim(Request::get('search'));
         $this->log_actions = $this->event_log->get_used_log_actions();
         $this->types = $this->event_log->get_object_types();
 
         // restrict log events to object scope
         if ($this->search && $this->search != '') {
-            $this->type = Request::get('type');
+            $this->type = Request::option('type');
             $objects = $this->event_log->find_objects($this->type,
                     $this->search, $this->action_id);
 
@@ -74,9 +74,9 @@ class EventLogController extends AuthenticatedController
             $this->num_entries =
                 $this->event_log->count_log_events($this->action_id, $this->object_id);
 
-            if (Request::get('back') || Request::submitted('back')) {
+            if (Request::submitted('back')) {
                 $this->start = max(0, $this->start - 50);
-            } else if (Request::get('forward') || Request::submitted('forward') ) {
+            } else if (Request::submitted('forward') ) {
                 $this->start = min($this->num_entries, $this->start + 50);
             }
 
@@ -110,8 +110,8 @@ class EventLogController extends AuthenticatedController
     {
         $description = Request::get('description');
         $info_template = Request::get('info_template');
-        $active = Request::get('active') ? 1 : 0;
-        $expires = (int) Request::int('expires') * 86400;
+        $active = Request::int('active', 0);
+        $expires = Request::int('expires') * 86400;
 
         try {
             $this->event_log->update_log_action($action_id, $description,

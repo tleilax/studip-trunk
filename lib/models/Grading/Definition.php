@@ -14,7 +14,6 @@ class Definition extends \SimpleORMap
             'class_name' => 'Course',
             'foreign_key' => 'course_id',
         ];
-
         $config['has_many']['instances'] = [
             'class_name' => '\\Grading\\Instance',
             'assoc_foreign_key' => 'definition_id',
@@ -48,6 +47,6 @@ class Definition extends \SimpleORMap
 
     public static function findByCourse(\Course $course)
     {
-        return \SimpleORMapCollection::createFromArray(Definition::findBySQL('course_id = ? ORDER BY position ASC, name ASC', [$course->id]));
+        return Definition::findBySQL('course_id = ? ORDER BY position ASC, name ASC', [$course->id]);
     }
 }

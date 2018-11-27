@@ -11,50 +11,48 @@
                 <?= $this->render_partial("course/gradebook/_progress", ['value' => $controller->formatAsPercent($subtotals[$category])])?>
             </header>
 
-            <div style="overflow-x:auto;">
-                <table class="default">
-                    <colgroup>
-                        <col width="200px" />
-                        <col width="150px" />
-                        <col width="100px" />
-                        <col />
-                    </colgroup>
+            <table class="default">
+                <colgroup>
+                    <col width="200px" />
+                    <col width="150px" />
+                    <col width="100px" />
+                    <col />
+                </colgroup>
 
-                    <thead>
+                <thead>
+                    <tr>
+                        <th>&nbsp;</th>
+                        <th><?= _("Tool") ?></th>
+                        <th><?= _("Gewichtung") ?></th>
+                        <th><?= _("Feedback") ?></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <?
+                    foreach ($groupedDefinitions[$category] as $definition) {
+                        $instance = $groupedInstances[$definition->id];
+                        $grade = $controller->formatAsPercent($instance ? $instance->rawgrade : 0);
+                        $feedback = $instance ? $instance->feedback : '';
+                    ?>
                         <tr>
-                            <th>&nbsp;</th>
-                            <th><?= _("Tool") ?></th>
-                            <th><?= _("Gewichtung") ?></th>
-                            <th><?= _("Feedback") ?></th>
+                            <td>
+                                <span class="gradebook-definition-name"><?= htmlReady($definition->name) ?></span>
+                                <?= $this->render_partial("course/gradebook/_progress", ['value' => (int) $grade])?>
+                            </td>
+                            <td>
+                                <?= htmlReady($definition->tool) ?>
+                            </td>
+                            <td>
+                                <?= $controller->formatAsPercent($controller->getNormalizedWeight($definition)) ?>%
+                            </td>
+                            <td>
+                                <?= htmlReady($feedback) ?>
+                            </td>
                         </tr>
-                    </thead>
-
-                    <tbody>
-                        <?
-                        foreach ($groupedDefinitions[$category] as $definition) {
-                            $instance = $groupedInstances[$definition->id];
-                            $grade = $controller->formatAsPercent($instance ? $instance->rawgrade : 0);
-                            $feedback = $instance ? $instance->feedback : '';
-                        ?>
-                            <tr>
-                                <td>
-                                    <span class="gradebook-definition-name"><?= htmlReady($definition->name) ?></span>
-                                    <?= $this->render_partial("course/gradebook/_progress", ['value' => (int) $grade])?>
-                                </td>
-                                <td>
-                                    <?= htmlReady($definition->tool) ?>
-                                </td>
-                                <td>
-                                    <?= $controller->formatAsPercent($controller->getNormalizedWeight($definition)) ?>%
-                                </td>
-                                <td>
-                                    <?= htmlReady($feedback) ?>
-                                </td>
-                            </tr>
-                        <? } ?>
-                    </tbody>
-                </table>
-            </div>
+                    <? } ?>
+                </tbody>
+            </table>
         </section>
     <? } ?>
 </article>

@@ -38,19 +38,15 @@ class MyRealmModel
     {
         if ($my_obj["modules"]["documents"]) {
             $db = DBManager::get();
-            $readable_folders = [];
 
-            if (!Seminar_Perm::get()->have_studip_perm('tutor', $object_id, $user_id)) {
-                $readable_folders = array_map(
-                    function ($f) {
-                        return $f->getId();
-                    },
+            if (!$GLOBALS['perm']->have_studip_perm('tutor', $object_id, $user_id)) {
+                $readable_folders = array_keys(
                     FileManager::getReadableFolders(
                         Folder::findTopFolder($object_id)->getTypedFolder(), $user_id)
                 );
 
                 if (empty($readable_folders)) {
-                    return NULL;
+                    return null;
                 }
             }
 
@@ -62,7 +58,7 @@ class MyRealmModel
                 FROM folders a
                 INNER JOIN file_refs fr ON (fr.folder_id=a.id)
                 LEFT JOIN object_user_visits ouv ON (ouv.object_id = a.range_id AND ouv.user_id = :user_id AND ouv.type ='documents')
-                WHERE a.range_id = :object_id " . (count($readable_folders) ? "AND a.id IN (:readable_folders)" : "");
+                WHERE a.range_id = :object_id " . ($readable_folders ? "AND a.id IN (:readable_folders)" : "");
 
             $result = $db->fetchOne($query, [
                 ':user_id'            => $user_id,

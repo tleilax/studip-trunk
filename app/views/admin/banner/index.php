@@ -1,8 +1,10 @@
 <? if (isset($flash['delete'])): ?>
-    <?= createQuestion(_('Wollen Sie das Banner wirklich löschen?'),
-                       array('delete' => 1),
-                       array('back' => 1),
-                       $controller->url_for('admin/banner/delete', $flash['delete']['banner_id'])) ?>
+    <?= createQuestion(
+        _('Wollen Sie das Banner wirklich löschen?'),
+        ['delete' => 1],
+        ['back' => 1],
+        $controller->deleteURL($flash['delete']['banner_id'])
+    ) ?>
 <? endif; ?>
 
 <table class="default">
@@ -23,43 +25,43 @@
     <? foreach ($banners as $banner): ?>
         <tr>
             <td style="text-align: center;">
-                <?= $banner->toImg(array('style' => 'max-width: 80px')) ?>
+                <?= $banner->toImg(['style' => 'max-width: 80px']) ?>
             </td>
-            <td><?= htmlReady($banner['description']) ?></td>
-            <td><?= $banner['target_type']?></td>
+            <td><?= htmlReady($banner->description) ?></td>
+            <td><?= htmlReady($banner->target_type) ?></td>
             <td>
-                <? if ($banner['target_type'] == 'seminar'): ?>
-                    <?= mila(reset(get_object_name($banner['target'], 'sem')),30) ?>
-                <? elseif ($banner['target_type'] == 'inst') :?>
-                    <?= mila(reset(get_object_name($banner['target'], 'inst')),30) ?>
-                <? else: ?>
-                    <?= $banner['target'] ?>
-                <? endif; ?>
+            <? if ($banner['target_type'] === 'seminar'): ?>
+                <?= mila(reset(get_object_name($banner->target, 'sem')), 30) ?>
+            <? elseif ($banner['target_type'] === 'inst') :?>
+                <?= mila(reset(get_object_name($banner->target, 'inst')), 30) ?>
+            <? else: ?>
+                <?= htmlReady($banner->target) ?>
+            <? endif; ?>
             </td>
             <td style="text-align: center;">
-                <?= $banner['startdate'] ? date("d.m.Y", $banner['startdate']) : _("sofort") ?><br>
-                <?= _("bis") ?><br>
-                <?= $banner['enddate'] ? date("d.m.Y", $banner['enddate']) : _("unbegrenzt") ?>
+                <?= $banner->startdate ? strftime('%x', $banner->startdate) : _('sofort') ?><br>
+                <?= _('bis') ?><br>
+                <?= $banner->enddate ? strftime('%x', $banner->enddate) : _('unbegrenzt') ?>
             </td>
             <td align="center">
-                <?= number_format($banner['clicks'], 0, ',', '.') ?>
+                <?= number_format($banner->clicks, 0, ',', '.') ?>
             </td>
             <td align="center">
-                <?= number_format($banner['views'], 0, ',', '.') ?>
+                <?= number_format($banner->views, 0, ',', '.') ?>
             </td>
-            <td><?= $banner['priority'] ?> (<?= $banner->getViewProbability() ?>)</td>
-            <td style="text-align: right;">
-                <a class="load-in-new-row" href="<?= $controller->url_for('admin/banner/info',  $banner["ad_id"]) ?>?path=<?= urlencode($banner['banner_path']) ?>">
-                    <?= Icon::create('info', 'clickable', ['title' => _('Eigenschaften')])->asImg() ?>
+            <td><?= $banner->priority ?> (<?= $banner->getViewProbability() ?>)</td>
+            <td class="actions">
+                <a class="load-in-new-row" href="<?= $controller->info($banner, ['path' => $banner->banner_path]) ?>">
+                    <?= Icon::create('info')->asImg(['title' => _('Eigenschaften')]) ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/banner/edit', $banner["ad_id"]) ?>?path=<?= urlencode($banner['banner_path']) ?>" data-dialog="size=auto">
-                    <?= Icon::create('edit', 'clickable', ['title' => _('Banner bearbeiten')])->asImg() ?>
+                <a href="<?= $controller->edit($banner, ['path' => $banner->banner_path]) ?>" data-dialog="size=auto">
+                    <?= Icon::create('edit')->asImg(['title' => _('Banner bearbeiten')]) ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/banner/reset', $banner['ad_id']) ?>">
-                    <?= Icon::create('refresh', 'clickable', ['title' => _('Klicks/Views zurücksetzen')])->asImg() ?>
+                <a href="<?= $controller->reset($banner) ?>">
+                    <?= Icon::create('refresh')->asImg(['title' => _('Klicks/Views zurücksetzen')]) ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/banner/delete', $banner['ad_id']) ?>">
-                    <?= Icon::create('trash', 'clickable', ['title' => _('Banner löschen')])->asImg() ?>
+                <a href="<?= $controller->delete($banner) ?>">
+                    <?= Icon::create('trash')->asImg(['title' => _('Banner löschen')]) ?>
                 </a>
             </td>
         </tr>

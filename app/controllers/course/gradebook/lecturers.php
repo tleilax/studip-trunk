@@ -23,6 +23,7 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
             throw new AccessDeniedException();
         }
         $this->setDefaultPageTitle();
+        $this->setupLecturerSidebar();
     }
 
     /**
@@ -35,7 +36,7 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
         }
 
         $course = \Context::get();
-        $this->categories = $this->getCategories($course);
+        $this->categories = Definition::getCategoriesByCourse($course);
         $this->students = $course->getMembersWithStatus('autor', true)->pluck('user');
         $gradingDefinitions = Definition::findByCourse($course);
         $this->groupedDefinitions = $this->getGroupedDefinitions($gradingDefinitions);
@@ -50,16 +51,11 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
      */
     public function export_action()
     {
-        $this->response->add_header(
-            'Cache-Control',
-            'on' === $_SERVER['HTTPS'] ? 'private' : 'no-cache, no-store, must-revalidate'
-        );
-
         $filename = preg_replace(
             '/[^a-zA-Z0-9-_.]+/',
             '-',
             sprintf(
-                'gradebook-%s.json',
+                'gradebook-%s.csv',
                 \Context::getHeaderLine()
             )
         );
@@ -69,7 +65,7 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
 
         $gradingDefinitions = Definition::findByCourse($course);
         $this->groupedDefinitions = $this->getGroupedDefinitions($gradingDefinitions);
-        $this->categories = $this->getCategories($course);
+        $this->categories = Definition::getCategoriesByCourse($course);
         $this->groupedInstances = $this->groupedInstances($course);
 
         $headerLine = ['Name'];
@@ -92,15 +88,7 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
         }
 
         $data = array_merge([$headerLine], $studentLines);
-        $exportString = array_to_csv($data);
-
-        $this->response->add_header('Content-Disposition', 'attachment;filename="'.$filename.'"');
-        $this->response->add_header('Content-Description', 'File Transfer');
-        $this->response->add_header('Content-Transfer-Encoding', 'binary');
-        $this->response->add_header('Content-Type', 'text/csv;charset=utf-8');
-        $this->response->add_header('Content-Length', strlen($exportString));
-
-        $this->render_text($exportString);
+        $this->render_csv($data, $filename);
     }
 
     /**
@@ -115,7 +103,7 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
         $course = \Context::get();
         $gradingDefinitions = Definition::findByCourse($course);
         $this->groupedDefinitions = $this->getGroupedDefinitions($gradingDefinitions);
-        $this->categories = $this->getCategories($course);
+        $this->categories = Definition::getCategoriesByCourse($course);
         $this->sumOfWeights = $this->getSumOfWeights($gradingDefinitions);
     }
 
@@ -125,7 +113,9 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
     public function store_weights_action()
     {
         $weights = \Request::intArray('definitions');
-        $gradingDefinitions = Definition::findByCourse(\Context::get());
+        $gradingDefinitions = \SimpleORMapCollection::createFromArray(
+            Definition::findByCourse(\Context::get())
+        );
 
         foreach ($gradingDefinitions as $def) {
             if (!isset($weights[$def->id])) {
@@ -140,9 +130,9 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
 
         $changedDefinitions = array_filter($gradingDefinitions->store());
         if (count($changedDefinitions)) {
-            $this->flash['success'] = _('Gewichtungen erfolgreich verändert.');
+            \PageLayout::postSuccess(_('Gewichtungen erfolgreich verändert.'));
         }
-        $this->redirect('course/gradebook/lecturers');
+        $this->redirect('course/gradebook/lecturers/weights');
     }
 
     /**
@@ -172,7 +162,9 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
     {
         $course = \Context::get();
         $studentIds = $course->getMembersWithStatus('autor', true)->pluck('user_id');
-        $definitionIds = Definition::findByCourse($course)->pluck('id');
+        $definitionIds = \SimpleORMapCollection::createFromArray(
+            Definition::findByCourse($course)
+        )->pluck('id');
 
         $grades = \Request::getArray('grades');
         foreach ($grades as $studentId => $studentGrades) {
@@ -190,7 +182,7 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
             }
         }
 
-        $this->flash['success'] = _('Die Noten wurden gespeichert.');
+        \PageLayout::postSuccess(_('Die Noten wurden gespeichert.'));
         $this->redirect('course/gradebook/lecturers/custom_definitions');
     }
 
@@ -209,7 +201,7 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
     {
         $name = trim(\Request::get('name', ''));
         if (!mb_strlen($name)) {
-            $this->flash['error'] = _('Der Name einer Leistung darf nicht leer sein.');
+            \PageLayout::postError(_('Der Name einer Leistung darf nicht leer sein.'));
         } else {
             $definition = Definition::create(
                 [
@@ -224,9 +216,9 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
             );
 
             if (!$definition) {
-                $this->flash['error'] = _('Die Leistung konnte nicht definiert werden.');
+                \PageLayout::postError(_('Die Leistung konnte nicht definiert werden.'));
             } else {
-                $this->flash['success'] = _('Die Leistung wurde erfolgreich definiert.');
+                \PageLayout::postSuccess(_('Die Leistung wurde erfolgreich definiert.'));
             }
         }
         $this->redirect('course/gradebook/lecturers/custom_definitions');
@@ -255,11 +247,11 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
 
         $name = trim(\Request::get('name', ''));
         if (!mb_strlen($name)) {
-            $this->flash['error'] = _('Der Name einer Leistung darf nicht leer sein.');
+            \PageLayout::postError(_('Der Name einer Leistung darf nicht leer sein.'));
         } else {
             $definition->name = $name;
             if (!$definition->store()) {
-                $this->flash['error'] = _('Die Leistung konnte nicht geändert werden.');
+                \PageLayout::postError(_('Die Leistung konnte nicht geändert werden.'));
             }
         }
 
@@ -276,12 +268,12 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
                 [$definitionId, \Context::getId()]
             )
         ) {
-            $this->flash['error'] = _('Die Leistung konnte nicht gelöscht werden.');
+            \PageLayout::postError(_('Die Leistung konnte nicht gelöscht werden.'));
         } else {
             if (Definition::deleteBySQL('id = ?', [$definition->id])) {
-                $this->flash['success'] = _('Die Leistung wurde gelöscht.');
+                \PageLayout::postSuccess(_('Die Leistung wurde gelöscht.'));
             } else {
-                $this->flash['error'] = _('Die Leistung konnte nicht gelöscht werden.');
+                \PageLayout::postError(_('Die Leistung konnte nicht gelöscht werden.'));
             }
         }
 
@@ -316,6 +308,7 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
 
     private function getTotalSums($gradingDefinitions)
     {
+        $gradingDefinitions = \SimpleORMapCollection::createFromArray($gradingDefinitions);
         $totalSums = [];
         foreach ($this->students as $student) {
             if (!isset($totalSums[$student->id])) {

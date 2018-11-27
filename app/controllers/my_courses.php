@@ -185,9 +185,11 @@ class MyCoursesController extends AuthenticatedController
         }
 
         $setting_widget->addLink(_('Veranstaltung hinzufügen'), URLHelper::getLink('dispatch.php/search/courses'), Icon::create('seminar', 'clickable'));
-        $setting_widget->addLink(_('Neue Studiengruppe anlegen'),
-            URLHelper::getLink('dispatch.php/course/wizard', ['studygroup' => 1]),
-            Icon::create('studygroup+add', 'clickable'), ['data-dialog' => 'size=auto']);
+        if (Config::get()->STUDYGROUPS_ENABLE) {
+            $setting_widget->addLink(_('Neue Studiengruppe anlegen'),
+                URLHelper::getLink('dispatch.php/course/wizard', ['studygroup' => 1]),
+                Icon::create('studygroup+add', 'clickable'), ['data-dialog' => 'size=auto']);
+        }
         $sidebar->addWidget($setting_widget);
         $this->setGroupingSelector($this->group_field);
     }

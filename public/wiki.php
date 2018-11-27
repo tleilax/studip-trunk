@@ -149,10 +149,15 @@ if ($view=="listall") {
     //show form
     wikiEdit($keyword, $wikiData, $user->id);
 
-} else if ($view=='editnew') { // edit a new page
+} else if ($view=='editnew') {
+    //
+    // edit a new page
+    //
 
-    if (!$perm->have_studip_perm("autor", Context::getId())) {
-        throw new AccessDeniedException(_('Sie haben keine Berechtigung, Seiten zu editieren!'));
+    $range_id = Context::getId();
+    $edit_perms = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
+    if (!$perm->have_studip_perm($edit_perms, $range_id)) {
+        throw new AccessDeniedException(_('Sie haben keine Berechtigung, in dieser Veranstaltung Seiten zu editieren!'));
     }
 
     // prevent malformed urls: keyword must be set
@@ -172,6 +177,45 @@ if ($view=="listall") {
 
     //show form
     wikiEdit($keyword, $wikiData, $user->id, Request::quoted('lastpage'));
+
+} else if ($view=='courseperms') {
+    //
+    // change course permissions of wiki pages
+    //
+    $course_edit_perms = Request::get('courseperms');
+    // Changes of Wiki course permissions are submitted
+    $keyword = Request::quoted('lastpage');
+    $range_id = Context::getId();
+    CourseConfig::get($range_id)->store('WIKI_COURSE_EDIT_PERM', $course_edit_perms);
+    $message = MessageBox::info(sprintf(_("Die veranstaltungsbezogenen Berechtigungen auf die Wiki-Seiten wurden geändert!")));
+    PageLayout::postMessage($message);
+    showWikiPage($keyword, $version, $special, $show_wiki_comments, Request::get('hilight'));
+
+} else if ($view=='pageperms') {
+    //
+    // change page permissions of a wiki page
+    //
+    $page_read_perms = Request::get('page_read_perms');
+    $page_edit_perms = Request::get('page_edit_perms');
+    $page_global_perms = Request::get('page_global_perms');
+    if ($page_global_perms) {
+        $page_read_perms = "";
+        $page_edit_perms = "";
+    }
+    // changes of wiki page permissions are submitted
+    $keyword = Request::quoted('lastpage');
+    $range_id = Context::getId();
+    if ($page_global_perms) {
+        WikiPageConfig::deleteBySQL('range_id = ? AND keyword = ?', [$range_id, $keyword]);
+    } else {
+        $wiki_page_config = new WikiPageConfig([$range_id, $keyword]);
+        $wiki_page_config->read_perms = $page_read_perms;
+        $wiki_page_config->edit_perms = $page_edit_perms;
+        $wiki_page_config->store();
+    }
+    $message = MessageBox::info(sprintf(_("Die Berechtigungen für Wiki-Seite \"" . $keyword . "\" wurden geändert!")));
+    PageLayout::postMessage($message);
+    showWikiPage($keyword, $version, $special, $show_wiki_comments, Request::get('hilight'));
 
 } else {
     // Default action: Display WikiPage (+ logic for submission)
@@ -230,7 +274,15 @@ if ($view=="listall") {
     // Show Page
     //
     SkipLinks::addIndex(_("Aktuelle Seite"), 'main_content', 100);
-    showWikiPage($keyword, $version, $special, $show_wiki_comments, Request::get('hilight'));
+
+    $range_id = Context::getId();
+    $row = WikiPageConfig::find([$range_id, $keyword]);
+    if ($perm->have_studip_perm($row->read_perms, $range_id)) {
+        showWikiPage($keyword, $version, $special, $show_wiki_comments, Request::get('hilight'));
+    } else {
+        throw new AccessDeniedException(_('Sie haben keine Berechtigung, die Seite '.$keyword.' zu lesen!'));
+    }
+
 
 } // end default action
 

@@ -31,6 +31,9 @@ class DbUpdatesFor42 extends Migration
                     DROP PRIMARY KEY, DROP KEY poiid,
                     ADD PRIMARY KEY (pluginid, range_type, range_id),
                     DROP poiid');
+        //alter default for studygroups, see #9002
+        $db->exec("UPDATE `sem_classes` SET `course_creation_forbidden` = 0 WHERE `studygroup_mode` = 1");
+
     }
 
     public function down()
