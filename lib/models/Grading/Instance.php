@@ -30,6 +30,10 @@ class Instance extends \SimpleORMap implements \PrivacyObject
             [$course->id]
         );
 
+        if (!count($definitionIds)) {
+            return [];
+        }
+
         return self::findBySql('definition_id IN (?)', [$definitionIds]);
     }
 
@@ -42,6 +46,10 @@ class Instance extends \SimpleORMap implements \PrivacyObject
             'course_id = ?',
             [$course->id]
         );
+
+        if (!count($definitionIds)) {
+            return [];
+        }
 
         return self::findBySql('definition_id IN (?) AND user_id = ?', [$definitionIds, $user->id]);
     }
