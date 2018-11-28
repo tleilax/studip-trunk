@@ -10,6 +10,7 @@
             <span class="required"><?= _('Datei:') ?></span>
             <input type="file" size="60" name="tour_file"
                    required aria-required="true"
+                   accept="application/json"
                    placeholder="<?= _('Bitte wählen Sie eine Quelldatei mit der Tour aus') ?>">
         </label>
     <? else : ?>

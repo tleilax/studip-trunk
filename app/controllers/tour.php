@@ -319,18 +319,18 @@ class TourController extends AuthenticatedController
         // check permission
         $GLOBALS['perm']->check('root');
 
-        //load tour
+        // load tour
         $tour  = new HelpTour($tour_id);
-        $tour_object = array();
-        $tour_object['metadata'] = array('source' => $GLOBALS['UNI_INFO'], 'url' => $GLOBALS['UNI_URL'], 'version' => $GLOBALS['SOFTWARE_VERSION']);
+        $tour_object = [];
+        $tour_object['metadata'] = ['source' => $GLOBALS['UNI_INFO'], 'url' => $GLOBALS['UNI_URL'], 'version' => $GLOBALS['SOFTWARE_VERSION']];
         $tour_object['tour'] = $tour->toArrayRecursive();
 
-        //set header
-        header("Content-Type: application/force-download; name=\"". $tour->name ."\"");
-        header("Content-Disposition: attachment; filename=\"". date("Y-m-d")." - ".$tour->name.".json\"");
-        header("Expires: 0");
-
-        $this->render_text(json_encode($tour_object));
+        // set header
+        $this->response->add_header(
+            'Content-Disposition',
+            'attachment;' . encode_header_parameter('filename', date('Y-m-d') . "-{$tour->name}.json")
+        );
+        $this->render_json($tour_object);
     }
 
     /**
