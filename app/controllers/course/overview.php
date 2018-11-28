@@ -147,11 +147,18 @@ class Course_OverviewController extends AuthenticatedController
             Sidebar::get()->addWidget($actions);
         }
 
-        if (ConsultationBlock::countByCourse_id($this->course->id) > 0) {
+        if (Config::get()->CONSULTATION_ENABLED
+            && ConsultationBlock::countByCourse_id($this->course->id) > 0)
+        {
             $links = $sidebar->addWidget(new LinksWidget());
             $links->setTitle(_('Sprechstunden der Lehrenden'));
 
             foreach ($this->course->getMembersWithStatus('dozent', true)->pluck('user') as $teacher) {
+                // Don't show link if teacher has disabled consultations
+                if (!UserConfig::get($teacher->id)->CONSULTATION_ENABLED_ON_PROFILE) {
+                    continue;
+                }
+
                 $consultations = ConsultationBlock::countBySQL(
                     'course_id = ? AND teacher_id = ?',
                     [$this->course->id, $teacher->id]
@@ -160,10 +167,19 @@ class Course_OverviewController extends AuthenticatedController
                     continue;
                 }
 
+                $link     = $teacher->id === $GLOBALS['user']->id ? 'admin' : 'overview';
+                $disabled = $GLOBALS['user']->id !== $teacher->id
+                          && $GLOBALS['user']->perms === 'dozent'
+                          && !Config::get()->CONSULTATION_ALLOW_DOCENTS_RESERVING;
                 $links->addLink(
                     $teacher->getFullName(),
-                    URLHelper::getURL('dispatch.php/consultation/overview', ['username' => $teacher->username, 'course_id' => $this->course->id]),
-                    Icon::create(Avatar::getAvatar($teacher->id)->getURL(Avatar::SMALL))
+                    URLHelper::getURL("dispatch.php/consultation/{$link}", [
+                        'username'  => $teacher->username,
+                        'course_id' => $this->course->id,
+                        'cid'       => null,
+                    ]),
+                    Icon::create(Avatar::getAvatar($teacher->id)->getURL(Avatar::SMALL)),
+                    compact('disabled')
                 );
             }
         }
