@@ -72,11 +72,7 @@
                 <?= $displayNote($slot->note) ?>
             </td>
             <td>
-            <? if (count($slot->bookings) < $slot->block->size): ?>
-                <span class="consultation-free"><?= _('frei') ?></span>
-            <? else: ?>
-                <span class="consultation-occupied"><?= _('belegt') ?></span>
-            <? endif; ?>
+                <?= $this->render_partial('consultation/slot-occupation.php', compact('slot')) ?>
             </td>
             <td>
             <? if (count($slot->bookings) === 0): ?>

@@ -167,7 +167,9 @@ class Course_OverviewController extends AuthenticatedController
                     continue;
                 }
 
-                $link     = $teacher->id === $GLOBALS['user']->id ? 'admin' : 'overview';
+                $link = ($teacher->id === $GLOBALS['user']->id  || $GLOBALS['user']->perms === 'root')
+                      ? 'admin'
+                      : 'overview';
                 $disabled = $GLOBALS['user']->id !== $teacher->id
                           && $GLOBALS['user']->perms === 'dozent'
                           && !Config::get()->CONSULTATION_ALLOW_DOCENTS_RESERVING;
