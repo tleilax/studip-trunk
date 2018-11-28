@@ -23,7 +23,7 @@
  /* ------------------------------------------------------------------------
   * add classes to html element according to horizontal screen size
   * ------------------------------------------------------------------------ */
-(function (jQuery) {
+(function ($) {
     // These sizes must match the breakpoints defined in breakspoints.less
     // TODO: use same webpack configuration for both
     const sizes = {
@@ -38,7 +38,7 @@
             $('html').addClass('size-' + size);
         }
     }
-}($));
+}(jQuery));
 
 /* ------------------------------------------------------------------------
  * messages boxes
