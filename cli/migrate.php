@@ -53,13 +53,13 @@ if (isset($_SERVER['argv'])) {
     $migrator = new Migrator($path, $version, $verbose);
 
     if ($list) {
-        $migrations = $migrator->relevant_migrations($target);
+        $migrations = $migrator->relevantMigrations($target);
 
         foreach ($migrations as $number => $migration) {
             $description = $migration->description() ?: '(no description)';
             printf("%3d %-20s %s\n", $number, get_class($migration), $description);
         }
     } else {
-        $migrator->migrate_to($target);
+        $migrator->migrateTo($target);
     }
 }
