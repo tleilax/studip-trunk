@@ -315,6 +315,10 @@ class Course_Gradebook_LecturersController extends AuthenticatedController
                 $totalSums[$student->id] = 0;
             }
 
+            if (!isset($this->groupedInstances[$student->id])) {
+                continue;
+            }
+
             foreach ($this->groupedInstances[$student->id] as $definitionId => $instance) {
                 if ($definition = $gradingDefinitions->findOneBy('id', $definitionId)) {
                     $totalSums[$student->id] += $instance->rawgrade * ($definition->weight / $this->sumOfWeights);
