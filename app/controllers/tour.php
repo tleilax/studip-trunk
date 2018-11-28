@@ -265,7 +265,11 @@ class TourController extends AuthenticatedController
 
         if ($_FILES['tour_file']['tmp_name']) {
             $tour_json_data = file_get_contents($_FILES['tour_file']['tmp_name']);
-            $tour_data = json_decode($tour_json_data, true);
+            $tour_data = @json_decode($tour_json_data, true);
+            if (!$tour_data || !$tour_data['tour']) {
+                PageLayout::postError(_('Ungültige Daten. Tour-Daten müssen im JSON-Format vorliegen.'));
+                return;
+            }
 
             $this->metadata = $tour_data['metadata'];
             $this->tourdata = $tour_data['tour'];

@@ -77,6 +77,11 @@
                     _('Tour bearbeiten'),
                     Icon::create('edit', 'clickable', ['title' => _('Tour bearbeiten')])
                 ) ?>
+                <? $actionMenu->addLink(
+                    $controller->url_for('tour/export/' . $tour_id),
+                    _('Tour exportieren'),
+                    Icon::create('export', 'clickable', ['title' => _('Tour exportieren')])
+                ) ?>
                 <? $actionMenu->addButton(
                     'tour_remove_' . $tour_id,
                     _('Tour löschen'),
