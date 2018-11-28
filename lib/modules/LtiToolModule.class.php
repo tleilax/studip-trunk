@@ -10,7 +10,6 @@
  * @author      Elmar Ludwig
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
-
 class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
 {
     /**
@@ -21,14 +20,16 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
         parent::__construct();
 
         if ($GLOBALS['perm']->have_perm('root')) {
-            Navigation::addItem('/admin/config/lti',
-                new Navigation(_('LTI-Tools'), 'dispatch.php/admin/lti'));
+            Navigation::addItem(
+                '/admin/config/lti',
+                new Navigation(_('LTI-Tools'), 'dispatch.php/admin/lti')
+            );
         }
 
-        NotificationCenter::on('UserDidDelete', function($event, $user) {
+        NotificationCenter::on('UserDidDelete', function ($event, $user) {
             LtiGrade::deleteBySQL('user_id = ?', [$user->id]);
         });
-        NotificationCenter::on('CourseDidDelete', function($event, $course) {
+        NotificationCenter::on('CourseDidDelete', function ($event, $course) {
             LtiData::deleteBySQL('course_id = ?', [$course->id]);
         });
     }
@@ -40,7 +41,7 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
     {
         $title = CourseConfig::get($course_id)->LTI_TOOL_TITLE;
         $changed = LtiData::countBySQL('course_id = ? AND chdate > ?', [$course_id, $last_visit]);
-        $icon = Icon::create('link-extern', $changed ? 'new' : 'inactive');
+        $icon = Icon::create('link-extern', $changed ? Icon::ROLE_NEW : Icon::ROLE_INACTIVE);
 
         $navigation = new Navigation($title, 'dispatch.php/course/lti');
         $navigation->setImage($icon, ['title' => $title]);
@@ -57,13 +58,15 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
         $grades = LtiData::countBySQL('course_id = ?', [$course_id]);
 
         $navigation = new Navigation($title);
-        $navigation->setImage(Icon::create('link-extern', 'info_alt'));
-        $navigation->setActiveImage(Icon::create('link-extern', 'info'));
+        $navigation->setImage(Icon::create('link-extern', Icon::ROLE_INFO_ALT));
+        $navigation->setActiveImage(Icon::create('link-extern', Icon::ROLE_INFO));
         $navigation->addSubNavigation('index', new Navigation($title, 'dispatch.php/course/lti'));
 
         if ($grades) {
-            $navigation->addSubNavigation('grades',
-                new Navigation(_('Ergebnisse'), 'dispatch.php/course/lti/grades'));
+            $navigation->addSubNavigation(
+                'grades',
+                new Navigation(_('Ergebnisse'), 'dispatch.php/course/lti/grades')
+            );
         }
 
         if ($GLOBALS['user']->id !== 'nobody') {
@@ -76,7 +79,7 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
      */
     public function getInfoTemplate($course_id)
     {
-        return NULL;
+        return null;
     }
 
     /**
@@ -93,7 +96,7 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
                                'Fremdsystemen wird die LTI-Schnittstelle in der Version 1.x unterstützt.'),
             'category' => _('Kommunikation und Zusammenarbeit'),
             'keywords' => _('Einbindung von LTI-Tools (Version 1.x)'),
-            'icon' => Icon::create('link-extern', 'info'),
+            'icon' => Icon::create('link-extern', Icon::ROLE_INFO),
             'screenshots' => [
                 'path' => '../../assets/images/plus/screenshots/Lti',
                 'pictures' => [

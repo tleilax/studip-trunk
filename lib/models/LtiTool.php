@@ -10,7 +10,6 @@
  * @author      Elmar Ludwig
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
-
 class LtiTool extends SimpleORMap
 {
     /**
@@ -21,7 +20,7 @@ class LtiTool extends SimpleORMap
         $config['db_table'] = 'lti_tool';
 
         $config['has_many']['links'] = [
-            'class_name'        => 'LtiData',
+            'class_name'        => LtiData::class,
             'assoc_foreign_key' => 'tool_id',
             'on_delete'         => 'delete'
         ];

@@ -9,9 +9,7 @@ Helpbar::get()->addPlainText('', _('Auf dieser Seite können Sie die Ergebnisse 
 ?>
 
 <table class="default">
-    <caption>
-        <?= _('Ergebnisse') ?>
-    </caption>
+    <caption><?= _('Ergebnisse') ?></caption>
 
     <thead>
         <tr class="sortable">

@@ -41,6 +41,29 @@ class Course_LtiController extends StudipController
 
         $title = CourseConfig::get($this->course_id)->LTI_TOOL_TITLE;
         PageLayout::setTitle(Context::getHeaderLine() . ' - ' . $title);
+
+        if ($this->edit_perm) {
+            $widget = Sidebar::get()->addWidget(new ActionsWidget());
+            $widget->addLink(
+                _('Einstellungen'),
+                $this->url_for('course/lti/config'),
+                Icon::create('admin')
+            )->asDialog('size=auto');
+            $widget->addLink(
+                _('Abschnitt hinzufügen'),
+                $this->url_for('course/lti/edit'),
+                Icon::create('add')
+            )->asDialog();
+            if (LtiTool::findByDeep_linking(1)) {
+                $widget->addLink(
+                    _('Link aus LTI-Tool einfügen'),
+                    $this->url_for('course/lti/add_link'),
+                    Icon::create('add')
+                )->asDialog('size=auto');
+            }
+        }
+
+        Helpbar::get()->addPlainText('', _('Auf dieser Seite können Sie externe Anwendungen einbinden, sofern diese den LTI-Standard (Version 1.x) unterstützen.'));
     }
 
     /**
@@ -48,7 +71,6 @@ class Course_LtiController extends StudipController
      */
     public function index_action()
     {
-        $this->tools = LtiTool::findByDeep_linking(1);
         $this->lti_data_array = LtiData::findByCourse_id($this->course_id, 'ORDER BY position');
     }
 
@@ -96,7 +118,7 @@ class Course_LtiController extends StudipController
     {
         CSRFProtection::verifyUnsafeRequest();
 
-        if ($direction == 'up') {
+        if ($direction === 'up') {
             $position2 = $position - 1;
         } else {
             $position2 = $position + 1;
@@ -108,6 +130,7 @@ class Course_LtiController extends StudipController
         if ($lti_data && $lti_data2) {
             $lti_data->position = $position2;
             $lti_data->store();
+
             $lti_data2->position = $position;
             $lti_data2->store();
         }
@@ -120,7 +143,7 @@ class Course_LtiController extends StudipController
      *
      * @param   int $position   block position (blank: create a new block)
      */
-    public function edit_action($position)
+    public function edit_action($position = '')
     {
         if ($position !== '') {
             $this->lti_data = LtiData::findByCourseAndPosition($this->course_id, $position);
@@ -456,7 +479,7 @@ class Course_LtiController extends StudipController
             $this->status_severity = 'error';
             $this->status_code = 'failure';
             $this->description = 'incorrect sourcedId: ' . $user_id;
-        } else if ($operation == 'readResultRequest') {
+        } elseif ($operation === 'readResultRequest') {
             if ($grade->isNew()) {
                 $this->status_severity = 'error';
                 $this->status_code = 'failure';
@@ -465,11 +488,11 @@ class Course_LtiController extends StudipController
                 $this->score = $grade->score;
                 $this->description = 'score has been read';
             }
-        } else if ($operation == 'replaceResultRequest') {
+        } elseif ($operation === 'replaceResultRequest') {
             $grade->score = (float) $body->resultRecord->result->resultScore->textString;
             $grade->store();
             $this->description = 'score has been updated';
-        } else if ($operation == 'deleteResultRequest') {
+        } elseif ($operation === 'deleteResultRequest') {
             $grade->delete();
             $this->description = 'score has been deleted';
         } else {

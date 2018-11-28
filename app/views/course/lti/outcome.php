@@ -9,12 +9,12 @@
                 <imsx_codeMajor><?= htmlReady($status_code) ?></imsx_codeMajor>
                 <imsx_severity><?= htmlReady($status_severity) ?></imsx_severity>
                 <imsx_description><?= htmlReady($description) ?></imsx_description>
-                <imsx_messageRefIdentifier><?= htmlReady($message_ref) ?></imsx_messageRefIdentifier> 
+                <imsx_messageRefIdentifier><?= htmlReady($message_ref) ?></imsx_messageRefIdentifier>
             </imsx_statusInfo>
         </imsx_POXResponseHeaderInfo>
     </imsx_POXHeader>
     <imsx_POXBody>
-        <? if ($operation == 'readResultRequest'): ?>
+        <? if ($operation === 'readResultRequest'): ?>
             <readResultResponse>
                 <result>
                     <resultScore>
@@ -23,9 +23,9 @@
                     </resultScore>
                 </result>
             </readResultResponse>
-        <? elseif ($operation == 'replaceResultRequest'): ?>
+        <? elseif ($operation === 'replaceResultRequest'): ?>
             <replaceResultResponse/>
-        <? elseif ($operation == 'deleteResultRequest'): ?>
+        <? elseif ($operation === 'deleteResultRequest'): ?>
             <deleteResultResponse/>
         <? endif ?>
     </imsx_POXBody>

@@ -10,7 +10,6 @@
  * @author      Elmar Ludwig
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
-
 class LtiData extends SimpleORMap
 {
     /**
@@ -23,16 +22,16 @@ class LtiData extends SimpleORMap
         $config['serialized_fields']['options'] = 'JSONArrayObject';
 
         $config['belongs_to']['course'] = [
-            'class_name'  => 'Course',
+            'class_name'  => Course::class,
             'foreign_key' => 'course_id'
         ];
         $config['belongs_to']['tool'] = [
-            'class_name'  => 'LtiTool',
+            'class_name'  => LtiTool::class,
             'foreign_key' => 'tool_id'
         ];
 
         $config['has_many']['grades'] = [
-            'class_name'        => 'LtiGrade',
+            'class_name'        => LtiGrade::class,
             'assoc_foreign_key' => 'link_id',
             'on_delete'         => 'delete'
         ];

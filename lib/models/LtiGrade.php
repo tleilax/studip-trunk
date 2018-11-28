@@ -10,7 +10,6 @@
  * @author      Elmar Ludwig
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
-
 class LtiGrade extends SimpleORMap implements PrivacyObject
 {
     /**
@@ -21,11 +20,11 @@ class LtiGrade extends SimpleORMap implements PrivacyObject
         $config['db_table'] = 'lti_grade';
 
         $config['belongs_to']['link'] = [
-            'class_name'  => 'LtiData',
+            'class_name'  => LtiData::class,
             'foreign_key' => 'link_id'
         ];
         $config['belongs_to']['user'] = [
-            'class_name'  => 'User',
+            'class_name'  => User::class,
             'foreign_key' => 'user_id'
         ];
 

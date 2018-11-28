@@ -24,6 +24,15 @@ class Admin_LtiController extends AuthenticatedController
 
         Navigation::activateItem('/admin/config/lti');
         PageLayout::setTitle(_('Konfiguration der LTI-Tools'));
+
+        $widget = Sidebar::get()->addWidget(new ActionsWidget());
+        $widget->addLink(
+            _('Neues LTI-Tool registrieren'),
+            $this->url_for('admin/lti/edit'),
+            Icon::create('add')
+        )->asDialog();
+
+        Helpbar::get()->addPlainText('', _('Hier können Sie Verknüpfungen mit externen Tools konfigurieren, sofern diese den LTI-Standard (Version 1.x) unterstützen.'));
     }
 
     /**
@@ -39,9 +48,9 @@ class Admin_LtiController extends AuthenticatedController
      *
      * @param   int $id tool id
      */
-    public function edit_action($id)
+    public function edit_action($id = null)
     {
-        $this->tool = new LtiTool($id ?: null);
+        $this->tool = new LtiTool($id);
     }
 
     /**
