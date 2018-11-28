@@ -1,7 +1,7 @@
 const i18n = {
     init: function(root) {
         $('.i18n_group', root).each(function() {
-            var languages = $(this).children('.i18n'),
+            var languages = $(this).find('.i18n'),
                 select = $('<select tabindex="-1">')
                     .addClass('i18n')
                     .css(

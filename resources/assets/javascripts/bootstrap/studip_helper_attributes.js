@@ -4,13 +4,11 @@
 function connectProxyAndProxied() {
     $(':checkbox[data-proxyfor]')
         .each(function() {
-            const proxy = $(this);
-            const proxyId = proxy.uniqueId().attr('id');
-            var proxied = proxy.data('proxyfor');
+            var proxied = $(this).data('proxyfor');
             // The following seems like a hack but works perfectly fine.
             $(proxied)
-                .attr('data-proxiedby', proxyId)
-                .data('proxiedby', `#${proxyId}`);
+                .attr('data-proxiedby', true)
+                .data('proxiedby', this);
         })
         .trigger('update.proxy');
 }

@@ -20,25 +20,6 @@
  * Boston, MA  02110-1301  USA
  */
 
- /* ------------------------------------------------------------------------
-  * add classes to html element according to horizontal screen size
-  * ------------------------------------------------------------------------ */
-(function ($) {
-    // These sizes must match the breakpoints defined in breakspoints.less
-    // TODO: use same webpack configuration for both
-    const sizes = {
-        tiny: '0px',
-        small: '576px',
-        medium: '768px',
-        large: '1200px'
-    };
-
-    for (let size in sizes) {
-        if (window.matchMedia('(min-width: ' + sizes[size] + ')').matches) {
-            $('html').addClass('size-' + size);
-        }
-    }
-}(jQuery));
 
 /* ------------------------------------------------------------------------
  * messages boxes
