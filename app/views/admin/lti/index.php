@@ -25,10 +25,12 @@
             <? foreach ($tools as $tool): ?>
                 <tr>
                     <td>
-                        <?= htmlReady($tool->name) ?>
+                        <a href="<?= $controller->url_for('admin/lti/edit/' . $tool->id) ?>" data-dialog>
+                            <?= htmlReady($tool->name) ?>
+                        </a>
                     </td>
                     <td>
-                        <a href="<?= htmlReady($tool->launch_url) ?>" target="_blank">
+                        <a href="<?= htmlReady($tool->launch_url) ?>" target="_blank" class="link-extern">
                             <?= htmlReady($tool->launch_url) ?>
                         </a>
                     </td>

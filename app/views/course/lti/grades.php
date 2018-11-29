@@ -1,13 +1,3 @@
-<?
-if ($this->edit_perm) {
-    $widget = new ExportWidget();
-    $widget->addLink(_('Ergebnisse exportieren'), $controller->url_for('course/lti/export_grades'), Icon::create('download'));
-    Sidebar::get()->addWidget($widget);
-}
-
-Helpbar::get()->addPlainText('', _('Auf dieser Seite können Sie die Ergebnisse sehen, die von LTI-Tools zurückgemeldet wurden.'));
-?>
-
 <table class="default">
     <caption><?= _('Ergebnisse') ?></caption>
 

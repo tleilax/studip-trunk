@@ -42,28 +42,7 @@ class Course_LtiController extends StudipController
         $title = CourseConfig::get($this->course_id)->LTI_TOOL_TITLE;
         PageLayout::setTitle(Context::getHeaderLine() . ' - ' . $title);
 
-        if ($this->edit_perm) {
-            $widget = Sidebar::get()->addWidget(new ActionsWidget());
-            $widget->addLink(
-                _('Einstellungen'),
-                $this->url_for('course/lti/config'),
-                Icon::create('admin')
-            )->asDialog('size=auto');
-            $widget->addLink(
-                _('Abschnitt hinzufügen'),
-                $this->url_for('course/lti/edit'),
-                Icon::create('add')
-            )->asDialog();
-            if (LtiTool::findByDeep_linking(1)) {
-                $widget->addLink(
-                    _('Link aus LTI-Tool einfügen'),
-                    $this->url_for('course/lti/add_link'),
-                    Icon::create('add')
-                )->asDialog('size=auto');
-            }
-        }
-
-        Helpbar::get()->addPlainText('', _('Auf dieser Seite können Sie externe Anwendungen einbinden, sofern diese den LTI-Standard (Version 1.x) unterstützen.'));
+        $this->setupSidebar($action);
     }
 
     /**
@@ -479,7 +458,7 @@ class Course_LtiController extends StudipController
             $this->status_severity = 'error';
             $this->status_code = 'failure';
             $this->description = 'incorrect sourcedId: ' . $user_id;
-        } elseif ($operation === 'readResultRequest') {
+        } else if ($operation === 'readResultRequest') {
             if ($grade->isNew()) {
                 $this->status_severity = 'error';
                 $this->status_code = 'failure';
@@ -488,11 +467,11 @@ class Course_LtiController extends StudipController
                 $this->score = $grade->score;
                 $this->description = 'score has been read';
             }
-        } elseif ($operation === 'replaceResultRequest') {
+        } else if ($operation === 'replaceResultRequest') {
             $grade->score = (float) $body->resultRecord->result->resultScore->textString;
             $grade->store();
             $this->description = 'score has been updated';
-        } elseif ($operation === 'deleteResultRequest') {
+        } else if ($operation === 'deleteResultRequest') {
             $grade->delete();
             $this->description = 'score has been deleted';
         } else {
@@ -559,5 +538,51 @@ class Course_LtiController extends StudipController
 
         $filename = Context::get()->name . ' - ' . _('Ergebnisse') . '.csv';
         $this->render_csv($data, $filename);
+    }
+
+    /**
+     * Adds sidebar and possible helpbar elements.
+     *
+     * @param  string $action Called action of the controller
+     */
+    private function setupSidebar($action)
+    {
+        if ($action === 'index') {
+            if ($this->edit_perm) {
+                $widget = Sidebar::get()->addWidget(new ActionsWidget());
+                $widget->addLink(
+                    _('Einstellungen'),
+                    $this->url_for('course/lti/config'),
+                    Icon::create('admin')
+                )->asDialog('size=auto');
+                $widget->addLink(
+                    _('Abschnitt hinzufügen'),
+                    $this->url_for('course/lti/edit'),
+                    Icon::create('add')
+                )->asDialog();
+                if (LtiTool::findByDeep_linking(1)) {
+                    $widget->addLink(
+                        _('Link aus LTI-Tool einfügen'),
+                        $this->url_for('course/lti/add_link'),
+                        Icon::create('add')
+                    )->asDialog('size=auto');
+                }
+            }
+
+            Helpbar::get()->addPlainText('', _('Auf dieser Seite können Sie externe Anwendungen einbinden, sofern diese den LTI-Standard (Version 1.x) unterstützen.'));
+        }
+
+        if ($action === 'grades') {
+            if ($this->edit_perm) {
+                $widget = Sidebar::get()->addWidget(new ExportWidget());
+                $widget->addLink(
+                    _('Ergebnisse exportieren'),
+                    $this->url_for('course/lti/export_grades'),
+                    Icon::create('download')
+                );
+            }
+
+            Helpbar::get()->addPlainText('', _('Auf dieser Seite können Sie die Ergebnisse sehen, die von LTI-Tools zurückgemeldet wurden.'));
+        }
     }
 }
