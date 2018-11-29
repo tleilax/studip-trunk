@@ -82,9 +82,9 @@ abstract class DataFieldI18NEntry extends DataFieldEntry
      */
     public function getHTML($name = '', $variables = array())
     {
-        $variables['locale_names'] = $this->getLocaleNames($name);
-
-        return parent::getHTML($name, $variables);
+        return parent::getHTML($name, $variables + [
+            'locale_names' => $this->getLocaleNames($name)
+        ]);
     }
 
     /**

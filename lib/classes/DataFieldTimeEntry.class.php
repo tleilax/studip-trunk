@@ -44,9 +44,9 @@ class DataFieldTimeEntry extends DataFieldEntry
      */
     public function getHTML($name = '', $variables = array())
     {
-        return parent::getHTML($name, array(
-            'values' => explode(':', $this->value),
-        ));
+        return parent::getHTML($name, $variables + [
+            'values' => explode(':', $this->value)
+        ]);
     }
 
     /**

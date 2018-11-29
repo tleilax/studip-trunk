@@ -1,7 +1,7 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <?= $delete_question ?>
 
-<form action="<?= $controller->url_for('tour/admin_overview') ?>" id="admin_tour_form" method="POST" class="default">
+<form action="<?= $controller->url_for('tour/admin_overview') ?>" id="admin_tour_form" method="post" class="default">
     <input type="hidden" name="tour_filter" value="set">
     <input type="hidden" name="tour_filter_term" value="<?= htmlReady($tour_searchterm) ?>">
     <?= CSRFProtection::tokenTag(); ?>
@@ -67,22 +67,20 @@
                 </td>
                 <td><?= count($tour->steps) ?></td>
                 <td class="actions">
-                    <? Icon::create('trash', 'clickable', ['title' => _('Tour löschen')])->asInput([
-                        'name' => 'tour_remove_' . $tour_id,
-                    ]) ?>
-
-                <? $actionMenu = ActionMenu::get() ?>
-                <? $actionMenu->addLink(
-                    $controller->url_for('tour/admin_details/' . $tour_id),
-                    _('Tour bearbeiten'),
-                    Icon::create('edit', 'clickable', ['title' => _('Tour bearbeiten')])
-                ) ?>
-                <? $actionMenu->addButton(
-                    'tour_remove_' . $tour_id,
-                    _('Tour löschen'),
-                    Icon::create('trash', 'clickable', ['title' => _('Tour löschen')])
-                ) ?>
-                    <?= $actionMenu->render() ?>
+                    <?= ActionMenu::get()->addLink(
+                        $controller->url_for('tour/admin_details/' . $tour_id),
+                        _('Tour bearbeiten'),
+                        Icon::create('edit')
+                    )->addLink(
+                        $controller->url_for('tour/export/' . $tour_id),
+                        _('Tour exportieren'),
+                        Icon::create('export'),
+                        ['disabled' => count($tour->steps) === 0]
+                    )->addButton(
+                        'tour_remove_' . $tour_id,
+                        _('Tour löschen'),
+                        Icon::create('trash')
+                    ) ?>
                 </td>
             </tr>
         <? endforeach ?>

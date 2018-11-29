@@ -1,7 +1,7 @@
 <?php
 /**
  * This class represents the action menu used to group actions.
- * 
+ *
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @license GPL2 or any later version
  * @since   Stud.IP 3.5
@@ -159,13 +159,20 @@ class ActionMenu
         if (count($this->actions) === 0) {
             return '';
         }
-        
+
         $template_file = count($this->actions) <= self::THRESHOLD
                        ? self::TEMPLATE_FILE_SINGLE
                        : self::TEMPLATE_FILE_MULTIPLE;
-        
+
         $template = $GLOBALS['template_factory']->open($template_file);
-        $template->actions = $this->actions;
+        $template->actions = array_map(function ($action) {
+            $disabled = isset($action['attributes']['disabled'])
+                     && $action['attributes']['disabled'] !== false;
+            if ($disabled && $action['icon']) {
+                $action['icon'] = $action['icon']->copyWithRole(Icon::ROLE_INACTIVE);
+            }
+            return $action;
+        }, $this->actions);
         return $template->render();
     }
 

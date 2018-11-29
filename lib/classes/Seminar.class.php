@@ -1970,6 +1970,12 @@ class Seminar
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($s_id));
 
+        // remove wiki page config
+        WikiPageConfig::deleteBySQL('range_id = ?', [$s_id]);
+
+        // delete course config values
+        ConfigValue::deleteBySQL('range_id = ?', [$s_id]);
+
         // kill all the ressources that are assigned to the Veranstaltung (and all the linked or subordinated stuff!)
         if (Config::get()->RESOURCES_ENABLE) {
             $killAssign = new DeleteResourcesUser($s_id);

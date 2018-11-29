@@ -3,9 +3,9 @@
         <?= htmlReady($model->name) ?>
     </span>
 
-    <? if ($tooltip): ?>
-        <?= tooltipIcon($tooltip, $important ?: false) ?>
-    <? endif; ?>
+    <? if ($model->description): ?>
+        <?= tooltipIcon($model->description) ?>
+    <? endif ?>
 
     <textarea name="<?= $name ?>[<?= $model->id ?>]"
               id="<?= $name ?>_<?= $model->id ?>"

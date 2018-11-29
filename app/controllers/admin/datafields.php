@@ -91,7 +91,11 @@ class Admin_DatafieldsController extends AuthenticatedController
         PageLayout::setTitle(_('Datenfeld ändern'));
 
         $datafield = new DataField($datafield_id);
-        $datafield_entry = DataFieldEntry::createDataFieldEntry($datafield);
+        $datafield_default = clone $datafield;
+        $datafield_default->name = _('Standardwert');
+        $datafield_default->description = _('Hier können Sie den Standardwert für dieses Datenfeld festlegen.');
+        $datafield_default->is_required = 0;
+        $datafield_entry = DataFieldEntry::createDataFieldEntry($datafield_default);
 
         if (Request::submitted('uebernehmen')) {
             if (Request::get('datafield_name')) {

@@ -30,13 +30,9 @@ use Studip\Button, Studip\LinkButton;
             <? endforeach; ?>
             </select>
         </label>
-        <? if ($item->object_type !== 'moduldeskriptor' && $item->object_type !== 'modulteildeskriptor') : ?>
-        <label>
-            <?= str_replace('['.$datafield_id.']', '', $datafield_entry->getHTML('default_value', array(
-                'tooltip' => _('Hier können Sie den Standardwert für dieses Datenfeld festlegen.')
-            ))) ?>
-        </label>
-        <? endif; ?>
+        <? if (!$datafield_entry instanceof DataFieldI18NEntry): ?>
+            <?= str_replace('['.$datafield_id.']', '', $datafield_entry->getHTML('default_value')) ?>
+        <? endif ?>
         <label>
         <? if ($item->object_type === 'sem'): ?>
             <?= _('Veranstaltungskategorie') ?>:

@@ -228,9 +228,11 @@ class Course_TimesroomsController extends AuthenticatedController
                 // If the new duration includes the current semester, we set the semester-chooser to the current semester
                 if ($current_semester->beginn >= $course->getStartSemester() && $current_semester->beginn <= $course->getEndSemesterVorlesEnde()) {
                     $course->setFilter($current_semester->beginn);
+                    $this->semester_filter = $current_semester->semester_id;
                 } else {
                     // otherwise we set it to the first semester
                     $course->setFilter($course->getStartSemester());
+                    $this->semester_filter = $start_semester->semester_id;
                 }
 
 

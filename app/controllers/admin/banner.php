@@ -15,6 +15,8 @@
  */
 class Admin_BannerController extends AuthenticatedController
 {
+    protected $_autobind = true;
+
     /**
      * Common tasks for all actions.
      */
@@ -69,24 +71,22 @@ class Admin_BannerController extends AuthenticatedController
         $this->banners = Banner::getAllBanners();
     }
 
-    public function info_action($banner_id)
+    public function info_action(Banner $banner)
     {
-        $this->banner = Banner::find($banner_id);
-        if ($this->banner === null) {
-            throw new Exception(sprintf(_('Es existiert kein Banner mit der Id "%s"'), $banner_id));
+        if ($banner->isNew()) {
+            throw new Exception(sprintf(_('Es existiert kein Banner mit der Id "%s"'), $banner->id));
         }
     }
 
     /**
      * Displays edit form and performs according actions upon submit
      *
-     * @param int    $banner_id Id from the banner-object
+     * @param Banner $banner Banner object
      */
-    public function edit_action($banner_id)
+    public function edit_action(Banner $banner)
     {
-        $banner = Banner::find($banner_id);
-        if ($banner === null) {
-            throw new Exception(sprintf(_('Es existiert kein Banner mit der Id "%s"'), $banner_id));
+        if ($banner->isNew()) {
+            throw new Exception(sprintf(_('Es existiert kein Banner mit der Id "%s"'), $banner->id));
         }
 
         // edit banner input
@@ -167,7 +167,7 @@ class Admin_BannerController extends AuthenticatedController
             }
 
             if (count($errors) > 0) {
-                PageLayout::postMessage(MessageBox::error(_('Es sind folgende Fehler aufgetreten:'), $errors));
+                PageLayout::postError(_('Es sind folgende Fehler aufgetreten:'), $errors);
             } else {
                 $banner->banner_path = $banner_path;
                 $banner->description = $description;
@@ -179,7 +179,7 @@ class Admin_BannerController extends AuthenticatedController
                 $banner->priority    = $priority;
                 $banner->store();
 
-                PageLayout::postMessage(MessageBox::success(_('Der Banner wurde erfolgreich gespeichert.')));
+                PageLayout::postSuccess(_('Der Banner wurde erfolgreich gespeichert.'));
                 $this->redirect('admin/banner');
             }
         }
@@ -206,7 +206,6 @@ class Admin_BannerController extends AuthenticatedController
                         ->defaultValue($banner['target'], $institut_name['name'])
                         ->render();
         }
-        $this->banner = $banner;
     }
 
     /**
@@ -291,7 +290,7 @@ class Admin_BannerController extends AuthenticatedController
             }
 
             if (count($errors) > 0) {
-                PageLayout::postMessage(MessageBox::error(_('Es sind folgende Fehler aufgetreten:'), $errors));
+                PageLayout::postError(_('Es sind folgende Fehler aufgetreten:'), $errors);
             } else {
                 $banner = new Banner();
                 $banner->banner_path = $banner_path;
@@ -304,7 +303,7 @@ class Admin_BannerController extends AuthenticatedController
                 $banner->priority    = $priority;
                 $banner->store();
 
-                PageLayout::postMessage(MessageBox::success(_('Der Banner wurde erfolgreich gespeichert.')));
+                PageLayout::postSuccess(_('Der Banner wurde erfolgreich gespeichert.'));
                 $this->redirect('admin/banner');
             }
         }
@@ -313,31 +312,30 @@ class Admin_BannerController extends AuthenticatedController
     /**
      * Resets the click and view counter for the given banner
      *
-     * @param string $banner_id
+     * @param Banner $banner
      */
-    public function reset_action($banner_id)
+    public function reset_action(Banner $banner)
     {
-        $banner = Banner::find($banner_id);
         $banner->views  = 0;
         $banner->clicks = 0;
         $banner->store();
 
         $message = _('Die Klick- und Viewzahlen des Banners wurden zurückgesetzt');
-        PageLayout::postMessage(MessageBox::success($message));
+        PageLayout::postSuccess($message);
         $this->redirect('admin/banner');
     }
 
     /**
      *
-     * @param type $banner_id
+     * @param Banner $banner
      */
-    public function delete_action($banner_id)
+    public function delete_action(Banner $banner)
     {
         if (Request::int('delete') == 1) {
-            Banner::find($banner_id)->delete();
-            PageLayout::postMessage(MessageBox::success(_('Das Banner wurde erfolgreich gelöscht!')));
+            $banner->delete();
+            PageLayout::postSuccess(_('Das Banner wurde erfolgreich gelöscht!'));
         } elseif (!Request::get('back')) {
-            $this->flash['delete'] = compact('banner_id');
+            $this->flash['delete'] = ['banner_id' => $banner->id];
         }
 
         $this->redirect('admin/banner');

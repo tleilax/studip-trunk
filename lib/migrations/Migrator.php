@@ -199,7 +199,7 @@ class Migrator
 
         # you're on the right version
         if (empty($migrations)) {
-            $this->log("You are already at %d.\n", $this->target_version);
+            $this->log("You are already at %d.\n", $this->schema_version->get());
             return;
         }
 

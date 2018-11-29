@@ -64,8 +64,6 @@ class GradebookModule extends StudIPPlugin implements SystemPlugin, StandardPlug
 
         if ($GLOBALS['perm']->have_studip_perm('dozent', $cid)) {
             $this->addTabNavigationOfLecturers($gradebook, $cid);
-        } elseif ($GLOBALS['perm']->have_studip_perm('student', $cid)) {
-            $this->addTabNavigationOfStudents($gradebook, $cid);
         }
 
         return compact('gradebook');
@@ -77,27 +75,12 @@ class GradebookModule extends StudIPPlugin implements SystemPlugin, StandardPlug
     private function addTabNavigationOfLecturers(\Navigation $navigation, $cid)
     {
         $navigation->addSubNavigation(
-            'export',
-            new Navigation(_('Export'), 'dispatch.php/course/gradebook/lecturers/export')
-        );
-        $navigation->addSubNavigation(
             'weights',
             new Navigation(_('Gewichtungen'), 'dispatch.php/course/gradebook/lecturers/weights')
         );
         $navigation->addSubNavigation(
             'custom_definitions',
             new Navigation(_('Noten manuell erfassen'), 'dispatch.php/course/gradebook/lecturers/custom_definitions')
-        );
-    }
-
-    /**
-     * @SuppressWarnings(PHPMD.Superglobals)
-     */
-    private function addTabNavigationOfStudents(\Navigation $navigation, $cid)
-    {
-        $navigation->addSubNavigation(
-            'export',
-            new Navigation(_('Export'), 'dispatch.php/course/gradebook/students/export')
         );
     }
 

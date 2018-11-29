@@ -1,7 +1,6 @@
 <?php
 
 use Grading\Definition;
-use Grading\Instance;
 
 trait GradebookTemplateHelpers
 {
@@ -38,12 +37,26 @@ trait GradebookTemplateHelpers
         return $groupedDefinitions;
     }
 
-    /**
-     * @SuppressWarnings(PHPMD.Superglobals)
-     */
-    protected function getCurrentUser()
+    protected function setupLecturerSidebar()
     {
-        return \User::findCurrent();
+        $export = new \ExportWidget();
+        $export->addLink(
+            _('Leistungen exportieren'),
+            $this->url_for('course/gradebook/lecturers/export'),
+            Icon::create('export')
+        );
+        \Sidebar::Get()->addWidget($export);
+    }
+
+    protected function setupStudentsSidebar()
+    {
+        $export = new \ExportWidget();
+        $export->addLink(
+            _('Leistungen exportieren'),
+            $this->url_for('course/gradebook/students/export'),
+            Icon::create('export')
+        );
+        \Sidebar::Get()->addWidget($export);
     }
 
     protected function viewerIsStudent()
@@ -61,19 +74,11 @@ trait GradebookTemplateHelpers
      */
     protected function viewerHasPerm($perm)
     {
-        $currentUserId = $GLOBALS['user'] ? $GLOBALS['user']->id : 'nobody';
-        $currentContextId = \Context::getId();
-
-        return $GLOBALS['perm']->have_studip_perm($perm, $currentContextId, $currentUserId);
+        return $GLOBALS['perm']->have_studip_perm($perm, \Context::getId());
     }
 
     protected function setDefaultPageTitle()
     {
         \PageLayout::setTitle(Context::getHeaderLine().' - Gradebook');
-    }
-
-    protected function getCategories(\Course $course)
-    {
-        return Definition::getCategoriesByCourse($course);
     }
 }
