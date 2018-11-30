@@ -5,38 +5,48 @@
 <? foreach ($plugins as $plugin_id => $plugin_data) : ?>
     <? foreach ($plugin_data as $label => $tabledata) : ?>
         <? if ($tabledata['table_content']) : ?>
-            <h2 onclick="jQuery(this).next('table').toggle();" style="cursor: pointer;">
-                <?= htmlReady($label) ?>, <?= sprintf(_('%u Einträge'), count($tabledata['table_content'])) ?>
-                <? if (Request::isDialog()) : ?>
-                (<a href="<?= $controller->url_for("privacy/export2csv/{$plugin_id}/{$tabledata['table_name']}/{$user_id}") ?>">
-                    <?= htmlReady($label) ?> CSV
-                </a>)
-                <? endif; ?>
-            </h2>
-            <table class="default" <?= (Request::isDialog() || $section == null)?'style="display: none;"':'' ?>>
-                <thead>
-                    <tr>
-                    <? foreach (array_keys($tabledata['table_content'][0]) as $caption) : ?>
-                        <th><?= htmlReady($caption) ?></th>
-                    <? endforeach; ?>
-                    </tr>
-                </thead>
-                <tbody>
-                <? foreach ($tabledata['table_content'] as $row) : ?>
-                    <tr>
-                    <? foreach ($row as $key => $value): ?>
-                        <td>
-                        <? if ($tabledata['table_name'] === 'log_events' && $key === "readable_entry"): ?>
-                            <?= $value ?>
-                        <? else: ?>
-                            <?= htmlReady($value) ?>
-                        <? endif; ?>
-                        </td>
-                    <? endforeach; ?>
-                    </tr>
-                <? endforeach; ?>
-                </tbody>
-            </table>
+
+            <article class="studip toggle <?= (Request::isDialog() || $section == null)?'':'open' ?>" id="trr" style="width: max-content; min-width: 99%;">
+                <header>
+                    <h1>
+                        <a>
+                            <?= htmlReady($label) ?>, <?= sprintf(_('%u Einträge'), count($tabledata['table_content'])) ?>
+                            <? if (Request::isDialog()) : ?>
+                            (<a href="<?= $controller->url_for("privacy/export2csv/{$plugin_id}/{$tabledata['table_name']}/{$user_id}") ?>">
+                                <?= htmlReady($label) ?> CSV
+                            </a>)
+                            <? endif; ?>
+                        </a>
+                    </h1>
+                </header>
+                <section>
+                    <table class="default">
+                        <thead>
+                            <tr>
+                            <? foreach (array_keys($tabledata['table_content'][0]) as $caption) : ?>
+                                <th><?= htmlReady($caption) ?></th>
+                            <? endforeach; ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <? foreach ($tabledata['table_content'] as $row) : ?>
+                            <tr>
+                            <? foreach ($row as $key => $value): ?>
+                                <td>
+                                <? if ($tabledata['table_name'] === 'log_events' && $key === "readable_entry"): ?>
+                                    <?= $value ?>
+                                <? else: ?>
+                                    <?= htmlReady($value) ?>
+                                <? endif; ?>
+                                </td>
+                            <? endforeach; ?>
+                            </tr>
+                        <? endforeach; ?>
+                        </tbody>
+                    </table>
+                </section>
+            </article>
+
         <? endif; ?>
     <? endforeach; ?>
 <? endforeach; ?>
