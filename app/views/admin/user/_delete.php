@@ -16,12 +16,12 @@ use Studip\Button;
 
 
     <fieldset>
-        <legend><?= _('persohnenbezogene Daten') ?></legend>
+        <legend><?= _('personenbezogene Daten') ?></legend>
 
         <label>
             <input id="personaldocuments" name="personaldocuments" value="1" checked type="checkbox">
             <?= _('Dokumente löschen?') ?>
-            <?= tooltipHtmlIcon(htmlReady(_('persöhnlicher Dateibereich'), true, true)) ?>
+            <?= tooltipHtmlIcon(htmlReady(_('persönlicher Dateibereich'), true, true)) ?>
         </label>
 
         <label>
