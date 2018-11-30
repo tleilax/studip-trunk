@@ -1,5 +1,11 @@
 <form class="default" action="<?= $controller->url_for('admin/semester/lock/'.$id); ?>" method="POST" data-dialog="size=auto">
 
+    <h1><?= _('Berechtigungen'); ?> </h1>
+
+    <label><?= _('Teilnehmende zu Lesern herabstufen') ?>
+        <input name ="degrade_users" type="checkbox" value="1" checked>
+    </label>
+    <br>
 
     <h1><?= _('Anmelderegeln'); ?> </h1>
 

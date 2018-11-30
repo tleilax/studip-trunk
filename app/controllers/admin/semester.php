@@ -279,11 +279,19 @@ class Admin_SemesterController extends AuthenticatedController
                 if (Request::get('lock_enroll')) {
                     $course_set_id = CourseSet::getGlobalLockedAdmissionSetId();
                     $lock_enroll = true;
+                } else {
+                    $lock_enroll = false;
                 }
 
                 $lock_rule = Request::get('lock_sem_all');
                 if ($lock_rule == 'none') {
                     $lock_rule = null;
+                }
+
+                if (Request::get('degrade_users')) {
+                    $degrade_users = true;
+                } else {
+                    $degrade_users = false;
                 }
 
                 foreach ($semesters as $semester) {
@@ -297,10 +305,18 @@ class Admin_SemesterController extends AuthenticatedController
                         $courses = Course::findBySQL("duration_time >= 0 AND (start_time+duration_time) = ?", [$semester->beginn]);
                         foreach ($courses as $course) {
                             $course->visible = 0;
+
+                            if ($degrade_users) {
+                                foreach (CourseMember::findByCourseAndStatus($course->seminar_id, ['autor']) as $member) {
+                                    $member->status = 'user';
+                                    $member->store();
+                                }
+                            }
+
                             if ($lock_enroll) {
 
                                 $cset = CourseSet::getSetForCourse($course->seminar_id);
-                                if($cset){
+                                if ($cset) {
                                     CourseSet::removeCourseFromSet($cset->getId(), $course->seminar_id);
                                 }
 

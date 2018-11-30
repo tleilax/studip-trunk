@@ -188,15 +188,6 @@ use Studip\Button, Studip\LinkButton;
                                 )
                             );
 
-                            $actionMenu->addButton(
-                                'anonymize_user',
-                                _('Nutzer anonymisieren'),
-                                Icon::create('question', Icon::ROLE_CLICKABLE,
-                                    tooltip2(_('Nutzer anonymisieren')) +
-                                    ['formaction' => $controller->url_for('admin/user/bulk/' . $user->user_id, ['method' => 'anonymize'])]
-                                )
-                            );
-
                         }
 
                         if (Privacy::isVisible($user_id)) {
@@ -245,7 +236,6 @@ use Studip\Button, Studip\LinkButton;
                             <option value=""><?= _('Bitte wählen') ?></option>
                             <option value="send_message"><?= _('Nachricht senden') ?></option>
                             <option value="delete"><?= _('Löschen') ?></option>
-                            <option value="anonymize"><?= _('Anonymisieren') ?></option>
                         </select>
 
                     <?= Button::create(_('Ausführen'),

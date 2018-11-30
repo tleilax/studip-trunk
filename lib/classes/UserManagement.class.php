@@ -677,7 +677,7 @@ class UserManagement
     * @param    bool delete all course content belonging to the user
     * @return   bool Removal successful?
     */
-    public function deleteUser($delete_documents = true, $delete_content_from_course = true)
+    public function deleteUser($delete_documents = true, $delete_content_from_course = true, $delete_personal_documents = true, $delete_personal_content = true, $delete_names = true, $delete_memberships = true)
     {
         global $perm;
 
@@ -777,9 +777,86 @@ class UserManagement
         // store user preferred language for sending mail
         $user_language = getUserLanguagePath($this->user_data['auth_user_md5.user_id']);
 
-        $user_folder = Folder::findTopFolder($this->user->id);
-        $this->msg .= "info§" . _("Persönlicher Dateibereich gelöscht.") . "§";
-        $user_folder->delete();
+
+        // delete user from instituts
+        $this->logInstUserDel($this->user_data['auth_user_md5.user_id']);
+
+        if ($delete_memberships) {
+
+            $query = "DELETE FROM user_inst WHERE user_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
+            if (($db_ar = $statement->rowCount()) > 0) {
+                $this->msg .= "info§" . sprintf(_("%s Einträge aus MitarbeiterInnenlisten gelöscht."), $db_ar) . "§";
+            }
+
+            // delete user from Statusgruppen
+            if ($db_ar = StatusgruppeUser::deleteBySQL('user_id = ?', [$this->user_data['auth_user_md5.user_id']]) > 0) {
+                $this->msg .= "info§" . sprintf(_("%s Einträge aus Funktionen / Gruppen gelöscht."), $db_ar) . "§";
+            }
+
+            // delete user from archiv
+            $query = "DELETE FROM archiv_user WHERE user_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
+            if (($db_ar = $statement->rowCount()) > 0) {
+                $this->msg .= "info§" . sprintf(_("%s Einträge aus den Zugriffsberechtigungen für das Archiv gelöscht."), $db_ar) . "§";
+            }
+
+            // delete 'Studiengaenge'
+            $query = "DELETE FROM user_studiengang WHERE user_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
+            if (($db_ar = $statement->rowCount()) > 0) {
+                $this->msg .= "info§" . sprintf(_("%s Zuordnungen zu Studiengängen gelöscht."), $db_ar) . "§";
+            }
+
+
+            // kill all the ressources that are assigned to the user (and all the linked or subordinated stuff!)
+            if (Config::get()->RESOURCES_ENABLE) {
+                $killAssign = new DeleteResourcesUser($this->user_data['auth_user_md5.user_id']);
+                $killAssign->delete();
+            }
+
+            $this->re_sort_position_in_seminar_user();
+
+            // delete user from seminars (postings will be preserved)
+            $query = "DELETE FROM seminar_user WHERE user_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
+            if (($db_ar = $statement->rowCount()) > 0) {
+                $this->msg .= "info§" . sprintf(_("%s Einträge aus Veranstaltungen gelöscht."), $db_ar) . "§";
+            }
+
+            // delete visibility settings
+            Visibility::removeUserPrivacySettings($this->user_data['auth_user_md5.user_id']);
+
+            // delete deputy entries if necessary
+            $query = "DELETE FROM deputies WHERE ? IN (user_id, range_id)";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
+            $deputyEntries = $statement->rowCount();
+            if ($deputyEntries) {
+                $this->msg .= "info§".sprintf(_("%s Einträge in den Vertretungseinstellungen gelöscht."), $deputyEntries)."§";
+            }
+
+            // delete all remaining user data
+            $queries = array(
+                "DELETE FROM user_userdomains WHERE user_id = ?",
+                "DELETE FROM user_info WHERE user_id = ?",
+            );
+            foreach ($queries as $query) {
+                DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
+            }
+
+            $plugins = PluginManager::getInstance()->getPlugins(NULL);
+            foreach ($plugins as $id => $plugin) {
+                if ($plugin instanceof PrivacyPlugin) {
+                    $this->msg .= "info§".$plugin->deleteUserdata($this->user)."§";
+                }
+            }
+
+        }
 
         // delete documents of this user
         if ($delete_documents) {
@@ -787,56 +864,6 @@ class UserManagement
             if ($db_filecount > 0) {
                 $this->msg .= "info§" . sprintf(_("%s Dateien aus Veranstaltungen und Einrichtungen gelöscht."), $db_filecount) . "§";
             }
-        }
-
-        // delete user from instituts
-        $this->logInstUserDel($this->user_data['auth_user_md5.user_id']);
-
-        $query = "DELETE FROM user_inst WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus MitarbeiterInnenlisten gelöscht."), $db_ar) . "§";
-        }
-
-        // delete user from Statusgruppen
-        if ($db_ar = StatusgruppeUser::deleteBySQL('user_id = ?', [$this->user_data['auth_user_md5.user_id']]) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus Funktionen / Gruppen gelöscht."), $db_ar) . "§";
-        }
-
-        // delete user from archiv
-        $query = "DELETE FROM archiv_user WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus den Zugriffsberechtigungen für das Archiv gelöscht."), $db_ar) . "§";
-        }
-
-        // delete 'Studiengaenge'
-        $query = "DELETE FROM user_studiengang WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Zuordnungen zu Studiengängen gelöscht."), $db_ar) . "§";
-        }
-
-        // delete the datafields
-        $localEntries = DataFieldEntry::removeAll($this->user_data['auth_user_md5.user_id']);
-
-        // kill all the ressources that are assigned to the user (and all the linked or subordinated stuff!)
-        if (Config::get()->RESOURCES_ENABLE) {
-            $killAssign = new DeleteResourcesUser($this->user_data['auth_user_md5.user_id']);
-            $killAssign->delete();
-        }
-
-        $this->re_sort_position_in_seminar_user();
-
-        // delete user from seminars (postings will be preserved)
-        $query = "DELETE FROM seminar_user WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        if (($db_ar = $statement->rowCount()) > 0) {
-            $this->msg .= "info§" . sprintf(_("%s Einträge aus Veranstaltungen gelöscht."), $db_ar) . "§";
         }
 
         // delete all remaining user data in course context if option selected
@@ -856,104 +883,20 @@ class UserManagement
             }
         }
 
-        // delete visibility settings
-        Visibility::removeUserPrivacySettings($this->user_data['auth_user_md5.user_id']);
-
-        // delete deputy entries if necessary
-        $query = "DELETE FROM deputies WHERE ? IN (user_id, range_id)";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        $deputyEntries = $statement->rowCount();
-        if ($deputyEntries) {
-            $this->msg .= "info§".sprintf(_("%s Einträge in den Vertretungseinstellungen gelöscht."), $deputyEntries)."§";
+        if ($delete_personal_documents) {
+            $user_folder = Folder::findTopFolder($this->user->id);
+            $this->msg .= "info§" . _("Persönlicher Dateibereich gelöscht.") . "§";
+            $user_folder->delete();
         }
 
-        $this->msg .= $this->deletePersonalData($this->user_data['auth_user_md5.user_id']);
-
-        // delete all remaining user data
-        $queries = array(
-            "DELETE FROM user_userdomains WHERE user_id = ?",
-            "DELETE FROM user_info WHERE user_id = ?",
-        );
-        foreach ($queries as $query) {
-            DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
+        if ($delete_personal_content) {
+            $this->msg .= $this->deletePersonalData($this->user_data['auth_user_md5.user_id']);
         }
 
-        $plugins = PluginManager::getInstance()->getPlugins(NULL);
-        foreach ($plugins as $id => $plugin) {
-            if ($plugin instanceof PrivacyPlugin) {
-                $this->msg .= "info§".$plugin->deleteUserdata($this->user)."§";
-            }
-        }
-
-        // delete Stud.IP account
-        $query = "DELETE FROM auth_user_md5 WHERE user_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($this->user_data['auth_user_md5.user_id']));
-        if (!$statement->rowCount()) {
-            $this->msg .= "error§<em>" . _("Fehler:") . "</em> " . $query . "§";
-            return FALSE;
-        } else {
-            $this->msg .= "msg§" . sprintf(_("Benutzer \"%s\" gelöscht."), $this->user_data['auth_user_md5.username']) . "§";
-        }
-        StudipLog::log("USER_DEL",$this->user_data['auth_user_md5.user_id'],NULL,sprintf("%s %s (%s)", $this->user_data['auth_user_md5.Vorname'], $this->user_data['auth_user_md5.Nachname'], $this->user_data['auth_user_md5.username'])); //log with Vorname Nachname (username) as info string
-
-        // Can we reach the email?
-        if ($this->checkMail($this->user_data['auth_user_md5.Email'])) {
-            // include language-specific subject and mailbody
-            $Zeit=date("H:i:s, d.m.Y",time());
-            include("locale/$user_language/LC_MAILS/delete_mail.inc.php");
-
-            // send mail
-            StudipMail::sendMessage($this->user_data['auth_user_md5.Email'],$subject, $mailbody);
-        }
-
-        // Trigger delete on sorm object which will fire notifications
-        // TODO: Remove everything from this method that would also be
-        //       deleted in User::delete()
-        if ($this->user->delete()) {
-            NotificationCenter::postNotification('UserDidDelete', $this->user_data['auth_user_md5.user_id']);
-        }
-
-        unset($this->user_data);
-        return TRUE;
-
-    }
-
-    /**
-    * Anonymize an existing user
-    *
-    * @param    bool delete all documents belonging to the user
-    * @param    bool delete all course content belonging to the user
-    * @return   bool anonymized successful?
-    */
-    public function anonymizeUser($delete_documents = true, $delete_content_from_course = true)
-    {
-        global $perm;
-
-        // Do we have permission to do so?
-        if (!$perm->have_perm("admin")) {
-            $this->msg .= "error§" . _("Sie haben keine Berechtigung Accounts zu anonymisieren.") . "§";
-            return FALSE;
-        }
-
-        if (!$perm->have_perm("root")) {
-            if ($this->user_data['auth_user_md5.perms'] == "root") {
-                $this->msg .= "error§" . _("Sie haben keine Berechtigung <em>Root-Accounts</em> zu anonymisieren.") . "§";
-                return FALSE;
-            }
-            if ($this->user_data['auth_user_md5.perms'] == "admin" && !$this->adminOK()) {
-                $this->msg .= "error§" . _("Sie haben keine Berechtigung diesen Admin-Account zu anonymisieren.") . "§";
-                return FALSE;
-            }
-        }
-
-        $this->msg .= $this->deletePersonalData($this->user_data['auth_user_md5.user_id']);
-
-        if(get_config('ANONYMIZE_USERNAME')) {
+        if ($delete_names) {
             $query = "UPDATE auth_user_md5
-                      SET username = ?, Vorname = NULL, Nachname = NULL, Email = NULL
-                      WHERE user_id = ?";
+            SET username = ?, Vorname = NULL, Nachname = NULL, Email = NULL
+            WHERE user_id = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array(md5($this->user_data['auth_user_md5.username']), $this->user_data['auth_user_md5.user_id']));
             if (($db_ar = $statement->rowCount()) > 0) {
@@ -961,21 +904,44 @@ class UserManagement
             }
         }
 
-            //diese sollen anonymisiert werden
-            //"wiki WHERE user_id = ?",
-            //"wiki_locks WHERE user_id = ?",
-            //"log_events WHERE user_id = ?",
-            //"log_events WHERE affected_range_id = ?",
-            //"log_events WHERE coaffected_range_id = ?",
-            //"forum_entries WHERE user_id = ?",
-            //"event_data WHERE author_id = ?",
-            //"termine WHERE author_id = ?",
-            //"ex_termine WHERE author_id = ?",
-            //"etask_responses WHERE grader_id = ?",
+        if ($delete_personal_documents && $delete_personal_content && $delete_names && $delete_memberships) {
+
+            // delete Stud.IP account
+            $query = "DELETE FROM auth_user_md5 WHERE user_id = ?";
+            $statement = DBManager::get()->prepare($query);
+            $statement->execute(array($this->user_data['auth_user_md5.user_id']));
+            if (!$statement->rowCount()) {
+                $this->msg .= "error§<em>" . _("Fehler:") . "</em> " . $query . "§";
+                return FALSE;
+            } else {
+                $this->msg .= "msg§" . sprintf(_("Benutzer \"%s\" gelöscht."), $this->user_data['auth_user_md5.username']) . "§";
+            }
+            StudipLog::log("USER_DEL",$this->user_data['auth_user_md5.user_id'],NULL,sprintf("%s %s (%s)", $this->user_data['auth_user_md5.Vorname'], $this->user_data['auth_user_md5.Nachname'], $this->user_data['auth_user_md5.username'])); //log with Vorname Nachname (username) as info string
+
+            // Can we reach the email?
+            if ($this->checkMail($this->user_data['auth_user_md5.Email'])) {
+                // include language-specific subject and mailbody
+                $Zeit=date("H:i:s, d.m.Y",time());
+                include("locale/$user_language/LC_MAILS/delete_mail.inc.php");
+
+                // send mail
+                StudipMail::sendMessage($this->user_data['auth_user_md5.Email'],$subject, $mailbody);
+            }
+
+            // Trigger delete on sorm object which will fire notifications
+            // TODO: Remove everything from this method that would also be
+            //       deleted in User::delete()
+            if ($this->user->delete()) {
+                NotificationCenter::postNotification('UserDidDelete', $this->user_data['auth_user_md5.user_id']);
+            }
+
+            unset($this->user_data);
+
+        }
 
         return TRUE;
-    }
 
+    }
 
     /**
     * Delete personal userdata
@@ -987,6 +953,10 @@ class UserManagement
     {
 
         $msg = "";
+
+        // delete the datafields
+        $localEntries = DataFieldEntry::removeAll($user_id);
+
 
         // delete all blubber entrys
         $query = "DELETE blubber, blubber_mentions, blubber_reshares, blubber_streams
