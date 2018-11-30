@@ -10,7 +10,6 @@
  * @author      Elmar Ludwig
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
-
 class WikiPageConfig extends SimpleORMap
 {
     /**
@@ -20,15 +19,42 @@ class WikiPageConfig extends SimpleORMap
     {
         $config['db_table'] = 'wiki_page_config';
 
-        $config['belongs_to']['course'] = array(
-            'class_name' => 'Course',
+        $config['belongs_to']['course'] = [
+            'class_name'  => Course::class,
             'foreign_key' => 'range_id',
-        );
-        $config['belongs_to']['institute'] = array(
-            'class_name' => 'Institute',
+        ];
+        $config['belongs_to']['institute'] = [
+            'class_name'  => Institute::class,
             'foreign_key' => 'range_id',
-        );
+        ];
 
         parent::configure($config);
+    }
+
+    /**
+     * Specialized getValue that returns the course default for edit_restricted.
+     *
+     * @param  string $field Field to get the value for
+     * @return mixed
+     */
+    public function getValue($field)
+    {
+        if ($field !== 'edit_restricted' || !$this->isNew() || !$this->range_id) {
+            return parent::getValue($field);
+        }
+
+        return CourseConfig::get($this->range_id)->WIKI_COURSE_EDIT_RESTRICTED;
+    }
+
+    /**
+     * Returns whether the current settings are the default settings (db-wise
+     * and from course setting).
+     *
+     * @return boolean
+     */
+    public function isDefault()
+    {
+        return $this->read_restricted === $this->getDefaultValue('read_restricted') &&
+               $this->edit_restricted === CourseConfig::get($this->range_id)->WIKI_COURSE_EDIT_RESTRICTED;
     }
 }

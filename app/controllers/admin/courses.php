@@ -924,8 +924,8 @@ class Admin_CoursesController extends AuthenticatedController
                 'attributes' => ['data-dialog' => 'size=big'],
             ),
             3 => array(
-                'name'       => _('Zeiten / Räume'),
-                'title'      => _('Zeiten / Räume'),
+                'name'       => _('Zeiten/Räume'),
+                'title'      => _('Zeiten/Räume'),
                 'url'        => 'dispatch.php/course/timesrooms/index?cid=%s',
                 'attributes' => ['data-dialog' => 'size=big'],
                 'params'     => array(
@@ -1239,7 +1239,7 @@ class Admin_CoursesController extends AuthenticatedController
     {
         $configs         = $configs ?: array();
         $checkbox_widget = new OptionsWidget();
-        $checkbox_widget->setTitle(_('Darstellungs-Filter'));
+        $checkbox_widget->setTitle(_('Darstellungsfilter'));
 
         foreach ($this->getViewFilters() as $index => $label) {
             $state = in_array($index, $configs);
@@ -1330,7 +1330,7 @@ class Admin_CoursesController extends AuthenticatedController
     {
         $actions = $this->getActions();
         $sidebar = Sidebar::Get();
-        $list = new SelectWidget(_('Aktionsbereich-Auswahl'), $this->url_for('admin/courses/set_action_type'), 'action_area');
+        $list = new SelectWidget(_('Aktionsbereichauswahl'), $this->url_for('admin/courses/set_action_type'), 'action_area');
 
         foreach ($actions as $index => $action) {
             $list->addElement(new SelectElement($index, $action['name'], $selected_action == $index), 'action-aria-' . $index);
@@ -1353,7 +1353,7 @@ class Admin_CoursesController extends AuthenticatedController
         $this->selected = $selected;
 
         $list = new SelectWidget(
-            _('Veranstaltungstyp-Filter'),
+            _('Veranstaltungstypfilter'),
             $this->url_for('admin/courses/set_course_type'),
             'course_type'
         );
@@ -1422,7 +1422,7 @@ class Admin_CoursesController extends AuthenticatedController
 
 
         $sidebar = Sidebar::Get();
-        $list = new SelectWidget(_('Dozenten-Filter'), $this->url_for('admin/courses/index'), 'teacher_filter');
+        $list = new SelectWidget(_('Dozentenfilter'), $this->url_for('admin/courses/index'), 'teacher_filter');
         $list->addElement(new SelectElement('all', _('alle'), Request::get('teacher_filter') == 'all'), 'teacher_filter-all');
 
         foreach ($teachers as $teacher) {

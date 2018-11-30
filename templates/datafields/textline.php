@@ -3,9 +3,9 @@
         <?= htmlReady($model->name) ?>
     </span>
 
-    <? if ($tooltip): ?>
-        <?= tooltipIcon($tooltip, $important ?: false) ?>
-    <? endif; ?>
+    <? if ($model->description): ?>
+        <?= tooltipIcon($model->description) ?>
+    <? endif ?>
 
     <input type="text" name="<?= $name ?>[<?= $model->id ?>]"
            value="<?= htmlReady($value) ?>" id="<?= $name ?>_<?= $model->id ?>"

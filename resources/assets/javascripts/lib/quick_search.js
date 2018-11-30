@@ -160,11 +160,11 @@ const QuickSearch = {
             if (input.is('[required]')) {
                 input.closest('form').submit(function (event) {
                     if (hidden.val() === '') {
-                        input[0].setCustomValidity('Bitte wählen Sie einen gültigen Wert aus!'.toLocaleString());
+                        input[0].setCustomValidity('Bitte wÃ€hlen Sie einen gÃŒltigen Wert aus!'.toLocaleString());
                         event.preventDefault();
-                    }
-                });
-            }
+                     }
+                 });
+             }
         }
     },
 
@@ -174,6 +174,14 @@ const QuickSearch = {
         jQuery('#' + name).autocomplete({ minLength: 1 });
         jQuery('#' + name).autocomplete('search', term);
         jQuery('#' + name).autocomplete({ minLength: 3 });
+    },
+
+    reset: function(form_name, quick_search_name) {
+        if (!form_name || !quick_search_name) {
+            return;
+        }
+        document.forms[form_name].elements[quick_search_name].value = '';
+        document.forms[form_name].elements[quick_search_name + '_parameter'].value = '';
     }
 };
 

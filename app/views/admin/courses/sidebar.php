@@ -26,7 +26,7 @@
             <input name="courseTypeActive" type="checkbox" value="1"
                 <?= ($userSelectedElements['courseType']) ? 'checked="checked"' : '' ?>
                 >
-            <?= _('Veranstaltungstyp-Filter'); ?>
+            <?= _('Veranstaltungstypfilter'); ?>
         </label>
         <label>
             <input name="teacherActive" type="checkbox" value="1"
@@ -38,7 +38,7 @@
             <input name="viewFilterActive" type="checkbox" value="1"
                 <?= ($userSelectedElements['viewFilter']) ? 'checked="checked"' : '' ?>
                 >
-            <?= _('Darstellungs-Filter'); ?>
+            <?= _('Darstellungsfilter'); ?>
         </label>
     </fieldset>
     <? if ($datafields): ?>

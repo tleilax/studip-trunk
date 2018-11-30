@@ -16,6 +16,10 @@ class WikiController extends AuthenticatedController
 
         $this->keyword  = Request::get('keyword');
         $this->range_id = Context::getId();
+
+        if (Navigation::hasItem('/course/wiki/show')) {
+            Navigation::activateItem('/course/wiki/show');
+        }
     }
 
     /**
@@ -23,12 +27,7 @@ class WikiController extends AuthenticatedController
      */
     public function create_action()
     {
-        Navigation::activateItem('/course/wiki/show');
-        $range_id = Context::getId();
-        $this->storedStatusStandard = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
-
-        $this->keyword  = Request::get('keyword');
-        getShowPageInfobox($keyword, true);
+        getShowPageInfobox($this->keyword, true);
     }
 
     /**
@@ -36,53 +35,100 @@ class WikiController extends AuthenticatedController
      */
     public function change_courseperms_action()
     {
-        Navigation::activateItem('/course/wiki/show');
-        $range_id = Context::getId();
-        $this->storedStatus = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
-        $this->keyword  = Request::get('keyword');
-        $keyword = $this->keyword;
-        $perm = $GLOBALS['perm'];
-
-        getShowPageInfobox($keyword, true);
-
-        if (!$perm->have_studip_perm("autor", $range_id)) {
+        if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->range_id)) {
             throw new AccessDeniedException(_('Sie haben keine Berechtigung, Berechtigungen Wiki-Seiten zu ändern!'));
         }
 
         // prevent malformed urls: keyword must be set
-        if (!$keyword) {
+        if (!$this->keyword) {
             throw new InvalidArgumentException(_('Es wurde keine Seite übergeben!'));
         }
 
+        PageLayout::setTitle(_('Wiki-Einstellungen ändern'));
+
+        $this->restricted = CourseConfig::get($this->range_id)->WIKI_COURSE_EDIT_RESTRICTED;
+
+        getShowPageInfobox($this->keyword, true);
     }
 
-    public function change_pageperms_action()
+    /**
+     * store course permissions of wiki pages
+     */
+    public function store_courseperms_action()
     {
-        Navigation::activateItem('/course/wiki/show');
-        $this->keyword  = Request::get('keyword');
-        $keyword = $this->keyword;
-        $this->version = Request::int('version');
-        $version = $this->version;
+        CSRFProtection::verifyUnsafeRequest();
 
-        $range_id = Context::getId();
-        $row = WikiPageConfig::find([$range_id, $keyword]);
-        $this->storedStatusEdit = $row->edit_perms;
-        $this->storedStatusRead = $row->read_perms;
-
-        $range_id = Context::getId();
-        $this->storedStatusStandard = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
-
-        if ($this->storedStatusRead == "") {
-            $this->storedStatusRead = "autor";
+        if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->range_id)) {
+            throw new AccessDeniedException(_('Sie haben keine Berechtigung, Berechtigungen Wiki-Seiten zu ändern!'));
         }
 
-        getShowPageInfobox($keyword, true);
-
         // prevent malformed urls: keyword must be set
-        if (!$keyword) {
+        if (!$this->keyword) {
             throw new InvalidArgumentException(_('Es wurde keine Seite übergeben!'));
         }
 
+        CourseConfig::get($this->range_id)->store(
+            'WIKI_COURSE_EDIT_RESTRICTED',
+            Request::int('courseperms')
+        );
+        PageLayout::postSuccess(_('Die veranstaltungsbezogenen Berechtigungen auf die Wiki-Seiten wurden geändert!'));
+        $this->redirect(URLHelper::getURL('wiki.php', ['keyword' => $this->keyword]));
+    }
+
+    /**
+    * change page permission of a single wiki page
+    */
+    public function change_pageperms_action()
+    {
+        if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->range_id)) {
+            throw new AccessDeniedException(_('Sie haben keine Berechtigung, Berechtigungen Wiki-Seiten zu ändern!'));
+        }
+
+        // prevent malformed urls: keyword must be set
+        if (!$this->keyword) {
+            throw new InvalidArgumentException(_('Es wurde keine Seite übergeben!'));
+        }
+
+        $page = WikiPage::findLatestPage($this->range_id, $this->keyword);
+
+        PageLayout::setTitle(_('Seiten-Einstellungen ändern'));
+
+        $this->config = $page->config;
+
+        getShowPageInfobox($this->keyword, true);
+    }
+
+    /**
+     * store page permissions of a wiki page
+     */
+    public function store_pageperms_action()
+    {
+        CSRFProtection::verifyUnsafeRequest();
+
+        if (!$GLOBALS['perm']->have_studip_perm('tutor', $this->range_id)) {
+            throw new AccessDeniedException(_('Sie haben keine Berechtigung, Berechtigungen von Wiki-Seiten zu ändern!'));
+        }
+
+        // prevent malformed urls: keyword must be set
+        if (!$this->keyword) {
+            throw new InvalidArgumentException(_('Es wurde keine Seite übergeben!'));
+        }
+
+        $wiki_page_config = new WikiPageConfig([$this->range_id, $this->keyword]);
+        $wiki_page_config->read_restricted = Request::int('page_read_perms');
+        $wiki_page_config->edit_restricted = Request::int('page_edit_perms');
+
+        if (Request::int('page_global_perms') || $wiki_page_config->isDefault()) {
+            WikiPageConfig::deleteBySQL('range_id = ? AND keyword = ?', [$this->range_id, $this->keyword]);
+        } else {
+            $wiki_page_config->store();
+        }
+
+        PageLayout::postSuccess(sprintf(
+            _('Die Berechtigungen für Wiki-Seite "%s" wurden geändert!'),
+            htmlReady($this->keyword)
+        ));
+        $this->redirect(URLHelper::getURL('wiki.php', ['keyword' => $this->keyword]));
     }
 
     public function store_action($version)
@@ -94,12 +140,12 @@ class WikiController extends AuthenticatedController
         $latest_version = getLatestVersion($this->keyword, $this->range_id);
 
         if (Request::isXhr()) {
-            $this->render_json(array(
+            $this->render_json([
                 'version'  => $latest_version['version'],
                 'body'     => $latest_version['body'],
                 'messages' => implode(PageLayout::getMessages()) ?: false,
                 'zusatz'   => getZusatz($latest_version),
-            ));
+            ]);
         } else {
             // Yeah, wait for the whole trailification of the wiki...
         }
@@ -131,6 +177,11 @@ class WikiController extends AuthenticatedController
      */
     public function import_action($course_id = null)
     {
+        $edit_perms = CourseConfig::get($course_id)->WIKI_COURSE_EDIT_RESTRICTED ? 'tutor' : 'autor';
+        if (!$GLOBALS['perm']->have_studip_perm($edit_perms, $course_id)) {
+            throw new AccessDeniedException(_('Sie haben keine Berechtigung, Änderungen an Wikiseiten vorzunehmen!'));
+        }
+
         $this->course = Course::find($course_id);
         if (!$this->course) {
             PageLayout::postError(
@@ -151,8 +202,8 @@ class WikiController extends AuthenticatedController
                 $GLOBALS['perm']->get_perm(),
                 [
                     'userid'    => $GLOBALS['user']->id,
-                    'semtypes'  => SemType::getGroupingSemTypes(),
-                    'exclude'   => [Context::getId()],
+                    'semtypes'  => [],
+                    'exclude'   => [$course_id],
                     'semesters' => $all_semester_ids,
                 ],
                 's.`Seminar_id` IN (
@@ -161,20 +212,19 @@ class WikiController extends AuthenticatedController
                 )'
             )
         );
-        $this->course_search->fireJSFunctionOnSelect(
-            "function() {jQuery(this).closest('form').submit();}"
-        );
 
         //The following steps are identical for the search and the import.
         if (Request::submitted('selected_course_id') || Request::submitted('import')) {
             CSRFProtection::verifyUnsafeRequest();
 
             //Search for wiki pages in the selected course:
-            $this->selected_course_id = Request::get('selected_course_id');
+            $this->selected_course_id = Request::option('selected_course_id');
             $this->selected_course = Course::find($this->selected_course_id);
 
             if (!$this->selected_course) {
                 PageLayout::postError(_('Die ausgewählte Veranstaltung wurde nicht gefunden!'));
+                $this->bad_course_search = true;
+                return;
             }
 
             $this->wiki_pages = WikiPage::findLatestPages(
@@ -185,6 +235,7 @@ class WikiController extends AuthenticatedController
 
         //The import required additional functionality:
         if (Request::submitted('import')) {
+            CSRFProtection::verifyUnsafeRequest();
             $this->selected_wiki_page_ids = Request::getArray('selected_wiki_page_ids');
             if (!$this->selected_wiki_page_ids) {
                 PageLayout::postInfo(_('Es wurden keine Wikiseiten ausgewählt!'));
@@ -193,11 +244,7 @@ class WikiController extends AuthenticatedController
 
             $selected_wiki_pages = [];
             foreach ($this->selected_wiki_page_ids as $id) {
-                $splitted_id = explode('_', $id);
-                $wiki_page = WikiPage::findOneBySql('range_id = :range_id AND keyword = :keyword', [
-                    'range_id' => $splitted_id[0],
-                    'keyword'  => $splitted_id[1],
-                ]);
+                $wiki_page = WikiPage::find(json_decode($id, true));
                 if ($wiki_page) {
                     $selected_wiki_pages[] = $wiki_page;
                 }
@@ -210,20 +257,17 @@ class WikiController extends AuthenticatedController
 
             $errors = [];
             foreach ($selected_wiki_pages as $selected_page) {
-                //Check for an existing page first.
-                $new_page = WikiPage::findOneBySql('range_id = :range_id AND keyword = :keyword', [
-                    'range_id' => $this->course->id,
-                    'keyword'  => $selected_page->keyword,
-                ]);
-                if (!$new_page) {
-                    $new_page = new WikiPage();
-                }
+                $latest_version = WikiPage::findLatestPage(
+                    $this->course->id,
+                    $selected_page->keyword
+                );
+                $new_page = new WikiPage();
                 $new_page->range_id = $this->course->id;
                 $new_page->user_id  = $selected_page->user_id;
                 $new_page->keyword  = $selected_page->keyword;
                 $new_page->body     = $selected_page->body;
                 $new_page->chdate   = $selected_page->chdate;
-                $new_page->version += 1;
+                $new_page->version  = $latest_version ? $latest_version->version + 1 : 1;
 
                 if (!$new_page->store()) {
                     $errors[] = sprintf(
