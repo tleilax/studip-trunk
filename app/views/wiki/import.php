@@ -1,13 +1,13 @@
 <form class="default" method="post"
       data-dialog="<?= $show_wiki_page_form ? 'reload-on-close' : '' ?>"
-      action="<?= $controller->link_for("wiki/import/{$course->id}") ?>'"
+      action="<?= $controller->link_for("wiki/import/{$course->id}") ?>"
     <?= CSRFProtection::tokenTag() ?>
 
 <? if (!$show_wiki_page_form && !$success): ?>
     <fieldset>
         <legend><?= _('Suche nach Veranstaltungen') ?></legend>
         <label>
-            <?= _('Bitte wählen Sie eine Veranstaltung aus.') ?>
+            <?= _('Sie können hier eine Veranstaltung mit zu importierenden Wikiseiten suchen.') ?>
             <?= $course_search->render() ?>
         </label>
     </fieldset>
@@ -48,6 +48,11 @@
         </table>
         <div data-dialog-button>
             <?= Studip\Button::create(_('Importieren'), 'import') ?>
+            <?= Studip\LinkButton::create(
+                _('Neue Suche'),
+                $controller->url_for("wiki/import/{$course->id}"),
+                ['data-dialog' => '']
+            ) ?>
         </div>
     <? else: ?>
         <?= MessageBox::info(
