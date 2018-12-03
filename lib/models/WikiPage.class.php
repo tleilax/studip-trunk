@@ -112,13 +112,16 @@ class WikiPage extends SimpleORMap implements PrivacyObject
      */
     public function isVisibleTo($user)
     {
-        // 'user' anyone can see this page if it belongs to a free course
-        if ($this->config->read_perms === 'user' && $this->course && $this->course->lesezugriff == 0) {
+        // anyone can see this page if it belongs to a free course
+        if (!$this->config->read_restricted
+            && Config::get()->ENABLE_FREE_ACCESS
+            && $this->course && $this->course->lesezugriff == 0)
+        {
             return true;
         }
 
         return $GLOBALS['perm']->have_studip_perm(
-            $this->config->read_perms,
+            $this->config->read_restricted ? 'tutor' : 'user',
             $this->range_id,
             is_object($user) ? $user->id : $user
         );
@@ -132,7 +135,7 @@ class WikiPage extends SimpleORMap implements PrivacyObject
     public function isEditableBy($user)
     {
         return $GLOBALS['perm']->have_studip_perm(
-            $this->config->edit_perms,
+            $this->config->edit_restricted ? 'tutor' : 'autor',
             $this->range_id,
             is_object($user) ? $user->id : $user
         );

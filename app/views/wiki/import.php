@@ -1,4 +1,5 @@
 <form class="default" method="post"
+      name="wiki_import_form"
       data-dialog="<?= $show_wiki_page_form ? 'reload-on-close' : '' ?>"
       action="<?= $controller->link_for("wiki/import/{$course->id}") ?>"
     <?= CSRFProtection::tokenTag() ?>
@@ -6,10 +7,33 @@
 <? if (!$show_wiki_page_form && !$success): ?>
     <fieldset>
         <legend><?= _('Suche nach Veranstaltungen') ?></legend>
-        <label>
-            <?= _('Sie können hier eine Veranstaltung mit zu importierenden Wikiseiten suchen.') ?>
+        <label class="with-action">
+            <? if ($bad_course_search): ?>
+                <?= _('Meinten Sie eine der folgenden Veranstaltungen?') ?>
+            <? else: ?>
+                <?= _('Sie können hier eine Veranstaltung mit zu importierenden Wikiseiten suchen.') ?>
+            <? endif ?>
             <?= $course_search->render() ?>
+            <?= Icon::create('search')->asImg([
+                'class' => 'text-bottom',
+                'title' => _('Suche starten'),
+                'onclick' => "jQuery(this).closest('form').submit();"
+            ]) ?>
+            <?= Icon::create('decline')->asImg([
+                'class' => 'text-bottom',
+                'title' => _('Suche zurücksetzen'),
+                'onclick' => "STUDIP.QuickSearch.reset('wiki_import_form', 'selected_course_id');"
+            ]) ?>
         </label>
+        <? if ($bad_course_search): ?>
+            <div data-dialog-button>
+                <?= Studip\LinkButton::create(
+                    _('Neue Suche'),
+                    $controller->url_for("wiki/import/{$course->id}"),
+                    ['data-dialog' => '']
+                ) ?>
+            </div>
+        <? endif ?>
     </fieldset>
 <? endif ?>
 
@@ -18,6 +42,10 @@
            value="<?= htmlReady($selected_course->id) ?>">
     <? if ($wiki_pages): ?>
         <table class="default">
+            <colgroup>
+                <col width="20px">
+                <col>
+            </colgroup>
             <caption>
                 <?= sprintf(
                     _('%s: Importierbare Wikiseiten'),
@@ -39,7 +67,7 @@
                     <td>
                         <input type="checkbox"
                                name="selected_wiki_page_ids[]"
-                               value="<?= htmlReady($wiki_page->id) ?>">
+                               value="<?= htmlReady(json_encode($wiki_page->getId())) ?>">
                     </td>
                     <td><?= htmlReady($wiki_page->keyword) ?></td>
                 </tr>

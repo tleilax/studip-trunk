@@ -57,8 +57,7 @@ class Privacy
         'eTask\Attempt',
         'eTask\Response',
         'eTask\Task',
-        'eTask\Test',
-        'Grading\Instance'
+        'eTask\Test'
     ];
 
     private static $privacy_membership_classes = [
