@@ -726,7 +726,7 @@ class UserManagement
         $statement->execute();
         $active_count = $statement->fetchColumn() ?: 0;
 
-        if ($active_count) {
+        if ($active_count && $delete_memberships) {
             $this->msg .= sprintf("error§" . _("<em>%s</em> ist Lehrkraft in %s aktiven Veranstaltungen und kann daher nicht gelöscht werden.") . "§", $this->user_data['auth_user_md5.username'], $active_count);
             return FALSE;
 
