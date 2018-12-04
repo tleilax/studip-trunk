@@ -16,7 +16,7 @@ use Studip\Button;
 
 
     <fieldset>
-        <legend><?= _('personenbezogene Daten') ?></legend>
+        <legend><?= _('Personenbezogene Daten') ?></legend>
 
         <label>
             <input id="personaldocuments" name="personaldocuments" value="1" checked type="checkbox">
@@ -26,7 +26,7 @@ use Studip\Button;
 
         <label>
             <input id="personalcontent" name="personalcontent" value="1" checked type="checkbox">
-            <?= _('andere Inhalte löschen?') ?>
+            <?= _('Andere Inhalte löschen?') ?>
             <?= tooltipHtmlIcon(htmlReady(_('Inhalte der Profilseite, persöhnliche Blubber, Nachrichten'), true, true)) ?>
         </label>
 
@@ -39,7 +39,7 @@ use Studip\Button;
     </fieldset>
 
     <fieldset>
-        <legend><?= _('veranstaltungsbezogene Daten') ?></legend>
+        <legend><?= _('Veranstaltungsbezogene Daten') ?></legend>
 
         <label>
             <input id="documents" name="documents" value="1" checked type="checkbox">
@@ -49,7 +49,7 @@ use Studip\Button;
 
         <label>
             <input id="coursecontent" name="coursecontent" value="1" checked type="checkbox">
-            <?= _('andere Inhalte löschen?') ?>
+            <?= _('Andere Inhalte löschen?') ?>
             <?= tooltipHtmlIcon(htmlReady(_('veranstaltungsbezogene Inhalte, bis auf Wiki und Forum Einträge'), true, true)) ?>
         </label>
 
