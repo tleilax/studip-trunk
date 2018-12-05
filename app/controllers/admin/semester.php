@@ -353,7 +353,7 @@ class Admin_SemesterController extends AuthenticatedController
             } else {
 
                 $sum_courses = 0;
-                $sem_names ="";
+                $sem_names = [];
                 foreach ($semesters as $semester) {
                     $sum_courses += $semester->absolute_seminars_count;
                     $sem_names[] = $semester->name;
