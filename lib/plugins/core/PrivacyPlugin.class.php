@@ -20,7 +20,7 @@ interface PrivacyPlugin
      *
      * @return array of StoredUserData objects
      */
-    public static function getUserdata($user);
+    public function getUserdata($user);
 
     /**
      * Return a string with a message about removal of userdata
@@ -28,5 +28,5 @@ interface PrivacyPlugin
      *
      * @return string removal Message
      */
-    public static function deleteUserdata($user);
+    public function deleteUserdata($user);
 }
