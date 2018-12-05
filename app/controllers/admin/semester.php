@@ -353,13 +353,23 @@ class Admin_SemesterController extends AuthenticatedController
             } else {
 
                 $sum_courses = 0;
+                $sem_names ="";
                 foreach ($semesters as $semester) {
-                    $sum_courses += ($semester->continuous_seminars_count + $semester->duration_seminars_count);
+                    $sum_courses += $semester->absolute_seminars_count;
+                    $sem_names[] = $semester->name;
                 }
 
+                $lock_info =
+                [
+                    count($semesters)>1
+                        ?sprintf(_('Es werden folgende Semester gesperrt: %s.'), implode(', ', $sem_names))
+                        :sprintf(_('Es wird folgendes Semester gesperrt: %s.'), $sem_names[0]),
+                    sprintf(_('Es werden %s Veranstaltungen geändert.'), $sum_courses),
+                    _('Unbegrenzt laufende Veranstaltungen werden nicht geändert.')
+                ];
+
                 PageLayout::postWarning(
-                    sprintf(_('Wollen sie wirklich %s Semester sperren?'), count($semesters)),
-                    [sprintf(_('Es werden %s Veranstaltungen geändert'), $sum_courses)]);
+                    sprintf(_('Wollen sie wirklich %s Semester sperren?'), count($semesters)), $lock_info);
 
                 $this->all_lock_rules = new SimpleCollection(array_merge(
                     array(array(

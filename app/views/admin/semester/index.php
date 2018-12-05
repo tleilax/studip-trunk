@@ -82,7 +82,7 @@
                 <?= Icon::create('lock-locked', 'clickable', ['title' => _('Semester entsperren')])
                         ->asInput(array(
                             'formaction'   => $controller->url_for('admin/semester/unlock/'.$semester->id),
-                            'data-confirm' => _('Soll das Semester wirklich entsperrt werden?'),
+                            'data-confirm' => _('Soll das Semester wirklich entsperrt werden? Anmelderegeln und Sperrebenen werden nicht verändert.'),
                             'style'        => 'vertical-align: text-bottom'
                         )) ?>
             <? endif; ?>
