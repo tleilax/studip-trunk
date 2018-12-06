@@ -288,11 +288,7 @@ class Admin_SemesterController extends AuthenticatedController
                     $lock_rule = null;
                 }
 
-                if (Request::get('degrade_users')) {
-                    $degrade_users = true;
-                } else {
-                    $degrade_users = false;
-                }
+                $degrade_users = Request::submitted('degrade_users');
 
                 foreach ($semesters as $semester) {
 
@@ -307,7 +303,7 @@ class Admin_SemesterController extends AuthenticatedController
                             $course->visible = 0;
 
                             if ($degrade_users) {
-                                foreach (CourseMember::findByCourseAndStatus($course->seminar_id, ['autor']) as $member) {
+                                foreach (CourseMember::findByCourseAndStatus($course->Seminar_id, ['autor']) as $member) {
                                     $member->status = 'user';
                                     $member->store();
                                 }
@@ -315,12 +311,12 @@ class Admin_SemesterController extends AuthenticatedController
 
                             if ($lock_enroll) {
 
-                                $cset = CourseSet::getSetForCourse($course->seminar_id);
+                                $cset = CourseSet::getSetForCourse($course->Seminar_id);
                                 if ($cset) {
-                                    CourseSet::removeCourseFromSet($cset->getId(), $course->seminar_id);
+                                    CourseSet::removeCourseFromSet($cset->getId(), $course->Seminar_id);
                                 }
 
-                                CourseSet::addCourseToSet($course_set_id, $course->seminar_id);
+                                CourseSet::addCourseToSet($course_set_id, $course->Seminar_id);
                             }
                             if ($course->lock_rule != $lock_rule) {
                                 $course->setValue('lock_rule', $lock_rule);
@@ -355,7 +351,7 @@ class Admin_SemesterController extends AuthenticatedController
                 $sum_courses = 0;
                 $sem_names = [];
                 foreach ($semesters as $semester) {
-                    $sum_courses += $semester->absolute_seminars_count;
+                    $sum_courses += Course::countBySQL("duration_time >= 0 AND (start_time+duration_time) = ?", [$semester->beginn]);
                     $sem_names[] = $semester->name;
                 }
 
