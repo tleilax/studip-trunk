@@ -1361,7 +1361,7 @@ class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user)
     {
@@ -1373,10 +1373,10 @@ class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('calendar_event', $field_data, $user);
+                $storage->addTabularData(_('Kalender'), 'calendar_event', $field_data, $user);
             }
         }
-        return [_('Kalender') => $storage];
+        return $storage;
     }
 
 }

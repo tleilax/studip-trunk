@@ -940,19 +940,19 @@ function wikiSinglePageHeader($wikiData, $keyword) {
 **/
 function wikiEdit($keyword, $wikiData, $user_id, $backpage=NULL)
 {
-    if (!$wikiData) {
-        $body = "";
-        $version = 0;
-        $lastpage="&lastpage=".urlencode($backpage);
+    if (!$wikiData || $wikiData->isNew()) {
+        $body     = '';
+        $version  = 0;
+        $lastpage = $backpage;
     } else {
-        $body = $wikiData["body"];
-        $version = $wikiData["version"];
-        $lastpage = "";
+        $body     = $wikiData->body;
+        $version  = $wikiData->version;
+        $lastpage = null;
     }
     releaseLocks($keyword); // kill old locks
     $locks=getLock($keyword, $user_id);
-    $cont="";
-    if ($locks && $lock["user_id"]!=$user_id) {
+    $cont='';
+    if ($locks && $lock['user_id'] !== $user_id) {
         $message = MessageBox::info(sprintf(_("Die Seite wird eventuell von %s bearbeitet."), htmlReady($locks)), array(_("Wenn Sie die Seite trotzdem ändern, kann ein Versionskonflikt entstehen."), _("Es werden dann beide Versionen eingetragen und müssen von Hand zusammengeführt werden."),  _("Klicken Sie auf Abbrechen, um zurückzukehren.")));
         PageLayout::postMessage($message);
     }
@@ -1254,11 +1254,13 @@ function getShowPageInfobox($keyword, $latest_version)
     }
 
     if ($GLOBALS['perm']->have_studip_perm('tutor', Context::getId())) {
-        $widget->addLink(
-            _('Seiten importieren'),
-            URLHelper::getURL('dispatch.php/wiki/import/' . Context::getId()),
-            Icon::create('wiki+add')
-        )->asDialog('size=auto');
+        if (Context::getType() == Context::COURSE) {
+            $widget->addLink(
+                _('Seiten importieren'),
+                URLHelper::getURL('dispatch.php/wiki/import/' . Context::getId()),
+                Icon::create('wiki+add')
+            )->asDialog('size=auto');
+        }
 
         // Change wiki course permissions
         $widget->addLink(

@@ -89,7 +89,7 @@ class Task extends \SimpleORMap implements \PrivacyObject
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(\User $user)
     {
@@ -101,18 +101,14 @@ class Task extends \SimpleORMap implements \PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('etask_tasks', $field_data, $user);
+                $storage->addTabularData(_('eTask Aufgaben'), 'etask_tasks', $field_data, $user);
             }
         }
 
-        $storage2 = new \StoredUserData($user);
         $field_data = \DBManager::get()->fetchAll("SELECT * FROM etask_task_tags WHERE user_id =?", [$user->user_id]);
         if ($field_data) {
-            $storage2->addTabularData('etask_task_tags', $field_data, $user);
+            $storage->addTabularData(_('eTask Aufgaben Tags'), 'etask_task_tags', $field_data, $user);
         }
-        return [
-            _('eTask Aufgaben')      => $storage,
-            _('eTask Aufgaben Tags') => $storage2,
-        ];
+        return $storage;
     }
 }
