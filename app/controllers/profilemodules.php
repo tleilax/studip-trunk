@@ -206,7 +206,7 @@ class ProfileModulesController extends AuthenticatedController
      */
     public function update_action()
     {
-//        CSRFProtection::verifyUnsafeRequest();
+        CSRFProtection::verifyUnsafeRequest();
 
         $manager = PluginManager::getInstance();
         $modules = Request::intArray('modules');
@@ -241,7 +241,6 @@ class ProfileModulesController extends AuthenticatedController
      */
     public function reset_action($state = false)
     {
-        $this->updateItem('consultation', $state);
         foreach ($this->plugins as $id => $plugin) {
             $this->updateItem($id, $state);
         }
@@ -254,24 +253,15 @@ class ProfileModulesController extends AuthenticatedController
     {
         static $manager = null;
 
+        if ($manager === null) {
+            $manager = $manager = PluginManager::getInstance();
+        }
+
         $state = (bool) $state;
-
-        if ($item === 'consultation') {
-            $config = UserConfig::get($this->user->id);
-            if ($state != $config->CONSULTATION_ENABLED_ON_PROFILE) {
-                $config->store('CONSULTATION_ENABLED_ON_PROFILE', $state);
-                return [$state, _('Sprechstunden')];
-            }
-        } elseif (isset($this->plugins[$item])) {
-            if ($manager === null) {
-                $manager = $manager = PluginManager::getInstance();
-
-                if ($state != $manager->isPluginActivated($item, $this->user->id)
-                    && $manager->setPluginActivated($item, $this->user->id, $state, 'user'))
-                {
-                    return [$state, $this->plugins[$item]->getPluginName()];
-                }
-            }
+        if ($state != $manager->isPluginActivated($item, $this->user->id)
+            && $manager->setPluginActivated($item, $this->user->id, $state, 'user'))
+        {
+            return [$state, $this->plugins[$item]->getPluginName()];
         }
 
         return null;
@@ -340,25 +330,6 @@ class ProfileModulesController extends AuthenticatedController
             }
 
             $list[$cat][$plugin->getPluginId()] = $item;
-        }
-
-        if (Config::get()->CONSULTATION_ENABLED) {
-            $category = $config['displaystyle'] === 'category'
-                      ? 'Kommunikation und Zusammenarbeit'
-                      : 'Funktionen von A-Z';
-            $list[$category]['consultation'] = [
-                'id'          => 'consultation',
-                'name'        => _('Sprechstunden'),
-                'url'         => '#',
-                'activated'   => UserConfig::get($this->user->id)->CONSULTATION_ENABLED_ON_PROFILE,
-                'icon'        => '#',
-                'abstract'    => 'foo',
-                'description' => 'bar',
-                'screenshots' => [],
-                'keywords'    => [],
-                'homepage'    => false,
-                'helplink'    => false,
-            ];
         }
 
         foreach ($list as $cat_key => $cat_val) {

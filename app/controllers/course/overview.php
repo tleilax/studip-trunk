@@ -154,11 +154,6 @@ class Course_OverviewController extends AuthenticatedController
             $links->setTitle(_('Sprechstunden der Lehrenden'));
 
             foreach ($this->course->getMembersWithStatus('dozent', true)->pluck('user') as $teacher) {
-                // Don't show link if teacher has disabled consultations
-                if (!UserConfig::get($teacher->id)->CONSULTATION_ENABLED_ON_PROFILE) {
-                    continue;
-                }
-
                 $consultations = ConsultationBlock::countBySQL(
                     'course_id = ? AND teacher_id = ?',
                     [$this->course->id, $teacher->id]

@@ -43,6 +43,31 @@ class ConsultationBlock extends SimpleORMap
     }
 
     /**
+     * Returns whether any blocks of a teacher exist that should be visible for
+     * the given user.
+     *
+     * @param string $teacher_id User id of the teacher
+     * @param string $user_id    Id of the user
+     * @return bool
+     */
+    public static function existForTeacherAndUser($teacher_id, $user_id)
+    {
+        $query = "SELECT 1
+                  FROM `consultation_blocks` AS cb
+                  LEFT JOIN `seminare` AS s ON cb.`course_id` = s.`Seminar_id`
+                  LEFT JOIN `seminar_user` AS su USING (`Seminar_id`)
+                  WHERE `teacher_id` = :teacher_id
+                    AND (
+                        cb.`course_id` IS NULL
+                        OR su.`user_id` = :user_id
+                   )";
+        return (bool) DBManager::get()->fetchColumn($query, [
+            ':teacher_id' => $teacher_id,
+            ':user_id'    => $user_id,
+        ]);
+    }
+
+    /**
      * Generate blocks according to the given data.
      *
      * Be aware, that this is an actual generator that yields the results. You

@@ -82,19 +82,8 @@ class Consultations extends Migration
                     `section`, `description`,
                     `mkdate`, `chdate`
                   ) VALUES (
-                      'CONSULTATION_ENABLED_ON_PROFILE', '0', 'boolean', 'user',
-                      'Sprechstunden', 'Schaltet die Sprechstunden für Dozenten ein',
-                      UNIX_TIMESTAMP(), UNIX_TIMESTAMP()
-                  )";
-        DBManager::get()->exec($query);
-
-        $query = "INSERT IGNORE INTO `config` (
-                    `field`, `value`, `type`, `range`,
-                    `section`, `description`,
-                    `mkdate`, `chdate`
-                  ) VALUES (
                       'CONSULTATION_SEND_MESSAGES', '1', 'boolean', 'user',
-                      'Sprechstunden', 'Nachrichten empfangen üer Buchungen/Stornierungen',
+                      'Sprechstunden', 'Nachrichten empfangen über Buchungen/Stornierungen',
                       UNIX_TIMESTAMP(), UNIX_TIMESTAMP()
                   )";
         DBManager::get()->exec($query);
@@ -116,7 +105,6 @@ class Consultations extends Migration
                   LEFT JOIN `config_values` USING (`field`)
                   WHERE `field` IN (
                       'CONSULTATION_ENABLED',
-                      'CONSULTATION_ENABLED_ON_PROFILE',
                       'CONSULTATION_REQUIRED_PERMISSION'
                   )";
         DBManager::get()->exec($query);
@@ -194,20 +182,6 @@ class Consultations extends Migration
                     'CONSULTATION_ENABLED', 'studip', '1',
                     UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ''
                   )";
-        DBManager::get()->exec($query);
-
-        // Activate consultations for users
-        $query = "INSERT INTO `config_values` (
-                    `field`, `range_id`, `value`,
-                    `mkdate`, `chdate`, `comment`
-                  )
-                  SELECT 'CONSULTATION_ENABLED_ON_PROFILE', `range_id`, '1',
-                         UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ''
-                  FROM `plugins`
-                  JOIN `plugins_activated` USING (`pluginid`)
-                  WHERE `pluginclassname` = 'SprechstundenPlugin'
-                    AND `range_type` = 'user'
-                    AND `state` = 1";
         DBManager::get()->exec($query);
 
         // Deactivate plugin
