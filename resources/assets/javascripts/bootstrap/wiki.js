@@ -128,3 +128,13 @@ $(document)
             $(document).off('keyup change', '#wiki textarea[name=body]');
         }
     });
+
+$(document).on('change', '#wiki-config .global-permissions :checkbox', function () {
+    if ($(this).is(':checked')) {
+        return;
+    }
+
+    $('#wiki-config .read-permissions [data-activates],[data-deactivates]').filter(':checked').change();
+}).on('change', '#wiki-config .read-permissions :radio', function () {
+    $('#wiki-config .edit-permissions:has(:radio[disabled]:checked) :radio:not([disabled]):first').prop('checked', true);
+});

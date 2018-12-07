@@ -27,7 +27,7 @@ abstract class DataFieldEntry
         'combo',
         'link',
     );
-    
+
     protected $language = '';
 
     /**
@@ -69,10 +69,10 @@ abstract class DataFieldEntry
         if (!in_array($type, self::getSupportedTypes())) {
             return false;
         }
-        
+
         $entry_class = self::getClassForType($type);
         $entry = new $entry_class($datafield, $rangeID, $value);
-        
+
         return $entry;
     }
 
@@ -391,7 +391,7 @@ abstract class DataFieldEntry
 
     /**
      * Sets the prefered content language if this is an i18n datafield.
-     * 
+     *
      * @param string $language The prefered display language
      */
     public function setContentLanguage($language)
@@ -399,14 +399,14 @@ abstract class DataFieldEntry
         if (!Config::get()->CONTENT_LANGUAGES[$language]) {
             throw new InvalidArgumentException('Language not configured.');
         }
-        
+
         if ($language == reset(array_keys(Config::get()->CONTENT_LANGUAGES))) {
             $language = '';
         }
-        
+
         $this->language = $language;
     }
-    
+
     /**
      * Checks if datafield is empty (was not set)
      *
@@ -497,16 +497,6 @@ abstract class DataFieldEntry
     public function isEditable($perms = null)
     {
         return $this->model->editAllowed($perms ?: $GLOBALS['perm']->get_perm());
-    }
-    
-    /**
-     * Returns whether the datafield is an i18n field.
-     *
-     * @return boolean indicating whether the datafield is a 18n field
-     */
-    public function isI18N()
-    {
-        return mb_strpos($this->getType(), 'i18n') !== false;
     }
 
     /**

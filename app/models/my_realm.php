@@ -38,31 +38,35 @@ class MyRealmModel
     {
         if ($my_obj["modules"]["documents"]) {
             $db = DBManager::get();
-            $unreadable_folders = [];
-            if (!Seminar_Perm::get()->have_studip_perm('tutor', $object_id, $user_id)) {
-                $unreadable_folders = array_map(
-                    function ($f) {
-                        return $f->getId();
-                    },
-                    FileManager::getUnreadableFolders(
+
+            if (!$GLOBALS['perm']->have_studip_perm('tutor', $object_id, $user_id)) {
+                $readable_folders = array_keys(
+                    FileManager::getReadableFolders(
                         Folder::findTopFolder($object_id)->getTypedFolder(), $user_id)
                 );
+
+                if (empty($readable_folders)) {
+                    return null;
+                }
             }
+
             $query = "SELECT COUNT(fr.id) as count,
-            COUNT(IF((fr.chdate > IFNULL(ouv.visitdate, :threshold)
-            AND fr.user_id != :user_id), fr.id, NULL)) AS neue,
-            MAX(IF((fr.chdate > IFNULL(ouv.visitdate, :threshold)
-            AND fr.user_id != :user_id), fr.chdate, 0)) AS last_modified
-            FROM folders a 
-            INNER JOIN file_refs fr ON (fr.folder_id=a.id)
-            LEFT JOIN object_user_visits ouv ON (ouv.object_id = a.range_id AND ouv.user_id = :user_id AND ouv.type ='documents')
-	        WHERE a.range_id = :object_id " . (count($unreadable_folders) ? "AND a.id NOT IN (:unreadable_folders)" : "");
+                    COUNT(IF((fr.chdate > IFNULL(ouv.visitdate, :threshold)
+                    AND fr.user_id != :user_id), fr.id, NULL)) AS neue,
+                    MAX(IF((fr.chdate > IFNULL(ouv.visitdate, :threshold)
+                    AND fr.user_id != :user_id), fr.chdate, 0)) AS last_modified
+                FROM folders a
+                INNER JOIN file_refs fr ON (fr.folder_id=a.id)
+                LEFT JOIN object_user_visits ouv ON (ouv.object_id = a.range_id AND ouv.user_id = :user_id AND ouv.type ='documents')
+                WHERE a.range_id = :object_id " . ($readable_folders ? "AND a.id IN (:readable_folders)" : "");
+
             $result = $db->fetchOne($query, [
                 ':user_id'            => $user_id,
                 ':threshold'          => object_get_visit_threshold(),
                 ':object_id'          => $object_id,
-                ':unreadable_folders' => $unreadable_folders
+                ':readable_folders' => $readable_folders
             ]);
+
             if (!empty($result)) {
                 if (!is_null($result['last_modified']) && (int)$result['last_modified'] != 0) {
                     if ($my_obj['last_modified'] < $result['last_modified']) {
@@ -825,8 +829,8 @@ class MyRealmModel
         $semesters = array();
         foreach ($sem_data as $sem_key => $one_sem) {
             $current_sem = $sem_key;
- 	        if (!$one_sem['past']) break;
- 	    }
+            if (!$one_sem['past']) break;
+        }
 
         if (isset($sem_data[$current_sem + 1])) {
             $max_sem = $current_sem + 1;

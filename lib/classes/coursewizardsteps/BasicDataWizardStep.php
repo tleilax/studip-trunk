@@ -93,7 +93,15 @@ class BasicDataWizardStep implements CourseWizardStep
                 $semesters[] = $s;
             }
         }
-        if ($values['studygroup'] || count($semesters) > 0) {
+        if ($values['studygroup'] && (!count($typestruct) || !$values['institute']) ) {
+            $message = sprintf(_('Die Konfiguration der Studiengruppen ist unvollständig. ' .
+                'Bitte wenden Sie sich an [die Stud.IP-Administration]%s .'),
+                URLHelper::getLink('dispatch.php/siteinfo/show')
+            );
+            PageLayout::postError(formatReady($message));
+            return false;
+        }
+        if (count($semesters) > 0) {
             $tpl->set_attribute('semesters', array_reverse($semesters));
             // If no semester is set, use current as selected default.
             if (!$values['start_time']) {

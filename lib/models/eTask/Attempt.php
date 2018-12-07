@@ -41,7 +41,7 @@ class Attempt extends \SimpleORMap implements \PrivacyObject
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(\User $user)
     {
@@ -53,9 +53,9 @@ class Attempt extends \SimpleORMap implements \PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('etask_assignment_attempts', $field_data, $user);
+                $storage->addTabularData(_('eTask Zuweisungen'), 'etask_assignment_attempts', $field_data, $user);
             }
         }
-        return [_('eTask Zuweisungen') => $storage];
+        return $storage;
     }
 }

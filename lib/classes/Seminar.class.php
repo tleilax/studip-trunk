@@ -324,6 +324,13 @@ class Seminar
             $rooms = array();
 
             foreach (array_keys($cycles) as $id) {
+                if ($this->filterStart && $this->filterEnd
+                    && !$this->metadate->hasDates($id, $this->filterStart, $this->filterEnd))
+                {
+                    unset($cycles[$id]);
+                    continue;
+                }
+
                 $cycles[$id]['first_date'] = CycleDataDB::getFirstDate($id);
                 if (!empty($cycles[$id]['assigned_rooms'])) {
                     foreach ($cycles[$id]['assigned_rooms'] as $room_id => $count) {
@@ -333,15 +340,15 @@ class Seminar
             }
 
             // besser wieder mit direktem Query statt Objekten
-            if (is_array($cycles) && (sizeof($cycles) == 0)) {
-                $cycles = FALSE;
+            if (is_array($cycles) && count($cycles) === 0) {
+                $cycles = false;
             }
 
             $ret['regular']['turnus_data'] = $cycles;
 
             // the irregular single-dates
             foreach ($dates as $val) {
-                $zw = array(
+                $zw = [
                     'metadate_id' => $val->getMetaDateID(),
                     'termin_id'   => $val->getTerminID(),
                     'date_typ'    => $val->getDateType(),
@@ -357,7 +364,7 @@ class Seminar
                     'raum'        => $val->getFreeRoomText(),
                     'typ'         => $val->getDateType(),
                     'tostring'    => $val->toString()
-                );
+                ];
 
                 if ($val->getResourceID()) {
                     $rooms[$val->getResourceID()]++;
@@ -1970,6 +1977,12 @@ class Seminar
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($s_id));
 
+        // remove wiki page config
+        WikiPageConfig::deleteBySQL('range_id = ?', [$s_id]);
+
+        // delete course config values
+        ConfigValue::deleteBySQL('range_id = ?', [$s_id]);
+
         // kill all the ressources that are assigned to the Veranstaltung (and all the linked or subordinated stuff!)
         if (Config::get()->RESOURCES_ENABLE) {
             $killAssign = new DeleteResourcesUser($s_id);
@@ -2098,10 +2111,9 @@ class Seminar
                 $this->applyTimeFilter($semester->beginn, $semester->ende);
             }
         }
-        
 
-        $template->set_attribute('dates', $this->getUndecoratedData(isset($params['semester_id'])));
-        $template->set_attribute('seminar_id', $this->getId());
+        $template->dates = $this->getUndecoratedData(isset($params['semester_id']));
+        $template->seminar_id = $this->getId();
 
         $template->set_attributes($params);
         return trim($template->render());
@@ -2341,18 +2353,16 @@ class Seminar
             if ($this->parent_course) {
 
                 // ... check if user is member in another sibling ...
-                $other = CourseMember::findBySQL(
+                $other = CourseMember::countBySQL(
                     "`user_id` = :user AND `Seminar_id` IN (:courses) AND `Seminar_id` != :this",
                     ['user' => $user_id, 'courses' => $this->parent->children->pluck('seminar_id'), 'this' => $this->id]
                 );
 
                 // ... and delete from parent course if this was the only
                 // course membership in this family.
-                if (count($other) == 0) {
-                    $m = CourseMember::find([$this->parent_course, $user_id]);
-                    if ($m) {
-                        $m->delete();
-                    }
+                if ($other == 0) {
+                    $s = new Seminar($this->parent);
+                    $s->deleteMember($user_id);
                 }
             }
 
@@ -2374,6 +2384,14 @@ class Seminar
 
                 foreach ($termine as $termin_id) {
                     $statement->execute([$termin_id, $user_id]);
+                }
+                if (isDefaultDeputyActivated()) {
+                    $other_dozenten = array_diff(array_keys($dozenten), [$user_id]);
+                    foreach (Deputy::findByRange_id($user_id) as $default_deputy) {
+                        if (!Deputy::countBySql("range_id IN (?)", [$other_dozenten])) {
+                            Deputy::deleteBySQL("range_id = ? AND user_id = ?", [$this->id, $default_deputy->user_id]);
+                        }
+                    }
                 }
             }
 

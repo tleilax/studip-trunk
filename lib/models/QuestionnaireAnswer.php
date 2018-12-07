@@ -17,7 +17,7 @@ class QuestionnaireAnswer extends SimpleORMap implements PrivacyObject
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user)
     {
@@ -29,9 +29,9 @@ class QuestionnaireAnswer extends SimpleORMap implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('questionnaire_answers', $field_data, $user);
+                $storage->addTabularData(_('Fragebögen Antworten'), 'questionnaire_answers', $field_data, $user);
             }
         }
-        return [_('Fragebögen Antworten') => $storage];
+        return $storage;
     }
 }

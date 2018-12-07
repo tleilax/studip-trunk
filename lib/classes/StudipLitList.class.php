@@ -246,7 +246,7 @@ class StudipLitList extends TreeAbstract implements PrivacyObject {
                     'range_id' =>  $range_id
                 ));
 
-                $this->triggerListChdate($this->tree_data[$element_id]['parent_id']);
+                $this->triggerListChdate($this->tree_data[$list_element_id]['parent_id']);
             }
             return $ar;
         } else {
@@ -401,7 +401,7 @@ class StudipLitList extends TreeAbstract implements PrivacyObject {
         $dbv->params[0] = $range_id;
         $rs = $dbv->get_query("view:LIT_GET_LIST_COUNT_BY_RANGE");
         $rs->next_record();
-        return array("visible_list" => $rs->f("visible_list"),"invisible_list" => $rs->f("invisible_list"));;
+        return array("visible_list" => $rs->f("visible_list"),"invisible_list" => $rs->f("invisible_list"));
     }
 
     function GetListsByRange($range_id, $format = 'default'){
@@ -469,21 +469,20 @@ class StudipLitList extends TreeAbstract implements PrivacyObject {
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user)
     {
         $storage = new StoredUserData($user);
         $field_data = DBManager::get()->fetchAll("SELECT * FROM lit_list WHERE user_id = ?", [$user->user_id]);
         if ($field_data) {
-            $storage->addTabularData('lit_list', $field_data, $user);
+            $storage->addTabularData(_('Literaturlisten'), 'lit_list', $field_data, $user);
         }
-        $storage2 = new StoredUserData($user);
         $field_data = DBManager::get()->fetchAll("SELECT * FROM lit_list_content WHERE user_id = ?", [$user->user_id]);
         if ($field_data) {
-            $storage2->addTabularData('lit_list_content', $field_data, $user);
+            $storage->addTabularData(_('Literaturlisten Inhalte'), 'lit_list_content', $field_data, $user);
         }
-        return [_('Literaturlisten') => $storage, _('Literaturlisten Inhalte') => $storage2];
+        return $storage;
     }
 }
 ?>

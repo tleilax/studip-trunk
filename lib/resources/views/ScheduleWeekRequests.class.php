@@ -49,6 +49,7 @@ class ScheduleWeekRequests extends ScheduleWeek {
         $this->categories[6] = array(
                                 "bg-picture"   => Assets::image_path('calendar/category10_small.jpg'),
                                 "border-color" => "#ffbd33");
+        $this->add_info_is_html = true;
 
     }
 

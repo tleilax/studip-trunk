@@ -132,7 +132,7 @@ class StatusgruppeUser extends SimpleORMap implements PrivacyObject
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user)
     {
@@ -144,10 +144,10 @@ class StatusgruppeUser extends SimpleORMap implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('statusgruppe_user', $field_data, $user);
+                $storage->addTabularData(_('StatusgruppeUser'), 'statusgruppe_user', $field_data, $user);
             }
         }
-        return [_('StatusgruppeUser') => $storage];
+        return $storage;
     }
 
 }

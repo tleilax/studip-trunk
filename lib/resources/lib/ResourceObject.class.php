@@ -548,7 +548,7 @@ class ResourceObject
         return $this->lockable;
     }
 
-    public function flushProperties($id='')
+    public function flushProperties($id = '')
     {
         if (!$id) {
             $id = $this->id;

@@ -31,6 +31,25 @@ class DbUpdatesFor42 extends Migration
                     DROP PRIMARY KEY, DROP KEY poiid,
                     ADD PRIMARY KEY (pluginid, range_type, range_id),
                     DROP poiid');
+        //alter default for studygroups, see #9002
+        $db->exec("UPDATE `sem_classes` SET `course_creation_forbidden` = 0 WHERE `studygroup_mode` = 1");
+
+        $db->exec("DELETE FROM `config` WHERE `field` IN (
+                    'ALLOW_METADATE_SORTING',
+                    'ALLOW_DOWNLOAD_FOR_UNKNOWN_LICENSE',
+                    'ADMISSION_ALLOW_DISABLE_WAITLIST',
+                    'ASSI_SEMESTER_PRESELECT',
+                    'ENABLE_PROTECTED_DOWNLOAD_RESTRICTION'
+                    )");
+        $db->exec("DELETE FROM `config_values` WHERE `field` IN (
+                    'ALLOW_METADATE_SORTING',
+                    'ALLOW_DOWNLOAD_FOR_UNKNOWN_LICENSE',
+                    'ADMISSION_ALLOW_DISABLE_WAITLIST',
+                    'ASSI_SEMESTER_PRESELECT',
+                    'ENABLE_PROTECTED_DOWNLOAD_RESTRICTION'
+                    )");
+
+
     }
 
     public function down()

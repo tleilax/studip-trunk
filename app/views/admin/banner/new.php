@@ -1,5 +1,4 @@
-<? use Studip\Button, Studip\LinkButton; ?>
-<form action="<?= $controller->url_for('admin/banner/new') ?>" method="post" enctype="multipart/form-data" class="default">
+<form action="<?= $controller->new() ?>" method="post" enctype="multipart/form-data" class="default">
     <fieldset>
         <legend>
             <?= _('Neues Banner anlegen') ?>
@@ -86,8 +85,8 @@
     </fieldset>
 
     <footer data-dialog-button>
-        <?= Button::createAccept(_('Anlegen'), 'anlegen', array('title' => _('Banner anlegen'))) ?>
-        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/banner')) ?>
+        <?= Studip\Button::createAccept(_('Anlegen'), 'anlegen') ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'), $controller->indexURL()) ?>
     </footer>
 </form>
 

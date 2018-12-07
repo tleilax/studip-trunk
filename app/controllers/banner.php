@@ -15,12 +15,8 @@
  */
 class BannerController extends StudipController
 {
-    /**
-     * Administration view for banner
-     */
-    function click_action($id)
+    public function click_action(Banner $banner)
     {
-        $banner = Banner::find($id);
         $banner->clicks += 1;
         $banner->store();
 

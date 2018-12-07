@@ -8,12 +8,12 @@
     vertical-align: middle;
 
     .action-menu-icon {
-        .square(@icon-size);
         z-index: 3;
 
         position: relative;
         cursor: pointer;
         display: inline-block;
+        padding: 0;
         width: 20px;
         height: 20px;
     }
@@ -31,6 +31,17 @@
         box-shadow: @shadow;
         text-align: left;
         white-space: nowrap;
+    }
+
+    &.reversed {
+        .action-menu-content {
+            top: auto;
+            bottom: -4px;
+
+            .action-menu-list .action-menu-item:last-of-type {
+                padding-right: 20px;
+            }
+        }
     }
 
     .action-menu-title {

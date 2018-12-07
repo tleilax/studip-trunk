@@ -1348,15 +1348,15 @@ class ForumEntry  implements PrivacyObject
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user)
     {
         $storage = new StoredUserData($user);
         $field_data = DBManager::get()->fetchAll("SELECT * FROM forum_entries WHERE user_id = ?", [$user->user_id]);
         if ($field_data) {
-            $storage->addTabularData('forum_entries', $field_data, $user);
+            $storage->addTabularData(_('Forum Einträge'), 'forum_entries', $field_data, $user);
         }
-        return [_('Forum Einträge') => $storage];
+        return $storage;
     }
 }

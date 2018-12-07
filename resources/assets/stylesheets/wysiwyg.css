@@ -18,7 +18,6 @@
 
 /* override inherited font-weight of label */
 .cke {
-    font-weight: normal;
     text-indent: 0;
 }
 

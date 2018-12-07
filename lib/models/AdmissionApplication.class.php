@@ -88,7 +88,7 @@ class AdmissionApplication extends SimpleORMap implements PrivacyObject
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user)
     {
@@ -100,9 +100,9 @@ class AdmissionApplication extends SimpleORMap implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('admission_seminar_user', $field_data, $user);
+                $storage->addTabularData(_('Wartelisten'), 'admission_seminar_user', $field_data, $user);
             }
         }
-        return [_('Wartelisten') => $storage];
+        return $storage;
     }
 }

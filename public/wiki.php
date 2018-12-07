@@ -149,10 +149,15 @@ if ($view=="listall") {
     //show form
     wikiEdit($keyword, $wikiData, $user->id);
 
-} else if ($view=='editnew') { // edit a new page
+} else if ($view=='editnew') {
+    //
+    // edit a new page
+    //
 
-    if (!$perm->have_studip_perm("autor", Context::getId())) {
-        throw new AccessDeniedException(_('Sie haben keine Berechtigung, Seiten zu editieren!'));
+    $range_id = Context::getId();
+    $edit_perms = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_RESTRICTED ? 'tutor' : 'autor';
+    if (!$perm->have_studip_perm($edit_perms, $range_id)) {
+        throw new AccessDeniedException(_('Sie haben keine Berechtigung, in dieser Veranstaltung Seiten zu editieren!'));
     }
 
     // prevent malformed urls: keyword must be set
@@ -163,7 +168,7 @@ if ($view=="listall") {
     $wikiData = getWikiPage($keyword, 0); // always get newest page
 
     // warning in the case of an existing wiki page
-    if ($wikiData) {
+    if ($wikiData && !$wikiData->isNew()) {
         PageLayout::postInfo(sprintf(_('Die Wiki-Seite "%s" existiert bereits. Änderungen hier überschreiben diese Seite!'), htmlReady($keyword)));
     }
 
@@ -171,7 +176,7 @@ if ($view=="listall") {
     setWikiLock(null, $user->id, Context::getId(), $keyword);
 
     //show form
-    wikiEdit($keyword, $wikiData, $user->id, Request::quoted('lastpage'));
+    wikiEdit($keyword, $wikiData, $user->id, Request::get('lastpage'));
 
 } else {
     // Default action: Display WikiPage (+ logic for submission)
@@ -230,7 +235,18 @@ if ($view=="listall") {
     // Show Page
     //
     SkipLinks::addIndex(_("Aktuelle Seite"), 'main_content', 100);
-    showWikiPage($keyword, $version, $special, $show_wiki_comments, Request::get('hilight'));
+
+    $range_id = Context::getId();
+    $config = WikiPageConfig::find([$range_id, $keyword]);
+    if (!$config || !$config->read_restricted || $perm->have_studip_perm('tutor', $range_id)) {
+        showWikiPage($keyword, $version, $special, $show_wiki_comments, Request::get('hilight'));
+    } else {
+        throw new AccessDeniedException(sprintf(
+            _('Sie haben keine Berechtigung, die Seite %s zu lesen!'),
+            $keyword
+        ));
+    }
+
 
 } // end default action
 
@@ -246,5 +262,4 @@ if (in_array($cmd, words('show abortedit really_delete really_delete_all'))) {
 }
 
 // Save data back to database.
-page_close()
-?>
+page_close();
