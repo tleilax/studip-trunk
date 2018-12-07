@@ -1,4 +1,4 @@
-<form class="default" action="<?= $controller->url_for('course/lti/select_link') ?>" method="post">
+<form class="default" action="<?= $controller->link_for('course/lti/select_link') ?>" method="post">
     <label>
         <?= _('Auswahl des externen Tools') ?>
         <select name="tool_id">

@@ -10,6 +10,7 @@
  * @author      Elmar Ludwig
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
+
 class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
 {
     /**
@@ -20,10 +21,7 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
         parent::__construct();
 
         if ($GLOBALS['perm']->have_perm('root')) {
-            Navigation::addItem(
-                '/admin/config/lti',
-                new Navigation(_('LTI-Tools'), 'dispatch.php/admin/lti')
-            );
+            Navigation::addItem('/admin/config/lti', new Navigation(_('LTI-Tools'), 'dispatch.php/admin/lti'));
         }
 
         NotificationCenter::on('UserDidDelete', function ($event, $user) {
@@ -63,10 +61,7 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
         $navigation->addSubNavigation('index', new Navigation($title, 'dispatch.php/course/lti'));
 
         if ($grades) {
-            $navigation->addSubNavigation(
-                'grades',
-                new Navigation(_('Ergebnisse'), 'dispatch.php/course/lti/grades')
-            );
+            $navigation->addSubNavigation('grades', new Navigation(_('Ergebnisse'), 'dispatch.php/course/lti/grades'));
         }
 
         if ($GLOBALS['user']->id !== 'nobody') {

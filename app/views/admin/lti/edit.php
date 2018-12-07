@@ -1,4 +1,4 @@
-<form class="default" action="<?= $controller->url_for('admin/lti/save/' . $tool->id) ?>" method="POST">
+<form class="default" action="<?= $controller->link_for('admin/lti/save/' . $tool->id) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <fieldset>
         <legend>

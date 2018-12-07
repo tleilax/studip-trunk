@@ -1,10 +1,12 @@
 <table class="default">
-    <caption><?= _('Ergebnisse') ?></caption>
+    <caption>
+        <?= _('Ergebnisse') ?>
+    </caption>
 
     <thead>
         <tr class="sortable">
             <th class="<?= $desc ? 'sortdesc' : 'sortasc' ?>">
-                <a href="<?= $controller->url_for('course/lti/grades', ['desc' => !$desc]) ?>">
+                <a href="<?= $controller->link_for('course/lti/grades', ['desc' => !$desc]) ?>">
                     <?= _('Teilnehmende') ?>
                 </a>
             </th>

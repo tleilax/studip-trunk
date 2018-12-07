@@ -1,14 +1,16 @@
 <form action="" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
-        <caption><?= _('Aktuell konfigurierte LTI-Tools') ?></caption>
+        <caption>
+            <?= _('Aktuell konfigurierte LTI-Tools') ?>
+        </caption>
 
         <colgroup>
-            <col style="width: 30%">
-            <col style="width: 40%">
-            <col style="width: 20%">
-            <col style="width: 5%">
-            <col style="width: 5%">
+            <col style="width: 30%;">
+            <col style="width: 40%;">
+            <col style="width: 20%;">
+            <col style="width: 5%;">
+            <col style="width: 5%;">
         </colgroup>
 
         <thead>
@@ -25,7 +27,7 @@
             <? foreach ($tools as $tool): ?>
                 <tr>
                     <td>
-                        <a href="<?= $controller->url_for('admin/lti/edit/' . $tool->id) ?>" data-dialog>
+                        <a href="<?= $controller->link_for('admin/lti/edit/' . $tool->id) ?>" title="<?= _('LTI-Tool konfigurieren') ?>" data-dialog>
                             <?= htmlReady($tool->name) ?>
                         </a>
                     </td>
@@ -41,13 +43,10 @@
                         <?= count($tool->links) ?>
                     </td>
                     <td class="actions">
-                        <a href="<?= $controller->url_for('admin/lti/edit/' . $tool->id) ?>" data-dialog>
-                            <?= Icon::create('edit')->asImg(tooltip2(_('LTI-Tool konfigurieren'))) ?>
-                        </a>
                         <?= Icon::create('trash')->asInput([
                             'formaction' => $controller->url_for('admin/lti/delete/' . $tool->id),
                             'title' => _('LTI-Tool löschen'),
-                            'data-confirm' => sprintf(_('Wollen Sie wirklich das LTI-Tool "%s" löschen?'), $tool->name),
+                            'data-confirm' => sprintf(_('Wollen Sie wirklich das LTI-Tool "%s" löschen?'), $tool->name)
                         ]) ?>
                     </td>
                 </tr>

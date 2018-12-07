@@ -1,7 +1,9 @@
-<form class="default" action="<?= $controller->url_for('course/lti/save/' . $lti_data->position) ?>" method="post">
+<form class="default" action="<?= $controller->link_for('course/lti/save/' . $lti_data->position) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <fieldset>
-        <legend><?= _('Einstellungen') ?></legend>
+        <legend>
+            <?= _('Einstellungen') ?>
+        </legend>
 
         <label>
             <span class="required">

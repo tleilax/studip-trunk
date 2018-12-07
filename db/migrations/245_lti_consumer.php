@@ -10,6 +10,7 @@
  * @author      Elmar Ludwig
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
+
 class LtiConsumer extends Migration
 {
     public function description()
@@ -89,12 +90,9 @@ class LtiConsumer extends Migration
         if ($result->rowCount() > 0) {
             $db->exec("INSERT INTO lti_data
                        SELECT id, position, course_id, title, description, tool_id,
-                              launch_url, mkdate, chdate, options
-                       FROM alija_data");
-            $db->exec('INSERT INTO lti_tool
-                       SELECT * FROM alija_tool');
-            $db->exec('INSERT INTO lti_grade
-                       SELECT * FROM alija_grade');
+                              launch_url, mkdate, chdate, options FROM alija_data");
+            $db->exec('INSERT INTO lti_tool SELECT * FROM alija_tool');
+            $db->exec('INSERT INTO lti_grade SELECT * FROM alija_grade');
         }
     }
 
@@ -102,13 +100,11 @@ class LtiConsumer extends Migration
     {
         $db = DBManager::get();
 
-        $db->exec("DELETE config, config_values
-                   FROM config
+        $db->exec("DELETE config, config_values FROM config
                    LEFT JOIN config_values USING (field)
                    WHERE field = 'LTI_TOOL_TITLE'");
 
-        $db->exec("DELETE plugins, roles_plugins
-                   FROM plugins
+        $db->exec("DELETE plugins, roles_plugins FROM plugins
                    LEFT JOIN roles_plugins USING (pluginid)
                    WHERE pluginclassname = 'LtiToolModule'");
 
