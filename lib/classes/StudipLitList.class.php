@@ -469,21 +469,20 @@ class StudipLitList extends TreeAbstract implements PrivacyObject {
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user)
     {
         $storage = new StoredUserData($user);
         $field_data = DBManager::get()->fetchAll("SELECT * FROM lit_list WHERE user_id = ?", [$user->user_id]);
         if ($field_data) {
-            $storage->addTabularData('lit_list', $field_data, $user);
+            $storage->addTabularData(_('Literaturlisten'), 'lit_list', $field_data, $user);
         }
-        $storage2 = new StoredUserData($user);
         $field_data = DBManager::get()->fetchAll("SELECT * FROM lit_list_content WHERE user_id = ?", [$user->user_id]);
         if ($field_data) {
-            $storage2->addTabularData('lit_list_content', $field_data, $user);
+            $storage->addTabularData(_('Literaturlisten Inhalte'), 'lit_list_content', $field_data, $user);
         }
-        return [_('Literaturlisten') => $storage, _('Literaturlisten Inhalte') => $storage2];
+        return $storage;
     }
 }
 ?>

@@ -85,6 +85,8 @@ class Privacy
      */
     public static function getUserdataInformation($user_id, $section = null)
     {
+        //workaround make Forum Model available
+        PluginManager::getInstance()->getPlugin('CoreForum');
         $core_data = [];
         $user = User::find($user_id);
 
@@ -117,19 +119,15 @@ class Privacy
                     self::$privacy_membership_classes);
         }
 
-
-
         foreach ($privacy_classes as $privacy_class) {
             if (class_exists($privacy_class) && in_array('PrivacyObject', class_implements($privacy_class))) {
-                foreach ($privacy_class::getUserdata($user) as $label => $class_storage) {
-                    if ($class_storage->hasData()) {
-                        $storage = $class_storage->getStoredDataForContext($user);
-                        foreach ($storage['tabular'] as $meta) {
-                            $core_data[$label] = [
-                                'table_name'    => $meta['key'],
-                                'table_content' => $meta['value'],
-                            ];
-                        }
+                $class_storage = $privacy_class::getUserdata($user);
+                if ($class_storage && $class_storage->hasData()) {
+                    foreach ($class_storage->getTabularData() as $meta) {
+                        $core_data[$meta['name']] = [
+                            'table_name'    => $meta['key'],
+                            'table_content' => $meta['value'],
+                        ];
                     }
                 }
             }

@@ -27,7 +27,7 @@ class UserConfig extends ObjectConfig implements PrivacyObject
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user)
     {
@@ -37,8 +37,8 @@ class UserConfig extends ObjectConfig implements PrivacyObject
             $usr_conf[0][$key] = is_array($val) ? print_r($val, true) : $val;
         }
         if ($usr_conf) {
-            $storage->addTabularData('user_config', $usr_conf, $user);
+            $storage->addTabularData(_('Benutzer Konfigurationen'), 'user_config', $usr_conf, $user);
         }
-        return [_('Benutzer Konfigurationen') => $storage];
+        return $storage;
     }
 }

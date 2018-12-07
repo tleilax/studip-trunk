@@ -593,7 +593,7 @@ class BlubberPosting extends SimpleORMap implements PrivacyObject
      * enriched with the available data of a given user.
      *
      * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user)
     {
@@ -605,9 +605,9 @@ class BlubberPosting extends SimpleORMap implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('blubber', $field_data, $user);
+                $storage->addTabularData(_('Blubber'), 'blubber', $field_data, $user);
             }
         }
-        return [_('Blubber') => $storage];
+        return $storage;
     }
 }

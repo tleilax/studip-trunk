@@ -1,54 +1,52 @@
-<? if(empty($plugins) || empty(reset($plugins))): ?>
+<? if(empty($plugin_data) || empty(reset($plugin_data))): ?>
 <?= Messagebox::info(_('In dieser Kategorie sind keine Daten vorhanden.')); ?>
 <? endif; ?>
 
-<? foreach ($plugins as $plugin_id => $plugin_data) : ?>
-    <? foreach ($plugin_data as $label => $tabledata) : ?>
-        <? if ($tabledata['table_content']) : ?>
+<? foreach ($plugin_data as $label => $tabledata) : ?>
+    <? if ($tabledata['table_content']) : ?>
 
-            <article class="studip toggle <?= (Request::isDialog() || $section == null)?'':'open' ?>" id="trr" style="width: max-content; min-width: 99%;">
-                <header>
-                    <h1>
-                        <a>
-                            <?= htmlReady($label) ?>, <?= sprintf(_('%u Einträge'), count($tabledata['table_content'])) ?>
-                            <? if (Request::isDialog()) : ?>
-                            (<a href="<?= $controller->url_for("privacy/export2csv/{$plugin_id}/{$tabledata['table_name']}/{$user_id}") ?>">
-                                <?= htmlReady($label) ?> CSV
-                            </a>)
-                            <? endif; ?>
-                        </a>
-                    </h1>
-                </header>
-                <section>
-                    <table class="default">
-                        <thead>
-                            <tr>
-                            <? foreach (array_keys($tabledata['table_content'][0]) as $caption) : ?>
-                                <th><?= htmlReady($caption) ?></th>
-                            <? endforeach; ?>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <? foreach ($tabledata['table_content'] as $row) : ?>
-                            <tr>
-                            <? foreach ($row as $key => $value): ?>
-                                <td>
-                                <? if ($tabledata['table_name'] === 'log_events' && $key === "readable_entry"): ?>
-                                    <?= $value ?>
-                                <? else: ?>
-                                    <?= htmlReady($value) ?>
-                                <? endif; ?>
-                                </td>
-                            <? endforeach; ?>
-                            </tr>
+        <article class="studip toggle <?= (Request::isDialog() || $section == null)?'':'open' ?>" id="trr" style="width: max-content; min-width: 99%;">
+            <header>
+                <h1>
+                    <a>
+                        <?= htmlReady($label) ?>, <?= sprintf(_('%u Einträge'), count($tabledata['table_content'])) ?>
+                    </a>
+                </h1>
+                <? if (Request::isDialog()) : ?>
+                <a href="<?= $controller->url_for("privacy/export2csv/{$tabledata['table_name']}/{$user_id}") ?>">
+                    <b><?= htmlReady($label) ?> CSV</b>
+                </a>
+                <? endif; ?>
+            </header>
+            <section>
+                <table class="default">
+                    <thead>
+                        <tr>
+                        <? foreach (array_keys($tabledata['table_content'][0]) as $caption) : ?>
+                            <th><?= htmlReady($caption) ?></th>
                         <? endforeach; ?>
-                        </tbody>
-                    </table>
-                </section>
-            </article>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <? foreach ($tabledata['table_content'] as $row) : ?>
+                        <tr>
+                        <? foreach ($row as $key => $value): ?>
+                            <td>
+                            <? if ($tabledata['table_name'] === 'log_events' && $key === "readable_entry"): ?>
+                                <?= $value ?>
+                            <? else: ?>
+                                <?= htmlReady($value) ?>
+                            <? endif; ?>
+                            </td>
+                        <? endforeach; ?>
+                        </tr>
+                    <? endforeach; ?>
+                    </tbody>
+                </table>
+            </section>
+        </article>
 
-        <? endif; ?>
-    <? endforeach; ?>
+    <? endif; ?>
 <? endforeach; ?>
 
 <div data-dialog-button>

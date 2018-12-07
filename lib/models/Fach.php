@@ -757,7 +757,7 @@ class Fach extends ModuleManagementModelTreeItem implements PrivacyObject
      * Return a storage object (an instance of the StoredUserData class)
      * enriched with the available data of a given user.
      *
-     * @return array of StoredUserData objects
+     * @return StoredUserData object
      */
     public static function getUserdata(User $user )
     {
@@ -774,10 +774,10 @@ class Fach extends ModuleManagementModelTreeItem implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('fach', $field_data, $user);
+                $storage->addTabularData(_('Fächer/Studiengänge'), 'fach', $field_data, $user);
             }
         }
-        return [_('Fächer/Studiengänge') => $storage];
+        return $storage;
     }
 
 }

@@ -849,13 +849,6 @@ class UserManagement
                 DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
             }
 
-            $plugins = PluginManager::getInstance()->getPlugins(NULL);
-            foreach ($plugins as $id => $plugin) {
-                if ($plugin instanceof PrivacyPlugin) {
-                    $this->msg .= "info§".$plugin->deleteUserdata($this->user)."§";
-                }
-            }
-
         }
 
         // delete documents of this user
