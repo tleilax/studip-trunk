@@ -43,6 +43,9 @@
                         <?= count($tool->links) ?>
                     </td>
                     <td class="actions">
+                        <a href="<?= $controller->link_for('admin/lti/edit/' . $tool->id) ?>" title="<?= _('LTI-Tool konfigurieren') ?>" data-dialog>
+                            <?= Icon::create('edit') ?>
+                        </a>
                         <?= Icon::create('trash')->asInput([
                             'formaction' => $controller->url_for('admin/lti/delete/' . $tool->id),
                             'title' => _('LTI-Tool löschen'),
