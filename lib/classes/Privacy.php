@@ -54,7 +54,6 @@ class Privacy
         'eTask\Test',
         'HelpTourUser',
         'StudipLitList',
-        'LtiGrade',
         'LogEvent'
     ];
 

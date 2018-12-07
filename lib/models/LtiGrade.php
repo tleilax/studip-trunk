@@ -11,7 +11,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
 
-class LtiGrade extends SimpleORMap implements PrivacyObject
+class LtiGrade extends SimpleORMap
 {
     /**
      * Configure the database mapping.
@@ -30,24 +30,5 @@ class LtiGrade extends SimpleORMap implements PrivacyObject
         ];
 
         parent::configure($config);
-    }
-
-    /**
-     * Return a storage object containing the data of a given user.
-     *
-     * @param User $user    User object to acquire data for
-     */
-    public static function getUserdata(User $user)
-    {
-        $db = DBManager::get();
-        $storage = new StoredUserData($user);
-
-        $data = $db->fetchAll('SELECT * FROM lti_grade WHERE user_id = ?', [$user->id]);
-
-        if ($data) {
-            $storage->addTabularData('lti_grade', $data, $user);
-        }
-
-        return [_('LTI-Ergebnisse') => $storage];
     }
 }

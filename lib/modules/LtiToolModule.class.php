@@ -11,7 +11,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  */
 
-class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
+class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin, PrivacyPlugin
 {
     /**
      * Initialize the LtiToolModule.
@@ -75,6 +75,20 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
     public function getInfoTemplate($course_id)
     {
         return null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getUserData($user_id)
+    {
+        $db = DBManager::get();
+        $store = new StoredUserData($user_id);
+
+        $data = $db->fetchAll('SELECT * FROM lti_grade WHERE user_id = ?', [$user_id]);
+        $store->addTabularData(_('LTI-Ergebnisse'), 'lti_grade', $data);
+
+        return $store;
     }
 
     /**

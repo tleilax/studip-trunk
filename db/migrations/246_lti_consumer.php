@@ -66,7 +66,7 @@ class LtiConsumer extends Migration
 
         // install as core plugin
         $sql = "INSERT INTO plugins (pluginclassname, pluginname, plugintype, enabled, navigationpos)
-                VALUES ('LtiToolModule', 'LTI-Tool', 'StandardPlugin,SystemPlugin', 'yes', 1)";
+                VALUES ('LtiToolModule', 'LTI-Tool', 'StandardPlugin,SystemPlugin,PrivacyPlugin', 'yes', 1)";
         $db->exec($sql);
 
         $sql = "INSERT INTO roles_plugins (roleid, pluginid)
