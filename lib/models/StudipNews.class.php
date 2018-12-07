@@ -642,7 +642,7 @@ class StudipNews extends SimpleORMap implements PrivacyObject
      */
     public static function getUserdata(User $user)
     {
-        $storage = new StoredUserData($user->id);
+        $storage = new StoredUserData($user);
         $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
         if ($sorm) {
             $field_data = [];
@@ -650,7 +650,7 @@ class StudipNews extends SimpleORMap implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData(_('Ankündigungen'), 'news', $field_data);
+                $storage->addTabularData(_('Ankündigungen'), 'news', $field_data, $user);
             }
         }
         return $storage;

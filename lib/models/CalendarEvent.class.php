@@ -1343,7 +1343,7 @@ class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
      */
     public static function getUserdata(User $user)
     {
-        $storage = new StoredUserData($user->id);
+        $storage = new StoredUserData($user);
         $sorm = CalendarEvent::findBySQL("range_id = ?", [$user->user_id]);
         if ($sorm) {
             $field_data = [];
@@ -1351,7 +1351,7 @@ class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData(_('Kalender'), 'calendar_event', $field_data);
+                $storage->addTabularData(_('Kalender'), 'calendar_event', $field_data, $user);
             }
         }
         return $storage;

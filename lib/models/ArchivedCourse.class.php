@@ -62,7 +62,7 @@ class ArchivedCourse extends SimpleORMap implements PrivacyObject
      */
     public static function getUserdata(User $user)
     {
-        $storage = new StoredUserData($user->id);
+        $storage = new StoredUserData($user);
         $sorm = self::findThru($user->user_id, [
             'thru_table'        => 'archiv_user',
             'thru_key'          => 'user_id',
@@ -75,7 +75,7 @@ class ArchivedCourse extends SimpleORMap implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData(_('archivierte Seminare'), 'archiv', $field_data);
+                $storage->addTabularData(_('archivierte Seminare'), 'archiv', $field_data, $user);
             }
         }
         return $storage;

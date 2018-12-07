@@ -50,14 +50,12 @@ class StoredUserData
      *
      * @param string      $name Display label
      * @param string      $key Table name (e.g. database table)
-     * @param array       $value Array containing the rows
+     * @param mixed       $value Array containing the rows
      * @param SimpleORMap $context Optional context
      */
-    public function addTabularData($name, $key, array $value, SimpleORMap $context = null)
+    public function addTabularData($name, $key, $value, SimpleORMap $context = null)
     {
-        if ($value) {
-            $this->addData('tabular', compact('name', 'key', 'value'), $context);
-        }
+        $this->addData('tabular', compact('name', 'key', 'value'), $context);
     }
 
     /**

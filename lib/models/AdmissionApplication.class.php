@@ -92,7 +92,7 @@ class AdmissionApplication extends SimpleORMap implements PrivacyObject
      */
     public static function getUserdata(User $user)
     {
-        $storage = new StoredUserData($user->id);
+        $storage = new StoredUserData($user);
         $sorm = self::findByUser($user->user_id);
         if ($sorm) {
             $field_data = [];
@@ -100,7 +100,7 @@ class AdmissionApplication extends SimpleORMap implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData(_('Wartelisten'), 'admission_seminar_user', $field_data);
+                $storage->addTabularData(_('Wartelisten'), 'admission_seminar_user', $field_data, $user);
             }
         }
         return $storage;

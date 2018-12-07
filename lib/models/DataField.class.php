@@ -301,7 +301,7 @@ class DataField extends SimpleORMap implements PrivacyObject
      */
     public static function getUserdata(User $user)
     {
-        $storage = new StoredUserData($user->id);
+        $storage = new StoredUserData($user);
         $sorm = DataField::findThru($user->user_id, [
             'thru_table'        => 'datafields_entries',
             'thru_key'          => 'range_id',
@@ -314,7 +314,7 @@ class DataField extends SimpleORMap implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData(_('Datenfelder'), 'datafields', $field_data);
+                $storage->addTabularData(_('Datenfelder'), 'datafields', $field_data, $user);
             }
         }
         return $storage;
