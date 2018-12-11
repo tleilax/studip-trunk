@@ -2,15 +2,17 @@
 
     <h1><?= _('Berechtigungen'); ?> </h1>
 
-    <label><?= _('Teilnehmende zu Lesern herabstufen') ?>
+    <label>
         <input name ="degrade_users" type="checkbox" value="1" checked>
+        <?= _('Teilnehmende zu Lesern herabstufen') ?>
     </label>
     <br>
 
     <h1><?= _('Anmelderegeln'); ?> </h1>
 
-    <label><?= _('Anmeldung gesperrt') ?>
+    <label>
         <input name ="lock_enroll" type="checkbox" value="1">
+        <?= _('Anmeldung gesperrt') ?>
     </label>
     <br>
 

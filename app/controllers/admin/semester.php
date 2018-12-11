@@ -290,6 +290,8 @@ class Admin_SemesterController extends AuthenticatedController
 
                 $degrade_users = Request::submitted('degrade_users');
 
+                $db = DBManager::get();
+
                 foreach ($semesters as $semester) {
 
                     $semester->visible = 0;
@@ -298,31 +300,26 @@ class Admin_SemesterController extends AuthenticatedController
                         $errors[] = sprintf(_('Fehler beim Sperren des Semesters "%s".'), $semester->name);
                     } else {
 
-                        $courses = Course::findBySQL("duration_time >= 0 AND (start_time+duration_time) = ?", [$semester->beginn]);
-                        foreach ($courses as $course) {
-                            $course->visible = 0;
+                        $courses = Course::findAndMapBySQL(function ($row) {
+                            return $row->Seminar_id;
+                        }, "duration_time >= 0 AND (start_time+duration_time) = ?", [$semester->beginn]);
 
-                            if ($degrade_users) {
-                                foreach (CourseMember::findByCourseAndStatus($course->Seminar_id, ['autor']) as $member) {
-                                    $member->status = 'user';
-                                    $member->store();
-                                }
-                            }
-
-                            if ($lock_enroll) {
-
-                                $cset = CourseSet::getSetForCourse($course->Seminar_id);
-                                if ($cset) {
-                                    CourseSet::removeCourseFromSet($cset->getId(), $course->Seminar_id);
-                                }
-
-                                CourseSet::addCourseToSet($course_set_id, $course->Seminar_id);
-                            }
-                            if ($course->lock_rule != $lock_rule) {
-                                $course->setValue('lock_rule', $lock_rule);
-                            }
-                            $course->store();
+                        if ($degrade_users) {
+                            $db->execute("UPDATE `seminar_user` SET `status` = 'user' WHERE `Seminar_id` IN (" . $db->quote($courses) . ") AND `status` = 'autor';");
                         }
+
+                        $db->execute("UPDATE `seminare` SET `visible` = '0', `lock_rule` = ?  WHERE `Seminar_id` IN (" . $db->quote($courses) . ");", [$lock_rule]);
+
+                        if ($lock_enroll) {
+                            foreach($courses as $Seminar_id) {
+                                $cset = CourseSet::getSetForCourse($Seminar_id);
+                                if ($cset) {
+                                    CourseSet::removeCourseFromSet($cset->getId(), $Seminar_id);
+                                }
+                                CourseSet::addCourseToSet($course_set_id, $Seminar_id);
+                            }
+                        }
+
                         $locked += 1;
                     }
                 }
