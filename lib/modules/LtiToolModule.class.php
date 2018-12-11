@@ -80,15 +80,12 @@ class LtiToolModule extends StudIPPlugin implements StandardPlugin, SystemPlugin
     /**
      * {@inheritdoc}
      */
-    public function getUserData($user_id)
+    public function exportUserData(StoredUserData $storage)
     {
         $db = DBManager::get();
-        $store = new StoredUserData($user_id);
 
-        $data = $db->fetchAll('SELECT * FROM lti_grade WHERE user_id = ?', [$user_id]);
-        $store->addTabularData(_('LTI-Ergebnisse'), 'lti_grade', $data);
-
-        return $store;
+        $data = $db->fetchAll('SELECT * FROM lti_grade WHERE user_id = ?', [$storage->user_id]);
+        $storage->addTabularData(_('LTI-Ergebnisse'), 'lti_grade', $data);
     }
 
     /**
