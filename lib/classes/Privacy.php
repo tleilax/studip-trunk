@@ -69,33 +69,28 @@ class Privacy
     public static function getUserdataInformation($user_id)
     {
         //workaround make Forum Model available
-        PluginManager::getInstance()->getPlugin('CoreForum');
-        $core_data = [];
-        $user = User::find($user_id);
+        PluginEngine::getPlugin('CoreForum');
+        $storage = new StoredUserData($user_id);
+        $user_data = [];
 
         foreach (self::$privacy_classes as $privacy_class) {
-            if (class_exists($privacy_class) && in_array('PrivacyObject', class_implements($privacy_class))) {
-                $class_storage = $privacy_class::getUserdata($user);
-                if ($class_storage && $class_storage->hasData()) {
-                    foreach ($class_storage->getTabularData() as $meta) {
-                        $core_data[$meta['name']] = [
-                            'table_name'    => $meta['key'],
-                            'table_content' => $meta['value'],
-                        ];
-                    }
-                }
+            if (is_a($privacy_class, 'PrivacyObject', true)) {
+                $privacy_class::exportUserData($storage);
             }
         }
 
-        $field_data = DBManager::get()->fetchAll("SELECT * FROM object_user_visits WHERE user_id =?", [$user->user_id]);
-        if ($field_data) {
-            $core_data['Objekt Aufrufe'] = [
-                'table_name'    => 'object_user_visits',
-                'table_content' => $field_data,
+        foreach (PluginEngine::getPlugins('PrivacyPlugin') as $plugin) {
+            $plugin->exportUserData($storage);
+        }
+
+        foreach ($storage->getTabularData() as $meta) {
+            $user_data[$meta['name']] = [
+                'table_name'    => $meta['key'],
+                'table_content' => $meta['value']
             ];
         }
 
-        return $core_data;
+        return $user_data;
     }
 
     /**

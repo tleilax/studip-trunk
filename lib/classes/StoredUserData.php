@@ -9,6 +9,8 @@
  */
 class StoredUserData
 {
+    public $user_id;
+
     protected $data = [
         'file'    => [],
         'tabular' => [],
@@ -50,12 +52,14 @@ class StoredUserData
      *
      * @param string      $name Display label
      * @param string      $key Table name (e.g. database table)
-     * @param mixed       $value Array containing the rows
+     * @param array       $value Array containing the rows
      * @param SimpleORMap $context Optional context
      */
-    public function addTabularData($name, $key, $value, SimpleORMap $context = null)
+    public function addTabularData($name, $key, array $value, SimpleORMap $context = null)
     {
-        $this->addData('tabular', compact('name', 'key', 'value'), $context);
+        if ($value) {
+            $this->addData('tabular', compact('name', 'key', 'value'), $context);
+        }
     }
 
     /**
@@ -67,10 +71,10 @@ class StoredUserData
      */
     public function addFileRef(FileRef $fileref, SimpleORMap $context = null)
     {
-        if ($file_ref->file->getURL()) {
-            $this->addFileWithContents($file_ref->name . '.url', $file_ref->file->getURL(), $context);
-        } else if ($file_ref->file->getPath()) {
-            $this->addFileAtPath($file_ref->name, $file_ref->file->getPath(), $context);
+        if ($fileref->file->getURL()) {
+            $this->addFileWithContents($fileref->name . '.url', $fileref->file->getURL(), $context);
+        } else if ($fileref->file->getPath()) {
+            $this->addFileAtPath($fileref->name, $fileref->file->getPath(), $context);
         }
     }
 
