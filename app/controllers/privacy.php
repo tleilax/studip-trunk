@@ -29,16 +29,7 @@ class PrivacyController extends AuthenticatedController
         }
 
         Navigation::activateItem('/profile');
-        if ($section) {
-            if ($section == 'plugins') {
-                $this->plugin_data = $this->getStoredUserDataFromPlugins($user_id, 'tabular');
-            } else {
-                $this->plugin_data = Privacy::getUserdataInformation($user_id, $section);
-            }
-        } else {
-            $this->plugin_data = Privacy::getUserdataInformation($user_id) + $this->getStoredUserDataFromPlugins($user_id, 'tabular');
-        }
-
+        $this->plugin_data = Privacy::getUserdataInformation($user_id, $section);
         $this->user_id = $user_id;
         $this->section = $section;
 
@@ -148,7 +139,7 @@ class PrivacyController extends AuthenticatedController
             throw new AccessDeniedException();
         }
 
-        $plugin_data = Privacy::getUserdataInformation($user_id) + $this->getStoredUserDataFromPlugins($user_id, 'tabular');
+        $plugin_data = Privacy::getUserdataInformation($user_id);
 
         if (!empty($plugin_data)) {
             foreach($plugin_data as $table_label => $table_data) {
@@ -187,7 +178,7 @@ class PrivacyController extends AuthenticatedController
         PageLayout::addStylesheet('print.css');
 
         $user = User::find($user_id);
-        $this->plugin_data = Privacy::getUserdataInformation($user_id) + $this->getStoredUserDataFromPlugins($user_id, 'tabular');
+        $this->plugin_data = Privacy::getUserdataInformation($user_id);
         $this->user_id = $user_id;
         $this->user_fullname = $user->getFullName();
     }
@@ -205,7 +196,7 @@ class PrivacyController extends AuthenticatedController
         }
 
         $user = User::find($user_id);
-        $plugin_data = Privacy::getUserdataInformation($user_id) + $this->getStoredUserDataFromPlugins($user_id, 'tabular');
+        $plugin_data = Privacy::getUserdataInformation($user_id);
         $files = [];
         $csv = [];
 
@@ -262,15 +253,7 @@ class PrivacyController extends AuthenticatedController
         }
         $user = User::find($user_id);
 
-        if ($section) {
-            if ($section == 'plugins') {
-                $plugin_data = $this->getStoredUserDataFromPlugins($user_id, 'tabular');
-            } else {
-                $plugin_data = Privacy::getUserdataInformation($user_id, $section);
-            }
-        } else {
-            $plugin_data = Privacy::getUserdataInformation($user_id) + $this->getStoredUserDataFromPlugins($user_id, 'tabular');
-        }
+        $plugin_data = Privacy::getUserdataInformation($user_id, $section);
 
         $xml = new SimpleXMLElement('<xml/>');
         foreach ($plugin_data as $label => $tabledata) {
@@ -308,13 +291,14 @@ class PrivacyController extends AuthenticatedController
             throw new AccessDeniedException();
         }
 
+        $storage = new StoredUserData($user_id);
         $user = User::find($user_id);
         $files = [];
 
-        $tmpname = md5(uniqid('datienexport_' . $user->username));
+        $tmpname = md5(uniqid('dateiexport_' . $user_id));
         $zipname = $GLOBALS['TMP_PATH'] . DIRECTORY_SEPARATOR . $tmpname;
 
-        $zip = new ZipArchive;
+        $zip = new ZipArchive();
         $zip->open($zipname, ZipArchive::CREATE);
 
         $avatar = Avatar::getAvatar($user_id);
@@ -323,11 +307,15 @@ class PrivacyController extends AuthenticatedController
         }
 
         // FIXME this will overwrite files with the same name in different folders
-        foreach (FileRef::findBySQL("user_id = ?", [$user_id]) as $core_fileref) {
-            FileArchiveManager::addFileRefToArchive($zip, $core_fileref, $user_id);
+        foreach (FileRef::findByUser_id($user_id) as $fileref) {
+            $storage->addFileRef($fileref);
         }
 
-        foreach ($this->getStoredUserDataFromPlugins($user_id, 'file') as $file_data) {
+        foreach (PluginEngine::getPlugins('PrivacyPlugin') as $plugin) {
+            $plugin->exportUserData($storage);
+        }
+
+        foreach ($storage->getFileData() as $file_data) {
             if (isset($file_data['path'])) {
                 $zip->addFile($file_data['path'], $file_data['name']);
             } else {
@@ -368,32 +356,5 @@ class PrivacyController extends AuthenticatedController
         } else {
             $this->render_text(MessageBox::error(_("Es wurde keine Kontaktperson bestimmt."), array(_('Bitte wenden Sie sich an den in der Datenschutzerklärung angegebenen Ansprechpartner.'))));
         }
-    }
-
-    /**
-     * Try to get the StoredUserData from installed plugins
-     *
-     * @param string $user_id
-     */
-    private function getStoredUserDataFromPlugins($user_id, $storage_type)
-    {
-        $plugins = PluginEngine::getPlugins('PrivacyPlugin');
-        $stored_data = [];
-        foreach ($plugins as $plugin) {
-            $plugin_data = $plugin->getUserData($user_id);
-            if ($plugin_data instanceof StoredUserData) {
-                switch ($storage_type) {
-                    case 'tabular':
-                        foreach ($plugin_data->getTabularData() as $meta) {
-                            $stored_data[$meta['name']] = ['table_name' => $meta['key'], 'table_content' => $meta['value']];
-                        }
-                        break;
-                    case 'file':
-                        $stored_data = $plugin_data->getFileData();
-                        break;
-                }
-            }
-        }
-        return $stored_data;
     }
 }
