@@ -109,6 +109,9 @@ class Privacy
             case "membership":
                 $privacy_classes = self::$privacy_membership_classes;
                 break;
+            case "plugins":
+                $privacy_classes = [];
+                break;
             default:
                 $privacy_classes = array_merge(
                     self::$privacy_core_classes,
@@ -125,8 +128,10 @@ class Privacy
             }
         }
 
-        foreach (PluginEngine::getPlugins('PrivacyPlugin') as $plugin) {
-            $plugin->exportUserData($storage);
+        if ($section == "plugins" || $section == null) {
+            foreach (PluginEngine::getPlugins('PrivacyPlugin') as $plugin) {
+                $plugin->exportUserData($storage);
+            }
         }
 
         foreach ($storage->getTabularData() as $meta) {

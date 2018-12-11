@@ -18,10 +18,9 @@ class QuestionnaireAnonymousAnswer extends SimpleORMap implements PrivacyObject
      * @param User $user User object to acquire data for
      * @return StoredUserData object
      */
-    public static function getUserdata(User $user)
+    public static function exportUserData(StoredUserData $storage)
     {
-        $storage = new StoredUserData($user);
-        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        $sorm = self::findBySQL("user_id = ?", [$storage->user_id]);
         if ($sorm) {
             $field_data = [];
             foreach ($sorm as $row) {
