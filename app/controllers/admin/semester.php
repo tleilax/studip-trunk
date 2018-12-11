@@ -135,14 +135,14 @@ class Admin_SemesterController extends AuthenticatedController
             }
 
             if (count($errors) === 1) {
-                PageLayout::postMessage(MessageBox::error($errors[0]));
+                PageLayout::postError($errors[0]);
             } elseif (!empty($errors)) {
                 $message = _('Beim Löschen der Semester sind folgende Fehler aufgetreten.');
-                PageLayout::postMessage(MessageBox::error($message, $errors));
+                PageLayout::postError($message, $errors);
             }
             if ($deleted > 0) {
                 $message = sprintf(_('%u Semester wurde(n) erfolgreich gelöscht.'), $deleted);
-                PageLayout::postMessage(MessageBox::success($message));
+                PageLayout::postSuccess($message);
             }
         }
 
@@ -325,14 +325,14 @@ class Admin_SemesterController extends AuthenticatedController
                 }
 
                 if (count($errors) === 1) {
-                    PageLayout::postMessage(MessageBox::error($errors[0]));
+                    PageLayout::postError($errors[0]);
                 } elseif (!empty($errors)) {
                     $message = _('Beim Sperren der Semester sind folgende Fehler aufgetreten.');
-                    PageLayout::postMessage(MessageBox::error($message, $errors));
+                    PageLayout::postError($message, $errors);
                 }
                 if ($locked > 0) {
                     $message = sprintf(_('%u Semester wurde(n) erfolgreich gesperrt.'), $locked);
-                    PageLayout::postMessage(MessageBox::success($message));
+                    PageLayout::postSuccess($message);
                 }
 
                 if (Request::isDialog()) {
@@ -407,14 +407,14 @@ class Admin_SemesterController extends AuthenticatedController
             }
 
             if (count($errors) === 1) {
-                PageLayout::postMessage(MessageBox::error($errors[0]));
+                PageLayout::postError($errors[0]);
             } elseif (!empty($errors)) {
                 $message = _('Beim Entsperren der Semester sind folgende Fehler aufgetreten.');
-                PageLayout::postMessage(MessageBox::error($message, $errors));
+                PageLayout::postError($message, $errors);
             }
             if ($unlocked > 0) {
                 $message = sprintf(_('%u Semester wurde(n) erfolgreich entsperrt.'), $unlocked);
-                PageLayout::postMessage(MessageBox::success($message));
+                PageLayout::postSuccess($message);
             }
         }
 
