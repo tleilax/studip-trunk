@@ -6,7 +6,7 @@
  * @license GPL2 or any later version
  * @since   Stud.IP 4.3
  */
-class ConsultationBooking extends SimpleORMap
+class ConsultationBooking extends SimpleORMap implements PrivacyObject
 {
     /**
      * Configures the model.
@@ -62,5 +62,25 @@ class ConsultationBooking extends SimpleORMap
         };
 
         parent::configure($config);
+    }
+
+    /**
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
+     *
+     * @param StoredUserData $storage object to store data into
+     */
+    public static function exportUserData(StoredUserData $storage)
+    {
+        $bookings = self::findByUser_id($storage->user_id);
+        if ($bookings) {
+            $storage->addTabularData(
+                _('Sprechstundenbelegungen'),
+                'consultation_bookings',
+                array_map(function ($booking) {
+                    return $booking->toRawArray();
+                }, $bookings)
+            );
+        }
     }
 }

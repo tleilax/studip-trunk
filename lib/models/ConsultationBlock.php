@@ -6,7 +6,7 @@
  * @license GPL2 or any later version
  * @since   Stud.IP 4.3
  */
-class ConsultationBlock extends SimpleORMap
+class ConsultationBlock extends SimpleORMap implements PrivacyObject
 {
     /**
      * Configures the model.
@@ -190,5 +190,36 @@ class ConsultationBlock extends SimpleORMap
         return $this->teacher_id === $user_id
             || !$this->course_id
             || (bool) $this->course->members->findOneBy('user_id', $user_id);
+    }
+
+    /**
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
+     *
+     * @param StoredUserData $storage object to store data into
+     */
+    public static function exportUserData(StoredUserData $storage)
+    {
+        $blocks = self::findByTeacher_id($storage->user_id);
+        if ($blocks) {
+            $storage->addTabularData(
+                _('Sprechstundenblöcke'),
+                'consultation_blocks',
+                array_map(function ($block) {
+                    return $block->toRawArray();
+                }, $blocks)
+            );
+
+            $slots = [];
+            foreach ($blocks as $block) {
+                foreach ($block->slots as $slot) {
+                    $slots[] = $slot->toRawArray();
+                }
+            }
+
+            if ($slots) {
+                $storage->addTabularData(_('Sprechstunden'), 'consultation_slots', $slots);
+            }
+        }
     }
 }
