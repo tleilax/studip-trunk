@@ -1433,6 +1433,7 @@ class SemBrowse {
     public static function setSemesterSelector($submit_url)
     {
         $semesters = SemesterData::GetSemesterArray();
+        array_shift($semesters);
         $sidebar = Sidebar::Get();
         $list = new SelectWidget(_('Semester'),
                 $submit_url, 'search_sem_sem');
