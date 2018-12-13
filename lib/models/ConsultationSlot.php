@@ -5,6 +5,16 @@
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @license GPL2 or any later version
  * @since   Stud.IP 4.3
+ * @property string slot_id database column
+ * @property string id alias column for slot_id
+ * @property string block_id database column
+ * @property string start_time database column
+ * @property string end_time database column
+ * @property string note database column
+ * @property string teacher_event_id database column
+ * @property SimpleORMapCollection bookings has_many ConsultationBooking
+ * @property ConsultationBlock block belongs_to ConsultationBlock
+ * @property EventData event has_one EventData
  */
 class ConsultationSlot extends SimpleORMap
 {

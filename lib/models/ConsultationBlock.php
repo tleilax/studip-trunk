@@ -5,6 +5,20 @@
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @license GPL2 or any later version
  * @since   Stud.IP 4.3
+ * @property string block_id database column
+ * @property string id alias column for block_id
+ * @property string teacher_id database column
+ * @property string start database column
+ * @property string end database column
+ * @property string room database column
+ * @property string calendar_events database column
+ * @property string note database column
+ * @property string size database column
+ * @property string course_id database column
+ * @property bool has_bookings computed column
+ * @property SimpleORMapCollection slots has_many ConsultationSlot
+ * @property User teacher belongs_to User
+ * @property Course course belongs_to Course
  */
 class ConsultationBlock extends SimpleORMap implements PrivacyObject
 {
@@ -32,11 +46,10 @@ class ConsultationBlock extends SimpleORMap implements PrivacyObject
         ];
 
         $config['additional_fields']['has_bookings']['get'] = function ($block) {
-            $count = 0;
-            foreach ($block->slots as $slot) {
-                $count += count($slot->bookings);
-            }
-            return $count > 0;
+            return ConsultationBooking::countBySql(
+                "JOIN consultation_slots USING(slot_id) WHERE block_id = ?",
+                [$block->id]
+                ) > 0;
         };
 
         parent::configure($config);
@@ -73,6 +86,7 @@ class ConsultationBlock extends SimpleORMap implements PrivacyObject
      * Be aware, that this is an actual generator that yields the results. You
      * cannot count the generated blocks without iterating over them.
      *
+     * @throws OverlapException
      * @param  string $user_id  Id of the user
      * @param  int    $start    Start of the time range as unix timestamp
      * @param  int    $end      End of the time range as unix timestamp

@@ -34,7 +34,7 @@ abstract class ConsultationController extends AuthenticatedController
             }
 
             if (mb_strlen($what)  < $length) {
-                return '<div class="consultation-note">' . $what . '</div>';
+                return '<div class="consultation-note">' . htmlReady($what) . '</div>';
             }
 
             return sprintf(
@@ -107,7 +107,7 @@ abstract class ConsultationController extends AuthenticatedController
         $booking = $slot->bookings->find($booking_id);
 
         if (!$booking) {
-            throw new Exception(_('Dieser Sprechstundenbuchung existiert nicht'));
+            throw new Exception(_('Diese Sprechstundenbuchung existiert nicht'));
         }
 
         return $booking;

@@ -36,14 +36,12 @@ class Consultation_AdminController extends ConsultationController
     {
         PageLayout::setTitle(_('Neue Sprechstundenblöcke anlegen'));
 
-        $courses = $this->current_user->course_memberships->filter(function ($member) {
-            return in_array($member->status, ['tutor', 'dozent']);
-        });
+        $courses = $this->current_user->course_memberships->findBy('status', ['tutor', 'dozent']);
         if (count($courses) > 0) {
             $search_object = new MyCoursesSearch('Seminar_id', $this->current_user->perms, [
                 'userid'    => $this->current_user->id,
-                'semtypes'  => SemType::getGroupingSemTypes(),
-                'exclude'   => '',
+                'semtypes'  => [],
+                'exclude'   => [],
                 'semesters' => array_keys(Semester::getAll()),
             ]);
             $this->course_search = new QuickSearch('course_id', $search_object);
@@ -101,7 +99,7 @@ class Consultation_AdminController extends ConsultationController
         }
 
         if ($stored === 0) {
-            PostLayout::postError(_('In dem von Ihnen gewählten Zeitraum konnten für den gewählten Wochentag keine Termine erzeugt werden.'));
+            PageLayout::postError(_('In dem von Ihnen gewählten Zeitraum konnten für den gewählten Wochentag keine Termine erzeugt werden.'));
         } else {
             PageLayout::postSuccess(_('Die Sprechstundenblöcke wurden erfolgreich angelegt.'));
         }
@@ -174,7 +172,7 @@ class Consultation_AdminController extends ConsultationController
 
         } else {
             $this->slot = $this->loadSlot($block_id, $slot_id);
-            if (count($slot->bookings) > 0) {
+            if (count($this->slot->bookings) > 0) {
                 PageLayout::postError(implode(' ', [
                     _('Sie können diesen Sprechstundentermin nicht löschen, da er bereits belegt ist.'),
                     _('Bitte sagen Sie den Termin erst ab.')
@@ -231,7 +229,7 @@ class Consultation_AdminController extends ConsultationController
                     $this->slot->block->teacher
                 );
 
-                if ($GLOBALS['user']->id !== $slot->block->teacher_id) {
+                if ($GLOBALS['user']->id !== $this->slot->block->teacher_id) {
                     $this->sendMessage(
                         $this->slot->block->teacher,
                         $this->slot,

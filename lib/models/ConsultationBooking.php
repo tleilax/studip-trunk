@@ -5,6 +5,15 @@
  * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
  * @license GPL2 or any later version
  * @since   Stud.IP 4.3
+ * @property string booking_id database column
+ * @property string id alias column for booking_id
+ * @property string slot_id database column
+ * @property string user_id database column
+ * @property string reason database column
+ * @property string student_event_id database column
+ * @property ConsultationSlot slot belongs_to ConsultationSlot
+ * @property User user belongs_to User
+ * @property EventData event has_one EventData
  */
 class ConsultationBooking extends SimpleORMap implements PrivacyObject
 {

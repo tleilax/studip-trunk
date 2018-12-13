@@ -14,8 +14,6 @@ class Consultation_OverviewController extends ConsultationController
     {
         parent::before_filter($action, $args);
 
-        $this->current_user = User::findByUsername(Request::username('username', $GLOBALS['user']->username));
-
         Navigation::activateItem('/profile/consultation/overview');
         PageLayout::setTitle(sprintf(
             _('Sprechstundentermine von %s'),
@@ -35,12 +33,10 @@ class Consultation_OverviewController extends ConsultationController
         });
 
         if ($course_id = Request::option('course_id')) {
-            $this->blocks = $this->blocks->filter(function ($block) use ($course_id) {
-                return $block->course_id === $course_id;
-            });
+            $this->blocks = $this->blocks->findBy('course_id', $course_id);
         }
 
-        $this->setupSidebar($this->blocks);
+        $this->setupSidebar();
     }
 
     public function book_action($block_id, $slot_id)
@@ -82,7 +78,7 @@ class Consultation_OverviewController extends ConsultationController
             CSRFProtection::verifyUnsafeRequest();
 
             if (!$this->slot->isOccupied($GLOBALS['user']->id)) {
-                PageLayout::postError(_('Dieser Sprechstundentermin nicht von Ihnen belegt.'));
+                PageLayout::postError(_('Dieser Sprechstundentermin ist nicht von Ihnen belegt.'));
             } else {
                 $booking = $this->slot->bookings->findOneBy('user_id', $GLOBALS['user']->id);
 
@@ -103,7 +99,7 @@ class Consultation_OverviewController extends ConsultationController
         }
     }
 
-    private function setupSidebar(Iterable $blocks)
+    private function setupSidebar()
     {
         $course_ids = array_unique(array_filter($this->blocks->pluck('course_id')));
 
