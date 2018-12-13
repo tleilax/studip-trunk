@@ -1,36 +1,42 @@
-<form class="default" action="<?= $controller->url_for('admin/semester/lock/'.$id); ?>" method="POST" data-dialog="size=auto">
+<form class="default" action="<?= $controller->link_for("admin/semester/lock/{$id}") ?>" method="post" data-dialog="size=auto" class="default">
 
-    <h1><?= _('Berechtigungen'); ?> </h1>
+    <fieldset>
+        <legend><?= _('Berechtigungen') ?></legend>
 
-    <label>
-        <input name ="degrade_users" type="checkbox" value="1" checked>
-        <?= _('Teilnehmende zu Lesern herabstufen') ?>
-    </label>
-    <br>
+        <label>
+            <input name ="degrade_users" type="checkbox" value="1" checked>
+            <?= _('Teilnehmende zu Lesern herabstufen') ?>
+        </label>
+    </fieldset>
 
-    <h1><?= _('Anmelderegeln'); ?> </h1>
+    <fieldset>
+        <legend><?= _('Anmelderegeln') ?></legend>
 
-    <label>
-        <input name ="lock_enroll" type="checkbox" value="1">
-        <?= _('Anmeldung gesperrt') ?>
-    </label>
-    <br>
+        <label>
+            <input name ="lock_enroll" type="checkbox" value="1">
+            <?= _('Anmeldung gesperrt') ?>
+        </label>
+    </fieldset>
 
-    <h1><?= _('Zusätzliche optionale Sperrebene'); ?> </h1>
+    <fieldset>
+        <legend><?= _('Zusätzliche optionale Sperrebene') ?></legend>
 
-    <label><?= _('Für alle Veranstaltungen') ?>
-        <select name="lock_sem_all" style="max-width: 200px">
-            <? for ($i = 0; $i < count($all_lock_rules); $i++) : ?>
-                <option value="<?= $all_lock_rules[$i]["lock_id"] ?>"
-                    <?= ($all_lock_rules[$i]["lock_id"] == $values['lock_rule']) ? 'selected' : '' ?>>
-                    <?= htmlReady($all_lock_rules[$i]["name"]) ?>
+        <label>
+            <?= _('Für alle Veranstaltungen') ?>
+            <select name="lock_sem_all">
+                <option value="">
+                    -- <?= _('keine Sperrebene')  ?> --
                 </option>
-            <? endfor ?>
-        </select>
-    </label>
+            <? foreach ($all_lock_rules as $lock_rule): ?>
+                <option value="<?= htmlReady($lock_rule->id) ?>">
+                    <?= htmlReady($lock_rule->name) ?>
+                </option>
+            <? endforeach; ?>
+            </select>
+        </label>
+    </fieldset>
 
-    <div data-dialog-button>
-        <?= \Studip\Button::createAccept(_('Sperren'), 'confirm_lock'); ?>
-    </div>
-
+    <footer data-dialog-button>
+        <?= Studip\Button::createAccept(_('Sperren'), 'confirm_lock'); ?>
+    </footer>
 </form>

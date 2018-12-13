@@ -16,62 +16,60 @@ class Privacy
     /**
      * Names of classes containing user data.
      */
-
-    private static $privacy_core_classes = [
-        'User',
-        'DataField',
-        'DatafieldEntryModel',
-        'UserConfig',
-        'HelpTourUser',
-        'LogEvent'
-    ];
-
-    private static $privacy_date_classes = [
-        'CalendarEvent',
-        'EventData',
-        'CourseDate',
-        'CourseExDate'
-    ];
-
-    private static $privacy_message_classes = [
-        'BlubberPosting',
-        'StudipNews',
-        'StudipComment',
-        'Message',
-        'MessageUser'
-    ];
-
-    private static $privacy_content_classes = [
-        'FileRef',
-        'ForumEntry',
-        'WikiPage',
-        'StudipLitList'
-    ];
-
-    private static $privacy_quest_classes = [
-        'Evaluation',
-        'Questionnaire',
-        'QuestionnaireAnswer',
-        'QuestionnaireAnonymousAnswer',
-        'QuestionnaireAssignment',
-        'eTask\Attempt',
-        'eTask\Response',
-        'eTask\Task',
-        'eTask\Test'
-    ];
-
-    private static $privacy_membership_classes = [
-        'Course',
-        'CourseMember',
-        'AdmissionApplication',
-        'ArchivedCourse',
-        'ArchivedCourseMember',
-        'Statusgruppen',
-        'StatusgruppeUser',
-        'InstituteMember',
-        'UserStudyCourse',
-        'Fach',
-        'Abschluss'
+    private static $privacy_classes = [
+        'core' => [
+            'User',
+            'DataField',
+            'DatafieldEntryModel',
+            'UserConfig',
+            'HelpTourUser',
+            'LogEvent',
+        ],
+        'date' => [
+            'CalendarEvent',
+            'EventData',
+            'CourseDate',
+            'CourseExDate',
+        ],
+        'message' => [
+            'BlubberPosting',
+            'StudipNews',
+            'StudipComment',
+            'Message',
+            'MessageUser',
+        ],
+        'content' => [
+            'FileRef',
+            'ForumEntry',
+            'WikiPage',
+            'StudipLitList',
+        ],
+        'quest' => [
+            'Evaluation',
+            'Questionnaire',
+            'QuestionnaireAnswer',
+            'QuestionnaireAnonymousAnswer',
+            'QuestionnaireAssignment',
+            'eTask\Attempt',
+            'eTask\Response',
+            'eTask\Task',
+            'eTask\Test',
+        ],
+        'membership' => [
+            'Course',
+            'CourseMember',
+            'AdmissionApplication',
+            'ArchivedCourse',
+            'ArchivedCourseMember',
+            'Statusgruppen',
+            'StatusgruppeUser',
+            'InstituteMember',
+            'UserStudyCourse',
+            'Fach',
+            'Abschluss',
+        ],
+        'plugins' => [
+        ],
     ];
 
     /**
@@ -81,6 +79,7 @@ class Privacy
      * $array[ table display name ] = [ 'table_name' => name of the table, 'table_content' => array of db rows containing userdata]
      *
      * @param string $user_id
+     * @param string $section
      * @return array
      */
     public static function getUserdataInformation($user_id, $section = null)
@@ -88,39 +87,14 @@ class Privacy
         //workaround make Forum Model available
         PluginEngine::getPlugin('CoreForum');
         $storage = new StoredUserData($user_id);
-        $user_data = [];
 
-        switch ($section) {
-            case "core":
-                $privacy_classes = self::$privacy_core_classes;
-                break;
-            case "date":
-                $privacy_classes = self::$privacy_date_classes;
-                break;
-            case "message":
-                $privacy_classes = self::$privacy_message_classes;
-                break;
-            case "content":
-                $privacy_classes = self::$privacy_content_classes;
-                break;
-            case "quest":
-                $privacy_classes = self::$privacy_quest_classes;
-                break;
-            case "membership":
-                $privacy_classes = self::$privacy_membership_classes;
-                break;
-            case "plugins":
-                $privacy_classes = [];
-                break;
-            default:
-                $privacy_classes = array_merge(
-                    self::$privacy_core_classes,
-                    self::$privacy_date_classes,
-                    self::$privacy_message_classes,
-                    self::$privacy_content_classes,
-                    self::$privacy_quest_classes,
-                    self::$privacy_membership_classes);
+        if ($section && !isset(self::$privacy_classes[$section])) {
+            throw new Exception("Invalid privacy section '{$section}'");
         }
+
+        $privacy_classes = $section
+                         ? self::$privacy_classes[$section]
+                         : array_flatten(array_values(self::$privacy_classes));
 
         foreach ($privacy_classes as $privacy_class) {
             if (is_a($privacy_class, 'PrivacyObject', true)) {
@@ -128,16 +102,17 @@ class Privacy
             }
         }
 
-        if ($section == "plugins" || $section == null) {
+        if (!$section || $section === 'plugins') {
             foreach (PluginEngine::getPlugins('PrivacyPlugin') as $plugin) {
                 $plugin->exportUserData($storage);
             }
         }
 
+        $user_data = [];
         foreach ($storage->getTabularData() as $meta) {
             $user_data[$meta['name']] = [
                 'table_name'    => $meta['key'],
-                'table_content' => $meta['value']
+                'table_content' => $meta['value'],
             ];
         }
 
@@ -154,14 +129,11 @@ class Privacy
     {
         $needed_perm = Config::get()->PRIVACY_PERM ?: 'root';
         $allowed_person = true;
-        if (!in_array($needed_perm, ['root', 'admin'])) {
-            if (!$GLOBALS['perm']->have_perm('admin')) {
-                $allowed_person = $GLOBALS['user']->user_id === $user_id;
-            }
+        if (!in_array($needed_perm, ['root', 'admin']) && !$GLOBALS['perm']->have_perm('admin')) {
+            $allowed_person = $GLOBALS['user']->user_id === $user_id;
         }
 
         return $GLOBALS['perm']->have_perm($needed_perm)
             && $allowed_person;
     }
-
 }

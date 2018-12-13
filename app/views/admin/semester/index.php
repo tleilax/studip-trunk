@@ -70,32 +70,32 @@
                             $semester->continuous_seminars_count + $semester->duration_seminars_count) ?>
             </td>
             <td class="actions">
-                <a data-dialog="size=auto" href="<?= $controller->url_for('admin/semester/edit/' . $semester->id) ?>">
-                    <?= Icon::create('edit', 'clickable', ['title' => _('Semesterangaben bearbeiten')])->asImg() ?>
+                <a data-dialog="size=auto" href="<?= $controller->link_for("admin/semester/edit/{$semester->id}") ?>">
+                    <?= Icon::create('edit')->asImg(['title' => _('Semesterangaben bearbeiten')]) ?>
                 </a>
 
             <? if ($semester->visible): ?>
-                <a data-dialog="size=auto" href="<?= $controller->url_for('admin/semester/lock/'.$semester->id) ?>">
-                    <?= Icon::create('lock-unlocked', 'clickable', ['title' => _('Semester sperren')])->asImg() ?>
+                <a data-dialog="size=auto" href="<?= $controller->link_for("admin/semester/lock/{$semester->id}") ?>">
+                    <?= Icon::create('lock-unlocked')->asImg(['title' => _('Semester sperren')]) ?>
                 </a>
             <? else: ?>
-                <?= Icon::create('lock-locked', 'clickable', ['title' => _('Semester entsperren')])
-                        ->asInput(array(
-                            'formaction'   => $controller->url_for('admin/semester/unlock/'.$semester->id),
-                            'data-confirm' => _('Soll das Semester wirklich entsperrt werden? Anmelderegeln und Sperrebenen werden nicht verändert.'),
-                            'style'        => 'vertical-align: text-bottom'
-                        )) ?>
+                <?= Icon::create('lock-locked')->asInput([
+                    'title'        => _('Semester entsperren'),
+                    'formaction'   => $controller->url_for("admin/semester/unlock/{$semester->id}"),
+                    'data-confirm' => _('Soll das Semester wirklich entsperrt werden? Anmelderegeln und Sperrebenen werden nicht verändert.'),
+                    'style'        => 'vertical-align: text-bottom'
+                ]) ?>
             <? endif; ?>
 
             <? if ($semester->absolute_seminars_count): ?>
-                <?= Icon::create('trash', 'inactive', ['title' => _('Semester hat Veranstaltungen und kann daher nicht gelöscht werden.')])->asImg() ?>
+                <?= Icon::create('trash', Icon::ROLE_INACTIVE)->asImg(['title' => _('Semester hat Veranstaltungen und kann daher nicht gelöscht werden.')]) ?>
             <? else: ?>
-                <?= Icon::create('trash', 'clickable', ['title' => _('Semester löschen')])
-                        ->asInput(array(
-                            'formaction'   => $controller->url_for('admin/semester/delete/'.$semester->id),
-                            'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'),
-                            'style'        => 'vertical-align: text-bottom'
-                        )) ?>
+                <?= Icon::create('trash')->asInput([
+                    'title'        => _('Semester löschen'),
+                    'formaction'   => $controller->url_for("admin/semester/delete/{$semester->id}"),
+                    'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'),
+                    'style'        => 'vertical-align: text-bottom'
+                ]) ?>
             <? endif; ?>
             </td>
         </tr>
@@ -105,9 +105,9 @@
     <tfoot>
         <tr>
             <td colspan="7">
-                <?= Studip\Button::create(_('Markierte Einträge löschen'), 'delete', array(
+                <?= Studip\Button::create(_('Markierte Einträge löschen'), 'delete', [
                         'data-confirm' => _('Sollen die Semester wirklich gelöscht werden?')
-                )) ?>
+                ]) ?>
             </td>
         </tr>
     </tfoot>

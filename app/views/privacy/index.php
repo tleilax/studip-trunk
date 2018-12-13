@@ -1,22 +1,22 @@
-<? if(empty($plugin_data) || empty(reset($plugin_data))): ?>
-<?= Messagebox::info(_('In dieser Kategorie sind keine Daten vorhanden.')); ?>
+<? if (empty($plugin_data) || empty(reset($plugin_data))): ?>
+    <?= Messagebox::info(_('In dieser Kategorie sind keine Daten vorhanden.')) ?>
 <? endif; ?>
 
 <? foreach ($plugin_data as $label => $tabledata) : ?>
     <? if ($tabledata['table_content']) : ?>
-
-        <article class="studip toggle <?= (Request::isDialog() || $section == null)?'':'open' ?>" id="trr" style="width: max-content; min-width: 99%;">
+        <article class="studip toggle <?  if (!Request::isDialog() && $section) echo 'open'; ?>" style="width: max-content;">
             <header>
                 <h1>
                     <a>
-                        <?= htmlReady($label) ?>, <?= sprintf(_('%u Einträge'), count($tabledata['table_content'])) ?>
+                        <?= htmlReady($label) ?>,
+                        <?= sprintf(_('%u Einträge'), count($tabledata['table_content'])) ?>
                     </a>
                 </h1>
-                <? if (Request::isDialog()) : ?>
-                <a href="<?= $controller->url_for("privacy/export2csv/{$tabledata['table_name']}/{$user_id}") ?>">
-                    <b><?= htmlReady($label) ?> CSV</b>
+            <? if (Request::isDialog()) : ?>
+                <a href="<?= $controller->link_for("privacy/export2csv/{$tabledata['table_name']}/{$user_id}") ?>">
+                    <strong><?= htmlReady($label) ?> CSV</strong>
                 </a>
-                <? endif; ?>
+            <? endif; ?>
             </header>
             <section>
                 <table class="default">
@@ -32,7 +32,7 @@
                         <tr>
                         <? foreach ($row as $key => $value): ?>
                             <td>
-                            <? if ($tabledata['table_name'] === 'log_events' && $key === "readable_entry"): ?>
+                            <? if ($tabledata['table_name'] === 'log_events' && $key === 'readable_entry'): ?>
                                 <?= $value ?>
                             <? else: ?>
                                 <?= htmlReady($value) ?>

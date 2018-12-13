@@ -723,24 +723,23 @@ class Admin_CoursesController extends AuthenticatedController
     public function set_visibility_action()
     {
         $result = false;
-        $visibilites = Request::getArray('visibility');
+        $visibilites = Request::intArray('visibility');
         $all_courses = Request::getArray('all_sem');
-        $errors = array();
+        $errors = [];
 
         if (!empty($all_courses)) {
             foreach ($all_courses as $course_id) {
                 if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
                     $course = Course::find($course_id);
 
-                    $endsemester = Semester::findOneBySQL("beginn =?",[(intVal($course->start_time)+intVal($course->duration_time))]);
-                    if ($endsemester->visible || $course->duration_time == "-1") {
-                        $visibility = isset($visibilites[$course_id]) ? 1 : 0;
+                    if ($course->duration_time == -1 || $course->end_semester->visible) {
+                        $visibility = $visibilites[$course_id] ?: 0;
 
-                        if ((int)$course->visible == $visibility) {
+                        if ($course->visible == $visibility) {
                             continue;
                         }
 
-                        $course->setValue('visible', $visibility);
+                        $course->visible = $visibility;
                         if (!$course->store()) {
                             $errors[] = $course->name;
                         } else {
@@ -752,10 +751,13 @@ class Admin_CoursesController extends AuthenticatedController
             }
 
             if ($result) {
-                PageLayout::postMessage(MessageBox::success(_('Die Sichtbarkeit wurde bei den gewünschten Veranstatungen erfolgreich geändert!')));
+                PageLayout::postSuccess(_('Die Sichtbarkeit wurde bei den gewünschten Veranstatungen erfolgreich geändert!'));
             }
             if ($errors) {
-                PageLayout::postMessage(MessageBox::error(_('Bei den folgenden Veranstaltungen ist ein Fehler aufgetreten'), array_map('htmlReady', $errors)));
+                PageLayout::postError(
+                    _('Bei den folgenden Veranstaltungen ist ein Fehler aufgetreten'),
+                    array_map('htmlReady', $errors)
+                );
             }
         }
         $this->redirect('admin/courses/index');

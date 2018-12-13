@@ -143,20 +143,21 @@ class MyCoursesController extends AuthenticatedController
 
         //
         if ($tabularasa = $this->flash['tabularasa']) {
-            $details = array();
+            $details = [];
             if ($new_contents) {
-                $details[] = sprintf(_('Seit Ihrem letzten Seitenaufruf (%s) sind allerdings neue Inhalte hinzugekommen.'),
-                                     reltime($tabularasa));
+                $details[] = sprintf(
+                    _('Seit Ihrem letzten Seitenaufruf (%s) sind allerdings neue Inhalte hinzugekommen.'),
+                    reltime($tabularasa)
+                );
             }
 
-            $message_box = MessageBox::success(_('Alles als gelesen markiert!'), $details);
-            PageLayout::postMessage($message_box);
+            PageLayout::postSuccess(_('Alles als gelesen markiert!'), $details);
         }
 
 
         // create settings url depended on selected cycle
         if (isset($sem) && !in_array($sem, words('future all last current'))) {
-            $this->settings_url = sprintf('dispatch.php/my_courses/groups/%s', $sem);
+            $this->settings_url = "dispatch.php/my_courses/groups/{$sem}";
         } else {
             $this->settings_url = 'dispatch.php/my_courses/groups';
         }
@@ -164,45 +165,64 @@ class MyCoursesController extends AuthenticatedController
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/seminar-sidebar.png');
         $this->setSemesterWidget($sem);
-        $setting_widget = new ActionsWidget();
+
+        $setting_widget = $sidebar->addWidget(new ActionsWidget());
 
         if ($new_contents) {
-            $setting_widget->addLink(_('Alles als gelesen markieren'),
-                                     $this->url_for('my_courses/tabularasa/' . $sem . '/', time()), Icon::create('accept', 'clickable'));
+            $setting_widget->addLink(
+                _('Alles als gelesen markieren'),
+                $this->url_for("my_courses/tabularasa/{$sem}/" . time()),
+                Icon::create('accept')
+            );
         }
-        $setting_widget->addLink(_('Farbgruppierung ändern'),
-                                 URLHelper::getLink($this->settings_url), Icon::create('group4', 'clickable'),
-                                 array('data-dialog' => ''));
+        $setting_widget->addLink(
+            _('Farbgruppierung ändern'),
+            URLHelper::getURL($this->settings_url),
+            Icon::create('group4')
+        )->asDialog();
 
         if (Config::get()->MAIL_NOTIFICATION_ENABLE) {
-            $setting_widget->addLink(_('Benachrichtigungen anpassen'),
-                                     URLHelper::getLink('dispatch.php/settings/notification'), Icon::create('mail', 'clickable'));
+            $setting_widget->addLink(
+                _('Benachrichtigungen anpassen'),
+                URLHelper::getURL('dispatch.php/settings/notification'),
+                Icon::create('mail')
+            );
         }
 
-        if ($sem_create_perm == 'dozent' && $GLOBALS['perm']->have_perm('dozent')) {
-            $setting_widget->addLink(_('Neue Veranstaltung anlegen'),
-                                     URLHelper::getLink('dispatch.php/course/wizard'), Icon::create('seminar+add', 'clickable'));
+        if ($sem_create_perm === 'dozent' && $GLOBALS['perm']->have_perm('dozent')) {
+            $setting_widget->addLink(
+                _('Neue Veranstaltung anlegen'),
+                URLHelper::getURL('dispatch.php/course/wizard'),
+                Icon::create('seminar+add')
+            );
         }
 
-        $setting_widget->addLink(_('Veranstaltung hinzufügen'), URLHelper::getLink('dispatch.php/search/courses'), Icon::create('seminar', 'clickable'));
+        $setting_widget->addLink(
+            _('Veranstaltung hinzufügen'),
+            URLHelper::getURL('dispatch.php/search/courses'),
+            Icon::create('seminar')
+        );
         if (Config::get()->STUDYGROUPS_ENABLE) {
-            $setting_widget->addLink(_('Neue Studiengruppe anlegen'),
-                URLHelper::getLink('dispatch.php/course/wizard', ['studygroup' => 1]),
-                Icon::create('studygroup+add', 'clickable'), ['data-dialog' => 'size=auto']);
+            $setting_widget->addLink(
+                _('Neue Studiengruppe anlegen'),
+                URLHelper::getURL('dispatch.php/course/wizard', ['studygroup' => 1]),
+                Icon::create('studygroup+add')
+            )->asDialog('size=auto');
         }
-        $sidebar->addWidget($setting_widget);
+
         $this->setGroupingSelector($this->group_field);
 
-        $export_widget = new ExportWidget();
-        $export_widget->addLink(_('Veranstaltungsübersicht exportieren'),
-                                $this->url_for('my_courses/courseexport',['modules' => '1']),
-                                Icon::create('file-pdf', 'clickable'),
-                                array());
-        $export_widget->addLink(_('Veranstaltungsübersicht ohne Module exportieren'),
-                                $this->url_for('my_courses/courseexport'),
-                                Icon::create('file-pdf', 'clickable'),
-                                array());
-        $sidebar->addWidget($export_widget);
+        $export_widget = $sidebar->addWidget(new ExportWidget());
+        $export_widget->addLink(
+            _('Veranstaltungsübersicht exportieren'),
+            $this->url_for('my_courses/courseexport', ['modules' => '1']),
+            Icon::create('file-pdf')
+        );
+        $export_widget->addLink(
+            _('Veranstaltungsübersicht ohne Module exportieren'),
+            $this->url_for('my_courses/courseexport'),
+            Icon::create('file-pdf')
+        );
     }
 
     /**
@@ -214,24 +234,26 @@ class MyCoursesController extends AuthenticatedController
             throw new AccessDeniedException();
         }
 
-        $this->with_modules = Request::submitted('modules');
+        $this->with_modules = (bool) Request::int('modules');
 
-        $this->sem_data = SemesterData::GetSemesterArray();
+        $this->sem_data    = SemesterData::GetSemesterArray();
         $this->group_field = 'sem_number';
 
         // Needed parameters for selecting courses
-        $params = array('group_field'         => $this->group_field,
-                        'order_by'            => null,
-                        'order'               => 'asc',
-                        'studygroups_enabled' => Config::get()->MY_COURSES_ENABLE_STUDYGROUPS,
-                        'deputies_enabled'    => Config::get()->DEPUTIES_ENABLE);
+        $params = [
+            'group_field'         => $this->group_field,
+            'order_by'            => null,
+            'order'               => 'asc',
+            'studygroups_enabled' => Config::get()->MY_COURSES_ENABLE_STUDYGROUPS,
+            'deputies_enabled'    => Config::get()->DEPUTIES_ENABLE,
+        ];
 
         $this->sem_courses  = MyRealmModel::getPreparedCourses('all', $params);
 
-        $factory = $this->get_template_factory();
+        $factory  = $this->get_template_factory();
         $template = $factory->open('my_courses/courseexport');
         $template->set_attributes($this->get_assigned_variables());
-        $template->set_attribute('image_style', 'height: 6px; width: 8px;');
+        $template->image_style = 'height: 6px; width: 8px;';
 
         $doc = new ExportPDF();
         $doc->addPage();

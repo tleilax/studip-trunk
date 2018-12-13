@@ -1,25 +1,24 @@
-<? foreach ($course_collection as $course)  : ?>
-<?
+<? foreach ($course_collection as $course):
     $teachers   = CourseMember::findByCourseAndStatus($course['seminar_id'], 'dozent');
     $collection = SimpleCollection::createFromArray($teachers);
     $dozenten =  $collection->map(function (CourseMember $teacher) {
-        return array(
+        return [
             'user_id'  => $teacher->user_id,
             'username' => $teacher->username,
             'Nachname' => $teacher->nachname,
             'fullname' => $teacher->getUserFullname('no_title_rev'),
-        );
+        ];
     });
 
-    if($with_modules) {
-        $trail_classes = array('Modulteil', 'StgteilabschnittModul', 'StgteilAbschnitt', 'StgteilVersion');
+    if ($with_modules) {
+        $trail_classes = ['Modulteil', 'StgteilabschnittModul', 'StgteilAbschnitt', 'StgteilVersion'];
         $mvv_object_pathes = MvvCourse::get($course['seminar_id'])->getTrails($trail_classes);
 
         if ($mvv_object_pathes) {
             foreach ($mvv_object_pathes as $mvv_object_path) {
                 // show only complete pathes
-                if (count($mvv_object_path) == 4) {
-                    $mvv_object_names = array();
+                if (count($mvv_object_path) === 4) {
+                    $mvv_object_names = [];
                     $modul_id = '';
                     foreach ($mvv_object_path as $mvv_object) {
                         if ($mvv_object instanceof StgteilabschnittModul) {
@@ -27,14 +26,9 @@
                         }
                         $mvv_object_names[] = $mvv_object->getDisplayName();
                     }
-                    $mvv_pathes[] = array($modul_id => $mvv_object_names);
+                    $mvv_pathes[] = [$modul_id => $mvv_object_names];
                 }
             }
-            // to prevent collisions of object ids in the tree
-            // in the case of same objects listed in more than one part
-            // of the tree
-            $id_sfx = new stdClass();
-            $id_sfx->c = 1;
         }
     }
     $sem_class = $course['sem_class'];
@@ -42,33 +36,33 @@
 
 <table>
 <tr>
-<th width="2cm"><?= _("Nr.") ?></th>
+<th width="2cm"><?= _('Nr.') ?></th>
 <td width="16cm"><?= htmlReady($course['veranstaltungsnummer'])?></td>
 </tr>
 <tr>
-<th><?= _("Name") ?></th>
+<th><?= _('Name') ?></th>
 <td><?= htmlReady($course['name']) ?></td>
 </tr>
 <? if ($course['untertitel']): ?>
 <tr>
-<th><?= _("Untertitel") ?></th>
+<th><?= _('Untertitel') ?></th>
 <td><?= htmlReady($course['untertitel']) ?></td>
 </tr>
 <? endif; ?>
 <? if ($dozenten): ?>
 <tr>
-<th><?= _("Lehrende") ?></th>
+<th><?= _('Lehrende') ?></th>
 <td><? foreach ($dozenten as $dozent): ?>
-<?= $colon ? ', ' : '' ?><?= htmlReady($dozent["fullname"]) ?><? $this->colon = true; ?>
+<?= $colon ? ', ' : '' ?><?= htmlReady($dozent['fullname']) ?><? $this->colon = true; ?>
 <? endforeach; ?></td>
 </tr>
 <? endif; ?>
 <? if ($mvv_pathes): ?>
 <tr nobr="true">
-<th><?= _("Module") ?></th>
+<th><?= _('Module') ?></th>
 <td>
 <? foreach ($mvv_pathes as $i => $mvv_path) : ?>
-<span style="<?= ($i%2==1)?' background-color:#eaeaea; ':''; ?>"><?= htmlReady(implode(' > ', reset(array_values($mvv_path)))) ?></span><br>
+<span <? if ($i%2==1) echo 'style="background-color:#eaeaea;"'; ?>><?= htmlReady(implode(' > ', reset(array_values($mvv_path)))) ?></span><br>
 <? endforeach; ?>
 </td>
 </tr>
