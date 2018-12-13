@@ -117,10 +117,10 @@ class Consultation_OverviewController extends ConsultationController
             $options[$course->id] = $course->getFullName();
         }
 
-        $filter = Sidebar::get()->addWidget(new SelectWidget(
+        Sidebar::get()->addWidget(new SelectWidget(
             _('Veranstaltungs-Filter'),
             $this->url_for('consultation/overview'),
-            'course_id'));
-        $filter->setOptions($options);
+            'course_id'
+        ))->setOptions($options);
     }
 }

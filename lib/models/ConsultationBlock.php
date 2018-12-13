@@ -49,7 +49,7 @@ class ConsultationBlock extends SimpleORMap implements PrivacyObject
             return ConsultationBooking::countBySql(
                 "JOIN consultation_slots USING(slot_id) WHERE block_id = ?",
                 [$block->id]
-                ) > 0;
+            ) > 0;
         };
 
         parent::configure($config);
