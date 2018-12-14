@@ -38,7 +38,7 @@ $intervals = [
             <input required type="text" name="start-date" id="start-date"
                    value="<?= htmlReady(Request::get('start-date', strftime('%d.%m.%Y', strtotime('+7 days'))))  ?>"
                    placeholder="<?= _('tt.mm.jjjj') ?>"
-                   data-date-picker='{"<":"#end-date"}'>
+                   data-date-picker>
         </label>
 
         <label class="col-3">
