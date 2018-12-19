@@ -1,13 +1,11 @@
 <?php
-use ILess\Node\ReferencedInterface;
-
 # Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
-require_once("lib/soap/StudipSoapClient" . (Config::get()->SOAP_USE_PHP5 ? "_PHP5" : "") .".class.php");
-require_once("lib/ilias_interface/class.ilSaxParser.php");
-require_once("lib/ilias_interface/class.ilObjectXMLParser.php");
+
+require_once 'vendor/ilias/class.ilSaxParser.php';
+require_once 'vendor/ilias/class.ilObjectXMLParser.php';
 
 /**
 * class for ILIAS-SOAP-Webservice
@@ -33,7 +31,7 @@ class IliasSoap extends StudipSoapClient
     private $soap_cache;
     private $separator_string;
 
-    
+
     /**
      * constructor
      *
@@ -53,12 +51,12 @@ class IliasSoap extends StudipSoapClient
         $this->ilias_version= $ilias_version;
         $this->admin_login = $admin_login;
         $this->admin_password = $admin_password;
-        $this->seperator_string = " / ";
-        
+        $this->separator_string = " / ";
+
         parent::__construct($soap_path);
 
         $this->user_type = "admin";
-        
+
         $this->loadCacheData();
         $this->caching_active = false;
     }
@@ -240,7 +238,7 @@ class IliasSoap extends StudipSoapClient
     {
         if ($this->ilias_version < 50108) {
             // ILIAS-Versions below 5.1.8
-            
+
         } elseif ($this->ilias_version < 50305) {
             // ILIAS-Versions below 5.3.5 (use LoginStudipUser)
             $param = array(
@@ -263,7 +261,7 @@ class IliasSoap extends StudipSoapClient
             return $result;
         }
     }
-    
+
     /**
     * logout
     *
@@ -296,7 +294,7 @@ class IliasSoap extends StudipSoapClient
         $result = $this->call('login', $param);
         return $result;
     }
-    
+
 ///////////////////////////
 // OBJECT-FUNCTIONS //
 //////////////////////////
@@ -313,7 +311,7 @@ class IliasSoap extends StudipSoapClient
     function parseIliasObject($xml, $condition_field = '', $condition_value = '')
     {
         $s = simplexml_load_string($xml);
-        
+
         $objects = array();
         if (is_object($s->Object)) {
             foreach ($s->Object as $object) {
@@ -349,8 +347,8 @@ class IliasSoap extends StudipSoapClient
         }
         return $objects;
     }
-    
-    
+
+
     /**
     * search objects
     *
@@ -581,7 +579,7 @@ class IliasSoap extends StudipSoapClient
         );
         return $this->call('addDesktopItems', $param);
     }
-    
+
     /**
     * get tree childs
     *
@@ -915,7 +913,7 @@ class IliasSoap extends StudipSoapClient
         $result = $this->call('getUser', $param); // returns user data array
         return $result;
     }
-    
+
     /**
      * get user fullname
      *
@@ -934,7 +932,7 @@ class IliasSoap extends StudipSoapClient
         $objects = $result;
         return trim(sprintf('%s %s %s', $result['title'], $result['firstname'], $result['lastname']));
     }
-    
+
     /**
      * search users
      *
@@ -999,7 +997,7 @@ class IliasSoap extends StudipSoapClient
             return false;
         }
     }
-    
+
     /**
      * add user by importUsers
      *
@@ -1016,7 +1014,7 @@ class IliasSoap extends StudipSoapClient
             $user_data[$key] = htmlReady($user_data[$key]);
         }
         $update = $user_data["id"];
-        
+
         $usr_xml = "<Users>
 <User".($update ? ' Id="'.$user_data["id"].'"' : '')." Action=".($update ? '"Update"' : '"Insert"').">
 <UDFDefinitions></UDFDefinitions>
@@ -1042,7 +1040,7 @@ class IliasSoap extends StudipSoapClient
 <ExternalAccount>".$user_data["external_account"]."</ExternalAccount>
 </User>
 </Users>";
-        
+
         $param = array(
                         'sid' => $this->getSID(),
                         'folder_id' => -1,
@@ -1051,15 +1049,15 @@ class IliasSoap extends StudipSoapClient
                         'send_account_mail' => 0
         );
         $result = $this->call('importUsers', $param);
-        
+
         $s = simplexml_load_string($result);
-        
+
         if ((string)$s->rows->row->column[3] == "successful")
             return (string)$s->rows->row->column[0];
             else
                 return false;
     }
-    
+
  ///////////////////////////////////////////////////
     /**
      * copy object
@@ -1076,16 +1074,16 @@ class IliasSoap extends StudipSoapClient
         $type = $object_data["type"];
         $title = $object_data["title"];
         $description = $object_data["description"];
-        
+
         $xml = "<Settings source_id=\"$source_id\" target_id=\"$target_id\" default_action=\"COPY\"/>";
-        
+
         $param = array(
                         'sid' => $this->getSID(),
                         'xml' => $xml
         );
         return $this->call('copyObject', $param);
     }
-    
+
     /**
      * get structure
      *
@@ -1101,18 +1099,18 @@ class IliasSoap extends StudipSoapClient
                         'ref_id' => $ref_id
         );
         $result = $this->call('getStructureObjects', $param);
-        
+
         $structure = array();
         if ($result) {
             $s = simplexml_load_string($result);
-            
+
             foreach ($s->StructureObjects->StructureObject as $object) {
                 $structure[] = (string)$object->Title;
             }
         }
         return $structure;
     }
-    
+
     /**
      * get path
      *
@@ -1129,22 +1127,22 @@ class IliasSoap extends StudipSoapClient
                         'ref_id' => $ref_id
         );
         $result = $this->call('getPathForRefId', $param);
-        
+
         if ($result) {
             $s = simplexml_load_string($result);
-            
+
             foreach ($s->rows->row as $row) {
                 $path[] = (string)$row->column[2];
             }
         }
-        
+
         if (is_array($path)) {
-            return implode($path, $this->seperator_string);
+            return implode($path, $this->separator_string);
         } else {
             return false;
         }
     }
-    
+
     /**
      *
      * returns repository-path to ilias-object
@@ -1161,22 +1159,22 @@ class IliasSoap extends StudipSoapClient
                         'ref_id' => $ref_id
         );
         $result = $this->call('getPathForRefId', $param);
-        
+
         if ($result) {
             $s = simplexml_load_string($result);
-            
+
             foreach ($s->rows->row as $row) {
                 $path[] = (string)$row->column[0];
             }
         }
-        
+
         if (is_array($path)) {
             return implode($path, '_');
         } else {
             return false;
         }
     }
-    
+
     /**
      *
      * returns ILIAS-Server-Info
@@ -1202,7 +1200,7 @@ class IliasSoap extends StudipSoapClient
         }
         return $data;
     }
-    //////////////////////////////////////////    
+    //////////////////////////////////////////
 
     /**
     * update user
@@ -1308,7 +1306,7 @@ class IliasSoap extends StudipSoapClient
             );
         return $this->call('assignCourseMember', $param);
     }
-    
+
     /**
      * add course
      *
@@ -1324,7 +1322,7 @@ class IliasSoap extends StudipSoapClient
         foreach($course_data as $key => $value) {
             $course_data[$key] = htmlReady($course_data[$key]);
         }
-        
+
         $xml = $this->getCourseXML($course_data);
         $param = array(
                         'sid' => $this->getSID(),
@@ -1334,7 +1332,7 @@ class IliasSoap extends StudipSoapClient
         $crs_id = $this->call('addCourse', $param);
         return $crs_id;
     }
-    
+
     /**
      * add group
      *
@@ -1350,7 +1348,7 @@ class IliasSoap extends StudipSoapClient
         foreach($group_data as $key => $value) {
             $group_data[$key] = htmlReady($group_data[$key]);
         }
-        
+
         $xml = $this->getGroupXML($group_data);
         $param = array(
                         'sid' => $this->getSID(),
@@ -1360,7 +1358,7 @@ class IliasSoap extends StudipSoapClient
         $group_id = $this->call('addGroup', $param);
         return $group_id;
     }
-    
+
     /**
      * assign group member
      *
@@ -1381,7 +1379,7 @@ class IliasSoap extends StudipSoapClient
         );
         return $this->call('assignGroupMember', $param);
     }
-    
+
     /**
      * exclude group member
      *
@@ -1400,7 +1398,7 @@ class IliasSoap extends StudipSoapClient
         );
         return $this->call('excludeGroupMember', $param);
     }
-    
+
     /**
      * get group
      *
@@ -1418,7 +1416,7 @@ class IliasSoap extends StudipSoapClient
         $result = $this->call('getGroup', $param);
         return $result;
     }
-    
+
     /**
     * get course-xml
     *
@@ -1481,7 +1479,7 @@ class IliasSoap extends StudipSoapClient
     return $xml;
     }
 
-    
+
     /**
     * get group xml
     *
@@ -1517,8 +1515,8 @@ class IliasSoap extends StudipSoapClient
     </group>';
         return $xml;
     }
- /**/   
-    
+ /**/
+
     /**
     * check reference by title
     *

@@ -51,7 +51,7 @@ class IliasUser
     /**
     * constructor
     *
-    * init class. don't call directly, class is loaded by ConnectedILIAS.
+    * init class. don't call directly, class is loaded by ConnectedIlias.
     * @access public
     * @param string $index ILIAS installation index
     */
@@ -63,7 +63,7 @@ class IliasUser
         $this->auth_plugin = DBManager::get()->query("SELECT IFNULL(auth_plugin, 'standard') FROM auth_user_md5 WHERE user_id = '" . $this->studip_id. "'")->fetchColumn();
         $this->index = $index;
         $this->version = $version;
-        
+
         $this->readData();
         $this->getStudipUserData();
     }
@@ -210,7 +210,7 @@ class IliasUser
     {
         return $this->id;
     }
-    
+
     /**
      * set id
      *
@@ -222,7 +222,7 @@ class IliasUser
     {
         $this->id = $ilias_user_id;
     }
-    
+
     /**
     * get stud.ip user-id
     *
@@ -519,7 +519,7 @@ class IliasUser
     {
         return $this->is_connected;
     }
-    
+
     /**
      * get authentication token
      *

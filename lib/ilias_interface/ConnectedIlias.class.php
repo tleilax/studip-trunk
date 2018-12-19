@@ -3,9 +3,6 @@
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
-require_once("lib/ilias_interface/IliasSoap.class.php");
-require_once("lib/ilias_interface/IliasUser.class.php");
-require_once("lib/ilias_interface/IliasModule.class.php");
 
 DEFINE (CRS_NOTIFICATION, "1");
 DEFINE (CRS_NO_NOTIFICATION, "2");
@@ -39,12 +36,12 @@ class ConnectedIlias
     var $global_roles;
     var $crs_roles;
     var $error;
-    
+
     var $soap_client;
     var $course_modules;
     var $user;
     var $user_modules;
-    
+
     /**
     * constructor
     *
@@ -70,7 +67,7 @@ class ConnectedIlias
         $this->operations = array();
         $this->course_modules = array();
         $this->user_modules = array();
-        
+
         // set ILIAS version as integer value
         $this->ilias_int_version = $this->getIntVersion($this->ilias_config['version']);
 
@@ -78,7 +75,7 @@ class ConnectedIlias
         $this->soap_client = new IliasSoap($this->index, $this->ilias_config['url'].'/webservice/soap/server.php?wsdl', $this->ilias_config['client'], $this->ilias_int_version, $this->ilias_config['admin'], $this->ilias_config['admin_pw']);
         $this->soap_client->setCachingStatus($this->ilias_interface_config['cache']);
 //        $this->soap_client->setCachingStatus(false);
-        
+
         // init current user (only if ILIAS installation is active)
         if ($this->ilias_config['is_active']) {
             $this->user = new IliasUser($this->index, $this->ilias_config['version']);
@@ -92,7 +89,7 @@ class ConnectedIlias
             }
         }
     }
-    
+
     /**
      * get ILIAS version as int
      *
@@ -105,7 +102,7 @@ class ConnectedIlias
         $version_array = explode('.', $version);
         return ((int)$version_array[0]*10000) + ((int)$version_array[1]*100) + ((int)$version_array[2]);
     }
-    
+
     /**
      * load settings
      *
@@ -120,7 +117,7 @@ class ConnectedIlias
         $ilias_configs = Config::get()->ILIAS_INTERFACE_SETTINGS;
         $this->ilias_config = $ilias_configs[$this->index];
     }
-    
+
     /**
      * store settings
      *
@@ -133,8 +130,8 @@ class ConnectedIlias
         $ilias_configs[$this->index] = $this->ilias_config;
         Config::get()->store('ILIAS_INTERFACE_SETTINGS', $ilias_configs);
     }
-    
-    
+
+
     /**
      * get ILIAS info
      *
@@ -149,11 +146,10 @@ class ConnectedIlias
         }
         $info = array();
         // check if url exists
-        $file = fopen($url, "r");
-        if ($file == false) {
+        $check = @get_headers($url . 'login.php');
+        if (strpos($check[0], '200') === false) {
             return $info;
         } else {
-            fclose($file);
             $info['url'] = $url;
         }
         $soap_client = new IliasSoap('new', $url.'/webservice/soap/server.php?wsdl');
@@ -163,7 +159,7 @@ class ConnectedIlias
         }
         return $info;
     }
-    
+
     /**
      * get soap methods
      *
@@ -201,7 +197,7 @@ class ConnectedIlias
         }
         return $soap_methods;
     }
-    
+
     /**
      * get connection status
      *
@@ -218,12 +214,10 @@ class ConnectedIlias
         }
 
         // check if url exists
-        $file = fopen($this->ilias_config['url'], "r");
-        if ($file == false) {
+        $check = @get_headers($this->ilias_config['url'] . 'login.php');
+        if (strpos($check[0], '200') === false) {
             $this->error[] = sprintf(_('Die URL "%s" ist nicht erreichbar.'), $this->ilias_config['url']);
             return false;
-        } else {
-            fclose($file);
         }
 
         // check soap connection
@@ -231,15 +225,6 @@ class ConnectedIlias
         if (!$res) {
             $this->error[] = sprintf(_('Anmelden mit dem Account "%s" in der %s-Installation ist fehlgeschlagen.'), $this->ilias_config['admin'], $this->ilias_config['name']);
             return false;
-        }
-            
-        // check if target-file exists
-        $file = fopen($this->ilias_config['url'].'/studip_referrer.php', "r");
-        if ($file == false) {
-            $this->error[] = sprintf(_("Die Zieldatei \"%s\" liegt nicht im Hauptverzeichnis der %s-Installation."), "studip_referrer.php", $this->ilias_config['name']);
-            return false;
-        } else {
-            fclose($file);
         }
 
         return true;
@@ -263,7 +248,7 @@ class ConnectedIlias
             }
             if ($category) {
                 $this->ilias_config['root_category'] = $category;
-                
+
                 // check user data category
                 if (! $this->ilias_config['user_data_category']) {
                     $object_data["title"] = sprintf(_("User-Daten"));
@@ -281,10 +266,10 @@ class ConnectedIlias
                 $this->storeSettings();
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * get permissions status
      *
@@ -324,10 +309,10 @@ class ConnectedIlias
         $user_exists = $this->soap_client->lookupUser($user_data["login"]);
         //automatische Zuordnung von bestehenden Ilias Accounts
         //nur wenn ldap Modus benutzt wird und Stud.IP Nutzer passendes ldap plugin hat
-        if ($user_exists && 
-                ! $this->ilias_config['user_prefix'] && 
-                $this->ilias_config['ldap_enable'] && 
-                ($this->user->auth_plugin != 'standard') && 
+        if ($user_exists &&
+                ! $this->ilias_config['user_prefix'] &&
+                $this->ilias_config['ldap_enable'] &&
+                ($this->user->auth_plugin != 'standard') &&
                 ($this->user->auth_plugin == $this->ilias_config['ldap_enable'])) {
             $this->user->setConnection($this->user->getUserType(), true);
             PageLayout::postSuccess(sprintf(_("Verbindung mit Nutzer ID %s wiederhergestellt."), $this->user->id));
@@ -343,7 +328,7 @@ class ConnectedIlias
         } else {
             $role_id = 4;
         }
-        
+
         $this->soap_client->setCachingStatus(false);
         $this->soap_client->clearCache();
         $user_id = $this->soap_client->addUser($user_data, $role_id);
@@ -357,7 +342,7 @@ class ConnectedIlias
         }
         return false;
     }
-    
+
     /**
      * update user account
      *
@@ -379,7 +364,7 @@ class ConnectedIlias
         } else {
             $role_id = 4;
         }
-        
+
         $this->soap_client->setCachingStatus(false);
         $this->soap_client->clearCache();
 //        PageLayout::postSuccess(_('update ILIAS user'));
@@ -390,7 +375,7 @@ class ConnectedIlias
         }
         return false;
     }
-    
+
     /**
      * create new user category
      *
@@ -402,13 +387,13 @@ class ConnectedIlias
     {
         $this->soap_client->setCachingStatus(false);
         $this->soap_client->clearCache();
-        
+
         // data for user category in ILIAS
         $object_data["title"] = sprintf(_("Eigene Daten von %s (%s)."), $this->user->getName(), $this->user->getId());
         $object_data["description"] = sprintf(_("Hier befinden sich die persönlichen Lernmodule des Benutzers %s."), $this->user->getName());
         $object_data["type"] = "cat";
         $object_data["owner"] = $this->user->getId();
-        
+
         // check if category already exists
         $cat = $this->soap_client->getReferenceByTitle($object_data["title"]);
         if (($cat != false) && $this->soap_client->checkReferenceById($cat) ) {
@@ -420,7 +405,7 @@ class ConnectedIlias
                 $this->soap_client->addDesktopItems($this->user->getId(), $this->user->category);
             }
         }
-        
+
         // store data
         if ($this->user->category != false) {
             $this->user->setConnection($this->user->getUserType());
@@ -428,7 +413,7 @@ class ConnectedIlias
             $this->error[] = _('ILIAS-User-Kategorie konnte nicht angelegt werden.');
             return false;
         }
-        
+
         // personal user role in ILIAS
         $role_data["title"] = "studip_usr" . $this->user->getId() . "_cat" . $this->user->category;
         $role_data["description"] = sprintf(_("User-Rolle von %s. Diese Rolle wurde von Stud.IP generiert."), $this->user->getName());
@@ -444,7 +429,7 @@ class ConnectedIlias
         }
         return true;
     }
-    
+
     /**
      * get ILIAS user full name
      *
@@ -457,7 +442,7 @@ class ConnectedIlias
     {
         return $this->soap_client->getUserFullname($user_id);
     }
-    
+
     /**
      * get ILIAS path
      *
@@ -470,7 +455,7 @@ class ConnectedIlias
     {
         return $this->soap_client->getPath($ref_id);
     }
-    
+
     /**
      * get structure
      *
@@ -483,14 +468,14 @@ class ConnectedIlias
     {
         return $this->soap_client->getStructure($ref_id);
     }
-    
+
     /**
      * get supported module types
      *
      * returns all active module types for current ILIAS installation
      * @access public
      */
-    function getsupportedModuleTypes() 
+    function getsupportedModuleTypes()
     {
         return array(
 //                        'cat'  => _('Kategorie'),
@@ -505,7 +490,7 @@ class ConnectedIlias
                         'exc'  => _('Übung')
         );
     }
-    
+
     /**
      * get active module types
      *
@@ -516,7 +501,7 @@ class ConnectedIlias
     {
         return $this->ilias_config['modules'];
     }
-    
+
     /**
      * check is module type is allowed
      *
@@ -527,7 +512,7 @@ class ConnectedIlias
     {
         return (boolean)$this->ilias_config['modules'][$module_type];
     }
-    
+
     /**
      * get existing ilias indices
      *
@@ -539,7 +524,7 @@ class ConnectedIlias
         $query = "SELECT DISTINCT external_user_system_type FROM auth_extern ORDER BY external_user_system_type ASC";
         return DBManager::get()->fetchGrouped($query);
     }
-    
+
    /**
     * create new instance of subclass content-module with given values
     *
@@ -635,8 +620,8 @@ class ConnectedIlias
         }
         return $this->user_modules;
     }
-    
-    
+
+
     /**
      * get module
      *
@@ -683,11 +668,11 @@ class ConnectedIlias
             $this->error[] = sprintf(_('Der zugeordnete ILIAS-Kurs (ID %s) existiert nicht mehr. Ein neuer Kurs wurde angelegt.'), $crs_id);
             $crs_id = $this->addCourse($studip_course_id);
         }
-        
-        if ($crs_id == false) { 
+
+        if ($crs_id == false) {
             return false;
         }
-        
+
         if ($connection_mode == 'copy') {
             // TODO: CHECK IF COPY/ADD IS ALLOWED
             // TODO: NO START FILE FOR HTLM MODULE ON COPY??--testen
@@ -729,8 +714,8 @@ class ConnectedIlias
         }
         return false;
     }
-    
-    
+
+
     /**
      * unset module connection
      *
@@ -771,7 +756,7 @@ class ConnectedIlias
     {
         return $this->course_modules;
     }
-    
+
     /**
      * create course
      *
@@ -785,7 +770,7 @@ class ConnectedIlias
         $crs_id = IliasObjectConnections::getConnectionModuleId($studip_course_id, "crs", $this->index);
         $this->soap_client->setCachingStatus(false);
         $this->soap_client->clearCache();
-        
+
         if (!$crs_id) {
             $seminar = Seminar::getInstance($studip_course_id);
             // on error use root category
@@ -865,7 +850,7 @@ class ConnectedIlias
                     }
                 }
             }
-            
+
             // create course
             $lang_array = explode("_",$DEFAULT_LANGUAGE);
             $course_data["language"] = $lang_array[0];
@@ -887,13 +872,13 @@ class ConnectedIlias
                 return false;
             }
             IliasObjectConnections::setConnection($studip_course_id, $crs_id, "crs", $this->index);
-            
+
             // Rollen zuordnen
             $this->CheckUserCoursePermissions($crs_id);
             return $crs_id;
         }
     }
-    
+
     /**
      * check user permissions
      *
@@ -907,7 +892,7 @@ class ConnectedIlias
         if (($ilias_course_id == "") || ($this->user->getId() == "")) {
             return false;
         }
-        
+
         // get course role folder and local roles
         $user_roles = $this->soap_client->getUserRoles($this->user->getId());
         $local_roles = $this->soap_client->getLocalRoles($ilias_course_id);
@@ -927,7 +912,7 @@ class ConnectedIlias
                 }
             }
         }
-        
+
         // is user already course-member? otherwise add member with proper role
         // TODO: do not add root
         $is_member = $this->soap_client->isMember( $this->user->getId(), $ilias_course_id);
@@ -958,24 +943,24 @@ class ConnectedIlias
                 $this->permissions_changed = true;
             }
         }
-        
+
         // check if user has proper local role
         // if not, change it
         if ($active_role != $proper_role) {
             if ($active_role) {
                 $this->soap_client->deleteUserRoleEntry( $this->user->getId(), $active_role);
             }
-            
+
             if ($proper_role) {
                 $this->soap_client->addUserRoleEntry( $this->user->getId(), $proper_role);
             }
             $this->permissions_changed = true;
         }
-        
+
         if (! $this->getUserModuleViewPermission($ilias_course_id)) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -997,14 +982,14 @@ class ConnectedIlias
         if (! is_array($this->tree_allowed_operations)) {
             return false;
         }
-                
+
         $view_permission = false;
         if ((in_array($this->operations[OPERATION_READ], $this->tree_allowed_operations)) && (in_array($this->operations[OPERATION_VISIBLE], $this->tree_allowed_operations))) {
             $view_permission = true;
         }
         return $view_permission;
     }
-    
+
     /**
      * get operation
      *
@@ -1022,7 +1007,7 @@ class ConnectedIlias
 
         return $this->operations[$operation];
     }
-    
+
     /**
      * get operation-ids
      *
@@ -1062,7 +1047,7 @@ class ConnectedIlias
     /**
     * get index of ILIAS installation
     *
-    * returns index of ILIAS installation 
+    * returns index of ILIAS installation
     * @access public
     * @return string type
     */
@@ -1142,7 +1127,7 @@ class ConnectedIlias
     {
         return $this->error;
     }
-    
+
     /**
     * get user name
     *
@@ -1154,7 +1139,7 @@ class ConnectedIlias
     {
         return false;
     }
-    
+
     /**
      * get user session
      *
@@ -1166,7 +1151,7 @@ class ConnectedIlias
     {
         return false;
     }
-    
+
     /**
     * search ILIAS modules
     *
@@ -1181,7 +1166,7 @@ class ConnectedIlias
             $types[] = $type;
         }
         $search_modules = array();
-        
+
         $result = $this->soap_client->searchObjects($types, $search_key, "and", $this->user->getId());
         if ($result) {
             foreach($result as $key => $object_data) {

@@ -206,6 +206,10 @@ namespace {
         require_once 'lib/calendar_functions.inc.php';
     }
 
+    if (Config::get()->SOAP_ENABLE) {
+        require_once 'lib/soap/StudipSoapClient' . (Config::get()->SOAP_USE_PHP5 ? '_PHP5' : '' ) . '.class.php';
+    }
+
     // set dummy navigation until db is ready
     Navigation::setRootNavigation(new Navigation(''));
 

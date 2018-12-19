@@ -13,10 +13,6 @@
  * @category    Stud.IP
  * @since       4.3
  */
-
-require_once("lib/ilias_interface/ConnectedIlias.class.php");
-require_once("lib/ilias_interface/IliasObjectConnections.class.php");
-
 class Course_IliasInterfaceController extends AuthenticatedController
 {
     /**
@@ -92,7 +88,7 @@ div#preview_container {
         $this->ilias_list = array();
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
             if ($ilias_config['is_active']) {
-                $this->ilias_list[$ilias_index] = new ConnectedILIAS($ilias_index);
+                $this->ilias_list[$ilias_index] = new ConnectedIlias($ilias_index);
                 if ($GLOBALS['perm']->have_perm($this->ilias_list[$ilias_index]->ilias_config['author_perm'])) {
                     $this->author_permission = true;
                 }
@@ -246,7 +242,7 @@ div#preview_container {
         if (! $this->edit_permission)
             throw new AccessDeniedException(_('Keine Berechtigung zum Bearbeiten der Lernobjekt-Zuordnungen.'));
 
-        $this->ilias = new ConnectedILIAS($index);
+        $this->ilias = new ConnectedIlias($index);
 
         if (Request::submitted('remove_module')) {
             $module = $this->ilias->getModule(Request::int('ilias_module_id'));
@@ -279,7 +275,7 @@ div#preview_container {
         $this->mode = $mode;
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
             if ($ilias_config['is_active']) {
-                $this->ilias_list[$ilias_index] = new ConnectedILIAS($ilias_index);
+                $this->ilias_list[$ilias_index] = new ConnectedIlias($ilias_index);
                 $last_ilias_index = $ilias_index;
             }
         }
@@ -288,7 +284,7 @@ div#preview_container {
             // allow add course only if no course exists
             foreach ($this->ilias_list as $ilias_index => $ilias) {
                 if (IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $ilias_index)) {
-                    unset($ilias_list[$ilias_index]);
+                    unset($this->ilias_list[$ilias_index]);
                 } else {
                     $last_ilias_index = $ilias_index;
                 }
@@ -399,7 +395,7 @@ div#preview_container {
         $this->ilias_list = array();
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
             if ($ilias_config['is_active'] && IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $ilias_index)) {
-                $this->ilias_list[$ilias_index] = new ConnectedILIAS($ilias_index);
+                $this->ilias_list[$ilias_index] = new ConnectedIlias($ilias_index);
                 $last_ilias_index = $ilias_index;
             }
         }
@@ -475,7 +471,7 @@ div#preview_container {
             throw new AccessDeniedException(_('Keine Berechtigung zum Entfernen der Verknüpfung.'));
         }
 
-        $this->ilias = new ConnectedILIAS($index);
+        $this->ilias = new ConnectedIlias($index);
         if ($this->ilias->isActive()) {
             if (IliasObjectConnections::DeleteAllConnections($this->seminar_id, $index)) {
                 PageLayout::postSuccess(_("Kurs-Verknüpfung entfernt."));
@@ -493,7 +489,7 @@ div#preview_container {
      */
     public function view_object_action($index, $module_id)
     {
-        $this->ilias = new ConnectedILIAS($index);
+        $this->ilias = new ConnectedIlias($index);
         if ($this->ilias->isActive()) {
             //TODO: check context
             $this->module = $this->ilias->getModule($module_id);

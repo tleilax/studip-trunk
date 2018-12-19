@@ -17,9 +17,6 @@
  * @category    Stud.IP
  * @since       4.3
  */
-
-require_once("lib/ilias_interface/ConnectedIlias.class.php");
-
 class MyIliasAccountsController extends AuthenticatedController
 {
     /**
@@ -32,24 +29,24 @@ class MyIliasAccountsController extends AuthenticatedController
     public function before_filter(&$action, &$args)
     {
         parent::before_filter($action, $args);
-        
+
         if (!Config::Get()->ELEARNING_INTERFACE_ENABLE ) {
             throw new AccessDeniedException(_('Ilias-Interface ist nicht aktiviert.'));
         } else
             $this->ilias_active = true;
-            
+
             PageLayout::setHelpKeyword('Basis.Ilias');
-            
+
             $this->selected = Request::quoted('cms_select');
             $GLOBALS['cms_select'] = $this->selected;
             $this->cms_list = array();
-            
+
             $this->new_account_cms = Request::get('new_account_cms');
             $this->module_system_type = Request::option('module_system_type');
             $this->module_id = Request::option('module_id');
             $this->module_type = Request::option('module_type');
             $this->anker_target = Request::option('anker_target');
-            
+
             if (!isset($GLOBALS['ELEARNING_INTERFACE_MODULES'][$this->new_account_cms])) {
                 unset($this->new_account_cms);
             }
@@ -59,14 +56,14 @@ class MyIliasAccountsController extends AuthenticatedController
             $this->sidebar = Sidebar::get();
             $this->sidebar->setImage('sidebar/learnmodule-sidebar.png');
     }
-    
+
     /**
      * Displays accounts and ilias_interface modules for active user
      */
     public function index_action()
     {
         Navigation::activateItem('/tools/my_ilias_accounts');
-        
+
         PageLayout::setTitle(_("Meine Lernobjekte und ILIAS-Accounts"));
         PageLayout::addStyle('
 #ilias_module_details_window, #ilias_module_edit_window {
@@ -90,12 +87,12 @@ file_management_forms, div#preview_container {
     height: 100%;
 }
 ');
-        
+
         $this->ilias_list = array();
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
             if ($ilias_config['is_active']) {
-                $this->ilias_list[$ilias_index] = new ConnectedILIAS($ilias_index);
-                
+                $this->ilias_list[$ilias_index] = new ConnectedIlias($ilias_index);
+
                 if (Request::submitted('set_new_account') AND (Request::get('ilias_new_account_index') == $ilias_index)) {
                     CSRFProtection::verifyUnsafeRequest();
                     // set new user account
@@ -123,7 +120,7 @@ file_management_forms, div#preview_container {
                 }
             }
         }
-        
+
         $widget = new ActionsWidget();
         foreach($this->ilias_list as $ilias) {
             if ($GLOBALS['perm']->have_perm('autor')) {
@@ -137,7 +134,7 @@ file_management_forms, div#preview_container {
         }
         $this->sidebar->addWidget($widget);
     }
-    
+
     /**
      * View ILIAS module Details
      * @param $index Index of ILIAS installation
@@ -145,7 +142,7 @@ file_management_forms, div#preview_container {
      */
     public function view_object_action($index, $module_id)
     {
-        $this->ilias = new ConnectedILIAS($index);
+        $this->ilias = new ConnectedIlias($index);
         if ($this->ilias->isActive()) {
             $modules = $this->ilias->getUserModules();
             $this->module = $modules[$module_id];
@@ -162,7 +159,7 @@ file_management_forms, div#preview_container {
      */
     public function add_object_action($index)
     {
-        $this->ilias = new ConnectedILIAS($index);
+        $this->ilias = new ConnectedIlias($index);
         if ($this->ilias->isActive()) {
             $this->ilias_ref_id = $this->ilias->user->getCategory();
             $this->ilias_index = $index;
@@ -170,7 +167,7 @@ file_management_forms, div#preview_container {
             PageLayout::postError(_("Diese ILIAS-Installation ist nicht aktiv."));
         }
     }
-    
+
     /**
      * Set new account for ILIAS installation
      * @param $index Index of ILIAS installation
@@ -179,7 +176,7 @@ file_management_forms, div#preview_container {
     {
         $ilias_configs = Config::get()->ILIAS_INTERFACE_SETTINGS;
         if ($ilias_configs[$index]['is_active']) {
-            $this->ilias = new ConnectedILIAS($ilias_index);
+            $this->ilias = new ConnectedIlias($ilias_index);
             $this->ilias_index = $index;
         }
     }
@@ -191,7 +188,7 @@ file_management_forms, div#preview_container {
     {
         $ilias_configs = Config::get()->ILIAS_INTERFACE_SETTINGS;
         if ($ilias_configs[$index]['is_active']) {
-            $this->ilias = new ConnectedILIAS($index);
+            $this->ilias = new ConnectedIlias($index);
             $token = $this->ilias->user->getToken();
             $session_id = $this->ilias->soap_client->loginUser($this->ilias->user->getUsername(), $token);
             var_dump($session_id);echo $this->ilias->soap_client->getError();die();
@@ -207,7 +204,7 @@ file_management_forms, div#preview_container {
                 // remove client id from session id
                 $session_array = explode("::", $session_id);
                 $session_id = $session_array[0];
-                
+
                 // build target link
                 $parameters = '?sess_id='.$session_id;
                 if (!empty($this->ilias->getClientId())) {
@@ -221,7 +218,7 @@ file_management_forms, div#preview_container {
                     if ($module_type) {
                         $parameters .= "&type=".$module_type;
                     }
-                    
+
                     // refer to ILIAS target file
                     //echo $this->ilias->getTargetFile() . $parameters;die();
                     header("Location: ". $this->ilias->getTargetFile() . $parameters);
