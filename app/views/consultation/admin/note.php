@@ -1,11 +1,10 @@
 <? if (!$slot_id): ?>
-    <?= MessageBox::info(implode('<br>', [
-        _('Die Änderungen wirken sich auf alle diesem Sprechstundenblock zugewiesenen Termine aus.'),
-        _('In der Textbox unten steht der ursprüngliche Text, wie er beim Anlegen eingetragen wurde.')
-    ]))->hideClose() ?>
+    <?= MessageBox::info(
+        _('Das Ändern der Anmerkung wird auch die Anmerkung aller Termine dieses Blocks ändern.')
+    )->hideClose() ?>
 <? endif; ?>
 
-<form action="<?= $controller->url_for("consultation/admin/note/{$block->id}/{$slot_id}") ?>" method="post" class="default">
+<form action="<?= $controller->note($block, $slot_id) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>

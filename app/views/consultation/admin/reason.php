@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for("consultation/admin/reason/{$booking->slot->block_id}/{$booking->slot_id}/{$booking->id}") ?>" method="post" class="default">
+<form action="<?= $controller->reason($booking->slot->block, $booking->slot, $booking) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>

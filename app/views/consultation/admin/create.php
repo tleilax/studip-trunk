@@ -16,7 +16,7 @@ $intervals = [
 ];
 ?>
 
-<form action="<?= $controller->url_for('consultation/admin/store') ?>" method="post" class="default" data-dialog>
+<form action="<?= $controller->store() ?>" method="post" class="default" data-dialog>
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
@@ -129,7 +129,7 @@ $intervals = [
         <?= Studip\Button::createAccept(_('Termin speichern')) ?>
         <?= Studip\LinkButton::createCancel(
             _('Abbrechen'),
-            $controller->url_for('consultation/admin')
+            $controller->indexURL()
         ) ?>
     </footer>
 </form>

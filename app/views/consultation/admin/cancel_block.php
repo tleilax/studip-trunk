@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for("consultation/admin/cancel_block/{$block->id}") ?>" method="post" class="default">
+<form action="<?= $controller->cancel_block($block) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>

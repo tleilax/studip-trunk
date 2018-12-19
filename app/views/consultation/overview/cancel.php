@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for("consultation/overview/cancel/{$slot->block_id}/{$slot->id}") ?>" method="post" class="default">
+<form action="<?= $controller->cancel($slot->block, $slot) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>

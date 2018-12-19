@@ -47,14 +47,12 @@
             </td>
             <td class="actions">
             <? if ($slot->isOccupied($GLOBALS['user']->id)): ?>
-                <a href="<?= $controller->link_for("consultation/overview/cancel/{$block->id}/{$slot->id}") ?>" data-dialog="size=auto">
-                    <?= Icon::create('consultation+remove')->asImg(tooltip2(_('Sprechstundentermin absagen'))) ?>
+                <a href="<?= $controller->cancel($block, $slot) ?>" data-dialog="size=auto">
+                    <?= Icon::create('trash')->asImg(tooltip2(_('Sprechstundentermin absagen'))) ?>
                 </a>
-            <? elseif ($slot->isOccupied()): ?>
-                <?= Icon::create('consultation+add', Icon::ROLE_INACTIVE)->asImg(tooltip2(_('Sprechstunde ist bereits belegt'))) ?>
-            <? else: ?>
-                <a href="<?= $controller->link_for("consultation/overview/book/{$block->id}/{$slot->id}") ?>" data-dialog="size=auto">
-                    <?= Icon::create('consultation+add')->asImg(tooltip2(_('Sprechstundentermin reservieren'))) ?>
+            <? elseif (!$slot->isOccupied()): ?>
+                <a href="<?= $controller->book($block, $slot) ?>" data-dialog="size=auto">
+                    <?= Icon::create('add')->asImg(tooltip2(_('Sprechstundentermin reservieren'))) ?>
                 </a>
             <? endif; ?>
             </td>

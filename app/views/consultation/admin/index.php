@@ -5,13 +5,13 @@
         _('Derzeit sind keine Sprechstundentermine eingetragen.'),
         '<a href="%s" class="button" data-dialog="size=auto">%s</a>',
     ]),
-    $controller->link_for('consultation/admin/create'),
+    $controller->create(),
     _('Sprechstundenblöcke anlegen')
 ))->hideClose() ?>
 
 <? else: ?>
 
-<form action="<?= $controller->link_for("consultation/admin/bulk") ?>" method="post">
+<form action="#" method="post">
 <table class="default">
     <colgroup>
         <col width="10%">
@@ -37,9 +37,14 @@
             </th>
             <th class="actions">
                 <?= ActionMenu::get()->addLink(
-                    $controller->url_for("consultation/admin/note/{$block->id}"),
+                    $controller->edit_roomURL($block),
+                    _('Raum bearbeiten'),
+                    Icon::create('edit'),
+                    ['data-dialog' => 'size=auto']
+                )->addLink(
+                    $controller->noteURL($block),
                     _('Anmerkung bearbeiten'),
-                    Icon::create('comment'),
+                    Icon::create('edit'),
                     ['data-dialog' => 'size=auto']
                 )->addLink(
                     $controller->url_for("consultation/export/print/{$block->id}"),
@@ -47,7 +52,7 @@
                     Icon::create('print'),
                     ['target' => '_blank']
                 )->condition($block->has_bookings)->addLink(
-                    $controller->url_for("consultation/admin/cancel_block/{$block->id}"),
+                    $controller->cancel_blockURL($block),
                     _('Sprechstundentermine absagen'),
                     Icon::create('consultation+remove'),
                     ['data-dialog' => 'size=auto']
@@ -56,7 +61,7 @@
                     _('Sprechstundentermine entfernen'),
                     Icon::create('trash'),
                     [
-                        'formaction'   => $controller->url_for("consultation/admin/remove/{$block->id}"),
+                        'formaction'   => $controller->removeURL($block),
                         'data-confirm' => _('Wollen Sie diese Sprechtstundentermine wirklich löschen?'),
                     ]
                 ) ?>
@@ -107,22 +112,22 @@
             </td>
             <td class="actions">
                 <?= ActionMenu::get()->addLink(
-                    $controller->url_for("consultation/admin/note/{$block->id}/{$slot->id}"),
+                    $controller->noteURL($block, $slot),
                     _('Anmerkung bearbeiten'),
-                    Icon::create('comment'),
+                    Icon::create('edit'),
                     ['data-dialog' => 'size=auto']
                 )->condition(count($slot->bookings) < $slot->block->size)->addLink(
-                    $controller->url_for("consultation/admin/book/{$block->id}/{$slot->id}"),
+                    $controller->bookURL($block, $slot),
                     _('Sprechstundentermin reservieren'),
                     Icon::create('consultation+add'),
                     ['data-dialog' => 'size=auto']
                 )->condition(count($slot->bookings) > 0)->addLink(
-                    $controller->url_for("consultation/admin/reason/{$block->id}/{$slot->id}/{$slot->bookings->first()->id}"),
+                    $controller->reasonURL($block, $slot, $slot->bookings->first()),
                     _('Grund bearbeiten'),
                     Icon::create('edit'),
                     ['data-dialog' => 'size=auto']
                 )->condition(count($slot->bookings) > 0)->addLink(
-                    $controller->url_for("consultation/admin/cancel_slot/{$block->id}/{$slot->id}"),
+                    $controller->cancel_slotURL($block, $slot),
                     _('Sprechstundentermin absagen'),
                     Icon::create('consultation+remove'),
                     ['data-dialog' => 'size=auto']
@@ -131,7 +136,7 @@
                     _('Sprechstundentermin entfernen'),
                     Icon::create('trash'),
                     [
-                        'formaction'   => $controller->url_for("consultation/admin/remove/{$block->id}/{$slot->id}"),
+                        'formaction'   => $controller->removeURL($block, $slot),
                         'data-confirm' => _('Wollen Sie diesen Sprechstundentermin wirklich entfernen?'),
                     ]
                 ) ?>

@@ -1,4 +1,4 @@
-<form name="reason_form" action="<?= $controller->url_for("consultation/overview/book/{$slot->block_id}/{$slot->id}") ?>" method="post" class="default">
+<form name="reason_form" action="<?= $controller->book($slot->block, $slot) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>

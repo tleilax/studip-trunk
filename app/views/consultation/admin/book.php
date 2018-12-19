@@ -1,4 +1,4 @@
-<form action="<?= $controller->url_for("consultation/admin/book/{$slot->block_id}/{$slot->id}") ?>" method="post" class="default">
+<form action="<?= $controller->book($slot->block, $slot) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
     <fieldset>
@@ -33,7 +33,7 @@
 
             <?= QuickSearch::get('user_id', $search_object)->setAttributes([
                 'required' => '',
-            ]) ?>
+            ])->withButton() ?>
         </label>
 
         <label>

@@ -246,6 +246,25 @@ class Consultation_AdminController extends ConsultationController
         }
     }
 
+    public function edit_room_action($block_id)
+    {
+        PageLayout::setTitle(_('Ort des Sprechstundenblocks bearbeiten'));
+
+        $this->block = $this->loadBlock($block_id);
+    }
+
+    public function store_room_action($block_id)
+    {
+        CSRFProtection::verifyUnsafeRequest();
+
+        $this->block = $this->loadBlock($block_id);
+        $this->block->room = Request::get('room');
+        $this->block->store();
+
+        PageLayout::postSuccess(_('Der Sprechstundenblock wurden gespeichert.'));
+        $this->redirect("consultation/admin#block-{$block_id}");
+    }
+
     public function cancel_block_action($block_id)
     {
         PageLayout::setTitle(_('Sprechstundentermine absagen'));
