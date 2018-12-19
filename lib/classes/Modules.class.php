@@ -50,7 +50,6 @@ class Modules {
         'wiki' => array('id' => 8, 'const' => 'WIKI_ENABLE', 'sem' => true, 'inst' => true),
         'scm' => array('id' => 12, 'const' => 'SCM_ENABLE', 'sem' => true, 'inst' => true),
         'elearning_interface' => array('id' => 13, 'const' => 'ELEARNING_INTERFACE_ENABLE', 'sem' => true, 'inst' => true),
-        'ilias_interface' => array('id' => 22, 'const' => 'ILIAS_INTERFACE_ENABLE', 'sem' => true, 'inst' => true),
         'calendar' => array('id' => 16, 'const' => 'COURSE_CALENDAR_ENABLE', 'sem' => true, 'inst' => true),
         'resources' => array('id' => 21, 'const' => 'RESOURCES_ENABLE', 'sem' => true, 'inst' => true)
     );

@@ -42,18 +42,17 @@ class Course_IliasInterfaceController extends AuthenticatedController
         PageLayout::setTitle(Context::getHeaderLine(). " - " . _("ILIAS"));
 
         checkObject(); // do we have an open object?
-        checkObjectModule('ilias_interface');
         object_set_visit_module('ilias_interface');
 
         $this->ilias_interface_config = Config::get()->getValue('ILIAS_INTERFACE_BASIC_SETTINGS');
-        
+
         $this->search_key = Request::get('search_key');
         $this->anker_target = Request::get('anker_target');
         $this->seminar_id = Context::getId();
         $this->edit_permission = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id);
         $this->author_permission = false;
         $this->course_permission = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id);
-        
+
         $this->sidebar = Sidebar::get();
         $this->sidebar->setImage('sidebar/learnmodule-sidebar.png');
         $this->sidebar->setContextAvatar(CourseAvatar::getAvatar($this->seminar_id));
@@ -65,7 +64,7 @@ class Course_IliasInterfaceController extends AuthenticatedController
     public function index_action($id = null)
     {
         Navigation::activateItem('/course/ilias_interface/view');
-        
+
         PageLayout::addStyle('
 #ilias_module_details_window, #ilias_module_edit_window {
     display: flex;
@@ -148,12 +147,12 @@ div#preview_container {
                     Icon::create('add', 'clickable'),
                     ['data-dialog' => '']
                     );
-            }                
+            }
             if ($this->ilias_interface_config['search_active'] || $this->author_permission) {
                     $this->sidebar->addWidget($widget);
             }
         }
-        
+
         $widget = new ActionsWidget();
         $widget->setTitle(count($this->ilias_list) > 1 ? _('ILIAS-Kurse') : _('ILIAS-Kurs'));
         if ($this->edit_permission) {
@@ -189,7 +188,7 @@ div#preview_container {
             }
         }
         $this->sidebar->addWidget($widget);
-        
+
         if ($this->author_permission || $this->edit_permission) {
             $widget = new ActionsWidget();
             if ($this->edit_permission && $this->ilias_interface_config['add_statusgroups']) {
@@ -228,7 +227,7 @@ div#preview_container {
             var_dump($group->getChildren());
         }
 //        var_dump($groups);
-/**/        
+/**/
         // show error messages
         foreach ($this->ilias_list as $ilias_index => $ilias) {
             foreach ($ilias->getError() as $error) {
@@ -237,7 +236,7 @@ div#preview_container {
         }
     }
 
-    
+
     /**
      * edit module connection
      * @param $index Index of ILIAS installation
@@ -246,7 +245,7 @@ div#preview_container {
     {
         if (! $this->edit_permission)
             throw new AccessDeniedException(_('Keine Berechtigung zum Bearbeiten der Lernobjekt-Zuordnungen.'));
-            
+
         $this->ilias = new ConnectedILIAS($index);
 
         if (Request::submitted('remove_module')) {
@@ -271,7 +270,7 @@ div#preview_container {
     public function add_object_action($mode = 'search', $index = '')
     {
         PageLayout::setTitle(_('Lernobjekt hinzufügen'));
-        
+
         if (! $this->edit_permission)
             throw new AccessDeniedException(_('Keine Berechtigung zum Bearbeiten der Lernobjekt-Zuordnungen.'));
 
@@ -310,7 +309,7 @@ div#preview_container {
             $this->ilias_modules = array();
             $object_connections = new IliasObjectConnections($this->seminar_id);
             $course_modules = $object_connections->getConnections();
-            
+
             if ($mode == 'search') {
                 // perform search
                 $this->ilias_search = Request::quoted('ilias_search');
@@ -381,7 +380,7 @@ div#preview_container {
             }
         }
     }
-    
+
     /**
      * Add/Update status groups
      * @param $index Index of ILIAS installation
@@ -389,13 +388,13 @@ div#preview_container {
     public function add_groups_action($index)
     {
         PageLayout::setTitle(_('Statusgruppen anlegen'));
-        
+
         if (! $this->edit_permission) {
             throw new AccessDeniedException(_('Keine Berechtigung zum Übertragen der Statusgruppen.'));
         }
-            
+
         $this->groups = Statusgruppen::findBySeminar_id($this->seminar_id);
-        
+
         // get active ILIAS installations
         $this->ilias_list = array();
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
@@ -404,11 +403,11 @@ div#preview_container {
                 $last_ilias_index = $ilias_index;
             }
         }
-        
+
         if (!$index && (count($this->ilias_list) > 1)) {
             // if several installations available yet no index given show index selection dialog
             $this->submit_text =  _('Weiter');
-            
+
         } elseif (count($this->ilias_list)) {
             // skip installation selection if only one ILIAS installation is active
             if (!$index) {
@@ -419,7 +418,7 @@ div#preview_container {
             $this->ilias_groups = array();
             $this->submit_text =  _('Gruppen übertragen');
             $course_id = IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $this->ilias_index);
-                
+
             if ((Request::get('cmd') == 'create_groups') && $course_id) {
                 // add groups
                 foreach ($this->groups as $group) {
@@ -464,7 +463,7 @@ div#preview_container {
             }
         }
     }
-    
+
     /**
      * Remove course connection
      * @param $index Index of ILIAS installation
@@ -475,7 +474,7 @@ div#preview_container {
         if (! $this->edit_permission) {
             throw new AccessDeniedException(_('Keine Berechtigung zum Entfernen der Verknüpfung.'));
         }
-        
+
         $this->ilias = new ConnectedILIAS($index);
         if ($this->ilias->isActive()) {
             if (IliasObjectConnections::DeleteAllConnections($this->seminar_id, $index)) {
@@ -486,7 +485,7 @@ div#preview_container {
         }
         $this->redirect($this->url_for('course/ilias_interface'));
     }
-    
+
     /**
      * View ILIAS module Details
      * @param $index Index of ILIAS installation
@@ -508,7 +507,7 @@ div#preview_container {
             PageLayout::postError(_("Diese ILIAS-Installation ist nicht aktiv."));
         }
     }
-    
+
     /**
      * Edit course module title
      */

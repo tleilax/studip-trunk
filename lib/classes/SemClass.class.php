@@ -52,8 +52,7 @@ class SemClass implements ArrayAccess
         "wiki",
         "resources",
         "calendar",
-        "elearning_interface",
-        "ilias_interface"
+        "elearning_interface"
     );
     static protected $core_modules = array(
         "CoreOverview",
@@ -69,8 +68,7 @@ class SemClass implements ArrayAccess
         "CoreWiki",
         "CoreResources",
         "CoreCalendar",
-        "CoreElearningInterface",
-        "CoreIliasInterface"
+        "CoreElearningInterface"
     );
     static protected $sem_classes = null;
 
@@ -89,7 +87,6 @@ class SemClass implements ArrayAccess
             'resources' => "CoreResources",
             'calendar' => "CoreCalendar",
             'elearning_interface' => "CoreElearningInterface",
-            'ilias_interface' => "CoreIliasInterface",
             'modules' => '{"CoreOverview":{"activated":1,"sticky":1},"CoreAdmin":{"activated":1,"sticky":1}, "CoreResources":{"activated":1,"sticky":0}}',
             'visible' => 1,
             'is_group' => false
@@ -124,7 +121,6 @@ class SemClass implements ArrayAccess
             'resources'           => 'CoreResources',
             'calendar'            => 'CoreCalendar',
             'elearning_interface' => 'CoreElearningInterface',
-            'ilias_interface'     => 'CoreIliasInterface',
             'personal'            => 'personal'
         );
         $modules = array(
@@ -437,7 +433,6 @@ class SemClass implements ArrayAccess
             'resources' => $this->data['resources'],
             'calendar' => $this->data['calendar'],
             'elearning_interface' => $this->data['elearning_interface'],
-            'ilias_interface' => $this->data['ilias_interface'],
             'modules' => json_encode((object) $this->data['modules']),
             'title_dozent' => $this->data['title_dozent']
                 ? $this->data['title_dozent']

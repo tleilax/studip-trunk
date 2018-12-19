@@ -82,13 +82,7 @@ class AdminModules extends ModulesNotification {
         $this->registered_modules["elearning_interface"]["msg_pre_warning"] = _("Achtung: Beim Deaktivieren der Schnittstelle für die Integration von Content-Modulen werden <b>%s</b> Verknüpfungen mit Lernmodulen nicht mehr in Stud.IP verfügbar sein!");
         $this->registered_modules["elearning_interface"]["msg_activate"] = _("Die Schnittstelle für die Integration von Content-Modulen kann jederzeit aktiviert werden.");
         $this->registered_modules["elearning_interface"]["msg_deactivate"] = _("Die Schnittstelle für die Integration von Content-Modulen kann jederzeit deaktiviert werden.");
-        
-        $this->registered_modules["ilias_interface"]["name"] = _("ILIAS-Schnittstelle");
-        $this->registered_modules["ilias_interface"]["msg_warning"] = _("Wollen Sie wirklich die Schnittstelle für die Integration von ILIAS Lernobjekten deaktivieren?");
-        $this->registered_modules["ilias_interface"]["msg_pre_warning"] = _("Achtung: Beim Deaktivieren der Schnittstelle für die Integration von ILIAS Lernobjekten werden <b>%s</b> Verknüpfungen mit Lernobjekten nicht mehr in Stud.IP verfügbar sein!");
-        $this->registered_modules["ilias_interface"]["msg_activate"] = _("Die Schnittstelle für die Integration von ILIAS Lernobjekten kann jederzeit aktiviert werden.");
-        $this->registered_modules["ilias_interface"]["msg_deactivate"] = _("Die Schnittstelle für die Integration von ILIAS Lernobjekten kann jederzeit deaktiviert werden.");
-        
+
         if (get_config('CALENDAR_GROUP_ENABLE')) {
             $this->registered_modules["calendar"]["name"] = _("Kalender");
             $this->registered_modules["calendar"]["msg_activate"] = _("Der Kalender kann jederzeit aktiviert werden.");
@@ -163,32 +157,17 @@ class AdminModules extends ModulesNotification {
             return 0;
         }
     }
-    
+
     public function moduleElearning_interfaceDeactivate($range_id) {
         if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
             global $connected_cms;
             foreach(ObjectConnections::GetConnectedSystems($range_id) as $system){
                 ELearningUtils::loadClass($system);
-                //$connected_cms[$system]->deleteConnectedModules($range_id);
+                $connected_cms[$system]->deleteConnectedModules($range_id);
             }
         }
     }
-    
-    public function getModuleIlias_interfaceExistingItems($range_id) {
-        if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
-            require_once("lib/ilias_interface/IliasObjectConnections.class.php");
-            $object_connections = new IliasObjectConnections($range_id);
-            return is_array($object_connections->getConnections()) ? count($object_connections->getConnections()) : 0;
-        } else {
-            return 0;
-        }
-    }
-    
-    public function moduleIlias_interfaceDeactivate($range_id) {
-        if (Config::get()->ELEARNING_INTERFACE_ENABLE) {
-        }
-    }
-    
+
     public function getModuleCalendarExistingItems($range_id)
     {
         return CalendarEvent::countBySql('range_id = ?', array($range_id));

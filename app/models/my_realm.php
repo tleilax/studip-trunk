@@ -534,7 +534,7 @@ class MyRealmModel
 
         return null;
     }
-    
+
     /**
      * @param      $my_obj
      * @param      $user_id
@@ -551,7 +551,7 @@ class MyRealmModel
                 LEFT JOIN object_user_visits b ON (b.object_id = a.object_id AND b.user_id = :user_id AND b.type ='elearning_interface')
                 WHERE a.object_id = :course_id  AND a.module_type != 'crs'
                 GROUP BY a.object_id";
-            
+
             $statement = DBManager::get()->prepare($sql);
             $statement->bindValue(':user_id', $user_id);
             $statement->bindValue(':course_id', $object_id);
@@ -600,78 +600,6 @@ class MyRealmModel
                                     ]
                                     )
                             );
-                }
-                return $nav;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * @param      $my_obj
-     * @param      $user_id
-     * @param null $modules
-     */
-    public static function checkIlias_interface(&$my_obj, $user_id, $object_id)
-    {
-        if ($my_obj["modules"]["ilias_interface"]) {
-            $sql = "SELECT a.object_id, COUNT(module_id) as count,
-                COUNT(IF((chdate > IFNULL(b.visitdate, :threshold) AND a.module_type != 'crs'), module_id, NULL)) AS neue,
-                MAX(IF((chdate > IFNULL(b.visitdate, :threshold) AND a.module_type != 'crs'), chdate, 0)) AS last_modified
-                FROM
-                object_contentmodules a
-                LEFT JOIN object_user_visits b ON (b.object_id = a.object_id AND b.user_id = :user_id AND b.type ='ilias_interface')
-                WHERE a.object_id = :course_id  AND a.module_type != 'crs'
-                GROUP BY a.object_id";
-
-            $statement = DBManager::get()->prepare($sql);
-            $statement->bindValue(':user_id', $user_id);
-            $statement->bindValue(':course_id', $object_id);
-            $statement->bindValue(':threshold', object_get_visit_threshold());
-            $statement->execute();
-            $result = $statement->fetch(PDO::FETCH_ASSOC);
-            if (!empty($result)) {
-                if (!is_null($result['last_modified']) && (int)$result['last_modified'] != 0) {
-                    if ($my_obj['last_modified'] < $result['last_modified']) {
-                        $my_obj['last_modified'] = $result['last_modified'];
-                    }
-                }
-                $nav = new Navigation('elearning', 'dispatch.php/course/ilias_interface/index');
-                if ((int)$result['neue']) {
-                    $nav->setImage(
-                        Icon::create(
-                            'learnmodule+new',
-                            'attention',
-                            [
-                                'title' => sprintf(
-                                    ngettext(
-                                        '%1$d Lernobjekt, %2$d neues',
-                                        '%1$d Lernobjekte, %2$d neue',
-                                        $result['count']
-                                    ),
-                                    $result['count'],
-                                    $result['neue']
-                                )
-                            ]
-                        )
-                    );
-                } elseif ((int)$result['count']) {
-                    $nav->setImage(
-                        Icon::create(
-                            'learnmodule',
-                            'inactive',
-                            [
-                                'title' => sprintf(
-                                    ngettext(
-                                        '%d Lernobjekt',
-                                        '%d Lernobjekte',
-                                        $result['count']
-                                    ),
-                                    $result['count']
-                                )
-                            ]
-                        )
-                    );
                 }
                 return $nav;
             }
