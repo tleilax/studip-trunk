@@ -15,7 +15,7 @@
         <tr>
             <th><?= _('Uhrzeit') ?></th>
             <th><?= _('Status') ?></th>
-            <th><?= _('Grund') ?></th>
+            <th><?= _('Informationen') ?></th>
             <th></th>
         </tr>
     </thead>
@@ -32,17 +32,23 @@
                 <?= date('H:i', $slot->start_time) ?>
                 -
                 <?= date('H:i', $slot->end_time) ?>
-
-                <?= $displayNote($slot->note) ?>
             </td>
             <td>
                 <?= $this->render_partial('consultation/slot-occupation.php', compact('slot')) ?>
             </td>
             <td>
-            <? if (count($slot->bookings) === 0 || !$slot->isOccupied($GLOBALS['user']->id)): ?>
+            <? if (!$slot->note && (count($slot->bookings) === 0 || !$slot->isOccupied($GLOBALS['user']->id))): ?>
                 &ndash;
             <? else: ?>
-                <?= htmlReady($slot->bookings->findOneBy('user_id', $GLOBALS['user']->id)->reason) ?>
+                <? if ($slot->note): ?>
+                    <?= _('Anmerkung') ?>:
+                    <?= htmlReady($slot->note) ?>
+                    <br>
+                <? endif; ?>
+                <? if ($slot->isOccupied($GLOBALS['user']->id)): ?>
+                    <?= _('Mein Grund der Buchung') ?>:
+                    <?= htmlReady($slot->bookings->findOneBy('user_id', $GLOBALS['user']->id)->reason) ?>
+                <? endif; ?>
             <? endif; ?>
             </td>
             <td class="actions">

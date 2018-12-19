@@ -59,10 +59,6 @@ abstract class ConsultationController extends AuthenticatedController
 
         setTempLanguage($user->id);
 
-        // if ($subject === self::MAIL_REASON_BOOKED) {
-        //     $subject = _('Sprechstundentermin zugesagt');
-        // }
-
         $message = $this->get_template_factory()->open('consultation/mail.php')->render([
             'slot'   => $slot,
             'reason' => $reason ?: _('Kein Grund angegeben'),

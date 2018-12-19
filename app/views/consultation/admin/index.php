@@ -16,7 +16,6 @@
     <colgroup>
         <col width="10%">
         <col width="10%">
-        <col width="25%">
         <col>
         <col width="48px">
     </colgroup>
@@ -24,15 +23,14 @@
         <tr>
             <th><?= _('Uhrzeit') ?></th>
             <th><?= _('Status') ?></th>
-            <th><?= _('Person') ?></th>
-            <th><?= _('Grund') ?></th>
+            <th><?= _('Informationen') ?></th>
             <th></th>
         </tr>
     </thead>
 <? foreach ($blocks as $block): ?>
     <tbody id="block-<?= htmlReady($block->id) ?>">
         <tr>
-            <th colspan="4">
+            <th colspan="3">
                 <?= $this->render_partial('consultation/block-description.php', compact('block')) ?>
             </th>
             <th class="actions">
@@ -73,42 +71,40 @@
                 <?= date('H:i', $slot->start_time) ?>
                 -
                 <?= date('H:i', $slot->end_time) ?>
-
-                <?= $displayNote($slot->note) ?>
             </td>
             <td>
                 <?= $this->render_partial('consultation/slot-occupation.php', compact('slot')) ?>
             </td>
             <td>
-            <? if (count($slot->bookings) === 0): ?>
+            <? if (!$slot->note && count($slot->bookings) === 0): ?>
                 &ndash;
             <? else: ?>
-                <ul class="default">
-                <? foreach ($slot->bookings as $booking): ?>
-                    <li>
-                        <a href="<?= URLHelper::getLink('dispatch.php/profile', ['username' => $booking->user->username]) ?>">
-                            <?= Avatar::getAvatar($booking->user_id)->getImageTag(Avatar::SMALL) ?>
-                            <?= htmlReady($booking->user->getFullName()) ?>
-                        </a>
-                    </li>
-                <? endforeach; ?>
-                </ul>
+                <? if ($slot->note): ?>
+                    <?= _('Anmerkung') ?>:
+                    <?= htmlReady($slot->note) ?>
+                    <br>
+                <? endif; ?>
+                <? if (count($slot->bookings) > 0): ?>
+                    <ul class="default">
+                    <? foreach ($slot->bookings as $booking): ?>
+                        <li>
+                            <a href="<?= URLHelper::getLink('dispatch.php/profile', ['username' => $booking->user->username]) ?>">
+                                <?= htmlReady($booking->user->getFullName()) ?>
+                            </a>
+                            -
+                        <? if ($booking->reason): ?>
+                            <?= _('Grund') ?>:
+                            <?= htmlReady($booking->reason) ?>
+                        <? else: ?>
+                            <span class="consultation-no-reason">
+                                <?= _('Kein Grund angegeben') ?>
+                            </span>
+                        <? endif; ?>
+                        </li>
+                    <? endforeach; ?>
+                    </ul>
+                <? endif; ?>
             <? endif; ?>
-            </td>
-            <td>
-                <ul class="default">
-                <? foreach ($slot->bookings as $booking): ?>
-                    <li>
-                    <? if ($booking->reason): ?>
-                        <?= htmlReady($booking->reason) ?>
-                    <? else: ?>
-                        <span class="consultation-no-reason">
-                            <?= _('Kein Grund angegeben') ?>
-                        </span>
-                    <? endif; ?>
-                    </li>
-                <? endforeach; ?>
-                </ul>
             </td>
             <td class="actions">
                 <?= ActionMenu::get()->addLink(
