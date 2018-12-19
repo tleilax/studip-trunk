@@ -97,7 +97,7 @@ class ConnectedIlias
      * @access public
      * @return string messages
      */
-    function getIntVersion($version)
+    public static function getIntVersion($version)
     {
         $version_array = explode('.', $version);
         return ((int)$version_array[0]*10000) + ((int)$version_array[1]*100) + ((int)$version_array[2]);
@@ -137,13 +137,11 @@ class ConnectedIlias
      *
      * checks ILIAS base settings
      * @access public
+     * @param string $url
      * @return array info
      */
-    function getIliasInfo($url = '')
+    public static function getIliasInfo($url)
     {
-        if (!$url) {
-            $url = $this->ilias_config['url'];
-        }
         $info = array();
         // check if url exists
         $check = @get_headers($url . 'login.php');
@@ -475,7 +473,7 @@ class ConnectedIlias
      * returns all active module types for current ILIAS installation
      * @access public
      */
-    function getsupportedModuleTypes()
+    public static function getsupportedModuleTypes()
     {
         return array(
 //                        'cat'  => _('Kategorie'),
@@ -519,7 +517,7 @@ class ConnectedIlias
      * loads existing indices of all ilias installations from database
      * @access public
      */
-    function getExistingIndices()
+    public static function getExistingIndices()
     {
         $query = "SELECT DISTINCT external_user_system_type FROM auth_extern ORDER BY external_user_system_type ASC";
         return DBManager::get()->fetchGrouped($query);

@@ -55,8 +55,10 @@ class IliasModule
         $this->module_type_name = $supported_modules[$this->module_type];
         $this->owner = $module_data['owner'];
         $this->author_studip = false;
-        if ($module_data['references'][$module_id]) {
+        if (is_array($module_data['references'][$module_id]['operations'])) {
             $this->allowed_operations = $module_data['references'][$module_id]['operations'];
+        } else {
+            $this->allowed_operations = [];
         }
 //        var_dump($module_id);
 //        var_dump($module_data['references']);
@@ -181,7 +183,7 @@ class IliasModule
     {
         return $this->make_date;
     }
-    
+
     /**
      * get change date
      *
@@ -193,7 +195,7 @@ class IliasModule
     {
         return $this->change_date;
     }
-    
+
     /**
      * get ILIAS path
      *
@@ -225,8 +227,8 @@ class IliasModule
             case 'remove'      : return 'course/ilias_interface/edit_object_assignment/'.$this->ilias_index.'?remove_module&ilias_module_id='.$this->id;
         }
     }
-    
-    
+
+
     /**
      * get permission status
      *
@@ -245,7 +247,7 @@ class IliasModule
         }
         return true;
     }
-    
+
     /**
     * set ILIAS author ID
     *
@@ -257,7 +259,7 @@ class IliasModule
     {
         $this->owner = $module_author;
     }
-    
+
     /**
      * get ILIAS author ID
      *
@@ -269,7 +271,7 @@ class IliasModule
     {
         return $this->owner;
     }
-    
+
     /**
      * get author Stud.IP-User
      *
@@ -282,7 +284,7 @@ class IliasModule
         if (is_object($this->author_studip)) {
             return $this->author_studip;
         }
-        
+
         $query = "SELECT studip_user_id
                   FROM auth_extern
                   WHERE external_user_id = ? AND external_user_system_type = ?";
@@ -295,7 +297,7 @@ class IliasModule
 
         return $this->author_studip;
     }
-    
+
     /**
     * set connection
     *

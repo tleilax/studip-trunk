@@ -50,13 +50,7 @@ class Admin_IliasInterfaceController extends AuthenticatedController
         if (!is_array($this->ilias_interface_config)) {
             throw new AccessDeniedException(_('ILIAS-Grundeinstellungen nicht gefunden.'));
         }
-        if (!Config::get()->offsetExists('ILIAS_INTERFACE_MODULETITLE')) {
-            $this->ilias_interface_moduletitle = _('ILIAS');
-            Config::get()->create('ILIAS_INTERFACE_MODULETITLE', array('type' => 'string', 'range' => 'course', 'value' => $this->ilias_interface_moduletitle));
-            Config::get()->store('ILIAS_INTERFACE_MODULETITLE', $this->ilias_interface_moduletitle);
-        } else {
-            $this->ilias_interface_moduletitle = Config::get()->getValue('ILIAS_INTERFACE_MODULETITLE');
-        }
+        $this->ilias_interface_moduletitle = Config::get()->getValue('ILIAS_INTERFACE_MODULETITLE');
 
         // get ILIAS installation settings
         $this->ilias_configs = Config::get()->getValue('ILIAS_INTERFACE_SETTINGS');
@@ -203,7 +197,7 @@ class Admin_IliasInterfaceController extends AuthenticatedController
                     $this->ilias_config['name'] = Request::get('ilias_name');
                 } else {
                     $this->valid_url = false;
-                    PageLayout::postError(sprintf(_('Name der Installation darf nicht leer sein.'), $this->ilias_config['url']));
+                    PageLayout::postError(_('Name der Installation darf nicht leer sein.'));
                 }
             }
         } else {
@@ -424,7 +418,6 @@ class Admin_IliasInterfaceController extends AuthenticatedController
                     $params[$param] = Request::get('ilias_soap_param_'.$param);
                 }
                 $this->result = $ilias->soap_client->call(Request::get('ilias_call'), $params);
-                preg_match_all('/\<[^>]*\>/', $xml_tags);
             }
         }
     }
