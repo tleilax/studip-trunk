@@ -160,7 +160,7 @@ const QuickSearch = {
             if (input.is('[required]')) {
                 input.closest('form').submit(function (event) {
                     if (hidden.val() === '') {
-                        input[0].setCustomValidity('Bitte wÃ€hlen Sie einen gÃŒltigen Wert aus!'.toLocaleString());
+                        input[0].setCustomValidity('Bitte wählen Sie einen gültigen Wert aus!'.toLocaleString());
                         event.preventDefault();
                      }
                  });
