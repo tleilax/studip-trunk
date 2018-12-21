@@ -15,4 +15,10 @@
 <? endif; ?>
 )
 
-<?= $displayNote($block->note, 300) ?>
+<? if ($block->note): ?>
+<br>
+<small>
+    <?= _('Anmerkung') ?>:
+    <?= htmlReady($block->note); ?>
+</small>
+<? endif; ?>

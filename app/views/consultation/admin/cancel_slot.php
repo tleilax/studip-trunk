@@ -4,17 +4,12 @@
     <fieldset>
         <legend><?= _('Sprechstundentermin absagen') ?></legend>
 
-        <label class="col-3">
+        <label>
             <?= _('Termin' ) ?><br>
-            <?= strftime('%A, %x', $slot->start_time) ?>
-            <?= sprintf(
-                _('%s bis %s Uhr'),
-                date('H:i', $slot->start_time),
-                date('H:i', $slot->end_time)
-            ) ?>
+            <?= $this->render_partial('consultation/slot-details.php', compact('slot')) ?>
         </label>
 
-        <label class="col-3">
+        <label>
             <?= _('Ort') ?><br>
             <?= htmlready($slot->block->room) ?>
         </label>

@@ -4,25 +4,20 @@
     <fieldset>
         <legend><?= _('Sprechstundentermine absagen') ?></legend>
 
-        <label class="col-3">
+        <label>
             <?= _('Termin' ) ?><br>
             <ul class="default">
             <? foreach ($block->slots as $slot): ?>
                 <? if (count($slot->bookings) > 0): ?>
                     <li>
-                        <?= strftime('%A, %x', $slot->start_time) ?>
-                        <?= sprintf(
-                            _('%s bis %s Uhr'),
-                            date('H:i', $slot->start_time),
-                            date('H:i', $slot->end_time)
-                        ) ?>
+                        <?= $this->render_partial('consultation/slot-details.php', compact('slot')) ?>
                     </li>
                 <? endif; ?>
             <? endforeach; ?>
             </ul>
         </label>
 
-        <label class="col-3">
+        <label>
             <?= _('Ort') ?><br>
             <?= htmlready($block->room) ?>
         </label>

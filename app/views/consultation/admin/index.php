@@ -68,9 +68,9 @@
     <? foreach ($block->slots as $slot): ?>
         <tr>
             <td>
-                <?= date('H:i', $slot->start_time) ?>
+                <?= strftime('%R', $slot->start_time) ?>
                 -
-                <?= date('H:i', $slot->end_time) ?>
+                <?= strftime('%R', $slot->end_time) ?>
             </td>
             <td>
                 <?= $this->render_partial('consultation/slot-occupation.php', compact('slot')) ?>
