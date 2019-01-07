@@ -90,7 +90,7 @@ class CoreAdmin implements StudipModule {
 
                     if ((Config::get()->ALLOW_DOZENT_VISIBILITY || $GLOBALS['perm']->have_perm('admin')) && !LockRules::Check($course_id, 'seminar_visibility')) {
                         $course = Course::findCurrent();
-                        if ($course->duration_time == -1 || $$course->end_semester->visible) {
+                        if ($course->duration_time == -1 || $course->end_semester->visible) {
                             $is_visible = $course->visible;
                             $item = new Navigation(_('Sichtbarkeit ändern') . ' (' .  ($is_visible ? _('sichtbar') : _('unsichtbar')) . ')', 'dispatch.php/course/management/change_visibility');
                             $item->setImage(Icon::create('visibility-' . ($is_visible ? 'visible' : 'invisible')));
