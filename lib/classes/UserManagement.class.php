@@ -683,8 +683,12 @@ class UserManagement
     /**
     * Delete an existing user from the database and tidy up
     *
-    * @param    bool delete all documents belonging to the user
+    * @param    bool delete all documents in course context belonging to the user
     * @param    bool delete all course content belonging to the user
+    * @param    bool delete all personal documents belonging to the user
+    * @param    bool delete all personal content belonging to the user
+    * @param    bool delete all names identifying the user
+    * @param    bool delete all memberships of the user
     * @return   bool Removal successful?
     */
     public function deleteUser($delete_documents = true, $delete_content_from_course = true, $delete_personal_documents = true, $delete_personal_content = true, $delete_names = true, $delete_memberships = true)
@@ -856,7 +860,7 @@ class UserManagement
             foreach ($queries as $query) {
                 DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
             }
-
+            NotificationCenter::postNotification('UserDataDidRemove', $this->user_data['auth_user_md5.user_id'], 'memberships');
         }
 
         // delete documents of this user
@@ -865,6 +869,7 @@ class UserManagement
             if ($db_filecount > 0) {
                 $this->msg .= 'info§' . sprintf(_('%s Dateien aus Veranstaltungen und Einrichtungen gelöscht.'), $db_filecount) . '§';
             }
+            NotificationCenter::postNotification('UserDataDidRemove', $this->user_data['auth_user_md5.user_id'], 'course_documents');
         }
 
         // delete all remaining user data in course context if option selected
@@ -882,16 +887,19 @@ class UserManagement
             foreach ($queries as $query) {
                 DBManager::get()->execute($query, [$this->user_data['auth_user_md5.user_id']]);
             }
+            NotificationCenter::postNotification('UserDataDidRemove', $this->user_data['auth_user_md5.user_id'], 'course_contents');
         }
 
         if ($delete_personal_documents) {
             $user_folder = Folder::findTopFolder($this->user->id);
             $this->msg .= 'info§' . _('Persönlicher Dateibereich gelöscht.') . '§';
             $user_folder->delete();
+            NotificationCenter::postNotification('UserDataDidRemove', $this->user_data['auth_user_md5.user_id'], 'personal_documents');
         }
 
         if ($delete_personal_content) {
             $this->msg .= $this->deletePersonalData($this->user_data['auth_user_md5.user_id']);
+            NotificationCenter::postNotification('UserDataDidRemove', $this->user_data['auth_user_md5.user_id'], 'personal_contents');
         }
 
         if ($delete_names) {
@@ -906,6 +914,7 @@ class UserManagement
             if ($statement->rowCount() > 0) {
                 $msg .= 'info§' . _('Benutzername anonymisiert.') . '§';
             }
+            NotificationCenter::postNotification('UserDataDidRemove', $this->user_data['auth_user_md5.user_id'], 'names');
         }
 
         if ($delete_personal_documents && $delete_personal_content && $delete_names && $delete_memberships) {

@@ -276,6 +276,8 @@ class Admin_SemesterController extends AuthenticatedController
             throw new InvalidArgumentException(_('Es wurde kein Semester zum Sperren übergeben'));
         }
 
+        $semesters = Semester::findMany($ids);
+
         if (Request::isPost()) {
             $errors = [];
             $locked = 0;
@@ -284,7 +286,6 @@ class Admin_SemesterController extends AuthenticatedController
             $degrade_users = (bool) Request::int('degrade_users');
             $lock_rule     = Request::get('lock_sem_all') ?: null;
 
-            $semesters = Semester::findMany($ids);
             foreach ($semesters as $semester) {
                 $semester->visible = false;
 

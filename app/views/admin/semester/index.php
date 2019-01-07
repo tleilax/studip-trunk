@@ -50,6 +50,9 @@
             </td>
             <td title="<?= htmlReady($semester->description) ?>">
                 <?= htmlReady($semester->name) ?>
+                <? if (!$semester->visible): ?>
+                <?= '(' . _('gesperrt') . ')'; ?>
+                <? endif; ?>
             </td>
             <td>
                 <?= htmlReady($semester->semester_token ?: '- ' . _('keins') . ' -') ?>
@@ -69,34 +72,60 @@
                 <?= sprintf(_('(+%u implizit)'),
                             $semester->continuous_seminars_count + $semester->duration_seminars_count) ?>
             </td>
-            <td class="actions">
-                <a data-dialog="size=auto" href="<?= $controller->link_for("admin/semester/edit/{$semester->id}") ?>">
-                    <?= Icon::create('edit')->asImg(['title' => _('Semesterangaben bearbeiten')]) ?>
-                </a>
+            <td class="actions" nowrap>
 
-            <? if ($semester->visible): ?>
-                <a data-dialog="size=auto" href="<?= $controller->link_for("admin/semester/lock/{$semester->id}") ?>">
-                    <?= Icon::create('lock-unlocked')->asImg(['title' => _('Semester sperren')]) ?>
-                </a>
-            <? else: ?>
-                <?= Icon::create('lock-locked')->asInput([
-                    'title'        => _('Semester entsperren'),
-                    'formaction'   => $controller->url_for("admin/semester/unlock/{$semester->id}"),
-                    'data-confirm' => _('Soll das Semester wirklich entsperrt werden? Anmelderegeln und Sperrebenen werden nicht verändert.'),
-                    'style'        => 'vertical-align: text-bottom'
-                ]) ?>
-            <? endif; ?>
+            <?
+                $actionMenu = ActionMenu::get();
 
-            <? if ($semester->absolute_seminars_count): ?>
-                <?= Icon::create('trash', Icon::ROLE_INACTIVE)->asImg(['title' => _('Semester hat Veranstaltungen und kann daher nicht gelöscht werden.')]) ?>
-            <? else: ?>
-                <?= Icon::create('trash')->asInput([
-                    'title'        => _('Semester löschen'),
-                    'formaction'   => $controller->url_for("admin/semester/delete/{$semester->id}"),
-                    'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'),
-                    'style'        => 'vertical-align: text-bottom'
-                ]) ?>
-            <? endif; ?>
+                $actionMenu->addLink(
+                    $controller->url_for("admin/semester/edit/{$semester->id}"),
+                    _('Semesterangaben bearbeiten'),
+                    Icon::create('edit'),
+                    ['data-dialog' => 'size=auto']
+                );
+
+                 if ($semester->visible) {
+                    $actionMenu->addLink(
+                        $controller->url_for("admin/semester/lock/{$semester->id}"),
+                        _('Semester sperren'),
+                        Icon::create('lock-unlocked'),
+                        ['data-dialog' => 'size=auto']
+                    );
+                } else {
+                    $actionMenu->addButton(
+                        'unlock',
+                        _('Semester entsperren'),
+                        Icon::create('lock-locked', Icon::ROLE_CLICKABLE, [
+                            'title'        => _('Semester entsperren'),
+                            'formaction'   => $controller->url_for("admin/semester/unlock/{$semester->id}"),
+                            'data-confirm' => _('Soll das Semester wirklich entsperrt werden? Anmelderegeln und Sperrebenen werden nicht verändert.'),
+                            'style'        => 'vertical-align: text-bottom'
+                        ])
+                    );
+                }
+
+                if ($semester->absolute_seminars_count) {
+                    $actionMenu->addLink(
+                        $controller->url_for("admin/semester"),
+                        _('Semester hat Veranstaltungen und kann daher nicht gelöscht werden.'),
+                        Icon::create('trash', Icon::ROLE_INACTIVE)
+                    );
+                } else {
+                    $actionMenu->addButton(
+                        'delete',
+                        _('Semester löschen'),
+                        Icon::create('trash', Icon::ROLE_CLICKABLE, [
+                            'title'        => _('Semester löschen'),
+                            'formaction'   => $controller->url_for("admin/semester/delete/{$semester->id}"),
+                            'data-confirm' => _('Soll das Semester wirklich gelöscht werden?'),
+                            'style'        => 'vertical-align: text-bottom'
+                        ])
+                    );
+                }
+
+                echo $actionMenu;
+            ?>
+
             </td>
         </tr>
     <? endforeach; ?>

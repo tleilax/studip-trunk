@@ -38,5 +38,7 @@
 
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Sperren'), 'confirm_lock'); ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'),
+                $controller->url_for('admin/semester'))?>
     </footer>
 </form>
