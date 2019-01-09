@@ -89,7 +89,10 @@ class MyCoursesController extends AuthenticatedController
         $sem_create_perm              = (in_array(Config::get()->SEM_CREATE_PERM, array('root', 'admin',
             'dozent')) ? Config::get()->SEM_CREATE_PERM : 'dozent');
 
-        $this->sem_data = SemesterData::GetSemesterArray();
+        $this->sem_data = [];
+        foreach (Semester::getAll() as $semester) {
+            $this->sem_data[] = $semester->toArray();
+        }
 
         $sem = ($config_sem && $config_sem != '0' ? $config_sem : Config::get()->MY_COURSES_DEFAULT_CYCLE);
         if (Request::option('sem_select')) {
@@ -236,7 +239,11 @@ class MyCoursesController extends AuthenticatedController
 
         $this->with_modules = (bool) Request::int('modules');
 
-        $this->sem_data    = SemesterData::GetSemesterArray();
+        $this->sem_data = [];
+        foreach (Semester::getAll() as $semester) {
+            $this->sem_data[] = $semester->toArray();
+        }
+
         $this->group_field = 'sem_number';
 
         // Needed parameters for selecting courses
@@ -788,10 +795,25 @@ class MyCoursesController extends AuthenticatedController
             $widget->addElement(new SelectElement('all', _('Alle Semester'), $sem == 'all'));
         }
 
+        $query = "SELECT semester_data.semester_id
+                  FROM seminare
+                  LEFT JOIN semester_data ON (semester_data.beginn >= seminare.start_time
+                      AND (semester_data.beginn <= seminare.start_time + seminare.duration_time OR seminare.duration_time = -1))
+                  LEFT JOIN seminar_user USING (Seminar_id)
+                  WHERE seminar_user.user_id = ?
+                  GROUP BY semester_data.semester_id";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($GLOBALS['user']->id));
+        foreach($statement->fetchAll(PDO::FETCH_ASSOC) as $semester_courses) {
+            $courses[] = $semester_courses['semester_id'];
+        }
+
         if (!empty($semesters)) {
             $group = new SelectGroupElement(_('Semester auswählen'));
             foreach ($semesters as $semester) {
-                $group->addElement(new SelectElement($semester->id, $semester->name, $sem == $semester->id));
+                if ($semester->visible || in_array($semester->id,$courses)) {
+                    $group->addElement(new SelectElement($semester->id, $semester->name, $sem == $semester->id));
+                }
             }
             $widget->addElement($group);
         }
