@@ -1,5 +1,4 @@
 <?php
-# Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
@@ -236,10 +235,7 @@ class IliasSoap extends StudipSoapClient
      */
     function loginUser($username, $password)
     {
-        if ($this->ilias_version < 50108) {
-            // ILIAS-Versions below 5.1.8
-
-        } elseif ($this->ilias_version < 50305) {
+        if ($this->ilias_version < 50305) {
             // ILIAS-Versions below 5.3.5 (use LoginStudipUser)
             $param = array(
                             'client' => $this->ilias_client,
@@ -317,6 +313,7 @@ class IliasSoap extends StudipSoapClient
             foreach ($s->Object as $object) {
                 $single_object = array();
                 $single_object['type'] = (string)$object[0]['type'];
+                $single_object['offline'] = (string)$object[0]['offline'];
                 $single_object['obj_id'] = (string)$object[0]['obj_id'];
                 $single_object['title'] = (string)$object->Title;
                 $single_object['description'] = (string)$object->Description;
@@ -681,7 +678,6 @@ class IliasSoap extends StudipSoapClient
             $roles = array();
             foreach ($objects as $count => $role)
                 $roles[$count] = $role["obj_id"];
-//          echo implode($roles, ".");
             return $roles;
         }
         return false;
@@ -949,24 +945,10 @@ class IliasSoap extends StudipSoapClient
         if ($user_id != "") {
             $param = array(
                             'sid' => $this->getSID(),
-                            'key_fields' => array('Login'),
-                            'query_operator' => 'AND',
-                            'key_values' => array('root@studip'),
-                            'attach_roles' => 0,
-                            'active' => 1
-            );
-/**/
-            $param = array(
-                            'sid' => $this->getSID(),
                             'user_ids' => array($user_id),
                             'attach_roles' => 0
             );
-/**/
-            //$result = $this->call('searchUser', $param);
             $result = $this->call('getUserXML', $param);
-            var_dump($this->error);
-            echo "RESULT";
-            var_dump($result);die();return;
             if ($result != false)
             {
                 // TODO: change to simple xml
@@ -1538,8 +1520,6 @@ class IliasSoap extends StudipSoapClient
         {
             // TODO: change to simple xml
             $objects = $this->parseXML($result);
-            //echo "<pre><hr>".print_r($objects,1);
-            //echo "\n</pre><hr>";
             if(is_array($objects)){
                 foreach($objects as $index => $object_data){
                     if(is_array($object_data['references'])){

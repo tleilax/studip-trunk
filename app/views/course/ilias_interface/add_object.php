@@ -43,11 +43,13 @@
             <? endif ?>
         </caption>
         <colgroup>
-            <col style="width: 70%">
+            <col style="width: 5%">
+            <col style="width: 65%">
             <col style="width: 20%">
             <col style="width: 10%">
         </colgroup>
         <thead>
+            <th></th>
             <th><?= _('Name') ?></th>
             <th><?= _('Typ') ?></th>
             <th class="actions"><?= _('Aktionen') ?></th>
@@ -55,6 +57,10 @@
         <tbody>
         <? foreach ($ilias_modules as $module_id => $module) : ?>
         <tr>
+            <td><?=Icon::create('learnmodule', Icon::ROLE_CLICKABLE, [
+                            'title'        => $module->getModuleTypeName()
+                            ])
+            ?></td>
             <td><a href="<?= $controller->url_for($module->getRoute('view_course').'?ilias_search='.htmlReady($ilias_search).'&mode='.htmlReady($mode))?>" <?= $dialog ? 'data-dialog=""' : ''?>><?=$module->getTitle()?></a></td>
             <td><?=$module->getModuleTypeName()?></td>
                 <td class="actions">

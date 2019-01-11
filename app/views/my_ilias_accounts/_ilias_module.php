@@ -36,7 +36,7 @@
     </table>
 </aside>
 
-    <div id="preview_container">
+    <div id="ilias_module_preview">
         <h2><?= htmlReady($module->getTitle()) ?></h2>
         <h3><?= _('Typ') ?></h3>
         <article>

@@ -17,7 +17,6 @@
 
 class IliasAuthController extends StudipController
 {
-//    protected $with_session = true;
 
     /**
      * common tasks for all actions

@@ -1,5 +1,4 @@
 <?php
-# Lifter002: DONE
 # Lifter003: TEST
 # Lifter007: TODO
 # Lifter010: TODO
@@ -16,8 +15,8 @@
 */
 class IliasObjectConnections
 {
-    var $id;
-    var $object_connections;
+    public $id;
+    public $object_connections;
     /**
     * constructor
     *

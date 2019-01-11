@@ -8,11 +8,13 @@
             <?= sprintf(_('Lernobjekte in %s'), htmlReady($ilias->getName()))?>
         </caption>
         <colgroup>
-            <col style="width: 70%">
+            <col style="width: 5%">
+            <col style="width: 65%">
             <col style="width: 20%">
             <col style="width: 10%">
         </colgroup>
         <thead>
+            <th></th>
             <th><?= _('Name') ?></th>
             <th><?= _('Typ') ?></th>
             <th class="actions"><?= _('Aktionen') ?></th>
@@ -21,6 +23,10 @@
     <? if (count($ilias->getCourseModules())) : ?>
         <? foreach ($ilias->getCourseModules() as $module_id => $module) : ?>
         <tr>
+            <td><?=Icon::create('learnmodule', Icon::ROLE_CLICKABLE, [
+                            'title'        => $module->getModuleTypeName()
+                            ])
+            ?></td>
             <td><a href="<?= $controller->url_for($module->getRoute('view_course'))?>" data-dialog="size=auto"><?=$module->getTitle()?></a></td>
             <td><?=$module->getModuleTypeName()?></td>
                 <td class="actions">
@@ -47,7 +53,7 @@
                     <? if ($module->isAllowed('edit')) $actionMenu->addButton(
                             'edit',
                             _('In ILIAS bearbeiten'),
-                            Icon::create('edit', Icon::ROLE_CLICKABLE, [
+                            Icon::create('learnmodule+edit', Icon::ROLE_CLICKABLE, [
                                 'title'        => _('In ILIAS bearbeiten'),
                                 'formaction'   => $controller->url_for($module->getRoute('edit')),
                                 'target'       => '_blank',
@@ -57,7 +63,7 @@
                     <? if ($edit_permission) $actionMenu->addButton(
                             'remove',
                             _('Entfernen'),
-                            Icon::create('remove', Icon::ROLE_CLICKABLE, [
+                            Icon::create('learnmodule+decline', Icon::ROLE_CLICKABLE, [
                                 'title'        => _('Entfernen'),
                                 'formaction'   => $controller->url_for($module->getRoute('remove')),
                                 'target'       => '_blank',

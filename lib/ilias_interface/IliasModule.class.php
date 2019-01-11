@@ -1,5 +1,4 @@
 <?php
-# Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
@@ -18,20 +17,19 @@
 
 class IliasModule
 {
-    var $id;
-    var $title;
-    var $description;
-    var $module_type;
-    var $module_type_name;
-    var $author;
-    var $make_date;
-    var $change_date;
-    var $path;
-    var $ilias_index;
-    var $ilias_version;
-    var $allowed_operations;
-    var $is_connected;
-    var $is_dummy;
+    public $id;
+    public $title;
+    public $description;
+    public $module_type;
+    public $module_type_name;
+    public $author;
+    public $make_date;
+    public $change_date;
+    public $path;
+    public $ilias_index;
+    public $ilias_version;
+    public $allowed_operations;
+    public $is_connected;
 
     /**
     * constructor
@@ -60,20 +58,6 @@ class IliasModule
         } else {
             $this->allowed_operations = [];
         }
-//        var_dump($module_id);
-//        var_dump($module_data['references']);
-//        var_dump($this->allowed_operations);
-/*        if ($module_data['references']) {
-            foreach ($module_data['references'] as $ref_id => $reference) {
-                if ($reference['ref_id'] == $module_id) {
-                    $this->allowed_operations = $reference['operations'];
-                }
-            }
-        } else/**/
-/*        if ($module_data['operations']) {
-            $this->allowed_operations = $module_data['operations'];
-        }/**/
-        $this->is_dummy = false;
     }
 
     /**
@@ -309,7 +293,7 @@ class IliasModule
     function setConnection($seminar_id)
     {
         $this->is_connected = true;
-        return IliasObjectConnections::setConnection($seminar_id, $this->id, $this->module_type, $this->cms_type);
+        return IliasObjectConnections::setConnection($seminar_id, $this->id, $this->module_type, $this->ilias_index);
     }
 
     /**
@@ -323,7 +307,7 @@ class IliasModule
     function unsetConnection($seminar_id)
     {
         $this->is_connected = false;
-        return IliasObjectConnections::unsetConnection($seminar_id, $this->id, $this->module_type, $this->cms_type);
+        return IliasObjectConnections::unsetConnection($seminar_id, $this->id, $this->module_type, $this->ilias_index);
     }
 
     /**
@@ -369,57 +353,12 @@ class IliasModule
     * @access public
     * @return string icon-image
     */
-    function getIcon()
+    function getIcon($mode = 'inactive')
     {
         if (!$this->icon_file) {
             $this->icon_file = 'learnmodule';
         }
         return Icon::create($this->icon_file, 'inactive', [])->asImg();
-    }
-
-    /**
-    * get module-status
-    *
-    * returns true, if module is a dummy
-    * @access public
-    * @return boolean module-status
-    */
-    function isDummy()
-    {
-        return $this->is_dummy;
-    }
-
-    /**
-    * create module-dummy
-    *
-    * sets title and description of module to display error-message
-    * @access public
-    * @param string $error error-type
-    */
-    function createDummyForErrormessage($error = "unknown")
-    {
-        global $connected_cms;
-
-        switch($error)
-        {
-            case "no permission":
-                $this->setTitle(_("--- Keine Lese-Berechtigung! ---"));
-                $this->setDescription(sprintf(_("Sie haben im System \"%s\" keine Lese-Berechtigung für das Lernmodul, das dieser Veranstaltung / Einrichtung an dieser Stelle zugeordnet ist."), $this->getCMSName()));
-                break;
-            case "not found":
-                $this->setTitle(_("--- Dieses Content-Modul existiert nicht mehr im angebundenen System! ---"));
-                $this->setDescription(sprintf(_("Das Lernmodul, das dieser Veranstaltung / Einrichtung an dieser Stelle zugeordnet war, existiert nicht mehr. Dieser Fehler tritt auf, wenn das angebundene LCMS \"%s\" nicht erreichbar ist oder wenn das Lernmodul innerhalb des angebundenen Systems gelöscht wurde."), $this->getCMSName()));
-                break;
-            case "deleted":
-                $this->setTitle(_("--- Dieses Content-Modul wurde im angebundenen System gelöscht! ---"));
-                $this->setDescription(sprintf(_("Das Lernmodul, das dieser Veranstaltung / Einrichtung an dieser Stelle zugeordnet war, wurde gelöscht."), $this->getCMSName()));
-                break;
-            default:
-                $this->setTitle(_("--- Es ist ein unbekannter Fehler aufgetreten! ---"));
-                $this->setDescription(sprintf(_("Unbekannter Fehler beim Lernmodul mit der Referenz-ID \"%s\" im LCMS \"%s\""), $this->getId(), $this->getCMSName()));
-        }
-
-        $this->is_dummy = true;
     }
 }
 ?>

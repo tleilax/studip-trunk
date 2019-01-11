@@ -43,7 +43,6 @@ class Course_IliasInterfaceController extends AuthenticatedController
         $this->ilias_interface_config = Config::get()->getValue('ILIAS_INTERFACE_BASIC_SETTINGS');
 
         $this->search_key = Request::get('search_key');
-        $this->anker_target = Request::get('anker_target');
         $this->seminar_id = Context::getId();
         $this->edit_permission = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id);
         $this->author_permission = false;
@@ -61,28 +60,6 @@ class Course_IliasInterfaceController extends AuthenticatedController
     {
         Navigation::activateItem('/course/ilias_interface/view');
 
-        PageLayout::addStyle('
-#ilias_module_details_window, #ilias_module_edit_window {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    align-content: flex-start;
-}
-#ilias_module_aside {
-    width: calc(30% - 10px);
-    max-width: calc(30% - 10px);
-}
-div#preview_container {
-    width: calc(70% - 10px);
-    max-width: calc(70% - 10px);
-}
-#ilias_module_aside div.ilias-module-icon img {
-    margin-left: 20%;
-    width: 60%;
-    max-height: 16em;
-    height: 100%;
-}
-');
         $missing_course = false;
         $this->courses = array();
         $this->ilias_list = array();
@@ -98,6 +75,7 @@ div#preview_container {
                 } else {
                     $this->courses[$ilias_index] = $crs_id;
                     $this->ilias_list[$ilias_index]->checkUserCoursePermissions($crs_id);
+                    $this->ilias_list[$ilias_index]->updateCourseConnections($crs_id);
                 }
             }
         }
@@ -132,7 +110,7 @@ div#preview_container {
                 $widget->addLink(
                     _('Lernobjekte suchen'),
                     $this->url_for('course/ilias_interface/add_object/search'),
-                    Icon::create('add', 'clickable'),
+                    Icon::create('learnmodule+add', 'clickable'),
                     ['data-dialog' => '']
                     );
             }
@@ -140,7 +118,7 @@ div#preview_container {
                 $widget->addLink(
                     _('Meine Lernobjekte'),
                     $this->url_for('course/ilias_interface/add_object/my_modules'),
-                    Icon::create('add', 'clickable'),
+                    Icon::create('learnmodule+add', 'clickable'),
                     ['data-dialog' => '']
                     );
             }
@@ -156,13 +134,13 @@ div#preview_container {
                 $widget->addLink(
                         _('Neuen ILIAS-Kurs anlegen'),
                         $this->url_for('course/ilias_interface/add_object/new_course'),
-                        Icon::create('add', 'clickable'),
+                        Icon::create('course+add', 'clickable'),
                         ['data-dialog' => 'size=auto']
                         );
                 $widget->addLink(
                         _('ILIAS-Kurs aus einer anderen Veranstaltung zuordnen'),
                         $this->url_for('course/ilias_interface/add_object/assign_course'),
-                        Icon::create('add', 'clickable'),
+                        Icon::create('course+add', 'clickable'),
                         ['data-dialog' => 'size=auto']
                         );
             }
@@ -191,7 +169,7 @@ div#preview_container {
                 $widget->addLink(
                         _('Statusgruppen übertragen'),
                         $this->url_for('course/ilias_interface/add_groups'),
-                        Icon::create('group2', 'clickable'),
+                        Icon::create('group2+refresh', 'clickable'),
                         ['data-dialog' => 'size=auto']
                         );
             }
@@ -212,18 +190,6 @@ div#preview_container {
             $this->sidebar->addWidget($widget);
         }
 
-        // Find all statusgroups for this course.
-/*        $groups = Statusgruppen::findBySeminar_id($this->seminar_id);
-        foreach ($groups as $group) {
-            echo $group->getId()."<br>";
-            echo $group->getName()."<br>";
-            foreach ($group->members as $member) {
-                echo $member->name()."<br>";
-            }
-            var_dump($group->getChildren());
-        }
-//        var_dump($groups);
-/**/
         // show error messages
         foreach ($this->ilias_list as $ilias_index => $ilias) {
             foreach ($ilias->getError() as $error) {

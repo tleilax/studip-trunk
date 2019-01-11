@@ -1,5 +1,4 @@
 <?php
-# Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
@@ -30,29 +29,13 @@ class MyIliasAccountsController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        if (!Config::Get()->ELEARNING_INTERFACE_ENABLE ) {
+        if (!Config::Get()->ILIAS_INTERFACE_ENABLE ) {
             throw new AccessDeniedException(_('Ilias-Interface ist nicht aktiviert.'));
         } else
             $this->ilias_active = true;
 
             PageLayout::setHelpKeyword('Basis.Ilias');
 
-            $this->selected = Request::quoted('cms_select');
-            $GLOBALS['cms_select'] = $this->selected;
-            $this->cms_list = array();
-
-            $this->new_account_cms = Request::get('new_account_cms');
-            $this->module_system_type = Request::option('module_system_type');
-            $this->module_id = Request::option('module_id');
-            $this->module_type = Request::option('module_type');
-            $this->anker_target = Request::option('anker_target');
-
-            if (!isset($GLOBALS['ELEARNING_INTERFACE_MODULES'][$this->new_account_cms])) {
-                unset($this->new_account_cms);
-            }
-            if (!isset($GLOBALS['ELEARNING_INTERFACE_MODULES'][$this->cms_select])) {
-                unset($this->cms_select);
-            }
             $this->sidebar = Sidebar::get();
             $this->sidebar->setImage('sidebar/learnmodule-sidebar.png');
     }
@@ -65,28 +48,6 @@ class MyIliasAccountsController extends AuthenticatedController
         Navigation::activateItem('/tools/my_ilias_accounts');
 
         PageLayout::setTitle(_("Meine Lernobjekte und ILIAS-Accounts"));
-        PageLayout::addStyle('
-#ilias_module_details_window, #ilias_module_edit_window {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    align-content: flex-start;
-}
-#ilias_module_aside {
-    width: calc(30% - 10px);
-    max-width: calc(30% - 10px);
-}
-file_management_forms, div#preview_container {
-    width: calc(70% - 10px);
-    max-width: calc(70% - 10px);
-}
-#ilias_module_aside div.ilias-module-icon img {
-    margin-left: 20%;
-    width: 60%;
-    max-height: 16em;
-    height: 100%;
-}
-');
 
         $this->ilias_list = array();
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
@@ -191,7 +152,6 @@ file_management_forms, div#preview_container {
             $this->ilias = new ConnectedIlias($index);
             $token = $this->ilias->user->getToken();
             $session_id = $this->ilias->soap_client->loginUser($this->ilias->user->getUsername(), $token);
-            var_dump($session_id);echo $this->ilias->soap_client->getError();die();
             // display error message if session is invalid
             if (!$session_id) {
                 PageLayout::postError(sprintf(_("Automatischer Login für %s-Installation (Nutzername %s) fehlgeschlagen."),
@@ -220,7 +180,6 @@ file_management_forms, div#preview_container {
                     }
 
                     // refer to ILIAS target file
-                    //echo $this->ilias->getTargetFile() . $parameters;die();
                     header("Location: ". $this->ilias->getTargetFile() . $parameters);
                     $this->render_nothing();
                 }

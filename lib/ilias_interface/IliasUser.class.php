@@ -1,5 +1,4 @@
 <?php
-# Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
@@ -20,34 +19,35 @@ DEFINE ("USER_TYPE_CREATED", "0");
 */
 class IliasUser
 {
-    var $cms_type;
-    var $id;
-    var $studip_id;
-    var $studip_login;
-    var $studip_password;
-    var $login;
-    var $external_password;
-    var $category;
-    var $gender;
-    var $title_front;
-    var $title_rear;
-    var $title;
-    var $firstname;
-    var $lastname;
-    var $institution;
-    var $department;
-    var $street;
-    var $city;
-    var $zipcode;
-    var $country;
-    var $phone_home;
-    var $fax;
-    var $matriculation;
-    var $email;
-    var $type;
-    var $is_connected;
+    public $index;
+    public $version;
+    public $id;
+    public $studip_id;
+    public $studip_login;
+    public $studip_password;
+    public $login;
+    public $external_password;
+    public $category;
+    public $gender;
+    public $title_front;
+    public $title_rear;
+    public $title;
+    public $firstname;
+    public $lastname;
+    public $institution;
+    public $department;
+    public $street;
+    public $city;
+    public $zipcode;
+    public $country;
+    public $phone_home;
+    public $fax;
+    public $matriculation;
+    public $email;
+    public $type;
+    public $is_connected;
 
-    var $db_class;
+    public $db_class;
     /**
     * constructor
     *
@@ -176,30 +176,6 @@ class IliasUser
     }
 
     /**
-    * delete user-account
-    *
-    * dummy-method. returns false. must be overwritten by subclass.
-    * @access public
-    * @return boolean returns false
-    */
-    function deleteUser()
-    {
-        return false;
-    }
-
-    /**
-    * get login-data of user-account
-    *
-    * dummy-method. returns false. must be overwritten by subclass.
-    * @access public
-    * @return boolean returns false
-    */
-    function getLoginData($username)
-    {
-        return false;
-    }
-
-    /**
     * get id
     *
     * returns id
@@ -305,37 +281,6 @@ class IliasUser
     function setCategory($user_category)
     {
         $this->category = $user_category;
-    }
-
-    /**
-    * get crypted password
-    *
-    * dummy-method. returns false. must be overwritten by subclass.
-    * @access public
-    * @return boolean returns false
-    */
-    function getCryptedPassword($password)
-    {
-        return false;
-    }
-
-    /**
-    * verify login data
-    *
-    * returns true, if login-data is valid
-    * @access public
-    * @param string $username username
-    * @param string $password password
-    * @return boolean login-validation
-    */
-    function verifyLogin($username, $password)
-    {
-        $this->getLoginData($username);
-        if (($username == "") OR ($password == ""))
-            return false;
-        if ( ($this->login == $username) AND  ($this->external_password == $this->getCryptedPassword($password) ) )
-            return true;
-        return false;
     }
 
     /**
