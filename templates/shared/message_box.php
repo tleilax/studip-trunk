@@ -6,7 +6,9 @@
     <? if (sizeof($details) && $close_details) : ?>
         <a class="details" href="#" title="<?=_('Detailanzeige umschalten')?>"><span><?=_('Detailanzeige umschalten')?></span></a>
     <? endif ?>
-        <a class="close" href="#" title="<?=_('Nachrichtenbox schliessen')?>"><span><?=_('Nachrichtenbox schliessen')?></span></a>
+    <? if (!$hide_close): ?>
+        <a class="close" href="#" title="<?=_('Nachrichtenbox schließen')?>"><span><?=_('Nachrichtenbox schließen')?></span></a>
+    <? endif; ?>
     </div>
     <?= $message ?>
 <? if (sizeof($details)) : ?>

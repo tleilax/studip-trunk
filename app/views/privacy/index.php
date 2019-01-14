@@ -4,7 +4,7 @@
 
 <? foreach ($plugin_data as $label => $tabledata) : ?>
     <? if ($tabledata['table_content']) : ?>
-        <article class="studip toggle <?  if (!Request::isDialog() && $section) echo 'open'; ?>" style="width: max-content;">
+        <article class="studip toggle <?  if (!Request::isDialog() && $section) echo 'open'; ?>">
             <header>
                 <h1>
                     <a>
