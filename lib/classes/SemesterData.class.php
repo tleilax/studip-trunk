@@ -175,7 +175,7 @@ class SemesterData
     {
         $ret = array();
         foreach (Semester::getAll() as $semester) {
-            if ($semester->visible || $GLOBALS['perm']->have_perm('admin')) {
+            if ($GLOBALS['perm']->have_perm('admin') || $semester->visible) {
                 $ret[] = $semester->toArray();
             }
         }
