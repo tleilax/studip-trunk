@@ -59,7 +59,7 @@
             <label>
                 <input type="checkbox" name="send_lis_person" value="1" <?= $lti_data->options['send_lis_person'] ? ' checked' : '' ?>>
                 <?= _('Nutzerdaten an LTI-Tool senden') ?>
-                <?= tooltipIcon(_('Nutzerdaten dürfen nur das externe Tool gesendet werden, wenn es keine Datenschutzbedenken gibt. Mit Setzen des Hakens bestätigen Sie, dass die Übermittlung der Daten zulässig ist.')) ?>
+                <?= tooltipIcon(_('Nutzerdaten dürfen nur an das externe Tool gesendet werden, wenn es keine Datenschutzbedenken gibt. Mit Setzen des Hakens bestätigen Sie, dass die Übermittlung der Daten zulässig ist.')) ?>
             </label>
         </div>
 
