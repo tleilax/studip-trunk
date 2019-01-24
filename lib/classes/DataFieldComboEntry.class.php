@@ -60,9 +60,9 @@ class DataFieldComboEntry extends DataFieldEntry
      */
     public function getHTML($name = '', $variables = array())
     {
-        return parent::getHTML($name, array(
+        return parent::getHTML($name, $variables + [
             'values' => $this->getParameters(),
-        ));
+        ]);
     }
 
     /**
@@ -72,7 +72,7 @@ class DataFieldComboEntry extends DataFieldEntry
      */
     protected function getParameters()
     {
-        $parameters = explode("\n", $this->model->typeparam);
+        $parameters = explode("\n", trim($this->model->typeparam));
         $parameters = array_map('trim', $parameters);
         return $parameters;
     }

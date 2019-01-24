@@ -275,37 +275,40 @@ function get_my_obj_values (&$my_obj, $user_id)
     $db2->query("REPLACE INTO  myobj_" . $user_id . " (object_id) VALUES ('" . join("'),('", array_keys($my_obj)) . "')");
 
     //dokumente
-    $unreadable_folders = array();
-    if (!$GLOBALS['perm']->have_perm('admin')){
-        foreach (array_keys($my_obj) as $obj_id){
-            $must_have_perm = $my_obj[$obj_id]['obj_type'] == 'sem' ? 'tutor' : 'autor';
-            if ($GLOBALS['perm']->permissions[$my_obj[$obj_id]['status']] < $GLOBALS['perm']->permissions[$must_have_perm]) {
-                $unreadable_folders = array_merge((array)$unreadable_folders, FileManager::getUnreadableFolders(Folder::findTopFolder($obj_id)->getTypedFolder(), $user_id));
+    foreach (array_keys($my_obj) as $obj_id) {
+        $readable_folders = null;
+        $must_have_perm = $my_obj[$obj_id]['obj_type'] == 'sem' ? 'tutor' : 'autor';
+        if (!$GLOBALS['perm']->have_studip_perm($must_have_perm, $obj_id, $user_id)) {
+            $readable_folders = array_keys(FileManager::getReadableFolders(Folder::findTopFolder($obj_id)->getTypedFolder(), $user_id));
+
+            if (empty($readable_folders)) {
+                continue;
             }
         }
-    }
-    $db2->query(get_obj_clause('folders a {ON_CLAUSE} INNER JOIN file_refs fr ON (fr.folder_id=a.id)','range_id','fr.id',"(fr.chdate > IFNULL(b.visitdate, $threshold) AND fr.user_id !='$user_id')", 'documents', false, (count($unreadable_folders) ? "AND a.id NOT IN('".join("','", array_keys($unreadable_folders))."')" : ""), false, $user_id, 'fr.chdate'));
-    while($db2->next_record()) {
-        $object_id = $db2->f('object_id');
-        if ($my_obj[$object_id]["modules"]["documents"]) {
-            $my_obj[$object_id]["neuedokumente"] = $db2->f("neue");
-            $my_obj[$object_id]["dokumente"] = $db2->f("count");
-            if ($my_obj[$object_id]['last_modified'] < $db2->f('last_modified')){
-                $my_obj[$object_id]['last_modified'] = $db2->f('last_modified');
+
+        $db2->query(get_obj_clause('folders a {ON_CLAUSE} INNER JOIN file_refs fr ON (fr.folder_id=a.id)','range_id','fr.id',"(fr.chdate > IFNULL(b.visitdate, $threshold) AND fr.user_id !='$user_id')", 'documents', false, ($readable_folders ? "AND a.id IN('".join("','", $readable_folders)."')" : ""), false, $user_id, 'fr.chdate'));
+        while($db2->next_record()) {
+            $object_id = $db2->f('object_id');
+            if ($my_obj[$object_id]["modules"]["documents"]) {
+                $my_obj[$object_id]["neuedokumente"] = $db2->f("neue");
+                $my_obj[$object_id]["dokumente"] = $db2->f("count");
+                if ($my_obj[$object_id]['last_modified'] < $db2->f('last_modified')){
+                    $my_obj[$object_id]['last_modified'] = $db2->f('last_modified');
+                }
+
+                $nav = new Navigation('files');
+
+                if ($db2->f('neue')) {
+                    $nav->setURL('dispatch.php/course/files/flat');
+                    $nav->setImage(Icon::create('files+new', 'attention', ["title" => sprintf(_('%s Dokumente, %s neue'),$db2->f('count'),$db2->f('neue'))]));
+                    $nav->setBadgeNumber($db2->f('neue'));
+                } else if ($db2->f('count')) {
+                    $nav->setURL('dispatch.php/course/files/index');
+                    $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf(_('%s Dokumente'),$db2->f('count'))]));
+                }
+
+                $my_obj[$object_id]['files'] = $nav;
             }
-
-            $nav = new Navigation('files');
-
-            if ($db2->f('neue')) {
-                $nav->setURL('dispatch.php/course/files/flat');
-                $nav->setImage(Icon::create('files+new', 'attention', ["title" => sprintf(_('%s Dokumente, %s neue'),$db2->f('count'),$db2->f('neue'))]));
-                $nav->setBadgeNumber($db2->f('neue'));
-            } else if ($db2->f('count')) {
-                $nav->setURL('dispatch.php/course/files/index');
-                $nav->setImage(Icon::create('files', 'inactive', ["title" => sprintf(_('%s Dokumente'),$db2->f('count'))]));
-            }
-
-            $my_obj[$object_id]['files'] = $nav;
         }
     }
 
@@ -606,7 +609,7 @@ function get_my_obj_values (&$my_obj, $user_id)
                     }
                 }
                 if (SeminarCategories::GetByTypeId($my_obj[$object_id]['sem_status'])->studygroup_mode) {
-                    $nav = new Navigation('participants', 'dispatch.php/course/studygroup/members/'. $object_id);
+                    $nav = new Navigation('participants', 'dispatch.php/course/studygroup/members/?cid='. $object_id);
                 } else {
                     $nav = new Navigation('participants', 'dispatch.php/course/members/index');
                 }
@@ -637,7 +640,7 @@ function get_my_obj_values (&$my_obj, $user_id)
 
             if ($my_obj[$object_id]["modules"]["participants"]) {
                 if (SeminarCategories::GetByTypeId($my_obj[$object_id]['sem_status'])->studygroup_mode) {
-                    $nav = new Navigation('participants', 'dispatch.php/course/studygroup/members/'. $object_id);
+                    $nav = new Navigation('participants', 'dispatch.php/course/studygroup/members/?cid='. $object_id);
                 } else {
                     $nav = new Navigation('participants', 'dispatch.php/course/members/index');
                 }

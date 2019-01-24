@@ -68,9 +68,9 @@ class DataFieldPhoneEntry extends DataFieldEntry
      */
     public function getHTML($name = '', $variables = array())
     {
-        return parent::getHTML($name, array(
-            'values' => $this->getNumberParts(),
-        ));
+        return parent::getHTML($name, $variables + [
+            'values' => $this->getNumberParts()
+        ]);
     }
 
     /**

@@ -535,7 +535,7 @@ class StudipLitListViewAdmin extends TreeView
         $temporary_file_name = md5(uniqid('StudipLitListViewAdmin::getExportButton', true));
 
         //build a temporary file containing the data (if the user is permitted to do so):
-        if ($this->tree->range_id == $user->id || $perm->have_studip_perm('tutor', $this->tree->range_id)) {
+        if ($this->tree->range_id == $GLOBALS['user']->id || $perm->have_studip_perm('tutor', $this->tree->range_id)) {
 
             $data = StudipLitList::GetTabbedList($this->tree->range_id, $item_id);
 
@@ -633,7 +633,7 @@ class StudipLitListViewAdmin extends TreeView
                     'clickable',
                     ['title' => _('Sichtbarkeit ändern')])
                              ->asImg();
-                $head . "</a>";
+                $head .= "</a>";
             }
         } else {
             $head .= Icon::create('literature', 'clickable')->asImg();

@@ -4,11 +4,13 @@
 function connectProxyAndProxied() {
     $(':checkbox[data-proxyfor]')
         .each(function() {
-            var proxied = $(this).data('proxyfor');
+            const proxy = $(this);
+            const proxyId = proxy.uniqueId().attr('id');
+            var proxied = proxy.data('proxyfor');
             // The following seems like a hack but works perfectly fine.
             $(proxied)
-                .attr('data-proxiedby', true)
-                .data('proxiedby', this);
+                .attr('data-proxiedby', proxyId)
+                .data('proxiedby', `#${proxyId}`);
         })
         .trigger('update.proxy');
 }
@@ -51,23 +53,36 @@ $(document)
 $(document).ready(connectProxyAndProxied);
 $(document).on('dialog-update refresh-handlers', connectProxyAndProxied);
 
-// Use a checkbox as a toggle switch for the disabled attribute of another
-// element. Define element to disable if checkbox is neither :checked nor
-// :indeterminate by a css selector in attribute "data-activates".
+// Use a checkbox or radiobox as a toggle switch for the disabled attribute of
+// another set of elements. Define set of elements to disable/enable if item is
+// neither :checked nor :indeterminate by a css selector in attribute
+// "data-activates" / "deactivates".
 $(document)
-    .on('change', ':checkbox[data-activates]', function() {
-        var activates = $(this).data('activates'),
-            activated = $(this).prop('checked') || $(this).prop('indeterminate') || false;
-        $(activates).each(function() {
-            var condition = $(this).data().activatesCondition,
-                activate = activated && (!condition || $(condition).length > 0);
-            $(this)
-                .attr('disabled', !activate)
-                .trigger('update.proxy');
+    .on('change', '[data-activates],[data-deactivates]', function() {
+        if (!$(this).is(':checkbox,:radio')) {
+            return;
+        }
+
+        ['activates', 'deactivates'].forEach((type) => {
+            var selector = $(this).data(type);
+            if (selector === undefined || $(this).prop('disabled')) {
+                return;
+            }
+
+            var state = $(this).prop('checked') || $(this).prop('indeterminate') || false;
+            $(selector).each(function() {
+                var condition = $(this).data(`${type}Condition`),
+                    toggle = state && (!condition || $(condition).length > 0);
+                $(this)
+                    .attr('disabled', type === 'activates' ? !toggle : toggle)
+                    .trigger('update.proxy');
+            });
         });
     })
-    .ready(function() {
-        $(':checkbox[data-activates]').trigger('change');
+    .ready(() => {
+        $('[data-activates],[data-deactivates]').filter(':checked').trigger('change');
+    }).on('dialog-update', () => {
+        $('[data-activates],[data-deactivates]').filter(':checked').trigger('change');
     });
 
 // Use a select as a toggle switch for the disabled attribute of another

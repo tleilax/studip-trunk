@@ -47,6 +47,7 @@ class ScheduleView
     var $add_link;
     var $start_date;            //the timestamp of the first day (monday) of the viewed week
     var $categories;
+    var $add_info_is_html = false;
 
     public function __construct($start_hour = 8, $end_hour = 20, $show_columns = false,  $start_date = false)
     {
@@ -376,7 +377,7 @@ class ScheduleView
             }
             $out .= $this->getShortName($this->events[$id]['name'], $print_view);
             if ($this->events[$id]['add_info']) {
-                $out.= "\n<br>" . htmlReady($this->events[$id]['add_info']);
+                $out.= "\n<br>" . ($this->add_info_is_html ? $this->events[$id]['add_info'] : htmlReady($this->events[$id]['add_info']));
             }
             if (!$print_view) {
                 $out.= "\n</a>";
@@ -388,7 +389,7 @@ class ScheduleView
                 }
                 $out .= $this->getShortName($this->events[$id]['name'], $print_view);
                 if ($this->events[$id]['add_info']) {
-                    $out.= "\n<br>" . htmlReady($this->events[$id]["add_info"]);
+                    $out.= "\n<br>" . ($this->add_info_is_html ? $this->events[$id]['add_info'] : htmlReady($this->events[$id]['add_info']));
                 }
                 if (!$print_view) {
                     $out.= "\n</a>";
@@ -399,7 +400,7 @@ class ScheduleView
                     }
                     $out .= "\n<br>" . $this->getShortName($event['name'], $print_view);
                     if ($event['add_info']) {
-                        $out.= "<br>" . htmlReady($event['add_info']);
+                        $out.= "<br>" . ($this->add_info_is_html ? $event['add_info'] : htmlReady($event['add_info']));
                     }
                     if (!$print_view) {
                         $out.= "\n</a>";

@@ -425,14 +425,14 @@ function export_sem($inst_id, $ex_sem_id = 'all')
         $data_object .= xml_open_tag($xml_groupnames_lecture['object'], $row['seminar_id']);
         $sem_obj = new Seminar($row['seminar_id']);
         while ( list($key, $val) = each($xml_names_lecture)) {
-            if ($val == '') {
+            if (!$val) {
                 $val = $key;
             }
-            if ($key == 'status') {
+            if ($key === 'status') {
                 $data_object .= xml_tag($val, $SEM_TYPE[$row[$key]]['name']);
-            } elseif ($key == 'ort') {
+            } elseif ($key === 'ort') {
                 $data_object .= xml_tag($val, $sem_obj->getDatesTemplate('dates/seminar_export_location'));
-            } elseif ($key == 'bereich' && $SEM_CLASS[$SEM_TYPE[$row['status']]['class']]['bereiche']) {
+            } elseif ($key === 'bereich' && $SEM_CLASS[$SEM_TYPE[$row['status']]['class']]['bereiche']) {
                 $data_object .= xml_open_tag($xml_groupnames_lecture['childgroup3']);
                 $pathes = get_sem_tree_path($row['seminar_id']);
                 if (is_array($pathes)) {
@@ -443,50 +443,50 @@ function export_sem($inst_id, $ex_sem_id = 'all')
                     $data_object .= xml_tag($val, 'n.a.');
                 }
                 $data_object .= xml_close_tag($xml_groupnames_lecture['childgroup3']);
-            } elseif ($key == 'lvgruppe' && $SEM_CLASS[$SEM_TYPE[$row['status']]['class']]['module']) {
+            } elseif ($key === 'lvgruppe' && $SEM_CLASS[$SEM_TYPE[$row['status']]['class']]['module']) {
                 $data_object .= xml_open_tag($xml_groupnames_lecture['childgroup3a']);
                 ModuleManagementModelTreeItem::setObjectFilter('Modul', function ($modul) use ($sem_obj) {
-                        // check for public status
-                        if (!$GLOBALS['MVV_MODUL']['STATUS']['values'][$modul->stat]['public']) {
-                            return false;
-                        }
-                        $modul_start = Semester::find($modul->start)->beginn ?: 0;
-                        $modul_end = Semester::find($modul->end)->beginn ?: PHP_INT_MAX;
-                        return $sem_obj->start_time <= $modul_end &&
-                               ($modul_start <= $sem_obj->start_time + $sem_obj->duration_time || $sem_obj->duration_time == -1);
-                    });
+                    // check for public status
+                    if (!$GLOBALS['MVV_MODUL']['STATUS']['values'][$modul->stat]['public']) {
+                        return false;
+                    }
+                    $modul_start = Semester::find($modul->start)->beginn ?: 0;
+                    $modul_end = Semester::find($modul->end)->beginn ?: PHP_INT_MAX;
+                    return $sem_obj->start_time <= $modul_end &&
+                           ($modul_start <= $sem_obj->start_time + $sem_obj->duration_time || $sem_obj->duration_time == -1);
+                });
                 ModuleManagementModelTreeItem::setObjectFilter('StgteilVersion', function ($version) {
-                        return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
-                    });
-                $trail_classes = array('StgteilabschnittModul', 'Studiengang');
+                    return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
+                });
+                $trail_classes = ['Modulteil', 'StgteilabschnittModul', 'StgteilAbschnitt', 'StgteilVersion'];
                 $mvv_object_paths = MvvCourse::get($sem_obj->id)->getTrails($trail_classes);
-                $mvv_paths = array();
+                $mvv_paths = [];
 
                 foreach ($mvv_object_paths as $mvv_object_path) {
                     // show only complete paths
-                    if (count($mvv_object_path) == 2) {
-                        $mvv_object_names = array();
+                    if (count($mvv_object_path) === 4) {
+                        $mvv_object_names = [];
                         foreach ($mvv_object_path as $mvv_object) {
                             $mvv_object_names[] = $mvv_object->getDisplayName();
                         }
                         $mvv_paths[] = implode(' > ', $mvv_object_names);
                     }
                 }
-                foreach (array_unique_recursive($mvv_paths, SORT_REGULAR) as $mvv_path) {
+                foreach ($mvv_paths as $mvv_path) {
                     $data_object .= xml_tag($val, $mvv_path);
                 }
                 $data_object .= xml_close_tag($xml_groupnames_lecture['childgroup3a']);
-            } elseif ($key == 'admission_turnout') {
+            } elseif ($key === 'admission_turnout') {
                     $data_object .= xml_open_tag($val, $row['admission_type'] ? _('max.') : _('erw.'));
                     $data_object .= $row[$key];
                     $data_object .= xml_close_tag($val);
-            } elseif ($key == 'teilnehmer_anzahl_aktuell') {
+            } elseif ($key === 'teilnehmer_anzahl_aktuell') {
                 $count_statement->execute(array($row['seminar_id']));
                 $count = $count_statement->fetchColumn();
                 $count_statement->closeCursor();
 
                 $data_object .= xml_tag($val, $count);
-            } elseif ($key == 'metadata_dates') {
+            } elseif ($key === 'metadata_dates') {
                 $data_object .= xml_open_tag( $xml_groupnames_lecture['childgroup1'] );
                 $vorb = vorbesprechung($row['seminar_id'], 'export');
                 if ($vorb != false) {
@@ -500,9 +500,9 @@ function export_sem($inst_id, $ex_sem_id = 'all')
                 }
                 $data_object .= xml_tag($val[2], $sem_obj->getDatesExport());
                 $data_object .= xml_close_tag( $xml_groupnames_lecture["childgroup1"] );
-            } elseif ($key == 'Institut_id') {
+            } elseif ($key === 'Institut_id') {
                 $data_object .= xml_tag($val, $row['heimateinrichtung'] , array('key' => $row[$key]));
-            } elseif ($row[$key] != '')
+            } elseif ($row[$key] !== '')
                 $data_object .= xml_tag($val, $row[$key]);
         }
 
@@ -674,7 +674,7 @@ function export_teilis($inst_id, $ex_sem_id = "no")
                       LEFT JOIN abschluss AS a USING (abschluss_id)
                       WHERE seminar_id = :seminar_id AND su.status = :status
                       GROUP BY aum.user_id
-                      ORDER BY " . ($key1 == 'dozent' ? 'position, ' : '') . "Nachname, Vorname";
+                      ORDER BY " . ($key1 === 'dozent' ? 'position, ' : '') . "Nachname, Vorname";
             $parameters[':seminar_id'] = $ex_sem_id;
             $parameters[':status']     = $key1;
         }
@@ -796,7 +796,7 @@ function export_pers($inst_id)
     }
     // create xml-output
     $data_object = xml_open_tag($xml_groupnames_person['group']);
-    foreach ($rows as $row) { 
+    foreach ($rows as $row) {
         $data_found = true;
         $group_string = '';
         if ($do_group && $group != $row[$group_tab_zelle]) {

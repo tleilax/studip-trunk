@@ -94,13 +94,13 @@ class Admin_ApiController extends AuthenticatedController
         if (Request::submitted('store')) {
             $errors = array();
 
-            $consumer->active      = Request::int('active');
+            $consumer->active      = (bool) Request::int('active');
             $consumer->title       = Request::get('title');
             $consumer->contact     = Request::get('contact');
             $consumer->email       = Request::get('email');
             $consumer->callback    = Request::get('callback');
             $consumer->url         = Request::get('url');
-            $consumer->type        = Request::get('type');
+            $consumer->type        = Request::get('type') ?: null;
             $consumer->commercial  = Request::int('commercial');
             $consumer->notes       = Request::get('notes');
             $consumer->description = Request::get('description');

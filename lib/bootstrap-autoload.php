@@ -46,8 +46,6 @@ StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/ilias_int
 // Classes in /app
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models');
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models', 'Studip');
-// Special treatment for the Wysiwyg namespace
-StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models/Wysiwyg', 'Studip\\Wysiwyg');
 
 // Messy file names
 StudipAutoloader::addClassLookups([

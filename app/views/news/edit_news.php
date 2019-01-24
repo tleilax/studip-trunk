@@ -61,19 +61,19 @@
                 aria-label="<?= _('Inhalt der Ankündigung') ?>" required><?= wysiwygReady($body) ?></textarea>
         </label>
 
-        <label class="col-1">
+        <label class="col-2">
             <span class="required">
                 <?= _('Veröffentlichungsdatum') ?>
             </span>
 
             <input type="text" class="news_date news_prevent_submit"
                    name="news_startdate" id="news_startdate"
-                   data-date-picker='{"<=":"#news_enddate"}'
+                   data-date-picker
                    value="<? if ($news['date']) echo date('d.m.Y', $news['date']); ?>"
                    aria-label="<?= _('Einstelldatum') ?>" required>
         </label>
 
-        <label class="col-1">
+        <label class="col-2">
             <span class="required">
                 <?= _('Ablaufdatum') ?>
             </span>
@@ -85,7 +85,7 @@
                    aria-label="<?= _('Ablaufdatum') ?>" required>
         </label>
 
-        <label class="col-1">
+        <label class="col-2">
             <?= _('Laufzeit in Tagen') ?>
 
             <input type="number" class="news_date news_prevent_submit"

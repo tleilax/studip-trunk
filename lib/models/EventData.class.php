@@ -16,22 +16,22 @@
 class EventData extends SimpleORMap implements PrivacyObject
 {
 
-    protected static function configure($config = array())
+    protected static function configure($config = [])
     {
         $config['db_table'] = 'event_data';
 
-        $config['belongs_to']['author'] = array(
-            'class_name' => 'User',
+        $config['belongs_to']['author'] = [
+            'class_name'  => User::class,
             'foreign_key' => 'author_id',
-        );
-        $config['belongs_to']['editor'] = array(
-            'class_name' => 'User',
+        ];
+        $config['belongs_to']['editor'] = [
+            'class_name'  => User::class,
             'foreign_key' => 'editor_id',
-        );
-        $config['has_many']['calendars'] = array(
-            'class_name' => 'CalendarEvent',
+        ];
+        $config['has_many']['calendars'] = [
+            'class_name'  => CalendarEvent::class,
             'foreign_key' => 'event_id'
-        );
+        ];
 
         $config['default_values']['linterval'] = 0;
         $config['default_values']['sinterval'] = 0;
@@ -87,16 +87,14 @@ class EventData extends SimpleORMap implements PrivacyObject
     }
 
     /**
-     * Return a storage object (an instance of the StoredUserData class)
-     * enriched with the available data of a given user.
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
      *
-     * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @param StoredUserData $storage object to store data into
      */
-    public static function getUserdata(User $user)
+    public static function exportUserData(StoredUserData $storage)
     {
-        $storage = new StoredUserData($user);
-        $sorm = EventData::findThru($user->user_id, [
+        $sorm = EventData::findThru($storage->user_id, [
             'thru_table'        => 'calendar_event',
             'thru_key'          => 'range_id',
             'thru_assoc_key'    => 'event_id',
@@ -108,9 +106,8 @@ class EventData extends SimpleORMap implements PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('event_data', $field_data, $user);
+                $storage->addTabularData(_('Kalender Einträge'), 'event_data', $field_data);
             }
         }
-        return [_('Kalender Einträge') => $storage];
     }
 }

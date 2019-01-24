@@ -136,19 +136,19 @@ class Message extends SimpleORMap implements PrivacyObject
     public function getRecipients()
     {
         if ($this->relations['receivers'] === null) {
-            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto FROM
-                    message_user
-                    INNER JOIN auth_user_md5 aum USING(user_id)
-                    LEFT JOIN user_info ui USING(user_id)
-                    WHERE message_id=? AND snd_rec='rec'
-                    ORDER BY Nachname";
+            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto
+                    FROM message_user
+                    INNER JOIN auth_user_md5 aum USING (user_id)
+                    LEFT JOIN user_info ui USING (user_id)
+                    WHERE message_id = ? AND snd_rec = 'rec'
+                    ORDER BY Nachname, Vorname";
             $params = array($this->id);
         } else {
-            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto FROM
-                    auth_user_md5 aum
-                    LEFT JOIN user_info ui USING(user_id)
-                    WHERE aum.user_id IN(?)
-                    ORDER BY Nachname";
+            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto
+                    FROM auth_user_md5 AS aum
+                    LEFT JOIN user_info ui USING (user_id)
+                    WHERE aum.user_id IN (?)
+                    ORDER BY Nachname, Vorname";
             $params = array($this->receivers->pluck('user_id'));
         }
         $db = DbManager::get();
@@ -314,26 +314,23 @@ class Message extends SimpleORMap implements PrivacyObject
     }
 
     /**
-     * Return a storage object (an instance of the StoredUserData class)
-     * enriched with the available data of a given user.
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
      *
-     * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @param StoredUserData $storage object to store data into
      */
-    public static function getUserdata(User $user )
+    public static function exportUserData(StoredUserData $storage)
     {
-        $storage = new StoredUserData($user);
-        $sorm = self::findBySQL("autor_id = ?", [$user->user_id]);
+        $sorm = self::findBySQL("autor_id = ?", [$storage->user_id]);
         if ($sorm) {
             $field_data = [];
             foreach ($sorm as $row) {
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('message', $field_data, $user);
+                $storage->addTabularData(_('Nachrichten'), 'message', $field_data);
             }
         }
-        return [_('Nachrichten') => $storage];
     }
 
 }

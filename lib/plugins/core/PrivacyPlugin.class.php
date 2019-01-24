@@ -15,12 +15,10 @@
 interface PrivacyPlugin
 {
     /**
-     * Return a storage object (an instance of the StoredUserData class)
-     * enriched with the available data of a given user.
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
      *
-     * @return array of StoredUserData objects
+     * @param StoredUserData $storage object to store data into
      */
-    public static function getUserdata($user);
-
-    public static function deleteUserdata($user);
+    public function exportUserData(StoredUserData $storage);
 }

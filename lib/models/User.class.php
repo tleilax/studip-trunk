@@ -1339,17 +1339,14 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
     }
 
     /**
-     * Return a storage object (an instance of the StoredUserData class)
-     * enriched with the available data of a given user.
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
      *
-     * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @param StoredUserData $storage object to store data into
      */
-    public static function getUserdata(User $user)
+    public static function exportUserData(StoredUserData $storage)
     {
-        $storage = new StoredUserData($user);
-        $storage2 = new StoredUserData($user);
-        $sorm = User::findBySQL("user_id = ?", [$user->user_id]);
+        $sorm = User::findBySQL("user_id = ?", [$storage->user_id]);
 
         if ($sorm) {
             $limit ='user_id username password perms vorname nachname email validation_key auth_plugin locked lock_comment locked_by visible';
@@ -1358,7 +1355,7 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
                 $field_data[] = $row->toRawArray($limit);
             }
             if ($field_data) {
-                $storage->addTabularData('auth_user_md5', $field_data, $user);
+                $storage->addTabularData(_('Kerndaten'), 'auth_user_md5', $field_data);
             }
 
             $limit = 'user_id hobby lebenslauf publi schwerp home privatnr privatcell privadr score geschlecht mkdate chdate title_front title_rear preferred_language smsforward_copy smsforward_rec email_forward smiley_favorite motto lock_rule';
@@ -1367,13 +1364,11 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
                 $field_data[] = $row->toRawArray($limit);
             }
             if ($field_data) {
-                $storage2->addTabularData('user_info', $field_data, $user);
+                $storage->addTabularData(_('Benutzer Informationen'), 'user_info', $field_data);
             }
         }
 
-        return [
-            _('Kerndaten') => $storage,
-            _('Benutzer Informationen') => $storage2,
-        ];
+        $data = DBManager::get()->fetchAll('SELECT * FROM object_user_visits WHERE user_id = ?', [$storage->user_id]);
+        $storage->addTabularData(_('Objekt Aufrufe'), 'object_user_visits', $data);
     }
 }

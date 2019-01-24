@@ -232,10 +232,7 @@ class ExternEdit {
         $out = "<tr><td class=\"$class\" width=\"100%\" align=\"left\">\n";
         $out .= '<form name="edit_form" class="default method-'.__METHOD__.'" action="' . URLHelper::getLink('?com=store#anker') .  '" method="post">';
         $out .= CSRFProtection::tokenTag();
-
-        $noTdTag = true;
-        $out .= printcontent("100%", FALSE, $content, "", FALSE, "", $noTdTag);
-        $out .= "$submit</form>\n";
+        $out .= "$content$submit</form>\n";
         $out .= "</td></tr>\n";
 
         return $out;

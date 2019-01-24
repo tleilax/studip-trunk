@@ -336,16 +336,14 @@ class LogEvent extends SimpleORMap implements PrivacyObject
     }
 
     /**
-     * Return a storage object (an instance of the StoredUserData class)
-     * enriched with the available data of a given user.
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
      *
-     * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @param StoredUserData $storage object to store data into
      */
-    public static function getUserdata(User $user)
+    public static function exportUserData(StoredUserData $storage)
     {
-        $storage = new StoredUserData($user);
-        $user_id = $user->user_id;
+        $user_id = $storage->user_id;
         $templates = [];
 
         $query = "SELECT *
@@ -389,13 +387,12 @@ class LogEvent extends SimpleORMap implements PrivacyObject
                 }
             }
 
-            $a['readable_entry'] = $log_event->formatEvent();
+            $a['readable_entry'] = html_entity_decode(strip_tags(str_replace('<br>', PHP_EOL, ($log_event->formatEvent()))));
             $log[$pos]= array_merge($a, $event);
         }
 
         if ($log) {
-            $storage->addTabularData('log_events', $log, $user);
+            $storage->addTabularData(_('Logs'), 'log_events', $log);
         }
-        return [_('Logs') => $storage];
     }
 }

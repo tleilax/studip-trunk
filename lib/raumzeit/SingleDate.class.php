@@ -447,9 +447,28 @@ class SingleDate
     }
 
 
-    protected function getOverlapMessage($assignment_id = null, $overlap_data = [])
+    /**
+     * This method converts overlap data about an overlapping assignment
+     * to a string that can be used to output overlap information to the user.
+     * Only one overlap is converted by this method. For multiple overlaps
+     * this method must be called multiple times.
+     *
+     * @param string $assignment_id The ID of an overlapping assignment.
+     *
+     * @param array $overlap_data An associative array with data for an
+     *     overlap. The array must have the following structure:
+     *     [
+     *         'begin' => The begin timestamp of the overlap.
+     *         'end' => The end timestamp of the overlap.
+     *         'lock' => Whether the overlap is caused by a lock assignment
+     *                   (true) or not (false).
+     *     ]
+     *
+     * @return string A string representation of the overlap.
+     */
+    protected function getOverlapMessage($assignment_id = null, array $overlap_data = [])
     {
-        if (!$assignment_id or !$overlap_data) {
+        if (!$assignment_id || !$overlap_data) {
             return '';
         }
 
@@ -461,13 +480,13 @@ class SingleDate
 
         $message = '';
 
-        if ($overlap_data["lock"]) {
+        if ($overlap_data['lock']) {
             $message .= sprintf(
                 _('Vom %1$s, %2$s Uhr bis zum %3$s, %4$s Uhr (Sperrzeit)') . "\n",
-                date("d.m.Y", $overlap_data["begin"]),
-                date("H:i", $overlap_data["begin"]),
-                date("d.m.Y", $overlap_data["end"]),
-                date("H:i", $overlap_data["end"])
+                date('d.m.Y', $overlap_data['begin']),
+                date('H:i', $overlap_data['begin']),
+                date('d.m.Y', $overlap_data['end']),
+                date('H:i', $overlap_data['end'])
             );
         } else {
             $course_data = [];
@@ -476,12 +495,9 @@ class SingleDate
                 $assignment_range_id = $overlapping_assignment->getAssignUserId();
                 $course_id_stmt->execute(['termin_id' => $assignment_range_id]);
                 $course_id = $course_id_stmt->fetchColumn();
-                if ((get_object_type($course_id) == 'sem') and
-                    $GLOBALS['perm']->have_studip_perm(
-                        'dozent',
-                        $course_id,
-                        $GLOBALS['user']->id
-                    )) {
+                if (get_object_type($course_id) === 'sem'
+                    && $GLOBALS['perm']->have_studip_perm('dozent', $course_id))
+                {
                     $course_data['id'] = $course_id;
                     $course_data['name'] = $overlapping_assignment->GetOwnerName();
                 }
@@ -490,9 +506,7 @@ class SingleDate
             if ($course_data) {
                 $course_link = URLHelper::getLink(
                     'dispatch.php/course/timesrooms/index',
-                    [
-                        'cid' => $course_data['id']
-                    ]
+                    ['cid' => $course_data['id']]
                 );
                 $message .= sprintf(
                     _('Am %1$s von %2$s bis %3$s Uhr durch Veranstaltung %4$s') . "\n",
@@ -508,9 +522,9 @@ class SingleDate
             } else {
                 $message .= sprintf(
                     _('Am %1$s von %2$s bis %3$s Uhr') . "\n",
-                    date("d.m.Y", $overlap_data["begin"]),
-                    date("H:i", $overlap_data["begin"]),
-                    date("H:i", $overlap_data["end"])
+                    date('d.m.Y', $overlap_data['begin']),
+                    date('H:i', $overlap_data['begin']),
+                    date('H:i', $overlap_data['end'])
                 );
             }
         }
@@ -521,12 +535,14 @@ class SingleDate
 
     private function insertAssign($roomID)
     {
-        $createAssign = AssignObject::Factory(false, $roomID, $this->termin_id, '',
+        $createAssign = AssignObject::Factory(
+            false, $roomID, $this->termin_id, '',
             $this->date, $this->end_time, $this->end_time,
-            0, 0, 0, 0, 0, 0);
+            0, 0, 0, 0, 0, 0
+        );
 
         $overlaps = $createAssign->checkOverlap(true);
-        if (is_array($overlaps) && (sizeof($overlaps) > 0)) {
+        if (is_array($overlaps) && count($overlaps) > 0) {
             $resObj = ResourceObject::Factory($roomID);
             $raum = $resObj->getFormattedLink($this->date);
             $msg = sprintf(

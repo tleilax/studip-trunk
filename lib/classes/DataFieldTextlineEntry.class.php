@@ -11,20 +11,4 @@
 class DataFieldTextlineEntry extends DataFieldEntry
 {
     protected $template = 'textline.php';
-    
-    public function getHTML($name = '', $variables = array())
-    {
-        if ($this->isI18n() && is_null($this->language)) {
-            $attributes['input_attributes']['id'] = $name . '_' . $this->model->id;
-            if ($this->isRequired()) {
-                $attributes['input_attributes']['required'] = '';
-            }
-            $attributes['datafield_id'] = $this->model->id;
-            return I18N::inputTmpl('datafields/textline_i18n.php', $name,
-                    $this->getValue(), $attributes);
-        }
-        
-        return parent::getHTML($name, $variables);
-    }
-    
 }

@@ -257,7 +257,7 @@ if ($create_object) {
 $kill_object = Request::option('kill_object');
 if ($kill_object) {
     $ObjectPerms = ResourceObjectPerms::Factory($kill_object);
-    if ($ObjectPerms->getUserPerm () == "admin") {
+    if ($ObjectPerms->getUserPerm () === 'admin') {
         $killObject = ResourceObject::Factory($kill_object);
         if (!Request::int('kill_confirm')) {
             $message = sprintf(_('Wollen Sie die Ressource "%s" wirklich löschen?'), htmlReady($killObject->getName()));
@@ -266,8 +266,8 @@ if ($kill_object) {
             if ($killObject->delete()) {
                 $msg->addMsg(7);
             }
-            $_SESSION['resources_data']["view"]="resources";
-            $view = $_SESSION['resources_data']["view"];
+            $_SESSION['resources_data']['view'] = 'resources';
+            $view = $_SESSION['resources_data']['view'];
             unset($_SESSION['resources_data']['actual_object']);
         }
     } else {
@@ -1751,6 +1751,7 @@ if (Request::submitted('save_state')) {
                                 $req_added_msg .= $zw_msg;
                                 $copyReqObj = clone $reqObj;
                                 $copyReqObj->copy();
+                                $copyReqObj->setMetadateId('');
                                 $copyReqObj->setTerminId($val["termin_id"]);
                                 $copyReqObj->store();
                             }

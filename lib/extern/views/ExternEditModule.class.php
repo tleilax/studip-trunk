@@ -441,7 +441,6 @@ class ExternEditModule extends ExternEditHtml {
         $form_name_tmp = $selector->form_name;
         $selector->form_name = 'SelectSubjectAreas';
         $selector->doSearch();
-        $out = '<tr><td>';
         $out .= "<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n";
         $out .= '<tr><td align="left" style="font-size: smaller;" width="100%" nowrap="nowrap" colspan="2">' . _("Suche") . ': ';
         $out .= $selector->getSearchField(array('size' => 30 ,'style' => 'vertical-align:middle;'));
@@ -461,7 +460,7 @@ class ExternEditModule extends ExternEditHtml {
         $out .= '</td><td width="20%" style="vertical-align: top;">';
         $out .= tooltipIcon($info);
         $out .= "<span style=\"vertical-align:top;\">$error_sign</span>";
-        $out .= "</td></tr></table>\n</td></tr>\n";
+        $out .= "</td></tr></table>\n";
 
         return $out;
     }

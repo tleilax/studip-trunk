@@ -265,25 +265,22 @@ class FileRef extends SimpleORMap implements PrivacyObject
     }
 
     /**
-     * Return a storage object (an instance of the StoredUserData class)
-     * enriched with the available data of a given user.
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
      *
-     * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @param StoredUserData $storage object to store data into
      */
-    public static function getUserdata(User $user)
+    public static function exportUserData(StoredUserData $storage)
     {
-        $storage = new StoredUserData($user);
-        $sorm = self::findBySQL("user_id = ?", [$user->user_id]);
+        $sorm = self::findBySQL("user_id = ?", [$storage->user_id]);
         if ($sorm) {
             $field_data = [];
             foreach ($sorm as $row) {
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('file_refs', $field_data, $user);
+                $storage->addTabularData(_('Dateien'), 'file_refs', $field_data);
             }
         }
-        return [_('Dateien') => $storage];
     }
 }

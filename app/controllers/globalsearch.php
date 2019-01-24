@@ -15,6 +15,14 @@
 
 class GlobalSearchController extends AuthenticatedController
 {
+    public function before_filter(&$action, &$args)
+    {
+        parent::before_filter($action, $args);
+
+        if (in_array($action, ['settings', 'saveconfig'])) {
+            $GLOBALS['perm']->check('root');
+        }
+    }
 
     /**
      * Perform search in all registered modules for the given search term.
@@ -105,24 +113,16 @@ class GlobalSearchController extends AuthenticatedController
 
                         // Walk through results
                         foreach ($entries as $one) {
-
-                            /*
-                             * We found more results than needed,
-                             * add "more" link for full search.
-                             */
-                            if (count($result[$className]['content']) >= Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
-                                $result[$className]['more'] = true;
-                                $result[$className]['fullsearch'] = $classes[$className]->getSearchURL($search);
+                            // Filter item and add to result if necessary.
+                            if ($item = $classes[$className]->filter($one, $search)) {
+                                $result[$className]['name'] = $classes[$className]->getName();
+                                $result[$className]['content'][] = $item;
                             }
-
-                            if (count($result[$className]['content']) < Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
-
-                                // Filter item and add to result if necessary.
-                                if ($item = $classes[$className]->filter($one, $search)) {
-                                    $result[$className]['name'] = $classes[$className]->getName();
-                                    $result[$className]['content'][] = $item;
-                                }
-                            }
+                        }
+                        // We found more results than needed, add "more" link for full search.
+                        if (count($result[$className]['content']) > Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE) {
+                            $result[$className]['more'] = true;
+                            $result[$className]['fullsearch'] = $classes[$className]->getSearchURL($search);
                         }
                     }
                 }

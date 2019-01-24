@@ -723,36 +723,41 @@ class Admin_CoursesController extends AuthenticatedController
     public function set_visibility_action()
     {
         $result = false;
-        $visibilites = Request::getArray('visibility');
+        $visibilites = Request::intArray('visibility');
         $all_courses = Request::getArray('all_sem');
-        $errors = array();
+        $errors = [];
 
         if (!empty($all_courses)) {
             foreach ($all_courses as $course_id) {
                 if ($GLOBALS['perm']->have_studip_perm('tutor', $course_id)) {
                     $course = Course::find($course_id);
 
-                    $visibility = isset($visibilites[$course_id]) ? 1 : 0;
+                    if ($course->duration_time == -1 || $course->end_semester->visible) {
+                        $visibility = $visibilites[$course_id] ?: 0;
 
-                    if ((int)$course->visible == $visibility) {
-                        continue;
-                    }
+                        if ($course->visible == $visibility) {
+                            continue;
+                        }
 
-                    $course->setValue('visible', $visibility);
-                    if (!$course->store()) {
-                        $errors[] = $course->name;
-                    } else {
-                        $result = true;
-                        StudipLog::log($visibility ? 'SEM_VISIBLE' : 'SEM_INVISIBLE', $course->id);
+                        $course->visible = $visibility;
+                        if (!$course->store()) {
+                            $errors[] = $course->name;
+                        } else {
+                            $result = true;
+                            StudipLog::log($visibility ? 'SEM_VISIBLE' : 'SEM_INVISIBLE', $course->id);
+                        }
                     }
                 }
             }
 
             if ($result) {
-                PageLayout::postMessage(MessageBox::success(_('Die Sichtbarkeit wurde bei den gewünschten Veranstatungen erfolgreich geändert!')));
+                PageLayout::postSuccess(_('Die Sichtbarkeit wurde bei den gewünschten Veranstatungen erfolgreich geändert!'));
             }
             if ($errors) {
-                PageLayout::postMessage(MessageBox::error(_('Bei den folgenden Veranstaltungen ist ein Fehler aufgetreten'), array_map('htmlReady', $errors)));
+                PageLayout::postError(
+                    _('Bei den folgenden Veranstaltungen ist ein Fehler aufgetreten'),
+                    array_map('htmlReady', $errors)
+                );
             }
         }
         $this->redirect('admin/courses/index');
@@ -924,8 +929,8 @@ class Admin_CoursesController extends AuthenticatedController
                 'attributes' => ['data-dialog' => 'size=big'],
             ),
             3 => array(
-                'name'       => _('Zeiten / Räume'),
-                'title'      => _('Zeiten / Räume'),
+                'name'       => _('Zeiten/Räume'),
+                'title'      => _('Zeiten/Räume'),
                 'url'        => 'dispatch.php/course/timesrooms/index?cid=%s',
                 'attributes' => ['data-dialog' => 'size=big'],
                 'params'     => array(
@@ -1239,7 +1244,7 @@ class Admin_CoursesController extends AuthenticatedController
     {
         $configs         = $configs ?: array();
         $checkbox_widget = new OptionsWidget();
-        $checkbox_widget->setTitle(_('Darstellungs-Filter'));
+        $checkbox_widget->setTitle(_('Darstellungsfilter'));
 
         foreach ($this->getViewFilters() as $index => $label) {
             $state = in_array($index, $configs);
@@ -1330,7 +1335,7 @@ class Admin_CoursesController extends AuthenticatedController
     {
         $actions = $this->getActions();
         $sidebar = Sidebar::Get();
-        $list = new SelectWidget(_('Aktionsbereich-Auswahl'), $this->url_for('admin/courses/set_action_type'), 'action_area');
+        $list = new SelectWidget(_('Aktionsbereichauswahl'), $this->url_for('admin/courses/set_action_type'), 'action_area');
 
         foreach ($actions as $index => $action) {
             $list->addElement(new SelectElement($index, $action['name'], $selected_action == $index), 'action-aria-' . $index);
@@ -1353,7 +1358,7 @@ class Admin_CoursesController extends AuthenticatedController
         $this->selected = $selected;
 
         $list = new SelectWidget(
-            _('Veranstaltungstyp-Filter'),
+            _('Veranstaltungstypfilter'),
             $this->url_for('admin/courses/set_course_type'),
             'course_type'
         );
@@ -1422,7 +1427,7 @@ class Admin_CoursesController extends AuthenticatedController
 
 
         $sidebar = Sidebar::Get();
-        $list = new SelectWidget(_('Dozenten-Filter'), $this->url_for('admin/courses/index'), 'teacher_filter');
+        $list = new SelectWidget(_('Dozentenfilter'), $this->url_for('admin/courses/index'), 'teacher_filter');
         $list->addElement(new SelectElement('all', _('alle'), Request::get('teacher_filter') == 'all'), 'teacher_filter-all');
 
         foreach ($teachers as $teacher) {
@@ -1459,9 +1464,13 @@ class Admin_CoursesController extends AuthenticatedController
         $temp = $GLOBALS['user']->cfg->MY_COURSES_ADMIN_VIEW_FILTER_ARGS;
         if ($temp) {
             $config = json_decode($temp, true);
+            if (!is_array($config)) {
+                $config = [];
+            }
+
             $config = array_intersect($config, $available_filters);
         } else {
-            $config = array();
+            $config = [];
         }
 
         if (!$config) {

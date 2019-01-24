@@ -1,5 +1,5 @@
 <? use Studip\Button, Studip\LinkButton; ?>
-<form action="<?= $controller->url_for('admin/banner/edit', $banner['ad_id']) ?>" method="post" enctype="multipart/form-data" class="default">
+<form action="<?= $controller->edit($banner) ?>" method="post" enctype="multipart/form-data" class="default">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default">
         <tbody>
@@ -100,6 +100,10 @@
     </table>
 
     <footer data-dialog-button>
-        <?= Button::create(_('Aktualisieren'), 'speichern', array('title' => _('Banner editieren')))?>
-    <footer>
+        <?= Studip\Button::create(_('Speichern'), 'speichern') ?>
+        <?= Studip\LinkButton::createCancel(
+            _('Abbrechen'),
+            $controller->index("#banner-{$banner->id}")
+        ) ?>
+    </footer>
 </form>
