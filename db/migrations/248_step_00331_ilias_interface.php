@@ -21,7 +21,7 @@ class StEP00331IliasInterface extends Migration
         $db->execute($sql, [json_encode($ilias_interface_config)]);
         $sql = "INSERT IGNORE INTO `config` (`field`, `value`, `type`, `range`, `section`, `mkdate`, `chdate`, `description`) VALUES ('ILIAS_INTERFACE_SETTINGS', '[]', 'array', 'global', 'modules', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), '')";
         $db->exec($sql);
-        $sql = "INSERT IGNORE INTO `config` (`field`, `value`, `type`, `range`, `section`, `mkdate`, `chdate`, `description`) VALUES ('ILIAS_INTERFACE_ENABLE', 'false', 'boolean', 'global', 'modules', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), '')";
+        $sql = "INSERT IGNORE INTO `config` (`field`, `value`, `type`, `range`, `section`, `mkdate`, `chdate`, `description`) VALUES ('ILIAS_INTERFACE_ENABLE', '0', 'boolean', 'global', 'modules', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), '')";
         $db->exec($sql);
         $sql = "INSERT IGNORE INTO `config` (`field`, `value`, `type`, `range`, `section`, `mkdate`, `chdate`, `description`) VALUES ('ILIAS_INTERFACE_MODULETITLE', 'ILIAS', 'string', 'course', 'modules', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), '')";
         $db->exec($sql);
