@@ -314,7 +314,7 @@ class StudygroupModel
 
             $sql_additional = 'GROUP BY s.Seminar_id';
         } elseif ($sort_by === 'founder') {
-            $sort_by = "GROUP_CONCAT(aum.Nachname ORDER BY su.status, su.position, aum.Nachname SEPARATOR ',')";
+            $sort_by = "GROUP_CONCAT(aum.Nachname ORDER BY su.status, su.position, aum.Nachname, aum.Vorname SEPARATOR ',')";
 
             $sql = "SELECT s.*
                     FROM seminare AS s
@@ -645,7 +645,7 @@ class StudygroupModel
                 get_fullname($user_id),
                 $sem->getName(),
                 URLHelper::getlink(
-                    "{$GLOBALS['ABSOLUTE_URI_STUDIP']}dispatch.php/course/studygroup/members/{$sem->id}",
+                    "{$GLOBALS['ABSOLUTE_URI_STUDIP']}dispatch.php/course/studygroup/members/?cid={$sem->id}",
                     ['cid' => $sem->id]
                 )
             );
@@ -656,7 +656,7 @@ class StudygroupModel
                 get_fullname($user_id),
                 $sem->getName(),
                 URLHelper::getlink(
-                    "{$GLOBALS['ABSOLUTE_URI_STUDIP']}dispatch.php/course/studygroup/members/{$sem->id}",
+                    "{$GLOBALS['ABSOLUTE_URI_STUDIP']}dispatch.php/course/studygroup/members/?cid={$sem->id}",
                     ['cid' => $sem->id]
                 )
             );
