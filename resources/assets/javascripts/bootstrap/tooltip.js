@@ -17,6 +17,7 @@ $(document).on('mouseenter mouseleave', '[data-tooltip]', function(event) {
     const offset = $(this).offset();
     const x = offset.left + $(this).outerWidth(true) / 2;
     const y = offset.top;
+    const delay = data.hasOwnProperty('tooltipDelay') ? data.tooltipDelay : 300;
 
     let content;
     let tooltip;
@@ -49,7 +50,7 @@ $(document).on('mouseenter mouseleave', '[data-tooltip]', function(event) {
         $('.studip-tooltip').not(data.tooltipObject).hide();
         data.tooltipObject.show();
     } else {
-        timeout = setTimeout(() => data.tooltipObject.hide(), 300);
+        timeout = setTimeout(() => data.tooltipObject.hide(), tooltipDelay);
     }
 }).on('mouseenter', '.studip-tooltip', () => {
     clearTimeout(timeout);
