@@ -1017,7 +1017,7 @@ class FileManager
      * @param string|null $name The new name for the folder (can be left empty).
      * @param string|null $description The new description for the folder (can be left empty).
      *
-     * @returns FolderType|string[] Returns the edited FolderType object success
+     * @return FolderType|string[] Returns the edited FolderType object success
      * or an array with error messages on failure.
      */
     public static function editFolder(FolderType $folder, User $user, $name = null, $description = null)
@@ -1027,7 +1027,7 @@ class FileManager
         // can be null which means it shoudln't be changed.
         // If description is an empty string it shall be changed to an empty string
         // if it had a filled string as value.
-        if (!$name && $description !== null) {
+        if (!$name && $description === null) {
             //neither name nor description are set: nothing to do, no error:
             return $folder;
         }
@@ -1048,24 +1048,16 @@ class FileManager
             )];
         }
 
-        //ok, user has write permissions for this folder:
-        //edit name or description or both
-
-        $data = $folder->getEditTemplate();
-
+        $data = [];
         if ($name) {
-            //get the parent folder to check for duplicate names
-            //and set the folder name to an unique name:
             $data['name'] = $name;
         }
-
         if ($description !== null) {
             $data['description'] = $description;
         }
-
         $folder->setDataFromEditTemplate($data);
+
         if ($folder->store()) {
-            //folder successfully edited
             return $folder;
         }
 
