@@ -306,19 +306,34 @@ class FileSystem extends \RESTAPI\RouteMap
      */
     public function editFolder($folder_id)
     {
-        $result = \FileManager::editFolder(
-            $this->requireTypedFolder($folder_id),
-            \User::findCurrent(),
-            $this->data['name'],
-            $this->data['description']
-        );
+        if (isset($this->data['name']) && !$this->data['name']) {
+            $this->error(400, "The name for the folder with the id {$folder_id} must not be empty!");
+        }
 
-        if (!$result instanceof \FolderType) {
-            $this->error(500, 'Error while editing a folder: ' . implode(' ', $result));
+        $user = $this->requireUser();
+        $typed_folder = $this->requireTypedFolder($folder_id);
+
+        if (!$typed_folder->isEditable($user->id)) {
+            $this->error(403, "You may not edit the folder with id {$folder_id}!");
+        }
+
+        if (!$typed_folder instanceof \StandardFolder) {
+            $this->error(501, "Editing is only allowed for folders of type StandardFolder for now!");
+        }
+
+        if ($this->data['name']) {
+            $typed_folder->name = $this->data['name'];
+        }
+        if (isset($this->data['description'])) {
+            $typed_folder->description = $this->data['description'] ?: '';
+        }
+
+        if (!$typed_folder->store()) {
+            $this->error(500, "Could not store folder with id {$folder_id}!");
         }
 
         return $this->folderToJSON(
-            $this->requireFolder($result->getId())
+            $this->requireFolder($folder_id)
         );
     }
 
