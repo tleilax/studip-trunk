@@ -283,20 +283,19 @@ class FileSystem extends \RESTAPI\RouteMap
     }
 
     /**
-     * Get a list with permissions a user (or the current user) has for a folder.
+     * Get a list with permissions the current user has for a folder.
      * @get /folder/:folder_id/permissions
-     * @get /folder/:folder_id/permissions/:user_id
      */
-    public function getFolderPermissions($folder_id, $user_id = null)
+    public function getFolderPermissions($folder_id)
     {
-        $user   = $this->requireUser($user_id);
-        $folder = $this->requireFolder($folder_id, $user);
+        $user   = $this->requireUser();
+        $folder = $this->requireFolder($folder_id);
 
         // read permissions of the user and return them:
         return array_merge([
             'folder_id'   => $folder->id,
             'user_id'     => $user->id,
-        ], $this->folderPermissionsToJSON($folder, $user));
+        ], $this->folderPermissionsToJSON($folder));
     }
 
     /**
@@ -425,34 +424,19 @@ class FileSystem extends \RESTAPI\RouteMap
 
     /**
      * Requires a valid user object.
-     * @param  mixed $id_or_object Either a user id, object or null for current user
      * @return User object
      */
-    private function requireUser($id_or_object = null)
+    private function requireUser()
     {
-        if ($id_or_object instanceof \User) {
-            return $id_or_object;
-        }
-
-        if ($id_or_object === null) {
-            return \User::findCurrent();
-        }
-
-        $user = \User::find($id_or_object);
-        if (!$user) {
-            $this->notFound("User with id {$id_or_object} not found!");
-        }
-
-        return $user;
+        return \User::findCurrent();
     }
 
     /**
      * Requires a valid file reference object
      * @param  mixed $id_or_object Either a file reference id or object
-     * @param  User  $user         Optional user to check permissions against
      * @return FileRef object
      */
-    private function requireFileRef($id_or_object, \User $user = null)
+    private function requireFileRef($id_or_object)
     {
         if ($id_or_object instanceof \FileRef) {
             $file_ref = $id_or_object;
@@ -476,8 +460,7 @@ class FileSystem extends \RESTAPI\RouteMap
         }
 
         //check if the current user has the permissions to read this file reference:
-        $user = $this->requireUser($user);
-        if (!$typed_folder->isReadable($user->id)) {
+        if (!$typed_folder->isReadable($this->requireUser()->id)) {
             $this->error(403, "You are not permitted to read the file reference with id {$file_ref->id}!");
         }
 
@@ -488,12 +471,11 @@ class FileSystem extends \RESTAPI\RouteMap
      * Converts a file reference object to JSON.
      * @param  FileRef $ref      File reference object
      * @param  boolean $extended Extended output? (includes folder, owner and terms of use)
-     * @param  User    $user     Optional user to check permissions against
      * @return array representation for json encoding
      */
-    private function filerefToJSON(\FileRef $ref, $extended = false, \User $user = null)
+    private function filerefToJSON(\FileRef $ref, $extended = false)
     {
-        $user         = $this->requireUser($user);
+        $user = $this->requireUser();
         $typed_folder = $ref->folder->getTypedFolder();
 
         $result = array_merge($ref->toRawArray(), [
@@ -517,7 +499,7 @@ class FileSystem extends \RESTAPI\RouteMap
 
         if ($extended) {
             //folder does exist (since we checked for its existence above)
-            $result['folder'] = $this->folderToJSON($ref->folder, $user);
+            $result['folder'] = $this->folderToJSON($ref->folder);
 
             if ($ref->owner) {
                 $result['owner'] = User::getMiniUser($this, $ref->owner);
@@ -536,10 +518,9 @@ class FileSystem extends \RESTAPI\RouteMap
     /**
      * Requires a valid folder object
      * @param  mixed $id_or_object Either a folder id or object
-     * @param  User  $user         Optional user to check permissions against
      * @return Folder object
      */
-    private function requireFolder($id_or_object, \User $user = null)
+    private function requireFolder($id_or_object)
     {
         if ($id_or_object instanceof \Folder) {
             $folder = $id_or_object;
@@ -556,8 +537,7 @@ class FileSystem extends \RESTAPI\RouteMap
             return;
         }
 
-        $user = $this->requireUser($user);
-        if (!$typed_folder->isReadable($user->id)) {
+        if (!$typed_folder->isReadable($this->requireUser()->id)) {
             $this->error(403, "You are not allowed to read the contents of the folder with the id {$folder->id}!");
         }
 
@@ -567,25 +547,22 @@ class FileSystem extends \RESTAPI\RouteMap
     /**
      * Requires a valid typed folder object
      * @param  mixed $id_or_object Either a folder id or object
-     * @param  User  $user         Optional user to check permissions against
      * @return FolderType instance
      */
-    private function requireTypedFolder($id_or_object, \User $user = null)
+    private function requireTypedFolder($id_or_object)
     {
-        return $this->requireFolder($id_or_object, $user)->getTypedFolder();
+        return $this->requireFolder($id_or_object)->getTypedFolder();
     }
 
     /**
      * Converts a given folder to JSON.
      * @param  Folder  $folder   Folder object
      * @param  boolean $extended Extended output? (includes subfolders and file references)
-     * @param  User    $user_id  Optional user to check permissions against
      * @return array representation for json encoding
      */
-    private function folderToJSON(\Folder $folder, $extended = false, \User $user = null)
+    private function folderToJSON(\Folder $folder, $extended = false)
     {
-        $user   = $this->requireUser($user);
-        $result = $this->folderPermissionsToJSON($folder, $user);
+        $result = $this->folderPermissionsToJSON($folder);
 
         if ($result['is_readable']) {
             $result = array_merge($folder->toRawArray(), $result);
@@ -599,17 +576,19 @@ class FileSystem extends \RESTAPI\RouteMap
             $result['data_content'] = $data_content;
 
             if ($extended) {
+                $user = $this->requireUser();
+
                 $result['subfolders'] = [];
                 foreach ($folder->subfolders as $subfolder) {
                     if (!$subfolder->getTypedFolder()->isVisible($user->id)) {
                         continue;
                     }
-                    $result['subfolders'][] = $this->folderToJSON($subfolder, false, $user);
+                    $result['subfolders'][] = $this->folderToJSON($subfolder);
                 }
 
                 $result['file_refs'] = [];
                 foreach ($folder->getTypedFolder()->getFiles() as $file_ref) {
-                    $result['file_refs'][] = $this->filerefToJSON($file_ref, false, $user);
+                    $result['file_refs'][] = $this->filerefToJSON($file_ref);
                 }
             }
         }
@@ -623,8 +602,9 @@ class FileSystem extends \RESTAPI\RouteMap
      * @param  User   $user   User object to check permissions against
      * @return array representation for json encoding
      */
-    private function folderPermissionsToJSON(\Folder $folder, \User $user)
+    private function folderPermissionsToJSON(\Folder $folder)
     {
+        $user = $this->requireUser();
         $type = $folder = $folder->getTypedFolder();
         if (!$type) {
             $this->error(500, 'Folder type not found!');
