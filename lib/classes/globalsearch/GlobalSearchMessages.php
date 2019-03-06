@@ -70,7 +70,7 @@ class GlobalSearchMessages extends GlobalSearchModule
 
         $additional = ($message->autor_id === '____%system%____'
                     ? _('Systemnachricht')
-                    : ($message->author ? $message->author->getFullname() : _('unbekannt')));
+                    : ($message->author ? '<a href="' . URLHelper::getURL('dispatch.php/profile', ['username' => $message->author->username]) . '">' . self::mark($message->author->getFullname(), $search) . '</a>' : _('unbekannt')));
 
         $result = [
             'name'        => self::mark($message->subject, $search),
@@ -78,7 +78,7 @@ class GlobalSearchMessages extends GlobalSearchModule
             'img'         => Icon::create('mail', 'clickable')->asImagePath(),
             'date'        => strftime('%x', $message->mkdate),
             'description' => self::mark($message->message, $search, true),
-            'additional'  => htmlReady($additional),
+            'additional'  => $additional,
             'expand'      => self::getSearchURL($search),
             'user'        => $message->author ? $message->author->getFullName() : _('unbekannt')
         ];

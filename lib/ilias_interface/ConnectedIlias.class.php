@@ -413,9 +413,9 @@ class ConnectedIlias
         } else {
             // add new user category at main user data category in ILIAS
             $this->user->category = $this->soap_client->addObject($object_data, $this->ilias_config['user_data_category']);
-            if ($this->ilias_config['category_to_desktop']) {
-                $this->soap_client->addDesktopItems($this->user->getId(), $this->user->category);
-            }
+        }
+        if ($this->ilias_config['category_to_desktop'] && $this->user->category) {
+            $this->soap_client->addDesktopItems($this->user->getId(), array($this->user->category));
         }
 
         // store data
@@ -537,60 +537,6 @@ class ConnectedIlias
         return DBManager::get()->fetchGrouped($query);
     }
 
-   /**
-    * create new instance of subclass content-module with given values
-    *
-    * creates new instance of subclass content-module with given values
-    * @access public
-    * @param array $data module-data
-    * @param boolean $is_connected is module connected to seminar?
-    */
-    public function setContentModule($data, $is_connected = false)
-    {
-        global $current_module;
-        $current_module = $data["ref_id"];
-
-        require_once($this->CLASS_PREFIX . "ContentModule.class.php");
-        $classname = $this->CLASS_PREFIX  . "ContentModule";
-
-        $this->content_module[$current_module] = new  $classname("", $data["type"], $this->cms_type);
-        $this->content_module[$current_module]->setId($data["ref_id"]);
-        $this->content_module[$current_module]->setTitle($data["title"]);
-        $this->content_module[$current_module]->setDescription($data["description"]);
-
-        $this->content_module[$current_module]->setConnectionType($is_connected);
-    }
-
-    /**
-    * create new instance of subclass content-module
-    *
-    * creates new instance of subclass content-module
-    * @access public
-    * @param string $module_id module-id
-    * @param string $module_type module-type
-    * @param boolean $is_connected is module connected to seminar?
-    */
-    public function newContentModule($module_id, $module_type, $is_connected = false)
-    {
-        global $current_module;
-        $current_module = $module_id;
-
-        require_once($this->CLASS_PREFIX . "ContentModule.class.php");
-        $classname = $this->CLASS_PREFIX  . "ContentModule";
-
-        if ($is_connected == false)
-        {
-            $this->content_module[$module_id] = new  $classname("", $module_type, $this->cms_type);
-            $this->content_module[$module_id]->setId($module_id);
-        }
-        else
-        {
-            $this->content_module[$module_id] = new  $classname($module_id, $module_type, $this->cms_type);
-        }
-
-        $this->content_module[$module_id]->setConnectionType($is_connected);
-    }
-
     /**
      * get user modules
      *
@@ -648,17 +594,18 @@ class ConnectedIlias
         foreach ($this->ilias_config['modules'] as $type => $name) {
             $types[] = $type;
         }
-        
-        $result = $this->soap_client->getTreeChilds($parent_id, $types, $this->user->getId());
+        $result = $this->soap_client->getTreeChilds($parent_id, $types);
+        $user_result = $this->soap_client->getTreeChilds($parent_id, $types, $this->user->getId());
+
         if ($result) {
-            $parent_path = $this->soap_client->getRawPath($parent_id) . '_' . $parent_id;
             foreach($result as $ref_id => $data) {
-                if (($data["accessInfo"] != "granted") OR ($this->soap_client->getRawPath($ref_id) != $parent_path))
+                if ($data['type'] == 'fold') {
                     unset($result[$ref_id]);
-                    elseif ($data['type'] == 'fold') {
-                        unset($result[$ref_id]);
-                        $result = $result + $this->getChilds($ref_id);
-                    }
+                    $result = $result + $this->getChilds($ref_id);
+                } else {
+                    $result[$ref_id]['accessInfo'] = $user_result[$ref_id]['accessInfo'];
+                    $result[$ref_id]['references'][$ref_id] = $user_result[$ref_id]['references'][$ref_id];
+                }
             }
         }
         
@@ -681,7 +628,7 @@ class ConnectedIlias
         $this->soap_client->setCachingStatus(false);
         // fetch childs
         $result = $this->getChilds($course_id);
-        
+
         if (is_array($result)) {
             $check = DBManager::get()->prepare("SELECT 1 FROM object_contentmodules WHERE object_id = ? AND module_id = ? AND system_type = ? AND module_type = ?");
             $found = array();
@@ -689,18 +636,21 @@ class ConnectedIlias
             $deleted = 0;
             $messages["info"] .= "<b>".sprintf(_("Aktualisierung der Zuordnungen zum System \"%s\":"), $this->getName()) . "</b><br>";
             foreach($result as $ref_id => $data) {
-                $check->execute(array($course_id, $ref_id, $this->index, $data["type"]));
+                if (($data['accessInfo'] == 'granted') || ($this->ilias_interface_config['show_offline'] && $data['offline'])) {
+                    $this->course_modules[$ref_id] = new IliasModule($ref_id, $data, $this->index, $this->ilias_int_version);
+                }
+                $check->execute(array(Context::getId(), $ref_id, $this->index, $data["type"]));
                 if (!$check->fetch()) {
                     $messages["info"] .= sprintf(_("Zuordnung zur Lerneinheit \"%s\" wurde hinzugefügt."), ($data["title"])) . "<br>";
-                    IliasObjectConnections::setConnection($course_id, $ref_id, $data["type"], $this->index);
+                    IliasObjectConnections::setConnection(Context::getId(), $ref_id, $data["type"], $this->index);
                     $added++;
                 }
                 $found[] = $ref_id . '_' . $data["type"];
             }
             $to_delete = DBManager::get()->prepare("SELECT module_id,module_type FROM object_contentmodules WHERE module_type <> 'crs' AND object_id = ? AND system_type = ? AND CONCAT_WS('_', module_id,module_type) NOT IN (?)");
-            $to_delete->execute(array(Context::getId(), $this->cms_type, count($found) ? $found : array('')));
+            $to_delete->execute(array(Context::getId(), $this->index, count($found) ? $found : array('')));
             while ($row = $to_delete->fetch(PDO::FETCH_ASSOC)) {
-                IliasObjectConnections::unsetConnection($course_id, $row["module_id"], $row["module_type"], $this->index);
+                IliasObjectConnections::unsetConnection(Context::getId(), $row["module_id"], $row["module_type"], $this->index);
                 $deleted++;
                 $messages["info"] .= sprintf(_("Zuordnung zu \"%s\" wurde entfernt."), $row["module_id"]  . '_' . $row["module_type"]) . "<br>";
             }
@@ -965,6 +915,10 @@ class ConnectedIlias
             return false;
         }
 
+        if ($GLOBALS['user']->perms == 'root') {
+            return true;
+        }
+
         // get course role folder and local roles
         $user_roles = $this->soap_client->getUserRoles($this->user->getId());
         $local_roles = $this->soap_client->getLocalRoles($ilias_course_id);
@@ -986,7 +940,6 @@ class ConnectedIlias
         }
 
         // is user already course-member? otherwise add member with proper role
-        // TODO: do not add root
         $is_member = $this->soap_client->isMember( $this->user->getId(), $ilias_course_id);
         if (!$is_member) {
             $member_data["usr_id"] = $this->user->getId();

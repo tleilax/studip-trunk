@@ -1,4 +1,5 @@
 /*jslint esversion: 6*/
+import Cookie from './cookie.js';
 
 /**
  * Stud.IP: Caching in JavaScript
@@ -87,31 +88,13 @@ try {
     }();
 }
 
-// Initialized browser session?
-const now = new Date().getTime();
-var session_id = (document.cookie.match(/cache_session=(\d+);?/) || [])[1];
-if (session_id === undefined) {
-    session_id = new Date().getTime().toString();
-    document.cookie = `cache_session=${session_id};path=/`;
-
-    for (let key in cache) {
-        if (!cache.hasOwnProperty(key) || key.indexOf('studip.') !== 0) {
-            continue;
-        }
-
-        var item = JSON.parse(cache.getItem(key));
-        if (item.expires < now || (item.expires === false && item.session !== session_id)) {
-            cache.removeItem(key);
-        }
-    }
-}
-
 class Cache {
     /**
      * @param string prefix Optional prefix for the cache
      */
-    constructor(prefix) {
-        this.prefix = 'studip.' + (prefix || '');
+    constructor(prefix, session_id) {
+        this.prefix     = 'studip.' + (prefix || '');
+        this.session_id = session_id;
     }
 
     /**
@@ -181,7 +164,7 @@ class Cache {
         cache.setItem(index, JSON.stringify({
             value: value,
             expires: expires ? new Date().getTime() + expires * 1000 : false,
-            session: session_id
+            session: this.session_id
         }));
     }
 
@@ -220,7 +203,26 @@ class Cache {
  */
 const CacheFacade = {
     getInstance: function (prefix) {
-        return new Cache(prefix);
+        // Initialized browser session?
+        const now = new Date().getTime();
+        var session_id = Cookie.get('cache_session');
+        if (session_id === undefined) {
+            session_id = new Date().getTime().toString();
+            Cookie.set('cache_session', session_id);
+
+            for (let key in cache) {
+                if (!cache.hasOwnProperty(key) || key.indexOf('studip.') !== 0) {
+                    continue;
+                }
+
+                var item = JSON.parse(cache.getItem(key));
+                if (item.expires < now || (item.expires === false && item.session !== session_id)) {
+                    cache.removeItem(key);
+                }
+            }
+        }
+
+        return new Cache(prefix, session_id);
     }
 };
 
