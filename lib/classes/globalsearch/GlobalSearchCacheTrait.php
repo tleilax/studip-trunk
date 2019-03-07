@@ -21,7 +21,7 @@ trait GlobalSearchCacheTrait
             return static::getCachedItem($index);
         }
 
-        return static::setCachedItem($index, $setter());
+        return static::setCachedItem($index, $generator());
     }
 
     /**
