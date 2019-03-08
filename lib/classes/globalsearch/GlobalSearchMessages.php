@@ -74,7 +74,7 @@ class GlobalSearchMessages extends GlobalSearchModule
             $additonal = _('Systemnachricht');
         } else {
             $user = self::fromCache("user/{$message->autor_id}", function () use ($message) {
-                return User::find($message->autor_id);
+                return User::findFull($message->autor_id);
             });
 
             if ($user) {

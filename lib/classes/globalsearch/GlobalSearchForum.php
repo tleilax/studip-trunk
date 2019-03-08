@@ -102,7 +102,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
     public static function filter($data, $search)
     {
         $user = self::fromCache("user/{$data['user_id']}", function () use ($data) {
-            return User::find($data['user_id']);
+            return User::findFull($data['user_id']);
         });
         $course = self::fromCache("range/{$data['seminar_id']}", function () use ($data) {
             return Course::find($data['seminar_id']);

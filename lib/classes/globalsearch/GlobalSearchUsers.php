@@ -41,14 +41,16 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
             $visQuery = get_vis_query('user', 'search') . " AND ";
         }
         $query = DBManager::get()->quote("%{$search}%");
-        $sql = "SELECT SQL_CALC_FOUND_ROWS user.`user_id`, user.`Vorname`, user.`Nachname`, user.`username`
+        $sql = "SELECT SQL_CALC_FOUND_ROWS user.`user_id`, user.`Vorname`, user.`Nachname`, user.`username`, `user_info`.`title_front`, `user_info`.`title_rear`
                 FROM `auth_user_md5` AS user
+                JOIN `user_info` USING (`user_id`)
                 LEFT JOIN `user_visibility` USING (`user_id`)
                 WHERE {$visQuery}
                     (CONCAT_WS(' ', user.`Nachname`, user.`Vorname`) LIKE {$query}
                         OR CONCAT_WS(' ', user.`Vorname`, user.`Nachname`) LIKE {$query}
                         OR `username` LIKE {$query}
                     )
+                ORDER BY user.`Nachname`, user.`Vorname`
                 LIMIT " . $limit;
         return $sql;
     }

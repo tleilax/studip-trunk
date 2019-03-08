@@ -212,7 +212,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
             $range = $GLOBALS['user'];
             $range_path = '';
         } else {
-            $range = self::fromCache("range/{$data['range_id']}", function () use ($fileref) {
+            $range = self::fromCache("range/{$data['range_id']}", function () use ($data) {
                 return Course::find($data['range_id'])
                     ?: Institute::find($data['range_id'])
                     ?: null;
@@ -221,7 +221,7 @@ class GlobalSearchFiles extends GlobalSearchModule implements GlobalSearchFullte
         }
 
         $user = self::fromCache("user/{$fileref->user_id}", function () use ($fileref) {
-            return User::find($fileref->user_id);
+            return User::findFull($fileref->user_id);
         });
 
         return [
