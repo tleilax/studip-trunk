@@ -196,8 +196,8 @@ class Seminar_Register_Auth extends Seminar_Auth
 
         // (re-)send the confirmation mail
         $to     = $user->email;
-        $secret = md5($user->user_id .':'. self::$magic);
-        $url    = $GLOBALS['ABSOLUTE_URI_STUDIP'] . "email_validation.php?secret=" . $secret;
+        $token  = Token::generate($user->id, 7 * 24 * 60 * 60); // Link is valid for 1 week
+        $url    = $GLOBALS['ABSOLUTE_URI_STUDIP'] . "email_validation.php?secret=" . $token;
         $mail   = new StudipMail();
         $abuse  = $mail->getReplyToEmail();
 
@@ -211,5 +211,15 @@ class Seminar_Register_Auth extends Seminar_Auth
             ->addRecipient($to)
             ->setBodyText($mailbody)
             ->send();
+    }
+
+    public static function validateSecret($secret, $user_id)
+    {
+        if ($secret === self::get_validation_hash($user_id)) {
+            return true;
+        }
+
+        $valid = Token::is_valid($secret);
+        return $valid && $valid === $user_id;
     }
 }

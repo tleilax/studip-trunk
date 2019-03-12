@@ -31,7 +31,18 @@ class Token
 
     public static function generate_token()
     {
-        return md5(uniqid(__CLASS__, true));
+        $query = "SELECT 1 FROM user_token WHERE token = ?";
+        $statement = DBManager::get()->prepare($query);
+
+        // Ensure token is unique
+        do {
+            $token = md5(uniqid(__CLASS__, true));
+
+            $statement->execute([$token]);
+            $exists = (bool) $statement->fetchColumn();
+        } while ($exists);
+
+        return $token;
     }
 
     public function get_token()
@@ -58,7 +69,7 @@ class Token
 
     public function calculate_expiration_time($duration_validity = 30)
     {
-        return strtotime(sprintf("+ %u seconds", $duration_validity), time());
+        return strtotime(sprintf("+ %u seconds", $duration_validity));
     }
 
     public static function generate($user_id, $duration_validity = 30)
@@ -68,7 +79,8 @@ class Token
 
     public static function remove_expired()
     {
-        DBManager::get()->exec("DELETE FROM user_token WHERE expiration < UNIX_TIMESTAMP()");
+        $query = "DELETE FROM user_token WHERE expiration < UNIX_TIMESTAMP()";
+        DBManager::get()->exec($query);
     }
 
     public static function remove($token)
@@ -96,13 +108,13 @@ class Token
         }
 
         // Token is expired
-        if (Token::time_expired($token_info['expiration'])) {
-            Token::remove_expired();
+        if (self::time_expired($token_info['expiration'])) {
+            self::remove_expired();
             return null;
         }
 
         // Token is valid
-        Token::remove($token);
+        self::remove($token);
         return $token_info['user_id'];
     }
 }
@@ -111,5 +123,3 @@ class Token
 # var_dump($token);
 # $token->save();
 # var_dump($token->is_valid($token->get_string()));
-
-
