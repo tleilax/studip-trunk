@@ -5,6 +5,10 @@
     width: 100%;
 }
 
+label.inactive-settings-category {
+        color:red;
+}
+
 #search {
     // "Searching..." info
     #searching-gif {
@@ -75,7 +79,7 @@
                 flex-direction: row;
                 flex-wrap: nowrap;
 
-                padding: 6px 6px 6px 0;
+                padding: 8px;
                 transition: background-color @transition-duration;
 
                 &:not(:first-child) {
@@ -100,9 +104,8 @@
 
                 .search-result-img {
                     flex: 0;
-                    margin: auto;
-                    margin-left: 6px;
-                    margin-right: 6px;
+                    margin: 0;
+                    margin-right: 8px;
 
                     img {
                         .square(36px);
@@ -114,7 +117,6 @@
                     flex: 1;
                     overflow: hidden;
                     margin-right: 6px;
-                    white-space: nowrap;
 
                     .search-result-title {
                         font-size: @font-size-base;
@@ -128,11 +130,16 @@
                 }
 
                 .search-result-information {
-                    position: relative;
+                    display: flex;
+                    flex: 1;
+                    overflow: hidden;
+                    margin-right: 6px;
+                    flex-direction: column;
+
 
                     .search-result-time {
                         color: @dark-gray-color-80;
-                        flex: 0;
+                        flex: 1;
                         font-size: @font-size-small;
                         text-align: right;
                         white-space: nowrap;
@@ -140,14 +147,7 @@
 
                     .search-result-additional {
                         color: @dark-gray-color-80;
-                        flex: 0;
                         font-size: @font-size-small;
-                        white-space: nowrap;
-                        position: absolute;
-                        right: 0;
-                        bottom: 0;
-                        width: 42em;
-                        overflow: hidden;
                         text-align: right;
                     }
                 }
@@ -163,18 +163,24 @@
                     }
                 }
             }
-
-            mark {
-                background-color: @content-color-40;
-            }
         }
     }
 }
 
 a.no-result {
     color: grey;
+    pointer-events: none;
+    cursor: default;
 }
 div#div-search-input {
     margin-top: 0;
     margin-bottom: 16px;
+
+    // visual adjustments for the reset button
+    button#reset-search {
+        background-color: transparent;
+        border: 0;
+        padding-left: 10px;
+    }
+
 }

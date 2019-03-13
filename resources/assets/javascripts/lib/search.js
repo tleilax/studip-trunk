@@ -1,6 +1,20 @@
+var cache = null;
+
 const Search = {
     lastSearch: null,
     lastSearchFilter: null,
+    resultsInCategory: false,
+
+    getCache: function () {
+        if (cache === null) {
+            let prefix = '';
+            if ($('meta[name="studip-cache-prefix"]').length > 0) {
+                prefix = $('meta[name="studip-cache-prefix"]').attr('content');
+            }
+            cache = STUDIP.Cache.getInstance(prefix);
+        }
+        return cache;
+    },
 
     /**
      * This function starts the actual search via AJAX call.
@@ -10,13 +24,15 @@ const Search = {
      */
     doSearch: function (filter) {
 
-        var cache           = STUDIP.Cache.getInstance(),
-            searchterm      = $('#search-input').val().trim() || cache.get('searchterm'),
-            hasValue        = searchterm && searchterm.length >= 3,
-            resultsDiv      = $('#search-results'),
-            resultsPerType  = resultsDiv.data('results-per-type'),
-            allResultsText  = resultsDiv.data('all-results'),
-            wrapper         = $('#search');
+        var cache           = STUDIP.Search.getCache();
+        var searchterm      = $('#search-input').val().trim() || cache.get('searchterm');
+        var hasValue        = searchterm && searchterm.length >= 3;
+        var resultChunks    = $();
+        var resultsDiv      = $('#search-results');
+        var resultsPerType  = resultsDiv.data('results-per-type');
+        var allResultsText  = resultsDiv.data('all-results');
+        var limit           = 100;
+        var wrapper         = $('#search');
 
         if (searchterm === '') {
             return;
@@ -27,7 +43,7 @@ const Search = {
             return;
         }
 
-        var resultsInCategory = false;
+        STUDIP.Search.resultsInCategory = false;
 
         $('#search-no-result').hide();
         $('#reset-search').show();
@@ -43,15 +59,22 @@ const Search = {
         wrapper.addClass('is-searching');
 
         // Call AJAX endpoint and get search results.
-        $.getJSON(STUDIP.URLHelper.getURL('dispatch.php/globalsearch/find'), {
+        $.getJSON(STUDIP.URLHelper.getURL('dispatch.php/globalsearch/find/' + limit), {
             search: searchterm,
             filters: JSON.stringify(filter)
         }).done(function (json) {
-            resultsDiv.html('');
+            // Trigger searched event (regardless of successful or not)
+            $(document).trigger('searched.studip', {
+                needle: searchterm,
+                category: STUDIP.Search.getActiveCategory()
+            });
+
+            resultsDiv.empty();
 
             // No results found...
             if (!$.isPlainObject(json) || $.isEmptyObject(json)) {
                 wrapper.removeClass('is-searching');
+                $('#search-no-result .searchterm').text(searchterm);
                 $('#search-no-result').show();
                 STUDIP.Search.setActiveCategory('show_all_categories');
                 return;
@@ -60,27 +83,26 @@ const Search = {
             // Iterate over each result category.
             $.each(json, function (name, value) {
                 // Create an <article> for category.
-                var category = $(`<article id="search-${name}" class="studip">`),
-                    header   = $('<header>').appendTo(category),
-                    categoryBodyDiv = $(`<div id="${name}-body">`).appendTo(category),
-                    counter  = 0;
-                if (STUDIP.Search.getActiveCategory() == name) {
-                    resultsInCategory = true;
+                var category = $(`<article id="search-${name}" class="studip padding-less">`);
+                var header = $('<header>').appendTo(category);
+                var categoryBodyDiv = $(`<div id="${name}-body">`).appendTo(category);
+                var counter = 0;
+                var isActive = STUDIP.Search.getActiveCategory() === name;
+
+                if (isActive) {
+                    STUDIP.Search.resultsInCategory = true;
                 }
 
                 // Create header name
-                $('<a href="#">').text(value.name)
-                    .wrap('<h1 class="search-category">')
-                    .parent() // Element is now the wrapper
-                    .data('category', name)
+                $(`<h1 class="search-category" data-category="${name}">`)
+                    .append(`<a href="#">${value.name}</a>`)
                     .appendTo(header);
 
                 if (value.more) {
-                    $('<a href="#">').text(allResultsText)
-                        .wrap(`<div id="show-all-categories-${name}" class="search-more-results">`)
-                        .parent() // Element is now the wrapper
-                        .appendTo(header)
-                        .hide();
+                    $(`<div id="show-all-categories-${name}" class="search-more-results">`)
+                        .append(`<a href="#">${allResultsText}</a>`)
+                        .toggle(isActive)
+                        .appendTo(header);
                 }
 
                 // Process results and create corresponding entries.
@@ -94,15 +116,14 @@ const Search = {
                     if (counter >= resultsPerType) {
                         single.addClass('search-extended-result');
                     }
-
-                    var link = $(`<a href="${result.url}">`)
+                    var dataDialog = (name === 'GlobalSearchFiles' ? dataDialog = 'data-dialog' : dataDialog = '');
+                    var link = $(`<a href="${result.url}" ${dataDialog}>`)
                         .appendTo(single);
 
                     // Optional image...
                     if (result.img !== null) {
-                        $(`<img src="${result.img}">`)
-                            .wrap('<div class="search-result-img">')
-                            .parent() // Element is now the wrapper
+                        $('<div class="search-result-img hidden-tiny-down">')
+                            .append(`<img src="${result.img}">`)
                             .appendTo(link);
                     }
 
@@ -110,25 +131,25 @@ const Search = {
 
                     // Name/title
                     $('<div class="search-result-title">')
-                        .html($.parseHTML(result.name))
+                        .html(result.name)
                         .appendTo(data);
 
                     if (result.number !== null) {
                         $('<div class="search-result-number">')
-                            .html($.parseHTML(result.number))
+                            .html(result.number)
                             .appendTo(details);
                     }
 
                     // Details: Descriptional text
                     if (result.description !== null) {
                         $('<div class="search-result-description">')
-                            .html($.parseHTML(result.description))
+                            .html(result.description)
                             .appendTo(details);
                     }
 
                     if (result.dates !== null) {
                         $('<div class="search-result-dates">')
-                            .html($.parseHTML(result.dates))
+                            .html(result.dates)
                             .appendTo(details);
                     }
 
@@ -137,14 +158,14 @@ const Search = {
                     // Date/Time of entry
                     if (result.date !== null) {
                         $('<div class="search-result-time">')
-                            .html($.parseHTML(result.date))
+                            .html(result.date)
                             .appendTo(information);
                     }
 
                     // Details: Additional information
                     var additional = $('<div class="search-result-additional">');
                     if (result.additional !== null) {
-                        additional.html($.parseHTML(result.additional));
+                        additional.html(result.additional);
 
                         // "Expand" attribute for further, result-related search
                         // (e.g. search in course of found forum entry)
@@ -160,10 +181,9 @@ const Search = {
 
                     counter += 1;
                 });
-                resultsDiv.append(category);
                 $(`a#search_category_${name}`)
                     .removeClass('no-result')
-                    .text(`${value.name}  (${counter})`);
+                    .text(`${value.name}  (${counter}${value.plus ? '+' : ''})`);
 
                 // We have more search results than shown, provide link to
                 // full search if available.
@@ -175,39 +195,39 @@ const Search = {
                             STUDIP.Search.expandCategory(name);
                             STUDIP.Search.setActiveCategory(name);
                         })
+                        .toggle(!isActive)
                         .appendTo(footer);
                     $(`<a id="link_results_${name}" href="#">`).text(allResultsText).hide()
-                        // .wrap(footer)
-                        // .parent() // Element is now the wrapper
                         .click(function() {
                             STUDIP.Search.toggleLinkText(name);
                             STUDIP.Search.showAllCategories(name);
                             STUDIP.Search.setActiveCategory(name);
                         })
+                        .toggle(isActive)
                         .appendTo(footer);
                     footer.appendTo(category);
-                    if (STUDIP.Search.getActiveCategory() != 'show_all_categories') {
-                        console.log(STUDIP.Search.getActiveCategory());
-                        $(`a#link_all_results_${STUDIP.Search.getActiveCategory()}`).hide();
-                        $(`a#link_results_${STUDIP.Search.getActiveCategory()}`).show();
-                        $(`div#show-all-categories-${STUDIP.Search.getActiveCategory()}`).show();
-                    }
                 }
 
+                resultChunks = resultChunks.add(category);
             });
-            if (STUDIP.Search.getActiveCategory() != 'show_all_categories') {
-                if (!resultsInCategory) {
-                    STUDIP.Search.showAllCategories(STUDIP.Search.getActiveCategory());
-                    STUDIP.Search.setActiveCategory('show_all_categories');
-                } else {
-                    STUDIP.Search.expandCategory(STUDIP.Search.getActiveCategory());
-                    // STUDIP.Search.toggleLinkText(STUDIP.Search.getActiveCategory());
+
+            resultsDiv.html(resultChunks);
+
+            if (STUDIP.Search.getActiveCategory()
+                && STUDIP.Search.getActiveCategory() !== 'show_all_categories')
+            {
+                STUDIP.Search.expandCategory(STUDIP.Search.getActiveCategory());
+                if (!STUDIP.Search.resultsInCategory) {
+                    $('#search-no-result .searchterm').text(searchterm);
+                    $('#search-no-result').show();
                 }
             }
 
             wrapper.removeClass('is-searching');
         }).fail(function (xhr, status, error) {
-            window.alert(error);
+            if (error) {
+                window.alert(error);
+            }
         });
     },
 
@@ -216,7 +236,7 @@ const Search = {
      * reload the page and reset the active category.
      */
     resetSearch: function () {
-        var cache = STUDIP.Cache.getInstance();
+        var cache = STUDIP.Search.getCache();
         STUDIP.Search.lastSearch = null;
         cache.remove('searchterm');
         cache.remove('search_category');
@@ -287,7 +307,7 @@ const Search = {
      * @param {string} category Given category which should be highlighted in the sidebar.
      */
     setActiveCategory: function (category) {
-        var cache = STUDIP.Cache.getInstance();
+        var cache = STUDIP.Search.getCache();
         cache.set('search_category', category);
         // remove all active classes
         $('#show_all_categories').closest('li').removeClass('active');
@@ -296,12 +316,14 @@ const Search = {
         }).closest('li').removeClass('active');
 
         // set clicked class active
-        if (category == 'show_all_categories') {
+        if (category === 'show_all_categories') {
             $('#show_all_categories').closest('li').addClass('active');
         } else {
             $(`#search_category_${category}`).closest('li').addClass('active');
         }
         STUDIP.Search.showFilter(category);
+
+        $(document).trigger('search-category-change.studip', {category: category});
     },
 
     /**
@@ -335,13 +357,19 @@ const Search = {
         $(`#${filter}_select`).val(value);
     },
 
+    resetFilters: function () {
+        $('select').filter(function () {
+            return this.id.match(/.*_select/);
+        }).val('').change();
+    },
+
     /**
      * Getter for the selected (active) category.
      *
      * @return {string} The active (currently selected) category in the sidebar widget.
      */
     getActiveCategory: function () {
-        var cache = STUDIP.Cache.getInstance();
+        var cache = STUDIP.Search.getCache();
         return cache.get('search_category');
     },
 
@@ -372,6 +400,7 @@ const Search = {
     expandCategory: function (category) {
         // Hide other categories.
         $(`#search-results article:not([id="search-${category}"])`).hide();
+        $('#search-no-result').hide();
         // Show all results.
         $(`#search-${category} section.search-extended-result`)
             .removeClass('search-extended-result');
@@ -414,6 +443,7 @@ const Search = {
             .addClass('search-extended-result');
         $('#search-results').children(`article:not([id="search-${currentCategory}"])`).show();
         STUDIP.Search.setActiveCategory('show_all_categories');
+        $('#search-no-result').hide();
         return false;
     }
 };

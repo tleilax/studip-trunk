@@ -277,7 +277,7 @@ class TourController extends AuthenticatedController
             // import basic data
             $imported_tour = new HelpTour($tour_data['tour']['tour_id']);
             if (!$imported_tour->isNew()) {
-                PageLayout::postError(_('Es existiert bereits eine Tour mit dieser ID. Um sie zu ersetzen, müssen Sie die alte Tour erst löschen.'));
+                PageLayout::postError(sprintf(_('Es existiert bereits eine Tour mit dieser ID. Um sie zu ersetzen, müssen Sie die alte Tour "%s" erst löschen.'), $imported_tour->name));
             } else {
                 $imported_tour->setData($tour_data['tour'], true);
                 if ($imported_tour->store()) {
@@ -291,7 +291,7 @@ class TourController extends AuthenticatedController
                     // import audiences
                     if (is_array($tour_data['tour']['audiences'])) {
                         foreach ($tour_data['tour']['audiences'] as $audience_data) {
-                            $import_audience = new HelpTourAudiences(array($audience_data['tour_id'], $audience_data['range_id'], $audience_data['type']));
+                            $import_audience = new HelpTourAudience(array($audience_data['tour_id'], $audience_data['range_id'], $audience_data['type']));
                             $import_audience->setData($audience_data, true);
                             $import_audience->store();
                         }

@@ -29,18 +29,18 @@ class GlobalSearchInstitutes extends GlobalSearchModule
      * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    public static function getSQL($search, $filter)
+    public static function getSQL($search, $filter, $limit)
     {
         if (!$search) {
             return null;
         }
         $search = str_replace(' ', '% ', $search);
         $query = DBManager::get()->quote("%{$search}%");
-        $sql = "SELECT *
+        $sql = "SELECT SQL_CALC_FOUND_ROWS *
                 FROM `Institute`
                 WHERE `Name` LIKE {$query}
                 ORDER BY `Name` DESC
-                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                LIMIT " . $limit;
         return $sql;
     }
 
@@ -85,7 +85,7 @@ class GlobalSearchInstitutes extends GlobalSearchModule
     public static function getSearchURL($searchterm)
     {
         return URLHelper::getURL('dispatch.php/search/globalsearch', [
-            'searchterm' => $searchterm,
+            'q'        => $searchterm,
             'category' => self::class
         ]);
     }

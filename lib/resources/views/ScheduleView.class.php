@@ -120,6 +120,10 @@ class ScheduleView
         $id = md5(uniqid("rss",1));
         if( ($collision_id = $this->checkCollision($sort_index,$category)) ){
             $this->events[$collision_id]['collisions'][] = array('name' => $name, 'link' => $link,'add_info' => $add_info);
+            if ($end_time > $this->events[$collision_id]['end_time']) {
+                $this->events[$collision_id]['rows'] = $rows;
+                $this->events[$collision_id]['end_time'] = $end_time;
+            }
         } else {
             $this->events[$id]=array (
                         "sort_index" => $sort_index,
@@ -329,7 +333,7 @@ class ScheduleView
                         if (($k == 3) && ($this->add_link) && !$print_view) {
                             echo $this->getAddLink($l,$i);
                         } else
-                            echo "class=\"table_row_even\" align=\"right\"></td>";
+                            echo 'class="table_row_even" align="right"></td>';
                     }
                 }
                 echo "</tr>\n";
@@ -352,19 +356,15 @@ class ScheduleView
     public function getAddLink($l, $i)
     {
         $add_link_timestamp = $this->base_date + (($l-1) * 24 * 60 * 60) + ($i * 60 * 60);
-        return sprintf("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s\">%s</a></td>",
-                       URLHelper::getLink($this->add_link . $add_link_timestamp),
-                       Icon::create(
-                           'add',
-                           Icon::ROLE_INACTIVE,
-                           tooltip2(
-                               sprintf(_('Eine neue Belegung von %s bis %s Uhr anlegen'),
-                                    date('H:i', $add_link_timestamp),
-                                    date('H:i', $add_link_timestamp + 2 * 60 * 60)
-                                )
-                            )
-                        )->asImg(8)
-                    );
+        return sprintf(
+            'class="table_row_even" align="left" valign="bottom"><a href="%s">%s</a></td>',
+            URLHelper::getLink($this->add_link . $add_link_timestamp),
+            Icon::create('add')->asImg(8, tooltip2(sprintf(
+                _('Eine neue Belegung von %s bis %s Uhr anlegen'),
+                strftime('%R', $add_link_timestamp),
+                strftime('%R', strtotime('+2 hours', $add_link_timestamp))
+            )))
+        );
 
     }
 

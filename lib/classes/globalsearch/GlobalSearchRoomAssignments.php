@@ -29,7 +29,7 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
     public static function getSearchURL($searchterm)
     {
         return URLHelper::getURL('dispatch.php/search/globalsearch', [
-            'searchterm' => $searchterm,
+            'q'        => $searchterm,
             'category' => self::class
         ]);
     }
@@ -42,7 +42,7 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
      * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return null|string
      */
-    public static function getSQL($search, $filter)
+    public static function getSQL($search, $filter, $limit)
     {
         if (!Config::get()->RESOURCES_ENABLE || !$search || !$GLOBALS['perm']->have_perm('root')) {
             return null;
@@ -50,7 +50,7 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
 
         $query = DBManager::get()->quote('%' . trim($search) . '%');
 
-        $sql = "SELECT DISTINCT a.`assign_id`, a.`user_free_name`, r.`resource_id`, r.`name`, a.`begin`, a.`end`
+        $sql = "SELECT SQL_CALC_FOUND_ROWS DISTINCT a.`assign_id`, a.`user_free_name`, r.`resource_id`, r.`name`, a.`begin`, a.`end`
                 FROM `resources_assign` a
                 JOIN `resources_objects` r USING (`resource_id`)
                 WHERE a.`user_free_name` != ''
@@ -80,7 +80,7 @@ class GlobalSearchRoomAssignments extends GlobalSearchModule
         }
 
         $sql .= " ORDER BY `begin` DESC, `user_free_name` LIMIT " .
-            (Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1);
+            $limit;
 
         return $sql;
     }

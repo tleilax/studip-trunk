@@ -29,6 +29,11 @@ class Search_GlobalsearchController extends AuthenticatedController
             Navigation::activateItem('/search/globalsearch');
         }
 
+        PageLayout::addHeadElement('meta', [
+            'name'    => 'studip-cache-prefix',
+            'content' => md5("{$_COOKIE[Seminar_Session::class]}-{$GLOBALS['user']->id}"),
+        ]);
+
         $this->addInfoText();
         $this->addSidebar();
     }
@@ -52,10 +57,10 @@ class Search_GlobalsearchController extends AuthenticatedController
             ['id' => 'show_all_categories']
         )->setActive();
 
-        $modules = Config::get()->GLOBALSEARCH_MODULES;
+        $modules = GlobalSearchModule::getActiveSearchModules();
         $this->filters['show_all_categories'] = ['semester'];
-        foreach ($modules as $class_name => $data) {
-            if (is_a($class_name, 'GlobalSearchModule', true) && $data['active']) {
+        foreach ($modules as $class_name) {
+            if (is_a($class_name, 'GlobalSearchModule', true)) {
                 $this->filters[$class_name] = $class_name::getFilters();
                 $links_widget->addLink(
                     $class_name::getName(),

@@ -30,7 +30,7 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
      * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    public static function getSQL($search, $filter)
+    public static function getSQL($search, $filter, $limit)
     {
         if (!$search) {
             return null;
@@ -41,15 +41,17 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
             $visQuery = get_vis_query('user', 'search') . " AND ";
         }
         $query = DBManager::get()->quote("%{$search}%");
-        $sql = "SELECT user.`user_id`, user.`Vorname`, user.`Nachname`, user.`username`
+        $sql = "SELECT SQL_CALC_FOUND_ROWS user.`user_id`, user.`Vorname`, user.`Nachname`, user.`username`, `user_info`.`title_front`, `user_info`.`title_rear`
                 FROM `auth_user_md5` AS user
+                JOIN `user_info` USING (`user_id`)
                 LEFT JOIN `user_visibility` USING (`user_id`)
                 WHERE {$visQuery}
                     (CONCAT_WS(' ', user.`Nachname`, user.`Vorname`) LIKE {$query}
                         OR CONCAT_WS(' ', user.`Vorname`, user.`Nachname`) LIKE {$query}
                         OR `username` LIKE {$query}
                     )
-                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                ORDER BY user.`Nachname`, user.`Vorname`
+                LIMIT " . $limit;
         return $sql;
     }
 
@@ -72,15 +74,14 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
     public static function filter($data, $search)
     {
         $user = User::buildExisting($data);
-        $result = array(
+        $result = [
             'id'         => $user->id,
             'name'       => self::mark($user->getFullname(), $search),
             'url'        => URLHelper::getURL('dispatch.php/profile', ['username' => $user->username]),
-            'additional' => self::mark($user->username, $search),
+            'additional' => '<a href="' . URLHelper::getLink('dispatch.php/profile', ['username' => $user->username]) . '">' . self::mark($user->username, $search) . '</a>',
             'expand'     => self::getSearchURL($search),
-        );
-        $avatar = Avatar::getAvatar($user->id);
-        $result['img'] = $avatar->getUrl(Avatar::MEDIUM);
+            'img'        => Avatar::getAvatar($user->id)->getUrl(Avatar::MEDIUM),
+        ];
         return $result;
     }
 
@@ -93,7 +94,7 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
     public static function getSearchURL($searchterm)
     {
         return URLHelper::getURL('dispatch.php/search/globalsearch', [
-            'searchterm' => $searchterm,
+            'q'        => $searchterm,
             'category' => self::class
         ]);
     }
@@ -131,7 +132,7 @@ class GlobalSearchUsers extends GlobalSearchModule implements GlobalSearchFullte
             $visQuery = get_vis_query('user', 'search') . " AND ";
         }
         $query = DBManager::get()->quote(preg_replace("/(\w+)[*]*\s?/", "+$1* ", $search));
-        $sql = "SELECT user.`user_id`, user.`Vorname`, user.`Nachname`, user.`username`
+        $sql = "SELECT SQL_CALC_FOUND_ROWS user.`user_id`, user.`Vorname`, user.`Nachname`, user.`username`
                 FROM `auth_user_md5` AS user
                 LEFT JOIN `user_visibility` USING (`user_id`)
                 WHERE {$visQuery} MATCH(`username`, `Vorname`, `Nachname`) AGAINST($query IN BOOLEAN MODE)
