@@ -63,44 +63,34 @@ class RolePersistence
         self::$user_roles = [];
 
         // role is not in database
-        if ($role->getRoleid() === Role::UNKNOWN_ROLE_ID) {
-            $query = "INSERT INTO `roles` (`roleid`, `rolename`)
-                      VALUES (NULL, ?)";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute([$role->getRolename()]);
+        $query = "INSERT INTO `roles` (`roleid`, `rolename`, `system`)
+                  VALUES (?, ?, 'n')
+                  ON DUPLICATE KEY UPDATE `rolename` = VALUES(`rolename`)";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute([$role->getRoleId(), $role->getRolename()]);
 
+        if ($role->getRoleid() === Role::UNKNOWN_ROLE_ID) {
             $role_id = DBManager::get()->lastInsertId();
             $role->setRoleid($role_id);
 
-            NotificationCenter::postNotification(
-                'RoleDidCreate',
-                $role_id,
-                $role->getRolename()
-            );
-        }
-        // role is already in database
-        else {
-            $role_id = $role->getRoleid();
-
-            $query = "UPDATE `roles` SET `rolename` = ? WHERE `roleid` = ?";
-            $statement = DBManager::get()->prepare();
-            $statement->execute([$role->getRolename(), $role_id]);
-
-            NotificationCenter::postNotification(
-                'RoleDidUpdate',
-                $roleid,
-                $role->getRolename()
-            );
-
+            $event = 'RoleDidCreate';
+        } else {
+            $event = 'RoleDidUpdate';
         }
 
-        return $role_id;
+        NotificationCenter::postNotification(
+            $event,
+            $role->getRoleid(),
+            $role->getRolename()
+        );
+
+        return $role->getRoleid();
     }
 
     /**
      * Delete role if not a permanent role. System roles cannot be deleted.
      *
-     * @param unknown_type $role
+     * @param Role $role
      */
     public static function deleteRole($role)
     {
@@ -111,33 +101,25 @@ class RolePersistence
         self::expireCache(null);
         self::$user_roles = [];
 
-        $removed = DBManager::get()->execute(
-            "DELETE FROM `roles` WHERE `roleid` = ? AND `system` = 'n'",
+        $query = "SELECT `pluginid` FROM `roles_plugins` WHERE `roleid` = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute([$id]);
+        $statement->setFetchMode(PDO::FETCH_COLUMN, 0);
+
+        foreach ($statement as $plugin_id) {
+            self::expireCache($plugin_id);
+        }
+
+        DBManager::get()->execute(
+            "DELETE `roles`, `roles_user`, `roles_plugins`, `roles_studipperms`
+             FROM `roles`
+             LEFT JOIN `roles_user` USING (`roleid`)
+             LEFT JOIN `roles_plugins` USING (`roleid`)
+             LEFT JOIN `roles_studipperms` USING (`roleid`)
+             WHERE `roleid` = ? AND `system` = 'n'",
             [$id]
         );
-        if ($removed > 0) {
-            $query = "SELECT `pluginid` FROM `roles_plugins` WHERE `roleid` = ?";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute([$id]);
-            $statement->setFetchMode(PDO::FETCH_COLUMN);
 
-            foreach ($statement as $plugin_id) {
-                self::expireCache($plugin_id);
-            }
-
-            DBManager::get()->execute(
-                "DELETE FROM `roles_user` WHERE `roleid` = ?",
-                [$id]
-            );
-            DBManager::get()->execute(
-                "DELETE FROM `roles_plugins` WHERE `roleid` = ?",
-                [$id]
-            );
-            DBManager::get()->execute(
-                "DELETE FROM `roles_studipperms` WHERE `roleid` = ?",
-                [$id]
-            );
-        }
         NotificationCenter::postNotification('RoleDidDelete', $id, $name);
     }
 
@@ -152,7 +134,7 @@ class RolePersistence
     {
         // role is not in database
         // save it to the database first
-        if ($role->getRoleid() != Role::UNKNOWN_ROLE_ID) {
+        if ($role->getRoleid() !== Role::UNKNOWN_ROLE_ID) {
             $roleid = self::saveRole($role);
         } else {
             $roleid = $role->getRoleid();
@@ -182,7 +164,7 @@ class RolePersistence
      */
     public static function getAssignedRoles($user_id, $implicit = false)
     {
-        $key = $user_id . (int) $implicit;
+        $key = $user_id . '/' . (int) $implicit;
         if (!array_key_exists($key, self::$user_roles)) {
             if ($implicit && is_object($GLOBALS['perm'])) {
                 $global_perm = $GLOBALS['perm']->get_perm($user_id);
@@ -210,6 +192,12 @@ class RolePersistence
         return array_intersect_key(self::getAllRoles(), array_flip(self::$user_roles[$key]));
     }
 
+    /**
+     * Returns institutes for which the given user has the given role.
+     * @param  string $user_id User id
+     * @param  int    $role_id Role id
+     * @return array of institute ids
+     */
     public static function getAssignedRoleInstitutes($user_id, $role_id)
     {
         return DBManager::get()->fetchFirst(
@@ -424,6 +412,25 @@ class RolePersistence
                     ON r.`roleid` = rp.`roleid` AND rp.`pluginid` IN (SELECT `pluginid` FROM `plugins`)
                     GROUP BY r.`roleid`";
         return DBManager::get()->fetchGrouped($query);
+    }
+
+    /**
+     * Counts the implicitely assigned users for a role.
+     * @param  int $role_id Role id
+     * @return int
+     */
+    public static function countImplicitUsers($role_id)
+    {
+        $query = "SELECT COUNT(*)
+                  FROM `roles_studipperms` AS rsp
+                  JOIN `auth_user_md5` AS a ON rsp.`permname` = a.`perms`
+                  LEFT JOIN `roles_user` AS ru
+                    ON a.`user_id` = ru.`userid` AND rsp.`roleid` = ru.`roleid`
+                  WHERE rsp.`roleid` = ?
+                    AND ru.`userid` IS NULL";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute([$role_id]);
+        return (int) $statement->fetchColumn();
     }
 
     // Cache operations

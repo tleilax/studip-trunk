@@ -11,7 +11,7 @@
  */
 class Role
 {
-    const UNKNOWN_ROLE_ID = -1;
+    const UNKNOWN_ROLE_ID = null;
 
     public $roleid;
     public $rolename;

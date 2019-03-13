@@ -312,16 +312,7 @@ class Admin_RoleController extends AuthenticatedController
                 }
             }
 
-            $query = "SELECT COUNT(*)
-                      FROM `roles_studipperms` AS rsp
-                      JOIN `auth_user_md5` AS a ON rsp.`permname` = a.`perms`
-                      LEFT JOIN `roles_user` AS ru
-                        ON a.`user_id` = ru.`userid` AND rsp.`roleid` = ru.`roleid`
-                      WHERE rsp.`roleid` = ?
-                        AND ru.`userid` IS NULL";
-            $statement = DBManager::get()->prepare($query);
-            $statement->execute([$roleid]);
-            $this->implicit_count = (int) $statement->fetchColumn();
+            $this->implicit_count = RolePersistence::countImplicitUsers($roleid);
 
             $this->users   = $users;
             $this->plugins = $plugins;
