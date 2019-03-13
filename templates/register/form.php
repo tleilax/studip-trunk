@@ -1,6 +1,4 @@
 <?php
-# Lifter005: TODO - form validation
-# Lifter010: TODO
 use Studip\Button, Studip\LinkButton;
 
 $email_restriction = Config::get()->EMAIL_DOMAIN_RESTRICTION;
@@ -169,7 +167,9 @@ jQuery(document).ready(function() {
 
     <footer>
         <?= Button::createAccept(_('Registrieren'))?>
-        <?= LinkButton::createCancel(_('Registrierung abbrechen'),
-                                     URLHelper::getLink('index.php?cancel_login=1')) ?>
+        <?= LinkButton::createCancel(
+            _('Registrierung abbrechen'),
+            URLHelper::getURL('index.php?cancel_login=1')
+        ) ?>
     </footer>
 </form>

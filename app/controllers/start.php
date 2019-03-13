@@ -39,14 +39,12 @@ class StartController extends AuthenticatedController
      */
     public function index_action($action = false, $widgetId = null)
     {
+        if (!WidgetHelper::hasUserWidgets($GLOBALS['user']->id)) {
+            WidgetHelper::setInitialPositions();
+        }
+
         $this->left = WidgetHelper::getUserWidgets($GLOBALS['user']->id, 0);
         $this->right = WidgetHelper::getUserWidgets($GLOBALS['user']->id, 1);
-
-        if (count($this->left) + count($this->right) === 0) {
-            WidgetHelper::setInitialPositions();
-            $this->left  = WidgetHelper::getUserWidgets($GLOBALS['user']->id, 0);
-            $this->right = WidgetHelper::getUserWidgets($GLOBALS['user']->id, 1);
-        }
 
         WidgetHelper::setActiveWidget(Request::get('activeWidget'));
 
