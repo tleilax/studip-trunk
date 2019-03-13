@@ -99,7 +99,7 @@ jQuery(document).ready(function() {
         </label>
 
         <label for="last_name">
-            <?= _('Nachname') ?>
+            <em class="required"><?= _('Nachname') ?></em>
 
             <input type="text" name="Nachname" id="last_name"
                    onchange="STUDIP.register.checkNachname()"
