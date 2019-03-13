@@ -115,7 +115,7 @@ class StartController extends AuthenticatedController
                     ]
                 );
             }
-            PageLayout::postnfo(
+            PageLayout::postInfo(
                 sprintf(_('Haben Sie die Bestätigungsmail an Ihre Adresse "%s" nicht erhalten?'), htmlReady($GLOBALS['user']->Email)),
                 [$details]
             );
