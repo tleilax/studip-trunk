@@ -106,16 +106,17 @@ class IliasSoap extends StudipSoapClient
     function call($method, $params)
     {
         // return false if no session_id is given
-        if (($method != "login") AND ($method != "getInstallationInfoXML") AND ($method != "getClientInfoXML") AND ($params["sid"] == ""))
+        if ($method !== 'login' && $method !== 'getInstallationInfoXML' && $method !== 'getClientInfoXML' && $params['sid'] == '') {
             return false;
+        }
 
-        $cache_index = md5($method . ":" . implode($params, "-"));
-        if (($this->caching_active == true) AND (isset($this->soap_cache[$cache_index]))) {
+        $cache_index = md5($method . ':' . implode($params, '-'));
+        if ($this->caching_active && isset($this->soap_cache[$cache_index]) && $method !== 'login') {
             $result = $this->soap_cache[$cache_index];
         } else {
             $result = $this->_call($method, $params);
             // if Session is expired, re-login and try again
-            if (($method != "login") AND $this->soap_client->fault AND in_array(mb_strtolower($this->faultstring), array("session not valid","session invalid", "session idled")) ) {
+            if ($method !== 'login' && $this->soap_client->fault && in_array(mb_strtolower($this->faultstring), ['session not valid', 'session invalid', 'session idled'])) {
                 $caching_status = $this->caching_active;
                 $this->caching_active = false;
                 $params["sid"] = $this->getSID();
@@ -320,11 +321,18 @@ class IliasSoap extends StudipSoapClient
                 $single_object['owner'] = (string)$object->Owner;
                 $single_object['create_date'] = (string)$object->CreateDate;
                 $single_object['last_update'] = (string)$object->LastUpdate;
+                $single_object['ref_count'] = count($object->References);
                 foreach ($object->References as $reference) {
                     //$single_object['references'][(string)$reference[0]['ref_id']]['ref_id'] = (string)$reference[0]['ref_id'];
                     if ($condition_field && ($reference[0][$condition_field] == $condition_value)) {
                         $single_object['ref_id'] = (string)$reference[0]['ref_id'];
+                        $single_object['parent_id'] = (string)$reference[0]['parent_id'];
+                        $single_object['accessInfo'] = (string)$reference[0]['accessInfo'];
+                        foreach ($reference->Operation as $operation) {
+                            $single_object['operations'][] = (string)$operation;
+                        }
                     }
+                    $single_object['references'][(string)$reference[0]['ref_id']]['parent_id'] = (string)$reference[0]['parent_id'];
                     $single_object['references'][(string)$reference[0]['ref_id']]['accessInfo'] = (string)$reference[0]['accessInfo'];
                     foreach ($reference->Operation as $operation) {
                         $single_object['references'][(string)$reference[0]['ref_id']]['operations'][] = (string)$operation;
@@ -1342,6 +1350,32 @@ class IliasSoap extends StudipSoapClient
     }
 
     /**
+     * update group
+     *
+     * updates group
+     * @access public
+     * @param array group_data group data
+     * @param string ref_id group id
+     * @return string result
+     */
+    function updateGroup($group_data, $ref_id)
+    {
+        $this->clearCache();
+        foreach($group_data as $key => $value) {
+            $group_data[$key] = htmlReady($group_data[$key]);
+        }
+
+        $xml = $this->getGroupXML($group_data);
+        $param = array(
+                        'sid' => $this->getSID(),
+                        'ref_id' => $ref_id,
+                        'xml' => $xml
+        );
+        $result = $this->call('updateGroup', $param);
+        return $result;
+    }
+
+    /**
      * assign group member
      *
      * assigns user to group
@@ -1370,7 +1404,7 @@ class IliasSoap extends StudipSoapClient
      * @param string group_id group id
      * @param string user_id user id
      */
-    function excludeGroupMember($group_id, $user_id, $type = "Member")
+    function excludeGroupMember($group_id, $user_id)
     {
         $this->clearCache();
         $param = array(
@@ -1396,7 +1430,16 @@ class IliasSoap extends StudipSoapClient
                         'ref_id' => $group_id
         );
         $result = $this->call('getGroup', $param);
-        return $result;
+        if ($result) {
+            $s = simplexml_load_string($result);
+            $data['title'] = (string)$s->title;
+            $data['members'] = array();
+            foreach($s->member as $member) {
+                $member_parts = explode('_usr_', (string)$member[0]['id']);
+                $data['members'][] = $member_parts[1];
+            }
+        }
+        return $data;
     }
 
     /**
@@ -1533,4 +1576,3 @@ class IliasSoap extends StudipSoapClient
         return false;
     }
 }
-

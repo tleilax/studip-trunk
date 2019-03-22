@@ -1,19 +1,7 @@
-<?
-# Lifter001: DONE
+<?php
 # Lifter002: TODO
-# Lifter003: TEST
-# Lifter005: TODO
 # Lifter007: TODO
-# Lifter010: TODO
 use Studip\Button, Studip\LinkButton;
-// wiki regex pattern
-// IMPORTANT: Wiki Keyword has to be in 2nd paranthesed pattern!!
-// Make sure to change routines below if this changes
-//
-global $wiki_keyword_regex, $wiki_link_regex, $wiki_extended_link_regex;
-$wiki_keyword_regex = "(^|\s|\A|\>)(([A-ZÄÖÜ]|&[AOU]uml;)([a-z0-9äöüß]|&[aou]uml;|&szlig;)+([A-ZÄÖÜ]|&[AOU]uml;)([a-zA-Z0-9äöüÄÖÜß]|&[aouAOU]uml;|&szlig;)+)";
-$wiki_link_regex = "\[\[(([\w\.\-\:\(\)_§\/@# ]|&[AOUaou]uml;|&szlig;)+)\]\]";
-$wiki_extended_link_regex = "\[\[(([\w\.\-\:\(\)_§\/@# ]|&[AOUaou]uml;|&szlig;)+)\|([^\]]+)\]\]";
 
 /**
 * Retrieve a WikiPage version from current seminar's WikiWikiWeb.
@@ -324,15 +312,15 @@ function releasePageLocks($keyword, $user_id)
 *
 **/
 function getWikiLinks($str) {
-    global $wiki_keyword_regex, $wiki_link_regex, $wiki_extended_link_regex;
     $str = preg_replace('/\[nop\].*\[\/nop\]/', '', $str);
     $str = preg_replace('/\[code\].*\[\/code\]/', '', $str);
-    preg_match_all("/$wiki_keyword_regex/", $str, $out_wikiwords, PREG_PATTERN_ORDER);
-    preg_match_all("/$wiki_link_regex/", $str, $out_wikilinks, PREG_PATTERN_ORDER);
-    preg_match_all("/$wiki_extended_link_regex/", $str, $out_wikiextlinks, PREG_PATTERN_ORDER);
-    $result = array_merge($out_wikiwords[2], $out_wikilinks[1], $out_wikiextlinks[1]);
-    $result = array_map('trim', $result);
-    return array_unique($result);
+    preg_match_all(
+        '/' . WikiFormat::getWikiMarkup('wiki-links')['start'] . '/',
+        $str,
+        $out_wikiwords,
+        PREG_PATTERN_ORDER
+    );
+    return array_unique($out_wikiwords[1]);
 }
 
 /**
@@ -659,18 +647,18 @@ function listPages($mode, $sortby = NULL)
         $widget = Sidebar::get()->addWidget(new ExportWidget());
         $widget->addLink(
             _('PDF-Ausgabe aller Wiki-Seiten'),
-            URLHelper::getLink('?view=exportall_pdf', ['sortby' => $sortby]),
+            URLHelper::getURL('?view=exportall_pdf', ['sortby' => $sortby]),
             Icon::create('file-pdf'),
             ['target' => '_blank']
         );
         $widget->addLink(
             _('Druckansicht aller Wiki-Seiten'),
-            URLHelper::getLink('?view=wikiprintall'),
+            URLHelper::getURL('?view=wikiprintall'),
             Icon::create('print'),
             ['target' => '_blank']
         );
     }
-#    end_blank_table();
+
     showPageFrameEnd(array());
 }
 
@@ -868,20 +856,6 @@ function searchWiki($searchfor, $searchcurrentversions, $keyword, $localsearch)
     Sidebar::get()->addWidget($widget);
 
     showPageFrameEnd(array());
-}
-
-
-/**
-* Print a wiki page header including printhead-bar with page name and
-* last change info.
-*
-**/
-function wikiSinglePageHeader($wikiData, $keyword) {
-    $zusatz=getZusatz($wikiData);
-
-    begin_blank_table();
-    printhead(0, 0, FALSE, "icon-wiki", FALSE, "", "<b>" . htmlReady($keyword) ."</b>", $zusatz);
-    end_blank_table();
 }
 
 /**
@@ -1317,13 +1291,13 @@ function getShowPageInfobox($keyword, $latest_version)
     $widget = $sidebar->addWidget(new ExportWidget());
     $widget->addLink(
         _('Druckansicht'),
-        URLHelper::getLink('?view=wikiprint', compact('keyword', 'version')),
+        URLHelper::getURL('?view=wikiprint', compact('keyword', 'version')),
         Icon::create('print'),
         ['target' => '_blank']
     );
     $widget->addLink(
         _('PDF-Ausgabe'),
-        URLHelper::getLink('?view=export_pdf', compact('keyword', 'version')),
+        URLHelper::getURL('?view=export_pdf', compact('keyword', 'version')),
         Icon::create('file-pdf'),
         ['target' => '_blank']
     );
@@ -1346,16 +1320,16 @@ function getDiffPageInfobox($keyword) {
     $widget = Sidebar::get()->addWidget(new ViewsWidget());
     $widget->addLink(
         _('Standard'),
-        URLHelper::getLink('?view=show', compact('keyword'))
+        URLHelper::getURL('?view=show', compact('keyword'))
     );
     if (count($versions) >= 1) {
         $widget->addLink(
             _('Textänderungen anzeigen'),
-            URLHelper::getLink('?view=diff', compact('keyword'))
+            URLHelper::getURL('?view=diff', compact('keyword'))
         )->setActive(Request::option('view') === 'diff');
         $widget->addLink(
             _('Text mit Autor/-innenzuordnung anzeigen'),
-            URLHelper::getLink('?view=combodiff', compact('keyword'))
+            URLHelper::getURL('?view=combodiff', compact('keyword'))
         )->setActive(Request::option('view') === 'combodiff');
     }
 
@@ -1460,22 +1434,6 @@ function showWikiPage($keyword, $version, $special="", $show_comments="icon", $h
     echo $template->render();
 
     getShowPageInfobox($keyword, $wikiData->isLatestVersion());
-}
-
-/**
-* Helper function that prints header for a "blank" table
-*
-**/
-function begin_blank_table() {
-    echo "<table width=\"100%\" class=\"blank\" border=0 cellpadding=0 cellspacing=0>\n";
-}
-
-/**
-* Helper function that prints footer for a "blank" table
-*
-**/
-function end_blank_table() {
-    echo "</tr></table>";
 }
 
 /**

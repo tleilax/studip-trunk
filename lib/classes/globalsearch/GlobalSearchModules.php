@@ -26,7 +26,7 @@ class GlobalSearchModules extends GlobalSearchModule
      * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    public static function getSQL($search, $filter)
+    public static function getSQL($search, $filter, $limit)
     {
         if (!$search) {
             return null;
@@ -42,7 +42,6 @@ class GlobalSearchModules extends GlobalSearchModule
         // Prepare variables
         $needle   = DBManager::get()->quote("%{$search}%");
         $language = DBManager::get()->quote($language);
-        $limit    = Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE + 1;
 
         // Prepare status (according to user role)
         $status_cond = '1';
@@ -50,7 +49,7 @@ class GlobalSearchModules extends GlobalSearchModule
             $status_cond = "`m`.`stat` = " . DBManager::get()->quote('genehmigt');
         }
 
-        $query = "SELECT `m`.`modul_id`, `m`.`code`,
+        $query = "SELECT SQL_CALC_FOUND_ROWS `m`.`modul_id`, `m`.`code`,
                          IFNULL(`i18n`.`value`, `md`.`bezeichnung`) AS `bezeichnung`,
                          `m`.`stat`, `m`.`kp`,
                          `sd0`.`name` AS `sem_start`, `sd1`.`name` AS `sem_end`,
@@ -81,7 +80,7 @@ class GlobalSearchModules extends GlobalSearchModule
                     )
                   GROUP BY `m`.`modul_id`
                   ORDER BY `m`.`code`, IFNULL(`i18n`.`value`, `md`.`bezeichnung`)
-                  LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                  LIMIT " . $limit;
         return $query;
     }
 
@@ -108,7 +107,7 @@ class GlobalSearchModules extends GlobalSearchModule
         $label = $module_data['code'] . ' ' . $module_data['bezeichnung'];
 
         // Get icon according to permissions
-        $icon_role = Icon::ROLE_INFO;
+        $icon_role = Icon::ROLE_CLICKABLE;
         if (self::extendedDisplay()) {
             if ($module_data['stat'] === 'genehmigt') {
                 $icon_role = Icon::ROLE_STATUS_GREEN;
@@ -131,7 +130,7 @@ class GlobalSearchModules extends GlobalSearchModule
         }
 
         // Construct additional information
-        $additional = (float)$kp . ' ' . _('CP');
+        $additional = (float) $kp . ' ' . _('CP');
         if ($parts > 1) {
             $additional .= " ({$parts} " . _('Modulteile') . ")";
         }
@@ -157,7 +156,7 @@ class GlobalSearchModules extends GlobalSearchModule
     public static function getSearchURL($searchterm)
     {
         return URLHelper::getURL('dispatch.php/search/globalsearch', [
-            'searchterm' => $searchterm,
+            'q'        => $searchterm,
             'category' => self::class
         ]);
     }

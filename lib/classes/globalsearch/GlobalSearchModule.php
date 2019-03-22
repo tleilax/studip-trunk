@@ -13,6 +13,19 @@
 abstract class GlobalSearchModule
 {
     /**
+     * Employ generic cache methods. Be aware that this cache is shared among
+     * the search modules so use indices properly:
+     *
+     * - user/:id for users
+     * - range/:id for courses and institutes
+     * - folder/id for folders
+     *
+     * Please add to this list if you add a new module that introduces a new
+     * type.
+     */
+    use GlobalSearchCacheTrait;
+
+    /**
      * Returns the displayname for this module
      *
      * @return mixed
@@ -26,7 +39,7 @@ abstract class GlobalSearchModule
      * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    abstract public static function getSQL($search, $filter);
+    abstract public static function getSQL($search, $filter, $limit);
 
     /**
      * Returns an array of information for the found element. Following informations (key: description) are necessary
@@ -48,7 +61,7 @@ abstract class GlobalSearchModule
 
     /**
      * Returns the filters that are displayed in the sidebar of the global search.
-     * 
+     *
      * @return array Filters for this class.
      */
     public static function getFilters()
@@ -98,7 +111,7 @@ abstract class GlobalSearchModule
         $query = trim($query);
 
         // Replace direct string
-        $result = preg_replace("/{$query}/i", "<mark>$0</mark>", $string, -1, $found);
+        $result = preg_replace("/{$query}/Si", "<mark>$0</mark>", $string, -1, $found);
 
         if ($found) {
             // Check for overlength
@@ -118,7 +131,7 @@ abstract class GlobalSearchModule
             $replacement .= '<mark>$' . ++$i . '</mark>$' . ++$i;
         }
 
-        $pattern = '/([\w\W]*)' . implode('([\w\W]*)', $queryletter) . '/';
+        $pattern = '/([\w\W]*)' . implode('([\w\W]*)', $queryletter) . '/S';
         $result = preg_replace($pattern, $replacement, $string, -1, $found);
 
         if ($found) {
@@ -143,7 +156,7 @@ abstract class GlobalSearchModule
         }
 
         return $string;
-    } 
+    }
 
     /**
     * Get the selected institute with sub-institutes as an array of IDs
@@ -187,5 +200,51 @@ abstract class GlobalSearchModule
             }
             return $type_ids;
         }
+    }
+
+    /**
+     * Returns a list of all active search modules
+     * @return array search_class => data
+     */
+    public static function getActiveSearchModules()
+    {
+        $modules = Config::get()->GLOBALSEARCH_MODULES;
+
+        // TODO: Throw this away and activate the php7 code as soon as possible
+        foreach ($modules as $module => $data) {
+            if ($module === 'GlobalSearchModules' && !MVV::isVisibleSearch()) {
+                unset($modules[$module]);
+                continue;
+            }
+
+            if (in_array($module, ['GlobalSearchResources', 'GlobalSearchRoomAssignments'])
+                && !Config::get()->RESOURCES_ENABLE)
+            {
+                unset($modules[$module]);
+                continue;
+            }
+
+            if (!$data['active'] || !class_exists($module, true)) {
+                unset($modules[$module]);
+                continue;
+            }
+        }
+
+        // PHP7
+        // $modules = array_filter($modules, function ($data, $module) {
+        //     if ($module === 'GlobalSearchModules' && !MVV::isVisibleSearch()) {
+        //         return false;
+        //     }
+        //
+        //     if (in_array($module, ['GlobalSearchResources', 'GlobalSearchRoomAssignments'])
+        //         && !Config::get()->RESOURCES_ENABLE)
+        //     {
+        //         return false;
+        //     }
+        //
+        //     return $data['active'] && class_exists($module, true);
+        // }, ARRAY_FILTER_USE_BOTH);
+
+        return array_keys($modules);
     }
 }

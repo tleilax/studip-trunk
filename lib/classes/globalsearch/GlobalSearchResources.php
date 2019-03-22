@@ -29,20 +29,20 @@ class GlobalSearchResources extends GlobalSearchModule
      * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    public static function getSQL($search, $filter)
+    public static function getSQL($search, $filter, $limit)
     {
-        if (!Config::get()->RESOURCES_ENABLE || !$search || !$GLOBALS['perm']->have_perm('admin')) {
+        if (!Config::get()->RESOURCES_ENABLE || !$search) {
             return null;
         }
         $query = DBManager::get()->quote("%{$search}%");
-        return "SELECT `resource_id`, `name`, `description`
+        return "SELECT SQL_CALC_FOUND_ROWS `resource_id`, `name`, `description`
                 FROM `resources_objects`
                 WHERE `name` LIKE {$query}
                   OR `description` LIKE {$query}
                   OR REPLACE(`name`, ' ', '') LIKE {$query}
                   OR REPLACE(`description`, ' ', '') LIKE {$query}
                 ORDER BY `name` ASC
-                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                LIMIT " . $limit;
     }
 
     /**
@@ -84,7 +84,7 @@ class GlobalSearchResources extends GlobalSearchModule
     public static function getSearchURL($searchterm)
     {
         return URLHelper::getURL('dispatch.php/search/globalsearch', [
-            'searchterm' => $searchterm,
+            'q'        => $searchterm,
             'category' => self::class
         ]);
     }

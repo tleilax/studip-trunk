@@ -18,7 +18,7 @@ if ($navigation) {
             $nav_id = "nav_".implode("_", preg_split("/\//", $tab_root_path, -1, PREG_SPLIT_NO_EMPTY))."_".$path;
             $link = $nav_links->addLink(
                 $nav->getTitle(),
-                URLHelper::getLink($nav->getURL()),
+                URLHelper::getURL($nav->getURL()),
                 null,
                 array('id' => $nav_id)
             );
@@ -28,7 +28,7 @@ if ($navigation) {
                 $link->addClass('quiet');
             }
         }
-        if ($nav_links->hasElements() && count($nav_links->getElements()) > 1) {
+        if ($nav_links->hasElements()) {
             Sidebar::get()->insertWidget($nav_links, ':first');
         }
     }

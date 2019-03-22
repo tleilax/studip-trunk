@@ -356,6 +356,7 @@ class EvalOverview {
             $td = new HTML("td");
             $td->addAttr("class", $style);
             $td->addAttr("width", "1");
+            
             // create a blindgif
             $blingif = new HTMLempty("img");
             $blingif->addAttr("border", "0");
@@ -363,7 +364,7 @@ class EvalOverview {
             $blingif->addAttr("width", "1");
             $blingif->addAttr("height", "24");
             $blingif->addAttr("alt", " ");
-            $blingif->addAttr("src", PICTURES . "/forumleer.gif");
+            $blingif->addAttr("src", Assets::image_path('forumleer.gif'));
             $td->addContent($blingif);
             $tr->addContent($td);
         }
@@ -565,7 +566,7 @@ class EvalOverview {
         /* create new ---------------------------------------------------------- */
         $actions = new ActionsWidget();
         $actions->addLink(_('Neue Evaluationsvorlage'),
-                          URLHelper::getLink('?rangeID=' . $_SESSION['rangeID'] .'&page=edit&newButton=1'),
+                          URLHelper::getURL('?rangeID=' . $_SESSION['rangeID'] .'&page=edit&newButton=1'),
                           Icon::create('add', 'clickable'));
         Sidebar::get()->addWidget($actions);
         /* ----------------------------------------------------- end: create new */

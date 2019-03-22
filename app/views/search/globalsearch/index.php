@@ -9,10 +9,10 @@
                 <?= Icon::create('search')->asImg(['title' => _('Suche beginnen')]) ?>
             </button>
 
-            <?= \Studip\LinkButton::createReset(
-                ('Zurücksetzen'),
-                ['name' => 'reset', 'id' => 'reset-search']
-            ) ?>
+            <button type="submit" class="button" id="reset-search">
+                <?= Icon::create('decline')->asImg(['title' => _('Suche zurücksetzen')]) ?>
+            </button>
+
         </span>
     </div>
 </form>
@@ -24,13 +24,19 @@
 
     <div id="search-results" data-loading-text="<?= _('Suche...') ?>"
         data-all-results="<?= _('Filter aufheben') ?>"
-        data-searchterm="<?= htmlReady(Request::get('searchterm')) ?>"
+        data-searchterm="<?= htmlReady(Request::get('q')) ?>"
         data-category="<?= htmlReady(Request::get('category')) ?>"
+        data-img-add="<?= htmlReady(Icon::create('add')->asImg(['title' => _('Unterveranstaltungen anzeigen')])) ?>"
+        data-img-remove="<?= htmlReady(Icon::create('remove')->asImg(['title' => _('Unterveranstaltungen ausblenden')])) ?>"
         data-results-per-type="<?= Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE ?>"
         data-filters="<?= htmlReady(json_encode($filters)) ?>">
     </div>
 
     <div id="search-no-result">
-        <?= MessageBox::warning(_('Leider wurden keine Ergebnisse gefunden.')); ?>
+        <?= MessageBox::warning(sprintf(
+            _('Leider konnten zu Ihrem Suchbegriff "%s" keine Treffer gefunden werden. '
+            . ' Haben Sie sich vielleicht verschrieben?'),
+            '<span class="searchterm"></span>'
+        )) ?>
     </div>
 </div>

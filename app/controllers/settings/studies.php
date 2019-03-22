@@ -53,7 +53,7 @@ class Settings_StudiesController extends Settings_SettingsController
     {
         $this->faecher              = StudyCourse::findBySQL('1 ORDER BY name');
         $this->abschluesse          = Abschluss::findBySQL('1 ORDER by name');
-        $this->available_institutes = Institute::getMyInstitutes();
+        $this->available_institutes = Institute::getInstitutes();
         $this->institutes           = $this->user->institute_memberships->filter(function ($a) {
             return $a->inst_perms === 'user';
         });
@@ -64,7 +64,7 @@ class Settings_StudiesController extends Settings_SettingsController
      */
     public function store_sg_action()
     {
-        $this->check_ticket();
+        CSRFProtection::verifyUnsafeRequest();
 
         $any_change = false;
 
@@ -141,7 +141,7 @@ class Settings_StudiesController extends Settings_SettingsController
                         }
                     }
                 }
-            }            
+            }
         }
 
         if ($any_change) {
@@ -160,7 +160,7 @@ class Settings_StudiesController extends Settings_SettingsController
      */
     public function store_in_action()
     {
-        $this->check_ticket();
+        CSRFProtection::verifyUnsafeRequest();
 
         $inst_delete = Request::optionArray('inst_delete');
         if (count($inst_delete) > 0) {

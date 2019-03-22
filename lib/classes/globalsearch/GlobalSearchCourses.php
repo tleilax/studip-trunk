@@ -39,7 +39,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
      * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    public static function getSQL($search, $filter)
+    public static function getSQL($search, $filter, $limit)
     {
         if (!$search) {
             return null;
@@ -74,7 +74,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
             }
         }
 
-        $sql = "SELECT courses.`Seminar_id`, courses.`start_time`, courses.`Name`,
+        $sql = "SELECT SQL_CALC_FOUND_ROWS courses.`Seminar_id`, courses.`start_time`, courses.`Name`,
                        courses.`VeranstaltungsNummer`, courses.`status`
                 FROM `seminare` courses
                 JOIN `sem_types` ON (courses.`status` = `sem_types`.`id`)
@@ -101,7 +101,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
         }
 
         $sql .= ", courses. `Name`";
-        $sql .= " LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+        $sql .= " LIMIT " . $limit;
 
         return $sql;
     }
@@ -137,22 +137,45 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
         } else {
             $turnus_string = htmlReady($turnus_string);
         }
+        $lecturers = $course->getMembersWithStatus('dozent');
         $semester = $course->start_semester;
 
+        // If you are not root, perhaps not all available subcourses are visible.
+        $visibleChildren = $course->children;
+        if (!$GLOBALS['perm']->have_perm(Config::get()->SEM_VISIBILITY_PERM)) {
+            $visibleChildren = $visibleChildren->filter(function($c) {
+                return $c->visible;
+            });
+        }
+        $result_children = [];
+        foreach($visibleChildren as $child) {
+            $result_children[] = self::filter($child, $search);
+        }
+
         $result = [
-            'id'         => $course->id,
-            'number'     => self::mark($course->veranstaltungsnummer, $search),
-            'name'       => self::mark($course->getFullname(), $search),
-            'url'        => URLHelper::getURL('dispatch.php/course/details/index/' . $course->id),
-            'date'       => $semester->token ?: $semester->name,
-            'dates'      => $turnus_string,
-            'additional' => implode(', ',
-                array_map(
-                    function ($u) use ($search) {
-                        return self::mark($u->getUserFullname(), $search);
-                    },
-                    $course->getMembersWithStatus('dozent')
-                )),
+            'id'            => $course->id,
+            'number'        => self::mark($course->veranstaltungsnummer, $search),
+            'name'          => self::mark($course->getFullname(), $search),
+            'url'           => URLHelper::getURL('dispatch.php/course/details/index/' . $course->id),
+            'date'          => $semester->token ?: $semester->name,
+            'dates'         => $turnus_string,
+            'has_children'  => count($course->children) > 0,
+            'children'      => $result_children,
+            'additional'    => implode(', ',
+                array_filter(
+                    array_map(
+                        function ($lecturer, $index) use ($search, $course) {
+                            if ($index < 3) {
+                                return '<a href="' . URLHelper::getURL('dispatch.php/profile', ['username' => $lecturer->username]) . '">' . self::mark($lecturer->getUserFullname(), $search) . '</a>';
+                            } else if ($index == 3) {
+                                return '<a href="' . URLHelper::getURL('dispatch.php/course/details/index/' . $course->id) . '">... (' . _('mehr') . ') </a>';
+                            }
+                        },
+                        $lecturers,
+                        array_keys($lecturers)
+                    )
+                )
+            ),
             'expand'     => self::getSearchURL($search),
         ];
         if ($course->getSemClass()->offsetGet('studygroup_mode')) {
@@ -239,7 +262,7 @@ class GlobalSearchCourses extends GlobalSearchModule implements GlobalSearchFull
     public static function getSearchURL($searchterm)
     {
         return URLHelper::getURL('dispatch.php/search/globalsearch', [
-            'searchterm' => $searchterm,
+            'q'        => $searchterm,
             'category' => self::class
         ]);
     }

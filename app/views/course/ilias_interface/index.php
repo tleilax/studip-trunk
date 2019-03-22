@@ -1,5 +1,6 @@
 <form method="post">
 <? foreach($ilias_list as $ilias_index => $ilias) : ?>
+    <? if (!count($ilias->getCourseModules()) && !$courses[$ilias_index] && !$edit_permission) continue; ?>
     <? if ($anker_target == $ilias_index) : ?>
         <a name='anker'></a>
     <? endif?>
@@ -23,15 +24,19 @@
     <? if (count($ilias->getCourseModules())) : ?>
         <? foreach ($ilias->getCourseModules() as $module_id => $module) : ?>
         <tr>
-            <td><?=Icon::create('learnmodule', Icon::ROLE_CLICKABLE, [
+            <td><?=Icon::create('learnmodule', $module->is_offline ? Icon::ROLE_INACTIVE : Icon::ROLE_INFO, [
                             'title'        => $module->getModuleTypeName()
                             ])
             ?></td>
+            <? if ($module->is_offline) : ?>
+            <td><?=$module->getTitle()?> <?=_('(offline)')?></td>
+            <? else : ?>
             <td><a href="<?= $controller->url_for($module->getRoute('view_course'))?>" data-dialog="size=auto"><?=$module->getTitle()?></a></td>
+            <? endif ?>
             <td><?=$module->getModuleTypeName()?></td>
                 <td class="actions">
                     <? $actionMenu = ActionMenu::get() ?>
-                    <? $actionMenu->addButton(
+                    <? if (! $module->is_offline) $actionMenu->addButton(
                             'view',
                             _('Info'),
                             Icon::create('info-circle', Icon::ROLE_CLICKABLE, [
@@ -60,12 +65,13 @@
                                 'rel'          => 'noopener noreferrer'
                             ])
                     ) ?>
-                    <? if ($edit_permission) $actionMenu->addButton(
+                    <? if ($edit_permission && $module->isAllowed('delete')) $actionMenu->addButton(
                             'remove',
                             _('Entfernen'),
                             Icon::create('learnmodule+decline', Icon::ROLE_CLICKABLE, [
                                 'title'        => _('Entfernen'),
                                 'formaction'   => $controller->url_for($module->getRoute('remove')),
+                                'data-confirm' => $module->siblings_count < 2 ? sprintf(_('Dies ist die einzige Instanz des Objekts "%s". Durch das Entfernen aus dem Kurs wird das Objekt unwiderruflich gelöscht! Wollen Sie das Objekt wirklich löschen?'), $module->getTitle()) : sprintf(_('Wollen Sie das Objekt "%s" jetzt entfernen?'), $module->getTitle()),
                                 'target'       => '_blank',
                                 'rel'          => 'noopener noreferrer'
                             ])
@@ -76,15 +82,45 @@
         <? endforeach ?>
     <? elseif (!$courses[$ilias_index]) : ?>
         <tr>
-            <td colspan="3">
+            <td colspan="4">
                 <?= _('Es sind keine Lernobjekte mit dieser Veranstaltung verknüpft.')?>
             </td>
         </tr>
     <? else : ?>
         <tr>
-            <td colspan="3">
-                <a href="<?= $controller->url_for('my_ilias_accounts/redirect/'.$ilias_index.'/start/'.$courses[$ilias_index].'/crs')?>" target="_blank"><?= sprintf(_('Kurs in %s'), $ilias->getName())?></a>
+            <td><?=Icon::create('learnmodule', $course_objects[$ilias_index]->is_offline ? Icon::ROLE_INACTIVE : Icon::ROLE_INFO, [
+                            'title'        => _('ILIAS-Kurs')
+                            ])
+            ?></td>
+            <td>
+                <a href="<?= $controller->url_for('my_ilias_accounts/redirect/'.$ilias_index.'/start/'.$courses[$ilias_index].'/crs')?>" target="_blank"><?= sprintf(_('Kurs in %s'), $ilias->getName()).($course_objects[$ilias_index]->is_offline ? ' '._('(offline)') : '')?></a>
             </td>
+            <td><?=_('ILIAS-Kurs')?></td>
+                <td class="actions">
+                    <? $actionMenu = ActionMenu::get() ?>
+                    <? $actionMenu->addButton(
+                            'start',
+                            _('In ILIAS anzeigen'),
+                            Icon::create('play', Icon::ROLE_CLICKABLE, [
+                                'title'        => _('In ILIAS anzeigen'),
+                                'formaction'   => $controller->url_for('my_ilias_accounts/redirect/'.$ilias_index.'/start/'.$courses[$ilias_index].'/crs'),
+                                'target'       => '_blank',
+                                'rel'          => 'noopener noreferrer'
+                            ])
+                    ) ?>
+                    <? if ($edit_permission) $actionMenu->addButton(
+                            'remove',
+                            _('Entfernen'),
+                            Icon::create('learnmodule+decline', Icon::ROLE_CLICKABLE, [
+                                'title'        => _('Entfernen'),
+                                'formaction'   => $controller->url_for('course/ilias_interface/remove_course/'.$ilias_index.'/'.$courses[$ilias_index]),
+                                'data-confirm' => sprintf(_('Verknüpfung zum Kurs in %s entfernen? Hierdurch werden auch die Verknüpfungen zu allen Objekten innerhalb des Kurses entfernt.'), $ilias->getName()),
+                                'target'       => '_blank',
+                                'rel'          => 'noopener noreferrer'
+                            ])
+                    ) ?>
+                    <?= $actionMenu->render() ?>
+                </td>
         </tr>
     <? endif ?>
         </tbody>

@@ -22,10 +22,11 @@ class ConnectedIlias
     const CRS_MEMBER_ROLE= '2';
     const CRS_TUTOR_ROLE= '3';
     const CRS_PASSED_VALUE= '0';
-    
+
     const OPERATION_VISIBLE= 'visible';
     const OPERATION_READ= 'read';
     const OPERATION_WRITE= 'write';
+    const OPERATION_COPY= 'copy';
     const OPERATION_DELETE= 'delete';
 
     public $index;
@@ -86,7 +87,7 @@ class ConnectedIlias
                 NotificationCenter::addObserver($this, "updateUser", "UserDidUpdate");
             }
             // create user category if user has ILIAS author permission
-            if ($GLOBALS['perm']->have_perm($this->ilias_config['author_perm']) && ! $this->user->getCategory()) {
+            if ($GLOBALS['perm']->have_perm($this->ilias_config['author_perm']) && ! $this->ilias_config['category_create_on_add_module'] && ! $this->user->getCategory()) {
                 $this->soap_client->setCachingStatus(false);
                 $this->soap_client->clearCache();
                 $this->newUserCategory();
@@ -243,6 +244,10 @@ class ConnectedIlias
     {
         if (!$this->ilias_config['root_category']) {
             // check category
+            if (!$this->ilias_config['root_category_name']) {
+                $this->error[] = _("Die ILIAS-Kategorie für Stud.IP-Inhalte wurde noch nicht festgelegt.");
+                return false;
+            }
             $category = $this->soap_client->getReferenceByTitle($this->ilias_config['root_category_name'], 'cat');
             if (!$category) {
                 $this->error[] = sprintf(_("Die Kategorie \"%s\" wurde nicht gefunden."), $this->ilias_config['root_category_name']);
@@ -282,6 +287,10 @@ class ConnectedIlias
     public function getPermissionsSettingsStatus()
     {
         // check role template
+        if (!$this->ilias_config['author_role_name']) {
+            $this->error[] = _("Das Rollen-Template für die persönliche Kategorie wurde noch nicht festgelegt.");
+            return false;
+        }
         $role_template = $this->soap_client->getObjectByTitle( $this->ilias_config['author_role_name'], "rolt" );
         if ($role_template == false) {
             $this->error[] = sprintf(_("Das Rollen-Template mit dem Namen \"%s\" wurde im System %s nicht gefunden."), htmlReady($this->ilias_config['author_role_name']), htmlReady($this->getName()));
@@ -305,6 +314,9 @@ class ConnectedIlias
      */
     public function newUser()
     {
+        if (!$this->user->studip_login) {
+            return false;
+        }
         $user_data = $this->user->getUserArray();
         $user_data["login"] = $this->ilias_config['user_prefix'].$user_data["login"];
 
@@ -325,7 +337,7 @@ class ConnectedIlias
         }
 
         // set role according to Stud.IP perm
-        if ($GLOBALS['auth']->auth["perm"] == "root") {
+        if ($GLOBALS['auth']->auth['perm'] === 'root') {
             $role_id = 2;
         } else {
             $role_id = 4;
@@ -339,40 +351,49 @@ class ConnectedIlias
             $this->user->id = $user_id;
             $this->user->login = $this->ilias_config['user_prefix'].$this->user->studip_login;
 
-            $this->user->setConnection(self::USER_TYPE_CREATED, true);
+            $this->user->setConnection(IliasUser::USER_TYPE_CREATED);
             return true;
         }
         return false;
     }
 
     /**
-     * update user account
+     * update given user account
      *
      * updates ILIAS user data
      * @access public
+     * @param $user Stud.IP user object
      * @return boolean returns false
      */
-    public function updateUser()
+    public function updateUser($user)
     {
-        if (! $this->user->id) {
+        if (! is_object($user)) {
             return false;
         }
-
-        $user_data = $this->user->getUserArray();
-
-        // set role according to Stud.IP perm
-        if ($GLOBALS['auth']->auth["perm"] == "root") {
-            $role_id = 2;
-        } else {
-            $role_id = 4;
+        $update_user = new IliasUser($this->index, $this->ilias_config['version'], $user->id);
+        // if user is manually connected don't update user data
+        if ($update_user->getUserType() == IliasUser::USER_TYPE_ORIGINAL) {
+            return true;
         }
-
         $this->soap_client->setCachingStatus(false);
         $this->soap_client->clearCache();
-        $user_id = $this->soap_client->addUser($user_data, $role_id);
-        if ($user_id != false)
-        {
-            return true;
+        if ($update_user->isConnected() && $update_user->id && $this->soap_client->lookupUser($update_user->login)) {
+            $user_data = $update_user->getUserArray();
+            $user_data["login"] = $this->ilias_config['user_prefix'].$user_data["login"];
+
+            // set role according to Stud.IP perm
+            if ($user->perms == "root") {
+                $role_id = 2;
+            } else {
+                $role_id = 4;
+            }
+
+            $user_id = $this->soap_client->addUser($user_data, $role_id);
+            if ($user_id != false) {
+                $update_user->login = $user_data["login"];
+                $update_user->setConnection(IliasUser::USER_TYPE_CREATED);
+                return true;
+            }
         }
         return false;
     }
@@ -386,6 +407,9 @@ class ConnectedIlias
      */
     public function newUserCategory()
     {
+        if (!$this->user->studip_login) {
+            return false;
+        }
         $this->soap_client->setCachingStatus(false);
         $this->soap_client->clearCache();
 
@@ -402,9 +426,9 @@ class ConnectedIlias
         } else {
             // add new user category at main user data category in ILIAS
             $this->user->category = $this->soap_client->addObject($object_data, $this->ilias_config['user_data_category']);
-            if ($this->ilias_config['category_to_desktop']) {
-                $this->soap_client->addDesktopItems($this->user->getId(), $this->user->category);
-            }
+        }
+        if ($this->ilias_config['category_to_desktop'] && $this->user->category) {
+            $this->soap_client->addDesktopItems($this->user->getId(), array($this->user->category));
         }
 
         // store data
@@ -526,60 +550,6 @@ class ConnectedIlias
         return DBManager::get()->fetchGrouped($query);
     }
 
-   /**
-    * create new instance of subclass content-module with given values
-    *
-    * creates new instance of subclass content-module with given values
-    * @access public
-    * @param array $data module-data
-    * @param boolean $is_connected is module connected to seminar?
-    */
-    public function setContentModule($data, $is_connected = false)
-    {
-        global $current_module;
-        $current_module = $data["ref_id"];
-
-        require_once($this->CLASS_PREFIX . "ContentModule.class.php");
-        $classname = $this->CLASS_PREFIX  . "ContentModule";
-
-        $this->content_module[$current_module] = new  $classname("", $data["type"], $this->cms_type);
-        $this->content_module[$current_module]->setId($data["ref_id"]);
-        $this->content_module[$current_module]->setTitle($data["title"]);
-        $this->content_module[$current_module]->setDescription($data["description"]);
-
-        $this->content_module[$current_module]->setConnectionType($is_connected);
-    }
-
-    /**
-    * create new instance of subclass content-module
-    *
-    * creates new instance of subclass content-module
-    * @access public
-    * @param string $module_id module-id
-    * @param string $module_type module-type
-    * @param boolean $is_connected is module connected to seminar?
-    */
-    public function newContentModule($module_id, $module_type, $is_connected = false)
-    {
-        global $current_module;
-        $current_module = $module_id;
-
-        require_once($this->CLASS_PREFIX . "ContentModule.class.php");
-        $classname = $this->CLASS_PREFIX  . "ContentModule";
-
-        if ($is_connected == false)
-        {
-            $this->content_module[$module_id] = new  $classname("", $module_type, $this->cms_type);
-            $this->content_module[$module_id]->setId($module_id);
-        }
-        else
-        {
-            $this->content_module[$module_id] = new  $classname($module_id, $module_type, $this->cms_type);
-        }
-
-        $this->content_module[$module_id]->setConnectionType($is_connected);
-    }
-
     /**
      * get user modules
      *
@@ -637,20 +607,21 @@ class ConnectedIlias
         foreach ($this->ilias_config['modules'] as $type => $name) {
             $types[] = $type;
         }
-        
-        $result = $this->soap_client->getTreeChilds($parent_id, $types, $this->user->getId());
+        $result = $this->soap_client->getTreeChilds($parent_id, $types);
+        $user_result = $this->soap_client->getTreeChilds($parent_id, $types, $this->user->getId());
+
         if ($result) {
-            $parent_path = $this->soap_client->getRawPath($parent_id) . '_' . $parent_id;
             foreach($result as $ref_id => $data) {
-                if (($data["accessInfo"] != "granted") OR ($this->soap_client->getRawPath($ref_id) != $parent_path))
+                if ($data['type'] == 'fold') {
                     unset($result[$ref_id]);
-                    elseif ($data['type'] == 'fold') {
-                        unset($result[$ref_id]);
-                        $result = $result + $this->getChilds($ref_id);
-                    }
+                    $result = $result + $this->getChilds($ref_id);
+                } else {
+                    $result[$ref_id]['accessInfo'] = $user_result[$ref_id]['accessInfo'];
+                    $result[$ref_id]['references'][$ref_id] = $user_result[$ref_id]['references'][$ref_id];
+                }
             }
         }
-        
+
         if (is_array($result))
             return $result;
             else
@@ -665,12 +636,12 @@ class ConnectedIlias
      * @param string $course_id course-id
      * @return boolean successful
      */
-    public function updateCourseConnections($course_id) 
+    public function updateCourseConnections($course_id)
     {
         $this->soap_client->setCachingStatus(false);
         // fetch childs
         $result = $this->getChilds($course_id);
-        
+
         if (is_array($result)) {
             $check = DBManager::get()->prepare("SELECT 1 FROM object_contentmodules WHERE object_id = ? AND module_id = ? AND system_type = ? AND module_type = ?");
             $found = array();
@@ -678,18 +649,21 @@ class ConnectedIlias
             $deleted = 0;
             $messages["info"] .= "<b>".sprintf(_("Aktualisierung der Zuordnungen zum System \"%s\":"), $this->getName()) . "</b><br>";
             foreach($result as $ref_id => $data) {
-                $check->execute(array($course_id, $ref_id, $this->index, $data["type"]));
+                if (($data['accessInfo'] == 'granted') || ($this->ilias_interface_config['show_offline'] && $data['offline'])) {
+                    $this->course_modules[$ref_id] = new IliasModule($ref_id, $data, $this->index, $this->ilias_int_version);
+                }
+                $check->execute(array(Context::getId(), $ref_id, $this->index, $data["type"]));
                 if (!$check->fetch()) {
                     $messages["info"] .= sprintf(_("Zuordnung zur Lerneinheit \"%s\" wurde hinzugefügt."), ($data["title"])) . "<br>";
-                    IliasObjectConnections::setConnection($course_id, $ref_id, $data["type"], $this->index);
+                    IliasObjectConnections::setConnection(Context::getId(), $ref_id, $data["type"], $this->index);
                     $added++;
                 }
                 $found[] = $ref_id . '_' . $data["type"];
             }
             $to_delete = DBManager::get()->prepare("SELECT module_id,module_type FROM object_contentmodules WHERE module_type <> 'crs' AND object_id = ? AND system_type = ? AND CONCAT_WS('_', module_id,module_type) NOT IN (?)");
-            $to_delete->execute(array(Context::getId(), $this->cms_type, count($found) ? $found : array('')));
+            $to_delete->execute(array(Context::getId(), $this->index, count($found) ? $found : array('')));
             while ($row = $to_delete->fetch(PDO::FETCH_ASSOC)) {
-                IliasObjectConnections::unsetConnection($course_id, $row["module_id"], $row["module_type"], $this->index);
+                IliasObjectConnections::unsetConnection(Context::getId(), $row["module_id"], $row["module_type"], $this->index);
                 $deleted++;
                 $messages["info"] .= sprintf(_("Zuordnung zu \"%s\" wurde entfernt."), $row["module_id"]  . '_' . $row["module_type"]) . "<br>";
             }
@@ -717,7 +691,14 @@ class ConnectedIlias
     {
         $object_data = $this->soap_client->getObjectByReference($module_id, $this->user->getId());
         $module = new IliasModule($module_id, $object_data, $this->index, $this->ilias_int_version);
-
+        if (!$module->isAllowed('start')) {
+            return false;
+        }
+        if (!$module->isAllowed('copy') && !$module->isAllowed('edit')) {
+            $this->error[] = _("Keine Berechtigung zum Kopieren des Lernobjekts!");
+            return false;
+        }
+        
         $crs_id = IliasObjectConnections::getConnectionModuleId($studip_course_id, "crs", $this->index);
         $this->soap_client->setCachingStatus(false);
         $this->soap_client->clearCache();
@@ -737,10 +718,9 @@ class ConnectedIlias
         }
 
         if ($connection_mode == 'copy') {
-            // TODO: CHECK IF COPY/ADD IS ALLOWED
             $ref_id = $this->soap_client->copyObject($module_id, $crs_id);
         } elseif ($connection_mode == 'reference') {
-            $ref_id = $connected_cms[$this->cms_type]->soap_client->addReference($module_id, $crs_id);
+            $ref_id = $this->soap_client->addReference($module_id, $crs_id);
         }
         if (! $ref_id) {
             $this->error[] = _("Zuordnungs-Fehler: Lernobjekt konnte nicht angelegt werden.");
@@ -749,8 +729,8 @@ class ConnectedIlias
         // set permissions for course roles
         $local_roles = $this->soap_client->getLocalRoles($crs_id);
         $member_operations = $this->getOperationArray(array(self::OPERATION_VISIBLE, self::OPERATION_READ));
-        $admin_operations = $this->getOperationArray(array(self::OPERATION_VISIBLE, self::OPERATION_READ, self::OPERATION_WRITE, self::OPERATION_DELETE));
-        $admin_operations_no_delete = $this->getOperationArray(array(self::OPERATION_VISIBLE, self::OPERATION_READ, self::OPERATION_WRITE));
+        $admin_operations = $this->getOperationArray(array(self::OPERATION_VISIBLE, self::OPERATION_READ, self::OPERATION_WRITE, self::OPERATION_COPY, self::OPERATION_DELETE));
+        $admin_operations_no_delete = $this->getOperationArray(array(self::OPERATION_VISIBLE, self::OPERATION_READ, self::OPERATION_WRITE, self::OPERATION_COPY));
         $admin_operations_readonly = $this->getOperationArray(array(self::OPERATION_VISIBLE, self::OPERATION_READ, self::OPERATION_DELETE));
         foreach ($local_roles as $key => $role_data) {
             // check only if local role is il_crs_member, -tutor or -admin
@@ -789,7 +769,6 @@ class ConnectedIlias
     public function unsetCourseModuleConnection($studip_course_id, $module_id, $module_type)
     {
         $this->soap_client->setCachingStatus(false);
-        // TODO: PREVENT DELETING LAST INSTANCE AND CONFIRMATION QUESTION
         $this->soap_client->deleteObject($module_id);
         IliasObjectConnections::unsetConnection($studip_course_id, $module_id, $module_type, $this->index);
     }
@@ -838,16 +817,18 @@ class ConnectedIlias
             $ref_id = $this->ilias_config['root_category'];
             if ($this->ilias_config['cat_semester'] == 'outer') {
                 // category for semester above institute
-                $semester_ref_id = IliasObjectConnections::getConnectionModuleId($seminar->start_semester->getId(), "cat", $this->index);
+                $semester_ref_id = IliasObjectConnections::getConnectionModuleId($seminar->start_semester->getId(), 'cat', $this->index);
                 if (!$semester_ref_id) {
-                    $object_data["title"] = $seminar->getStartSemesterName();
-                    $object_data["description"] = sprintf(_('Hier befinden sich die Veranstaltungsdaten zum Semester "%s".'), $seminar->getStartSemesterName());
-                    $object_data["type"] = "cat";
-                    $object_data["owner"] =  $this->soap_client->LookupUser($this->ilias_config['admin']);
+                    $object_data['title'] = $seminar->getStartSemesterName();
+                    $object_data['description'] = sprintf(_('Hier befinden sich die Veranstaltungsdaten zum Semester "%s".'), $seminar->getStartSemesterName());
+                    $object_data['type'] = 'cat';
+                    $object_data['owner'] =  $this->soap_client->LookupUser($this->ilias_config['admin']);
                     $semester_ref_id = $this->soap_client->addObject($object_data, $ref_id);
                     if ($semester_ref_id) {
                         // store institute category
-                        IliasObjectConnections::setConnection($seminar->start_semester->getId(), $semester_ref_id, "cat", $this->index);
+                        IliasObjectConnections::setConnection($seminar->start_semester->getId(), $semester_ref_id, 'cat', $this->index);
+                    } else {
+                        $this->error[] = sprintf(_('ILIAS-Kategorie %s konnte nicht angelegt werden.'), $object_data['title']);
                     }
                 }
                 if ($semester_ref_id) {
@@ -858,10 +839,10 @@ class ConnectedIlias
                         $institute_ref_id = IliasObjectConnections::getConnectionModuleId(md5($seminar->start_semester->getId().$home_institute->getId()), "cat", $this->index);
                     }
                     if (!$institute_ref_id) {
-                        $object_data["title"] = $home_institute->name;
-                        $object_data["description"] = sprintf(_('Hier befinden sich die Veranstaltungsdaten zur Stud.IP-Einrichtung "%s".'), $home_institute->name);
-                        $object_data["type"] = "cat";
-                        $object_data["owner"] =  $this->soap_client->LookupUser($this->ilias_config['admin']);
+                        $object_data['title'] = $home_institute->name;
+                        $object_data['description'] = sprintf(_('Hier befinden sich die Veranstaltungsdaten zur Stud.IP-Einrichtung "%s".'), $home_institute->name);
+                        $object_data['type'] = 'cat';
+                        $object_data['owner'] =  $this->soap_client->LookupUser($this->ilias_config['admin']);
                         $institute_ref_id = $this->soap_client->addObject($object_data, $ref_id);
                         if ($institute_ref_id) {
                             // store institute category
@@ -870,69 +851,75 @@ class ConnectedIlias
                     }
                     if ($institute_ref_id) {
                         $ref_id = $institute_ref_id;
+                    } else {
+                        $this->error[] = sprintf(_('ILIAS-Kategorie %s konnte nicht angelegt werden.'), $object_data['title']);
                     }
                 }
-            } elseif (($this->ilias_config['cat_semester'] == 'inner') || ($this->ilias_config['cat_semester'] == 'none')) {
+            } elseif ($this->ilias_config['cat_semester'] === 'inner' || $this->ilias_config['cat_semester'] === 'none') {
                 // category for home institute
                 $home_institute = Institute::find($seminar->getInstitutId());
                 if ($home_institute) {
                     $institute_ref_id = IliasObjectConnections::getConnectionModuleId($home_institute->getId(), "cat", $this->index);
                 }
                 if (!$institute_ref_id) {
-                    $object_data["title"] = $home_institute->name;
-                    $object_data["description"] = sprintf(_('Hier befinden sich die Veranstaltungsdaten zur Stud.IP-Einrichtung "%s".'), $home_institute->name);
-                    $object_data["type"] = "cat";
-                    $object_data["owner"] =  $this->soap_client->LookupUser($this->ilias_config['admin']);
+                    $object_data['title'] = $home_institute->name;
+                    $object_data['description'] = sprintf(_('Hier befinden sich die Veranstaltungsdaten zur Stud.IP-Einrichtung "%s".'), $home_institute->name);
+                    $object_data['type'] = 'cat';
+                    $object_data['owner'] =  $this->soap_client->LookupUser($this->ilias_config['admin']);
                     $institute_ref_id = $this->soap_client->addObject($object_data, $ref_id);
                     if ($institute_ref_id) {
                         // store institute category
                         IliasObjectConnections::setConnection($home_institute->getId(), $institute_ref_id, "cat", $this->index);
+                    } else {
+                        $this->error[] = sprintf(_('ILIAS-Kategorie %s konnte nicht angelegt werden.'), $object_data["title"]);
                     }
                 }
                 if ($institute_ref_id) {
                     $ref_id = $institute_ref_id;
-                    if ($this->ilias_config['cat_semester'] == 'inner') {
+                    if ($this->ilias_config['cat_semester'] === 'inner') {
                         // category for semester below institute
-                        $institute_semester_ref_id = IliasObjectConnections::getConnectionModuleId(md5($home_institute->getId().$seminar->start_semester->getId()), "cat", $this->index);
+                        $institute_semester_ref_id = IliasObjectConnections::getConnectionModuleId(md5($home_institute->getId().$seminar->start_semester->getId()), 'cat', $this->index);
                         if (!$institute_semester_ref_id) {
-                            $object_data["title"] = $seminar->getStartSemesterName();
-                            $object_data["description"] = sprintf(_('Hier befinden sich die Veranstaltungsdaten zum Semester "%s".'), $seminar->getStartSemesterName());
-                            $object_data["type"] = "cat";
-                            $object_data["owner"] =  $this->soap_client->LookupUser($this->ilias_config['admin']);
+                            $object_data['title'] = $seminar->getStartSemesterName();
+                            $object_data['description'] = sprintf(_('Hier befinden sich die Veranstaltungsdaten zum Semester "%s".'), $seminar->getStartSemesterName());
+                            $object_data['type'] = 'cat';
+                            $object_data['owner'] =  $this->soap_client->LookupUser($this->ilias_config['admin']);
                             $institute_semester_ref_id= $this->soap_client->addObject($object_data, $ref_id);
                             if ($institute_semester_ref_id) {
                                 // store institute category
-                                IliasObjectConnections::setConnection(md5($home_institute->getId().$seminar->start_semester->getId()), $institute_semester_ref_id, "cat", $this->index);
+                                IliasObjectConnections::setConnection(md5($home_institute->getId().$seminar->start_semester->getId()), $institute_semester_ref_id, 'cat', $this->index);
                             }
                         }
                         if ($institute_semester_ref_id) {
                             $ref_id = $institute_semester_ref_id;
+                        } else {
+                            $this->error[] = sprintf(_('ILIAS-Kategorie %s konnte nicht angelegt werden.'), $object_data["title"]);
                         }
                     }
                 }
             }
 
             // create course
-            $lang_array = explode("_",$DEFAULT_LANGUAGE);
-            $course_data["language"] = $lang_array[0];
-            if (($this->ilias_config['course_semester'] == 'old') || ($this->ilias_config['course_semester'] == 'old_bracket')) {
-                $course_data["title"] = sprintf(_('Stud.IP-Veranstaltung "%s"'), $seminar->getName());
+            $lang_array = explode('_',$DEFAULT_LANGUAGE);
+            $course_data['language'] = $lang_array[0];
+            if ($this->ilias_config['course_semester'] === 'old' || $this->ilias_config['course_semester'] === 'old_bracket') {
+                $course_data['title'] = sprintf(_('Stud.IP-Veranstaltung "%s"'), $seminar->getName());
             } else {
-                $course_data["title"] = sprintf(_('%s'), $seminar->getName());
+                $course_data['title'] = sprintf(_('%s'), $seminar->getName());
             }
-            if (($this->ilias_config['course_semester'] == 'old_bracket') || ($this->ilias_config['course_semester'] == 'bracket')) {
-                $course_data["title"] .= ' ('.$seminar->getStartSemesterName().')';
+            if ($this->ilias_config['course_semester'] === 'old_bracket' || $this->ilias_config['course_semester'] === 'bracket') {
+                $course_data['title'] .= ' ('.$seminar->getStartSemesterName().')';
             }
             if ($this->ilias_config['course_veranstaltungsnummer']) {
-                $course_data["title"] .= ' '.$seminar->VeranstaltungsNummer;
+                $course_data['title'] .= ' '.$seminar->VeranstaltungsNummer;
             }
-            $course_data["description"] = sprintf(_('Dieser Kurs enthält die Lernobjekte der Stud.IP-Veranstaltung "%s".'), $seminar->getName());
+            $course_data['description'] = sprintf(_('Dieser Kurs enthält die Lernobjekte der Stud.IP-Veranstaltung "%s".'), $seminar->getName());
             $crs_id = $this->soap_client->addCourse($course_data, $ref_id);
             if (!$crs_id) {
                 $this->error[] = _('ILIAS-Kurs konnte nicht angelegt werden.');
                 return false;
             }
-            IliasObjectConnections::setConnection($studip_course_id, $crs_id, "crs", $this->index);
+            IliasObjectConnections::setConnection($studip_course_id, $crs_id, 'crs', $this->index);
 
             // Rollen zuordnen
             $this->CheckUserCoursePermissions($crs_id);
@@ -952,6 +939,10 @@ class ConnectedIlias
     {
         if (($ilias_course_id == "") || ($this->user->getId() == "")) {
             return false;
+        }
+
+        if ($GLOBALS['user']->perms == 'root') {
+            return true;
         }
 
         // get course role folder and local roles
@@ -975,7 +966,6 @@ class ConnectedIlias
         }
 
         // is user already course-member? otherwise add member with proper role
-        // TODO: do not add root
         $is_member = $this->soap_client->isMember( $this->user->getId(), $ilias_course_id);
         if (!$is_member) {
             $member_data["usr_id"] = $this->user->getId();
@@ -1138,7 +1128,7 @@ class ConnectedIlias
     */
     public function getTargetFile()
     {
-        return $this->ilias_config['url'].'/studip_referrer.php';
+        return $this->ilias_config['url'].'studip_referrer.php';
     }
 
     /**

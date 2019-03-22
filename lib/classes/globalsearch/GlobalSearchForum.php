@@ -39,7 +39,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
      * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    public static function getSQL($search, $filter)
+    public static function getSQL($search, $filter, $limit)
     {
         $search = str_replace(" ", "% ", $search);
         $query = DBManager::get()->quote("%$search%");
@@ -69,7 +69,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             $anonymous = "";
         }
 
-        $sql = "SELECT `forum_entries`.*
+        $sql = "SELECT SQL_CALC_FOUND_ROWS `forum_entries`.*
                 FROM `forum_entries`
                 WHERE {$anonymous} (
                     `name` LIKE {$query}
@@ -78,7 +78,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
                 {$semester_condition}
                 {$seminaruser}
                 ORDER BY `chdate` DESC
-                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                LIMIT " . $limit;
 
         return $sql;
     }
@@ -101,8 +101,12 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
      */
     public static function filter($data, $search)
     {
-        $user   = User::find($data['user_id']);
-        $course = Course::find($data['seminar_id']);
+        $user = self::fromCache("user/{$data['user_id']}", function () use ($data) {
+            return User::findFull($data['user_id']);
+        });
+        $course = self::fromCache("range/{$data['seminar_id']}", function () use ($data) {
+            return Course::find($data['seminar_id']);
+        });
 
         // Get name
         $name = _('Ohne Titel');
@@ -145,6 +149,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             'expandtext'  => _('Im Forum dieser Veranstaltung suchen'),
             'user'        => $temp
         ];
+
         return $result;
     }
 
@@ -173,7 +178,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
     public static function getSearchURL($searchterm)
     {
         return URLHelper::getURL('dispatch.php/search/globalsearch', [
-            'searchterm' => $searchterm,
+            'q'        => $searchterm,
             'category' => self::class
         ]);
     }

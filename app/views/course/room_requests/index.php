@@ -35,7 +35,7 @@ echo $flash['message'];
                 </td>
                 <td class="actions">
                     <a class="load-in-new-row"
-                       href="<?= $controller->link_for('info/' . $rr->getId()) ?>">
+                       href="<?= $controller->link_for('course/room_requests/info/' . $rr->getId()) ?>">
                         <?= Icon::create('info', 'clickable', ['title' => _('Weitere Informationen einblenden')])->asImg(16) ?>
                     </a>
                     <? $params = ['request_id' => $rr->getId()] ?>
@@ -47,7 +47,7 @@ echo $flash['message'];
 
                     <? $actionMenu = ActionMenu::get() ?>
                     <? $actionMenu->addLink(
-                        $controller->link_for('edit/' . $course_id, $params),
+                        $controller->url_for('course/room_requests/edit/' . $course_id, $params),
                         _('Diese Anfrage bearbeiten'),
                         Icon::create('edit', 'clickable', ['title' => _('Diese Anfrage bearbeiten')]),
                         $dialog
@@ -55,14 +55,14 @@ echo $flash['message'];
 
                     <? if (getGlobalPerms($GLOBALS['user']->id) === 'admin' || ($GLOBALS['perm']->have_perm('admin') && count(getMyRoomRequests(null, null, true, $rr->getId())))) : ?>
                         <? $actionMenu->addLink(
-                            URLHelper::getLink('resources.php', ['view' => 'edit_request', 'single_request' => $rr->getId()]),
+                            URLHelper::getURL('resources.php', ['view' => 'edit_request', 'single_request' => $rr->getId()]),
                             _('Diese Anfrage selbst auflösen'),
                             Icon::create('admin', 'clickable', ['title' => _('Diese Anfrage selbst auflösen')])
                         ) ?>
                     <? endif ?>
 
                     <? $actionMenu->addLink(
-                        $controller->link_for('delete/' . $course_id, ['request_id' => $rr->getId()]),
+                        $controller->url_for('course/room_requests/delete/' . $course_id, ['request_id' => $rr->getId()]),
                         _('Diese Anfrage zurückziehen'),
                         Icon::create('trash', 'clickable', ['title' => _('Diese Anfrage zurückziehen')])
                     ); ?>

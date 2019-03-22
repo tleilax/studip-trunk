@@ -510,7 +510,7 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
      */
     public function getRoles($with_implicit = false)
     {
-        return RolePersistence::getAssignedRoles($this->user_id, $withimplicit);
+        return RolePersistence::getAssignedRoles($this->user_id, $with_implicit);
     }
 
     /**
@@ -521,7 +521,7 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
      */
     public function isFriendOf($another_user)
     {
-        return (bool)DBManager::get()->fetchColumn("SELECT 1 FROM contact WHERE owner_id=? AND user_id=?", array($this->user_id, $another_user->user_id));
+        return (bool) DBManager::get()->fetchColumn("SELECT 1 FROM contact WHERE owner_id=? AND user_id=?", array($this->user_id, $another_user->user_id));
     }
 
     /**
@@ -995,6 +995,14 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
             $statement = DBManager::get()->prepare($query);
             $statement->execute(array($new_id, $old_id));
 
+            // Migrate registration timestamp by creating a new empty user info
+            // entry
+            $query = "INSERT INTO `user_info` (`user_id`, `mkdate`, `chdate`)
+                      SELECT ?, `mkdate`, `chdate`
+                      FROM `user_info`
+                      WHERE `user_id` = ?";
+            DBManager::get()->execute($query, [$old_id, $new_id]);
+
             // Studiengänge
             self::removeDoubles('user_studiengang', 'fach_id', $new_id, $old_id);
             $query = "UPDATE IGNORE user_studiengang SET user_id = ? WHERE user_id = ?";
@@ -1035,6 +1043,8 @@ class User extends AuthUserMd5 implements Range, PrivacyObject
             # Datenfelder des alten Nutzers leeren
             $old_user->datafields = array();
             $old_user->store();
+
+            //
 
             //Buddys
             $query = "UPDATE IGNORE contact SET owner_id = ? WHERE owner_id = ?";
