@@ -254,14 +254,13 @@ class Migrator
                               : (int) $target_version;
 
         # migrate up
-        if ($this->schema_version->get() < $this->target_version) {
+        if (!$this->schema_version->contains($this->target_version)) {
             $this->direction = 'up';
         }
         # migrate down
         elseif ($this->schema_version->get() > $this->target_version) {
             $this->direction = 'down';
         }
-
 
         $migrations = $this->migrationClasses();
         if ($this->isUp()) {
