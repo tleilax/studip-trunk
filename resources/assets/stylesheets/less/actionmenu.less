@@ -8,12 +8,12 @@
     vertical-align: middle;
 
     .action-menu-icon {
-        .square(@icon-size);
         z-index: 3;
 
         position: relative;
         cursor: pointer;
         display: inline-block;
+        padding: 0;
         width: 20px;
         height: 20px;
     }
@@ -29,8 +29,20 @@
         background: white;
         border: thin solid @dark-gray-color-45;
         box-shadow: @shadow;
+        font-weight: normal;
         text-align: left;
         white-space: nowrap;
+    }
+
+    &.reversed {
+        .action-menu-content {
+            top: auto;
+            bottom: -4px;
+
+            .action-menu-list .action-menu-item:last-of-type {
+                padding-right: 20px;
+            }
+        }
     }
 
     .action-menu-title {
@@ -45,10 +57,12 @@
     }
 
     .action-menu-item {
-        padding: 0;
+        line-height: 1;
+        padding: 3px 0;
+
         a {
             margin: 0;
-            padding: 3px 0;
+            padding: 0;
             display: block;
 
             &[disabled] {
@@ -56,11 +70,16 @@
             }
         }
 
-        img, svg, .action-menu-no-icon, input[type="image"] {
-            margin: 0 0.25em;
-            .square(@icon-size);
+        a img,
+        a svg,
+        .action-menu-no-icon,
+        input[type="image"] {
             display: inline-block;
+            margin: 0 0.25em;
             vertical-align: bottom;
+
+            width: @icon-size;
+            height: @icon-size;
         }
         > label {
             color: @base-color;

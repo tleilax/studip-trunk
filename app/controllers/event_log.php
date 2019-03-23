@@ -56,10 +56,9 @@ class EventLogController extends AuthenticatedController
         $this->types = $this->event_log->get_object_types();
 
         // restrict log events to object scope
-        if ($this->search && $this->search != '') {
+        if ($this->search !== '') {
             $this->type = Request::option('type');
-            $objects = $this->event_log->find_objects($this->type,
-                    $this->search, $this->action_id);
+            $objects = $this->event_log->find_objects($this->type, $this->search, $this->action_id);
 
             if (count($objects) > 0) {
                 $this->objects = $objects;

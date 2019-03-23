@@ -45,17 +45,20 @@ class Message extends SimpleORMap implements PrivacyObject
         ));
     }
 
-    static public function getUserTags($user_id = null)
+    public static function getUserTags($user_id = null)
     {
-        $user_id || $user_id = $GLOBALS['user']->id;
-        $statement = DBManager::get()->prepare("
-            SELECT DISTINCT tag FROM message_tags WHERE user_id = :user_id ORDER BY tag ASC
-        ");
-        $statement->execute(array('user_id' => $user_id));
-        return $statement->fetchAll(PDO::FETCH_COLUMN, 0);
+        $query = "SELECT DISTINCT tag
+                  FROM message_tags
+                  WHERE user_id = :user_id
+                  ORDER BY tag ASC";
+        return DBManager::get()->fetchFirst($query, [
+            ':user_id' => $user_id ?: $GLOBALS['user']->id,
+        ], function ($tag) {
+            return ucfirst($tag);
+        });
     }
 
-    static public function findNew($user_id, $receiver = true, $since = 0, $tag = null)
+    public static function findNew($user_id, $receiver = true, $since = 0, $tag = null)
     {
         if ($tag) {
             $messages_data = DBManager::get()->prepare("
@@ -136,19 +139,19 @@ class Message extends SimpleORMap implements PrivacyObject
     public function getRecipients()
     {
         if ($this->relations['receivers'] === null) {
-            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto FROM
-                    message_user
-                    INNER JOIN auth_user_md5 aum USING(user_id)
-                    LEFT JOIN user_info ui USING(user_id)
-                    WHERE message_id=? AND snd_rec='rec'
-                    ORDER BY Nachname";
+            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto
+                    FROM message_user
+                    INNER JOIN auth_user_md5 aum USING (user_id)
+                    LEFT JOIN user_info ui USING (user_id)
+                    WHERE message_id = ? AND snd_rec = 'rec'
+                    ORDER BY Nachname, Vorname";
             $params = array($this->id);
         } else {
-            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto FROM
-                    auth_user_md5 aum
-                    LEFT JOIN user_info ui USING(user_id)
-                    WHERE aum.user_id IN(?)
-                    ORDER BY Nachname";
+            $sql = "SELECT user_id,vorname,nachname,username,title_front,title_rear,perms,motto
+                    FROM auth_user_md5 AS aum
+                    LEFT JOIN user_info ui USING (user_id)
+                    WHERE aum.user_id IN (?)
+                    ORDER BY Nachname, Vorname";
             $params = array($this->receivers->pluck('user_id'));
         }
         $db = DbManager::get();
@@ -250,15 +253,16 @@ class Message extends SimpleORMap implements PrivacyObject
      */
     public function getTags($user_id = null)
     {
-        $user_id || $user_id = $GLOBALS['user']->id;
-        $statement = DBManager::get()->prepare("
-            SELECT tag FROM message_tags WHERE message_id = :message_id AND user_id = :user_id ORDER BY tag ASC
-        ");
-        $statement->execute(array(
-            'message_id' => $this->getId(),
-            'user_id' => $user_id
-        ));
-        return $statement->fetchAll(PDO::FETCH_COLUMN, 0);
+        $query = "SELECT tag
+                  FROM message_tags
+                  WHERE message_id = :message_id AND user_id = :user_id
+                  ORDER BY tag ASC";
+        return DBManager::get()->fetchFirst($query, [
+            'message_id' => $this->id,
+            'user_id'    => $user_id ?: $GLOBALS['user']->id,
+        ], function ($tag) {
+            return ucfirst($tag);
+        });
     }
 
     public function addTag($tag, $user_id = null)
@@ -314,26 +318,23 @@ class Message extends SimpleORMap implements PrivacyObject
     }
 
     /**
-     * Return a storage object (an instance of the StoredUserData class)
-     * enriched with the available data of a given user.
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
      *
-     * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @param StoredUserData $storage object to store data into
      */
-    public static function getUserdata(User $user )
+    public static function exportUserData(StoredUserData $storage)
     {
-        $storage = new StoredUserData($user);
-        $sorm = self::findBySQL("autor_id = ?", [$user->user_id]);
+        $sorm = self::findBySQL("autor_id = ?", [$storage->user_id]);
         if ($sorm) {
             $field_data = [];
             foreach ($sorm as $row) {
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('message', $field_data, $user);
+                $storage->addTabularData(_('Nachrichten'), 'message', $field_data);
             }
         }
-        return [_('Nachrichten') => $storage];
     }
 
 }

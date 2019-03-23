@@ -9,6 +9,7 @@ import Browse from './lib/browse.js';
 import Cache from './lib/cache.js';
 import Calendar from './lib/calendar.js';
 import CalendarDialog from './lib/calendar_dialog.js';
+import Cookie from './lib/cookie.js';
 import CourseWizard from './lib/course_wizard.js';
 import createURLHelper from './lib/url_helper.js';
 import CSS from './lib/css.js';
@@ -48,6 +49,7 @@ import register from './lib/register.js';
 import RESTAPI, { api } from './lib/restapi.js';
 import Schedule from './lib/schedule.js';
 import Scroll from './lib/scroll.js';
+import Search from './lib/search.js';
 import Sidebar from './lib/sidebar.js';
 import SkipLinks from './lib/skip_links.js';
 import SmileyPicker from './lib/smiley_picker.js';
@@ -78,6 +80,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     Cache,
     Calendar,
     CalendarDialog,
+    Cookie,
     CourseWizard,
     CSS,
     Dates,
@@ -116,6 +119,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     RESTAPI,
     Schedule,
     Scroll,
+    Search,
     Sidebar,
     SkipLinks,
     SmileyPicker,

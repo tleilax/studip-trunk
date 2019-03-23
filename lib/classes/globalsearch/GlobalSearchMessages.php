@@ -27,9 +27,10 @@ class GlobalSearchMessages extends GlobalSearchModule
      * This function is required to make use of the mysql union parallelism
      *
      * @param $search the input query string
+     * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    public static function getSQL($search)
+    public static function getSQL($search, $filter, $limit)
     {
         if (!$search) {
             return null;
@@ -37,13 +38,13 @@ class GlobalSearchMessages extends GlobalSearchModule
 
         $query = DBManager::get()->quote("%{$search}%");
         $user_id = DBManager::get()->quote($GLOBALS['user']->id);
-        $sql = "SELECT `message`.*
+        $sql = "SELECT SQL_CALC_FOUND_ROWS `message`.*
                 FROM `message`
                     JOIN `message_user` USING (`message_id`)
                 WHERE `user_id` = {$user_id}
                     AND (`subject` LIKE {$query} OR `message` LIKE {$query})
                 ORDER BY `message`.`mkdate` DESC
-                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                LIMIT " . $limit;
         return $sql;
     }
 
@@ -67,9 +68,24 @@ class GlobalSearchMessages extends GlobalSearchModule
     {
         $message = Message::buildExisting($message_id);
 
-        $additional = ($message->autor_id === '____%system%____'
-                    ? _('Systemnachricht')
-                    : ($message->author ? $message->author->getFullname() : _('unbekannt')));
+        $username = $additional = _('unbekannt');
+        if ($message->autor_id === '____%system%____') {
+            $username  = _('System');
+            $additonal = _('Systemnachricht');
+        } else {
+            $user = self::fromCache("user/{$message->autor_id}", function () use ($message) {
+                return User::findFull($message->autor_id);
+            });
+
+            if ($user) {
+                $username = $user->getFullName();
+                $additional = sprintf(
+                    '<a href="%s">%s</a>',
+                    URLHelper::getLink('dispatch.php/profile', ['username' => $user->username]),
+                    self::mark($user->getFullname(), $search)
+                );
+            }
+        }
 
         $result = [
             'name'        => self::mark($message->subject, $search),
@@ -77,9 +93,9 @@ class GlobalSearchMessages extends GlobalSearchModule
             'img'         => Icon::create('mail', 'clickable')->asImagePath(),
             'date'        => strftime('%x', $message->mkdate),
             'description' => self::mark($message->message, $search, true),
-            'additional'  => htmlReady($additional),
+            'additional'  => $additional,
             'expand'      => self::getSearchURL($search),
-            'user'        => $message->author ? $message->author->getFullName() : _('unbekannt')
+            'user'        => $username,
         ];
         return $result;
     }
@@ -87,17 +103,14 @@ class GlobalSearchMessages extends GlobalSearchModule
     /**
      * Returns the URL that can be called for a full search.
      *
-     * This could become obsolete when we have a real global search page.
-     *
      * @param string $searchterm what to search for?
+     * @return URL to the full search, containing the searchterm and the category
      */
     public static function getSearchURL($searchterm)
     {
-        return URLHelper::getURL("dispatch.php/messages/overview", [
-            'search' => $searchterm,
-            'search_subject' => 1,
-            'search_content' => 1,
-            'search_autor' => 1
+        return URLHelper::getURL('dispatch.php/search/globalsearch', [
+            'q'        => $searchterm,
+            'category' => self::class
         ]);
     }
 

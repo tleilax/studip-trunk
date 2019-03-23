@@ -37,10 +37,10 @@ class DataFieldSelectboxMultipleEntry extends DataFieldSelectboxEntry
      */
     public function getHTML($name = '', $variables = array())
     {
-        return parent::getHTML($name, array(
+        return parent::getHTML($name, $variables + [
             'multiple' => true,
-            'value'    => explode(self::SEPARATOR, $this->value),
-        ));
+            'value'    => explode(self::SEPARATOR, $this->value)
+        ]);
     }
 
     /**

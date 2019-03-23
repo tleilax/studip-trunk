@@ -3,9 +3,9 @@
         <?= htmlReady($model->name) ?>
     </span>
 
-    <? if ($tooltip): ?>
-        <?= tooltipIcon($tooltip, $important ?: false) ?>
-    <? endif; ?>
+    <? if ($model->description): ?>
+        <?= tooltipIcon($model->description) ?>
+    <? endif ?>
 </label>
 
 <div style="white-space: nowrap;">

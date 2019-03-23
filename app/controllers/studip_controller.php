@@ -247,6 +247,17 @@ abstract class StudipController extends Trails_Controller
             $params = array_pop($args);
         }
 
+        // Map any sorm objects to their ids
+        $args = array_map(function ($arg) {
+            if (is_object($arg) && $arg instanceof SimpleORMap) {
+                return $arg->id;
+            }
+            return $arg;
+        }, $args);
+
+        // Combine arguments to new $to string
+        $to = implode('/', $args);
+
         //preserve fragment
         list($to, $fragment) = explode('#', $to);
 
@@ -265,19 +276,9 @@ abstract class StudipController extends Trails_Controller
             $to = $this->controller_path() . $to;
         }
 
-        // Map any sorm objects to their ids
-        $args = array_map(function ($arg) {
-            if (is_object($arg) && $arg instanceof SimpleORMap) {
-                return $arg->id;
-            }
-            return $arg;
-        }, $args);
-
-        // Restore arguments
-        $args[0] = $to;
         $url = preg_match('#^(/|\w+://)#', $to)
              ? $to
-             : call_user_func_array('parent::url_for', $args);
+             : call_user_func('parent::url_for', $to);
         if ($fragment) {
             $url .= '#' . $fragment;
         }
@@ -320,7 +321,7 @@ abstract class StudipController extends Trails_Controller
         }
 
         if ($from_dialog) {
-            $this->response->add_header('X-Location', $to);
+            $this->response->add_header('X-Location', rawurlencode($to));
             $this->render_nothing();
         } else {
             parent::redirect($to);
@@ -561,6 +562,6 @@ abstract class StudipController extends Trails_Controller
         $class = get_class($this->parent_controller ?: $this);
         $controller = mb_substr($class, 0, -mb_strlen('Controller'));
         $controller = strtosnakecase($controller);
-        return preg_replace('/_+/', '/', $controller);
+        return preg_replace('/_{2,}/', '/', $controller);
     }
 }

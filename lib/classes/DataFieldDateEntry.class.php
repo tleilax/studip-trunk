@@ -13,24 +13,16 @@ class DataFieldDateEntry extends DataFieldEntry
     protected $template = 'date.php';
 
     /**
-     * Returns the number of html fields this datafield uses for input.
-     *
-     * @return int representing the number of html fields
-     */
-    public function numberOfHTMLFields()
-    {
-        return 3;
-    }
-
-    /**
      * Sets the value from a post request
      *
      * @param mixed $submitted_value The value from request
      */
     public function setValueFromSubmit($value)
     {
-        if (is_array($value)) {
-            $value = array_reverse($value);
+        if ($value) {
+            $value = trim($value);
+            $items = explode(".", $value);
+            $value = array_reverse($items);
             $value = array_filter($value);
             $date  = implode('-', $value);
             parent::setValueFromSubmit($date);
@@ -65,9 +57,9 @@ class DataFieldDateEntry extends DataFieldEntry
      */
     public function getHTML($name = '', $variables = array())
     {
-        return parent::getHTML($name, array(
+        return parent::getHTML($name, $variables + [
             'timestamp' => strtotime(trim($this->value)),
-        ));
+        ]);
     }
 
     /**

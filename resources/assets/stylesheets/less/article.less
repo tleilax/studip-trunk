@@ -47,11 +47,10 @@ article.studip {
             }
         }
 
-        nav {
+        > nav {
             display: flex;
             align-items: center;
             padding: 2px;
-            overflow: hidden;
 
             > * {
                 border-right: 1px solid @content-color;
@@ -75,12 +74,16 @@ article.studip {
 
     &.toggle {
         > header {
-            .icon('before', 'arr_1right', 'clickable');
-            &:before {
-                transition: all 200ms ease 0s;
-                margin-left: 5px;
+            h1 > a {
+                .icon('before', 'arr_1right', 'clickable');
+                &::before {
+                    flex: 1 0 auto;
+                    margin-right: 5px;
+                    transition: all 200ms ease 0s;
+                }
             }
             margin-bottom: -10px;
+
             > *:first-child {
                 cursor: pointer;
             }
@@ -91,10 +94,12 @@ article.studip {
 
         &.open {
             > header {
-                margin-bottom: 10px;
-                &:before {
-                    transform: rotate(90deg);
+                h1 > a {
+                    &::before {
+                        transform: rotate(90deg);
+                    }
                 }
+                margin-bottom: 10px;
             }
             > *:not(header) {
                 display: inherit;
@@ -115,12 +120,29 @@ article.studip {
             border: 0 !important;
         }
     }
+
+    &.padding-less {
+        padding: 0;
+
+        header {
+            margin: 0;
+        }
+
+        > footer {
+            margin: 0;
+        }
+    }
 }
 
 article.new {
     &.toggle {
         > header {
-            .icon('before', 'arr_1right', 'new');
+            h1 > a {
+                .icon('before', 'arr_1right', 'new');
+                &::before {
+                    margin-right: 5px;
+                }
+            }
         }
     }
 }

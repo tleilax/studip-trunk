@@ -214,7 +214,7 @@ class UserFilterField
      */
     public function getName()
     {
-        return _("Nutzer-Filterfeld");
+        return _("Nutzerfilterfeld");
     }
 
     /**

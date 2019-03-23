@@ -1,6 +1,4 @@
 <?php
-# Lifter007: TEST
-
 /**
  * Migrator.php - versioning databases using migrations
  *
@@ -118,6 +116,8 @@
  */
 class Migrator
 {
+    const FILE_REGEXP = '/\b(\d+)([_-][_a-z0-9]+)+\.php$/';
+
     /**
      * Direction of migration, either "up" or "down"
      *
@@ -206,18 +206,27 @@ class Migrator
         }
 
         $this->log(
-            "Currently at version %d. Now migrating %s to %s.\n",
+            "Currently at version %d. Now migrating %s to %d.\n",
             $this->schema_version->get(),
             $this->direction,
-            $this->target_version
+            $target_version
         );
 
         foreach ($migrations as $version => $migration) {
-            $class = get_class($migration);
-            $this->log("\n\nNext migration: %s (%d)\n\n", $class, $version);
+            $action = $this->isUp() ? 'Migrating' : 'Reverting';
+
+            $this->announce("{$action} %d", $version);
+            if ($migration->description()) {
+                $this->log($migration->description());
+                $this->log(self::mark('', '-'));
+            }
+
             $time_start = microtime(true);
             $migration->migrate($this->direction);
-            $this->log("\n\nmigration: %s took %s s\n\n", $class, round(microtime(true) - $time_start, 3));
+
+            $action = $this->isUp() ? 'Migrated' : 'Reverted';
+            $this->announce("{$action} in %ss", round(microtime(true) - $time_start, 3));
+            $this->log('');
 
             if ($this->isDown()) {
                 $this->schema_version->remove($version);
@@ -270,8 +279,12 @@ class Migrator
 
             list($file, $class) = $migration_file_and_class;
 
-            require_once $file;
-            $migration = new $class($this->verbose);
+            $migration = require_once $file;
+            if (!$migration instanceof Migration) {
+                $migration = new $class($this->verbose);
+            } else {
+                $migration->setVerbose($this->verbose);
+            }
 
             $result[$version] = $migration;
         }
@@ -360,7 +373,10 @@ class Migrator
      */
     protected function migrationFiles()
     {
-        $files = glob($this->migrations_path . '/[0-9]*[_-]*.php');
+        $files = glob($this->migrations_path . '/*.php');
+        $files = array_filter($files, function ($file) {
+            return preg_match(self::FILE_REGEXP, $file);
+        });
         return $files;
     }
 
@@ -374,7 +390,7 @@ class Migrator
     protected function migrationVersionAndName($migration_file)
     {
         $matches = [];
-        preg_match('/\b(\d+)[_-]([_a-z0-9]*)\.php$/', $migration_file, $matches);
+        preg_match(self::FILE_REGEXP, $migration_file, $matches);
         return [(int) $matches[1], $matches[2]];
     }
 
@@ -393,8 +409,8 @@ class Migrator
      * Overridable method used to return a textual representation of what's going
      * on in me. You can use me as you would use printf.
      *
-     * @param string  just a dummy value, instead use this method as you would use
-     *                printf & co.
+     * @param string $format just a dummy value, instead use this method as you
+     *                       would use printf & co.
      */
     protected function log($format)
     {
@@ -403,6 +419,39 @@ class Migrator
         }
 
         $args = func_get_args();
-        vprintf(array_shift($args), $args);
+        vprintf(trim(array_shift($args)) . "\n", $args);
+    }
+
+
+    /**
+     * Overridable method used to return a textual representation of a stronger
+     * ouput of what's going on in me. You can use me as you would use printf.
+     *
+     * @param string $format just a dummy value, instead use this method as you
+     *                       would use printf & co.
+     */
+    protected function announce($format)
+    {
+        # format message
+        $args = func_get_args();
+        $message = vsprintf(array_shift($args), $args);
+
+        return $this->log(self::mark($message));
+    }
+
+    /**
+     * Pads and highlights a given text to a specific length with the given
+     * sign.
+     *
+     * @param string $text
+     * @param string $sign
+     */
+    public static function mark($text, $sign = '=')
+    {
+        $text = trim($text);
+        if ($text) {
+            $text = " {$text} ";
+        }
+        return str_pad("{$sign}{$sign}{$text}", 79, $sign, STR_PAD_RIGHT);
     }
 }

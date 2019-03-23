@@ -20,15 +20,26 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
     }
 
     /**
+     * Returns the filters that are displayed in the sidebar of the global search.
+     *
+     * @return array Filters for this class.
+     */
+    public static function getFilters()
+    {
+        return ['semester'];
+    }
+
+    /**
      * Transforms the search request into an sql statement, that provides the id (same as getId) as type and
      * the object id, that is later passed to the filter.
      *
      * This function is required to make use of the mysql union parallelism
      *
      * @param $search the input query string
+     * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    public static function getSQL($search)
+    public static function getSQL($search, $filter, $limit)
     {
         $search = str_replace(" ", "% ", $search);
         $query = DBManager::get()->quote("%$search%");
@@ -38,8 +49,17 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             $seminaruser = " AND EXISTS (
                 SELECT 1 FROM `seminar_user`
                 WHERE `forum_entries`.`seminar_id` = `seminar_user`.`seminar_id`
-                  AND `seminar_user`.`user_id` = " . DBManager::get()->quote($GLOBALS['user']->id)."
+                  AND `seminar_user`.`user_id` = " . DBManager::get()->quote($GLOBALS['user']->id) . "
               ) ";
+        }
+
+        // generate SQL condition for the semester filter in the sidebar
+        if ($filter['category'] == self::class || $filter['category'] == "show_all_categories") {
+            if ($filter['semester'] != "") {
+                $semester = Semester::findByTimestamp($filter['semester']);
+                $semester_condition = " AND (`mkdate` >= " . DBManager::get()->quote($semester['beginn']) .
+                            " AND `mkdate` <= " . DBManager::get()->quote($semester['ende']) . ") ";
+            }
         }
 
         // anonymous postings
@@ -49,15 +69,16 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             $anonymous = "";
         }
 
-        $sql = "SELECT `forum_entries`.*
+        $sql = "SELECT SQL_CALC_FOUND_ROWS `forum_entries`.*
                 FROM `forum_entries`
                 WHERE {$anonymous} (
                     `name` LIKE {$query}
                     OR `content` LIKE {$query}
                 )
+                {$semester_condition}
                 {$seminaruser}
                 ORDER BY `chdate` DESC
-                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                LIMIT " . $limit;
 
         return $sql;
     }
@@ -80,8 +101,12 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
      */
     public static function filter($data, $search)
     {
-        $user   = User::find($data['user_id']);
-        $course = Course::find($data['seminar_id']);
+        $user = self::fromCache("user/{$data['user_id']}", function () use ($data) {
+            return User::findFull($data['user_id']);
+        });
+        $course = self::fromCache("range/{$data['seminar_id']}", function () use ($data) {
+            return Course::find($data['seminar_id']);
+        });
 
         // Get name
         $name = _('Ohne Titel');
@@ -124,6 +149,7 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
             'expandtext'  => _('Im Forum dieser Veranstaltung suchen'),
             'user'        => $temp
         ];
+
         return $result;
     }
 
@@ -141,6 +167,20 @@ class GlobalSearchForum extends GlobalSearchModule implements GlobalSearchFullte
     public static function disable()
     {
         DBManager::get()->exec("DROP INDEX globalsearch ON `forum_entries`");
+    }
+
+    /**
+     * Returns the URL that can be called for a full search.
+     *
+     * @param string $searchterm what to search for?
+     * @return URL to the full search, containing the searchterm and the category
+     */
+    public static function getSearchURL($searchterm)
+    {
+        return URLHelper::getURL('dispatch.php/search/globalsearch', [
+            'q'        => $searchterm,
+            'category' => self::class
+        ]);
     }
 
     /**

@@ -149,7 +149,7 @@ class QuickSearch
      */
     public static function get($name, $search = NULL)
     {
-        return new QuickSearch($name, $search);
+        return new static($name, $search);
     }
 
 
@@ -395,6 +395,16 @@ class QuickSearch
             $template->set_attribute('extendedLayout', $this->hasExtendedLayout());
             return $template->render();
         }
+    }
+
+    /**
+     * Convert quicksearch to string by rendering it
+     *
+     * @return string rendered html
+     */
+    public function __toString()
+    {
+        return $this->render();
     }
 
     /**

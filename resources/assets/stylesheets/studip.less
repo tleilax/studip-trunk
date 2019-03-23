@@ -56,6 +56,7 @@
 @import "less/schedule.less";
 @import "less/study-area-selection.less";
 @import "less/tour.less";
+@import "less/ilias-interface.less";
 @import "less/studygroup.less";
 @import "less/wiki.less";
 @import "less/raumzeit.less";
@@ -64,6 +65,7 @@
 @import "less/start.less";
 @import "less/profile.less";
 @import "less/my_courses.less";
+@import "less/consultation.less";
 
 @import "less/mobile.less";
 @import "less/pagination.less";
@@ -80,7 +82,6 @@
 @import "less/i18n.less";
 
 @import "less/globalsearch.less";
-@import "less/gradebook.less";
 
 @import "less/responsive.less";
 @import "less/navigation-hoverborder.less";
@@ -635,7 +636,9 @@ a.new-member {
     brightness(100% - hsvvalue(@base-color)+hsvvalue(#28497c));
 }
 
-#barTopMenu li a img, #barTopMenu li a canvas, div#layout-sidebar div.sidebar-image img {
+#barTopMenu li a img,
+#barTopMenu li a canvas,
+#layout-sidebar .sidebar-image > img {
     .recolor;
 }
 
@@ -668,4 +671,8 @@ details.studip {
         }
     }
 
+}
+
+mark {
+    background-color: @activity-color-60;
 }

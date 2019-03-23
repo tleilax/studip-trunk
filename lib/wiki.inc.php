@@ -1,19 +1,7 @@
-<?
-# Lifter001: DONE
+<?php
 # Lifter002: TODO
-# Lifter003: TEST
-# Lifter005: TODO
 # Lifter007: TODO
-# Lifter010: TODO
 use Studip\Button, Studip\LinkButton;
-// wiki regex pattern
-// IMPORTANT: Wiki Keyword has to be in 2nd paranthesed pattern!!
-// Make sure to change routines below if this changes
-//
-global $wiki_keyword_regex, $wiki_link_regex, $wiki_extended_link_regex;
-$wiki_keyword_regex = "(^|\s|\A|\>)(([A-ZÄÖÜ]|&[AOU]uml;)([a-z0-9äöüß]|&[aou]uml;|&szlig;)+([A-ZÄÖÜ]|&[AOU]uml;)([a-zA-Z0-9äöüÄÖÜß]|&[aouAOU]uml;|&szlig;)+)";
-$wiki_link_regex = "\[\[(([\w\.\-\:\(\)_§\/@# ]|&[AOUaou]uml;|&szlig;)+)\]\]";
-$wiki_extended_link_regex = "\[\[(([\w\.\-\:\(\)_§\/@# ]|&[AOUaou]uml;|&szlig;)+)\|([^\]]+)\]\]";
 
 /**
 * Retrieve a WikiPage version from current seminar's WikiWikiWeb.
@@ -25,52 +13,28 @@ $wiki_extended_link_regex = "\[\[(([\w\.\-\:\(\)_§\/@# ]|&[AOUaou]uml;|&szlig;)
 * @param int    Version number. If empty, latest version is returned.
 *
 **/
-function getWikiPage($keyword, $version, $db = NULL)
+function getWikiPage($keyword, $version)
 {
-    global $perm;
-    $query = "SELECT *
-              FROM wiki
-              WHERE keyword = :keyword AND range_id = :range_id";
-    $parameters = array(
-        'keyword'  => $keyword,
-        'range_id' => Context::getId(),
-    );
-
-    if (!$version) {
-        $query .= " ORDER BY version DESC";
-    } else {
-        $query .= " AND version = :version";
-        $parameters['version'] = $version;
+    $page = null;
+    if ($version) {
+        $page = WikiPage::find([Context::getId(), $keyword, $version]);
     }
-    $query .= " LIMIT 1"; // only one version needed
-
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute($parameters);
-    $row = $statement->fetch(PDO::FETCH_ASSOC);
-
-    if (!$row) {
-        if ($keyword == 'WikiWikiWeb') {
-            $range_id = Context::getId();
-            $row = WikiPageConfig::find([$range_id, $keyword]);
-            if ($row["edit_perms"] == "") {
-                $edit_perms = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
-            } else {
-                $edit_perms = $row["edit_perms"];
-            }
-
-            if ($perm->have_studip_perm($edit_perms, $range_id)) {
-                $body = _("Dieses Wiki ist noch leer. Bearbeiten Sie es!\nNeue Seiten oder Links werden einfach durch Eingeben von [nop][[Wikinamen]][/nop] in doppelten eckigen Klammern angelegt.");
-            } else {
-                $body = _("Dieses Wiki ist noch leer.");
-            }
-            $wikidata = array('body' => $body, 'user_id' => 'nobody',  'version' => 0);
-        } else {
-            return NULL;
-        }
-    } else {
-        $wikidata = $row;
+    if ($page === null) {
+        $page = WikiPage::findLatestPage(Context::getId(), $keyword);
     }
-    return $wikidata;
+
+    if ($page) {
+        return $page;
+    }
+
+    if ($keyword === 'WikiWikiWeb') {
+        return WikiPage::getStartPage(Context::getId());
+    }
+
+    $page = new WikiPage();
+    $page->range_id = Context::getId();
+    $page->keyword  = $keyword;
+    return $page;
 }
 
 
@@ -89,9 +53,9 @@ function submitWikiPage($keyword, $version, $body, $user_id, $range_id) {
     global $perm;
     releasePageLocks($keyword, $user_id); // kill lock that was set when starting to edit
     // write changes to db, show new page
-    $latestVersion=getWikiPage($keyword,false);
+    $latestVersion = getWikiPage($keyword, false);
     if ($latestVersion) {
-        $date=time();
+        $date = time();
         $lastchange = $date - $latestVersion['chdate'];
     }
 
@@ -105,28 +69,19 @@ function submitWikiPage($keyword, $version, $body, $user_id, $range_id) {
         // if same author changes again within 30 minutes, no new verison is created
         $wp = WikiPage::find([$range_id, $keyword, $version]);
         if ($wp) {
-            // apply replace-before-save transformations
-            $wp->body = transformBeforeSave($body);
-
-            $range_id = Context::getId();
-            $row = WikiPageConfig::find([$range_id, $keyword]);
-            if ($row["edit_perms"] == "") {
-                $edit_perms = "autor";
-            } else {
-                $edit_perms = $row["edit_perms"];
-            }
-            if ($perm->have_studip_perm($edit_perms, $range_id)) {
+            if ($wp->isEditableBy($GLOBALS['user'])) {
+                // apply replace-before-save transformations
+                $wp->body = transformBeforeSave($body);
                 $wp->store();
             } else {
-                $message = MessageBox::info(_('Keine Änderung vorgenommen, da zwischenzeitlich die Editier-Berechtigung entzogen wurde.'));
-                PageLayout::postMessage($message);
+                PageLayout::postInfo(_('Keine Änderung vorgenommen, da zwischenzeitlich die Editier-Berechtigung entzogen wurde.'));
             }
         }
     } else {
         if ($version === null) {
-            $version=0;
+            $version = 0;
         } else {
-            $version=$latestVersion['version']+1;
+            $version = $latestVersion['version'] + 1;
         }
 
         // apply replace-before-save transformations
@@ -138,11 +93,11 @@ function submitWikiPage($keyword, $version, $body, $user_id, $range_id) {
 }
 
 /**
-* Retrieve latest version for a given keyword
-*
-* @param    string  keyword WikiPage name
-*
-**/
+ * Retrieve latest version for a given keyword
+ *
+ * @param  string  keyword WikiPage name
+ * @return array
+ */
 function getLatestVersion($keyword, $range_id) {
     $query = "SELECT *
               FROM wiki
@@ -155,11 +110,11 @@ function getLatestVersion($keyword, $range_id) {
 }
 
 /**
-* Retrieve oldest version for a given keyword
-*
-* @param    string  WikiPage name
-*
-**/
+ * Retrieve oldest version for a given keyword
+ *
+ * @param    string  WikiPage name
+ * @return array
+ */
 function getFirstVersion($keyword, $range_id) {
     $query = "SELECT *
               FROM wiki
@@ -172,22 +127,22 @@ function getFirstVersion($keyword, $range_id) {
 }
 
 /**
-* Return array containing version numbes and chdates
-*
-* @param string     keyword Wiki keyword for currently selected seminar
-* @param string     limit   Number of links to be retrieved (default:10)
-* @param string     getfirst Should first (=most recent) version e retrieved, too?
-*
-**/
-function getWikiPageVersions($keyword, $limit=10, $getfirst=0)
+ * Return array containing version numbes and chdates
+ *
+ * @param string $keyword  Wiki keyword for currently selected seminar
+ * @param int    $limit    Number of links to be retrieved (default:10)
+ * @param bool   $getfirst Should first (=most recent) version be retrieved too?
+ * @return array
+ */
+function getWikiPageVersions($keyword, $limit = 10, $getfirst = false)
 {
     $query = "SELECT version, chdate
               FROM wiki
               WHERE keyword = ? AND range_id = ?
               ORDER BY version DESC
-              LIMIT " . (int)$limit;
+              LIMIT " . (int) $limit;
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($keyword, Context::getId()));
+    $statement->execute([$keyword, Context::getId()]);
     $versions = $statement->fetchAll(PDO::FETCH_ASSOC);
 
     if (!$getfirst) {
@@ -200,25 +155,24 @@ function getWikiPageVersions($keyword, $limit=10, $getfirst=0)
 
 
 /**
-* Check if given keyword exists in current WikiWikiWeb.
-*
-* @param    string  WikiPage keyword
-*
-**/
-function keywordExists($str, $sem_id=NULL) {
+ * Check if given keyword exists in current WikiWikiWeb.
+ *
+ * @param    string  WikiPage keyword
+ */
+function keywordExists($str, $sem_id = null) {
     static $keywords;
 
     if (is_null($keywords)) {
         $query = "SELECT DISTINCT keyword, 1 FROM wiki WHERE range_id = ?";
         $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($sem_id ?: Context::getId()));
+        $statement->execute([$sem_id ?: Context::getId()]);
         $keywords = $statement->fetchGrouped(PDO::FETCH_COLUMN);
     }
     // retranscode html entities to ascii values (as stored in db)
     // (nessecary for umlauts)
     // BUG: other special chars like accented vowels don't work yet!
     //
-    $trans_tbl = array_flip(get_html_translation_table (HTML_ENTITIES));
+    $trans_tbl = array_flip(get_html_translation_table(HTML_ENTITIES));
     $nonhtmlstr = strtr($str, $trans_tbl);
 
     return $keywords[$nonhtmlstr];
@@ -226,28 +180,29 @@ function keywordExists($str, $sem_id=NULL) {
 
 
 /**
-* Check if keyword already exists or links to new page.
-* Returns HTML-Link-Representation.
-*
-* @param    string  WikiPage keyword
-* @param    string  current Page (for edit abort backlink)
-* @param    string  out format: "wiki"=link to wiki.php, "inline"=link on same page
-*
-**/
-function isKeyword($str, $page, $format="wiki", $sem_id=NULL, $alt_str=NULL){
-    if (!$alt_str) $alt_str=$str;
-    $trans_tbl = array_flip(get_html_translation_table (HTML_ENTITIES));
+ * Check if keyword already exists or links to new page.
+ * Returns HTML-Link-Representation.
+ *
+ * @param    string  WikiPage keyword
+ * @param    string  current Page (for edit abort backlink)
+ * @param    string  out format: "wiki"=link to wiki.php, "inline"=link on same page
+ */
+function isKeyword($str, $page, $format = 'wiki', $sem_id = null, $alt_str = null) {
+    if (!$alt_str) {
+        $alt_str = $str;
+    }
+    $trans_tbl = array_flip(get_html_translation_table(HTML_ENTITIES));
     $nonhtmlstr = strtr($str, $trans_tbl);
-    if (keywordExists($str, $sem_id) == NULL) {
-        if ($format=="wiki") {
+    if (!keywordExists($str, $sem_id)) {
+        if ($format === 'wiki') {
             return " <a href=\"".URLHelper::getLink("?keyword=" . urlencode($nonhtmlstr) . "&view=editnew&lastpage=".urlencode($page))."\">" . $alt_str . "(?)</a>";
-        } else if ($format=="inline") {
+        } else if ($format === 'inline') {
             return $str;
         }
     } else {
-        if ($format=="wiki") {
+        if ($format == 'wiki') {
             return " <a href=\"".URLHelper::getLink("?keyword=".urlencode($nonhtmlstr))."\">".$alt_str."</a>";
-        } else if ($format=="inline") {
+        } else if ($format == 'inline') {
             return " <a href=\"#".urlencode($nonhtmlstr)."\">".$alt_str."</a>";
         }
     }
@@ -255,15 +210,14 @@ function isKeyword($str, $page, $format="wiki", $sem_id=NULL, $alt_str=NULL){
 
 
 /**
-* Get lock information about page
-* Returns displayable string containing lock information
-* (Template: Username1 (seit x Minuten), Username2 (seit y Minuten), ...)
-* or NULL if no locks set.
-*
-* @param    string  WikiPage keyword
-* @param    string  user_id  Internal user id
-*
-**/
+ * Get lock information about page
+ * Returns displayable string containing lock information
+ * (Template: Username1 (seit x Minuten), Username2 (seit y Minuten), ...)
+ * or NULL if no locks set.
+ *
+ * @param    string  WikiPage keyword
+ * @param    string  user_id  Internal user id
+ */
 function getLock($keyword, $user_id)
 {
     $query = "SELECT user_id, chdate
@@ -293,14 +247,13 @@ function getLock($keyword, $user_id)
 }
 
 /**
-* Set lock for current user and current page
-*
-* @param    DB_Seminar  db  DB_Seminar instance (no longer neccessary)
-* @param    string      user_id Internal user id
-* @param    string      range_if    Internal seminar id
-* @param    string      keyword WikiPage name
-*
-**/
+ * Set lock for current user and current page
+ *
+ * @param    DB_Seminar  db  DB_Seminar instance (no longer neccessary)
+ * @param    string      user_id Internal user id
+ * @param    string      range_if    Internal seminar id
+ * @param    string      keyword WikiPage name
+ */
 function setWikiLock($db, $user_id, $range_id, $keyword) {
     $query = "REPLACE INTO wiki_locks (user_id, range_id, keyword, chdate)
               VALUES (?, ?, ?, UNIX_TIMESTAMP())";
@@ -310,14 +263,12 @@ function setWikiLock($db, $user_id, $range_id, $keyword) {
 
 
 /**
-* Release all locks for wiki page that are older than 30 minutes.
-*
-* @param    string  WikiPage keyword
-*
-**/
+ * Release all locks for wiki page that are older than 30 minutes.
+ *
+ * @param    string  WikiPage keyword
+ */
 function releaseLocks($keyword)
 {
-
     // Prepare statement that actually releases (removes) the lock
     $query = "DELETE FROM wiki_locks WHERE range_id = ? AND keyword = ? AND chdate = ?";
     $release_statement = DBManager::get()->prepare($query);
@@ -339,12 +290,12 @@ function releaseLocks($keyword)
 }
 
 /**
-* Release locks for current wiki page and current user
-*
-* @param    string  keyword WikiPage name
-* @param    string  user_id Internal user id
-*
-**/
+ * Release locks for current wiki page and current user
+ *
+ * @param    string  keyword WikiPage name
+ * @param    string  user_id Internal user id
+ *
+ */
 function releasePageLocks($keyword, $user_id)
 {
     $query = "DELETE FROM wiki_locks
@@ -361,15 +312,15 @@ function releasePageLocks($keyword, $user_id)
 *
 **/
 function getWikiLinks($str) {
-    global $wiki_keyword_regex, $wiki_link_regex, $wiki_extended_link_regex;
     $str = preg_replace('/\[nop\].*\[\/nop\]/', '', $str);
     $str = preg_replace('/\[code\].*\[\/code\]/', '', $str);
-    preg_match_all("/$wiki_keyword_regex/", $str, $out_wikiwords, PREG_PATTERN_ORDER);
-    preg_match_all("/$wiki_link_regex/", $str, $out_wikilinks, PREG_PATTERN_ORDER);
-    preg_match_all("/$wiki_extended_link_regex/", $str, $out_wikiextlinks, PREG_PATTERN_ORDER);
-    $result = array_merge($out_wikiwords[2], $out_wikilinks[1], $out_wikiextlinks[1]);
-    $result = array_map('trim', $result);
-    return array_unique($result);
+    preg_match_all(
+        '/' . WikiFormat::getWikiMarkup('wiki-links')['start'] . '/',
+        $str,
+        $out_wikiwords,
+        PREG_PATTERN_ORDER
+    );
+    return array_unique($out_wikiwords[1]);
 }
 
 /**
@@ -549,7 +500,6 @@ function deleteWikiPage($keyword, $version, $range_id) {
     }
 
     if (!keywordExists($keyword)) { // all versions have gone
-        WikiPageConfig::deleteBySQL('range_id = ? AND keyword = ?', [$range_id, $keyword]);
         $addmsg = '<br>' . sprintf(_("Damit ist die Seite %s mit allen Versionen gelöscht."),'<b>'.htmlReady($keyword).'</b>');
         $newkeyword = "WikiWikiWeb";
     } else {
@@ -584,7 +534,6 @@ function deleteAllWikiPage($keyword, $range_id) {
     }
 
     WikiPage::deleteBySQL("keyword = ? AND range_id = ?", [$keyword, $range_id]);
-    WikiPageConfig::deleteBySQL('range_id = ? AND keyword = ?', [$range_id, $keyword]);
     $message = MessageBox::info(sprintf(_('Die Seite %s wurde mit allen Versionen gelöscht.'), '<b>'.htmlReady($keyword).'</b>'));
     PageLayout::postMessage($message);
     refreshBacklinks($keyword, "");
@@ -601,21 +550,22 @@ function deleteAllWikiPage($keyword, $range_id) {
 **/
 function listPages($mode, $sortby = NULL)
 {
-    global $perm;
-    if ($mode=="all") {
-        $selfurl = "?view=listall";
-        $sort = "ORDER by lastchange DESC"; // default sort order for "all pages"
-        $nopages = _("In dieser Veranstaltung wurden noch keine WikiSeiten angelegt.");
+    $lastlogindate = null;
+    if ($mode === 'all') {
+        $selfurl = '?view=listall';
+        $sort = "ORDER by MAX(chdate) DESC"; // default sort order for "all pages"
+        $nopages = _('In dieser Veranstaltung wurden noch keine WikiSeiten angelegt.');
 
         // help texts
         $help = _('Zeigt eine tabellarische Übersicht aller Wiki-Seiten an.');
         Helpbar::get()->ignoreDatabaseContents();
         Helpbar::get()->addPlainText('', $help);
-    } else if ($mode=="new") {
-        $lastlogindate = object_get_visit(Context::getId(), "wiki");
-        $selfurl = "?view=listnew";
-        $sort = "ORDER by lastchange"; // default sort order for "new pages"
-        $nopages = _("Seit Ihrem letzten Login gab es keine Änderungen.");
+    } else if ($mode === 'new') {
+        $lastlogindate = object_get_visit(Context::getId(), 'wiki');
+
+        $selfurl = '?view=listnew';
+        $sort = "ORDER by MAX(chdate)"; // default sort order for "new pages"
+        $nopages = _('Seit Ihrem letzten Login gab es keine Änderungen.');
 
         // help texts
         $help = _('Zeigt eine tabellarische Übersicht neu erstellter bzw. bearbeiteter Wiki-Seiten an.');
@@ -625,143 +575,90 @@ function listPages($mode, $sortby = NULL)
         throw new InvalidArgumentException(_('Fehler! Falscher Anzeigemodus:') . $mode);
     }
 
-    $titlesortlink = "title";
-    $versionsortlink = "version";
-    $changesortlink = "lastchange";
+    $titlesortlink   = 'title';
+    $versionsortlink = 'version';
+    $changesortlink  = 'lastchange';
 
     switch ($sortby) {
         case 'title':
             // sort by keyword, prepare link for descending sorting
-            $sort = " ORDER BY keyword";
-            $titlesortlink = "titledesc";
+            $sort = "ORDER BY keyword";
+            $titlesortlink = 'titledesc';
             break;
         case 'titledesc':
             // sort descending by keyword, prep link for asc. sort
-            $sort = " ORDER BY keyword DESC";
+            $sort = "ORDER BY keyword DESC";
             break;
         case 'version':
-            $sort = " ORDER BY lastversion DESC, keyword ASC";
-            $versionsortlink = "versiondesc";
+            $sort = "ORDER BY MAX(version) DESC, keyword ASC";
+            $versionsortlink = 'versiondesc';
             break;
         case 'versiondesc':
-            $sort = " ORDER BY lastversion, keyword ASC";
+            $sort = "ORDER BY MAX(version), keyword ASC";
             break;
         case 'lastchange':
             // sort by change date, default: newest first
-            $sort = " ORDER BY lastchange DESC, keyword ASC";
-            $changesortlink = "lastchangedesc";
+            $sort = "ORDER BY MAX(chdate) DESC, keyword ASC";
+            $changesortlink = 'lastchangedesc';
             break;
         case 'lastchangedesc':
             // sort by change date, oldest first
-            $sort = " ORDER BY lastchange, keyword ASC";
+            $sort = "ORDER BY MAX(chdate), keyword ASC";
             break;
     }
 
-    if ($mode=="all") {
-        $query = "SELECT keyword, MAX(chdate) AS lastchange, MAX(version) AS lastversion
+    if ($mode === 'all') {
+        $query = "SELECT keyword
                   FROM wiki
                   WHERE range_id = ?
                   GROUP BY keyword
                   {$sort}";
-        $parameters = array(Context::getId());
-    } else if ($mode=="new") {
-        $query = "SELECT keyword, MAX(chdate) AS lastchange, MAX(version) AS lastversion
+        $parameters = [Context::getId()];
+    } else if ($mode === 'new') {
+        $query = "SELECT keyword
                   FROM wiki
                   WHERE range_id = ? AND chdate > ?
                   GROUP BY keyword
                   {$sort}";
-        $parameters = array(Context::getId(), $lastlogindate);
+        $parameters = [Context::getId(), $lastlogindate];
     }
-    $statement = DBManager::get()->prepare($query);
-    $statement->execute($parameters);
-    $pages = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-    // show pages
-    showPageFrameStart();
-    begin_blank_table();
+    $pages = DBManager::get()->fetchFirst($query, $parameters, function ($keyword) {
+        return WikiPage::findLatestPage(Context::getId(), $keyword);
+    });
 
-    if (count($pages) == 0) {
-        PageLayout::postMessage(MessageBox::info($nopages));
+    if (count($pages) === 0) {
+        PageLayout::postInfo($nopages);
     } else {
-        echo "<tr><td class=\"blank\" colspan=\"2\">&nbsp;</td></tr>\n";
-        echo "<tr><td class=\"blank\" colspan=\"2\">";
-        echo "<table id=\"main_content\" role=\"main\" width=\"99%\" border=\"0\"  cellpadding=\"2\" cellspacing=\"0\" align=\"center\">";
-        echo "<tr height=28>";
-        $s = "<td class=\"content_title\" width=\"%d%%\" align=\"%s\">%s</td>";
-        printf($s, 3, "left", "&nbsp;");
-        printf($s, 39,"left",  "<font size=-1><b><a href=\"".URLHelper::getLink("$selfurl&sortby=$titlesortlink")."\">"._("Titel")."</a></b></font>");
-        printf($s, 10,"center",  "<font size=-1><b><a href=\"".URLHelper::getLink("$selfurl&sortby=$versionsortlink")."\">"._("Änderungen")."</a></b></font>");
-        printf($s, 15,"left",  "<font size=-1><b><a href=\"".URLHelper::getLink("$selfurl&sortby=$changesortlink")."\">"._("Letzte Änderung")."</a></b></font>");
-        printf($s, 25,"left",  "<font size=-1><b>"._("von")."</b></font>");
-        echo "</tr>";
-
-        $query = "SELECT user_id, version
-                  FROM wiki
-                  WHERE range_id = ? AND keyword = ? AND chdate = ?";
-        $meta_statement = DBManager::get()->prepare($query);
-
-        $c=1;
-        foreach ($pages as $page) {
-            $class = ($c++ % 2) ? "table_row_even" : "table_row_odd";
-
-            $keyword    = $page['keyword'];
-            $lastchange = $page['lastchange'];
-
-            $meta_statement->execute(array(Context::getId(), $keyword, $lastchange));
-            $temp = $meta_statement->fetch(PDO::FETCH_ASSOC);
-            $meta_statement->closeCursor();
-
-            $user_id = $temp['user_id'];
-            $version = $temp['version'];
-
-            $range_id = Context::getId();
-            $row = WikiPageConfig::find([$range_id, $keyword]);
-            if ($row["read_perms"] == "") {
-                $read_perms = "autor";
-            } else {
-                $read_perms = $row["read_perms"];
-            }
-
-            if ($perm->have_studip_perm($read_perms, $range_id)) {
-
-                $tdheadleft="<td class=\"$class\" align=\"left\"><font size=\"-1\">";
-                $tdheadcenter="<td class=\"$class\" align=\"center\"><font size=\"-1\">";
-                $tdtail="</font></td>";
-                print("<tr>".$tdheadleft."&nbsp;"."$tdtail");
-                print($tdheadleft."<a href=\"".URLHelper::getLink("?keyword=" . urlencode($keyword) . "")."\">");
-                print(htmlReady($keyword) ."</a>");
-                print($tdtail);
-                print($tdheadcenter.$version . $tdtail);
-                print($tdheadleft.date("d.m.Y, H:i", $lastchange));
-                if ($mode=="new" && $version > 1) {
-                    print("&nbsp;(<a href=\"".URLHelper::getLink("?view=diff&keyword=".urlencode($keyword)."&versionssince=$lastlogindate")."\">"._("Änderungen")."</a>)");
-                }
-                print($tdtail);
-                print($tdheadleft.get_fullname($user_id,'full',TRUE).$tdtail."</tr>");
-
-            }
-        }
-        echo '</tr></table>';
+        $template = $GLOBALS['template_factory']->open('wiki/list.php');
+        $template->mode            = $mode;
+        $template->url             = $selfurl;
+        $template->titlesortlink   = $titlesortlink;
+        $template->versionsortlink = $versionsortlink;
+        $template->changesortlink  = $changesortlink;
+        $template->pages           = $pages;
+        $template->lastlogindate   = $lastlogindate;
+        echo $template->render();
     }
-    echo "</table><p>&nbsp;</p>";
 
-    $sidebar = Sidebar::get();
+    if ($mode === 'all'){
+        $help_url = format_help_url('Basis.VerschiedenesFormat');
 
-    if ($mode=="all"){
-        $help_url = format_help_url("Basis.VerschiedenesFormat");
-
-        $widget = new ExportWidget();
-        $widget->addLink(_('PDF-Ausgabe aller Wiki-Seiten'),
-                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=exportall_pdf&version=' . $version . '&sortby=' . $sortby),
-                         Icon::create('file-pdf', 'clickable'),
-                         array('target' => '_blank'));
-        $widget->addLink(_('Druckansicht aller Wiki-Seiten'),
-                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=wikiprintall&version=' . $version),
-                         Icon::create('print', 'clickable'),
-                         array('target' => '_blank'));
-        $sidebar->addWidget($widget);
+        $widget = Sidebar::get()->addWidget(new ExportWidget());
+        $widget->addLink(
+            _('PDF-Ausgabe aller Wiki-Seiten'),
+            URLHelper::getURL('?view=exportall_pdf', ['sortby' => $sortby]),
+            Icon::create('file-pdf'),
+            ['target' => '_blank']
+        );
+        $widget->addLink(
+            _('Druckansicht aller Wiki-Seiten'),
+            URLHelper::getURL('?view=wikiprintall'),
+            Icon::create('print'),
+            ['target' => '_blank']
+        );
     }
-#    end_blank_table();
+
     showPageFrameEnd(array());
 }
 
@@ -776,13 +673,13 @@ function listPages($mode, $sortby = NULL)
 function searchWiki($searchfor, $searchcurrentversions, $keyword, $localsearch)
 {
     $range_id = Context::getId();
-    $result   = NULL;
+    $result   = null;
 
     // check for invalid search string
-    if (mb_strlen($searchfor)<3) {
-        $invalid_searchstring=1;
+    if (mb_strlen($searchfor) < 3) {
+        $invalid_searchstring = true;
     } else if ($localsearch && !$keyword) {
-        $invalid_searchstring=1;
+        $invalid_searchstring = true;
     } else {
         // make search string
         if ($localsearch) {
@@ -790,14 +687,14 @@ function searchWiki($searchfor, $searchcurrentversions, $keyword, $localsearch)
                       FROM wiki
                       WHERE range_id = ? AND body LIKE CONCAT('%', ?, '%') AND keyword = ?
                       ORDER BY version DESC";
-            $parameters = array($range_id, htmlReady($searchfor), $keyword);
+            $parameters = [$range_id, htmlReady($searchfor), $keyword];
         } else if (!$searchcurrentversions) {
             // search in all versions of all pages
             $query = "SELECT *
                       FROM wiki
                       WHERE range_id = ? AND body LIKE CONCAT('%', ?, '%')
                       ORDER BY keyword ASC, version DESC";
-            $parameters = array($range_id, htmlReady($searchfor));
+            $parameters = [$range_id, htmlReady($searchfor)];
         } else {
             // search only latest versions of all pages
             $query = "SELECT *
@@ -805,18 +702,22 @@ function searchWiki($searchfor, $searchcurrentversions, $keyword, $localsearch)
                       WHERE range_id = ? AND w1.body LIKE CONCAT('%', ?, '%') AND version = (
                           SELECT MAX(version)
                           FROM wiki AS w2
-                          WHERE w2.range_id =? AND w2.keyword = w1.keyword
+                          WHERE w2.range_id = ? AND w2.keyword = w1.keyword
                       )
                       ORDER BY w1.keyword ASC";
-             $parameters = array($range_id, htmlReady($searchfor), $range_id);
+             $parameters = [$range_id, htmlReady($searchfor), $range_id];
         }
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute($parameters);
-        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $pages = DBManager::get()->fetchAll($query, $parameters, function ($row) {
+            return WikiPage::buildExisting($row);
+        });
+
+        $pages = array_filter($pages, function ($page) {
+            return $page->isVisibleTo($GLOBALS['user']);
+        });
     }
 
     // quit if no pages found / search string was invalid
-    if ($invalid_searchstring || count($results) == 0) {
+    if ($invalid_searchstring || count($pages) == 0) {
         if ($invalid_searchstring) {
             $message = MessageBox::error(_('Suchbegriff zu kurz. Geben Sie mindestens drei Zeichen ein.'));
         } else {
@@ -859,7 +760,7 @@ function searchWiki($searchfor, $searchcurrentversions, $keyword, $localsearch)
     $c=1;
     $last_keyword="";
     $last_keyword_count=0;
-    foreach ($results as $result) {
+    foreach ($pages as $result) {
         if (!$localsearch) {
             // don't display more than one hit in a page's versions
             // offer link instead
@@ -957,20 +858,6 @@ function searchWiki($searchfor, $searchcurrentversions, $keyword, $localsearch)
     showPageFrameEnd(array());
 }
 
-
-/**
-* Print a wiki page header including printhead-bar with page name and
-* last change info.
-*
-**/
-function wikiSinglePageHeader($wikiData, $keyword) {
-    $zusatz=getZusatz($wikiData);
-
-    begin_blank_table();
-    printhead(0, 0, FALSE, "icon-wiki", FALSE, "", "<b>" . htmlReady($keyword) ."</b>", $zusatz);
-    end_blank_table();
-}
-
 /**
 * Display edit form for wiki page.
 *
@@ -982,23 +869,23 @@ function wikiSinglePageHeader($wikiData, $keyword) {
 **/
 function wikiEdit($keyword, $wikiData, $user_id, $backpage=NULL)
 {
-    if (!$wikiData) {
-        $body = "";
-        $version = 0;
-        $lastpage="&lastpage=".urlencode($backpage);
+    if (!$wikiData || $wikiData->isNew()) {
+        $body     = '';
+        $version  = 0;
+        $lastpage = $backpage;
     } else {
-        $body = $wikiData["body"];
-        $version = $wikiData["version"];
-        $lastpage = "";
+        $body     = $wikiData->body;
+        $version  = $wikiData->version;
+        $lastpage = null;
     }
     releaseLocks($keyword); // kill old locks
     $locks=getLock($keyword, $user_id);
-    $cont="";
-    if ($locks && $lock["user_id"]!=$user_id) {
+    $cont='';
+    if ($locks && $lock['user_id'] !== $user_id) {
         $message = MessageBox::info(sprintf(_("Die Seite wird eventuell von %s bearbeitet."), htmlReady($locks)), array(_("Wenn Sie die Seite trotzdem ändern, kann ein Versionskonflikt entstehen."), _("Es werden dann beide Versionen eingetragen und müssen von Hand zusammengeführt werden."),  _("Klicken Sie auf Abbrechen, um zurückzukehren.")));
         PageLayout::postMessage($message);
     }
-    if ($keyword=='toc') {
+    if ($keyword === 'toc') {
         $message = MessageBox::info(_("Sie bearbeiten die QuickLinks."), array(_("Verwenden Sie Aufzählungszeichen (-, --, ---), um Verweise auf Seiten hinzuzufügen.")));
         PageLayout::postMessage($message);
         if (!$body) {
@@ -1065,61 +952,66 @@ function exportWikiPagePDF($keyword, $version)
 
 function exportAllWikiPagesPDF($mode, $sortby)
 {
-    $titlesortlink = "title";
-    $versionsortlink = "version";
-    $changesortlink = "lastchange";
+    $titlesortlink   = 'title';
+    $versionsortlink = 'version';
+    $changesortlink  = 'lastchange';
 
     switch ($sortby) {
         case 'title':
             // sort by keyword, prepare link for descending sorting
-            $sort = " ORDER BY keyword";
+            $sort = "ORDER BY keyword";
             break;
         case 'titledesc':
             // sort descending by keyword, prep link for asc. sort
-            $sort = " ORDER BY keyword DESC";
+            $sort = "ORDER BY keyword DESC";
             break;
         case 'version':
-            $sort = " ORDER BY versions DESC, keyword ASC";
+            $sort = "ORDER BY MAX(version) DESC, keyword ASC";
             break;
         case 'versiondesc':
-            $sort = " ORDER BY versions, keyword ASC";
+            $sort = " ORDER BY MAX(version), keyword ASC";
             break;
         case 'lastchange':
             // sort by change date, default: newest first
-            $sort = " ORDER BY lastchange DESC, keyword ASC";
+            $sort = " ORDER BY MAX(chdate) DESC, keyword ASC";
             break;
         case 'lastchangedesc':
             // sort by change date, oldest first
-            $sort = " ORDER BY lastchange, keyword ASC";
+            $sort = " ORDER BY MAX(chdate), keyword ASC";
             break;
     }
 
-    $query = "SELECT keyword, MAX(chdate) AS lastchange, COUNT(*) AS versions
+    $query = "SELECT keyword
               FROM wiki
               WHERE range_id = ?
               GROUP BY keyword
               {$sort}";
 
-    $parameters = array(Context::getId());
-
     $statement = DBManager::get()->prepare($query);
-    $statement->execute($parameters);
+    $statement->execute([Context::getId()]);
 
     $document = new ExportPDF();
-    $document->SetTitle(_('Wiki: ').htmlReady($wikiData["keyword"]));
-    $document->setHeaderTitle(sprintf(_("Wiki von \"%s\""), Context::get()->Name));
+    $document->SetTitle(_('Wiki: ') . Context::get()->name);
+    $document->setHeaderTitle(sprintf(_('Wiki von "%s"'), Context::get()->name));
 
-    while ($wikiData = $statement->fetch(PDO::FETCH_ASSOC)) {
-        $pagedata = getLatestVersion($wikiData["keyword"], Context::getId());
-        $document->setHeaderSubtitle(sprintf(_("Seite: %s"), $wikiData["keyword"]));
+    while ($keyword = $statement->fetch(PDO::FETCH_COLUMN)) {
+        $page = WikiPage::findLatestPage(Context::getId(), $keyword);
+        if (!$page->isVisibleTo($GLOBALS['user'])) {
+            continue;
+        }
+
+        $document->setHeaderSubtitle(sprintf(_('Seite: %s'), $page->keyword));
         $document->addPage();
-        $document->addContent(deleteWikiLinks($pagedata["body"]));
+
+        // We need the @ in front since TCPDF might throw warning that can lead
+        // to errors viewing the document
+        @$document->addContent(deleteWikiLinks($page->body));
     }
 
-    $document->dispatch(Context::getHeaderLine() ." - ".$wikiData["keyword"]);
+    $document->dispatch(Context::getHeaderLine());
 }
 
-function deleteWikiLinks($keyword){
+function deleteWikiLinks($keyword) {
     $keyword = preg_replace('/\[\[[^|\]]*\|([^]]*)\]\]/', '$1', $keyword);
     $keyword = preg_replace('/\[\[([^|\]]*)\]\]/', '$1', $keyword);
     return $keyword;
@@ -1157,61 +1049,67 @@ function printAllWikiPages($range_id, $header) {
 * Return HTML-dump of all wiki pages.
 * Implements an iterative breadth-first traversal of WikiPage-tree.
 *
-* @param    string  ID of veranstaltung/einrichtung
-* @param    string  Short title (header) of veranstaltung/einrichtung
-* @param    bool    include html/head/body tags?
-*
+* @param string $range_id ID of veranstaltung/einrichtung
+* @param string $header   Short title (header) of veranstaltung/einrichtung
+* @param bool   $fullhtml Include html/head/body tags?
+* @return string
 **/
-function getAllWikiPages($range_id, $header, $fullhtml=TRUE) {
+function getAllWikiPages($range_id, $header, $fullhtml = true) {
     $query = "SELECT DISTINCT keyword FROM wiki WHERE range_id = ? ORDER BY keyword DESC";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($range_id));
+    $statement->execute([$range_id]);
     $allpages = $statement->fetchAll(PDO::FETCH_COLUMN);
-    $allpages = array_map('htmlReady', $allpages);
 
-    $out=array();
-    $visited=array(); // holds names of already visited pages
-    $tovisit=array(); // holds names of pages yetto visit/expand
-    $tovisit[]="WikiWikiWeb"; // start with top level page
-    if ($fullhtml) $out[]="<html><head><title>" . htmlReady($header) ."</title></head>";
-    if ($fullhtml) $out[]="<body>";
+    $out = [];
+    $visited = []; // holds names of already visited pages
+    $tovisit = []; // holds names of pages yetto visit/expand
+
+    $tovisit[] = 'WikiWikiWeb'; // start with top level page
+    if ($fullhtml) {
+        $out[] = '<html><head><title>' . htmlReady($header) . '</title></head>';
+        $out[] = '<body>';
+    }
     $out[]="<p><a name=\"top\"></a><em>" . htmlReady($header) ."</em></p>";
-    while (! empty($tovisit)) { // while there are still pages left to visit
-        $pagename=array_shift($tovisit);
-        if (!in_array($pagename,$visited)){
-            $pagedata=getLatestVersion($pagename, $range_id);
-            if ($pagedata) { // consider only pages with content
-                array_push($visited, $pagename);
-                $linklist=getWikiLinks($pagedata["body"]);
+    while (!empty($tovisit)) { // while there are still pages left to visit
+        $pagename = array_shift($tovisit);
+        if (!in_array($pagename, $visited)){
+            $pagedata = WikiPage::findLatestPage($range_id, $pagename);
+
+            // consider only pages with content and that are visible to the user
+            if ($pagedata && $pagedata->isVisibleTo($GLOBALS['user'])) {
+                $visited[] = $pagename;
+                $linklist = getWikiLinks($pagedata['body']);
                 foreach ($linklist as $l) {
                     // add pages not visited yet to queue
-                    if (! in_array($l, $visited)) {
+                    if (!in_array($l, $visited)) {
                         $tovisit[] = $l; // breadth-first
                     }
                 }
-                $out[]="<hr><a name=\"$pagename\"></a><h1>$pagename</h1>";
-                $out[]="<font size=-1><p><em>";
+                $out[] = "<hr><a name=\"$pagename\"></a><h1>" . htmlReady($pagename) . "</h1>";
+                $out[] = "<font size=-1><p><em>";
                 $out[] = sprintf(_("Version %s, letzte Änderung %s von %s."), $pagedata['version'], date("d.m.Y, H:i", $pagedata['chdate']), get_fullname($pagedata['user_id'], 'full', 1));
                 $out[] = "</em></p></font>";
                 // output is html without comments
-                $out[]=wikiReady($pagedata['body'],TRUE,FALSE,"none");
+                $out[] = wikiReady($pagedata['body'], true, false, 'none');
                 $out[] = '<p><font size=-1>(<a href="#top">' . _("nach oben") . '</a>)</font></p>';
             }
         }
         if (empty($tovisit)){
-            while(! empty($allpages)){
+            while (!empty($allpages)) {
                 $l = array_pop($allpages);
-                if (! in_array($l, $visited)) {
+                if (!in_array($l, $visited)) {
                     $tovisit[] = $l;
                     break;
                 }
             }
         }
     }
-    $out[]= '<hr><p><font size=-1>' . _("exportiert vom Stud.IP Wiki-Modul").' , ';
-    $out[]=date("d.m.Y, H:i", time());
-    $out[]=" </font></p>";
-    if ($fullhtml) $out[]="</body></html>";
+    $out[] = '<hr><p><font size=-1>' . _('exportiert vom Stud.IP Wiki-Modul') . ' , ';
+    $out[] = date('d.m.Y, H:i');
+    $out[] = ' </font></p>';
+    if ($fullhtml) {
+        $out[] = '</body></html>';
+    }
     return implode("\n",$out);
 }
 
@@ -1248,140 +1146,163 @@ function showPageFrameEnd()
 **/
 function getShowPageInfobox($keyword, $latest_version)
 {
+    $edit_perms = CourseConfig::get(Context::getId())->WIKI_COURSE_EDIT_RESTRICTED ? 'tutor' : 'autor';
+
     $versions = getWikiPageVersions($keyword);
 
     if (!$latest_version) {
-        $message = sprintf(_('Sie betrachten eine alte Version, die nicht mehr geändert werden kann. Verwenden Sie dazu die %saktuelle Version%s.'),
-                           '<a href="' . URLHelper::getLink('?keyword='.urlencode($keyword)) . '">',
-                           '</a>');
-        PageLayout::postMessage(MessageBox::info($message));
+        $message = sprintf(
+            _('Sie betrachten eine alte Version, die nicht mehr geändert werden kann. Verwenden Sie dazu die %saktuelle Version%s.'),
+            '<a href="' . URLHelper::getLink('', compact('keyword')) . '">',
+            '</a>'
+        );
+        PageLayout::postInfo($message);
     }
 
     $sidebar = Sidebar::get();
 
     // Table of Contents/QuickLinks
-    $widget = new ListWidget();
+    $widget = $sidebar->addWidget(new ListWidget());
     $widget->setTitle(_('QuickLinks'));
 
     $toccont = get_toc_content();
     $toccont_empty = !trim(strip_tags($toccont));
-    if ($GLOBALS['perm']->have_studip_perm('autor', Context::getId())){
-        $extra = sprintf('<a href="%s">%s</a>',
-                         URLHelper::getLink('?keyword=toc&view=edit'),
-                         $toccont_empty
-                             ? Icon::create('add', 'clickable', ['title' => _('erstellen')])->asImg()
-                             : Icon::create('edit', 'clickable', ['title' => _('bearbeiten')])->asImg());
+
+    if ($GLOBALS['perm']->have_studip_perm($edit_perms, Context::getId())) {
+        $extra = sprintf(
+            '<a href="%s">%s</a>',
+            URLHelper::getLink('?keyword=toc&view=edit'),
+            $toccont_empty
+                ? Icon::create('add')->asImg(['title' => _('erstellen')])
+                : Icon::create('edit')->asImg(['title' => _('bearbeiten')])
+        );
         $widget->setExtra($extra);
     }
 
     $element = new WidgetElement($toccont_empty ? _('Keine QuickLinks vorhanden') : $toccont);
-    $element->icon = Icon::create('link-intern', 'clickable');
+    $element->icon = Icon::create('link-intern');
     $widget->addElement($element);
-    $sidebar->addWidget($widget);
 
     // Actions:
-    $widget = new ActionsWidget();
-    $widget->addLink(
-        _('Neue Wiki-Seite anlegen'),
-        URLHelper::getLink('dispatch.php/wiki/create', compact('keyword')),
-        Icon::create('add'),
-        ['data-dialog' => 'size=auto']
-    );
-
-    // Change wiki course permissions
-    if ($GLOBALS['perm']->have_studip_perm('tutor', Context::getId())) {
+    $widget = $sidebar->addWidget(new ActionsWidget());
+    if ($GLOBALS['perm']->have_studip_perm($edit_perms, Context::getId())) {
         $widget->addLink(
-            _('Wiki-Einstellungen ändern'),
-            URLHelper::getLink('dispatch.php/wiki/change_courseperms', compact('keyword')),
-            Icon::create('edit'),
-            ['data-dialog' => 'size=auto']
-        );
+            _('Neue Wiki-Seite anlegen'),
+            URLHelper::getURL('dispatch.php/wiki/create', compact('keyword')),
+            Icon::create('add')
+        )->asDialog('size=auto');
     }
 
-    $widget->addLink(
-        _('Seiten importieren'),
-        URLHelper::getLink('dispatch.php/wiki/import/' . Context::getId()),
-        Icon::create('wiki+add'),
-        ['data-dialog' => '']
-    );
-    $sidebar->addWidget($widget);
+    if ($GLOBALS['perm']->have_studip_perm('tutor', Context::getId())) {
+        if (Context::getType() == Context::COURSE) {
+            $widget->addLink(
+                _('Seiten importieren'),
+                URLHelper::getURL('dispatch.php/wiki/import/' . Context::getId()),
+                Icon::create('wiki+add')
+            )->asDialog('size=auto');
+        }
+
+        // Change wiki course permissions
+        $widget->addLink(
+            _('Wiki-Einstellungen ändern'),
+            URLHelper::getURL('dispatch.php/wiki/change_courseperms', compact('keyword')),
+            Icon::create('admin')
+        )->asDialog('size=auto');
+    }
 
     // Backlinks
     if ($latest_version) {
-        $widget = new LinksWidget();
+        $widget = $sidebar->addWidget(new LinksWidget());
         $widget->setTitle(_('Seiten, die auf diese Seite verweisen'));
         foreach(getBacklinks($keyword) as $backlink) {
-            $widget->addLink($backlink, URLHelper::getLink('?keyword=' . urlencode($backlink)));
+            $widget->addLink(
+                $backlink,
+                URLHelper::getURL('', ['keyword' => $backlink])
+            );
         }
-        $sidebar->addWidget($widget);
     }
 
     // Ansichten
-    $widget = new ViewsWidget();
-    $widget->addLink(_('Standard'),
-                     URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=show'),
-                     Icon::create('wiki', 'clickable'))
-           ->setActive(true);
+    $widget = $sidebar->addWidget(new ViewsWidget());
+    $widget->addLink(
+        _('Standard'),
+        URLHelper::getURL('?view=show', compact('keyword')),
+        Icon::create('wiki')
+    )->setActive(true);
     if (count($versions) >= 1) {
-        $widget->addLink(_('Textänderungen anzeigen'),
-                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=diff'));
-        $widget->addLink(_('Text mit Autor/-innenzuordnung anzeigen'),
-                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=combodiff'));
+        $widget->addLink(
+            _('Textänderungen anzeigen'),
+            URLHelper::getURL('?view=diff', compact('keyword'))
+        );
+        $widget->addLink(
+            _('Text mit Autor/-innenzuordnung anzeigen'),
+            URLHelper::getURL('?view=combodiff', compact('keyword'))
+        );
     }
-    $sidebar->addWidget($widget);
 
     // Suche
-    $widget = new SearchWidget(URLHelper::getLink('?view=search&keyword=' . urlencode($keyword)));
+    $widget = $sidebar->addWidget(new SearchWidget(URLHelper::getURL('?view=search', compact('keyword'))));
     $widget->addNeedle(_('Im Wiki suchen'), 'searchfor', true);
     $widget->addFilter(_('Nur in aktuellen Versionen'), 'searchcurrentversions');
-    $sidebar->addWidget($widget);
 
     // Versionen
     if (count($versions) > 0) {
-        $widget = new SelectWidget(_('Alte Versionen dieser Seite'),
-                                   URLHelper::getLink('?keyword=' . urlencode($keyword)),
-                                   'version');
+        $widget = $sidebar->addWidget(new SelectWidget(
+            _('Alte Versionen dieser Seite'),
+            URLHelper::getLink('', compact('keyword')),
+            'version'
+        ));
         $widget->addElement(new SelectElement('', _('Aktuelle Version')));
         foreach ($versions as $version) {
-            $element = new SelectElement($version['version'],
-                                         sprintf(_('Version %u (%s)'),
-                                                 $version['version'],
-                                                 date('d.m.Y, H:i', $version['chdate'])),
-                                         $version['version'] == Request::int('version', 0));
-            $widget->addElement($element);
+            $widget->addElement(new SelectElement(
+                $version['version'],
+                sprintf(
+                    _('Version %u (%s)'),
+                    $version['version'],
+                    date('d.m.Y, H:i', $version['chdate'])
+                ),
+                $version['version'] == Request::int('version', 0)
+            ));
         }
-        $sidebar->addWidget($widget);
     }
 
     // Kommentare
-    $widget = new OptionsWidget();
+    $widget = $sidebar->addWidget(new OptionsWidget(), 'comments');
     $widget->setTitle(_('Kommentare'));
-    $widget->addRadioButton(_('einblenden'),
-                            URLHelper::getLink('?keyword=' . urlencode($keyword) . '&wiki_comments=all'),
-                            $GLOBALS['show_wiki_comments'] === 'all');
-    $widget->addRadioButton(_('als Icons einblenden'),
-                            URLHelper::getLink('?keyword=' . urlencode($keyword) . '&wiki_comments=icon'),
-                            $GLOBALS['show_wiki_comments'] === 'icon');
-    $widget->addRadioButton(_('ausblenden'),
-                            URLHelper::getLink('?keyword=' . urlencode($keyword) . '&wiki_comments=none'),
-                            $GLOBALS['show_wiki_comments'] === 'none');
-    $sidebar->addWidget($widget, 'comments');
+    $widget->addRadioButton(
+        _('einblenden'),
+        URLHelper::getURL('?wiki_comments=all', compact('keyword')),
+        $GLOBALS['show_wiki_comments'] === 'all'
+    );
+    $widget->addRadioButton(
+        _('als Icons einblenden'),
+        URLHelper::getURL('?wiki_comments=icon', compact('keyword')),
+        $GLOBALS['show_wiki_comments'] === 'icon'
+    );
+    $widget->addRadioButton(
+        _('ausblenden'),
+        URLHelper::getURL('?wiki_comments=none', compact('keyword')),
+        $GLOBALS['show_wiki_comments'] === 'none'
+    );
 
     // Exportfunktionen
     $version = Request::int('version') ?: '';
 
-    $widget = new ExportWidget();
-    $widget->addLink(_('Druckansicht'),
-                     URLHelper::getLink('?keyword=' . urlencode($keyword) . '&version=' . $version . '&view=wikiprint'),
-                     Icon::create('print', 'clickable'),
-                     array('target' => '_blank'));
-    $widget->addLink(_('PDF-Ausgabe'),
-                     URLHelper::getLink('?keyword=' . urlencode($keyword) . '&version=' . $version . '&view=export_pdf'),
-                     Icon::create('file-pdf', 'clickable'),
-                     array('target' => '_blank'));
-    $sidebar->addWidget($widget);
+    $widget = $sidebar->addWidget(new ExportWidget());
+    $widget->addLink(
+        _('Druckansicht'),
+        URLHelper::getURL('?view=wikiprint', compact('keyword', 'version')),
+        Icon::create('print'),
+        ['target' => '_blank']
+    );
+    $widget->addLink(
+        _('PDF-Ausgabe'),
+        URLHelper::getURL('?view=export_pdf', compact('keyword', 'version')),
+        Icon::create('file-pdf'),
+        ['target' => '_blank']
+    );
 
-    return array();
+    return [];
 }
 
 /**
@@ -1393,40 +1314,47 @@ function getShowPageInfobox($keyword, $latest_version)
 **/
 function getDiffPageInfobox($keyword) {
 
-    $versions=getWikiPageVersions($keyword);
+    $versions = getWikiPageVersions($keyword);
 
     // Aktuelle Version
-    $widget = new ViewsWidget();
-    $widget->addLink(_('Standard'),
-                     URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=show'));
+    $widget = Sidebar::get()->addWidget(new ViewsWidget());
+    $widget->addLink(
+        _('Standard'),
+        URLHelper::getURL('?view=show', compact('keyword'))
+    );
     if (count($versions) >= 1) {
-        $widget->addLink(_('Textänderungen anzeigen'),
-                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=diff'))
-               ->setActive(Request::option('view') === 'diff');
-        $widget->addLink(_('Text mit Autor/-innenzuordnung anzeigen'),
-                         URLHelper::getLink('?keyword=' . urlencode($keyword) . '&view=combodiff'))
-               ->setActive(Request::option('view') === 'combodiff');
+        $widget->addLink(
+            _('Textänderungen anzeigen'),
+            URLHelper::getURL('?view=diff', compact('keyword'))
+        )->setActive(Request::option('view') === 'diff');
+        $widget->addLink(
+            _('Text mit Autor/-innenzuordnung anzeigen'),
+            URLHelper::getURL('?view=combodiff', compact('keyword'))
+        )->setActive(Request::option('view') === 'combodiff');
     }
-    Sidebar::get()->addWidget($widget);
 
     // Versionen
     if (count($versions) > 0) {
-        $widget = new SelectWidget(_('Alte Versionen dieser Seite'),
-                                   URLHelper::getLink('?keyword=' . urlencode($keyword)),
-                                   'version');
+        $widget = Sidebar::get()->addWidget(new SelectWidget(
+            _('Alte Versionen dieser Seite'),
+            URLHelper::getLink('?keyword=' . urlencode($keyword)),
+            'version'
+        ));
         $widget->addElement(new SelectElement('', _('Aktuelle Version')));
         foreach ($versions as $version) {
-            $element = new SelectElement($version['version'],
-                                         sprintf(_('Version %u (%s)'),
-                                                 $version['version'],
-                                                 date('d.m.Y, H:i', $version['chdate'])),
-                                         $version['version'] == Request::int('version', 0));
-            $widget->addElement($element);
+            $widget->addElement(new SelectElement(
+                $version['version'],
+                sprintf(
+                    _('Version %u (%s)'),
+                    $version['version'],
+                    date('d.m.Y, H:i', $version['chdate'])
+                ),
+                $version['version'] == Request::int('version', 0)
+            ));
         }
-        Sidebar::get()->addWidget($widget);
     }
 
-    return array();
+    return [];
 }
 
 function get_toc_toggler() {
@@ -1450,28 +1378,17 @@ function get_toc_toggler() {
     $cont.="<span class='wikitoc_toggler'> (<a id=\"00toctog\" href=\"javascript:toggle('00toc');\">{$ToggleText[0]}</a>)</span>";
     return $cont;
 }
+
 function get_toc_content() {
-    global $perm;
     // Table of Contents / Wiki navigation
-    $toc=getWikiPage("toc",0);
-    if ($toc) {
-        $toccont.="<div class='wikitoc'>";
-        $toccont.="<div id='00toc'>";
-        $toccont.= wikiReady($toc["body"],TRUE,FALSE,$show_comments);
-        $toccont.="</div>";
-        $toccont.="</div>\n";
+    $toc = getWikiPage('toc',0);
+    if (!$toc) {
+        return '';
     }
-    /*  additional edit link for QuickLinks. Disabled.
-    if ($GLOBALS['perm']->have_studip_perm('autor', Context::getId())){
-        $toccont.="<div class='wikitoc_editlink'>";
-        if ($toc) {
-            $toccont.="<a href=\"".URLHelper::getLink("?keyword=toc&view=edit")."\">"._("bearbeiten")."</a>";
-        } else {
-            $toccont.="<a href=\"".URLHelper::getLink("?keyword=toc&view=edit")."\">"._("erstellen")."</a>";
-        }
-        $toccont.="</div>";
-    }
-    */
+
+    $toccont  = '<div class="wikitoc" id="00toc">';
+    $toccont .= wikiReady($toc['body'], true, false, $show_comments);
+    $toccont .= '</div>';
     return $toccont;
 }
 
@@ -1485,121 +1402,38 @@ function get_toc_content() {
 *
 **/
 function showWikiPage($keyword, $version, $special="", $show_comments="icon", $hilight=NULL) {
-    global $perm;
-
-    showPageFrameStart();
-
     // show dialogs if any..
     //
-    if ($special == "delete") {
-        $version=showDeleteDialog($keyword, $version);
-    } else if ($special == "delete_all") {
+    if ($special === 'delete') {
+        $version = showDeleteDialog($keyword, $version);
+    } else if ($special === 'delete_all') {
         showDeleteAllDialog($keyword);
     }
 
     $wikiData = getWikiPage($keyword, $version);
-    if (!$version) {
-        $latest_version=1;
-    } else {
-        $wikiLatest= getLatestVersion($keyword, Context::getId());
-        if ($version==$wikiLatest["version"]) {
-            $latest_version=1;
-        } else {
-            $latest_version=0;
-        }
-    }
+    $content = wikiReady($wikiData["body"], TRUE, FALSE, $show_comments);
 
-    // show page logic
-    wikiSinglePageHeader($wikiData, $keyword);
-
-    if ($perm->have_studip_perm("autor", Context::getId())) {
-        if (!$latest_version) {
-            $edit  = Icon::create('lock-locked', 'info')->asImg();
-            $edit .= _("Ältere Version, nicht bearbeitbar!");
-        } else {
-            $edit="";
-
-            $range_id = Context::getId();
-            $row = WikiPageConfig::find([$range_id, $keyword]);
-            if ($row["edit_perms"] != "") {
-                $edit_perms = $row["edit_perms"];
-            } else {
-                $edit_perms = CourseConfig::get($range_id)->WIKI_COURSE_EDIT_PERM;
-            }
-            if ($perm->have_studip_perm($edit_perms, $range_id)) {
-                $edit.=LinkButton::create(_('Bearbeiten'), URLHelper::getURL("?keyword=".urlencode($keyword)."&view=edit"));
-            }
-            if ($perm->have_studip_perm("tutor", Context::getId())) {
-                $edit.=LinkButton::create(_('Löschen'),URLHelper::getURL("?keyword=".urlencode($keyword)."&cmd=delete&version=latest"));
-                // Neuer Button zum Löschen aller Versionen auf der Ebene des Bearbeitens und Löschens statt im Bestätigungsdialog des Löschens
-                $edit.=LinkButton::create(_('Alle Versionen löschen'), URLHelper::getURL('?cmd=delete_all&keyword='.urlencode($keyword)));
-            }
-            if ($perm->have_studip_perm("tutor", Context::getId()) && $wikiData["version"]) {
-                $edit.=LinkButton::create(_('Seiten-Einstellungen'),URLHelper::getURL('dispatch.php/wiki/change_pageperms', compact('keyword')),['data-dialog' => 'size=auto']);
-            }
-        }
-        $edit .= "<br>&nbsp;";
-    } else {
-        $edit="";
-    }
-
-    begin_blank_table();
-    echo "<tr>";
-    echo "<td class=\"printcontent\"><div align=\"center\">&nbsp;<br>";
-    echo $edit;
-    echo "</div></td></tr>";
-    end_blank_table();
-
-    begin_blank_table();
-    echo "<tr>\n";
-    $cont="";
-
-    $content = wikiReady($wikiData["body"],TRUE,FALSE,$show_comments);
-    $cont .= $content;
     if ($hilight) {
         // Highlighting must only take place outside HTML tags, so
         // 1. save all html tags in array $founds[0]
         // 2. replace all html tags with  \007\007
         // 3. highlight
         // 4. replace all \007\007 with corresponding saved tags
-        $founds=array();
-        preg_match_all("/<[^>].*>/U",$cont,$founds);
-        $cont=preg_replace("/<[^>].*>/U","\007\007",$cont);
-        $cont=preg_replace("/(".preg_quote(htmlReady($hilight),"/").")/i","<span style='background-color:#FFFF88'>\\1</span>",$cont,-1);
+        $founds = array();
+        preg_match_all("/<[^>].*>/U", $content, $founds);
+        $content = preg_replace("/<[^>].*>/U", "\007\007", $content);
+        $content = preg_replace("/(".preg_quote(htmlReady($hilight), "/").")/i", "<span style='background-color:#FFFF88'>\\1</span>", $content, -1);
         foreach($founds[0] as $f) {
-            $cont=preg_replace("/\007\007/",$f,$cont,1);
+            $content = preg_replace("/\007\007/", $f, $content, 1);
         }
     }
-    $num_body_lines=mb_substr_count($wikiData['body'], "\n");
-    if ($num_body_lines<15) {
-        $cont .= "<p>";
-        $cont .= str_repeat("&nbsp;<br>", 15-$num_body_lines);
-    }
-    printcontent(0,0, $cont, $edit);
-    end_blank_table();
 
-    echo "</td>"; // end content area
-    //
-    // end showpage logic
+    $template = $GLOBALS['template_factory']->open('wiki/show.php');
+    $template->wikipage = $wikiData;
+    $template->content  = $content;
+    echo $template->render();
 
-    getShowPageInfobox($keyword, $latest_version);
-    showPageFrameEnd();
-}
-
-/**
-* Helper function that prints header for a "blank" table
-*
-**/
-function begin_blank_table() {
-    echo "<table width=\"100%\" class=\"blank\" border=0 cellpadding=0 cellspacing=0>\n";
-}
-
-/**
-* Helper function that prints footer for a "blank" table
-*
-**/
-function end_blank_table() {
-    echo "</tr></table>";
+    getShowPageInfobox($keyword, $wikiData->isLatestVersion());
 }
 
 /**
@@ -1623,10 +1457,7 @@ function showDiffs($keyword, $versions_since)
         throw new InvalidArgumentException(_('Es gibt keine zu vergleichenden Versionen.'));
     }
 
-    showPageFrameStart();
-    wikiSinglePageHeader($wikiData, $keyword);
-
-    echo "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">";
+    $content = "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">";
 
     $version     = array_shift($versions);
     $last        = $version['body'];
@@ -1634,7 +1465,7 @@ function showDiffs($keyword, $versions_since)
     $zusatz      = getZusatz($version);
 
     foreach ($versions as $version) {
-        echo '<tr>';
+        $content .= '<tr>';
         $current        = $version['body'];
         $currentversion = $version['version'];
 
@@ -1642,8 +1473,8 @@ function showDiffs($keyword, $versions_since)
         $diffarray .= "<table cellpadding=0 cellspacing=0 border=0 width=\"100%\">\n";
         $diffarray .= do_diff($current, $last);
         $diffarray .= "</table>\n";
-        printcontent(0, 0, $diffarray, '');
-        echo '</tr>';
+        $content .= printcontent(0, 0, $diffarray, '', false);
+        $content .= '</tr>';
 
         $last        = $current;
         $lastversion = $currentversion;
@@ -1652,10 +1483,16 @@ function showDiffs($keyword, $versions_since)
             break;
         }
     }
-    echo '</table>';
+    $content .= '</table>';
+
+    $wikiData = getWikiPage($keyword, null);
+
+    $template = $GLOBALS['template_factory']->open('wiki/show.php');
+    $template->wikipage = $wikiData;
+    $template->content  = $content;
+    echo $template->render();
 
     getDiffPageInfobox($keyword);
-    showPageFrameEnd();
 
     // help texts
     $help = _('Die Ansicht zeigt den Verlauf der Textänderungen einer Wiki-Seite.');
@@ -1696,10 +1533,7 @@ function showComboDiff($keyword, $db=NULL)
     $version2=$version2["version"];
     $version1=$version1["version"];
 
-    showPageFrameStart();
-    wikiSinglePageHeader($wikiData, $keyword);
-
-    echo "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">";
+    $content = "\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">";
 
     // create combodiff
 
@@ -1721,28 +1555,28 @@ function showComboDiff($keyword, $db=NULL)
         }
         $current_version++;
     }
-    $content="<table>";
+    $legend="<table>";
     $count=0;
     $authors=array();
     foreach ($diffarray1 as $i) {
         if ($i && !in_array($i->who, $authors)) {
             $authors[]=$i->who;
             if ($count % 4 == 0) {
-                $content.= "<tr width=\"100%\">";
+                $legend.= "<tr width=\"100%\">";
             }
-            $content.= "<td bgcolor=".create_color($count)." width=14>&nbsp;</td><td><font size=-1>".get_fullname($i->who,'full',1)."</font></td><td>&nbsp;</td>";
+            $legend.= "<td bgcolor=".create_color($count)." width=14>&nbsp;</td><td><font size=-1>".get_fullname($i->who,'full',1)."</font></td><td>&nbsp;</td>";
             if ($count % 4 == 3) {
-                $content .= "</tr>";
+                $legend .= "</tr>";
             }
             $count++;
         }
     }
-    echo "<tr><td class=\"table_row_even\" colspan=2>";
-    echo "<p><font size=-1>&nbsp;<br>";
-    echo _("Legende der Autor/-innenfarben:");
-    echo "<table cellpadding=6 cellspacing=6>$content</table>\n";
-    echo "</p>";
-    echo "<table cellpadding=0 cellspacing=0 width=\"100%\">";
+    $content .= "<tr><td colspan=2>";
+    $content .= "<p><font size=-1>&nbsp;<br>";
+    $content .= _("Legende der Autor/-innenfarben:");
+    $content .= "<table cellpadding=6 cellspacing=6>$legend</table>\n";
+    $content .= "</p>";
+    $content .= "<table cellpadding=0 cellspacing=0 width=\"100%\">";
     $last_author=None;
     $collect="";
     $diffarray1[]=NULL;
@@ -1751,14 +1585,14 @@ function showComboDiff($keyword, $db=NULL)
             if (trim($collect)!="") {
                 $idx=array_search($last_author, $authors);
                 $col=create_color($idx);
-                echo "<tr bgcolor=$col>";
-                echo "<td width=30 align=center valign=top>";
-                echo Icon::create('info-circle', 'inactive', ['title' => _("Änderung von").' ' . get_fullname($last_author)])->asImg();
-                echo "</td>";
-                echo "<td><font size=-1>";
-                echo wikiReady($collect);
-                echo "</font></td>";
-                echo "</tr>";
+                $content .= "<tr bgcolor=$col>";
+                $content .= "<td width=30 align=center valign=top>";
+                $content .= Icon::create('info-circle', 'inactive', ['title' => _("Änderung von").' ' . get_fullname($last_author)])->asImg();
+                $content .= "</td>";
+                $content .= "<td><font size=-1>";
+                $content .= wikiReady($collect);
+                $content .= "</font></td>";
+                $content .= "</tr>";
             }
             $collect="";
         }
@@ -1767,10 +1601,17 @@ function showComboDiff($keyword, $db=NULL)
             $collect .= $i->text;
         }
     }
-    echo "</table></td></tr>";
-    echo "</table>     ";
+    $content .= "</table></td></tr>";
+    $content .= "</table>     ";
+
+    $wikiData = getWikiPage($keyword, null);
+
+    $template = $GLOBALS['template_factory']->open('wiki/show.php');
+    $template->wikipage = $wikiData;
+    $template->content  = $content;
+    echo $template->render();
+
     getDiffPageInfobox($keyword);
-    showPageFrameEnd();
 
     // help texts
     $help = array(
@@ -2021,5 +1862,3 @@ class DiffLine
         return $this->text;
     }
 }
-
-?>

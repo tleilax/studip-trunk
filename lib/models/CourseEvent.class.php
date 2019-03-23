@@ -111,7 +111,7 @@ class CourseEvent extends CourseDate implements Event
         $permission = $perm->get_studip_perm($event->range_id, $user_id);
         switch ($permission) {
             case 'dozent' :
-                $related_persons = $event->dozenten->pluck($user_id);
+                $related_persons = $event->dozenten->pluck('user_id');
                 if (sizeof($related_persons)) {
                     if (in_array($user_id, $related_persons)) {
                         $check_related = true;

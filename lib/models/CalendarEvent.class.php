@@ -36,33 +36,44 @@ class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
     private $properties = null;
     private $permission_user_id = null;
 
-    protected static function configure($config = array())
+    protected static function configure($config = [])
     {
         $config['db_table'] = 'calendar_event';
-        $config['belongs_to']['user'] = array(
-            'class_name' => 'User',
+
+        $config['belongs_to']['user'] = [
+            'class_name'  => User::class,
             'foreign_key' => 'range_id',
-        );
-        $config['belongs_to']['course'] = array(
-            'class_name' => 'Course',
+        ];
+        $config['belongs_to']['course'] = [
+            'class_name'  => Course::class,
             'foreign_key' => 'range_id',
-        );
-        $config['belongs_to']['institute'] = array(
-            'class_name' => 'Institute',
+        ];
+        $config['belongs_to']['institute'] = [
+            'class_name'  => Institute::class,
             'foreign_key' => 'range_id',
-        );
-        $config['has_one']['event'] = array(
-            'class_name' => 'EventData',
-            'foreign_key' => 'event_id',
+        ];
+        $config['has_one']['event'] = [
+            'class_name'        => EventData::class,
+            'foreign_key'       => 'event_id',
             'assoc_foreign_key' => 'event_id',
-            'on_delete' => 'delete',
-            'on_store' => 'store'
-        );
-        $config['has_many']['attendees'] = array(
-            'class_name' => 'CalendarEvent',
-            'foreign_key' => 'event_id',
+            'on_delete'         => 'delete',
+            'on_store'          => 'store'
+        ];
+        $config['has_many']['attendees'] = [
+            'class_name'        => CalendarEvent::class,
+            'foreign_key'       => 'event_id',
             'assoc_foreign_key' => 'event_id'
-        );
+        ];
+        $config['belongs_to']['consultation_booking'] = [
+            'class_name'        => ConsultationBooking::class,
+            'foreign_key'       => 'event_id',
+            'assoc_foreign_key' => 'student_event_id',
+        ];
+        $config['belongs_to']['consultation_slot'] = [
+            'class_name'        => ConsultationSlot::class,
+            'foreign_key'       => 'event_id',
+            'assoc_foreign_key' => 'teacher_event_id',
+        ];
         $config['additional_fields']['type'] = true;
         $config['additional_fields']['name'] = true;
         $config['additional_fields']['author_id'] = true;
@@ -71,6 +82,17 @@ class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
         $config['additional_fields']['start'] = true;
         $config['additional_fields']['end'] = true;
         $config['additional_fields']['owner']['get'] = 'getOwner';
+
+        $config['registered_callbacks']['after_delete'][] = function ($event) {
+            if ($event->consultation_booking) {
+                $event->consultation_booking->student_event_id = null;
+                $event->consultation_booking->store();
+            }
+            if ($event->consultation_slot) {
+                $event->consultation_slot->teacher_event_id = null;
+                $event->consultation_slot->store();
+            }
+        };
 
         parent::configure($config);
     }
@@ -1098,18 +1120,26 @@ class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
      */
     public static function getEventsByInterval($range_id, DateTime $start, DateTime $end)
     {
-        $stmt = DBManager::get()->prepare('SELECT * FROM calendar_event '
-                . 'INNER JOIN event_data USING(event_id) '
-                . 'WHERE range_id = :range_id '
-                . 'AND (start BETWEEN :start AND :end OR '
-                . "(start <= :end AND (expire + end - start) >= :start AND rtype != 'SINGLE') "
-                . 'OR (:start BETWEEN start AND end)) '
-                . 'ORDER BY start ASC');
-        $stmt->execute(array(
+        $query = "SELECT *
+                  FROM calendar_event
+                  INNER JOIN event_data USING (event_id)
+                  WHERE range_id = :range_id
+                    AND (
+                        start BETWEEN :start AND :end
+                        OR (
+                            start <= :end
+                            AND CAST(expire AS SIGNED) + CAST(end AS SIGNED) - CAST(start AS SIGNED) >= :start
+                            AND rtype != 'SINGLE'
+                        )
+                        OR :start BETWEEN start AND end
+                    )
+                  ORDER BY start ASC";
+        $stmt = DBManager::get()->prepare($query);
+        $stmt->execute([
             ':range_id' => $range_id,
             ':start'    => $start->getTimestamp(),
-            ':end'      => $end->getTimestamp()
-        ));
+            ':end'      => $end->getTimestamp(),
+        ]);
         $i = 0;
         $event_collection = new SimpleORMapCollection();
         $event_collection->setClassName('Event');
@@ -1335,26 +1365,23 @@ class CalendarEvent extends SimpleORMap implements Event, PrivacyObject
     }
 
     /**
-     * Return a storage object (an instance of the StoredUserData class)
-     * enriched with the available data of a given user.
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
      *
-     * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @param StoredUserData $storage object to store data into
      */
-    public static function getUserdata(User $user)
+    public static function exportUserData(StoredUserData $storage)
     {
-        $storage = new StoredUserData($user);
-        $sorm = CalendarEvent::findBySQL("range_id = ?", [$user->user_id]);
+        $sorm = CalendarEvent::findBySQL("range_id = ?", [$storage->user_id]);
         if ($sorm) {
             $field_data = [];
             foreach ($sorm as $row) {
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('calendar_event', $field_data, $user);
+                $storage->addTabularData(_('Kalender'), 'calendar_event', $field_data);
             }
         }
-        return [_('Kalender') => $storage];
     }
 
 }

@@ -62,7 +62,7 @@ class Course_ManagementController extends AuthenticatedController
             $links = new ActionsWidget();
             foreach (Navigation::getItem('/course/admin/main') as $nav) {
                 if ($nav->isVisible(true)) {
-                    $links->addLink($nav->getTitle(), URLHelper::getLink($nav->getURL(), array('studip_ticket' => Seminar_Session::get_ticket())), $nav->getImage(), $nav->getLinkAttributes());
+                    $links->addLink($nav->getTitle(), URLHelper::getURL($nav->getURL(), array('studip_ticket' => Seminar_Session::get_ticket())), $nav->getImage(), $nav->getLinkAttributes());
                 }
             }
             $sidebar->addWidget($links);
@@ -91,20 +91,24 @@ class Course_ManagementController extends AuthenticatedController
      */
     function change_visibility_action()
     {
-        if ((Config::get()->ALLOW_DOZENT_VISIBILITY || $GLOBALS['perm']->have_perm('admin')) &&
-            !LockRules::Check($GLOBALS['SessionSeminar'], 'seminar_visibility') && Seminar_Session::check_ticket(Request::option('studip_ticket'))) {
+        if ((Config::get()->ALLOW_DOZENT_VISIBILITY || $GLOBALS['perm']->have_perm('admin'))
+            && !LockRules::Check($GLOBALS['SessionSeminar'], 'seminar_visibility')
+            && check_ticket(Request::option('studip_ticket')))
+        {
             $course = Course::findCurrent();
-            if (!$course->visible) {
-                StudipLog::log('SEM_VISIBLE', $course->id);
-                $course->visible = 1;
-                $msg             = _("Die Veranstaltung wurde sichtbar gemacht.");
-            } else {
-                StudipLog::log('SEM_INVISIBLE', $course->id);
-                $course->visible = 0;
-                $msg             = _("Die Veranstaltung wurde versteckt.");
-            }
-            if ($course->store()) {
-                PageLayout::postMessage(MessageBox::success($msg));
+            if ($course->duration_time == -1 || $course->end_semester->visible) {
+                if (!$course->visible) {
+                    StudipLog::log('SEM_VISIBLE', $course->id);
+                    $course->visible = true;
+                    $msg = _('Die Veranstaltung wurde sichtbar gemacht.');
+                } else {
+                    StudipLog::log('SEM_INVISIBLE', $course->id);
+                    $course->visible = false;
+                    $msg = _('Die Veranstaltung wurde versteckt.');
+                }
+                if ($course->store()) {
+                    PageLayout::postSuccess($msg);
+                }
             }
         }
         $this->redirect($this->url_for('/index'));

@@ -101,6 +101,7 @@ class StreamsController extends PluginController {
      * Displays the profile-stream with all threads by the given user.
      */
     public function profile_action() {
+        Navigation::activateItem("/profile/blubber");
         if (Request::get('extern')) {
             $this->user = BlubberExternalContact::find(Request::option('user_id'));
         } elseif (Request::option('user_id')) {
@@ -996,7 +997,7 @@ class StreamsController extends PluginController {
             foreach ($tags as $tag) {
                 $cloud->addLink(
                     "#".$tag['tag'],
-                    URLHelper::getLink("plugins.php/blubber/streams/$context", array('hash' => $tag['tag'])),
+                    URLHelper::getURL("plugins.php/blubber/streams/$context", array('hash' => $tag['tag'])),
                     ceil(10 * $tag['counter'] / $maximum)
                 );
             }

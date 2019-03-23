@@ -141,19 +141,30 @@ const QuickSearch = {
 
             if (jQuery('#' + name + '_frame').length) {
                 // trigger search on button click
-                $('#' + name + '_frame input[type="submit"]').click(function(e) {
+                jQuery('#' + name + '_frame input[type="submit"]').click(function(e) {
                     e.preventDefault();
                     QuickSearch.triggerSearch(name);
                 });
 
                 // trigger search on enter key down
-                $('#' + name).keydown(function(e) {
+                jQuery('#' + name).keydown(function(e) {
                     if (e.keyCode == 13) {
                         e.preventDefault();
                         QuickSearch.triggerSearch(name);
                     }
                 });
             }
+
+            var input  = jQuery('#' + name);
+            var hidden = jQuery('#' + name + '_realvalue');
+            if (input.is('[required]')) {
+                input.closest('form').submit(function (event) {
+                    if (hidden.val() === '') {
+                        input[0].setCustomValidity('Bitte wählen Sie einen gültigen Wert aus!'.toLocaleString());
+                        event.preventDefault();
+                     }
+                 });
+             }
         }
     },
 
@@ -163,6 +174,14 @@ const QuickSearch = {
         jQuery('#' + name).autocomplete({ minLength: 1 });
         jQuery('#' + name).autocomplete('search', term);
         jQuery('#' + name).autocomplete({ minLength: 3 });
+    },
+
+    reset: function(form_name, quick_search_name) {
+        if (!form_name || !quick_search_name) {
+            return;
+        }
+        document.forms[form_name].elements[quick_search_name].value = '';
+        document.forms[form_name].elements[quick_search_name + '_parameter'].value = '';
     }
 };
 

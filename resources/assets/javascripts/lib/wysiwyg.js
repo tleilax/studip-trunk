@@ -64,7 +64,8 @@ function replaceTextarea(textarea) {
     }
 
     // create new toolbar container
-    var textareaWidth = (textarea.outerWidth() / textarea.parent().width()) * 100 + '%';
+    var textareaHeight = Math.max(textarea.height(), 200),
+        textareaWidth = (textarea.outerWidth() / textarea.parent().width()) * 100 + '%';
 
     // fetch ckeditor configuration
     var options = textarea.attr('data-editor'),
@@ -187,6 +188,7 @@ function replaceTextarea(textarea) {
                 styles: ['float', 'height', 'width']
             }
         },
+        height: textareaHeight,
         width: textareaWidth,
         skin: 'studip,' + STUDIP.ASSETS_URL + 'stylesheets/ckeditor-skin/',
         // NOTE codemirror crashes when not explicitely loaded in CKEditor 4.4.7
@@ -479,6 +481,13 @@ function replaceTextarea(textarea) {
                 editor.focus();
             }
         });
+
+	// fix for not pasting text from clipboard twice on firefox in a dialog
+	if (CKEDITOR.env.gecko && $textarea.closest('.ui-dialog').length) {
+            $(editor.container.$).on('paste', function(event) {
+                event.preventDefault();
+            });
+	}
 
         // clean up HTML edited in source mode before submit
         var form = $textarea.closest('form');

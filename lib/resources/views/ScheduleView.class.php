@@ -47,6 +47,7 @@ class ScheduleView
     var $add_link;
     var $start_date;            //the timestamp of the first day (monday) of the viewed week
     var $categories;
+    var $add_info_is_html = false;
 
     public function __construct($start_hour = 8, $end_hour = 20, $show_columns = false,  $start_date = false)
     {
@@ -119,6 +120,10 @@ class ScheduleView
         $id = md5(uniqid("rss",1));
         if( ($collision_id = $this->checkCollision($sort_index,$category)) ){
             $this->events[$collision_id]['collisions'][] = array('name' => $name, 'link' => $link,'add_info' => $add_info);
+            if ($end_time > $this->events[$collision_id]['end_time']) {
+                $this->events[$collision_id]['rows'] = $rows;
+                $this->events[$collision_id]['end_time'] = $end_time;
+            }
         } else {
             $this->events[$id]=array (
                         "sort_index" => $sort_index,
@@ -328,7 +333,7 @@ class ScheduleView
                         if (($k == 3) && ($this->add_link) && !$print_view) {
                             echo $this->getAddLink($l,$i);
                         } else
-                            echo "class=\"table_row_even\" align=\"right\"></td>";
+                            echo 'class="table_row_even" align="right"></td>';
                     }
                 }
                 echo "</tr>\n";
@@ -351,19 +356,15 @@ class ScheduleView
     public function getAddLink($l, $i)
     {
         $add_link_timestamp = $this->base_date + (($l-1) * 24 * 60 * 60) + ($i * 60 * 60);
-        return sprintf("class=\"table_row_even\" align=\"right\" valign=\"bottom\"><a href=\"%s\">%s</a></td>",
-                       URLHelper::getLink($this->add_link . $add_link_timestamp),
-                       Icon::create(
-                           'add',
-                           Icon::ROLE_INACTIVE,
-                           tooltip2(
-                               sprintf(_('Eine neue Belegung von %s bis %s Uhr anlegen'),
-                                    date('H:i', $add_link_timestamp),
-                                    date('H:i', $add_link_timestamp + 2 * 60 * 60)
-                                )
-                            )
-                        )->asImg(8)
-                    );
+        return sprintf(
+            'class="table_row_even" align="left" valign="bottom"><a href="%s">%s</a></td>',
+            URLHelper::getLink($this->add_link . $add_link_timestamp),
+            Icon::create('add')->asImg(8, tooltip2(sprintf(
+                _('Eine neue Belegung von %s bis %s Uhr anlegen'),
+                strftime('%R', $add_link_timestamp),
+                strftime('%R', strtotime('+2 hours', $add_link_timestamp))
+            )))
+        );
 
     }
 
@@ -376,7 +377,7 @@ class ScheduleView
             }
             $out .= $this->getShortName($this->events[$id]['name'], $print_view);
             if ($this->events[$id]['add_info']) {
-                $out.= "\n<br>" . htmlReady($this->events[$id]['add_info']);
+                $out.= "\n<br>" . ($this->add_info_is_html ? $this->events[$id]['add_info'] : htmlReady($this->events[$id]['add_info']));
             }
             if (!$print_view) {
                 $out.= "\n</a>";
@@ -388,7 +389,7 @@ class ScheduleView
                 }
                 $out .= $this->getShortName($this->events[$id]['name'], $print_view);
                 if ($this->events[$id]['add_info']) {
-                    $out.= "\n<br>" . htmlReady($this->events[$id]["add_info"]);
+                    $out.= "\n<br>" . ($this->add_info_is_html ? $this->events[$id]['add_info'] : htmlReady($this->events[$id]['add_info']));
                 }
                 if (!$print_view) {
                     $out.= "\n</a>";
@@ -399,7 +400,7 @@ class ScheduleView
                     }
                     $out .= "\n<br>" . $this->getShortName($event['name'], $print_view);
                     if ($event['add_info']) {
-                        $out.= "<br>" . htmlReady($event['add_info']);
+                        $out.= "<br>" . ($this->add_info_is_html ? $event['add_info'] : htmlReady($event['add_info']));
                     }
                     if (!$print_view) {
                         $out.= "\n</a>";

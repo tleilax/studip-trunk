@@ -23,12 +23,12 @@
  *
  * usage:
  *
- * echo MessageBox::error('Nachricht', array('optional details'));
+ * echo MessageBox::error('Nachricht', ['optional details']);
  *
  * use the optional parameter $close_details for displaying the message box with
  * closed details
  *
- * echo MessageBox::success('Nachricht', array('optional details'), true);
+ * echo MessageBox::success('Nachricht', ['optional details'], true);
  *
  */
 class MessageBox implements LayoutMessage
@@ -36,18 +36,22 @@ class MessageBox implements LayoutMessage
     /**
      * type and contents of the message box
      */
-    public $class, $message, $details, $close_details;
+    public $class;
+    public $message;
+    public $details;
+    public $close_details;
+    protected $hide_close = false;
 
     /**
      * This function returns an exception message box. Use it only for system errors
      * or security related problems.
      *
      * @param string $message
-     * @param array() $details
+     * @param array $details
      * @param boolean $close_details
      * @return object MessageBox object
      */
-    public static function exception($message, $details = array(), $close_details = false)
+    public static function exception($message, $details = [], $close_details = false)
     {
         return new MessageBox('exception', $message, $details, $close_details);
     }
@@ -57,11 +61,11 @@ class MessageBox implements LayoutMessage
      * problems and other wrong user input.
      *
      * @param string $message
-     * @param array() $details (optional)
+     * @param array $details (optional)
      * @param boolean $close_details (optional)
      * @return object MessageBox object
      */
-    public static function error($message, $details = array(), $close_details = false)
+    public static function error($message, $details = [], $close_details = false)
     {
         return new MessageBox('error', $message, $details, $close_details);
     }
@@ -71,11 +75,11 @@ class MessageBox implements LayoutMessage
      * interaction.
      *
      * @param string $message
-     * @param array() $details (optional)
+     * @param array $details (optional)
      * @param boolean $close_details (optional)
      * @return object MessageBox object
      */
-    public static function success($message, $details = array(), $close_details = false)
+    public static function success($message, $details = [], $close_details = false)
     {
         return new MessageBox('success', $message, $details, $close_details);
     }
@@ -85,11 +89,11 @@ class MessageBox implements LayoutMessage
      * informations.
      *
      * @param string $message
-     * @param array() $details (optional)
+     * @param array $details (optional)
      * @param boolean $close_details (optional)
      * @return object MessageBox object
      */
-    public static function info($message, $details = array(), $close_details = false)
+    public static function info($message, $details = [], $close_details = false)
     {
         return new MessageBox('info', $message, $details, $close_details);
     }
@@ -99,11 +103,11 @@ class MessageBox implements LayoutMessage
      * wrong behaviour.
      *
      * @param string $message
-     * @param array() $details (optional)
+     * @param array $details (optional)
      * @param boolean $close_details (optional)
      * @return object MessageBox object
      */
-    public static function warning($message, $details = array(), $close_details = false)
+    public static function warning($message, $details = [], $close_details = false)
     {
         return new MessageBox('warning', $message, $details, $close_details);
     }
@@ -113,15 +117,27 @@ class MessageBox implements LayoutMessage
      *
      * @param string $class the type of this message
      * @param string $message
-     * @param array() $details (optional)
+     * @param array $details (optional)
      * @param boolean $close_details (optional)
      */
-    protected function __construct($class, $message, $details = array(), $close_details = false)
+    protected function __construct($class, $message, $details = [], $close_details = false)
     {
         $this->class         = $class;
         $this->message       = $message;
         $this->details       = $details;
         $this->close_details = $close_details;
+    }
+
+    /**
+     * Sets the state whether the close button should be hidden or not.
+     *
+     * @param  boolean $state Whether the close button should be hidden or not
+     * @return MessageBox instance to allow chaining
+     */
+    public function hideClose($state = true)
+    {
+        $this->hide_close = (bool) $state;
+        return $this;
     }
 
     /**
@@ -131,13 +147,12 @@ class MessageBox implements LayoutMessage
      */
     public function __toString()
     {
-        $params = array(
+        return $GLOBALS['template_factory']->render('shared/message_box', [
             'class'         => $this->class,
             'message'       => $this->message,
-            'details'       => $this->details,
-            'close_details' => $this->close_details
-        );
-
-        return $GLOBALS['template_factory']->render('shared/message_box', $params);
+            'details'       => is_array($this->details) ? $this->details : [],
+            'close_details' => $this->close_details,
+            'hide_close'    => $this->hide_close,
+        ]);
     }
 }

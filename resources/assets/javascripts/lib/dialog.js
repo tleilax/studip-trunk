@@ -99,6 +99,8 @@ const Dialog = {
 
 // Handler for HTTP header X-Location: Relocate to another location
 Dialog.handlers.header['X-Location'] = function(location, options) {
+    location = decodeURIComponent(location);
+
     if (document.location.href === location) {
         document.location.reload(true);
     } else {
@@ -373,6 +375,15 @@ Dialog.show = function(content, options) {
             .appendTo('body');
         // Prevent buttons from wrapping
         $('[data-dialog-button]', helper).css('white-space', 'nowrap');
+        // Add cancel button if missing
+        if ((!options.hasOwnProperty('buttons') || options.button !== false)
+            && $('[data-dialog-button] .button.cancel', helper).length === 0) {
+                var cancel = $('<button class="button cancel">').text('Schließen'.toLocaleString);
+                $('[data-dialog-button]', helper).append(cancel);
+            }
+        {
+
+        }
         // Calculate width and height
         // TODO: The value of 113 shouldn't be hardcoded
         width = Math.min(helper.outerWidth(true) + dialog_margin, width);

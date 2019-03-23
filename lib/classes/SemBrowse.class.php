@@ -1074,21 +1074,21 @@ class SemBrowse {
                             $seminar_obj->admission_prelim)) {
                         case 1:
                             $row .= Icon::create(
-                                'span-2quarter',
+                                'info-circle',
                                 Icon::ROLE_STATUS_YELLOW,
                                 tooltip2(_('Eingeschränkter Zugang'))
                             );
                             break;
                         case 2:
                             $row .= Icon::create(
-                                'span-empty',
+                                'decline-circle',
                                 Icon::ROLE_STATUS_RED,
                                 tooltip2(_('Kein Zugang'))
                             );
                             break;
                         default:
                             $row .= Icon::create(
-                                'span-full',
+                                'check-circle',
                                 Icon::ROLE_STATUS_GREEN,
                                 tooltip2(_('Uneingeschränkter Zugang'))
                             );
@@ -1432,16 +1432,17 @@ class SemBrowse {
      */
     public static function setSemesterSelector($submit_url)
     {
-        $semesters = SemesterData::GetSemesterArray();
+        $semesters = SemesterData::getSemesterArray();
+        unset($semesters[0]);
         $sidebar = Sidebar::Get();
         $list = new SelectWidget(_('Semester'),
                 $submit_url, 'search_sem_sem');
         $list->addElement(new SelectElement('all', _('Alle'),
                 ($_SESSION['sem_browse_data']['default_sem']) === 'all'));
-        for ($i = count($semesters) -1 ; $i >= 0; --$i) {
+        foreach(array_reverse($semesters, true) as $i => $semester_data) {
             $list->addElement(new SelectElement(
                 $i,
-                $semesters[$i]['name'],
+                $semester_data['name'],
                 ($_SESSION['sem_browse_data']['default_sem'] !== 'all'
                     && intval($_SESSION['sem_browse_data']['default_sem']) === $i)
             ));

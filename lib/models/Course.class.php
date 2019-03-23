@@ -220,6 +220,10 @@ class Course extends SimpleORMap implements Range, PrivacyObject
         $config['i18n_fields']['ort'] = true;
 
         $config['registered_callbacks']['before_update'][] = 'logStore';
+        $config['registered_callbacks']['after_delete'][] = function ($course) {
+            CourseAvatar::getAvatar($course->id)->reset();
+        };
+
         parent::configure($config);
     }
 
@@ -393,42 +397,33 @@ class Course extends SimpleORMap implements Range, PrivacyObject
         $added = array_diff($ids, $old);
         $removed = array_diff($old, $ids);
 
-        if ($added || $removed) {
-
-            $this->study_areas = SimpleCollection::createFromArray(StudipStudyArea::findMany($ids));
-
-            if ($this->store()) {
-                NotificationCenter::postNotification('CourseDidChangeStudyArea', $this);
-                $success = true;
-
-                foreach ($added as $one) {
-                    StudipLog::log('SEM_ADD_STUDYAREA', $this->id, $one);
-
-                    $area = $this->study_areas->find($one);
-                    if ($area->isModule()) {
-                        NotificationCenter::postNotification(
-                            'CourseAddedToModule',
-                            $area,
-                            ['module_id' => $one, 'course_id' => $this->id]
-                        );
-                    }
+        $this->study_areas = SimpleCollection::createFromArray(StudipStudyArea::findMany($ids));
+        if ($this->store() !== false) {
+            NotificationCenter::postNotification('CourseDidChangeStudyArea', $this);
+            $success = true;
+            foreach ($added as $one) {
+                StudipLog::log('SEM_ADD_STUDYAREA', $this->id, $one);
+                $area = $this->study_areas->find($one);
+                if ($area->isModule()) {
+                    NotificationCenter::postNotification(
+                        'CourseAddedToModule',
+                        $area,
+                        ['module_id' => $one, 'course_id' => $this->id]
+                    );
                 }
-
-                foreach ($removed as $one) {
-                    StudipLog::log('SEM_DELETE_STUDYAREA', $this->id, $one);
-
-                    $area = StudipStudyArea::find($one);
-                    if ($area->isModule()) {
-                        NotificationCenter::postNotification(
-                            'CourseRemovedFromModule',
-                            $area,
-                            ['module_id' => $one, 'course_id' => $this->id]
-                        );
-                    }
+            }
+            foreach ($removed as $one) {
+                StudipLog::log('SEM_DELETE_STUDYAREA', $this->id, $one);
+                $area = StudipStudyArea::find($one);
+                if ($area->isModule()) {
+                    NotificationCenter::postNotification(
+                        'CourseRemovedFromModule',
+                        $area,
+                        ['module_id' => $one, 'course_id' => $this->id]
+                    );
                 }
             }
         }
-
         return $success;
     }
 
@@ -594,16 +589,14 @@ class Course extends SimpleORMap implements Range, PrivacyObject
     }
 
     /**
-     * Return a storage object (an instance of the StoredUserData class)
-     * enriched with the available data of a given user.
+     * Export available data of a given user into a storage object
+     * (an instance of the StoredUserData class) for that user.
      *
-     * @param User $user User object to acquire data for
-     * @return array of StoredUserData objects
+     * @param StoredUserData $storage object to store data into
      */
-    public static function getUserdata(User $user)
+    public static function exportUserData(StoredUserData $storage)
     {
-        $storage = new StoredUserData($user);
-        $sorm = self::findThru($user->user_id, [
+        $sorm = self::findThru($storage->user_id, [
             'thru_table'        => 'seminar_user',
             'thru_key'          => 'user_id',
             'thru_assoc_key'    => 'Seminar_id',
@@ -615,9 +608,8 @@ class Course extends SimpleORMap implements Range, PrivacyObject
                 $field_data[] = $row->toRawArray();
             }
             if ($field_data) {
-                $storage->addTabularData('seminare', $field_data, $user);
+                $storage->addTabularData(_('Seminare'), 'seminare', $field_data);
             }
         }
-        return [_('Seminare') => $storage];
     }
 }

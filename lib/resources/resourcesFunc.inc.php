@@ -218,8 +218,8 @@ function getGlobalPerms($user_id)
     if ($cache[$user_id]) {
         return $cache[$user_id];
     }
-
-    if ($perm->have_perm('root')) {
+    
+    if ($perm->have_perm('root', $user_id)) {
         $res_perm = 'admin';
     } else {
         $query = "SELECT perms
@@ -992,7 +992,7 @@ function search_admin_user ($search_string='')
                  OR CONCAT(Nachname, ', ', Vorname) LIKE CONCAT('%', :needle, '%')
                  OR CONCAT(Vorname, ' ', Nachname) LIKE CONCAT('%', :needle, '%')
                  OR a.user_id = :needle
-              ORDER BY Nachname";
+              ORDER BY Nachname, Vorname";
     $statement = DBManager::get()->prepare($query);
     $statement->bindValue(':needle', $search_string);
     $statement->bindValue(':art', _('Personen'));
@@ -1023,7 +1023,7 @@ function search_objects($search_string = '', $user_id = '', $sem = TRUE)
                      OR CONCAT(Nachname, ', ', Vorname) LIKE CONCAT('%', :needle, '%')
                      OR CONCAT(Vorname, ' ', Nachname) LIKE CONCAT('%', :needle, '%')
                      OR user_id = :needle
-                  ORDER BY Nachname";
+                  ORDER BY Nachname, Vorname";
 
     //Alle Seminare...
     if ($sem) {

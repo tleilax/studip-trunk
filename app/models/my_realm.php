@@ -466,19 +466,33 @@ class MyRealmModel
      */
     public static function checkWiki(&$my_obj, $user_id, $object_id)
     {
-        if ($my_obj["modules"]["wiki"]) {
-            $sql       = "SELECT COUNT(DISTINCT keyword) as count_d,
-                COUNT(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND wiki.user_id !=:user_id), keyword, NULL)) AS neue,
-                MAX(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND wiki.user_id !=:user_id), chdate, 0)) AS last_modified,
-              COUNT(keyword) as count
-            FROM
-              wiki
-            LEFT JOIN
-              object_user_visits ouv ON(ouv . object_id = wiki . range_id AND ouv . user_id = :user_id and ouv . type = 'wiki')
-            WHERE
-              wiki . range_id = :course_id
-            GROUP BY
-              wiki.range_id";
+        $priviledged = $GLOBALS['perm']->have_studip_perm('tutor', $object_id, $user_id);
+
+        if ($my_obj['modules']['wiki']) {
+            if ($priviledged) {
+                $sql = "SELECT COUNT(DISTINCT keyword) AS count_d,
+                               COUNT(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND wiki.user_id != :user_id), keyword, NULL)) AS neue,
+                               MAX(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND wiki.user_id !=:user_id), chdate, 0)) AS last_modified,
+                               COUNT(keyword) AS count
+                        FROM wiki
+                        LEFT JOIN object_user_visits AS ouv ON (ouv.object_id = wiki.range_id AND ouv.user_id = :user_id and ouv.type = 'wiki')
+                        WHERE wiki.range_id = :course_id
+                        GROUP BY wiki.range_id";
+            } else {
+                $sql = "SELECT COUNT(DISTINCT keyword) AS count_d,
+                               COUNT(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND wiki.user_id != :user_id), keyword, NULL)) AS neue,
+                               MAX(IF((chdate > IFNULL(ouv.visitdate, :threshold) AND wiki.user_id !=:user_id), chdate, 0)) AS last_modified,
+                               COUNT(keyword) AS count
+                        FROM wiki
+                        LEFT JOIN wiki_page_config USING (range_id, keyword)
+                        LEFT JOIN object_user_visits AS ouv ON (ouv.object_id = wiki.range_id AND ouv.user_id = :user_id and ouv.type = 'wiki')
+                        WHERE wiki.range_id = :course_id
+                          AND (
+                              wiki_page_config.range_id IS NULL
+                              OR wiki_page_config.read_restricted = 0
+                          )
+                        GROUP BY wiki.range_id";
+            }
             $statement = DBManager::get()->prepare($sql);
             $statement->bindValue(':user_id', $user_id);
             $statement->bindValue(':course_id', $object_id);
@@ -487,50 +501,36 @@ class MyRealmModel
             $result = $statement->fetch(PDO::FETCH_ASSOC);
 
             if (!empty($result)) {
-                if (!is_null($result['last_modified']) && (int)$result['last_modified'] != 0) {
-                    if ($my_obj['last_modified'] < $result['last_modified']) {
-                        $my_obj['last_modified'] = $result['last_modified'];
-                    }
+                if ($result['last_modified'] && $my_obj['last_modified'] < $result['last_modified']) {
+                    $my_obj['last_modified'] = $result['last_modified'];
                 }
                 $nav = new Navigation('wiki');
-                if ((int)$result['neue']) {
+                if ($result['neue']) {
                     $nav->setURL('wiki.php?view=listnew');
-                    $nav->setImage(
-                        Icon::create(
-                            'wiki+new',
-                            'attention',
-                            [
-                                'title' => sprintf(
-                                    ngettext(
-                                        '%1$d Wiki-Seite, %2$d Änderung(en)',
-                                        '%1$d Wiki-Seiten, %2$d Änderung(en)',
-                                        $result['count_d']
-                                    ),
-                                    $result['count_d'],
-                                    $result['neue']
-                                )
-                            ]
+                    $nav->setImage(Icon::create('wiki+new', Icon::ROLE_ATTENTION, [
+                        'title' => sprintf(
+                            ngettext(
+                                '%1$d Wiki-Seite, %2$d Änderung(en)',
+                                '%1$d Wiki-Seiten, %2$d Änderung(en)',
+                                $result['count_d']
+                            ),
+                            $result['count_d'],
+                            $result['neue']
                         )
-                    );
+                    ]));
                     $nav->setBadgeNumber($result['neue']);
-                } elseif ((int)$result['count']) {
+                } elseif ($result['count']) {
                     $nav->setURL('wiki.php');
-                    $nav->setImage(
-                        Icon::create(
-                            'wiki',
-                            'inactive',
-                            [
-                                'title' => sprintf(
-                                    ngettext(
-                                        '%d Wiki-Seite',
-                                        '%d Wiki-Seiten',
-                                        $result['count_d']
-                                    ),
-                                    $result['count_d']
-                                )
-                            ]
+                    $nav->setImage(Icon::create('wiki', Icon::ROLE_INACTIVE, [
+                        'title' => sprintf(
+                            ngettext(
+                                '%d Wiki-Seite',
+                                '%d Wiki-Seiten',
+                                $result['count_d']
+                            ),
+                            $result['count_d']
                         )
-                    );
+                    ]));
                 }
                 return $nav;
             }
@@ -571,39 +571,39 @@ class MyRealmModel
                 $nav = new Navigation('elearning', 'dispatch.php/course/elearning/show');
                 if ((int)$result['neue']) {
                     $nav->setImage(
-                        Icon::create(
-                            'learnmodule+new',
-                            'attention',
-                            [
-                                'title' => sprintf(
-                                    ngettext(
-                                        '%1$d Lernmodul, %2$d neues',
-                                        '%1$d Lernmodule, %2$d neue',
-                                        $result['count']
-                                    ),
-                                    $result['count'],
-                                    $result['neue']
-                                )
-                            ]
-                        )
-                    );
+                            Icon::create(
+                                    'learnmodule+new',
+                                    'attention',
+                                    [
+                                                    'title' => sprintf(
+                                                            ngettext(
+                                                                    '%1$d Lernmodul, %2$d neues',
+                                                                    '%1$d Lernmodule, %2$d neue',
+                                                                    $result['count']
+                                                                    ),
+                                                            $result['count'],
+                                                            $result['neue']
+                                                            )
+                                    ]
+                                    )
+                            );
                 } elseif ((int)$result['count']) {
                     $nav->setImage(
-                        Icon::create(
-                            'learnmodule',
-                            'inactive',
-                            [
-                                'title' => sprintf(
-                                    ngettext(
-                                        '%d Lernmodul',
-                                        '%d Lernmodule',
-                                        $result['count']
-                                    ),
-                                    $result['count']
-                                )
-                            ]
-                        )
-                    );
+                            Icon::create(
+                                    'learnmodule',
+                                    'inactive',
+                                    [
+                                                    'title' => sprintf(
+                                                            ngettext(
+                                                                    '%d Lernmodul',
+                                                                    '%d Lernmodule',
+                                                                    $result['count']
+                                                                    ),
+                                                            $result['count']
+                                                            )
+                                    ]
+                                    )
+                            );
                 }
                 return $nav;
             }
@@ -751,7 +751,9 @@ class MyRealmModel
         $order_by          = $params['order_by'];
         $order             = $params['order'];
         $deputies_enabled  = $params['deputies_enabled'];
-        $sem_data          = SemesterData::GetSemesterArray();
+
+        $sem_data = Semester::getAllAsArray();
+
         $min_sem           = $sem_data[$min_sem_key];
         $max_sem           = $sem_data[$max_sem_key];
         $studygroup_filter = !$params['studygroups_enabled'] ? false : true;
@@ -825,7 +827,7 @@ class MyRealmModel
 
     public static function getSelectedSemesters($sem = 'all')
     {
-        $sem_data  = SemesterData::GetSemesterArray();
+        $sem_data = Semester::getAllAsArray();
         $semesters = array();
         foreach ($sem_data as $sem_key => $one_sem) {
             $current_sem = $sem_key;
@@ -1027,7 +1029,7 @@ class MyRealmModel
     {
         if ($my_obj["modules"]["participants"]) {
             if (SeminarCategories::GetByTypeId($my_obj['status'])->studygroup_mode) {
-                $nav = new Navigation('participants', 'dispatch.php/course/studygroup/members/' . $object_id);
+                $nav = new Navigation('participants', 'dispatch.php/course/studygroup/members/?cid=' . $object_id);
             } else {
                 $nav = new Navigation('participants', 'dispatch.php/course/members/index');
             }

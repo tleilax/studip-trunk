@@ -1,15 +1,60 @@
 <form class="default" method="post"
-      data-dialog="<?= $show_wiki_page_form ? 'reload-on-close' : '' ?>"
-      action="<?= $controller->link_for("wiki/import/{$course->id}") ?>'"
+      name="wiki_import_form"
+      data-dialog="size=auto;<?= $show_wiki_page_form ? 'reload-on-close' : '' ?>"
+      action="<?= $controller->link_for("wiki/import/{$course->id}") ?>">
     <?= CSRFProtection::tokenTag() ?>
 
 <? if (!$show_wiki_page_form && !$success): ?>
     <fieldset>
         <legend><?= _('Suche nach Veranstaltungen') ?></legend>
-        <label>
-            <?= _('Bitte wählen Sie eine Veranstaltung aus.') ?>
+        <label class="with-action">
+            <? if ($bad_course_search): ?>
+                <?= _('Meinten Sie eine der folgenden Veranstaltungen?') ?>
+            <? else: ?>
+                <?= _('Sie können hier eine Veranstaltung mit zu importierenden Wikiseiten suchen.') ?>
+            <? endif ?>
             <?= $course_search->render() ?>
+            <?= Icon::create('search')->asImg([
+                'class' => 'text-bottom',
+                'title' => _('Suche starten'),
+                'onclick' => "jQuery(this).closest('form').submit();"
+            ]) ?>
+            <? if ($bad_course_search): ?>
+                <a href="<?= $controller->link_for("wiki/import/{$course->id}") ?>"
+                   data-dialog="1">
+                    <?= Icon::create('decline')->asImg([
+                        'class' => 'text-bottom',
+                        'title' => _('Suche zurücksetzen'),
+                        'onclick' => "STUDIP.QuickSearch.reset('wiki_import_form', 'selected_course_id');"
+                    ]) ?>
+                </a>
+            <? else: ?>
+                <?= Icon::create('decline')->asImg([
+                    'class' => 'text-bottom',
+                    'title' => _('Suche zurücksetzen'),
+                    'onclick' => "STUDIP.QuickSearch.reset('wiki_import_form', 'selected_course_id');"
+                ]) ?>
+            <? endif ?>
         </label>
+        <div data-dialog-button>
+            <? if ($bad_course_search): ?>
+                <?= Studip\LinkButton::create(
+                    _('Neue Suche'),
+                    $controller->url_for("wiki/import/{$course->id}"),
+                    ['data-dialog' => 'size=auto']
+                ) ?>
+            <? endif ?>
+            <?= Studip\LinkButton::createCancel(
+                _('Abbrechen'),
+                URLHelper::getURL(
+                    'wiki.php',
+                    [
+                        'cid' => Context::getId(),
+                        'view' => 'show'
+                    ]
+                )
+            ) ?>
+        </div>
     </fieldset>
 <? endif ?>
 
@@ -18,6 +63,10 @@
            value="<?= htmlReady($selected_course->id) ?>">
     <? if ($wiki_pages): ?>
         <table class="default">
+            <colgroup>
+                <col width="20px">
+                <col>
+            </colgroup>
             <caption>
                 <?= sprintf(
                     _('%s: Importierbare Wikiseiten'),
@@ -39,7 +88,7 @@
                     <td>
                         <input type="checkbox"
                                name="selected_wiki_page_ids[]"
-                               value="<?= htmlReady($wiki_page->id) ?>">
+                               value="<?= htmlReady(json_encode($wiki_page->getId())) ?>">
                     </td>
                     <td><?= htmlReady($wiki_page->keyword) ?></td>
                 </tr>
@@ -48,6 +97,21 @@
         </table>
         <div data-dialog-button>
             <?= Studip\Button::create(_('Importieren'), 'import') ?>
+            <?= Studip\LinkButton::create(
+                _('Neue Suche'),
+                $controller->url_for("wiki/import/{$course->id}"),
+                ['data-dialog' => 'size=auto']
+            ) ?>
+            <?= Studip\LinkButton::createCancel(
+                _('Abbrechen'),
+                URLHelper::getURL(
+                    'wiki.php',
+                    [
+                        'cid' => Context::getId(),
+                        'view' => 'show'
+                    ]
+                )
+            ) ?>
         </div>
     <? else: ?>
         <?= MessageBox::info(
@@ -60,7 +124,17 @@
         <?= Studip\LinkButton::create(
             _('Import neu starten'),
             $controller->url_for("wiki/import/{$course->id}"),
-            ['data-dialog' => '']
+            ['data-dialog' => 'size=auto']
+        ) ?>
+        <?= Studip\LinkButton::createCancel(
+            _('Zurück zum Wiki'),
+            URLHelper::getURL(
+                'wiki.php',
+                [
+                    'cid' => Context::getId(),
+                    'view' => 'show'
+                ]
+            )
         ) ?>
     </div>
 <? endif ?>

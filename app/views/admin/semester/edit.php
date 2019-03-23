@@ -33,7 +33,7 @@
             <?= _('Semesterzeitraum') ?>
         </legend>
 
-        <label class="col-2">
+        <label class="col-3">
             <?= _('Beginn') ?>
 
             <? if ($semester->absolute_seminars_count > 0): ?>
@@ -45,12 +45,12 @@
             <? else: ?>
                 <input required type="text" id="beginn" name="beginn"
                        <? if (isset($errors['beginn'])) echo 'class="invalid"'; ?>
-                       data-date-picker='{"<":"#ende"}'
+                       data-date-picker
                        value="<? if ($semester->beginn) echo date('d.m.Y', $semester->beginn) ?>">
             <? endif; ?>
         </label>
 
-        <label class="col-2">
+        <label class="col-3">
             <?= _('Ende') ?>
 
             <input required type="text" id="ende" name="ende"
@@ -65,7 +65,7 @@
             <?= _('Vorlesungszeitraum') ?>
         </legend>
 
-        <label class="col-2">
+        <label class="col-3">
             <?= _('Beginn') ?>
 
             <input required type="text" id="vorles_beginn" name="vorles_beginn"
@@ -74,7 +74,7 @@
                    value="<? if ($semester->vorles_beginn) echo date('d.m.Y', $semester->vorles_beginn); ?>">
         </label>
 
-        <label class="col-2">
+        <label class="col-3">
             <?= _('Ende') ?>
 
             <input required type="text" id="vorles_ende" name="vorles_ende"

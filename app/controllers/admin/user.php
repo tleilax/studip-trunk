@@ -81,6 +81,7 @@ class Admin_UserController extends AuthenticatedController
         }
 
         //Datafields
+        $this->datafields = [];
         $datafields = DataField::getDataFields("user");
         foreach ($datafields as $datafield) {
             if ($datafield->accessAllowed()) {
@@ -229,6 +230,14 @@ class Admin_UserController extends AuthenticatedController
      */
     public function delete_action($user_id = null, $parent = '')
     {
+
+        $delete_documents           = (bool) Request::int('documents');
+        $delete_content_from_course = (bool) Request::int('coursecontent');
+        $delete_personal_documents  = (bool) Request::int('personaldocuments');
+        $delete_personal_content    = (bool) Request::int('personalcontent');
+        $delete_names               = (bool) Request::int('personalnames');
+        $delete_memberships         = (bool) Request::int('memberships');
+
         //deleting one user
         if (!is_null($user_id)) {
             $user = User::find($user_id);
@@ -254,7 +263,7 @@ class Admin_UserController extends AuthenticatedController
                 $umanager->getFromDatabase($user_id);
 
                 //delete
-                if ($umanager->deleteUser(Request::option('documents', false))) {
+                if ($umanager->deleteUser($delete_documents, $delete_content_from_course, $delete_personal_documents, $delete_personal_content, $delete_names, $delete_memberships)) {
                     $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', mb_substr($umanager->msg, 0, -1)));
                     PageLayout::postSuccess(htmlReady(sprintf(_('"%s (%s)" wurde erfolgreich gelöscht.'), $user->getFullName(), $user->username)), $details);
                 } else {
@@ -303,7 +312,7 @@ class Admin_UserController extends AuthenticatedController
                     $umanager->getFromDatabase($user_id);
 
                     //delete
-                    if ($umanager->deleteUser(Request::option('documents', false))) {
+                    if ($umanager->deleteUser($delete_documents, $delete_content_from_course, $delete_personal_documents, $delete_personal_content, $delete_names, $delete_memberships)) {
                         $details = explode('§', str_replace(['msg§', 'info§', 'error§'], '', mb_substr($umanager->msg, 0, -1)));
                         PageLayout::postSuccess(htmlReady(sprintf(_('"%s (%s)" wurde erfolgreich gelöscht'), $users[$i]->getFullName(), $users[$i]->username)), $details);
                     } else {
@@ -327,6 +336,8 @@ class Admin_UserController extends AuthenticatedController
             $this->redirect('admin/user/' . $parent);
         }
     }
+
+
 
     /**
      * Display all information according to the selected user. All details can
@@ -1261,7 +1272,7 @@ class Admin_UserController extends AuthenticatedController
             $this->sections['closed_courses'] = $closed_courses;
         }
 
-        if (count($seminar_wait)) {
+        if (is_array($seminar_wait) && count($seminar_wait)) {
             $this->sections['seminar_wait'] = $seminar_wait;
         }
 
@@ -1296,18 +1307,6 @@ class Admin_UserController extends AuthenticatedController
             $this->range = Institute::find($range_id);
         }
         PageLayout::setTitle(sprintf(_('Dateiübersicht für %s'), $this->range->getFullname()));
-    }
-
-    /**
-     * Show file details
-     * @param $file_id
-     */
-    public function file_details_action($file_id)
-    {
-        $file        = StudipDocument::find($file_id);
-        $this->files = [$file];
-        PageLayout::setTitle(sprintf(_('Detail für %s'), $file->name));
-        $this->render_template('admin/user/list_files');
     }
 
     /**
@@ -1482,40 +1481,40 @@ class Admin_UserController extends AuthenticatedController
         $sidebar = Sidebar::Get();
         $sidebar->setImage('sidebar/person-sidebar.png');
 
-        $actions = new ActionsWidget();
+        $actions = $sidebar->addWidget(new ActionsWidget());
 
         if (in_array('Standard', $GLOBALS['STUDIP_AUTH_PLUGIN'])) {
-            $actions->addLink(_('Neues Konto anlegen'),
+            $actions->addLink(
+                _('Neues Konto anlegen'),
                 $this->url_for('admin/user/new'),
                 Icon::create('person+add')
             )->asDialog();
         }
-        $actions->addLink(_('Vorläufiges Konto anlegen'),
+        $actions->addLink(
+            _('Vorläufiges Konto anlegen'),
             $this->url_for('admin/user/new/prelim'),
             Icon::create('date+add')
         )->asDialog();
-        $actions->addLink(_('Konten zusammenführen'),
-            $this->url_for('admin/user/migrate/' . (($this->user && is_array($this->user)) ? $this->user->user_id : '')),
+        $actions->addLink(
+            _('Konten zusammenführen'),
+            $this->url_for('admin/user/migrate/' . (($this->user && is_array($this->user)) ? $this->user['user_id'] : '')),
             Icon::create('persons+new')
         );
 
-        $search = new SearchWidget();
+        $search = $sidebar->addWidget(new SearchWidget());
         $search->addNeedle(_('Person suchen'),
             'user_id',
             true,
             new StandardSearch('user_id'),
-            'function (value) { document.location = STUDIP.URLHelper.getURL("dispatch.php/admin/user/edit/" + value); }');
-
-        $sidebar->addWidget($actions);
-        $sidebar->addWidget($search);
+            'function (value) { document.location = STUDIP.URLHelper.getURL("dispatch.php/admin/user/edit/" + value); }'
+        );
 
         if ($this->action === 'index' && !empty($this->users)) {
-            $export = new ExportWidget();
+            $export = $sidebar->addWidget(new ExportWidget());
             $export->addLink(_('Suchergebnis exportieren'),
                 $this->url_for('admin/user?export=1'),
                 Icon::create('persons+move_right')
             );
-            $sidebar->addWidget($export);
         }
 
         if (!is_object($this->user)) {
@@ -1525,45 +1524,52 @@ class Admin_UserController extends AuthenticatedController
         $user_actions = new ActionsWidget();
         $user_actions->setTitle(sprintf(_('Aktionen für "%s"'), $this->user->username));
 
-        $user_actions->addLink(_('Nachricht an Person verschicken'),
-            URLHelper::getLink('dispatch.php/messages/write?rec_uname=' . $this->user->username),
+        $user_actions->addLink(
+            _('Nachricht an Person verschicken'),
+            URLHelper::getURL('dispatch.php/messages/write', ['rec_uname' =>  $this->user->username]),
             Icon::create('mail')
         )->asDialog();
 
-        if ($this->user['locked']) {
-            $user_actions->addLink(_('Personenaccount entsperren'),
-                $this->url_for('admin/user/unlock/' . $this->user['user_id']),
+        if ($this->user->locked) {
+            $user_actions->addLink(
+                _('Personenaccount entsperren'),
+                $this->url_for("admin/user/unlock/{$this->user->id}"),
                 Icon::create('lock-unlocked')
             );
         } else {
-            $user_actions->addLink(_('Personenaccount sperren'),
-                $this->url_for('admin/user/lock_comment/' . $this->user['user_id']),
+            $user_actions->addLink(
+                _('Personenaccount sperren'),
+                $this->url_for("admin/user/lock_comment/{$this->user->id}"),
                 Icon::create('lock-locked')
             )->asDialog('size=auto');
         }
 
         if ($this->user->auth_plugin !== null && ($GLOBALS['perm']->have_perm('root') || $GLOBALS['perm']->is_fak_admin() || !in_array($this->user->perms, words('root admin')))) {
             if (!StudipAuthAbstract::CheckField('auth_user_md5.password', $this->user->auth_plugin)) {
-                $user_actions->addLink(_('Neues Passwort setzen'),
-                    $this->url_for('admin/user/change_password/' . $this->user->user_id),
+                $user_actions->addLink(
+                    _('Neues Passwort setzen'),
+                    $this->url_for("admin/user/change_password/{$this->user->id}"),
                     Icon::create('key')
                 );
             }
-            $user_actions->addLink(_('Person löschen'),
-                $this->url_for('admin/user/bulk/' . $this->user->user_id, ['method' => 'delete']),
+            $user_actions->addLink(
+                _('Person löschen'),
+                $this->url_for("admin/user/bulk/{$this->user->id}", ['method' => 'delete']),
                 Icon::create('trash')
             )->asDialog('size=auto');
         }
         if (Config::get()->MAIL_NOTIFICATION_ENABLE && CourseMember::findOneBySQL("user_id = ? AND notification <> 0", [$this->user->user_id])) {
-            $user_actions->addLink(_('Benachrichtigungen zurücksetzen'),
-                $this->url_for('admin/user/reset_notification/' . $this->user->user_id),
+            $user_actions->addLink(
+                _('Benachrichtigungen zurücksetzen'),
+                $this->url_for("admin/user/reset_notification/{$this->user->id}"),
                 Icon::create('refresh')
             );
         }
 
-        if ($this->action == 'activities') {
-            $user_actions->addLink(_('Alle Dateien des Nutzers aus Veranstaltungen und Einrichtungen als ZIP herunterladen'),
-                $this->url_for('admin/user/download_user_files/' . $this->user->user_id),
+        if ($this->action === 'activities') {
+            $user_actions->addLink(
+                _('Alle Dateien des Nutzers aus Veranstaltungen und Einrichtungen als ZIP herunterladen'),
+                $this->url_for("admin/user/download_user_files/{$this->user->user_id}"),
                 Icon::create('folder-full')
             );
         }
@@ -1571,68 +1577,76 @@ class Admin_UserController extends AuthenticatedController
         $sidebar->insertWidget($user_actions, 'actions', 'user_actions');
 
         // Privacy options
-        $privacy = new LinksWidget();
-        $privacy->setTitle(_('Datenschutz'));
-
         if (Privacy::isVisible($this->user->user_id)) {
+            $privacy = $sidebar->addWidget(new LinksWidget());
+            $privacy->setTitle(_('Datenschutz'));
+
             $privacy->addLink(
                 _('Anzeige Personendaten'),
-                $this->url_for('privacy/index/' . $this->user->user_id),
-                Icon::create('log', Icon::ROLE_CLICKABLE, tooltip2(_('Anzeige Personendaten')))
-            )->asDialog('size=big');
+                $this->url_for("privacy/landing/{$this->user->id}"),
+                Icon::create('log')
+            )->asDialog('size=medium');
 
             $privacy->addLink(
                 _('Personendaten drucken'),
-                $this->url_for('privacy/print/' . $this->user->user_id),
-                Icon::create('print', Icon::ROLE_CLICKABLE, tooltip2(_('Personendaten drucken'))),
+                $this->url_for("privacy/print/{$this->user->id}"),
+                Icon::create('print'),
                 ['class' => 'print_action', 'target' => '_blank']
             );
 
             $privacy->addLink(
                 _('Export Personendaten als CSV'),
-                $this->url_for('privacy/export/' . $this->user->user_id),
-                Icon::create('file-text', Icon::ROLE_CLICKABLE, tooltip2(_('Export Personendaten als CSV')))
+                $this->url_for("privacy/export/{$this->user->id}"),
+                Icon::create('file-text')
+            );
+
+            $privacy->addLink(
+                _('Export Personendaten als XML'),
+                $this->url_for("privacy/xml/{$this->user->id}"),
+                Icon::create('file-text')
             );
 
             $privacy->addLink(
                 _('Export persönlicher Dateien als ZIP'),
-                $this->url_for('privacy/filesexport/' . $this->user->user_id),
-                Icon::create('file-archive', Icon::ROLE_CLICKABLE, tooltip2(_('Export persönlicher Dateien als ZIP')))
+                $this->url_for("privacy/filesexport/{$this->user->id}"),
+                Icon::create('file-archive')
             );
         }
-
-        $sidebar->addWidget($privacy);
 
         $views = new ViewsWidget();
         $views->addLink(
             _('Zurück zur Übersicht'),
             $this->url_for('admin/user')
         )->setActive(false);
-        $views->addLink(_('Person verwalten'),
-            $this->url_for('admin/user/edit/' . $this->user->user_id)
-        )->setActive($this->action == 'edit');
-        $views->addLink(_('Zum Profil'),
-            URLHelper::getLink('dispatch.php/profile?username=' . $this->user->username),
+        $views->addLink(
+            _('Person verwalten'),
+            $this->url_for("admin/user/edit/{$this->user->id}")
+        )->setActive($this->action === 'edit');
+        $views->addLink(
+            _('Zum Profil'),
+            URLHelper::getURL('dispatch.php/profile', ['username' => $this->user->username]),
             Icon::create('person')
         );
 
         if ($GLOBALS['perm']->have_perm('root') && count($this->user)) {
-            $views->addLink(_('Datei- und Aktivitätsübersicht'),
-                $this->url_for('admin/user/activities/' . $this->user->user_id),
+            $views->addLink(
+                _('Datei- und Aktivitätsübersicht'),
+                $this->url_for("admin/user/activities/{$this->user->id}"),
                 Icon::create('vcard')
-            )->setActive($this->action == 'activities');
+            )->setActive($this->action === 'activities');
 
 
             if (Config::get()->LOG_ENABLE) {
-                $views->addLink(_('Personeneinträge im Log'),
-                    URLHelper::getLink('dispatch.php/event_log/show?search=' . $this->user->username . '&type=user&object_id=' . $this->user->user_id),
+                $views->addLink(
+                    _('Personeneinträge im Log'),
+                    URLHelper::getURL('dispatch.php/event_log/show?search=' . $this->user->username . '&type=user&object_id=' . $this->user->user_id),
                     Icon::create('log')
                 );
             }
 
             // Create link to role administration for this user
-            $extra              = '';
-            $roles              = $this->user->getRoles();
+            $extra = '';
+            $roles = $this->user->getRoles();
             $roles_attributes   = [];
             if ($roles) {
                 $extra = ' (' . count($roles) . ')';
@@ -1644,7 +1658,7 @@ class Admin_UserController extends AuthenticatedController
 
             $views->addLink(
                 _('Zur Rollenverwaltung') . $extra,
-                $this->url_for('admin/role/assign_role/' . $this->user->id),
+                $this->url_for("admin/role/assign_role/{$this->user->id}"),
                 Icon::create('roles2'),
                 $roles_attributes
             );

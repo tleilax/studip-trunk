@@ -43,7 +43,8 @@ function enhanceSortableTable(table) {
 
     $(table).tablesorter({
         headers: headers,
-        sortLocaleCompare : true
+        sortLocaleCompare : true,
+        sortRestart: true
     });
 }
 

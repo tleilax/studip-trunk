@@ -16,7 +16,7 @@ namespace Studip {
 namespace {
 
     //software version - please leave it as it is!
-    $SOFTWARE_VERSION = '4.2.alpha-svn';
+    $SOFTWARE_VERSION = '4.3.alpha-svn';
 
     global $PHP_SELF, $STUDIP_BASE_PATH;
 
@@ -206,6 +206,14 @@ namespace {
         require_once 'lib/calendar_functions.inc.php';
     }
 
+    if (Config::get()->SOAP_ENABLE) {
+        require_once 'lib/soap/StudipSoapClient' . (Config::get()->SOAP_USE_PHP5 ? '_PHP5' : '' ) . '.class.php';
+    }
+
+    if (Config::Get()->ILIAS_INTERFACE_ENABLE) {
+        require_once 'lib/ilias_interface/IliasUserObserver.php';
+    }
+
     // set dummy navigation until db is ready
     Navigation::setRootNavigation(new Navigation(''));
 
@@ -215,6 +223,9 @@ namespace {
     // init notification observers
     Studip\Activity\ActivityObserver::initialize();
     FilesSearch\NotificationObserver::initialize();
+    if (Config::Get()->ILIAS_INTERFACE_ENABLE) {
+        IliasUserObserver::initialize();
+    }
 
     //Besser hier globale Variablen definieren...
     $GLOBALS['_fullname_sql'] = array();

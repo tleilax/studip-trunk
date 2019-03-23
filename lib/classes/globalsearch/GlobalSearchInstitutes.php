@@ -26,20 +26,21 @@ class GlobalSearchInstitutes extends GlobalSearchModule
      * This function is required to make use of the mysql union parallelism
      *
      * @param $search the input query string
+     * @param $filter an array with search limiting filter information (e.g. 'category', 'semester', etc.)
      * @return String SQL Query to discover elements for the search
      */
-    public static function getSQL($search)
+    public static function getSQL($search, $filter, $limit)
     {
         if (!$search) {
             return null;
         }
         $search = str_replace(' ', '% ', $search);
         $query = DBManager::get()->quote("%{$search}%");
-        $sql = "SELECT *
+        $sql = "SELECT SQL_CALC_FOUND_ROWS *
                 FROM `Institute`
                 WHERE `Name` LIKE {$query}
                 ORDER BY `Name` DESC
-                LIMIT " . (4 * Config::get()->GLOBALSEARCH_MAX_RESULT_OF_TYPE);
+                LIMIT " . $limit;
         return $sql;
     }
 
@@ -78,15 +79,14 @@ class GlobalSearchInstitutes extends GlobalSearchModule
     /**
      * Returns the URL that can be called for a full search.
      *
-     * This could become obsolete when we have a real global search page.
-     *
      * @param string $searchterm what to search for?
+     * @return URL to the full search, containing the searchterm and the category
      */
     public static function getSearchURL($searchterm)
     {
-        return URLHelper::getURL('institut_browse.php', [
-            'cmd'         => 'suche',
-            'search_name' => $searchterm
+        return URLHelper::getURL('dispatch.php/search/globalsearch', [
+            'q'        => $searchterm,
+            'category' => self::class
         ]);
     }
 

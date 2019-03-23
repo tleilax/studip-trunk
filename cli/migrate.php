@@ -57,7 +57,7 @@ if (isset($_SERVER['argv'])) {
 
         foreach ($migrations as $number => $migration) {
             $description = $migration->description() ?: '(no description)';
-            printf("%3d %-20s %s\n", $number, get_class($migration), $description);
+            printf("%3d %s\n", $number, $description);
         }
     } else {
         $migrator->migrateTo($target);

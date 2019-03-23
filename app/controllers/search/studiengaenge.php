@@ -19,24 +19,24 @@ class Search_StudiengaengeController extends MVVController
     public function before_filter(&$action, &$args)
     {
         $this->allow_nobody = Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY;
-        
+
         parent::before_filter($action, $args);
-        
+
         // set navigation
         Navigation::activateItem('/search/courses/module');
-        
+
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
-        
+
         $views = new ViewsWidget();
         $views->addLink(_('Modulsuche'), $this->url_for('search/module'));
         $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'));
         $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'))
                 ->setActive();
         $views->addLink(_('Fach-Abschluss-Kombinationen'), $this->url_for('search/stgtable'));
-        
+
         $sidebar->addWidget($views);
-        
+
         $this->breadcrumb = new BreadCrumb();
         $this->action = $action;
         $this->verlauf_url = '/verlauf';
@@ -173,7 +173,12 @@ class Search_StudiengaengeController extends MVVController
             // Studiengangteil-Bezeichnungen)
             $this->data = array();
             foreach ($studiengangTeile as $teil) {
-                $this->data[$teil->getId()] = $teil->fach->getDisplayName();
+                $filter = function ($version) {
+                    return $GLOBALS['MVV_STGTEILVERSION']['STATUS']['values'][$version->stat]['public'];
+                };
+                if (count($teil->versionen->filter($filter)) > 0) {
+                    $this->data[$teil->getId()] = $teil->fach->getDisplayName();
+                }
             }
             if (!$this->verlauf_url) {
                 $this->verlauf_url = '/verlauf';
@@ -270,7 +275,7 @@ class Search_StudiengaengeController extends MVVController
                                 $countcourses += count($courses);
                             }
                         }
-                        
+
                         // filter modules whether they have courses or not
  	                if ($this->with_courses && $countcourses == 0) continue;
 
@@ -300,13 +305,13 @@ class Search_StudiengaengeController extends MVVController
                 }
                 $this->studiengang = Studiengang::get($studiengang_id);
             }
-            
+
             $this->setVersionSelectWidget($versionen,
                     $this->url_for('/verlauf',
                             $studiengangTeil->id,
                             $stgteil_bez_id,
                             $studiengang_id));
-            
+
             ksort($fachsemesterData);
             $this->fachsemesterData = $fachsemesterData;
             $this->abschnitteData = $abschnitteData;
@@ -315,7 +320,7 @@ class Search_StudiengaengeController extends MVVController
             // Ausgabe des Namens ohne Fach (dieses ist im Zusatz bereits enthalten)
             // $this->studiengangTeilName = $studiengangTeil->getDisplayName(0);
             $this->studiengangTeilName = $studiengangTeil->getDisplayName();
-            
+
             // add option widget to show only modules with courses in the
             // selected semester
             $widget = new OptionsWidget();
@@ -409,20 +414,20 @@ class Search_StudiengaengeController extends MVVController
         $semester_time_switch = (int) Config::get()->getValue('SEMESTER_TIME_SWITCH');
         $cur_semester = Semester::findByTimestamp(time()
             + $semester_time_switch * 7 * 24 * 60 * 60);
-        
+
         $sidebar = Sidebar::get();
 
         if (count($versions) > 1) {
-            $widget = new SelectWidget(_('Versionen-Auswahl'),
+            $widget = new SelectWidget(_('Versionenauswahl'),
                     $url, 'version');
             $options = [];
             foreach ($versions as $version) {
                 $options[$version->id] = $version->getDisplayName(0);
                 // fallback: show name of Studiengangteil if version or
                 // semester is unknown
-                $options[$version->id] = 
+                $options[$version->id] =
                         trim($options[$version->id])
-                        ?: $version->getDisplayName(ModuleManagementModel::DISPLAY_STGTEIL); 
+                        ?: $version->getDisplayName(ModuleManagementModel::DISPLAY_STGTEIL);
             }
             $widget->setOptions($options, $this->cur_version_id);
             $widget->setMaxLength(100);

@@ -94,15 +94,24 @@ class DBSchemaVersion implements SchemaVersion
      */
     public function add($version)
     {
-        $this->version = (int) $version;
+        $version = (int) $version;
 
-        $query = "INSERT INTO schema_versions (domain, version)
-                  VALUES (?, ?)";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute([
-            $this->domain,
-            $this->version
-        ]);
+        try {
+            $query = "INSERT INTO `schema_versions` (`domain`, `version`)
+                      VALUES (?, ?)";
+            DBManager::get()->execute($query, [
+                $this->domain,
+                $version,
+            ]);
+        } catch (Exception $e) {
+            $query = "UPDATE `schema_version`
+                      SET `version` = ?
+                      WHERE `domain` = ?";;
+            DBManager::get()->execute($query, [
+                $version,
+                $this->domain,
+            ]);
+        }
         NotificationCenter::postNotification(
             'SchemaVersionDidUpdate',
             $this->domain,
@@ -111,21 +120,30 @@ class DBSchemaVersion implements SchemaVersion
     }
 
     /**
-     * Set the current schema version.
+     * Removes a schema version.
      *
-     * @param int $version new schema version
+     * @param int $version schema version to remove
      */
     public function remove($version)
     {
-        $this->version = (int) $version;
+        $version = (int) $version;
 
-        $query = "DELETE FROM schema_versions
-                  WHERE domain = ? AND version = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute([
-            $this->domain,
-            $this->version
-        ]);
+        try {
+            $query = "DELETE FROM `schema_versions`
+                      WHERE `domain` = ? AND `version` = ?";
+            DBManager::get()->execute($query, [
+                $this->domain,
+                $version
+            ]);
+        } catch (Exception $e) {
+            $query = "UPDATE `schema_versions`
+                      SET `version` = ?
+                      WHERE `domain` = ?";
+            DBManager::get()->execute($query, [
+                $version,
+                $this->domain,
+            ]);
+        }
         NotificationCenter::postNotification(
             'SchemaVersionDidDelete',
             $this->domain,

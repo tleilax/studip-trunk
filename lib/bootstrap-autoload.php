@@ -41,12 +41,11 @@ StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/resources
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/extern/lib');
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/calendar/lib');
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/elearning');
+StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/lib/ilias_interface');
 
 // Classes in /app
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models');
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models', 'Studip');
-// Special treatment for the Wysiwyg namespace
-StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/app/models/Wysiwyg', 'Studip\\Wysiwyg');
 
 // Messy file names
 StudipAutoloader::addClassLookups([
@@ -90,5 +89,6 @@ StudipAutoloader::addClassLookup(
 StudipAutoloader::addClassLookups([
     'PasswordHash' => $GLOBALS['STUDIP_BASE_PATH'] . '/vendor/phpass/PasswordHash.php',
     'TCPDF'        => $GLOBALS['STUDIP_BASE_PATH'] . '/vendor/tcpdf/tcpdf.php',
+    'DocBlock'     => $GLOBALS['STUDIP_BASE_PATH'] . '/vendor/docblock-parser/docblock-parser.php',
 ]);
 StudipAutoloader::addAutoloadPath($GLOBALS['STUDIP_BASE_PATH'] . '/vendor/mishal-iless/lib/ILess', 'ILess');

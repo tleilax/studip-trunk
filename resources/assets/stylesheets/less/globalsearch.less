@@ -218,6 +218,8 @@
                     .globalsearch-result-title {
                         font-size: @font-size-base;
                         font-weight: bold;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                     }
 
                     .globalsearch-result-details {
@@ -245,11 +247,15 @@
                     }
                 }
             }
-
-            mark {
-                background-color: @content-color-40;
-            }
         }
+    }
+}
+
+#search_legend {
+    input {
+        position: absolute;
+        right: 0.5em;
+        top: 0.438em;
     }
 }
 

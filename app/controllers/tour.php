@@ -265,7 +265,11 @@ class TourController extends AuthenticatedController
 
         if ($_FILES['tour_file']['tmp_name']) {
             $tour_json_data = file_get_contents($_FILES['tour_file']['tmp_name']);
-            $tour_data = json_decode($tour_json_data, true);
+            $tour_data = @json_decode($tour_json_data, true);
+            if (!$tour_data || !$tour_data['tour']) {
+                PageLayout::postError(_('Ungültige Daten. Tour-Daten müssen im JSON-Format vorliegen.'));
+                return;
+            }
 
             $this->metadata = $tour_data['metadata'];
             $this->tourdata = $tour_data['tour'];
@@ -273,7 +277,7 @@ class TourController extends AuthenticatedController
             // import basic data
             $imported_tour = new HelpTour($tour_data['tour']['tour_id']);
             if (!$imported_tour->isNew()) {
-                PageLayout::postError(_('Es existiert bereits eine Tour mit dieser ID. Um sie zu ersetzen, müssen Sie die alte Tour erst löschen.'));
+                PageLayout::postError(sprintf(_('Es existiert bereits eine Tour mit dieser ID. Um sie zu ersetzen, müssen Sie die alte Tour "%s" erst löschen.'), $imported_tour->name));
             } else {
                 $imported_tour->setData($tour_data['tour'], true);
                 if ($imported_tour->store()) {
@@ -287,7 +291,7 @@ class TourController extends AuthenticatedController
                     // import audiences
                     if (is_array($tour_data['tour']['audiences'])) {
                         foreach ($tour_data['tour']['audiences'] as $audience_data) {
-                            $import_audience = new HelpTourAudiences(array($audience_data['tour_id'], $audience_data['range_id'], $audience_data['type']));
+                            $import_audience = new HelpTourAudience(array($audience_data['tour_id'], $audience_data['range_id'], $audience_data['type']));
                             $import_audience->setData($audience_data, true);
                             $import_audience->store();
                         }
@@ -315,18 +319,18 @@ class TourController extends AuthenticatedController
         // check permission
         $GLOBALS['perm']->check('root');
 
-        //load tour
+        // load tour
         $tour  = new HelpTour($tour_id);
-        $tour_object = array();
-        $tour_object['metadata'] = array('source' => $GLOBALS['UNI_INFO'], 'url' => $GLOBALS['UNI_URL'], 'version' => $GLOBALS['SOFTWARE_VERSION']);
+        $tour_object = [];
+        $tour_object['metadata'] = ['source' => $GLOBALS['UNI_INFO'], 'url' => $GLOBALS['UNI_URL'], 'version' => $GLOBALS['SOFTWARE_VERSION']];
         $tour_object['tour'] = $tour->toArrayRecursive();
 
-        //set header
-        header("Content-Type: application/force-download; name=\"". $tour->name ."\"");
-        header("Content-Disposition: attachment; filename=\"". date("Y-m-d")." - ".$tour->name.".json\"");
-        header("Expires: 0");
-
-        $this->render_text(json_encode($tour_object));
+        // set header
+        $this->response->add_header(
+            'Content-Disposition',
+            'attachment;' . encode_header_parameter('filename', date('Y-m-d') . "-{$tour->name}.json")
+        );
+        $this->render_json($tour_object);
     }
 
     /**

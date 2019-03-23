@@ -9,8 +9,7 @@
         <input type="hidden" name="cmd" value="show">
 
         <br>
-        <textarea name="body" class="wiki-editor add_toolbar wysiwyg resizable size-l"
-            data-editor="extraPlugins=studip-wiki"
+        <textarea name="body" class="wiki-editor add_toolbar wysiwyg size-l" data-editor="extraPlugins=studip-wiki"
         ><?= wysiwygReady($body) ?></textarea>
     </fieldset>
 
@@ -19,6 +18,6 @@
             <?= Studip\Button::createAccept(_('Speichern')) ?>
             <?= Studip\Button::create(_('Speichern und weiter bearbeiten'), 'submit-and-edit') ?>
         </div>
-        <?= Studip\LinkButton::createCancel(_('Abbrechen'), URLHelper::getURL('?cmd=abortedit' . $lastpage, compact('keyword'))) ?>
+        <?= Studip\LinkButton::createCancel(_('Abbrechen'), URLHelper::getURL('?cmd=abortedit', compact('keyword', 'lastpage'))) ?>
     </footer>
 </form>
