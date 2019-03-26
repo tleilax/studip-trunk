@@ -213,27 +213,61 @@ class Migrator
         );
 
         foreach ($migrations as $version => $migration) {
-            $action = $this->isUp() ? 'Migrating' : 'Reverting';
-
-            $this->announce("{$action} %d", $version);
-            if ($migration->description()) {
-                $this->log($migration->description());
-                $this->log(self::mark('', '-'));
-            }
-
-            $time_start = microtime(true);
-            $migration->migrate($this->direction);
-
-            $action = $this->isUp() ? 'Migrated' : 'Reverted';
-            $this->announce("{$action} in %ss", round(microtime(true) - $time_start, 3));
-            $this->log('');
-
-            if ($this->isDown()) {
-                $this->schema_version->remove($version);
-            } else {
-                $this->schema_version->add($version);
-            }
+            $this->execute($version, $this->direction, $migration);
         }
+    }
+
+    /**
+     * Executes a migration's up or down method
+     *
+     * @param  string $version      Version to execute
+     * @param  string $direction    Up or down
+     * @param  Migration $migration Migration to execute (optional, will be
+     *                              loaded if missing)
+     */
+    public function execute($version, $direction, Migration $migration = null)
+    {
+        if ($this->isUp($direction) && $this->schema_version->contains($version)) {
+            $this->log("Version {$version} is already present.\n");
+            return;
+        }
+
+        if ($this->isDown($direction) && !$this->schema_version->contains($version)) {
+            $this->log("Version {$version} is not present.\n");
+            return;
+        }
+
+        if ($migration === null) {
+            $migrations = $this->migrationClasses();
+            if (!isset($migrations[$version])) {
+                throw new Exception("Version {$version} is invalid");
+            }
+            list($file, $class) = $migrations[$version];
+            $migration = $this->loadMigration($file, $class);
+        }
+
+        $action = $this->isUp($direction) ? 'Migrating' : 'Reverting';
+
+        $this->announce("{$action} %d", $version);
+        if ($migration->description()) {
+            $this->log($migration->description());
+            $this->log(self::mark('', '-'));
+        }
+
+        $time_start = microtime(true);
+        $migration->migrate($direction);
+
+        $action = $this->isUp($direction) ? 'Migrated' : 'Reverted';
+        $this->log('');
+        $this->announce("{$action} in %ss", round(microtime(true) - $time_start, 3));
+        $this->log('');
+
+        if ($this->isDown($direction)) {
+            $this->schema_version->remove($version);
+        } else {
+            $this->schema_version->add($version);
+        }
+
     }
 
     /**
@@ -278,14 +312,7 @@ class Migrator
 
             list($file, $class) = $migration_file_and_class;
 
-            $migration = require_once $file;
-            if (!$migration instanceof Migration) {
-                $migration = new $class($this->verbose);
-            } else {
-                $migration->setVerbose($this->verbose);
-            }
-
-            $result[$version] = $migration;
+            $result[$version] = $this->loadMigration($file, $class);
         }
 
         return $result;
@@ -301,8 +328,6 @@ class Migrator
      */
     private function relevantMigration($version)
     {
-        $current_version = $this->schema_version->get();
-
         if ($this->isUp()) {
             return !$this->schema_version->contains($version)
                 && $version <= $this->target_version;
@@ -315,13 +340,31 @@ class Migrator
     }
 
     /**
+     * Loads a migration from the given file and creates and instance of it.
+     *
+     * @param string $file  File name of migration to load
+     * @param string $class Class name to expect to be loaded from the file
+     * @return Migration instance
+     */
+    private function loadMigration($file, $class)
+    {
+        $migration = require_once $file;
+        if (!$migration instanceof Migration) {
+            $migration = new $class($this->verbose);
+        } else {
+            $migration->setVerbose($this->verbose);
+        }
+        return $migration;
+    }
+
+    /**
      * Am I migrating up?
      *
      * @return bool  TRUE if migrating up, FALSE otherwise
      */
-    private function isUp()
+    private function isUp($direction = null)
     {
-        return $this->direction === 'up';
+        return ($direction ?: $this->direction) === 'up';
     }
 
     /**
@@ -329,9 +372,9 @@ class Migrator
      *
      * @return bool  TRUE if migrating down, FALSE otherwise
      */
-    private function isDown()
+    private function isDown($direction = null)
     {
-        return $this->direction === 'down';
+        return ($direction ?: $this->direction) === 'down';
     }
 
     /**
