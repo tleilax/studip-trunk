@@ -163,7 +163,7 @@
 // Define action icons for widgets
 @mixin widget-action($action, $icon: $action, $role: clickable) {
     .widget-action[data-action="#{$action}"] {
-        @extend hide-text();
+        @include hide-text();
 
         width: 16px;
         height: 16px;
