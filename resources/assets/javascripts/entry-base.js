@@ -10,6 +10,9 @@ import "gridstack/dist/gridstack.css"
 import "../stylesheets/studip.less"
 import "../stylesheets/widgets.less"
 
+// Basic scss support
+import "../stylesheets/studip.scss"
+
 import "./vendor/modernizr-3.5.0.js"
 
 import hljs from './studip-highlight.js'
