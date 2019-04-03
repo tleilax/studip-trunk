@@ -1,5 +1,4 @@
 <?php
-# Lifter010: TODO
 NotificationCenter::postNotification('PageWillRender', $body_id ? : PageLayout::getBodyElementId());
 $navigation = PageLayout::getTabNavigation();
 $tab_root_path = PageLayout::getTabNavigationPath();
@@ -51,6 +50,7 @@ if ($navigation) {
     <? endif ?>
 
     <script>
+    document.querySelector('html').classList.replace('no-js', 'js');
     window.STUDIP = {
         ABSOLUTE_URI_STUDIP: "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>",
         ASSETS_URL: "<?= $GLOBALS['ASSETS_URL'] ?>",
@@ -78,7 +78,7 @@ if ($navigation) {
     </script>
 </head>
 
-<body id="<?= $body_id ? $body_id : PageLayout::getBodyElementId() ?>">
+<body id="<?= $body_id ?: PageLayout::getBodyElementId() ?>">
 <div id="layout_wrapper">
     <? SkipLinks::insertContainer() ?>
     <? SkipLinks::addIndex(_("Hauptinhalt"), 'layout_content', 100, true) ?>
@@ -117,9 +117,7 @@ if ($navigation) {
                 <?= htmlReady(PageLayout::getTitle()) ?>
                 <?= $public_hint ? '(' . htmlReady($public_hint) . ')' : '' ?>
             </div>
-            <? if (is_object($GLOBALS['perm']) && $GLOBALS['perm']->have_perm('autor')) : ?>
-            	<?= Helpbar::get()->render() ?>
-            <? endif; ?>
+
          </div>
 
         <div id="layout_container">

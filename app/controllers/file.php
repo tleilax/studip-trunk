@@ -89,9 +89,7 @@ class FileController extends AuthenticatedController
 
                 //all files were uploaded successfully:
                 $storedFiles = [];
-                $default_license = ContentTermsOfUse::find(
-                    'UNDEF_LICENSE'
-                );
+                $default_license = ContentTermsOfUse::findDefault();
 
                 foreach ($validatedFiles['files'] as $fileref) {
                     //If no terms of use is set for the file ref
@@ -1433,7 +1431,7 @@ class FileController extends AuthenticatedController
 
             if (count($file_area_objects) === 1 && is_a($file_area_objects[0], 'FileRef')) {
                 //we have only one file to deliver, so no need for zipping it:
-                $this->redirect($file_area_objects[0]->getDownloadURL());
+                $this->redirect($file_area_objects[0]->getDownloadURL('force_download'));
                 return;
             }
 

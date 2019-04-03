@@ -1,8 +1,8 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <? if(!empty($flash['question_text'])) : ?>
-    <? $form_content = array('news_isvisible' => htmlReady(studip_json_encode($news_isvisible)),
-              'news_selectable_areas' => htmlReady(studip_json_encode($area_options_selectable)),
-              'news_selected_areas' => htmlReady(studip_json_encode($area_options_selected)),
+    <? $form_content = array('news_isvisible' => htmlReady(json_encode($news_isvisible)),
+              'news_selectable_areas' => htmlReady(json_encode($area_options_selectable)),
+              'news_selected_areas' => htmlReady(json_encode($area_options_selected)),
               'news_basic_js' => '',
               'news_comments_js' => '',
               'news_areas_js' => '',
@@ -23,9 +23,9 @@
     <input type="hidden" name="news_basic_js" value="">
     <input type="hidden" name="news_comments_js" value="">
     <input type="hidden" name="news_areas_js" value="">
-    <input type="hidden" name="news_isvisible" value="<?=htmlReady(studip_json_encode($news_isvisible))?>">
-    <input type="hidden" name="news_selectable_areas" value="<?=htmlReady(studip_json_encode($area_options_selectable))?>">
-    <input type="hidden" name="news_selected_areas" value="<?=htmlReady(studip_json_encode($area_options_selected))?>">
+    <input type="hidden" name="news_isvisible" value="<?=htmlReady(json_encode($news_isvisible))?>">
+    <input type="hidden" name="news_selectable_areas" value="<?=htmlReady(json_encode($area_options_selectable))?>">
+    <input type="hidden" name="news_selected_areas" value="<?=htmlReady(json_encode($area_options_selected))?>">
 
     <? if (Request::isXhr()) : ?>
         <? foreach (PageLayout::getMessages() as $msg) : ?>
@@ -152,7 +152,11 @@
                 <? endforeach ?>
             </select>
 
-            <?= Icon::create('accept', 'clickable', ['title' => _('Vorauswahl anwenden')])->asInput(array('name'=>'area_search_preset',)) ?>
+            <?= Icon::create('accept')->asInput([
+                'name'           => 'area_search_preset',
+                'title'          => _('Vorauswahl anwenden'),
+                'formnovalidate' => '',
+            ]) ?>
         </label>
 
         <label class="with-action">
@@ -162,7 +166,11 @@
 
             <input name="area_search_term" class="news_search_term" type="text" placeholder="<?=_('Suchen')?>"
                    aria-label="<?= _('Suchbegriff') ?>">
-            <?= Icon::create('search', 'clickable', ['title' => _('Suche starten')])->asInput(array('name'=>'area_search',)) ?>
+            <?= Icon::create('search')->asInput([
+                'name'           => 'area_search',
+                'title'          => _('Suche starten'),
+                'formnovalidate' => '',
+            ]) ?>
         </label>
 
 
@@ -192,9 +200,17 @@
             <br>
             <br>
             <br>
-            <?= Icon::create('arr_2right', 'clickable', ['title' => _('In den Suchergebnissen markierte Bereiche der Ankündigung hinzufügen')])->asInput(array('name'=>'news_add_areas',)) ?>
+            <?= Icon::create('arr_2right')->asInput([
+                'name'           => 'news_add_areas',
+                'title'          => _('In den Suchergebnissen markierte Bereiche der Ankündigung hinzufügen'),
+                'formnovalidate' => '',
+            ]) ?>
             <br><br>
-            <?= Icon::create('arr_2left', 'clickable', ['title' => _('Bei den bereits ausgewählten Bereichen die markierten Bereiche entfernen')])->asInput(array('name'=>'news_remove_areas',)) ?>
+            <?= Icon::create('arr_2left')->asInput([
+                'name'           => 'news_remove_areas',
+                'title'          => _('Bei den bereits ausgewählten Bereichen die markierten Bereiche entfernen'),
+                'formnovalidate' => '',
+            ]) ?>
         </div>
         <div class="news_area_selected">
             <? foreach ($area_structure as $area_key => $area_data) : ?>
@@ -221,8 +237,8 @@
                             style="background-image: url('<?= Icon::create($area_data['icon'], 'info')->asImagePath() ?>');" label="<?=htmlReady($area_data['title'])?>">
                     <? foreach ($area_options_selected[$area_key] as $area_option_key => $area_option_title) : ?>
                         <option <?= (StudipNews::haveRangePermission('edit', $area_option_key) OR $may_delete) ? 'value="'.$area_option_key.'"' : 'disabled'?>
-                                <?=tooltip((string) $area_option_title);?>>
-                            <?= htmlReady(mila((string) $area_option_title))?>
+                                <?=tooltip($area_option_title);?>>
+                            <?= htmlReady(mila($area_option_title))?>
                         </option>
                     <? endforeach ?>
                     </optgroup>

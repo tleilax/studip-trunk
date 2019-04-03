@@ -4,16 +4,10 @@ import './public-path.js'
 import 'es6-promise/auto'
 
 import "../stylesheets/studip-jquery-ui.less"
-import "highlight.js/styles/tomorrow.css"
 import "chartist/dist/chartist.css"
 import "gridstack/dist/gridstack.css"
 import "../stylesheets/studip.less"
 import "../stylesheets/widgets.less"
-
-import "./vendor/modernizr-3.5.0.js"
-
-import hljs from './studip-highlight.js'
-window.hljs = hljs
 
 import lodash from "lodash"
 window._ = lodash
@@ -29,6 +23,8 @@ window.QRCode = QRCode
 import "./jquery-bundle.js"
 
 import "./init.js"
+import "./chunk-loader.js"
+
 import "./studip-ui.js"
 import "./bootstrap/tables.js"
 import "./bootstrap/studip_helper_attributes.js"
@@ -42,7 +38,6 @@ import "./bootstrap/responsive.js"
 import "./bootstrap/jsupdater.js"
 import "./bootstrap/files.js"
 import "./bootstrap/news.js"
-import "./bootstrap/markup.js"
 import "./bootstrap/messages.js"
 import "./bootstrap/quick_search.js"
 import "./bootstrap/multi_select.js"
