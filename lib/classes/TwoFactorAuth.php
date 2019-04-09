@@ -1,8 +1,15 @@
 <?php
+/**
+ * Class handling the two factor authentication
+ *
+ * @author  Jan-Hendrik Willms <tleilax+studip@gmail.com>
+ * @license GPL2 or any later version
+ * @since   Stud.IP 4.4
+ *
+ * @see TFASecret model
+ */
 final class TwoFactorAuth
 {
-    const MAX_TRIES = 3;
-
     const SESSION_KEY           = 'tfa/confirmed';
     const SESSION_REDIRECT      = 'tfa/redirect';
     const SESSION_ENFORCE       = 'tfa/enforce';
@@ -14,6 +21,10 @@ final class TwoFactorAuth
 
     private static $instance = null;
 
+    /**
+     * Returns an instance of the authentication
+     * @return TwoFactorAuth object
+     */
     public static function get()
     {
         if (self::$instance === null) {
@@ -22,8 +33,29 @@ final class TwoFactorAuth
         return self::$instance;
     }
 
-    private $secret;
+    /**
+     * Returns whether the two factor authentication is enabled for the given
+     * user (defaults to current user). The user's permissions decide whether
+     * the two factor authentication is enabled or not.
+     *
+     * @param  User  $user User to check (optional, defaults to current user)
+     * @return boolean
+     */
+    public static function isEnabledForUser(User $user = null)
+    {
+        if ($user === null) {
+            $user = User::findCurrent();
+        }
 
+        $valid_perms = array_filter(array_map('trim', explode(',', Config::get()->TFA_PERMS)));
+        return in_array($user->perms, $valid_perms);
+    }
+
+    private $secret = null;
+
+    /**
+     * Private constructor to enforce singleton
+     */
     private function __construct()
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -37,7 +69,7 @@ final class TwoFactorAuth
             $_SESSION[self::SESSION_FAILED] = array_filter(
                 $_SESSION[self::SESSION_FAILED],
                 function ($timestamp) {
-                    return $timestamp > strtotime('-5 minutes');
+                    return $timestamp > time() - Config::get()->TFA_MAX_TRIES_TIMESPAN;
                 }
             );
         }
@@ -55,19 +87,43 @@ final class TwoFactorAuth
         $this->secret = $secret;
     }
 
+    /**
+     * Secures the current session, if applicable.
+     *
+     * This method checks the following:
+     * - is 2fa enabled for the current user
+     * - is the request an ajax call
+     * - does the user have a secret, meaning 2fa is enabled
+     * - is the secret already confirmed
+     * - has the session already been confirmed (identified by a valid random
+     *   token stored in the session)
+     * - is the computer trusted (identified by a valid random token stored in
+     *   a cookie)
+     *
+     * If the user has 2fa enabled, it's secret is confirmed and the session has
+     * not been secured yet, a validation screen with a prompt to enter a valid
+     * token is presented to the user.
+     */
     public function secureSession()
     {
+        // Not enabled for user's perm?
+        if (!self::isEnabledForUser()) {
+            return;
+        }
+
         // TODO: AJAX?
         if (Request::isXhr()) {
             return;
         }
 
+        // Not enabled?
         if (!$this->secret) {
             return;
         }
 
         $this->validateFromRequest();
 
+        // Not confirmed?
         if (!$this->secret->confirmed) {
             return;
         }
@@ -75,7 +131,7 @@ final class TwoFactorAuth
         // User has already confirmed this session?
         if (isset($_SESSION[self::SESSION_KEY])) {
             list($code, $timeslice) = array_values($_SESSION[self::SESSION_KEY]);
-            if ($this->secret->validateToken($code, 0, $timeslice, true)) {
+            if ($this->secret->validateToken($code, $timeslice, true)) {
                 return;
             }
             unset($_SESSION[self::SESSION_KEY]);
@@ -84,7 +140,7 @@ final class TwoFactorAuth
         // Trusted computer?
         if (isset($_COOKIE[self::COOKIE_KEY])) {
             list($code, $timeslice) = explode(':', $_COOKIE[self::COOKIE_KEY]);
-            if ($this->secret->validateToken($code, 0, $timeslice, true)) {
+            if ($this->secret->validateToken($code, $timeslice, true)) {
                 $this->registerSecretInSession();
                 return;
             }
@@ -103,6 +159,15 @@ final class TwoFactorAuth
         ]);
     }
 
+    /**
+     * Requests a 2fa token input to confirm a specific action.
+     *
+     * @param  string $action Name of the action to confirm
+     * @param  string $text   Text to display to the user
+     * @param  array  $data   Optional additional data to pass to the
+     *                        confirmation screen (for internal use)
+     * @return bool
+     */
     public function confirm($action, $text, array $data = [])
     {
         if (isset($_SESSION[self::SESSION_CONFIRMATIONS])
@@ -121,13 +186,20 @@ final class TwoFactorAuth
         ]);
     }
 
-    public function showConfirmationScreen($text = '', array $data = [])
+    /**
+     * Displays the token input screen to the user. This will be the last
+     * action since it dies after display.
+     *
+     * @param  string $text Text to display to the user
+     * @param  array  $data Optional additional data (for internal use)
+     */
+    private function showConfirmationScreen($text = '', array $data = [])
     {
         $data = array_merge(['global' => false], $data);
 
         $_SESSION[self::SESSION_DATA] = array_merge($data, [
             '__nonce'  => md5(uniqid('tfa-nonce', true)),
-            '__return' => $_SERVER['REQUEST_URI'],
+            '__params' => Request::getInstance()->getIterator()->getArrayCopy(),
         ]);
 
         if ($this->secret->type === 'email') {
@@ -151,6 +223,10 @@ final class TwoFactorAuth
         die;
     }
 
+    /**
+     * Registers the current secret in session by storing a valid random token
+     * along with the according timeslice.
+     */
     private function registerSecretInSession()
     {
         $timeslice = mt_rand(0, PHP_INT_MAX);
@@ -160,6 +236,10 @@ final class TwoFactorAuth
         ];
     }
 
+    /**
+     * Registers the current secret in a cookie by storing a valid random token
+     * along with the according timeslice.
+     */
     private function registerSecretInCookie()
     {
         $timeslice = mt_rand(0, PHP_INT_MAX);
@@ -171,6 +251,16 @@ final class TwoFactorAuth
         );
     }
 
+    /**
+     * Detects and validates a submitted tfa token input. This will stop the
+     * current request if token is present and invalid and will return to the
+     * request as expected when either token is present and valid or no token
+     * was submitted at all.
+     *
+     * This method also registers the secret in session (if global in data is
+     * set to true) or registers the secret in a cookie (if request parameter
+     * "tfa-trusted" was sent).
+     */
     private function validateFromRequest()
     {
         if (
@@ -194,7 +284,7 @@ final class TwoFactorAuth
                 if ($data['global'] ?? false) {
                     $this->registerSecretInSession();
 
-                    if (Request::int('trusted')) {
+                    if (Request::int('tfa-trusted')) {
                         $this->registerSecretInCookie();
                     }
                 }
@@ -205,6 +295,16 @@ final class TwoFactorAuth
                     }
                     $_SESSION[self::SESSION_CONFIRMATIONS][] = $data['confirm'];
                 }
+
+                // Remove tfa parameters from request
+                Request::set('tfa-nonce', null);
+                Request::set('tfacode-input', null);
+                Request::set('tfa-trusted', null);
+
+                // Add previous parameters to request
+                foreach ($data['__params'] as $key => $value) {
+                    Request::set($key, $value);
+                }
             } else {
                 $_SESSION[self::SESSION_FAILED][] = time();
 
@@ -213,15 +313,18 @@ final class TwoFactorAuth
 
             unset($_SESSION[self::SESSION_DATA]);
         }
-
-        page_close();
-        header('Location: ' . URLHelper::getURL($data['__return']));
-        die;
     }
 
+    /**
+     * Returns whether the current session is blocked from any more token
+     * inputs. This happens if too many false inputs happen in a short amount
+     * of time and should prevent brute force attacks.
+     * 
+     * @return boolean
+     */
     private function isBlocked()
     {
-        return count($_SESSION[self::SESSION_FAILED]) >= self::MAX_TRIES
+        return count($_SESSION[self::SESSION_FAILED]) >= Config::get()->TFA_MAX_TRIES
              ? min($_SESSION[self::SESSION_FAILED])
              : false;
     }

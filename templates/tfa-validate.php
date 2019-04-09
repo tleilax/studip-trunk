@@ -1,4 +1,4 @@
-<form action="<?= URLHelper::getLink('dispatch.php/tfa') ?>" method="post" class="default">
+<form action="<?= htmlReady(Request::url()) ?>" method="post" class="default">
     <input type="hidden" name="tfa-nonce" value="<?= htmlReady($__nonce) ?>">
     <fieldset>
         <legend><?= _('Zwei-Faktor-Authorisierung') ?></legend>
@@ -6,7 +6,7 @@
 <? if ($blocked): ?>
     <?= MessageBox::warning(_('Sie haben zu viele ungültige Versuche'), [sprintf(
         _('Versuchen Sie es in %u Minute(n) erneut'),
-        ceil((time() - $blocked) / 60) 
+        ceil((time() - $blocked) / 60)
     )])->hideClose() ?>
 <? else: ?>
         <p><?= htmlReady($text ?: _('Bitte geben Sie ein gültiges Token ein')) ?></p>
@@ -41,7 +41,7 @@
 
     <? if ($global): ?>
         <label>
-            <input type="checkbox" name="trusted" value="1">
+            <input type="checkbox" name="tfa-trusted" value="1">
             <?= _('Diesem Gerät für 30 Tage vertrauen.') ?>
         </label>
     <? endif; ?>
