@@ -23,7 +23,7 @@ class Semester extends \RESTAPI\RouteMap
         $total = count($semesters);
         $semesters = array_slice($semesters, $this->offset, $this->limit);
 
-        $json = array();
+        $json = [];
         foreach ($semesters as $semester) {
             $url = $this->urlf('/semester/%s', $semester['semester_id']);
             $json[$url] = $this->semesterToJSON($semester);
@@ -51,32 +51,27 @@ class Semester extends \RESTAPI\RouteMap
 
     private function findAllSemesters()
     {
-        return $this->filterSemesters(
-            \SemesterData::GetSemesterArray());
+        return $this->filterSemesters(\SemesterData::GetSemesterArray());
     }
 
     private function filterSemesters($semesters)
     {
-        $result = array();
-
-        foreach ($semesters as $semester) {
-            if (isset($semester['semester_id'])) {
-                $result[] = $semester;
-            }
-        }
-        return $result;
+        return array_filter($semesters, function ($semester) {
+            return isset($semester['semester_id']);
+        });
     }
 
     private function semesterToJSON($semester)
     {
-        return array(
+        return [
             'id'             => $semester['semester_id'],
-            'title'          => $semester['name'],
-            'description'    => $semester['description'],
-            'begin'          => intval($semester['beginn']),
-            'end'            => intval($semester['ende']),
-            'seminars_begin' => intval($semester['vorles_beginn']),
-            'seminars_end'   => intval($semester['vorles_ende']),
-        );
+            'title'          => (string) $semester['name'],
+            'token'          => (string) $semester['token'],
+            'description'    => (string) $semester['description'],
+            'begin'          => (int) $semester['beginn'],
+            'end'            => (int) $semester['ende'],
+            'seminars_begin' => (int) $semester['vorles_beginn'],
+            'seminars_end'   => (int) $semester['vorles_ende'],
+        ];
     }
 }

@@ -58,7 +58,7 @@ class ProfileModel
         if (is_array(json_decode($visibilities, true))) {
             return json_decode($visibilities, true);
         }
-        return array();
+        return [];
     }
 
     /**
@@ -95,27 +95,26 @@ class ProfileModel
      */
     public function getDozentSeminars()
     {
-        $courses = array();
+        $courses = [];
         $semester = array_reverse(Semester::getAll());
         $field = 'name';
         if (Config::get()->IMPORTANT_SEMNUMBER) {
             $field = "veranstaltungsnummer,{$field}";
         }
-        $allcourses = new SimpleCollection(Course::findBySQL("INNER JOIN seminar_user USING(Seminar_id) WHERE user_id=? AND seminar_user.status='dozent' AND seminare.visible=1", array($this->current_user->id)));
+        $allcourses = new SimpleCollection(Course::findBySQL("INNER JOIN seminar_user USING(Seminar_id) WHERE user_id=? AND seminar_user.status='dozent' AND seminare.visible=1", [$this->current_user->id]));
         foreach (array_filter($semester) as $one) {
-            $courses[$one->name] =
-                $allcourses->filter(function ($c) use ($one) {
-                    if($c->duration_time != -1) {
-                        return $c->start_time <= $one->beginn && ($one->beginn <= ($c->start_time + $c->duration_time));
-                    } else {
-                        if($one->getcurrent()) {
-                            return $c;
-                        }
-                    }
+            $courses[(string) $one->name] = $allcourses->filter(function ($c) use ($one) {
+                if ($c->duration_time != -1) {
+                    return $c->start_time <= $one->beginn
+                        && $one->beginn <= $c->start_time + $c->duration_time;
+                } elseif ($one->getcurrent()) {
+                    return $c;
+                }
+                return false;
+            })->orderBy($field);
 
-                })->orderBy($field);
-            if (!$courses[$one->name]->count()) {
-                unset($courses[$one->name]);
+            if (!$courses[(string) $one->name]->count()) {
+                unset($courses[(string) $one->name]);
             }
         }
         return $courses;
@@ -129,8 +128,8 @@ class ProfileModel
     public function getDatafields()
     {
         // generische Datenfelder aufsammeln
-        $short_datafields = array();
-        $long_datafields  = array();
+        $short_datafields = [];
+        $long_datafields  = [];
         foreach (DataFieldEntry::getDataFieldEntries($this->current_user->user_id, 'user') as $entry) {
             if ($entry->isVisible() && $entry->getDisplayValue()
                 && Visibility::verify($entry->getID(), $this->current_user->user_id))
@@ -143,10 +142,10 @@ class ProfileModel
             }
         }
 
-        return array(
+        return [
             'long'  => $long_datafields,
             'short' => $short_datafields,
-        );
+        ];
     }
 
     /**
@@ -157,16 +156,16 @@ class ProfileModel
     public function getLongDatafields()
     {
         $datafields = $this->getDatafields();
-        $array      = array();
+        $array      = [];
 
         if (empty($datafields)) {
             return null;
         }
         foreach ($datafields['long'] as $entry) {
-            $array[$entry->getName()] = array(
+            $array[$entry->getName()] = [
                 'content' => $entry->getDisplayValue(),
                 'visible' => '(' . $entry->getPermsDescription() . ')',
-            );
+            ];
         }
 
         return $array;
@@ -180,17 +179,17 @@ class ProfileModel
     public function getShortDatafields()
     {
         $shortDatafields = $this->getDatafields();
-        $array = array();
+        $array = [];
 
         if (empty($shortDatafields)) {
             return null;
         }
 
         foreach ($shortDatafields['short'] as $entry) {
-            $array[$entry->getName()] = array(
+            $array[$entry->getName()] = [
                 'content' => $entry->getDisplayValue(),
                 'visible' => '(' . $entry->getPermsDescription() . ')',
-            );
+            ];
         }
         return $array;
     }

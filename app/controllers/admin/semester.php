@@ -74,9 +74,9 @@ class Admin_SemesterController extends AuthenticatedController
             CSRFProtection::verifyUnsafeRequest();
 
             // Extract values
-            $this->semester->name           = Request::get('name');
-            $this->semester->description    = Request::get('description');
-            $this->semester->semester_token = Request::get('token');
+            $this->semester->name           = Request::i18n('name');
+            $this->semester->description    = Request::i18n('description');
+            $this->semester->semester_token = Request::i18n('token');
             $this->semester->beginn         = $this->getTimeStamp('beginn');
             $this->semester->ende           = $this->getTimeStamp('ende', '23:59:59');
             $this->semester->vorles_beginn  = $this->getTimeStamp('vorles_beginn');
@@ -86,20 +86,20 @@ class Admin_SemesterController extends AuthenticatedController
             $errors = $this->validateSemester($this->semester);
 
             // If valid, try to store the semester
-            if (empty($errors) && $this->semester->isDirty() && !$this->semester->store()) {
+            if (!$errors && $this->semester->store() === false) {
                 $errors[] = _('Fehler bei der Speicherung Ihrer Daten. Bitte überprüfen Sie Ihre Angaben.');
             }
 
             // Output potential errors or show success message and relocate
             if (count($errors) === 1) {
                 $error = reset($errors);
-                PageLayout::postMessage(MessageBox::error($error));
+                PageLayout::postError($error);
             } elseif (!empty($errors)) {
                 $message = _('Ihre eingegebenen Daten sind ungültig.');
-                PageLayout::postMessage(MessageBox::error($message, $errors));
+                PageLayout::postError($message, $errors);
             } else {
                 $message = _('Das Semester wurde erfolgreich gespeichert.');
-                PageLayout::postMessage(MessageBox::success($message));
+                PageLayout::postSuccess($message);
 
                 $this->relocate('admin/semester');
             }
@@ -117,10 +117,10 @@ class Admin_SemesterController extends AuthenticatedController
     {
         $ids = $id === 'bulk'
              ? Request::optionArray('ids')
-             : array($id);
+             : [$id];
 
         if (count($ids)) {
-            $errors  = array();
+            $errors  = [];
             $deleted = 0;
 
             $semesters = Semester::findMany($ids);
@@ -163,7 +163,7 @@ class Admin_SemesterController extends AuthenticatedController
     protected function validateSemester(Semester $semester)
     {
         // Validation, step 1: Check required values
-        $errors = array();
+        $errors = [];
         if (!$this->semester->name) {
             $errors['name'] = _('Sie müssen den Namen des Semesters angeben.');
         }
@@ -196,8 +196,8 @@ class Admin_SemesterController extends AuthenticatedController
         // Validation, step 3: Check overlapping with other semesters
         if (empty($errors)) {
             $all_semester = SimpleCollection::createFromArray(Semester::getAll())->findBy('id', $this->semester->id, '<>');
-            $collisions = $all_semester->findBy('beginn', array($this->semester->beginn, $this->semester->ende), '>=<=');
-            $collisions->merge($all_semester->findBy('ende', array($this->semester->beginn, $this->semester->ende), '>=<='));
+            $collisions = $all_semester->findBy('beginn', [$this->semester->beginn, $this->semester->ende], '>=<=');
+            $collisions->merge($all_semester->findBy('ende', [$this->semester->beginn, $this->semester->ende], '>=<='));
             if ($collisions->count()) {
                 $errors[] = sprintf(_('Der angegebene Zeitraum des Semester überschneidet sich mit einem anderen Semester (%s)'), join(', ', $collisions->pluck('name')));
             }

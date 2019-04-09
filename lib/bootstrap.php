@@ -28,7 +28,6 @@ namespace {
         . PATH_SEPARATOR . $STUDIP_BASE_PATH . DIRECTORY_SEPARATOR . 'config'
         . PATH_SEPARATOR . get_include_path()
     );
-    !ini_get('register_globals') || require 'templates/register_globals_on.php';
 
     $ABSOLUTE_PATH_STUDIP = $STUDIP_BASE_PATH . '/public/';
 
@@ -253,7 +252,7 @@ namespace {
     }
 
     //Besser hier globale Variablen definieren...
-    $GLOBALS['_fullname_sql'] = array();
+    $GLOBALS['_fullname_sql'] = [];
     $GLOBALS['_fullname_sql']['full'] = "TRIM(CONCAT(title_front,' ',Vorname,' ',Nachname,IF(title_rear!='',CONCAT(', ',title_rear),'')))";
     $GLOBALS['_fullname_sql']['full_rev'] = "TRIM(CONCAT(Nachname,', ',Vorname,IF(title_front!='',CONCAT(', ',title_front),''),IF(title_rear!='',CONCAT(', ',title_rear),'')))";
     $GLOBALS['_fullname_sql']['no_title'] = "CONCAT(Vorname ,' ', Nachname)";

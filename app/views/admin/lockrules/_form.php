@@ -42,12 +42,14 @@ use Studip\Button, Studip\LinkButton;
     </fieldset>
 
     <footer>
-        <?= Button::create(_('Übernehmen'), 'ok', array('title' => _('Einstellungen übernehmen'))) ?>
+        <?= Button::create(_('Übernehmen'), 'ok', ['title' => _('Einstellungen übernehmen')]) ?>
     </footer>
 
 
     <? foreach ($lock_config['groups'] as $group => $group_title) : ?>
-        <? $attributes = array_filter(array_map(create_function('$a', 'return $a["group"]=="' . $group . '" ? $a["name"] : null;'), $lock_config['attributes'])); ?>
+        <? $attributes = array_filter(array_map(function ($a) use ($group) {
+            return $a['group'] == $group ? $a['name'] : null;
+        }, $lock_config['attributes'])); ?>
         <? if (count($attributes)) : ?>
             <br>
             <table class="default">
@@ -88,7 +90,7 @@ use Studip\Button, Studip\LinkButton;
             </table>
 
         <footer>
-            <?= Button::create(_('Übernehmen'), 'ok', array('title' => _('Einstellungen übernehmen'))) ?>
+            <?= Button::create(_('Übernehmen'), 'ok', ['title' => _('Einstellungen übernehmen')]) ?>
         </footer>
         <? endif ?>
 

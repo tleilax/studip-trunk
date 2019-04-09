@@ -9,22 +9,26 @@
         <label>
             <?= _('Name des Semesters') ?>
 
-            <input required type="text" name="name" id="name"
-                   value="<?= htmlReady($semester->name) ?>"
-                   <? if (isset($errors['name'])) echo 'class="invalid"'; ?>>
+            <?= I18N::input('name', $semester->name, [
+                'id'    => 'name',
+                'class' => isset($errors['name']) ? 'invalid' : '',
+            ]) ?>
         </label>
 
         <label>
             <?= _('Kürzel') ?>
 
-            <input type="text" name="token" id="token"
-                   value="<?= htmlReady($semester->semester_token) ?>">
+            <?= I18N::input('token', $semester->semester_token, [
+                'id' => 'token',
+            ]) ?>
         </label>
 
         <label>
             <?= _('Beschreibung') ?>
 
-            <textarea name="description" id="description"><?= htmlReady($semester->description) ?></textarea>
+            <?= I18N::textarea('description', $semester->description, [
+                'id' => 'description',
+            ]) ?>
         </label>
     </fieldset>
 
