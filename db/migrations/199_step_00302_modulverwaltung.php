@@ -508,7 +508,7 @@ class Step00302Modulverwaltung extends Migration
         $stmt = DBManager::get()->query("SELECT pluginid FROM plugins WHERE "
                 . "pluginname = 'Modulverwaltung'");
         $plugin_id = $stmt->fetchColumn();
-        $role_ids = array();
+        $role_ids = [];
 
         if ($plugin_id !== false) {
 
@@ -543,7 +543,7 @@ class Step00302Modulverwaltung extends Migration
             ");
 
             $roles = RolePersistence::getAllRoles();
-            $role_ids = array();
+            $role_ids = [];
             foreach ($roles as $r) {
                 if (in_array($r->getRolename(), words('MVVAdmin MVVFreigabe MVVEntwickler MVVRedakteur MVVTranslator MVVLvGruppenAdmin'))) {
                     $role_ids[] = $r->getRoleid();
@@ -696,8 +696,6 @@ class Step00302Modulverwaltung extends Migration
                 . "VARCHAR(32) NOT NULL DEFAULT ''");
         $db->exec("ALTER TABLE `user_studiengang` ADD `version_id` VARCHAR(32) "
                 . "NULL DEFAULT NULL AFTER `abschluss_id`");
-
-        SimpleORMap::expireTableScheme();
 
         // Step 3: LVGroup Assign
         if (!CourseWizardStepRegistry::findByClassName('LVGroupsWizardStep')) {
@@ -893,9 +891,6 @@ class Step00302Modulverwaltung extends Migration
         StudipLog::unregisterAction('MVV_STG_STGTEIL_NEW');
         StudipLog::unregisterAction('MVV_STG_STGTEIL_UPDATE');
         StudipLog::unregisterAction('MVV_STG_STGTEIL_DEL');
-
-
-        SimpleORMap::expireTableScheme();
     }
 
 }

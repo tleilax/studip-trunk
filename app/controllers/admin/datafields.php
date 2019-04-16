@@ -18,14 +18,14 @@
 
 class Admin_DatafieldsController extends AuthenticatedController
 {
-    public $user_status = array(
+    public $user_status = [
         'user'   =>  1,
         'autor'  =>  2,
         'tutor'  =>  4,
         'dozent' =>  8,
         'admin'  => 16,
         'root'   => 32,
-    );
+    ];
 
     /**
      * Common tasks for all actions.
@@ -56,24 +56,20 @@ class Admin_DatafieldsController extends AuthenticatedController
     public function index_action($class = null)
     {
         if ($this->class_filter) {
-            $this->datafields_list = array(
+            $this->datafields_list = [
                 $this->class_filter => DataField::getDataFields($this->class_filter),
-            );
+            ];
         } else {
-            $this->datafields_list = array(
-                'sem'          => DataField::getDataFields('sem'),
-                'inst'         => DataField::getDataFields('inst'),
-                'user'         => DataField::getDataFields('user'),
-                'userinstrole' => DataField::getDataFields('userinstrole'),
-                'usersemdata'  => DataField::getDataFields('usersemdata'),
-                'roleinstdata' => DataField::getDataFields('roleinstdata')
-            );
-
-            $this->datafields_list['moduldeskriptor'] =
-                    DataField::getDataFields('moduldeskriptor');
-            $this->datafields_list['modulteildeskriptor'] =
-                    DataField::getDataFields('modulteildeskriptor');
-
+            $this->datafields_list = [
+                'sem'                 => DataField::getDataFields('sem'),
+                'inst'                => DataField::getDataFields('inst'),
+                'user'                => DataField::getDataFields('user'),
+                'userinstrole'        => DataField::getDataFields('userinstrole'),
+                'usersemdata'         => DataField::getDataFields('usersemdata'),
+                'roleinstdata'        => DataField::getDataFields('roleinstdata'),
+                'moduldeskriptor'     => DataField::getDataFields('moduldeskriptor'),
+                'modulteildeskriptor' => DataField::getDataFields('modulteildeskriptor')
+            ];
         }
 
         // set variables for view
@@ -99,7 +95,7 @@ class Admin_DatafieldsController extends AuthenticatedController
 
         if (Request::submitted('uebernehmen')) {
             if (Request::get('datafield_name')) {
-                $datafield->name          = Request::get('datafield_name');
+                $datafield->name          = Request::i18n('datafield_name');
                 if ($datafield->object_type === 'moduldeskriptor'
                         || $datafield->object_type === 'modulteildeskriptor') {
                     $object_class = implode(',', Request::getArray('object_class'));

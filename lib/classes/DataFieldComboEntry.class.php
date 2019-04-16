@@ -25,7 +25,7 @@ class DataFieldComboEntry extends DataFieldEntry
 
         if ($this->getValue() === null) {
             $parameters = $this->getParameters();
-            $this->setValue($values[0]); // first selectbox entry is default
+            $this->setValue($parameters[0]); // first selectbox entry is default
         }
     }
 
@@ -58,7 +58,7 @@ class DataFieldComboEntry extends DataFieldEntry
      * @param Array  $variables Additional variables
      * @return String containing the required html
      */
-    public function getHTML($name = '', $variables = array())
+    public function getHTML($name = '', $variables = [])
     {
         return parent::getHTML($name, $variables + [
             'values' => $this->getParameters(),
@@ -72,7 +72,7 @@ class DataFieldComboEntry extends DataFieldEntry
      */
     protected function getParameters()
     {
-        $parameters = explode("\n", trim($this->model->typeparam));
+        $parameters = explode("\n", rtrim($this->model->typeparam));
         $parameters = array_map('trim', $parameters);
         return $parameters;
     }

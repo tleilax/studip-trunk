@@ -23,14 +23,14 @@ class GarbageCollectorJob extends CronJob
 
     public static function getParameters()
     {
-        return array(
-            'verbose' => array(
+        return [
+            'verbose' => [
                 'type'        => 'boolean',
                 'default'     => false,
                 'status'      => 'optional',
                 'description' => _('Sollen Ausgaben erzeugt werden (sind später im Log des Cronjobs sichtbar)'),
-            ),
-        );
+            ],
+        ];
     }
 
     public function setUp()
@@ -38,7 +38,7 @@ class GarbageCollectorJob extends CronJob
 
     }
 
-    public function execute($last_result, $parameters = array())
+    public function execute($last_result, $parameters = [])
     {
         $db = DBManager::get();
 
@@ -51,6 +51,11 @@ class GarbageCollectorJob extends CronJob
             $db->exec("DELETE FROM message_user WHERE message_id IN(" . $db->quote($to_delete) . ")");
             $db->exec("DELETE FROM message WHERE message_id IN(" . $db->quote($to_delete) . ")");
         }
+
+        // Remove outdated opengraph urls
+        $query = "DELETE FROM `opengraphdata`
+                  WHERE `last_update` < UNIX_TIMESTAMP(NOW() - INTERVAL 1 WEEK)";
+        DBManager::get()->exec($query);
 
         //delete old attachments of non-sent and deleted messages:
         //A folder is old and not attached to a message when it has the
@@ -79,16 +84,17 @@ class GarbageCollectorJob extends CronJob
             printf(_("Gelöschte Dateianhänge: %u") . "\n", count($unsent_attachment_folders));
         }
 
+        Token::deleteBySQL('expiration < UNIX_TIMESTAMP()');
         PersonalNotifications::doGarbageCollect();
 
-        \Studip\Activity\Activity::doGarbageCollect();
+        Studip\Activity\Activity::doGarbageCollect();
 
         // clean db cache
         $cache = new StudipDbCache();
         $cache->purge();
 
         // Remove old plugin assets
-        PluginAsset::deleteBySQL('chdate < ?', array(time() - PluginAsset::CACHE_DURATION));
+        PluginAsset::deleteBySQL('chdate < ?', [time() - PluginAsset::CACHE_DURATION]);
 
         // Remove expired oauth server nonces
         $query = "DELETE FROM `oauth_server_nonce`

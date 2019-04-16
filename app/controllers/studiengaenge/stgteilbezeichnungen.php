@@ -18,8 +18,10 @@ class Studiengaenge_StgteilbezeichnungenController extends MVVController
     {
         $this->stgteilbezeichnungen = StgteilBezeichnung::getAllEnriched();
         PageLayout::setTitle(
-            _('Alle Studiengangteil-Bezeichnungen') . ' - ' .
-            sprintf(ngettext('%u Bezeichnung', '%u Bezeichnungen', count($this->stgteilbezeichnungen)), count($this->stgteilbezeichnungen))
+            _('Alle Studiengangteil-Bezeichnungen')
+            . ' ('
+            . sprintf(ngettext('%u Bezeichnung', '%u Bezeichnungen', count($this->stgteilbezeichnungen)), count($this->stgteilbezeichnungen))
+            . ')'
         );
         $this->setSidebar();
     }
@@ -34,9 +36,12 @@ class Studiengaenge_StgteilbezeichnungenController extends MVVController
             PageLayout::setTitle(_('Neue Studiengangteil-Bezeichnung anlegen'));
         } else {
             $this->bezeichnung_id = $this->stgteilbezeichnung->getId();
-            PageLayout::setTitle(sprintf(_('Studiengangteil-Bezeichnung: %s bearbeiten'), htmlReady($this->stgteilbezeichnung->name)));
+            PageLayout::setTitle(sprintf(
+                _('Studiengangteil-Bezeichnung: %s bearbeiten'),
+                htmlReady($this->stgteilbezeichnung->name)
+            ));
         }
-       
+
         $this->setSidebar();
         if (!$this->stgteilbezeichnung->isNew()) {
             $sidebar = Sidebar::get();
@@ -49,7 +54,7 @@ class Studiengaenge_StgteilbezeichnungenController extends MVVController
             );
         }
     }
-    
+
     /**
      * Store a Studiengangteil-Bezeichnung
      * @param null $bezeichnung_id
@@ -65,17 +70,20 @@ class Studiengaenge_StgteilbezeichnungenController extends MVVController
         $stored = false;
         $stgteilbezeichnung->name = Request::i18n('name')->trim();
         $stgteilbezeichnung->name_kurz = Request::i18n('name_kurz')->trim();
-        
+
         $stgteilbezeichnung->verifyPermission();
-        
+
         try {
             $stored = $stgteilbezeichnung->store();
         } catch (InvalidValuesException $e) {
             PageLayout::postError(htmlReady($e->getMessage()));
         }
-    
+
         if ($stored !== false) {
-            PageLayout::postSuccess(sprintf($success_message, htmlReady($stgteilbezeichnung->name)));
+            PageLayout::postSuccess(sprintf(
+                $success_message,
+                htmlReady($stgteilbezeichnung->name)
+            ));
         }
         $this->relocate('studiengaenge/stgteilbezeichnungen');
     }
@@ -95,7 +103,7 @@ class Studiengaenge_StgteilbezeichnungenController extends MVVController
         } else {
             $perm = MvvPerm::get($stgteilbezeichnung);
             if (!$perm->havePerm(MvvPerm::PERM_CREATE)) {
-                throw new Trails_Exception(403, _('Keine Berechtigung'));
+                throw new AccessDeniedException();
             }
             PageLayout::postSuccess(sprintf(
                 _('Studiengangteil-Bezeichnung "%s" gelöscht!'),
@@ -115,7 +123,7 @@ class Studiengaenge_StgteilbezeichnungenController extends MVVController
         $stgteilbezeichnungen = SimpleORMapCollection::createFromArray(
             StgteilBezeichnung::getAll()
         );
-        
+
         if (is_array($orderedIds)) {
             $i = 1;
             foreach ($orderedIds as $id) {
@@ -132,7 +140,7 @@ class Studiengaenge_StgteilbezeichnungenController extends MVVController
         $this->set_status(200);
         $this->render_nothing();
     }
-    
+
     /**
      * Display details
      * @param $bezeichnung_id
@@ -142,7 +150,7 @@ class Studiengaenge_StgteilbezeichnungenController extends MVVController
     {
         $this->stgteilbezeichnung = StgteilBezeichnung::get($bezeichnung_id);
         $this->bezeichnung_id = $this->stgteilbezeichnung->getId();
-        
+
         if (!Request::isXhr()) {
             $this->perform_relayed('stgteilbezeichnungen');
             return true;
@@ -166,7 +174,7 @@ class Studiengaenge_StgteilbezeichnungenController extends MVVController
             )->asDialog();
             $sidebar->addWidget($widget);
         }
-        
+
         $helpbar = Helpbar::get();
         $widget = new HelpbarWidget();
         $widget->addElement(new WidgetElement(_("Sie können die Reihenfolge der Studiengangteil-Bezeichnungen durch Ziehen der Zeilen ändern.").'</br>'));

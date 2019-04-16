@@ -68,6 +68,7 @@ class Course_StatusgroupsController extends AuthenticatedController
         $this->sort_by = Request::option('sortby', 'nachname');
         $this->order = Request::option('order', 'desc');
         $this->sort_group = Request::get('sort_group', '');
+        $this->open_groups = Request::get('open_groups');
 
         // Get all course members (needed for mkdate).
         $this->allmembers = SimpleCollection::createFromArray(
@@ -98,7 +99,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
 
         // Now build actual groups.
-        $this->groups = array();
+        $this->groups = [];
         foreach ($groups as $g) {
 
             $groupdata = [
@@ -110,7 +111,7 @@ class Course_StatusgroupsController extends AuthenticatedController
              * We only need to load members for a group that shall be sorted
              * explicitly, as this group will be loaded at once and not via AJAX.
              */
-            if ($g->id == $this->sort_group) {
+            if ($g->id == $this->sort_group || $this->open_groups) {
                 if ($this->sort_group == $g->id) {
                     $sorted = StatusgroupsModel::sortGroupMembers(
                         $g->members,
@@ -190,10 +191,10 @@ class Course_StatusgroupsController extends AuthenticatedController
             'user',
             _('Personen suchen'),
             'user_id',
-            array(
-                'permission' => array('user', 'autor', 'tutor', 'dozent'),
-                'exclude_user' => array()
-            )
+            [
+                'permission' => ['user', 'autor', 'tutor', 'dozent'],
+                'exclude_user' => []
+            ]
         );
 
         /*
@@ -251,6 +252,27 @@ class Course_StatusgroupsController extends AuthenticatedController
                     Icon::create('door-enter', 'clickable'))->asDialog('size=auto');
             $sidebar->addWidget($actions);
         }
+
+        $views = new ViewsWidget();
+        $views->addLink(
+            _('Alle Gruppen zugeklappt'),
+            $this->url_for(
+                'course/statusgroups'
+            )
+        )->setActive(!$this->open_groups);
+
+        $views->addLink(
+            _('Alle Gruppen aufgeklappt'),
+            $this->url_for(
+                'course/statusgroups',
+                [
+                    'open_groups' => '1'
+                ]
+            )
+
+        )->setActive($this->open_groups);
+
+        $sidebar->addWidget($views);
     }
 
     /**
@@ -347,7 +369,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
         foreach ($mp->getAddedUsers() as $a) {
 
-            if (!CourseMember::exists(array($this->course_id, $a))) {
+            if (!CourseMember::exists([$this->course_id, $a])) {
                 $m = new CourseMember();
                 $m->seminar_id = $this->course_id;
                 $m->user_id = $a;
@@ -502,7 +524,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             throw new AccessDeniedException();
         }
 
-        $s = StatusgruppeUser::find(array($group_id, $user_id));
+        $s = StatusgruppeUser::find([$group_id, $user_id]);
         $name = $s->user->getFullname();
         if ($s->delete()) {
             if ($user_id == $GLOBALS['user']->id) {
@@ -536,7 +558,7 @@ class Course_StatusgroupsController extends AuthenticatedController
 
         $this->source_group = $group_id;
 
-        $this->members = array($user_id);
+        $this->members = [$user_id];
 
         // Find possible target groups.
         $this->target_groups = SimpleCollection::createFromArray(
@@ -627,7 +649,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             throw new AccessDeniedException();
         }
 
-        $s = StatusgruppeUser::find(array($group_id, $GLOBALS['user']->id));
+        $s = StatusgruppeUser::find([$group_id, $GLOBALS['user']->id]);
         if ($s->delete()) {
             PageLayout::postSuccess(sprintf(
                 _('Sie wurden aus der Gruppe %s ausgetragen.'), htmlReady($g->name)));
@@ -729,7 +751,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         if ($rooms = $cd->getPredominantRoom()) {
                             $room_name = DBManager::get()->fetchOne(
                                 "SELECT `name` FROM `resources_objects` WHERE `resource_id` = ?",
-                                array(array_pop(array_keys($rooms))));
+                                [array_pop(array_keys($rooms))]);
                             $name .= ' (' . $room_name['name'] . ')';
                         } else {
                             $room = trim(array_pop(array_keys($cd->getFreeTextPredominantRoom())));
@@ -838,7 +860,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                         PageLayout::setTitle(_('Gruppengröße bearbeiten'));
                         $this->edit_size = true;
 
-                        $sizes = array();
+                        $sizes = [];
 
                         // Check for diverging values on all groups.
                         foreach ($this->groups as $group) {
@@ -855,8 +877,8 @@ class Course_StatusgroupsController extends AuthenticatedController
 
                         $selfassign = 0;
                         $exclusive = 0;
-                        $selfassign_start = array();
-                        $selfassign_end = array();
+                        $selfassign_start = [];
+                        $selfassign_end = [];
 
                         // Check for diverging values on all groups.
                         foreach ($this->groups as $group) {
@@ -1047,7 +1069,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             $stored = false;
 
             // Add user to target statusgroup (if not already in there).
-            if (!StatusgruppeUser::exists(array(Request::option('target_group'), $m))) {
+            if (!StatusgruppeUser::exists([Request::option('target_group'), $m])) {
                 $s = new StatusgruppeUser();
                 $s->user_id = $m;
                 $s->statusgruppe_id = Request::option('target_group');
@@ -1060,7 +1082,7 @@ class Course_StatusgroupsController extends AuthenticatedController
             $source = Request::option('source');
             if ($stored) {
                 if ($source != 'nogroup') {
-                    $old = StatusgruppeUser::find(array($source, $m));
+                    $old = StatusgruppeUser::find([$source, $m]);
                     if ($old->delete()) {
                         $success++;
                     } else {
@@ -1119,7 +1141,7 @@ class Course_StatusgroupsController extends AuthenticatedController
         foreach ($members as $m) {
 
             // Remove user from target statusgroup.
-            $s = StatusgruppeUser::find(array($group_id, $m));
+            $s = StatusgruppeUser::find([$group_id, $m]);
             if ($s->delete()) {
                 $success++;
             } else {

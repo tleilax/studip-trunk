@@ -74,7 +74,7 @@ $user_did_login = false;
 // session init starts here
 if ($_SESSION['SessionStart'] == 0) {
     $_SESSION['SessionStart'] = time();
-    $_SESSION['object_cache'] = array();
+    $_SESSION['object_cache'] = [];
 
     // try to get accepted languages from browser
     if (!isset($_SESSION['_language']))
@@ -159,7 +159,7 @@ if (is_object($GLOBALS['user'])
     && !match_route('dispatch.php/terms'))
 {
     if (!Request::isXhr()) {
-        header('Location: ' . URLHelper::getURL('dispatch.php/terms', ['return_to' => $_SERVER['REQUEST_URI'], 'redirect_token' => (string)Token::generate($GLOBALS['user']->id, 600)], true));
+        header('Location: ' . URLHelper::getURL('dispatch.php/terms', ['return_to' => $_SERVER['REQUEST_URI'], 'redirect_token' => Token::create(600)], true));
     } else {
         throw new Trails_Exception(400);
     }

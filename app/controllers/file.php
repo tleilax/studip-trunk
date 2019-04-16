@@ -89,9 +89,7 @@ class FileController extends AuthenticatedController
 
                 //all files were uploaded successfully:
                 $storedFiles = [];
-                $default_license = ContentTermsOfUse::find(
-                    'UNDEF_LICENSE'
-                );
+                $default_license = ContentTermsOfUse::findDefault();
 
                 foreach ($validatedFiles['files'] as $fileref) {
                     //If no terms of use is set for the file ref
@@ -451,7 +449,7 @@ class FileController extends AuthenticatedController
                 if (strpos($file_id, "?") !== false) {
                     $file_id = substr($file_id, 0, strpos($file_id, "?"));
                 }
-                $fileref_id = array($file_id);
+                $fileref_id = [$file_id];
             }
             $file_id = $fileref_id[0];
             $this->fileref_id = $fileref_id;
@@ -474,7 +472,7 @@ class FileController extends AuthenticatedController
             } else {
                 $this->file_ref = FileRef::find($fileref_id);
 
-                $this->fileref_id = array($fileref_id);
+                $this->fileref_id = [$fileref_id];
             }
         }
 
@@ -859,12 +857,12 @@ class FileController extends AuthenticatedController
                 if (!isset($file['tmp_name'])) {
                     if ($file->path_to_blob) {
                         //Cloud-file
-                        $fileobject = array(
+                        $fileobject = [
                             'name' => $file['name'],
                             'tmp_name' => $file->path_to_blob,
                             'type' => $file->mime_type ?: get_mime_type($file['name']),
                             'size' => $file->size
-                        );
+                        ];
                         $file = $fileobject;
                     } elseif($file['url']) {
                         //URL-file
@@ -906,7 +904,7 @@ class FileController extends AuthenticatedController
 
                     $plugins = PluginManager::getInstance()->getPlugins('FileUploadHook');
 
-                    $redirects = array();
+                    $redirects = [];
                     foreach ($plugins as $plugin) {
                         $url = $plugin->getAdditionalUploadWizardPage($file_ref);
                         if ($url) {
@@ -1140,7 +1138,7 @@ class FileController extends AuthenticatedController
                     $payload = [];
 
                     $this->current_folder = $this->top_folder;
-                    $this->marked_element_ids = array();
+                    $this->marked_element_ids = [];
                     $payload['html'][] = $this->render_template_as_string('files/_fileref_tr');
 
                     $plugins = PluginManager::getInstance()->getPlugins('FileUploadHook');
@@ -1433,7 +1431,7 @@ class FileController extends AuthenticatedController
 
             if (count($file_area_objects) === 1 && is_a($file_area_objects[0], 'FileRef')) {
                 //we have only one file to deliver, so no need for zipping it:
-                $this->redirect($file_area_objects[0]->getDownloadURL());
+                $this->redirect($file_area_objects[0]->getDownloadURL('force_download'));
                 return;
             }
 
@@ -1471,7 +1469,7 @@ class FileController extends AuthenticatedController
             $this->redirect($this->url_for('file/choose_destination/move', ['fileref_id' => Request::getArray('ids')]));
         } elseif (Request::submitted('delete')) {
             //bulk deleting
-            $errors = array();
+            $errors = [];
             $count_files = 0;
             $count_folders = 0;
 
@@ -1527,7 +1525,7 @@ class FileController extends AuthenticatedController
                     PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner gelöscht!'), $count_folders));
                 }
             } else {
-                PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), array_map('htmlReady', $errors));
+                PageLayout::postError(_('Es ist ein Fehler aufgetreten.'), array_map('htmlReady', $errors));
             }
 
             $this->redirectToFolder($parent_folder);

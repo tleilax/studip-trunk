@@ -1,4 +1,4 @@
-jQuery(function ($) {
+STUDIP.domReady(() => {
     var cache = STUDIP.Search.getCache();
     // initially hide all filters except for the semester filter
     $('#reset-search').hide();
@@ -58,9 +58,7 @@ jQuery(function ($) {
     });
 
     // perform a new search when another filter is selected by the user
-    $('select').filter(function(){
-        return  this.id.match(/.*_select/);
-    }).on('change', function () {
+    $('#globalsearch-page select[id$="_select"]').on('change', function () {
         STUDIP.Search.doSearch(STUDIP.Search.getFilter());
         return false;
     }).closest('form').on('submit', function(e) {

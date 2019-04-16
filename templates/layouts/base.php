@@ -1,5 +1,4 @@
 <?php
-# Lifter010: TODO
 NotificationCenter::postNotification('PageWillRender', $body_id ? : PageLayout::getBodyElementId());
 $navigation = PageLayout::getTabNavigation();
 $tab_root_path = PageLayout::getTabNavigationPath();
@@ -20,7 +19,7 @@ if ($navigation) {
                 $nav->getTitle(),
                 URLHelper::getURL($nav->getURL()),
                 null,
-                array('id' => $nav_id)
+                ['id' => $nav_id]
             );
             $link->setActive($nav->isActive());
             if (!$nav->isEnabled()) {
@@ -51,6 +50,7 @@ if ($navigation) {
     <? endif ?>
 
     <script>
+    document.querySelector('html').classList.replace('no-js', 'js');
     window.STUDIP = {
         ABSOLUTE_URI_STUDIP: "<?= $GLOBALS['ABSOLUTE_URI_STUDIP'] ?>",
         ASSETS_URL: "<?= $GLOBALS['ASSETS_URL'] ?>",
@@ -78,7 +78,7 @@ if ($navigation) {
     </script>
 </head>
 
-<body id="<?= $body_id ? $body_id : PageLayout::getBodyElementId() ?>">
+<body id="<?= $body_id ?: PageLayout::getBodyElementId() ?>">
 <div id="layout_wrapper">
     <? SkipLinks::insertContainer() ?>
     <? SkipLinks::addIndex(_("Hauptinhalt"), 'layout_content', 100, true) ?>
@@ -88,7 +88,7 @@ if ($navigation) {
 
     <div id="layout_page">
         <? if (PageLayout::isHeaderEnabled() && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody' && Navigation::hasItem('/course') && Navigation::getItem('/course')->isActive() && $_SESSION['seminar_change_view_'.Context::getId()]) : ?>
-            <?= $this->render_partial('change_view', array('changed_status' => $_SESSION['seminar_change_view_'.Context::getId()])) ?>
+            <?= $this->render_partial('change_view', ['changed_status' => $_SESSION['seminar_change_view_'.Context::getId()]]) ?>
         <? endif ?>
 
         <? if (PageLayout::isHeaderEnabled() /*&& isset($navigation)*/) : ?>
