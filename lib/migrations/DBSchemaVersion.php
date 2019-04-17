@@ -50,7 +50,7 @@ class DBSchemaVersion implements SchemaVersion
     /**
      * Initialize the current schema version.
      */
-    private function initSchemaInfo ()
+    private function initSchemaInfo()
     {
         try {
             $query = "SELECT version FROM schema_versions WHERE domain = ?";

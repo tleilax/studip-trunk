@@ -288,11 +288,13 @@ class Migrator
                               : (int) $target_version;
 
         # migrate up
-        if (!$this->schema_version->contains($this->target_version)) {
+        if ($this->target_version > 0
+            && !$this->schema_version->contains($this->target_version))
+        {
             $this->direction = 'up';
         }
         # migrate down
-        elseif ($this->schema_version->get() > $this->target_version) {
+        else {
             $this->direction = 'down';
         }
 
@@ -348,11 +350,15 @@ class Migrator
      */
     private function loadMigration($file, $class)
     {
-        $migration = require_once $file;
-        if (!$migration instanceof Migration) {
+        if (class_exists($class)) {
             $migration = new $class($this->verbose);
         } else {
-            $migration->setVerbose($this->verbose);
+            $migration = require $file;
+            if (!$migration instanceof Migration) {
+                $migration = new $class($this->verbose);
+            } else {
+                $migration->setVerbose($this->verbose);
+            }
         }
         return $migration;
     }

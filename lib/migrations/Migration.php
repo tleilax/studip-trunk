@@ -9,7 +9,7 @@
  * @license   GPL2 or any later version
  * @package   migrations
  */
-class Migration
+abstract class Migration
 {
     /**
      * use verbose output
