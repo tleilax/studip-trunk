@@ -330,7 +330,7 @@ class Studiengaenge_VersionenController extends SharedVersionController
             'version_id IN (?) AND stat IS NULL', [$version_ids]
         );
         $status_results['__undefined__'] = ['count_objects' => $count_status];
-    
+
         $filter_template = $template_factory->render('shared/filter',
             [
                 'semester'          => $semesters,
@@ -342,10 +342,10 @@ class Studiengaenge_VersionenController extends SharedVersionController
                 'action_reset'      => $this->url_for('/reset_filter')
             ]
         );
-    
+
         $sidebar = Sidebar::get();
         $widget = new SidebarWidget();
-        $widget->setTitle('Filter');
+        $widget->setTitle(_('Filter'));
         $widget->addElement(new WidgetElement($filter_template));
         $sidebar->addWidget($widget, 'filter');
     }
