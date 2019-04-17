@@ -24,20 +24,20 @@ class Fachabschluss_FaecherController extends MVVController
         // Nur Fächer mit verantwortlichen Einrichtungen an denen der User
         // eine Rolle hat
         $filter = ['mvv_fach_inst.institut_id' => MvvPerm::getOwnInstitutes()];
-    
+
         $this->count = Fach::getCount($filter);
-        
+
         if ($this->count < self::$items_per_page * ($this->page - 1)) {
             $this->page = 1;
         }
-    
+
         PageLayout::setTitle(
             _('Fächer mit verwendeten Abschlüssen')
             . ' ('
             . sprintf(ngettext('%s Fach', '%s Fächer', $this->count), $this->count)
             . ')'
         );
-        
+
         $this->sortby = $this->sortby ?: 'name';
         $this->order = $this->order ?: 'ASC';
         //get data
@@ -87,7 +87,7 @@ class Fachabschluss_FaecherController extends MVVController
             PageLayout::setTitle(_('Neues Fach anlegen'));
             $success_message = _('Das Fach "%s" wurde angelegt.');
         } else {
-            PageLayout::setTitle(sprintf(_('Fach: %s bearbeiten'), htmlReady($this->fach->getDisplayName())));
+            PageLayout::setTitle(sprintf(_('Fach: %s bearbeiten'), $this->fach->getDisplayName()));
             $success_message = _('Das Fach "%s" wurde geändert.');
         }
         //save changes
@@ -124,7 +124,7 @@ class Fachabschluss_FaecherController extends MVVController
             'institut_id',
             new StandardSearch('Institut_id')
         )->fireJSFunctionOnSelect('MVV.Search.addSelected')->noSelectbox();
-        
+
         if (!$this->fach->isNew() && MvvPerm::havePermCreate($this->fach)) {
             $this->setSidebar();
             $sidebar = Sidebar::get();
@@ -165,7 +165,7 @@ class Fachabschluss_FaecherController extends MVVController
     public function fachbereiche_action()
     {
         $filter = ['mvv_fach_inst.institut_id' => MvvPerm::getOwnInstitutes()];
-    
+
         $this->initPageParams('fachbereiche');
         $this->sortby = $this->sortby ?: 'name';
         $this->order = $this->order ?: 'ASC';

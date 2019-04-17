@@ -17,7 +17,7 @@ class Studiengaenge_StudiengangteileController extends SharedVersionController
         Navigation::activateItem($this->me . '/studiengaenge/studiengangteile');
         $this->action = $action;
     }
-    
+
     public function index_action()
     {
         $this->initPageParams();
@@ -65,7 +65,7 @@ class Studiengaenge_StudiengangteileController extends SharedVersionController
         if (!isset($this->stgteil)) {
             $this->stgteil = StudiengangTeil::get($stgteil_id);
         }
-        
+
         if ($this->stgteil->isNew()) {
             $this->stgteil->setNewId();
             PageLayout::setTitle(_('Neuen Studiengangteil anlegen'));
@@ -73,14 +73,14 @@ class Studiengaenge_StudiengangteileController extends SharedVersionController
         } else {
             PageLayout::setTitle(sprintf(
                 _('Studiengangteil: %s bearbeiten'),
-                htmlReady($this->stgteil->getDisplayName())
+                $this->stgteil->getDisplayName()
             ));
             $success_message = _('Der Studiengangteil "%s" wurde geändert.');
             if ($this->stgteil->fach) {
                 $this->fach_id = $this->stgteil->fach->getId();
             }
         }
-        
+
         if (Request::submitted('store')) {
             CSRFProtection::verifyUnsafeRequest();
             $stored = false;
@@ -162,7 +162,7 @@ class Studiengaenge_StudiengangteileController extends SharedVersionController
         }
         $this->perform_relayed('stgteil');
     }
-    
+
     /**
      * Delete Studiengangteil
      * @param $stgteil_id
@@ -172,7 +172,7 @@ class Studiengaenge_StudiengangteileController extends SharedVersionController
         CSRFProtection::verifyUnsafeRequest();
         $stgteil        = StudiengangTeil::find($stgteil_id);
         $stg_stgteile   = StudiengangStgteil::findBySql('stgteil_id = ' . DBManager::get()->quote($stgteil->getId()));
-        
+
         if (count($stg_stgteile)) {
             PageLayout::postInfo(_('Der Studiengangteil kann nicht gelöscht werden, da er Studiengängen zugeordnet ist.'));
         } else {
@@ -183,7 +183,7 @@ class Studiengaenge_StudiengangteileController extends SharedVersionController
             $stgteil->delete();
             $this->sessDelete();
         }
-        
+
         $this->redirect($this->url_for('/index'));
     }
 
@@ -297,7 +297,7 @@ class Studiengaenge_StudiengangteileController extends SharedVersionController
                     LEFT JOIN fach mf USING(fach_id)
                     WHERE ms.zusatz LIKE :input
                     OR mf.name LIKE :input";
-        
+
         $search_term = $this->search_term ? $this->search_term : _('Studiengangteil suchen');
 
         $sidebar = Sidebar::get();

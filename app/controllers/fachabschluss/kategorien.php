@@ -32,7 +32,7 @@ class Fachabschluss_KategorienController extends MVVController
         // sind an deren Verantwortliche Einrichtung dem User eine Rolle
         // zugewiesen wurde
         $filter = ['mvv_studiengang.institut_id' => MvvPerm::getOwnInstitutes()];
-    
+
         $this->abschluss_kategorien = AbschlussKategorie::getAllEnriched(
             'position',
             'ASC',
@@ -40,7 +40,7 @@ class Fachabschluss_KategorienController extends MVVController
             null,
             $filter
         );
-    
+
         PageLayout::setTitle(_('Abschluss-Kategorien mit verwendeten Abschlüssen'));
         $this->setSidebar();
     }
@@ -58,7 +58,7 @@ class Fachabschluss_KategorienController extends MVVController
         } else {
             PageLayout::setTitle(sprintf(
                 _('Abschluss-Kategorie: %s bearbeiten'),
-                htmlReady($this->abschluss_kategorie->getDisplayName())
+                $this->abschluss_kategorie->getDisplayName()
             ));
             $success_message = _('Die Abschluss-Kategorie "%s" wurde geändert.');
         }
@@ -83,7 +83,7 @@ class Fachabschluss_KategorienController extends MVVController
                     Request::optionArray('dokumente_items'),
                     Request::getArray('dokumente_properties')
                 );
-    
+
                 PageLayout::postSuccess(sprintf(
                     $success_message, htmlReady($this->abschluss_kategorie->name)
                 ));
@@ -213,7 +213,7 @@ class Fachabschluss_KategorienController extends MVVController
             );
         }
     }
-    
+
     public function document_comments_action($dokument_id, $object_id, $object_type)
     {
         $this->redirect(
@@ -239,5 +239,5 @@ class Fachabschluss_KategorienController extends MVVController
             $sidebar->addWidget($widget);
         }
     }
-    
+
 }

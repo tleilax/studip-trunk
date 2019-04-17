@@ -21,7 +21,7 @@ class Fachabschluss_AbschluesseController extends MVVController
     public function index_action()
     {
         $this->initPageParams();
-    
+
         $filter = ['mvv_fach_inst.institut_id' => MvvPerm::getOwnInstitutes()];
         $this->sortby = $this->sortby ?: 'name';
         $this->order = $this->order ?: 'ASC';
@@ -37,14 +37,14 @@ class Fachabschluss_AbschluesseController extends MVVController
             PageLayout::postInfo(_('Es wurden noch keine Abschlüsse angelegt.'));
         }
         $this->count = Abschluss::getCount($filter);
-    
+
         PageLayout::setTitle(
             _('Abschlüsse mit verwendeten Fächern')
             . '( '
             . sprintf(ngettext('%s Abschluss', '%s Abschlüsse', $this->count), $this->count)
             . ')'
         );
-        
+
         $this->setSidebar();
 
         $helpbar = Helpbar::get();
@@ -86,7 +86,7 @@ class Fachabschluss_AbschluesseController extends MVVController
         } else {
             PageLayout::setTitle(sprintf(
                 _('Abschluss: %s bearbeiten'),
-                htmlReady($this->abschluss->getDisplayName())
+                $this->abschluss->getDisplayName()
             ));
             $success_message = _('Der Abschluss "%s" wurde geändert.');
         }

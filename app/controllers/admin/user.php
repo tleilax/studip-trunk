@@ -88,12 +88,12 @@ class Admin_UserController extends AuthenticatedController
                 $this->datafields[] = $datafield;
             }
         }
-    
+
         // roles
         $this->roles = array_filter(RolePersistence::getAllRoles(), function($role) {
             return !$role->systemtype;
         });
-        
+
         //wenn suche durchgeführt
         if (!empty($request)) {
             //suche mit datafields
@@ -193,7 +193,7 @@ class Admin_UserController extends AuthenticatedController
                 }
             }
         }
-        
+
         $this->degrees      = Abschluss::findBySQL('1 order by name');
         $this->studycourses = Fach::findBySQL('1 order by name');
         $this->userdomains  = UserDomain::getUserDomains();
@@ -596,7 +596,7 @@ class Admin_UserController extends AuthenticatedController
 
             $this->redirect('admin/user/edit/' . $user_id);
         }
-        
+
         $this->prelim = $this->user->auth_plugin === null;
         if ($this->prelim) {
             $this->available_auth_plugins['preliminary'] = _('vorläufig');
@@ -958,7 +958,7 @@ class Admin_UserController extends AuthenticatedController
     public function lock_comment_action($user_id)
     {
         $this->user = User::find($user_id);
-        PageLayout::setTitle(sprintf(_('%s sperren'), htmlReady($this->user->getFullname())));
+        PageLayout::setTitle(sprintf(_('%s sperren'), $this->user->getFullname()));
 
         $this->params = [];
         if (Request::int('from_index')) {
