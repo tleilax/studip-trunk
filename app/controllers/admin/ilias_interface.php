@@ -28,8 +28,8 @@ class Admin_IliasInterfaceController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        if (! $GLOBALS['perm']->have_perm('root')) {
-            throw new AccessDeniedException(_('Keine Berechtigung zum Verwalten der ILIAS-Schnittstelle.'));
+        if (!$GLOBALS['perm']->have_perm('root')) {
+            throw new AccessDeniedException();
         }
 
         // check SOAP status
@@ -105,7 +105,7 @@ class Admin_IliasInterfaceController extends AuthenticatedController
             $this->ilias_interface_config['add_statusgroups'] = (boolean)Request::get('ilias_interface_add_statusgroups');
             $this->ilias_interface_config['cache'] = (boolean)Request::get('ilias_interface_cache');
             $this->ilias_interface_config['allow_change_course'] = Request::get('ilias_interface_allow_change_course');
-            
+
             //store config entry
             Config::get()->store('ILIAS_INTERFACE_BASIC_SETTINGS', $this->ilias_interface_config);
             Config::get()->store('ILIAS_INTERFACE_MODULETITLE', Request::quoted('ilias_interface_moduletitle'));
@@ -123,10 +123,10 @@ class Admin_IliasInterfaceController extends AuthenticatedController
         $this->valid_url = false;
         $this->ilias_version = '';
         $this->ilias_version_date = '';
-        $this->clients = array();
+        $this->clients = [];
         if ($index == 'new') {
             // default values
-            $this->ilias_config = array(
+            $this->ilias_config = [
                             'is_active' => false,
                             'name' => '',
                             'version' => '',
@@ -146,12 +146,12 @@ class Admin_IliasInterfaceController extends AuthenticatedController
                             'cat_semester' => '',
                             'course_semester' => '',
                             'course_veranstaltungsnummer' => false,
-                            'modules' => array(),
+                            'modules' => [],
 
                             'author_role_name' => 'Author',
                             'author_role' => '',
                             'author_perm' => 'tutor'
-            );
+            ];
 
             // fetch existing indicies from previously connected ILIAS installations
             $this->existing_indices = ConnectedIlias::getExistingIndices();
@@ -205,13 +205,13 @@ class Admin_IliasInterfaceController extends AuthenticatedController
         } else {
             $this->valid_url = true;
             $this->ilias_config = $this->ilias_configs[$index];
-            $ldap_options = array();
+            $ldap_options = [];
             foreach (StudipAuthAbstract::GetInstance() as $plugin) {
                 if ($plugin instanceof StudipAuthLdap) {
                     $ldap_options[] = '<option '.($plugin->plugin_name == $this->ilias_config['ldap_enable'] ? 'selected' : '').'>' . $plugin->plugin_name . '</option>';
                 }
             }
-            $this->ldap_options = count($ldap_options) ? join("\n", array_merge(array('<option></option>'), $ldap_options)) : '';
+            $this->ldap_options = count($ldap_options) ? join("\n", array_merge(['<option></option>'], $ldap_options)) : '';
             if (Request::get('ilias_name')) {
                 $this->ilias_config['name'] = Request::get('ilias_name');
                 $this->ilias_config['url'] = Request::get('ilias_url');
@@ -337,7 +337,7 @@ class Admin_IliasInterfaceController extends AuthenticatedController
                     $this->ilias_configs[$index]['author_role_name'] = Request::get('ilias_author_role_name');
                     $this->ilias_configs[$index]['author_perm'] = Request::get('ilias_author_perm');
                     $this->ilias_configs[$index]['allow_change_account'] = Request::get('ilias_allow_change_account');
-                    
+
                     //store config entry
                     Config::get()->store('ILIAS_INTERFACE_SETTINGS', $this->ilias_configs);
                     PageLayout::postSuccess(_('ILIAS-Berechtigungseinstellungen wurden gespeichert.'));

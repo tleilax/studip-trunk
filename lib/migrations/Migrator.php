@@ -215,6 +215,9 @@ class Migrator
         foreach ($migrations as $version => $migration) {
             $this->execute($version, $this->direction, $migration);
         }
+
+        // Reset SORM cache
+        SimpleORMap::expireTableScheme();
     }
 
     /**

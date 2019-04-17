@@ -63,8 +63,8 @@ class Course_IliasInterfaceController extends AuthenticatedController
 
         // Zugeordnete Ilias-Kurse ermitteln und ggf. aktualisieren
         $missing_course = false;
-        $this->courses = array();
-        $this->ilias_list = array();
+        $this->courses = [];
+        $this->ilias_list = [];
         $module_count = 0;
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
             if ($ilias_config['is_active']) {
@@ -197,8 +197,9 @@ class Course_IliasInterfaceController extends AuthenticatedController
      */
     public function edit_object_assignment_action($index)
     {
-        if (! $this->edit_permission)
-            throw new AccessDeniedException(_('Keine Berechtigung zum Bearbeiten der Lernobjekt-Zuordnungen.'));
+        if (!$this->edit_permission) {
+            throw new AccessDeniedException();
+        }
 
         $this->ilias = new ConnectedIlias($index);
         $this->module_id = Request::int('ilias_module_id');
@@ -235,11 +236,12 @@ class Course_IliasInterfaceController extends AuthenticatedController
     {
         PageLayout::setTitle(_('Lernobjekt hinzufügen'));
 
-        if (! $this->edit_permission)
-            throw new AccessDeniedException(_('Keine Berechtigung zum Bearbeiten der Lernobjekt-Zuordnungen.'));
+        if (!$this->edit_permission) {
+            throw new AccessDeniedException();
+        }
 
         // get active ILIAS installations
-        $this->ilias_list = array();
+        $this->ilias_list = [];
         $this->mode = $mode;
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
             if ($ilias_config['is_active']) {
@@ -273,7 +275,7 @@ class Course_IliasInterfaceController extends AuthenticatedController
             }
             $this->ilias = $this->ilias_list[$index];
             $this->ilias_index = $index;
-            $this->ilias_modules = array();
+            $this->ilias_modules = [];
             $object_connections = new IliasObjectConnections($this->seminar_id);
             $course_modules = $object_connections->getConnections();
 
@@ -325,8 +327,8 @@ class Course_IliasInterfaceController extends AuthenticatedController
                                   WHERE module_type = 'crs' AND system_type = ? AND seminar_user.status = 'dozent'";
                 }
                 $statement = DBManager::get()->prepare($query);
-                $statement->execute(array($this->ilias_index));
-                $this->studip_course_list = array();
+                $statement->execute([$this->ilias_index]);
+                $this->studip_course_list = [];
                 while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                     $this->studip_course_list[$row['module_id']] = my_substr($row['Name'],0,60)." ".sprintf(_("(Kurs-ID %s)"), $row['module_id']);
                 }
@@ -361,14 +363,14 @@ class Course_IliasInterfaceController extends AuthenticatedController
     {
         PageLayout::setTitle(_('Statusgruppen anlegen'));
 
-        if (! $this->edit_permission) {
-            throw new AccessDeniedException(_('Keine Berechtigung zum Übertragen der Statusgruppen.'));
+        if (!$this->edit_permission) {
+            throw new AccessDeniedException();
         }
 
         $this->groups = Statusgruppen::findBySeminar_id($this->seminar_id);
 
         // get active ILIAS installations
-        $this->ilias_list = array();
+        $this->ilias_list = [];
         foreach (Config::get()->ILIAS_INTERFACE_SETTINGS as $ilias_index => $ilias_config) {
             if ($ilias_config['is_active'] && IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $ilias_index)) {
                 $this->ilias_list[$ilias_index] = new ConnectedIlias($ilias_index);
@@ -390,17 +392,17 @@ class Course_IliasInterfaceController extends AuthenticatedController
             }
             $this->ilias = $this->ilias_list[$index];
             $this->ilias_index = $index;
-            $this->ilias_groups = array();
+            $this->ilias_groups = [];
             $this->submit_text =  _('Gruppen übertragen');
             $course_id = IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $this->ilias_index);
 
             if ((Request::get('cmd') == 'create_groups') && $course_id) {
                 // add groups
                 foreach ($this->groups as $group) {
-                    $group_data = array(
+                    $group_data = [
                                     'title' => $group->getName(),
                                     'owner' => $this->ilias->user->getId()
-                    );
+                    ];
                     if ($group_id = IliasObjectConnections::getConnectionModuleId($group->getId(), "group", $this->ilias_index)) {
                         // update existing group
                         $this->ilias->soap_client->updateGroup($group_data, $group_id);
@@ -410,7 +412,7 @@ class Course_IliasInterfaceController extends AuthenticatedController
                         foreach ($group->members as $member) {
                             $query = "SELECT external_user_id FROM auth_extern WHERE studip_user_id = ? AND external_user_system_type = ?";
                             $statement = DBManager::get()->prepare($query);
-                            $statement->execute(array($member->user_id, $this->ilias_index));
+                            $statement->execute([$member->user_id, $this->ilias_index]);
                             $data = $statement->fetch(PDO::FETCH_ASSOC);
                             if ($data) {
                                 $member_count++;
@@ -435,7 +437,7 @@ class Course_IliasInterfaceController extends AuthenticatedController
                         foreach ($group->members as $member) {
                             $query = "SELECT external_user_id FROM auth_extern WHERE studip_user_id = ? AND external_user_system_type = ?";
                             $statement = DBManager::get()->prepare($query);
-                            $statement->execute(array($member->user_id, $this->ilias_index));
+                            $statement->execute([$member->user_id, $this->ilias_index]);
                             $data = $statement->fetch(PDO::FETCH_ASSOC);
                             if ($data) {
                                 $member_count++;
@@ -462,8 +464,8 @@ class Course_IliasInterfaceController extends AuthenticatedController
      */
     public function remove_course_action($index, $crs_id)
     {
-        if (! $this->edit_permission) {
-            throw new AccessDeniedException(_('Keine Berechtigung zum Entfernen der Verknüpfung.'));
+        if (!$this->edit_permission) {
+            throw new AccessDeniedException();
         }
 
         $this->ilias = new ConnectedIlias($index);

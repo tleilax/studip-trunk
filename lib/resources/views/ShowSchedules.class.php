@@ -244,7 +244,9 @@ class ShowSchedules
                                 $sem_obj = Seminar::GetInstance(Seminar::GetSemIdByDateId($event->getAssignUserId()));
                                 $date = new SingleDate($event->getAssignUserId());
                                 $dozenten = array_intersect_key($sem_obj->getMembers('dozent'), array_flip($date->getRelatedPersons()));
-                                $sem_doz_names = array_map(create_function('$a', 'return $a["Nachname"];'), array_slice($dozenten,0,3, true));
+                                $sem_doz_names = array_map(function ($a) {
+                                    return $a['Nachname'];
+                                }, array_slice($dozenten, 0, 3, true));
                                 $add_info = '(' . join(', ', $sem_doz_names) . ')';
                         }
                         if (!$print_view){
@@ -344,7 +346,9 @@ class ShowSchedules
                 $sem_obj = Seminar::GetInstance(Seminar::GetSemIdByDateId($event->getAssignUserId()));
                 $date = new SingleDate($event->getAssignUserId());
                 $dozenten = array_intersect_key($sem_obj->getMembers('dozent'), array_flip($date->getRelatedPersons()));
-                $sem_doz_names = array_map(create_function('$a', 'return $a["Nachname"];'), array_slice($dozenten,0,3, true));
+                $sem_doz_names = array_map(function ($a) {
+                    return $a['Nachname'];
+                }, array_slice($dozenten, 0, 3, true));
                 $add_info = '(' . join(', ', $sem_doz_names) . ')';
             }
             $schedule->addEvent(null, $event->getName(get_config('RESOURCES_SCHEDULE_EXPLAIN_USER_NAME')), $event->getBegin(), $event->getEnd(),
@@ -384,9 +388,9 @@ class ShowSchedules
             <tr>
                 <td class="hidden" align="center" valign="bottom">&nbsp;
                 <? if ((!$_SESSION['resources_data']["schedule_time_range"]) || ($_SESSION['resources_data']["schedule_time_range"] == 1)): ?>
-                    <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
+                    <a href="<?= URLHelper::getLink('', ['quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
-                                                              'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : -1)) ?>">
+                                                              'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : -1]) ?>">
                         <?= Icon::create('arr_2up', 'clickable', ['title' => _('Frühere Belegungen anzeigen')])->asImg(['class' => 'middle']) ?>
                     </a>
                 <? endif; ?>
@@ -416,9 +420,9 @@ class ShowSchedules
             <tr>
                 <td class="hidden" align="center" valign="bottom">
                 <? if ((!$_SESSION['resources_data']['schedule_time_range']) || ($_SESSION['resources_data']['schedule_time_range'] == -1)): ?>
-                    <a href="<?= URLHelper::getLink('', array('quick_view' => $this->used_view,
+                    <a href="<?= URLHelper::getLink('', ['quick_view' => $this->used_view,
                                                               'quick_view_mode' => $view_mode,
-                                                              'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : 1)) ?>">
+                                                              'time_range' => $_SESSION['resources_data']['schedule_time_range'] ? 'FALSE' : 1]) ?>">
                         <?= Icon::create('arr_2down', 'clickable', ['title' => _('Spätere Belegungen anzeigen')])->asImg() ?>
                     </a>
                 <? endif; ?>
@@ -438,7 +442,7 @@ class ShowSchedules
     {
         $schedule = new ScheduleWeek();
         $cats = $schedule->categories;
-        $eventcat_names = array(
+        $eventcat_names = [
             'na'   => _('Keine'),
             'd'    => _('Täglich'),
             'w'    => ucfirst(_('wöchentlich')),
@@ -446,7 +450,7 @@ class ShowSchedules
             'm'    => _('Monatlich'),
             'y'    => _('Jährlich'),
             'meta' => _('Einzeltermin zu regelmäßigen Veranstaltungszeiten')
-        );
+        ];
         $sidebar = Sidebar::get();
         $legende_widget = new SidebarWidget();
         $legende_widget->setTitle(_('Art der Wiederholung'));

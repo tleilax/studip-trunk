@@ -14,9 +14,12 @@ use Studip\Button, Studip\LinkButton;
         <label>
             <span class="required"><?= _('Name') ?></span>
 
-            <input type="text" name="datafield_name" id="datafield_name"
-                   required size="60" maxlength="254"
-                   value="<?= htmlReady($item->name) ?>">
+            <?= I18N::input('datafield_name', $item->name, [
+                'id'        => 'datafield_name',
+                'required'  => '',
+                'size'      => 60,
+                'maxlength' => 254,
+            ]) ?>
         </label>
 
         <label>
@@ -168,7 +171,7 @@ use Studip\Button, Studip\LinkButton;
     </fieldset>
 
     <footer data-dialog-button>
-        <?= Button::createAccept(_('Übernehmen'), 'uebernehmen', array('title' => _('Änderungen übernehmen')))?>
-        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields/index/'.$item->type.'#'.$item->type), array('title' => _('Zurück zur Übersicht')))?>
+        <?= Button::createAccept(_('Übernehmen'), 'uebernehmen', ['title' => _('Änderungen übernehmen')])?>
+        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields/index/'.$item->type.'#'.$item->type), ['title' => _('Zurück zur Übersicht')])?>
     </footer>
 </form>

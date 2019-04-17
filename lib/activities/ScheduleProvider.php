@@ -22,9 +22,9 @@ class ScheduleProvider implements ActivityProvider
         $url = \URLHelper::getUrl("dispatch.php/course/dates?cid={$activity->context_id}");
         $route = \URLHelper::getURL('api.php/course/' . $activity->context_id . '/events', NULL, true);
 
-        $activity->object_url = array(
+        $activity->object_url = [
             $url => _('Zum Ablaufplan der Veranstaltung')
-        );
+        ];
 
         $activity->object_route = $route;
 
@@ -37,7 +37,7 @@ class ScheduleProvider implements ActivityProvider
      * @param String $event a notification for an activity
      * @param Array  $sem Seminar-class for the notification
      */
-    public function postActivity($event, $sem)
+    public static function postActivity($event, $sem)
     {
         $range_id = $sem->getId();
 
@@ -56,7 +56,7 @@ class ScheduleProvider implements ActivityProvider
         }
 
         $activity = Activity::create(
-            array(
+            [
                 'provider'     => __CLASS__,
                 'context'      => ($type == 'sem') ? 'course' : 'institute',
                 'context_id'   => $range_id,
@@ -67,7 +67,7 @@ class ScheduleProvider implements ActivityProvider
                 'object_id'    => $range_id,  // the id of the referenced object
                 'object_type'  => 'schedule', // type of activity object
                 'mkdate'       =>  $mkdate
-            )
+            ]
         );
 
     }
