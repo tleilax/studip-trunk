@@ -73,7 +73,7 @@ class Studiengaenge_StudiengangteileController extends SharedVersionController
         } else {
             PageLayout::setTitle(sprintf(
                 _('Studiengangteil: %s bearbeiten'),
-                htmlReady($this->stgteil->getDisplayName())
+                $this->stgteil->getDisplayName()
             ));
             $success_message = _('Der Studiengangteil "%s" wurde geändert.');
             if ($this->stgteil->fach) {
@@ -310,7 +310,6 @@ class Studiengaenge_StudiengangteileController extends SharedVersionController
             'function () { $(this).closest("form").submit(); }',
             $this->search_term
         );
-        $widget->setTitle('Suche');
         $sidebar->addWidget($widget, 'search');
     }
 }

@@ -65,6 +65,10 @@ class Statusgruppen extends SimpleORMap implements PrivacyObject
         $config['registered_callbacks']['before_store'][] = 'cbAddPosition';
         $config['registered_callbacks']['after_delete'][] = 'cbReorderPositions';
 
+        $config['i18n_fields']['name'] = true;
+        $config['i18n_fields']['name_w'] = true;
+        $config['i18n_fields']['name_m'] = true;
+
         parent::configure($config);
     }
 
@@ -189,13 +193,13 @@ class Statusgruppen extends SimpleORMap implements PrivacyObject
     public function getGenderedName($user_or_id)
     {
         // We have to have at least 1 name gendered
-        if ($this->name_m || $this->name_w) {
+        if ((string) $this->name_m || (string) $this->name_w) {
             $user = User::toObject($user_or_id);
             switch ($user->geschlecht) {
                 case UserInfo::GENDER_FEMALE:
-                    return $this->name_w ?: $this->name;
+                    return (string) $this->name_w ?: $this->name;
                 case UserInfo::GENDER_MALE:
-                    return $this->name_m ?: $this->name;
+                    return (string) $this->name_m ?: $this->name;
             }
         }
         return $this->name;
@@ -555,7 +559,8 @@ class Statusgruppen extends SimpleORMap implements PrivacyObject
             $sql = "SELECT MAX(position) FROM statusgruppen WHERE range_id = ?";
             $stmt = DBManager::get()->prepare($sql);
             $stmt->execute([$this->range_id]);
-            $this->position = 1 + $stmt->fetchColumn();
+            $max_position = $stmt->fetchColumn();
+            $this->position = $max_position === null ? 0 : $max_position + 1;
         }
     }
 
