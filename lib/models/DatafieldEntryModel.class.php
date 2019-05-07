@@ -39,9 +39,6 @@ class DatafieldEntryModel extends SimpleORMap implements PrivacyObject
     {
         $mask = ["user" => 1, "autor" => 2, "tutor" => 4, "dozent" => 8, "admin" => 16, "root" => 32];
 
-        // echo '<pre>';
-        // var_dump($model);die;
-
         if (is_a($model, "Course")) {
             $params[':institution_ids'] = $model->institutes->pluck('institut_id');
             $object_class = SeminarCategories::GetByTypeId($model->status)->id;

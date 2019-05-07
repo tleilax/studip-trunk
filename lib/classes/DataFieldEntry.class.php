@@ -100,7 +100,6 @@ abstract class DataFieldEntry
         if (!$range_id) {
             return []; // we necessarily need a range ID
         }
-
         $parameters = [];
         if(is_array($range_id)) {
             // rangeID may be an array ("classic" rangeID and second rangeID used for user roles)
@@ -155,6 +154,10 @@ abstract class DataFieldEntry
                 case 'roleinstdata': //hmm tja, vermutlich so
                     $clause2 = '1';
                     $clause3 = '1';
+                    if (is_array($range_id) && isset($range_id[0])) {
+                        $clause3 = 'a.institut_id IS NULL OR a.institut_id = :institut_id';
+                        $parameters[':institut_id'] = $range_id[0];
+                    }
                     break;
                 case 'user':
                 case 'userinstrole':
