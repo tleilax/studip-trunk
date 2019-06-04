@@ -11,10 +11,10 @@ return new class() extends Migration
     public function up()
     {
         $query = "CREATE TABLE IF NOT EXISTS `schema_versions` (
-                    `domain` VARCHAR(255) NOT NULL DEFAULT '',
+                    `domain` VARCHAR(255) COLLATE latin1_bin NOT NULL,
                     `version` BIGINT(20) UNSIGNED NOT NULL,
-                    INDEX `domain` (`domain`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=COMPACT";
+                    PRIMARY KEY `domain` (`domain`, `version`)
+                ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC";
         DBManager::get()->exec($query);
 
         $query = "SELECT `domain`, `version`
@@ -42,10 +42,10 @@ return new class() extends Migration
     public function down()
     {
         $query = "CREATE TABLE IF NOT EXISTS `schema_version` (
-                    `domain` VARCHAR(255) NOT NULL DEFAULT '',
-                    `version` INT(11) NOT NULL DEFAULT 0,
+                    `domain` VARCHAR(255) COLLATE latin1_bin NOT NULL,
+                    `version` INT(11) UNSIGNED NOT NULL,
                     PRIMARY KEY (`domain`)
-                  ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=COMPACT";
+                  ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC";
         DBManager::get()->exec($query);
 
         $query = "INSERT IGNORE INTO `schema_version`

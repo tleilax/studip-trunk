@@ -57,7 +57,7 @@ class DBSchemaVersion implements SchemaVersion
             $statement = DBManager::get()->prepare($query);
             $statement->execute([$this->domain]);
             $this->versions = $statement->fetchAll(PDO::FETCH_COLUMN);
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
             $query = "SELECT version FROM schema_version WHERE domain = ?";
             $statement = DBManager::get()->prepare($query);
             $statement->execute([$this->domain]);
@@ -103,7 +103,7 @@ class DBSchemaVersion implements SchemaVersion
                 $this->domain,
                 $version,
             ]);
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
             $query = "UPDATE `schema_version`
                       SET `version` = ?
                       WHERE `domain` = ?";;
@@ -135,8 +135,8 @@ class DBSchemaVersion implements SchemaVersion
                 $this->domain,
                 $version
             ]);
-        } catch (Exception $e) {
-            $query = "UPDATE `schema_versions`
+        } catch (PDOException $e) {
+            $query = "UPDATE `schema_version`
                       SET `version` = ?
                       WHERE `domain` = ?";
             DBManager::get()->execute($query, [

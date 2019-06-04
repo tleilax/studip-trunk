@@ -209,7 +209,7 @@ class Migrator
             "Currently at version %d. Now migrating %s to %d.\n",
             $this->schema_version->get(),
             $this->direction,
-            $target_version
+            $this->target_version
         );
 
         foreach ($migrations as $version => $migration) {

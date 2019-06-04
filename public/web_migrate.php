@@ -62,8 +62,10 @@ if (Request::submitted('start')) {
     $announcements = ob_get_clean();
     PageLayout::postSuccess(
         _('Die Datenbank wurde erfolgreich migriert.'),
-        explode("\n", $announcements)
+        array_filter(explode("\n", $announcements))
     );
+    $version = new DBSchemaVersion('studip');
+    $migrator = new Migrator($path, $version, $verbose);
 }
 
 $current = $version->get();
