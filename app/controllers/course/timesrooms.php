@@ -186,6 +186,8 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         $this->single_dates  = $single_dates;
+        $this->checked_dates = $_SESSION['_checked_dates'];
+        unset($_SESSION['_checked_dates']);
     }
 
     /**
@@ -453,7 +455,7 @@ class Course_TimesroomsController extends AuthenticatedController
         $this->course->store();
         $this->displayMessages();
 
-        $this->redirect('course/timesrooms/index');
+        $this->relocate('course/timesrooms/index');
     }
 
     /**
@@ -558,7 +560,6 @@ class Course_TimesroomsController extends AuthenticatedController
             }
         }
         $this->displayMessages();
-        unset($_SESSION['_checked_dates']);
 
         $this->relocate('course/timesrooms/index', ['contentbox_open' => $cycle_id]);
     }
@@ -581,8 +582,6 @@ class Course_TimesroomsController extends AuthenticatedController
         }
 
         $this->displayMessages();
-
-        unset($_SESSION['_checked_dates']);
 
         $this->relocate('course/timesrooms/index', ['contentbox_open' => $cycle_id]);
     }
@@ -732,7 +731,7 @@ class Course_TimesroomsController extends AuthenticatedController
                                                          '<strong>' . $date->toString() . '</strong>'));
                 }
 
-                if(Request::get('course_type') != 'no_change') {
+                if (Request::get('course_type') != '') {
                     $date->setDateType(Request::get('course_type'));
                     $date->store();
                     $this->course->createMessage(sprintf(_("Die Art des Termins %s wurde geändert."), '<strong>' . $date->toString() . '</strong>'));
@@ -794,7 +793,7 @@ class Course_TimesroomsController extends AuthenticatedController
                     }
                     foreach ($weeks as $val) {
                         if (mb_strpos($week, mb_substr($val, -15)) !== false) {
-                            $this->clean_weeks[$sem->name][$key] = $val;
+                            $this->clean_weeks[(string) $sem->name][$key] = $val;
                         }
                     }
                 }
@@ -856,7 +855,7 @@ class Course_TimesroomsController extends AuthenticatedController
 
             $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit %s wurde hinzugefügt!'), $cycle_info));
             $this->displayMessages();
-            $this->redirect('course/timesrooms/index');
+            $this->relocate('course/timesrooms/index');
         } else {
             $this->storeRequest();
             $this->course->createError(_('Die regelmäßige Veranstaltungszeit konnte nicht hinzugefügt werden! Bitte überprüfen Sie Ihre Eingabe.'));
@@ -1161,7 +1160,7 @@ class Course_TimesroomsController extends AuthenticatedController
     }
 
     /**
-     * Relocstes to another location if not from dialog
+     * Relocates to another location if not from dialog
      *
      * @param String $to New location
      */

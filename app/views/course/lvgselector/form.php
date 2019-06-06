@@ -28,7 +28,7 @@
 
 
   <div id="lvgruppe_selection_selectables">
-    <h3><?= _("Bitte wählen:") ?></h3>
+    <h3><?= _('Bitte wählen') ?>:</h3>
     <?= $this->render_partial('course/lvgselector/tree', compact('trail', 'subtree')) ?>
 
     <h3><?=_("Suche:")?></h3>
@@ -47,7 +47,7 @@
       <? if (!sizeof($selection->getSearchResult())) : ?>
         <em><?= sprintf(_("Der Suchbegriff '%s' lieferte kein Ergebnis."), htmlReady($selection->getSearchKey())) ?></em>
       <? else : ?>
-        <h3><?= _("Suchergebnisse:") ?></h3>
+        <h3><?= _('Suchergebnisse') ?>:</h3>
         <? TextHelper::reset_cycle(); $show_path = TRUE; $show_link = FALSE; ?>
         <? foreach ($selection->getSearchResult() as $area) : ?>
             <? // MVV: show LvGruppen with complete trails only ?>
@@ -62,4 +62,3 @@
     <? endif ?>
   </div>
 </div>
-

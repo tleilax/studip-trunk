@@ -119,9 +119,7 @@ function formatReady($text, $trim = true, $extern = false, $wiki = false, $show_
 {
     $formatted = Markup::apply(new StudipFormat(), $text, $trim);
 
-    return $formatted
-        ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted)
-        : '';
+    return $formatted !== '' ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted) : '';
 }
 
 /**
@@ -154,7 +152,8 @@ function formatLinks($text, $nl2br=TRUE){
  */
 function wikiReady($text, $trim=TRUE) {
     $formatted = Markup::apply(new WikiFormat(), $text, $trim);
-    return $formatted ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted) : '';
+
+    return $formatted !== '' ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted) : '';
 }
 
 /**
@@ -309,11 +308,11 @@ function idna_link($link, $mail = false){
         if ($mail){
             if (preg_match('#^([^@]*)@(.*)$#i',$link, $matches)) {
                 $out = $IDN->encode(decodeHTML($matches[2], ENT_NOQUOTES)); // false by error
-                $out = ($out)? $matches[1].'@'.$out : $link;
+                $out = ($out)? $matches[1].'@'.htmlReady($out) : $link;
             }
         }elseif (preg_match('#^([^/]*)//([^/?]*)(((/|\?).*$)|$)#i',$link, $matches)) {
             $out = $IDN->encode(decodeHTML($matches[2], ENT_NOQUOTES)); // false by error
-            $out = ($out)? $matches[1].'//'.$out.$matches[3] : $link;
+            $out = ($out)? $matches[1].'//'.htmlReady($out).$matches[3] : $link;
         }
         return ($out)? $out:$link;
     }

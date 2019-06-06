@@ -254,6 +254,27 @@ class Request implements ArrayAccess, IteratorAggregate
     }
 
     /**
+     * Return the value of the selected query parameter as a boolean.
+     *
+     * @param string $param   parameter name
+     * @param bool   $default default value if parameter is not set
+     *
+     * @return bool parameter value as bool (if set), else NULL
+     *
+     * @since Stud.IP 4.4
+     */
+    public static function bool($param, $default = null)
+    {
+        $value = self::get($param, $default);
+
+        if (isset($value)) {
+            $value = (bool) $value;
+        }
+
+        return $value;
+    }
+
+    /**
      * Return the value of the selected query parameter as a string
      * consisting only of allowed characters for usernames.
      *
@@ -357,6 +378,26 @@ class Request implements ArrayAccess, IteratorAggregate
 
         foreach ($array as $key => $value) {
             $array[$key] = (float) strtr($value, ',', '.');
+        }
+
+        return $array;
+    }
+
+    /**
+     * Return the value of the selected query parameter as a boolean array.
+     *
+     * @param string $param    parameter name
+     *
+     * @return array  parameter value as array (if set), else an empty array
+     *
+     * @since Stud.IP 4.4
+     */
+    public static function boolArray($param)
+    {
+        $array = self::getArray($param);
+
+        foreach ($array as $key => $value) {
+            $array[$key] = (bool) $value;
         }
 
         return $array;

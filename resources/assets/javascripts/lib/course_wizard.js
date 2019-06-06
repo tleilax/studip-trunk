@@ -191,7 +191,7 @@ const CourseWizard = {
                     target.find('.tree-loading').remove();
                     if (items.length > 0) {
                         var list = target.children('ul');
-                        for (i = 0; i < items.length; i++) {
+                        for (var i = 0; i < items.length; i++) {
                             list.append(CourseWizard.createTreeNode(items[i], assignable));
                         }
                     }
@@ -224,7 +224,6 @@ const CourseWizard = {
             $.ajax($('#studyareas').data('ajax-url'), {
                 data: params,
                 beforeSend: function(xhr, settings) {
-                    $('#sem-tree-search-start').css('display', 'none');
                     $('#sem-tree-search-start')
                         .parent()
                         .append(
@@ -241,7 +240,6 @@ const CourseWizard = {
                     $('#sem-tree-search-loading').remove();
                     var items = $.parseJSON(data);
                     if (items.length > 0) {
-                        $('#sem-tree-search-start').addClass('hidden-js');
                         $('#sem-tree-search-reset')
                             .removeClass('hidden-js')
                             .css('display', '');
@@ -253,7 +251,6 @@ const CourseWizard = {
                         $('#sem-tree-assign-all').removeClass('hidden-js');
                         $('li.sem-tree-root input#root').prop('checked', true);
                     } else {
-                        CourseWizard.resetSearch();
                         alert($('#studyareas').data('no-search-result'));
                     }
                 },
@@ -271,9 +268,6 @@ const CourseWizard = {
      */
     resetSearch: function() {
         $('li.css-tree-hidden').removeClass('css-tree-hidden');
-        $('#sem-tree-search-start')
-            .removeClass('hidden-js')
-            .css('display', '');
         $('#sem-tree-search-reset').addClass('hidden-js');
         $('#sem-tree-search').val('');
         $('.css-tree-hidden').removeClass('css-tree-hidden');
@@ -493,7 +487,10 @@ const CourseWizard = {
      */
     assignAllNodes: function() {
         $('.sem-tree-result').each(function(index, element) {
-            CourseWizard.assignNode($(element).data('id'));
+            var id = $(element).data('id');
+            if ($('li.sem-tree-assigned-' + id).length == 0) {
+                CourseWizard.assignNode(id);
+            }
         });
         CourseWizard.resetSearch();
         return false;

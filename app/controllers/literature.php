@@ -29,7 +29,7 @@ class LiteratureController extends AuthenticatedController
     {
         parent::before_filter($action, $args);
 
-        if (!Config::Get()->LITERATURE_ENABLE ) {
+        if (!Config::Get()->LITERATURE_ENABLE) {
             throw new AccessDeniedException(_('Die Literaturverwaltung ist nicht aktiviert.'));
         }
 
@@ -108,7 +108,7 @@ class LiteratureController extends AuthenticatedController
         //checking rights
         if (($_the_tree->range_type == "sem" && !$GLOBALS['perm']->have_studip_perm("tutor", $this->_range_id)) ||
             (($_the_tree->range_type == "inst" || $_the_tree->range_type == "fak") && !$GLOBALS['perm']->have_studip_perm("autor", $this->_range_id))){
-                throw new AccessDeniedException(_('Keine Berechtigung für diese Literaturliste.'));
+                throw new AccessDeniedException();
         }
 
         $_the_treeview->parseCommand();
@@ -350,8 +350,8 @@ class LiteratureController extends AuthenticatedController
                 PageLayout::postInfo(sprintf(_("Sie können diesen Eintrag nicht löschen, da er noch in %s Literaturlisten referenziert wird."),$_the_element->reference_count));
             } else {
                 PageLayout::postInfo(_("Wollen Sie diesen Eintrag wirklich löschen?"),
-                    [Studip\LinkButton::createAccept(_('Ja'), URLHelper::getURL('?cmd=delete_element&_catalog_id=' . $_catalog_id), ['title' =>  _('löschen')])
-                            .Studip\LinkButton::createCancel(_('Abbrechen'), URLHelper::getURL('?_catalog_id=' . $_catalog_id), ['title' =>  _('abbrechen')])]);
+                    [Studip\LinkButton::createAccept(_('Ja'), URLHelper::getURL('?cmd=delete_element&_catalog_id=' . $_catalog_id))
+                            .Studip\LinkButton::createCancel(_('Abbrechen'), URLHelper::getURL('?_catalog_id=' . $_catalog_id))]);
             }
         }
 
