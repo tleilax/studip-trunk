@@ -49,6 +49,12 @@
 
     <footer>
         <?= Studip\Button::createAccept(_('Prüfen')) ?>
+    <? if ($global && !$secret->confirmed): ?>
+        <?= Studip\LinkButton::createCancel(
+            _('Abbrechen'),
+            URLHelper::getURL('dispatch.php/tfa/abort')
+        ) ?>
+    <? endif; ?>
     </footer>
 <? endif; ?>
 </form>

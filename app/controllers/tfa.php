@@ -16,7 +16,7 @@ class TfaController extends AuthenticatedController
         if ($this->secret->isNew()) {
             $this->render_action('setup');
         } elseif (!$this->secret->confirmed) {
-            $this->render_action('confirm');
+            $this->confirm_action();
         }
     }
 
@@ -49,6 +49,19 @@ class TfaController extends AuthenticatedController
         );
 
         PageLayout::postSuccess(_('Die Authorisierung wurde bestätigt.'));
+        $this->redirect('tfa/index');
+    }
+
+    public function abort_action()
+    {
+        if ($this->secret && $this->secret->confirmed) {
+            $this->redirect('tfa/revoke');
+            return;
+        }
+
+        $this->secret->delete();
+
+        PageLayout::postSuccess(_('Das Einrichten der Zwei-Faktor-Authorisierung wurde abgebrochen.'));
         $this->redirect('tfa/index');
     }
 

@@ -319,7 +319,7 @@ final class TwoFactorAuth
      * Returns whether the current session is blocked from any more token
      * inputs. This happens if too many false inputs happen in a short amount
      * of time and should prevent brute force attacks.
-     * 
+     *
      * @return boolean
      */
     private function isBlocked()
