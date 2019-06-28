@@ -6,20 +6,14 @@
 <input type="hidden" name="search_subject" id="search_subject" value="<?= htmlReady(Request::get("search_subject")) ?>">
 <input type="hidden" name="search_content" id="search_content" value="<?= htmlReady(Request::get("search_content")) ?>">
 
-<? if (Request::get("tag")) : ?>
-    <form action="<?= $controller->url_for('messages/delete_tag', ['tag' => Request::get("tag")]) ?>" method="post" id="delete_tags_form">
-        <?= CSRFProtection::tokenTag() ?>
-    </form>
-<? endif ?>
-
 <form action="?" method="post" id="bulk">
     <?= CSRFProtection::tokenTag() ?>
     <table class="default" id="messages">
         <caption>
             <?= $received ? _("Eingang") : _("Gesendet") ?>
             <? if (Request::get("tag")) : ?>
-                <?= ", "._("Schlagwort: ").htmlReady(ucfirst(Request::get("tag"))) ?>
-                <button onClick="if (window.confirm('<?= _("Schlagwort wirklich löschen?") ?>') { jQuery('#delete_tags_form').submit(); }" style="background: none; border: none; cursor: pointer;" title="<?= _("Schlagwort von allen Nachrichten entfernen.") ?>">
+                <?= ', ' . _('Schlagwort') . ': ' . htmlReady(ucfirst(Request::get('tag'))) ?>
+                <button onClick="STUDIP.Dialog.confirmAsPost('<?=_('Schlagwort wirklich löschen?')?>', '<?=$controller->link_for('messages/delete_tag', ['tag' => Request::get('tag')])?>');return false;" style="background: none; border: none; cursor: pointer;" title="<?= _("Schlagwort von allen Nachrichten entfernen.") ?>">
                     <?= Icon::create('trash', 'clickable')->asImg(20) ?>
                 </button>
             <? endif ?>

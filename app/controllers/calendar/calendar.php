@@ -334,34 +334,34 @@ class Calendar_CalendarController extends AuthenticatedController
                         }
                         $subject = sprintf(_('Terminvorschlag am %s von %s %s'),
                                 strftime('%c', $this->event->getStart()), get_fullname(), $this->event->toStringGroupStatus());
-                        $msg_text .= "\n\n**" . _('Beginn:') . '** ';
+                        $msg_text .= "\n\n**" . _('Beginn') . ':** ';
                         if ($this->event->isDayEvent()) {
                             $msg_text .= strftime('%x ', $this->event->getStart());
                             $msg_text .= _('ganztägig');
                         } else {
                             $msg_text .= strftime('%c', $this->event->getStart());
                         }
-                        $msg_text .= "\n**" . _('Ende:') . '** ';
+                        $msg_text .= "\n**" . _('Ende') . ':** ';
                         if ($this->event->isDayEvent()) {
                             $msg_text .= strftime('%x ', $this->event->getEnd());
                         } else {
                             $msg_text .= strftime('%c', $this->event->getEnd());
                         }
-                        $msg_text .= "\n**" . _('Zusammenfassung:') . '** ' . $this->event->getTitle() . "\n";
+                        $msg_text .= "\n**" . _('Zusammenfassung') . ':** ' . $this->event->getTitle() . "\n";
                         if ($event_data = $this->event->getDescription()) {
-                            $msg_text .= '**' . _('Beschreibung:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Beschreibung') . ":** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringCategories()) {
-                            $msg_text .= '**' . _('Kategorie:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Kategorie') . ":** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringPriority()) {
-                            $msg_text .= '**' . _('Priorität:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Priorität') . ":** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringAccessibility()) {
-                            $msg_text .= '**' . _('Zugriff:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Zugriff') . ":** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringRecurrence()) {
-                            $msg_text .= '**' . _('Wiederholung:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Wiederholung') . ":** $event_data\n";
                         }
                         $member = [];
                         foreach ($this->event->attendees as $attendee) {
@@ -374,7 +374,7 @@ class Calendar_CalendarController extends AuthenticatedController
                                         . ')';
                             }
                         }
-                        $msg_text .= '**' . _('Teilnehmende:') . '** ' . implode(', ', $member);
+                        $msg_text .= '**' . _('Teilnehmende') . ':** ' . implode(', ', $member);
                         $msg_text .= "\n\n" . _('Hier kommen Sie direkt zum Termin in Ihrem Kalender:') . "\n";
                         $msg_text .= URLHelper::getURL('dispatch.php/calendar/single/edit/'
                                 . $this->event->getAuthorId() . '/' . $this->event->event_id);
@@ -450,6 +450,7 @@ class Calendar_CalendarController extends AuthenticatedController
 
     protected function storeEventData(CalendarEvent $event, SingleCalendar $calendar)
     {
+        $messages = [];
         if (Request::int('isdayevent')) {
             $dt_string = Request::get('start_date') . ' 00:00:00';
         } else {

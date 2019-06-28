@@ -2,7 +2,7 @@
 STUDIP.loadScript = function (script_name) {
     return new Promise(function (resolve, reject) {
         let script = document.createElement('script');
-        script.src = `${STUDIP.ASSETS_URL}/${script_name}`;
+        script.src = `${STUDIP.ASSETS_URL}${script_name}`;
         script.onload = resolve;
         script.onerror = reject;
         document.head.appendChild(script);
@@ -29,6 +29,13 @@ STUDIP.loadChunk = (function () {
                 promise = import(
                     /* webpackChunkName: "tablesorter" */
                     './chunks/tablesorter'
+                );
+                break;
+
+            case 'widgetsystem':
+                promise = import(
+                    /* webpackChunkName: "widgetsystem" */
+                    './chunks/widgetsystem'
                 );
                 break;
 

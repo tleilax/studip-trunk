@@ -111,7 +111,8 @@ abstract class GlobalSearchModule
         $query = trim($query);
 
         // Replace direct string
-        $result = preg_replace("/{$query}/Si", "<mark>$0</mark>", $string, -1, $found);
+        $quoted = preg_quote($query, '/');
+        $result = preg_replace("/{$quoted}/Si", "<mark>$0</mark>", $string, -1, $found);
 
         if ($found) {
             // Check for overlength
@@ -127,7 +128,8 @@ abstract class GlobalSearchModule
         $i = 1;
         $replacement = "${$i}";
         foreach (preg_split('//u', mb_strtoupper($query), -1, PREG_SPLIT_NO_EMPTY) as $letter) {
-            $queryletter[] = "({$letter})";
+            $quoted = preg_quote($letter, '/');
+            $queryletter[] = "({$quoted})";
             $replacement .= '<mark>$' . ++$i . '</mark>$' . ++$i;
         }
 
@@ -200,6 +202,21 @@ abstract class GlobalSearchModule
             }
             return $type_ids;
         }
+    }
+
+    /**
+     * Get the current semester considering the given
+     * SEMESTER_TIME_SWITCH in the CONFIG
+     * (n weeks before the next semester)
+     *
+     * @return int The start time of the current semester.
+     */
+    public static function getCurrentSemester()
+    {
+        $sem_time_switch = Config::get()->SEMESTER_TIME_SWITCH;
+        $current_semester = Semester::findByTimestamp(time() + $sem_time_switch * 7 * 24 * 3600);
+
+        return $current_semester['beginn'];
     }
 
     /**

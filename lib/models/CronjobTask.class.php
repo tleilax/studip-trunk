@@ -102,6 +102,11 @@ class CronjobTask extends SimpleORMap
     public function engage($last_result, $parameters = [])
     {
         if ($this->valid) {
+            $parameters = array_merge(
+                $this->extractDefaultParameters(),
+                $parameters
+            );
+
             $task = new $this->class;
 
             $task->setUp();
@@ -192,5 +197,19 @@ class CronjobTask extends SimpleORMap
     {
         return CronjobScheduler::schedulePeriodic($this->id, $minute, $hour, $day, $month,
                                                   $day_of_week, $priority, $parameters);
+    }
+
+    /**
+     * Extracts the default parameter values from the associated task.
+     *
+     * @return array
+     */
+    public function extractDefaultParameters()
+    {
+        $parameters = call_user_func("{$this->class}::getParameters");
+        return array_map(function ($parameter) {
+            // return $parameter['default'] ?? null;
+            return isset($parameter['default']) ? $parameter['default'] : null;
+        }, $parameters);
     }
 }

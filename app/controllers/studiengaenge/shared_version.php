@@ -152,7 +152,7 @@ class SharedVersionController extends MVVController
             $this->search_version = QuickSearch::get('old_id', $sql_search_version)
                     ->setInputStyle('width: 240px');
         } else {
-            PageLayout::postError(_('Unbekannte Version!'));
+            PageLayout::postError(_('Unbekannte Version'));
             $this->relocate('/versionen');
         }
         PageLayout::setTitle(_('Versionenvergleich'));
@@ -164,7 +164,7 @@ class SharedVersionController extends MVVController
         $old_version = StgteilVersion::find(Request::option('old_id', $old_id));
 
         if (!$new_version || !$old_version) {
-            PageLayout::postError(_('Unbekannte Version!'));
+            PageLayout::postError(_('Unbekannte Version'));
             $this->redirect($this->url_for('/diff_select/' . $new_version->id));
         } else {
             if (Request::isXhr()) {
@@ -192,7 +192,7 @@ class SharedVersionController extends MVVController
         $type = Request::option('type', $type);
 
         if (!$version) {
-           PageLayout::postError(_('Unbekannte Version!'));
+           PageLayout::postError(_('Unbekannte Version'));
            $this->response->add_header('X-Location', $this->url_for('/'));
         } else {
             if (Request::isXhr()) {
@@ -260,14 +260,14 @@ class SharedVersionController extends MVVController
             $this->version = $this->abschnitt->version;
             PageLayout::setTitle(sprintf(
                 _('Studiengangteil-Abschnitt "%s" der Version "%s" bearbeiten.'),
-                $this->abschnitt->name)
-                $this->version->getDisplayName()
+                htmlReady($this->abschnitt->name),
+                htmlReady($this->version->getDisplayName())
             ));
             $success_message = _('Der Studiengangteil-Abschnitt "%s" wurde geändert.');
         }
 
         if (!$this->version) {
-            PageLayout::postError(_('Unbekannte Version.'));
+            PageLayout::postError(_('Unbekannte Version'));
             $this->redirect($this->url_for('/index'));
         }
 
@@ -338,7 +338,7 @@ class SharedVersionController extends MVVController
         $this->search_modul_version = QuickSearch::get('modul_id_' . $this->version->id, $search);
 
         if (!$this->version) {
-            PageLayout::postError(_('Unbekannte Version.'));
+            PageLayout::postError(_('Unbekannte Version'));
             $this->redirect($this->url_for('/index'));
             return;
         } else {
@@ -405,7 +405,7 @@ class SharedVersionController extends MVVController
             if (Request::submitted('add_modul')) {
                 CSRFProtection::verifyUnsafeRequest();
                 if (!$modul) {
-                    PageLayout::postError(_('Unbekanntes Modul.'));
+                    PageLayout::postError(_('Unbekanntes Modul'));
                     $this->redirect($this->url_for('/details_abschnitt/' . $abschnitt->id));
                     return;
                 } else if ($abschnitt) {
@@ -424,7 +424,7 @@ class SharedVersionController extends MVVController
                     }
                     $this->redirect($this->url_for('/details_abschnitt/' . $abschnitt->id));
                 } else {
-                    PageLayout::postError(_('Unbekannter Abschnitt.'));
+                    PageLayout::postError(_('Unbekannter Abschnitt'));
                     $this->redirect($this->url_for('/index'));
                 }
             } else {
@@ -435,7 +435,7 @@ class SharedVersionController extends MVVController
                 }
             }
         } else {
-            PageLayout::postError(_('Unbekannte Version.'));
+            PageLayout::postError(_('Unbekannte Version'));
             $this->redirect($this->url_for('/index'));
         }
     }
@@ -444,7 +444,7 @@ class SharedVersionController extends MVVController
     {
         $this->zuordnung = StgteilabschnittModul::find($abschnitt_modul_id);
         if ($this->zuordnung->isNew()) {
-            PageLayout::postError(_('Unbekannte Zuordnung.'));
+            PageLayout::postError(_('Unbekannte Zuordnung'));
             $this->redirect($this->url_for('/index'));
             return;
         } else {
@@ -491,7 +491,7 @@ class SharedVersionController extends MVVController
             }
             $modul = Modul::find($modul_id);
             if (!$modul) {
-                PageLayout::postError(_('Unbekanntes Modul.'));
+                PageLayout::postError(_('Unbekanntes Modul'));
             } else {
                 if (Request::submitted('delete')) {
                     CSRFProtection::verifyUnsafeRequest();
@@ -514,7 +514,7 @@ class SharedVersionController extends MVVController
             }
             $this->redirect($this->url_for('/details_abschnitt/' . $abschnitt->id));
         } else {
-            PageLayout::postError(_('Unbekannter Studiengangteilabschnitt.'));
+            PageLayout::postError(_('Unbekannter Studiengangteilabschnitt'));
             $this->redirect('/index');
         }
     }
@@ -669,7 +669,7 @@ class SharedVersionController extends MVVController
     {
         $this->abschnitt = StgteilAbschnitt::find($abschnitt_id);
         if (!$this->abschnitt) {
-            PageLayout::postError(_('Unbekannter Abschnitt.'));
+            PageLayout::postError(_('Unbekannter Abschnitt'));
             $this->redirect($this->url_for('/index'));
             return;
         }

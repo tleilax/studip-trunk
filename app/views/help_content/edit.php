@@ -17,7 +17,7 @@
                        placeholder="<?= _('Bitte geben Sie eine Route für den Hilfe-Text an') ?>">
             </label>
         <? endif ?>
-        <? if ($GLOBALS['perm']->have_perm('root')) : ?>
+        <? if ($help_admin) : ?>
             <label for="help_content_language">
                 <span class="required"><?= _('Sprache des Textes:') ?></span>
                 <select name="help_content_language">
@@ -37,8 +37,7 @@
     </fieldset>
 
     <footer data-dialog-button="1">
-        <?= Button::create(_('Speichern'), 'save_help_content', ['data-dialog' => '']) ?>
-        <?= Button::createAccept(_('Speichern'), 'save_help_content') ?>
+        <?= Button::createAccept(_('Speichern'), 'save_help_content', ['data-dialog' => '']) ?>
         <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('help_content/admin_overview'), []) ?>
     </footer>
 </form>

@@ -275,7 +275,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
     {
         $studiengang = Studiengang::find($studiengang_id);
         if (!$studiengang) {
-             PageLayout::postError(_('Unbekannter Studiengang.'));
+             PageLayout::postError(_('Unbekannter Studiengang'));
         } else {
             if (Request::isPost()) {
                 if (Request::submitted('delete')) {
@@ -437,7 +437,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
                 }
             }
         } else {
-            PageLayout::postError(_('Unbekannter Studiengang.'));
+            PageLayout::postError(_('Unbekannter Studiengang'));
         }
     }
 
@@ -497,7 +497,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
                         ));
                     }
                 } else {
-                    PageLayout::postError(_('Unbekannter Studiengangteil.'));
+                    PageLayout::postError(_('Unbekannter Studiengangteil'));
                     $this->redirect($this->url_for('/details_studiengang/' . $studiengang->id));
                     return;
                 }
@@ -507,7 +507,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
             );
             return;
         } else {
-            PageLayout::postError(_('Unbekannter Studiengang.'));
+            PageLayout::postError(_('Unbekannter Studiengang'));
             $this->redirect($this->url_for('/index'));
         }
     }
@@ -523,7 +523,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
         if ($studiengang) {
             $stgbez_id = $this->stg_stgteil->stgteil_bez_id;
             if ($this->stg_stgteil->isNew()) {
-                PageLayout::postError(_('Unbekannter Studiengangteil.'));
+                PageLayout::postError(_('Unbekannter Studiengangteil'));
             } else {
                 if (Request::isPost()) {
                     CSRFProtection::verifyRequest();
@@ -548,7 +548,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
                 $this->url_for('/details_studiengang/' .  $studiengang->id . '/' . $stgbez_id)
             );
         } else {
-            PageLayout::postError(_('Unbekannter Studiengang.'));
+            PageLayout::postError(_('Unbekannter Studiengang'));
             $this->redirect($this->url_for('/index'));
         }
     }
@@ -570,7 +570,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
         if ($studiengang) {
             $stgbez_id = $stg_stgteil->stgteil_bez_id;
             if ($stg_stgteil->isNew()) {
-                PageLayout::postError(_('Unbekannter Studiengangteil.'));
+                PageLayout::postError(_('Unbekannter Studiengangteil'));
             } else {
                 if (Request::isPost()) {
                     CSRFProtection::verifyUnsafeRequest();
@@ -600,7 +600,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
                 }
             }
         } else {
-            PageLayout::postError(_('Unbekannter Studiengang.'));
+            PageLayout::postError(_('Unbekannter Studiengang'));
             $this->redirect($this->url_for('/index'));
         }
     }
@@ -892,7 +892,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
         $this->studiengang =  Studiengang::find($studiengang_id);
 
         if (!$this->studiengang) {
-            PageLayout::postError(_('Unbekannter Studiengang!'));
+            PageLayout::postError(_('Unbekannter Studiengang'));
             $this->relocate('/index');
             return;
         }
@@ -923,7 +923,7 @@ class Studiengaenge_StudiengaengeController extends MVVController
         $studiengang = Studiengang::find($studiengang_id ?: Request::option('studiengang_id'));
 
         if (!$studiengang) {
-            PageLayout::postError(_('Unbekannter Studiengang!'));
+            PageLayout::postError(_('Unbekannter Studiengang'));
             $this->redirect($this->url_for('/index'));
         } else {
             if (Request::isXhr()) {
