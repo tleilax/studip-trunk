@@ -35,8 +35,8 @@ return new class() extends Migration
         }
 
        // TODO: Remove for production
-       // $query = "DROP TABLE IF EXISTS `schema_version`";
-       // DBManager::get()->exec($query);
+       $query = "DROP TABLE IF EXISTS `schema_version`";
+       DBManager::get()->exec($query);
     }
 
     public function down()
