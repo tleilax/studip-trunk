@@ -1,13 +1,13 @@
-<?
+<?php
 # Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
 /**
 * ExternElementTreeLevelName.class.php
-* 
-* 
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <pthienel@web.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -19,7 +19,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ExternElementTreeLevelName.class.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -39,11 +39,11 @@
 
 class ExternElementTreeLevelName extends ExternElement {
 
-    var $attributes = array("table_bgcolor",
+    var $attributes = ["table_bgcolor",
                 "table_cellpadding", "table_cellspacing", "table_class",
                 "table_style", "td_height", "td_align", "td_valign", "td_bgcolor",
                 "td_class", "td_style", "font_face", "font_size", "font_color",
-                "font_class", "font_style");
+                "font_class", "font_style"];
 
     /**
     * Constructor
@@ -53,12 +53,10 @@ class ExternElementTreeLevelName extends ExternElement {
     function __construct($config = "") {
         if ($config)
             $this->config = $config;
-        
+
         $this->name = "TreeLevelName";
         $this->real_name = _("Name der Ebene");
         $this->description = _("Formatierung des Ebenennamens in einer Baum-Navigation.");
     }
-    
-}
 
-?>
+}

@@ -1,12 +1,11 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 
-<form class="default" action="<?= $controller->url_for('admin/cronjobs/schedules/filter') ?>"
-      method="post" class="cronjob-filters">
+<form action="<?= $controller->filter() ?>" method="post" class="default cronjob-filters">
     <fieldset>
         <legend>
             <?= _('Darstellung einschränken') ?>
-            <? if ($total_filtered != $total): ?>
-                <?= sprintf(_('Passend: %u von %u Cronjobs'), $total_filtered, $total) ?>
+            <? if ($pagination->getTotal() != $total): ?>
+                <?= sprintf(_('Passend: %u von %u Cronjobs'), $pagination->getTotal(), $total) ?>
             <? endif; ?>
         </legend>
         <label class="col-2">
@@ -49,16 +48,19 @@
         <noscript>
             <?= Button::create(_('Filtern')) ?>
         </noscript>
+
         <? if (!empty($filter)): ?>
-            <?= LinkButton::createCancel(_('Zurücksetzen'),
-                $controller->url_for('admin/cronjobs/schedules/filter'),
-                array('title' => _('Filter zurücksetzen'))) ?>
+            <?= LinkButton::createCancel(
+                _('Zurücksetzen'),
+                $controller->filterURL(),
+                ['title' => _('Filter zurücksetzen')]
+            ) ?>
         <? endif; ?>
     </footer>
 </form>
-<!--  -->
 
-<form class="default" action="<?= $controller->url_for('admin/cronjobs/schedules/bulk', $page) ?>" method="post">
+
+<form class="cronjobs" action="<?= $controller->bulk($pagination->getCurrentPage()) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
 
 <table class="default cronjobs">
@@ -89,77 +91,73 @@
         </tr>
     </thead>
     <tbody>
-<? for ($i = 0; $i < $max_per_page; $i += 1): ?>
-    <? if (!isset($schedules[$i])): ?>
+    <? if (count($schedules) === 0): ?>
         <tr class="empty">
-            <td colspan="10">&nbsp;</td>
+            <td colspan="10"><?= _('Keine Einträge vorhanden') ?></td>
         </tr>
-    <? else: ?>
-        <tr id="job-<?= $schedules[$i]->schedule_id ?>" <? if (!$schedules[$i]->task->active) echo 'class="inactivatible"'; ?>>
+    <? endif; ?>
+    <? foreach ($schedules as $schedule): ?>
+        <tr id="job-<?= htmlReady($schedule->id) ?>" <? if (!$schedule->task->active) echo 'class="inactivatible"'; ?>>
             <td style="text-align: center">
-                <input type="checkbox" name="ids[]" value="<?= $schedules[$i]->schedule_id ?>">
+                <input type="checkbox" name="ids[]" value="<?= htmlReady($schedule->id) ?>">
             </td>
-            <td><?= htmlReady($schedules[$i]->title ?: $schedules[$i]->task->name) ?></td>
+            <td><?= htmlReady($schedule->title ?: $schedule->task->name) ?></td>
             <td style="text-align: center;">
-            <? if (!$schedules[$i]->task->active): ?>
-                <?= Icon::create('checkbox-unchecked', 'inactive', ['title' => _('Cronjob kann nicht aktiviert werden, da die zugehörige '.'Aufgabe deaktiviert ist.')])->asImg(16) ?>
-            <? elseif ($schedules[$i]->active): ?>
-                <a href="<?= $controller->url_for('admin/cronjobs/schedules/deactivate', $schedules[$i]->schedule_id, $page) ?>" data-behaviour="ajax-toggle">
-                    <?= Icon::create('checkbox-checked', 'clickable', ['title' => _('Cronjob deaktivieren')])->asImg() ?>
+            <? if (!$schedule->task->active): ?>
+                <?= Icon::create('checkbox-unchecked', Icon::ROLE_INACTIVE)->asImg(['title' => _('Cronjob kann nicht aktiviert werden, da die zugehörige '.'Aufgabe deaktiviert ist.')]) ?>
+            <? elseif ($schedule->active): ?>
+                <a href="<?= $controller->deactivate($schedule, $pagination->getCurrentPage()) ?>" data-behaviour="ajax-toggle">
+                    <?= Icon::create('checkbox-checked')->asImg(['title' => _('Cronjob deaktivieren')]) ?>
                 </a>
             <? else: ?>
-                <a href="<?= $controller->url_for('admin/cronjobs/schedules/activate', $schedules[$i]->schedule_id, $page) ?>" data-behaviour="ajax-toggle">
-                    <?= Icon::create('checkbox-unchecked', 'clickable', ['title' => _('Cronjob aktivieren')])->asImg() ?>
+                <a href="<?= $controller->activate($schedule, $pagination->getCurrentPage()) ?>" data-behaviour="ajax-toggle">
+                    <?= Icon::create('checkbox-unchecked')->asImg(['title' => _('Cronjob aktivieren')]) ?>
                 </a>
             <? endif; ?>
             </td>
-            <td><?= ($schedules[$i]->type === 'once') ? _('Einmalig') : _('Regelmässig') ?></td>
-        <? if ($schedules[$i]->type === 'once'): ?>
+            <td><?= $schedule->type === 'once' ? _('Einmalig') : _('Regelmässig') ?></td>
+        <? if ($schedule->type === 'once'): ?>
             <td colspan="5">
-                <?= date('d.m.Y H:i', $schedules[$i]->next_execution) ?>
+                <?= strftime('%x %R', $schedule->next_execution) ?>
             </td>
         <? else: ?>
-            <?= $this->render_partial('admin/cronjobs/schedules/periodic-schedule', $schedules[$i]->toArray() + array('display' => 'table-cells')) ?>
+            <?= $this->render_partial('admin/cronjobs/schedules/periodic-schedule', $schedule->toArray() + ['display' => 'table-cells']) ?>
         <? endif; ?>
             <td style="text-align: right">
-                <a data-dialog href="<?= $controller->url_for('admin/cronjobs/schedules/display', $schedules[$i]->schedule_id) ?>">
-                    <?= Icon::create('admin', 'clickable', ['title' => _('Cronjob anzeigen')])->asImg() ?>
+                <a data-dialog href="<?= $controller->display($schedule) ?>">
+                    <?= Icon::create('admin')->asImg(['title' => _('Cronjob anzeigen')]) ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/cronjobs/schedules/edit', $schedules[$i]->schedule_id, $page) ?>">
-                    <?= Icon::create('edit', 'clickable', ['title' => _('Cronjob bearbeiten')])->asImg() ?>
+                <a href="<?= $controller->edit($schedule, $pagination->getCurrentPage()) ?>">
+                    <?= Icon::create('edit')->asImg(['title' => _('Cronjob bearbeiten')]) ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/cronjobs/logs/schedule', $schedules[$i]->schedule_id) ?>">
-                    <?= Icon::create('log', 'clickable', ['title' => _('Log anzeigen')])->asImg() ?>
+                <a href="<?= $controller->link_for('admin/cronjobs/logs/schedule', $schedule) ?>">
+                    <?= Icon::create('log')->asImg(['title' => _('Log anzeigen')]) ?>
                 </a>
-                <a href="<?= $controller->url_for('admin/cronjobs/schedules/cancel', $schedules[$i]->schedule_id, $page) ?>">
-                    <?= Icon::create('trash', 'clickable', ['title' => _('Cronjob löschen')])->asImg() ?>
+                <a href="<?= $controller->cancel($schedule, $pagination->getCurrentPage()) ?>">
+                    <?= Icon::create('trash')->asImg(['title' => _('Cronjob löschen')]) ?>
                 </a>
             </td>
         </tr>
-    <? endif; ?>
-<? endfor; ?>
+    <? endforeach; ?>
     </tbody>
-</table>
+    <tfoot>
+        <tr>
+            <td colspan="10">
+                <select name="action" data-activates=".cronjobs button[name=bulk]">
+                    <option value="">- <?= _('Aktion auswählen') ?> -</option>
+                    <option value="activate"><?= _('Aktivieren') ?></option>
+                    <option value="deactivate"><?= _('Deaktivieren') ?></option>
+                    <option value="cancel"><?= _('Löschen') ?></option>
+                </select>
+                <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
 
-    <footer>
-        <select name="action" data-activates=".cronjobs button[name=bulk]">
-            <option value="">- <?= _('Aktion auswählen') ?> -</option>
-            <option value="activate"><?= _('Aktivieren') ?></option>
-            <option value="deactivate"><?= _('Deaktivieren') ?></option>
-            <option value="cancel"><?= _('Löschen') ?></option>
-        </select>
-        <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
-        <section style="float: right">
-        <?
-            $pagination = $GLOBALS['template_factory']->open('shared/pagechooser');
-            $pagination->set_attributes(array(
-                'perPage'      => $max_per_page,
-                'num_postings' => $total_filtered,
-                'page'         => $page,
-                'pagelink'     => $controller->url_for('admin/cronjobs/schedules/index/%u')
-            ));
-            echo $pagination->render();
-        ?>
-        </section>
-    </footer>
+                <section style="float: right">
+                    <?= $pagination->asLinks(function ($page) use ($controller) {
+                        return $controller->index($page);
+                    }) ?>
+                </section>
+            </td>
+        </tr>
+    </tfoot>
+</table>
 </form>

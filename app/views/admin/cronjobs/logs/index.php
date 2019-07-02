@@ -1,15 +1,13 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 
-<form action="<?= $controller->link_for('admin/cronjobs/logs/filter') ?>"
-      method="post" class="cronjob-filters default">
-
+<form action="<?= $controller->filter() ?>" method="post" class="cronjob-filters default">
     <fieldset>
         <legend>
             <?= _('Darstellung einschränken') ?>
 
-        <? if ($total_filtered != $total): ?>
+        <? if ($pagination->getTotal() != $total): ?>
             <small>
-                <?= sprintf(_('Passend: %u von %u Logeinträgen'), $total_filtered, $total) ?>
+                <?= sprintf(_('Passend: %u von %u Logeinträgen'), $pagination->getTotal(), $total) ?>
             </small>
         <? endif; ?>
         </legend>
@@ -58,94 +56,92 @@
         </noscript>
 
         <? if (!empty($filter)): ?>
-            <?= LinkButton::createCancel(_('Zurücksetzen'),
-                                         $controller->url_for('admin/cronjobs/logs/filter'),
-                                         array('title' => _('Filter zurücksetzen'))) ?>
+            <?= LinkButton::createCancel(
+                _('Zurücksetzen'),
+                $controller->url_for('admin/cronjobs/logs/filter'),
+                ['title' => _('Filter zurücksetzen')]
+            ) ?>
         <? endif; ?>
     </footer>
 </form>
 
 
-<form action="<?= $controller->url_for('admin/cronjobs/logs/bulk', $page) ?>" method="post" class="default">
+<form action="<?= $controller->bulk($pagination->getCurrentPage()) ?>" method="post" class="default">
     <?= CSRFProtection::tokenTag() ?>
 
-<table class="default cronjobs">
-    <colgroup>
-        <col width="20px">
-        <col width="150px">
-        <col width="150px">
-        <col>
-        <col width="50px">
-        <col width="50px">
-    </colgroup>
-    <thead>
-        <tr>
-            <th>
-                <input type="checkbox" name="all" value="1"
-                       data-proxyfor=":checkbox[name='ids[]']"
-                       data-activates=".cronjobs select[name=action]">
-            </th>
-            <th><?= _('Ausgeführt') ?></th>
-            <th><?= _('Geplant') ?></th>
-            <th><?= _('Cronjob') ?></th>
-            <th><?= _('Ok?') ?></th>
-            <th><?= _('Optionen') ?></th>
-        </tr>
-    </thead>
-    <tbody>
-<? for ($i = 0; $i < $max_per_page; $i += 1): ?>
-    <? if (!isset($logs[$i])): ?>
-        <tr class="empty">
-            <td colspan="6">&nbsp;</td>
-        </tr>
-    <? else: ?>
-        <tr id="log-<?= $logs[$i]->log_id ?>">
-            <td style="text-align: center">
-                <input type="checkbox" name="ids[]" value="<?= $logs[$i]->log_id ?>">
-            </td>
-            <td><?= strftime('%x %X', $logs[$i]->executed) ?></td>
-            <td><?= strftime('%x %X', $logs[$i]->scheduled) ?></td>
-            <td><?= htmlReady($logs[$i]->schedule->title ?: $logs[$i]->schedule->task->name) ?></td>
-            <td>
-            <? if ($logs[$i]->duration == -1): ?>
-                <?= Icon::create('question', 'inactive', ['title' => _('Läuft noch')])->asImg() ?>
-            <? elseif ($logs[$i]->exception === null): ?>
-                <?= Icon::create('accept', 'status-green', ['title' => _('Ja')])->asImg() ?>
-            <? else: ?>
-                <?= Icon::create('decline', 'status-red', ['title' => _('Nein')])->asImg() ?>
-            <? endif; ?>
-            </td>
-            <td style="text-align: right">
-                <a data-dialog href="<?= $controller->link_for('admin/cronjobs/logs/display', $logs[$i]->log_id, $page) ?>">
-                    <?= Icon::create('admin', 'clickable', ['title' => _('Logeintrag anzeigen')])->asImg() ?>
-                </a>
-                <a href="<?= $controller->link_for('admin/cronjobs/logs/delete', $logs[$i]->log_id, $page) ?>">
-                    <?= Icon::create('trash', 'clickable', ['title' => _('Logeintrag löschen')])->asImg() ?>
-                </a>
-            </td>
-        </tr>
-    <? endif; ?>
-<? endfor; ?>
-    </tbody>
-</table>
-    <footer>
-        <select name="action" data-activates="button[name=bulk]">
-            <option value="">- <?= _('Aktion auswählen') ?></option>
-            <option value="delete"><?= _('Löschen') ?></option>
-        </select>
-        <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
+    <table class="default cronjobs">
+        <colgroup>
+            <col width="20px">
+            <col width="150px">
+            <col width="150px">
+            <col>
+            <col width="50px">
+            <col width="50px">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" name="all" value="1"
+                           data-proxyfor=":checkbox[name='ids[]']"
+                           data-activates=".cronjobs select[name=action]">
+                </th>
+                <th><?= _('Ausgeführt') ?></th>
+                <th><?= _('Geplant') ?></th>
+                <th><?= _('Cronjob') ?></th>
+                <th><?= _('Ok?') ?></th>
+                <th><?= _('Optionen') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+        <? if (count($logs) === 0): ?>
+            <tr class="empty">
+                <td colspan="6"><?= _('Keine Einträge vorhanden') ?></td>
+            </tr>
+        <? endif; ?>
+        <? foreach ($logs as $log): ?>
+            <tr id="log-<?= htmlReady($log->id) ?>">
+                <td style="text-align: center">
+                    <input type="checkbox" name="ids[]" value="<?= htmlReady($log->id) ?>">
+                </td>
+                <td><?= strftime('%x %X', $log->executed) ?></td>
+                <td><?= strftime('%x %X', $log->scheduled) ?></td>
+                <td><?= htmlReady($log->schedule->title ?: $log->schedule->task->name) ?></td>
+                <td>
+                <? if ($log->duration == -1): ?>
+                    <?= Icon::create('question', Icon::ROLE_INACTIVE)->asImg(['title' => _('Läuft noch')]) ?>
+                <? elseif ($log->exception === null): ?>
+                    <?= Icon::create('accept', Icon::ROLE_STATUS_GREEN)->asImg(['title' => _('Ja')]) ?>
+                <? else: ?>
+                    <?= Icon::create('decline', Icon::ROLE_STATUS_RED)->asImg(['title' => _('Nein')]) ?>
+                <? endif; ?>
+                </td>
+                <td style="text-align: right">
+                    <a data-dialog href="<?= $controller->display($log, $pagination->getCurrentPage()) ?>">
+                        <?= Icon::create('admin')->asImg(['title' => _('Logeintrag anzeigen')]) ?>
+                    </a>
+                    <a href="<?= $controller->delete($log, $pagination->getCurrentPage()) ?>">
+                        <?= Icon::create('trash')->asImg(['title' => _('Logeintrag löschen')]) ?>
+                    </a>
+                </td>
+            </tr>
+        <? endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6">
+                    <select name="action" data-activates="button[name=bulk]">
+                        <option value="">- <?= _('Aktion auswählen') ?></option>
+                        <option value="delete"><?= _('Löschen') ?></option>
+                    </select>
+                    <?= Button::createAccept(_('Ausführen'), 'bulk') ?>
 
-        <section style="float: right">
-            <?
-                $pagination = $GLOBALS['template_factory']->open('shared/pagechooser');
-                $pagination->set_attributes([
-                    'perPage'      => $max_per_page,
-                    'num_postings' => $total_filtered,
-                    'page'         => $page,
-                    'pagelink'     => $controller->url_for('admin/cronjobs/logs/index/%u')
-                ]);
-                echo $pagination->render();
-            ?>
-        </section>
-    </footer>
+                    <section style="float: right">
+                        <?= $pagination->asLinks(function ($page) use ($controller) {
+                            return $controller->index($page);
+                        }) ?>
+                    </section>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
 </form>

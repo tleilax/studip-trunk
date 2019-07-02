@@ -34,6 +34,8 @@ class Search_GlobalsearchController extends AuthenticatedController
             'content' => md5("{$_COOKIE[Seminar_Session::class]}-{$GLOBALS['user']->id}"),
         ]);
 
+        PageLayout::setBodyElementId('globalsearch-page');
+
         $this->addInfoText();
         $this->addSidebar();
     }
@@ -115,12 +117,9 @@ class Search_GlobalsearchController extends AuthenticatedController
     private function getSemesters()
     {
         // set the current semester as the initially selected semester
-        // considering the given SEMESTER_TIME_SWITCH in the CONFIG
-        // (n weeks before next semester)
         if (!$_SESSION['global_search']['selects']) {
-            $sem_time_switch = Config::get()->SEMESTER_TIME_SWITCH;
-            $current_sem = Semester::findByTimestamp(time() + $sem_time_switch * 7 * 24 * 3600);
-            $_SESSION['global_search']['selects']['semester'] = $current_sem['beginn'];
+            $current_sem = GlobalSearchModule::getCurrentSemester();
+            $_SESSION['global_search']['selects']['semester'] = $current_sem;
         }
         $semesters = [];
         $semesters[''] = _('Alle Semester');

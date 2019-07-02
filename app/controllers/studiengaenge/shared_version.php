@@ -1,31 +1,23 @@
 <?php
 /**
- * shared_version.php - SharedVersionController
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
  * @author      Peter Thienel <thienel@data-quest.de>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
+ * @license     GPL2 or any later version
  * @since       3.5
  */
 
-
 class SharedVersionController extends MVVController
 {
-
     public function version_action($stgteil_id, $version_id = null)
     {
         $this->stgteil = StudiengangTeil::find($stgteil_id);
         if (!$this->stgteil) {
             throw new Trails_Exception(404);
         }
+
         if (!MvvPerm::haveFieldPermVersionen($this->stgteil, MvvPerm::PERM_READ)) {
             throw new Trails_Exception(403);
         }
+
         if (!isset($this->version)) {
             $this->version = StgteilVersion::find($version_id);
             if (!$this->version) {
@@ -38,15 +30,23 @@ class SharedVersionController extends MVVController
 
         if ($this->version->isNew()) {
             $this->version->stat = 'planung';
-            PageLayout::setTitle(_('Neue Version des Studiengangteils anlegen'));
+            PageLayout::setTitle(sprintf(
+                _('Neue Version für Studiengangteil: %s'),
+                $this->stgteil->getDisplayName()
+            ));
             $success_message = ('Die Version "%s" des Studiengangteils wurde angelegt.');
         } else {
-            PageLayout::setTitle(_('Version des Studiengangteils bearbeiten'));
+            PageLayout::setTitle(sprintf(
+                _('Version: %s bearbeiten'),
+                $this->version->getDisplayName()
+            ));
             $success_message = _('Die Version "%s" des Studiengangteils wurde geändert.');
         }
+
         $this->semester = Semester::getAll();
         $this->dokumente = $this->version->document_assignments;
-        $this->sessSet('dokument_target', array($this->version->getId(), 'StgteilVersion'));
+        $this->sessSet('dokument_target', [$this->version->getId(), 'StgteilVersion']);
+
         if (Request::submitted('store')) {
             CSRFProtection::verifyUnsafeRequest();
             if (!MvvPerm::haveFieldPermVersionen($this->stgteil)) {
@@ -68,22 +68,25 @@ class SharedVersionController extends MVVController
                 Request::optionArray('dokumente_items'),
                 Request::getArray('dokumente_properties')
             );
-            
+
             $this->version->verifyPermission();
-            
+
             try {
                 $stored = $this->version->store();
             } catch (InvalidValuesException $e) {
                 PageLayout::postError(htmlReady($e->getMessage()));
             }
+
             if ($stored !== false) {
                 if ($stored) {
-                    PageLayout::postSuccess(sprintf($success_message,
-                            htmlReady($this->version->getDisplayName())));
+                    PageLayout::postSuccess(sprintf(
+                        $success_message,
+                            htmlReady($this->version->getDisplayName())
+                    ));
                 } else {
                     PageLayout::postInfo(_('Es wurden keine Änderungen vorgenommen.'));
                 }
-                $this->redirect($this->url_for('/abschnitte', $this->version->id));
+                $this->redirect($this->url_for('/abschnitte/' . $this->version->id));
                 return;
             }
         }
@@ -97,29 +100,31 @@ class SharedVersionController extends MVVController
             $action_widget  = $sidebar->getWidget('actions');
             $action_widget->addLink(
                 _('Download der Version'),
-                $this->url_for('/export', $this->version->getId()),
-                Icon::create('file-word', 'clickable')
+                $this->url_for('/export/' .  $this->version->getId()),
+                Icon::create('file-word')
             );
             $action_widget->addLink(
                 _('Version als PDF'),
-                $this->url_for('/export', $this->version->getId(), 'pdf'),
-                Icon::create('file-pdf', 'clickable')
+                $this->url_for('/export/' . $this->version->getId() . 'pdf'),
+                Icon::create('file-pdf')
             );
             $action_widget->addLink(
                 _('Vergleich mit anderer Version'),
-                $this->url_for('studiengaenge/versionen/diff_select', $this->version->getId()),
-                Icon::create('module', 'clickable'), array('data-dialog' => 'size=auto')
+                $this->url_for('studiengaenge/versionen/diff_select/' . $this->version->getId()),
+                Icon::create('module'),
+                ['data-dialog' => 'size=auto']
             );
-            if ($this->version->stat == 'planung' && MvvPerm::haveFieldPermStat($this->version)) {
+            if ($this->version->stat === 'planung' && MvvPerm::haveFieldPermStat($this->version)) {
                 $action_widget->addLink(_('Version genehmigen'),
-                    $this->url_for('/approve', $this->stgteil->getId(), $this->version->getId()),
-                    Icon::create('accept', 'clickable'), array('data-dialog' => 'size=auto;buttons=false')
+                    $this->url_for('/approve/' . $this->stgteil->getId() . '/' .$this->version->getId()),
+                    Icon::create('accept'),
+                    ['data-dialog' => 'size=auto;buttons=false']
                 );
             }
             $action_widget->addLink(
                 _('Log-Einträge dieser Studiengangteilversion'),
-                $this->url_for('shared/log_event/show/StgteilVersion', $this->version->getId()),
-                Icon::create('log', 'clickable')
+                $this->url_for('shared/log_event/show/StgteilVersion/' . $this->version->getId()),
+                Icon::create('log')
             )->asDialog();
         }
 
@@ -131,12 +136,12 @@ class SharedVersionController extends MVVController
         $this->version = StgteilVersion::get($version_id);
         if ($this->version) {
             $query = "
-                SELECT version_id, CONCAT(fach.name, ' ', stgt.kp, ' CP ', stgt.zusatz,  ' (', code, ')') as name 
-                FROM mvv_stgteilversion stgtv 
-                    LEFT JOIN mvv_stgteil stgt USING (stgteil_id) 
-                    LEFT JOIN fach fach USING (fach_id) 
-                WHERE ( 
-                        fach.name LIKE :input 
+                SELECT version_id, CONCAT(fach.name, ' ', stgt.kp, ' CP ', stgt.zusatz,  ' (', code, ')') as name
+                FROM mvv_stgteilversion stgtv
+                    LEFT JOIN mvv_stgteil stgt USING (stgteil_id)
+                    LEFT JOIN fach fach USING (fach_id)
+                WHERE (
+                        fach.name LIKE :input
                         OR code LIKE :input '
                         OR stgt.zusatz LIKE :input '
                     )
@@ -147,7 +152,7 @@ class SharedVersionController extends MVVController
             $this->search_version = QuickSearch::get('old_id', $sql_search_version)
                     ->setInputStyle('width: 240px');
         } else {
-            PageLayout::postError( _('Unbekannte Version!'));
+            PageLayout::postError(_('Unbekannte Version'));
             $this->relocate('/versionen');
         }
         PageLayout::setTitle(_('Versionenvergleich'));
@@ -157,14 +162,15 @@ class SharedVersionController extends MVVController
     {
         $new_version = StgteilVersion::find(Request::option('new_id', $new_id));
         $old_version = StgteilVersion::find(Request::option('old_id', $old_id));
-        
+
         if (!$new_version || !$old_version) {
-            PageLayout::postError( _('Unbekannte Version!'));
-            $this->redirect($this->url_for('/diff_select', $new_version->id));
+            PageLayout::postError(_('Unbekannte Version'));
+            $this->redirect($this->url_for('/diff_select/' . $new_version->id));
         } else {
             if (Request::isXhr()) {
-                $this->response->add_header('X-Location', $this->url_for('/diff',
-                        $new_version->id, $old_version->id));
+                $this->response->add_header(
+                    'X-Location',
+                    $this->url_for('/diff/' . $new_version->id . '/' . $old_version->id));
             }
             PageLayout::setTitle(_('Vergleichsansicht'));
             PageLayout::addStylesheet('print.css');
@@ -186,29 +192,25 @@ class SharedVersionController extends MVVController
         $type = Request::option('type', $type);
 
         if (!$version) {
-           PageLayout::postError( _('Unbekannte Version!'));
+           PageLayout::postError(_('Unbekannte Version'));
            $this->response->add_header('X-Location', $this->url_for('/'));
         } else {
             if (Request::isXhr()) {
-                $this->response->add_header('X-Location', $this->url_for('/export', $version->id));
+                $this->response->add_header('X-Location', $this->url_for('/export/' . $version->id));
             }
 
             PageLayout::addStylesheet('print.css');
             $factory = $this->get_template_factory();
             $template = $factory->open('studiengaenge/versionen/export');
-            $template->set_attributes(array(
-                'stgversion' => $version
-            ));
+            $template->set_attributes(['stgversion' => $version]);
 
             if ($type == 'pdf') {
                 $template->set_attribute('image_style', 'height: 6px; width: 8px;');
 
                 $doc = new ExportPDF();
-
                 $doc->addPage();
                 $doc->SetFont('helvetica', '', 8);
                 $doc->writeHTML($template->render(), false, false, true);
-
                 $doc->Output($version->getDisplayName() . '.pdf', 'D');
 
                 $this->render_nothing();
@@ -229,9 +231,10 @@ class SharedVersionController extends MVVController
         }
         if (Request::isPost()) {
             CSRFProtection::verifyUnsafeRequest();
-            PageLayout::postSuccess(
-                sprintf(_('Version "%s" des Studiengangteils gelöscht!'), htmlReady($version->getDisplayName()))
-            );
+            PageLayout::postSuccess(sprintf(
+                _('Version "%s" des Studiengangteils gelöscht!'),
+                htmlReady($version->getDisplayName())
+            ));
             $version->delete();
         }
         $this->redirect($this->url_for('/index'));
@@ -242,30 +245,41 @@ class SharedVersionController extends MVVController
         if (!isset($this->abschnitt)) {
             $this->abschnitt = StgteilAbschnitt::find($abschnitt_id);
         }
+
         if (!$this->abschnitt) {
             $this->abschnitt = new StgteilAbschnitt();
             if (!isset($this->version)) {
                 $this->version = StgteilVersion::find(Request::option('version_id'));
             }
-            PageLayout::setTitle(_('Neuen Studiengangteil-Abschnitt anlegen'));
+            PageLayout::setTitle(sprintf(
+                _('Einen neuen Studiengangteil-Abschnitt für die Version "%s" anlegen.'),
+                $this->version->getDisplayName()
+            ));
             $success_message = ('Der Studiengangteil-Abschnitt "%s" wurde angelegt.');
         } else {
             $this->version = $this->abschnitt->version;
-            PageLayout::setTitle(_('Studiengangteil-Abschnitt bearbeiten'));
+            PageLayout::setTitle(sprintf(
+                _('Studiengangteil-Abschnitt "%s" der Version "%s" bearbeiten.'),
+                $this->abschnitt->name,
+                $this->version->getDisplayName()
+            ));
             $success_message = _('Der Studiengangteil-Abschnitt "%s" wurde geändert.');
         }
+
         if (!$this->version) {
-            PageLayout::postError(_('Unbekannte Version.'));
+            PageLayout::postError(_('Unbekannte Version'));
             $this->redirect($this->url_for('/index'));
         }
+
         $perm = MvvPerm::get($this->version);
+
         if (!$perm->haveFieldPerm('abschnitte', MvvPerm::PERM_READ)) {
             throw new Trails_Exception(403);
         }
-        if ($this->abschnitt->isNew()
-                && !$perm->haveFieldPerm('abschnitte', MvvPerm::PERM_CREATE)) {
+        if ($this->abschnitt->isNew() && !$perm->haveFieldPerm('abschnitte', MvvPerm::PERM_CREATE)) {
             throw new Trails_Exception(403);
         }
+
         if (Request::submitted('store')) {
             CSRFProtection::verifyUnsafeRequest();
             if (!$perm->haveFieldPerm('abschnitte', MvvPerm::PERM_WRITE)) {
@@ -279,19 +293,21 @@ class SharedVersionController extends MVVController
             $this->abschnitt->ueberschrift = Request::i18n('ueberschrift')->trim();
             $this->abschnitt->verifyPermission();
             $stored = $this->abschnitt->store();
+
             if ($stored !== false) {
                 if ($stored) {
-                    PageLayout::postSuccess(sprintf($success_message,
-                            htmlReady($this->abschnitt->name)));
+                    PageLayout::postSuccess(sprintf(
+                        $success_message,
+                        htmlReady($this->abschnitt->name)
+                    ));
                 } else {
                     PageLayout::postInfo(_('Es wurden keine Änderungen vorgenommen.'));
                 }
-                $this->redirect($this->url_for('/details',
-                        $this->abschnitt->id));
+                $this->redirect($this->url_for('/details/' . $this->abschnitt->id));
                 return;
             }
         }
-        $this->cancel_url = $this->url_for('/details', $this->version->id);
+        $this->cancel_url = $this->url_for('/details/' . $this->version->id);
         $this->render_template('studiengaenge/versionen/abschnitt');
     }
 
@@ -303,18 +319,18 @@ class SharedVersionController extends MVVController
         $filter = $this->filter;
         unset($filter['mvv_stgteilversion.stat']);
         $query = "
-            SELECT mvv_modul.modul_id, 
+            SELECT mvv_modul.modul_id,
                 CONCAT(mvv_modul_deskriptor.bezeichnung, ', ',
                     IF(ISNULL(mvv_modul.code), '', mvv_modul.code),
                     IF(ISNULL(start_sem.name), '', CONCAT(', ', IF(ISNULL(end_sem.name),
-                    CONCAT('ab ', start_sem.name),CONCAT(start_sem.name, ' - ', end_sem.name))))) AS modul_name 
-            FROM mvv_modul 
-                LEFT JOIN mvv_modul_deskriptor 
-                    ON mvv_modul.modul_id = mvv_modul_deskriptor.modul_id 
-                LEFT JOIN semester_data start_sem ON mvv_modul.start = start_sem.semester_id 
-                LEFT JOIN semester_data end_sem ON mvv_modul.end = end_sem.semester_id 
-                WHERE (mvv_modul.code LIKE :input 
-                OR mvv_modul_deskriptor.bezeichnung LIKE :input) 
+                    CONCAT('ab ', start_sem.name),CONCAT(start_sem.name, ' - ', end_sem.name))))) AS modul_name
+            FROM mvv_modul
+                LEFT JOIN mvv_modul_deskriptor
+                    ON mvv_modul.modul_id = mvv_modul_deskriptor.modul_id
+                LEFT JOIN semester_data start_sem ON mvv_modul.start = start_sem.semester_id
+                LEFT JOIN semester_data end_sem ON mvv_modul.end = end_sem.semester_id
+                WHERE (mvv_modul.code LIKE :input
+                OR mvv_modul_deskriptor.bezeichnung LIKE :input)
                 " . ModuleManagementModel::getFilterSql($filter) . "
             ORDER BY modul_name";
         $search = new SQLSearch($query, _('Modul suchen'),'modul_id_' . $this->version->id);
@@ -322,7 +338,7 @@ class SharedVersionController extends MVVController
         $this->search_modul_version = QuickSearch::get('modul_id_' . $this->version->id, $search);
 
         if (!$this->version) {
-            PageLayout::postError( _('Unbekannte Version.'));
+            PageLayout::postError(_('Unbekannte Version'));
             $this->redirect($this->url_for('/index'));
             return;
         } else {
@@ -347,7 +363,7 @@ class SharedVersionController extends MVVController
     {
         $abschnitt = StgteilAbschnitt::find($abschnitt_id);
         if (!$abschnitt && is_null($version_id)) {
-            PageLayout::postError( _('Unbekannter Studiengangteil-Abschnitt'));
+            PageLayout::postError(_('Unbekannter Studiengangteil-Abschnitt'));
             $this->redirect($this->url_for('/index'));
             return;
         } else {
@@ -369,9 +385,9 @@ class SharedVersionController extends MVVController
             }
         }
         if ($abschnitt && !Request::submitted('yes')) {
-            $this->redirect($this->url_for('/details_abschnitt', $abschnitt->getId()));
+            $this->redirect($this->url_for('/details_abschnitt/ ' . $abschnitt->getId()));
         } else {
-            $this->redirect($this->url_for('/abschnitte', $version_id));
+            $this->redirect($this->url_for('/abschnitte/' . $version_id));
         }
     }
 
@@ -389,9 +405,8 @@ class SharedVersionController extends MVVController
             if (Request::submitted('add_modul')) {
                 CSRFProtection::verifyUnsafeRequest();
                 if (!$modul) {
-                    PageLayout::postError( _('Unbekanntes Modul.'));
-                    $this->redirect($this->url_for('/details_abschnitt',
-                            $abschnitt->id));
+                    PageLayout::postError(_('Unbekanntes Modul'));
+                    $this->redirect($this->url_for('/details_abschnitt/' . $abschnitt->id));
                     return;
                 } else if ($abschnitt) {
                     if ($abschnitt->addModul($modul)) {
@@ -402,24 +417,25 @@ class SharedVersionController extends MVVController
                             htmlReady($abschnitt->name)
                         ));
                     } else {
-                        PageLayout::postError(
-                                sprintf(_('Das Modul "%s" wurde bereits zugordnet.'),
-                                        htmlReady($modul->getDisplayName())));
+                        PageLayout::postError(sprintf(
+                            _('Das Modul "%s" wurde bereits zugordnet.'),
+                            htmlReady($modul->getDisplayName())
+                        ));
                     }
-                    $this->redirect($this->url_for('/details_abschnitt', $abschnitt->id));
+                    $this->redirect($this->url_for('/details_abschnitt/' . $abschnitt->id));
                 } else {
-                    PageLayout::postError( _('Unbekannter Abschnitt.'));
+                    PageLayout::postError(_('Unbekannter Abschnitt'));
                     $this->redirect($this->url_for('/index'));
                 }
             } else {
                 if ($abschnitt) {
-                    $this->redirect($this->url_for('/details_abschnitt', $abschnitt->id));
+                    $this->redirect($this->url_for('/details_abschnitt/' . $abschnitt->id));
                 } else {
-                    $this->redirect($this->url_for('/abschnitte', $version->id));
+                    $this->redirect($this->url_for('/abschnitte/' . $version->id));
                 }
             }
         } else {
-            PageLayout::postError( _('Unbekannte Version.'));
+            PageLayout::postError(_('Unbekannte Version'));
             $this->redirect($this->url_for('/index'));
         }
     }
@@ -428,7 +444,7 @@ class SharedVersionController extends MVVController
     {
         $this->zuordnung = StgteilabschnittModul::find($abschnitt_modul_id);
         if ($this->zuordnung->isNew()) {
-            PageLayout::postError( _('Unbekannte Zuordnung.'));
+            PageLayout::postError(_('Unbekannte Zuordnung'));
             $this->redirect($this->url_for('/index'));
             return;
         } else {
@@ -453,7 +469,7 @@ class SharedVersionController extends MVVController
                     } else {
                         PageLayout::postInfo(_('Es wurden keine Änderungen vorgenommen.'));
                     }
-                    $this->redirect($this->url_for('/details_abschnitt', $this->zuordnung->abschnitt_id));
+                    $this->redirect($this->url_for('/details_abschnitt/' . $this->zuordnung->abschnitt_id));
                 }
             }
         }
@@ -475,7 +491,7 @@ class SharedVersionController extends MVVController
             }
             $modul = Modul::find($modul_id);
             if (!$modul) {
-                PageLayout::postError( _('Unbekanntes Modul.'));
+                PageLayout::postError(_('Unbekanntes Modul'));
             } else {
                 if (Request::submitted('delete')) {
                     CSRFProtection::verifyUnsafeRequest();
@@ -486,16 +502,19 @@ class SharedVersionController extends MVVController
                         $stored = $abschnitt->store();
                     }
                     if ($stored) {
-                        PageLayout::postSuccess(
-                            sprintf(_('Die Zuordnung des Moduls "%s" zum Studiengangteil-Abschnitt "%s" wurde gelöscht.'), htmlReady($modul_name), htmlReady($abschnitt_name)));
+                        PageLayout::postSuccess(sprintf(
+                            _('Die Zuordnung des Moduls "%s" zum Studiengangteil-Abschnitt "%s" wurde gelöscht.'),
+                            htmlReady($modul_name),
+                            htmlReady($abschnitt_name)
+                        ));
                     } else {
-                        PageLayout::postError( _('Die Zuordnung des Moduls konnte nicht gelöscht werden.'));
+                        PageLayout::postError(_('Die Zuordnung des Moduls konnte nicht gelöscht werden.'));
                     }
                 }
             }
-            $this->redirect($this->url_for('/details_abschnitt', $abschnitt->id));
+            $this->redirect($this->url_for('/details_abschnitt/' . $abschnitt->id));
         } else {
-            PageLayout::postError(_('Unbekannter Studiengangteilabschnitt.'));
+            PageLayout::postError(_('Unbekannter Studiengangteilabschnitt'));
             $this->redirect('/index');
         }
     }
@@ -510,7 +529,7 @@ class SharedVersionController extends MVVController
                 $this->render_template('studiengaenge/versionen/modulteile');
                 return;
             } else {
-                $this->perform_relayed('details_abschnitt', $this->abschnitt_id, $this->modul->id);
+                $this->perform_relayed('details_abschnitt/' . $this->abschnitt_id . '/'. $this->modul->id);
                 return;
             }
         }
@@ -561,7 +580,7 @@ class SharedVersionController extends MVVController
                             _('Es wurden keine Änderungen an der Zuordnung der Fachsemester vorgenommen.')
                         );
                     }
-                    $this->relocate('/details_abschnitt', $this->abschnitt_modul->abschnitt_id, $this->abschnitt_modul->modul_id);
+                    $this->relocate('/details_abschnitt/' . $this->abschnitt_modul->abschnitt_id . '/' . $this->abschnitt_modul->modul_id);
                     return;
                 }
                 $this->render_template('studiengaenge/versionen/modulteil_semester', $this->layout);
@@ -610,7 +629,7 @@ class SharedVersionController extends MVVController
         list($object_class, $id) = explode('_', Request::option('list_id'));
         $orderedIds = Request::getArray('newOrder');
         if (is_array($orderedIds)) {
-            if ($object_class == 'abschnitte') {
+            if ($object_class === 'abschnitte') {
                 $version = StgteilVersion::find($id);
                 if ($version) {
                     $i = 1;
@@ -625,7 +644,7 @@ class SharedVersionController extends MVVController
                         }
                     }
                 }
-            } else if ($object_class == 'module') {
+            } else if ($object_class === 'module') {
                 $abschnitt = StgteilAbschnitt::find($id);
                 if ($abschnitt) {
                     $i = 1;
@@ -650,7 +669,7 @@ class SharedVersionController extends MVVController
     {
         $this->abschnitt = StgteilAbschnitt::find($abschnitt_id);
         if (!$this->abschnitt) {
-            PageLayout::postError( _('Unbekannter Abschnitt.'));
+            PageLayout::postError(_('Unbekannter Abschnitt'));
             $this->redirect($this->url_for('/index'));
             return;
         }
@@ -663,7 +682,7 @@ class SharedVersionController extends MVVController
             $this->abschnitt->getId(),
             $this->filter
         );
-        
+
         // search for modules so status of version doesn't matter
         $filter = $this->filter;
         unset($filter['mvv_stgteilversion.stat']);
@@ -671,18 +690,18 @@ class SharedVersionController extends MVVController
             SELECT mvv_modul.modul_id, CONCAT(mvv_modul_deskriptor.bezeichnung, ', ',
                 IF(ISNULL(mvv_modul.code), '', mvv_modul.code),
                 IF(ISNULL(start_sem.name), '', CONCAT(', ', IF(ISNULL(end_sem.name),
-                CONCAT('ab ', start_sem.name),CONCAT(start_sem.name, ' - ', end_sem.name))))) AS modul_name 
-            FROM mvv_modul 
-                LEFT JOIN mvv_modul_deskriptor ON (mvv_modul.modul_id = mvv_modul_deskriptor.modul_id) 
-                LEFT JOIN semester_data start_sem ON (mvv_modul.start = start_sem.semester_id) 
+                CONCAT('ab ', start_sem.name),CONCAT(start_sem.name, ' - ', end_sem.name))))) AS modul_name
+            FROM mvv_modul
+                LEFT JOIN mvv_modul_deskriptor ON (mvv_modul.modul_id = mvv_modul_deskriptor.modul_id)
+                LEFT JOIN semester_data start_sem ON (mvv_modul.start = start_sem.semester_id)
                 LEFT JOIN semester_data end_sem ON (mvv_modul.end = end_sem.semester_id)
-            WHERE (mvv_modul.code LIKE :input 
-                    OR mvv_modul_deskriptor.bezeichnung LIKE :input) 
+            WHERE (mvv_modul.code LIKE :input
+                    OR mvv_modul_deskriptor.bezeichnung LIKE :input)
                 AND mvv_modul.modul_id NOT IN(
-                    SELECT msm.modul_id 
-                    FROM mvv_stgteilabschnitt_modul msm 
+                    SELECT msm.modul_id
+                    FROM mvv_stgteilabschnitt_modul msm
                     WHERE abschnitt_id = " . DBManager::get()->quote($this->abschnitt_id) . "
-                ) 
+                )
                 " . ModuleManagementModel::getFilterSql($filter) . "
             ORDER BY modul_name";
         $search = new SQLSearch($query, _('Modul suchen'));
@@ -712,8 +731,7 @@ class SharedVersionController extends MVVController
 
         if (Request::submitted('approval')) {
             CSRFProtection::verifyUnsafeRequest();
-            if ($this->version->stat == 'planung'
-                    && MvvPerm::haveFieldPermStat($this->version)) {
+            if ($this->version->stat === 'planung' && MvvPerm::haveFieldPermStat($this->version)) {
                 $stored = false;
                 $this->version->stat = 'genehmigt';
                 try {
@@ -722,9 +740,11 @@ class SharedVersionController extends MVVController
                     PageLayout::postError(htmlReady($e->getMessage()));
                 }
                 if ($stored) {
-                    PageLayout::postSuccess(sprintf(_('Version "%s" genehmigt!'),
-                            htmlReady($this->version->getDisplayName())));
-                    $this->redirect($this->url_for('/abschnitte', $version_id));
+                    PageLayout::postSuccess(sprintf(
+                        _('Version "%s" genehmigt!'),
+                        htmlReady($this->version->getDisplayName())
+                    ));
+                    $this->redirect($this->url_for('/abschnitte/' . $version_id));
                 }
             } else {
                 throw new Trails_Exception(403);
@@ -734,5 +754,4 @@ class SharedVersionController extends MVVController
             $this->render_template('studiengaenge/versionen/approve');
         }
     }
-
 }

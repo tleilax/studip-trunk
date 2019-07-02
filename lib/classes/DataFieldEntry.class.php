@@ -9,7 +9,7 @@
  */
 abstract class DataFieldEntry
 {
-    protected static $supported_types = array(
+    protected static $supported_types = [
         'bool',
         'textline',
         'textlinei18n',
@@ -26,17 +26,28 @@ abstract class DataFieldEntry
         'radio',
         'combo',
         'link',
-    );
+    ];
 
     protected $language = '';
 
     /**
-     * Returns all supported datafield types
+     * Returns all supported datafield types.
      *
+     * @param string Object type of the datafield.
      * @return array of supported types
      */
-    public static function getSupportedTypes()
+    public static function getSupportedTypes($object_type = null)
     {
+        // no i18n fields for descriptors
+        if (in_array($object_type, ['moduldeskriptor', 'modulteildeskriptor'])) {
+            return array_diff(
+                self::$supported_types,
+                [
+                    'textlinei18n',
+                    'textareai18n',
+                    'textmarkupi18n'
+                ]);
+        }
         return self::$supported_types;
     }
 
@@ -89,8 +100,7 @@ abstract class DataFieldEntry
         if (!$range_id) {
             return []; // we necessarily need a range ID
         }
-
-        $parameters = array();
+        $parameters = [];
         if(is_array($range_id)) {
             // rangeID may be an array ("classic" rangeID and second rangeID used for user roles)
             $secRangeID = $range_id[1];
@@ -115,25 +125,39 @@ abstract class DataFieldEntry
                     } else {
                         $object_class = SeminarCategories::GetBySeminarId($rangeID);
                     }
+
                     $clause2 = "object_class = :object_class OR object_class IS NULL";
                     $parameters[':object_class'] = (int) $object_class->id;
+                    $clause3 = 'a.institut_id IS NULL OR a.institut_id IN (:institut_ids)';
+                    $query = "SELECT institut_id FROM seminar_inst WHERE seminar_id = :seminar_id";
+                    $statement = DBManager::get()->prepare($query);
+                    $statement->execute([':seminar_id' => $rangeID]);
+                    $parameters[':institut_ids'] = array_keys($statement->fetchGrouped());
                     break;
                 case 'inst':
                 case 'fak':
+
                     if ($object_class_hint) {
                         $object_class = $object_class_hint;
                     } else {
                         $query = "SELECT type FROM Institute WHERE Institut_id = ?";
                         $statement = DBManager::get()->prepare($query);
-                        $statement->execute(array($rangeID));
+                        $statement->execute([$rangeID]);
                         $object_class = $statement->fetchColumn();
                     }
                     $object_type = "inst";
                     $clause2 = "object_class = :object_class OR object_class IS NULL";
                     $parameters[':object_class'] = (int) $object_class;
+                    $clause3 = 'a.institut_id IS NULL OR a.institut_id = :institut_id';
+                    $parameters[':institut_id'] = $rangeID;
                     break;
                 case 'roleinstdata': //hmm tja, vermutlich so
                     $clause2 = '1';
+                    $clause3 = '1';
+                    if (is_array($range_id) && isset($range_id[0])) {
+                        $clause3 = 'a.institut_id IS NULL OR a.institut_id = :institut_id';
+                        $parameters[':institut_id'] = $range_id[0];
+                    }
                     break;
                 case 'user':
                 case 'userinstrole':
@@ -141,13 +165,19 @@ abstract class DataFieldEntry
                     $object_class = is_object($GLOBALS['perm']) ? DataField::permMask($GLOBALS['perm']->get_perm($rangeID)) : 0;
                     $clause2 = "((object_class & :object_class) OR object_class IS NULL)";
                     $parameters[':object_class'] = (int) $object_class;
+
+                    $clause3 = 'a.institut_id IS NULL OR a.institut_id IN (:institut_ids)';
+                    $query = "SELECT institut_id FROM user_inst WHERE user_id = :user_id";
+                    $statement = DBManager::get()->prepare($query);
+                    $statement->execute([':user_id' => $rangeID]);
+                    $parameters[':institut_ids'] = array_keys($statement->fetchGrouped());
                     break;
             }
             $query = "SELECT a.*, content
                       FROM datafields AS a
                       LEFT JOIN datafields_entries AS b
                         ON (a.datafield_id = b.datafield_id AND range_id = :range_id {$clause1})
-                      WHERE object_type = :object_type AND ({$clause2})
+                      WHERE object_type = :object_type AND ({$clause2}) AND ($clause3)
                       ORDER BY priority";
             $parameters[':range_id']    = $rangeID;
             $parameters[':object_type'] = $object_type;
@@ -155,13 +185,13 @@ abstract class DataFieldEntry
             $rs = DBManager::get()->prepare($query);
             $rs->execute($parameters);
 
-            $entries = array();
+            $entries = [];
             while ($data = $rs->fetch(PDO::FETCH_ASSOC)) {
                 $datafield = DataField::buildExisting($data);
                 $entries[$data['datafield_id']] = DataFieldEntry::createDataFieldEntry($datafield, $range_id, $data['content']);
             }
         }
-        return $entries;
+        return $entries ?: [];
     }
 
     /**
@@ -185,8 +215,8 @@ abstract class DataFieldEntry
             return;
         }
 
-        $conditions = array();
-        $parameters = array();
+        $conditions = [];
+        $parameters = [];
 
         if ($rangeID) {
             $conditions[] = 'range_id = ?';
@@ -247,10 +277,10 @@ abstract class DataFieldEntry
         }
 
         if ($result) {
-            NotificationCenter::postNotification('DatafieldDidUpdate', $this, array(
+            NotificationCenter::postNotification('DatafieldDidUpdate', $this, [
                 'changed'   => $result,
                 'old_value' => $old_value,
-            ));
+            ]);
         }
 
         return $result;
@@ -338,13 +368,14 @@ abstract class DataFieldEntry
      * @param Array  $variables Additional variables
      * @return String containing the required html
      */
-    public function getHTML($name = '', $variables = array())
+    public function getHTML($name = '', $variables = [])
     {
-        $variables = array_merge(array(
+        $variables = array_merge([
             'name'  => $name,
+            'entry' => $this,
             'model' => $this->model,
             'value' => $this->getValue(),
-        ), $variables);
+        ], $variables);
 
         return $GLOBALS['template_factory']->render('datafields/' . $this->template, $variables);
     }
@@ -386,7 +417,7 @@ abstract class DataFieldEntry
      */
     public function setSecondRangeID($sec_range_id)
     {
-        $this->rangeID = array($this->getRangeID(), $sec_range_id);
+        $this->rangeID = [$this->getRangeID(), $sec_range_id];
     }
 
     /**

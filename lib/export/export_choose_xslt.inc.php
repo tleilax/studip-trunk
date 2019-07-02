@@ -88,7 +88,7 @@ $xslt_filename =  mb_strlen(Request::get('xslt_filename')) ? basename(stripslash
 
 if (!CheckParamXSLT())
 {
-    $export_pagename .= _("Es ist ein Fehler aufgetreten ");
+    $export_pagename .= _('Es ist ein Fehler aufgetreten.');
     $export_pagecontent .= MessageBox::error(
         _('Die Parameter, mit denen diese Seite aufgerufen wurde, sind fehlerhaft oder unvollständig.')
     );
@@ -238,7 +238,7 @@ elseif ($page == 2)  // Seite 3 : Download der Dateien
     if (Config::get()->XSLT_ENABLE)
     {
         $export_pagecontent .= _("Um die Daten mit dem installierten XSLT-Prozessor in das gewünschte Format zu bringen, klicken Sie bitte auf 'weiter'") . "<br><br>";
-        $export_weiter_button .= LinkButton::create(_('Weiter') . ' >>', '#', array('name' => 'next'));
+        $export_weiter_button .= LinkButton::create(_('Weiter') . ' >>', '#', ['name' => 'next']);
     } else {
         $export_pagecontent .= "<br><br><br>";
     }

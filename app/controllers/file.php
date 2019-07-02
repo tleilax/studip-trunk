@@ -89,9 +89,7 @@ class FileController extends AuthenticatedController
 
                 //all files were uploaded successfully:
                 $storedFiles = [];
-                $default_license = ContentTermsOfUse::find(
-                    'UNDEF_LICENSE'
-                );
+                $default_license = ContentTermsOfUse::findDefault();
 
                 foreach ($validatedFiles['files'] as $fileref) {
                     //If no terms of use is set for the file ref
@@ -417,7 +415,7 @@ class FileController extends AuthenticatedController
                 PageLayout::postError(
                     sprintf(
                         _('Fehler beim Aktualisieren der Datei %s!'),
-                        $this->file_ref->name
+                        htmlReady($this->file_ref->name)
                     ),
                     $this->errors
                 );
@@ -425,7 +423,7 @@ class FileController extends AuthenticatedController
                 PageLayout::postSuccess(
                     sprintf(
                         _('Datei %s wurde aktualisiert!'),
-                        $this->file_ref->name
+                        htmlReady($this->file_ref->name)
                     )
                 );
             }
@@ -451,7 +449,7 @@ class FileController extends AuthenticatedController
                 if (strpos($file_id, "?") !== false) {
                     $file_id = substr($file_id, 0, strpos($file_id, "?"));
                 }
-                $fileref_id = array($file_id);
+                $fileref_id = [$file_id];
             }
             $file_id = $fileref_id[0];
             $this->fileref_id = $fileref_id;
@@ -474,7 +472,7 @@ class FileController extends AuthenticatedController
             } else {
                 $this->file_ref = FileRef::find($fileref_id);
 
-                $this->fileref_id = array($fileref_id);
+                $this->fileref_id = [$fileref_id];
             }
         }
 
@@ -859,12 +857,12 @@ class FileController extends AuthenticatedController
                 if (!isset($file['tmp_name'])) {
                     if ($file->path_to_blob) {
                         //Cloud-file
-                        $fileobject = array(
+                        $fileobject = [
                             'name' => $file['name'],
                             'tmp_name' => $file->path_to_blob,
                             'type' => $file->mime_type ?: get_mime_type($file['name']),
                             'size' => $file->size
-                        );
+                        ];
                         $file = $fileobject;
                     } elseif($file['url']) {
                         //URL-file
@@ -886,17 +884,21 @@ class FileController extends AuthenticatedController
                     }
                 }
             } else {
-                $file = FileRef::find(Request::get('file_id'))->file;
+                $from_file_ref = FileRef::find(Request::get('file_id'));
+                $file = $from_file_ref->file;
             }
 
             $error = $this->to_folder_type->validateUpload($file, $GLOBALS['user']->id);
             if (!$error) {
-                //do the copy
-                $file_ref = $this->to_folder_type->createFile($file);
-                if ($filedata['content_terms_of_use_id']) {
-                    $file_ref['content_terms_of_use_id'] = $filedata['content_terms_of_use_id'];
+                if ($from_file_ref) {
+                    $file_ref = FileManager::copyFileRef($from_file_ref, $this->to_folder_type, User::findCurrent());
+                } else {
+                    //do the copy
+                    $file_ref = $this->to_folder_type->createFile($file);
                 }
-                if (in_array($this->to_folder_type->range_type, ['course', 'institute'])) {
+            }
+            if ($file_ref instanceof FileRef) {
+                if (in_array($this->to_folder_type->range_type, ['course', 'institute']) && !$file_ref->content_terms_of_use_id) {
                     $this->redirect($this->url_for('file/edit_license', ['file_refs' => [$file_ref->id]]));
                     return;
                 } elseif (Request::isXhr()) {
@@ -906,7 +908,7 @@ class FileController extends AuthenticatedController
 
                     $plugins = PluginManager::getInstance()->getPlugins('FileUploadHook');
 
-                    $redirects = array();
+                    $redirects = [];
                     foreach ($plugins as $plugin) {
                         $url = $plugin->getAdditionalUploadWizardPage($file_ref);
                         if ($url) {
@@ -916,23 +918,22 @@ class FileController extends AuthenticatedController
                     $payload = [
                         'html'     => $this->render_template_as_string("files/_fileref_tr"),
                         'redirect' => $redirects[0],
-                        'url'      => $this->generateFilesUrl($folder, $this->file_ref),
+                        'url'      => $this->generateFilesUrl($this->current_folder, $this->file_ref),
                     ];
 
                     $this->response->add_header(
                         'X-Dialog-Execute',
                         'STUDIP.Files.addFile'
                     );
-                    $this->render_json($payload);
+                    return $this->render_json($payload);
                 } else {
                     PageLayout::postSuccess(_('Datei wurde hinzugefügt.'));
-                    $redirect = 'files/index/' . $folder_id;
-                    if ($this->to_folder_type->range_type === 'course') {
-                        $redirect = 'course/' . $redirect;
-                    }
-                    $this->redirect($redirect);
+                    return $this->redirectToFolder($this->to_folder_type);
                 }
             } else {
+                if (is_array($file_ref)) {
+                    $error = $file_ref;
+                }
                 PageLayout::postError(_('Konnte die Datei nicht hinzufügen.'), [$error]);
             }
         }
@@ -1065,7 +1066,7 @@ class FileController extends AuthenticatedController
                 return;
             } else {
                 PageLayout::postSuccess(_('Datei wurde bearbeitet.'));
-                //redirect:
+                return $this->redirectToFolder($this->folder);
             }
         }
         $this->licenses = ContentTermsOfUse::findBySQL("1 ORDER BY position ASC, id ASC");
@@ -1140,7 +1141,7 @@ class FileController extends AuthenticatedController
                     $payload = [];
 
                     $this->current_folder = $this->top_folder;
-                    $this->marked_element_ids = array();
+                    $this->marked_element_ids = [];
                     $payload['html'][] = $this->render_template_as_string('files/_fileref_tr');
 
                     $plugins = PluginManager::getInstance()->getPlugins('FileUploadHook');
@@ -1433,7 +1434,7 @@ class FileController extends AuthenticatedController
 
             if (count($file_area_objects) === 1 && is_a($file_area_objects[0], 'FileRef')) {
                 //we have only one file to deliver, so no need for zipping it:
-                $this->redirect($file_area_objects[0]->getDownloadURL());
+                $this->redirect($file_area_objects[0]->getDownloadURL('force_download'));
                 return;
             }
 
@@ -1471,7 +1472,7 @@ class FileController extends AuthenticatedController
             $this->redirect($this->url_for('file/choose_destination/move', ['fileref_id' => Request::getArray('ids')]));
         } elseif (Request::submitted('delete')) {
             //bulk deleting
-            $errors = array();
+            $errors = [];
             $count_files = 0;
             $count_folders = 0;
 
@@ -1527,7 +1528,7 @@ class FileController extends AuthenticatedController
                     PageLayout::postSuccess(sprintf(_('Es wurden %s Ordner gelöscht!'), $count_folders));
                 }
             } else {
-                PageLayout::postError(_('Es ist ein Fehler aufgetreten!'), array_map('htmlReady', $errors));
+                PageLayout::postError(_('Es ist ein Fehler aufgetreten.'), array_map('htmlReady', $errors));
             }
 
             $this->redirectToFolder($parent_folder);

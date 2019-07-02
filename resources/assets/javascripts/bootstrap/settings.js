@@ -5,7 +5,7 @@ $(document).on('change', '[data-target]', function() {
     $(target).val(this.value);
 });
 
-$(document).ready(function() {
+STUDIP.domReady(() => {
     $('#edit_userdata').on('change', 'input[name^=email]', function() {
         var changed = false;
         $('#edit_userdata input[name^=email]').each(function() {
@@ -64,4 +64,13 @@ $(document).on('change', '#settings-notifications :checkbox', function() {
                 .find('tbody td:nth-child(' + index + ') :checkbox');
         this.checked = other.filter(':not(:checked)').length === 0;
     });
+});
+
+$(document).on('input', '#new_password', function() {
+    var message = $(this).data().message;
+    if (this.validity.patternMismatch) {
+        this.setCustomValidity(message);
+    } else {
+        this.setCustomValidity('');
+    }
 });

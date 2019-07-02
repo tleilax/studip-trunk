@@ -73,9 +73,6 @@ import select2 from 'select2/dist/js/select2.full.js';
 
 import 'sticky-kit/dist/sticky-kit.js';
 
-import 'gridstack';
-import 'gridstack/dist/gridstack.jQueryUI.js';
-
 import 'blueimp-file-upload';
 import 'blueimp-file-upload/js/jquery.iframe-transport.js';
 
@@ -175,7 +172,7 @@ $.extend($.expr[':'], {
 });
 
 $(document).ready(() => {
-    $(document).trigger('studip-ready', ['domready', {}]);
+    STUDIP.ready.trigger('dom');
 }).on('dialog-update', (event, data) => {
-    $(document).trigger('studip-ready', ['dialog-update', data]);
+    STUDIP.ready.trigger('dialog', data.dialog);
 });

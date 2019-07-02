@@ -24,7 +24,10 @@ class Institute_FilesController extends AuthenticatedController
 
         checkObject();
         checkObjectModule('documents');
-        $this->institute = Institute::findCurrent();
+        if (!Context::isInstitute()) {
+            throw new CheckObjectException(_('Es wurde keine passende Einrichtung gefunden.'));
+        }
+        $this->institute = Context::get();
         object_set_visit_module('documents');
 
         PageLayout::setHelpKeyword("Basis.Dateien");
@@ -46,7 +49,7 @@ class Institute_FilesController extends AuthenticatedController
                 _("Ordner bearbeiten"),
                 $this->url_for("file/edit_folder/".$this->topFolder->getId()),
                 Icon::create("edit", "clickable"),
-                array('data-dialog' => 1)
+                ['data-dialog' => 1]
             );
         }
 
@@ -108,7 +111,7 @@ class Institute_FilesController extends AuthenticatedController
 
         $this->topFolder = $folder->getTypedFolder();
 
-        if (!$this->topFolder->isVisible($GLOBALS['user']->id)) {
+        if (!$this->topFolder->isVisible($GLOBALS['user']->id) || $this->topFolder->range_id !== $this->institute->id) {
             throw new AccessDeniedException();
         }
 

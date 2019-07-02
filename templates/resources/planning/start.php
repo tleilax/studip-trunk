@@ -17,10 +17,10 @@
                 <table>
                     <tr>
                         <td>
-                            <?= SemesterData::GetSemesterSelector(array(
+                            <?= SemesterData::GetSemesterSelector([
                                     'name' => 'tools_requests_sem_choose',
                                     'class' => 'submit-upon-select'
-                                ), $this->semester_id, 'semester_id',false) ?>
+                                ], $this->semester_id, 'semester_id',false) ?>
                             <?= Button::create(_('Semester auswählen'), 'tools_requests_sem_choose_button') ?>
                             <br>
                             <select name="tools_requests_sem_type_choose" class="submit-upon-select">
@@ -144,7 +144,7 @@
 
                             <select name="resolve_requests_one_res" style="margin-left:20px;"
                                     onchange="$('input[name=resolve_requests_mode][value=one_res]').prop('checked', true);">
-                                <option value=""><?= _(' -keine Auswahl - ') ?></option>
+                                <option value="">- <?= _('keine Auswahl') ?> -</option>
                             <? if (count($rooms)) foreach ($rooms as $room): ?>
                                 <option value="<?= $room['resource_id'] ?>">
                                     <?= htmlready($room['name']) ?>

@@ -119,9 +119,7 @@ function formatReady($text, $trim = true, $extern = false, $wiki = false, $show_
 {
     $formatted = Markup::apply(new StudipFormat(), $text, $trim);
 
-    return $formatted
-        ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted)
-        : '';
+    return $formatted !== '' ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted) : '';
 }
 
 /**
@@ -154,7 +152,8 @@ function formatLinks($text, $nl2br=TRUE){
  */
 function wikiReady($text, $trim=TRUE) {
     $formatted = Markup::apply(new WikiFormat(), $text, $trim);
-    return $formatted ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted) : '';
+
+    return $formatted !== '' ? sprintf(FORMATTED_CONTENT_WRAPPER, $formatted) : '';
 }
 
 /**
@@ -189,7 +188,7 @@ function decodeHTML ($string) {
 function preg_call_format_signature($username, $timestamp) {
     $fullname = get_fullname_from_uname($username);
     $date = strftime('%x, %X', $timestamp);
-    return '<span style="font-size: 75%">-- <a href="'.URLHelper::getLink('dispatch.php/profile', array('username' => $username)).'">'.htmlReady($fullname).'</a> '.htmlReady($date).'</span>';
+    return '<span style="font-size: 75%">-- <a href="'.URLHelper::getLink('dispatch.php/profile', ['username' => $username]).'">'.htmlReady($fullname).'</a> '.htmlReady($date).'</span>';
 }
 
 
@@ -214,9 +213,11 @@ function kill_format ($text) {
     // remove Stud.IP markup
     $text = preg_replace("'\n?\r\n?'", "\n", $text);
     // wir wandeln [code] einfach in [pre][nop] um und sind ein Problem los ... :-)
-    $text = preg_replace_callback ( "|(\[/?code\])|isU", create_function('$a', 'return ($a[0] == "[code]")? "[pre][nop]":"[/nop][/pre]";'), $text);
+    $text = preg_replace_callback("|(\[/?code\])|isU", function ($a) {
+        return $a[0] === '[code]' ? '[pre][nop]' : '[/nop][/pre]';
+    }, $text);
 
-    $pattern = array(
+    $pattern = [
                     "'(^|\n)\!{1,4}(.+)$'m",      // Ueberschriften
                     "'(\n|\A)(-|=)+ (.+)$'m",     // Aufzaehlungslisten
                     "'%%(\S|\S.*?\S)%%'s",        // ML-kursiv
@@ -237,21 +238,21 @@ function kill_format ($text) {
             //      "'\[quote=.+?quote\]'is",    // quoting
                     "'(\s):[^\s]+?:(\s)'s"              // smileys
 
-                    );
-    $replace = array(
+                    ];
+    $replace = [
                     "\\1\\2", "\\1\\3",
                     "\\1", "\\1", "\\1", "\\1", "\\1", "\\1",
                     "\\1", "\\1", "\\1", "\n\\1\n", "", "\\1",'[nop] [/nop]',
                     //"\\2",
                     '$1 ($2)',
                      //"",
-                      '$1$2');
+                      '$1$2'];
     $callback = function ($c) {
         return function ($m) use ($c) {
             return $m[1] . mb_substr(str_replace($c, ' ', $m[2]), 0, -1);
         };
     };
-    $pattern_callback = array(
+    $pattern_callback = [
         "'(^|\s)%(?!%)(\S+%)+'" => $callback('%'),     // SL-kursiv
         "'(^|\s)\*(?!\*)(\S+\*)+'" => $callback('*') ,  // SL-fett
         "'(^|\s)_(?!_)(\S+_)+'" => $callback('_'),     // SL-unterstrichen
@@ -260,7 +261,7 @@ function kill_format ($text) {
         "'(^|\s)-(?!-)(\S+-)+'" => $callback('-'),     // SL-kleiner
         "'(^|\s)>(?!>)(\S+>)+'" => $callback('>'),     // SL-hochgestellt
         "'(^|\s)<(?!<)(\S+<)+'" => $callback('<'),     // SL-tiefgestellt);
-    );
+    ];
 
     if (preg_match_all("'\[nop\](.+)\[/nop\]'isU", $text, $matches)) {
         $text = preg_replace($pattern, $replace, $text);
@@ -284,9 +285,9 @@ function isURL($url) {
 
 function isLinkIntern($url) {
     $pum = @parse_url(TransformInternalLinks($url));
-    return in_array($pum['scheme'], array('https', 'http', NULL), true)
-        && in_array($pum['host'], array($_SERVER['SERVER_NAME'], NULL), true)
-        && in_array($pum['port'], array($_SERVER['SERVER_PORT'], NULL), true)
+    return in_array($pum['scheme'], ['https', 'http', NULL], true)
+        && in_array($pum['host'], [$_SERVER['SERVER_NAME'], NULL], true)
+        && in_array($pum['port'], [$_SERVER['SERVER_PORT'], NULL], true)
         && mb_strpos($pum['path'], $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']) === 0;
 }
 
@@ -307,11 +308,11 @@ function idna_link($link, $mail = false){
         if ($mail){
             if (preg_match('#^([^@]*)@(.*)$#i',$link, $matches)) {
                 $out = $IDN->encode(decodeHTML($matches[2], ENT_NOQUOTES)); // false by error
-                $out = ($out)? $matches[1].'@'.$out : $link;
+                $out = ($out)? $matches[1].'@'.htmlReady($out) : $link;
             }
         }elseif (preg_match('#^([^/]*)//([^/?]*)(((/|\?).*$)|$)#i',$link, $matches)) {
             $out = $IDN->encode(decodeHTML($matches[2], ENT_NOQUOTES)); // false by error
-            $out = ($out)? $matches[1].'//'.$out.$matches[3] : $link;
+            $out = ($out)? $matches[1].'//'.htmlReady($out).$matches[3] : $link;
         }
         return ($out)? $out:$link;
     }
@@ -348,18 +349,16 @@ function smile($text = '') {
 * @param        string  the text to convert
 * @return       string  convertet text
 */
-function symbol ($text = "")
+function symbol ($text = '')
 {
-    global $SYMBOL_SHORT;
-
-    if(empty($text))
+    if (!$text) {
         return $text;
+    }
 
-    $patterns = array();
-    $replaces = array();
+    $patterns = [];
+    $replaces = [];
     //symbols in short notation
-    reset($SYMBOL_SHORT);
-    while (list($key, $value) = each($SYMBOL_SHORT)) {
+    foreach ($GLOBALS['SYMBOL_SHORT'] as $key => $value) {
         $patterns[] = "'" . preg_quote($key) . "'m";
         $replaces[] = $value;
     }
@@ -486,7 +485,7 @@ function printhead($breite, $left, $link, $open, $new, $icon, $titel, $zusatz,
     $img = $open === 'close'
          ? 'forumgrau2.png'
          : 'forumgraurunt2.png';
-    $attr = array();
+    $attr = [];
 
     if ($link) {
         // TODO [tlx] What is addon used for? This seems to lead to invalid html
@@ -583,7 +582,7 @@ function tooltip ($text, $with_alt = TRUE, $with_popup = FALSE) {
  */
 function tooltip2($text, $with_alt = TRUE, $with_popup = FALSE) {
 
-    $ret = array();
+    $ret = [];
 
     if ($with_popup) {
         $ret['onClick'] = "alert('".JSReady($text, "alert")."');";
@@ -643,6 +642,9 @@ function tooltipHtmlIcon($text, $important = false)
 function TransformInternalLinks($str){
     $str = trim($str);
     if (mb_strpos($str, 'http') !== 0) {
+        if (preg_match('/^[a-z][a-z0-9+.-]*:/i', $str)) {
+            return $str;
+        }
         if ($str[0] === '/') {
             $str = mb_substr($str, mb_strlen($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP']));
         }

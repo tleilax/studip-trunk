@@ -1,13 +1,13 @@
-<?
+<?php
 # Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
 /**
 * ExternElementBody.class.php
-* 
-* 
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <pthienel@web.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -19,7 +19,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ExternElementBody.class.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -39,8 +39,8 @@
 
 class ExternElementBody extends ExternElement {
 
-    var $attributes = array("body_bgcolor", "body_text", "body_link", "body_vlink",
-            "body_alink", "body_background", "body_class", "body_style");
+    var $attributes = ["body_bgcolor", "body_text", "body_link", "body_vlink",
+            "body_alink", "body_background", "body_class", "body_style"];
 
     /**
     * Constructor
@@ -50,19 +50,17 @@ class ExternElementBody extends ExternElement {
     function __construct($config = "") {
         if ($config)
             $this->config = $config;
-        
+
         $this->name = "Body";
         $this->real_name = _("Seitenkörper");
         $this->description = _("Eigenschaften des Seitenkörpers (HTML-Tag &gt;body&lt;).");
     }
-    
+
     function toString ($args = null) {
         $out = "\n" . $this->config->getTag($this->name, "body");
         $out .= $args["content"] . "</body>\n";
-        
+
         return $out;
     }
-    
-}
 
-?>
+}

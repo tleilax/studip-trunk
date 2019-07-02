@@ -1,25 +1,15 @@
 <?php
 /**
- * module.php - Module_ModuleController
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
  * @author      Peter Thienel <thienel@data-quest.de>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
+ * @license     GPL2 or any later version
  * @since       3.5
  */
-
 
 require_once 'lib/classes/exportdocument/ExportPDF.class.php';
 
 class Module_ModuleController extends MVVController
 {
-
-    public $filter = array();
+    public $filter = [];
     protected $show_sidebar_search = false;
     protected $show_sidebar_filter = false;
 
@@ -28,30 +18,27 @@ class Module_ModuleController extends MVVController
         parent::before_filter($action, $args);
         // set navigation
         Navigation::activateItem($this->me . '/module/module');
-        $this->filter = $this->sessGet('filter', array());
+        $this->filter = $this->sessGet('filter', []);
         $this->action = $action;
     }
 
     public function index_action()
     {
-        //set title
-        PageLayout::setTitle(_('Verwaltung der Module - Alle Module'));
-
         $this->initPageParams();
         $this->initSearchParams('module');
         $search_result = $this->getSearchResult('Modul');
 
         // set default semester filter
-        if (!isset($this->filter['start_sem.beginn'])
-                || !isset($this->filter['end_sem.ende'])) {
+        if (!isset($this->filter['start_sem.beginn'], $this->filter['end_sem.ende'])) {
             $sem_time_switch = Config::get()->SEMESTER_TIME_SWITCH;
             // switch semester according to time switch
             // (n weeks before next semester)
-            $current_sem = Semester::findByTimestamp(time()
-                    + $sem_time_switch * 7 * 24 * 3600);
+            $current_sem = Semester::findByTimestamp(
+                time() + $sem_time_switch * 7 * 24 * 3600
+            );
             if ($current_sem) {
                 $this->filter['start_sem.beginn'] = $current_sem->beginn;
-                $this->filter['end_sem.ende'] = $current_sem->beginn;
+                $this->filter['end_sem.ende']     = $current_sem->beginn;
             }
         }
 
@@ -61,13 +48,15 @@ class Module_ModuleController extends MVVController
             unset($this->filter['mvv_modul_inst.institut_id']);
         }
         $this->filter = array_merge(
-                array(
-                    'mvv_modul.modul_id' => $search_result,
-                    'mvv_modul_inst.gruppe' => 'hauptverantwortlich',
-                    'mvv_modul_inst.institut_id' => MvvPerm::getOwnInstitutes()),
-                $this->filter);
+            [
+                'mvv_modul.modul_id'         => $search_result,
+                'mvv_modul_inst.gruppe'      => 'hauptverantwortlich',
+                'mvv_modul_inst.institut_id' => MvvPerm::getOwnInstitutes()
+            ],
+            $this->filter
+        );
         $this->sortby = $this->sortby ?: 'code';
-        $this->order = $this->order ?: 'ASC';
+        $this->order  = $this->order ?: 'ASC';
 
         //get data
         $this->module = Modul::getAllEnriched(
@@ -81,17 +70,20 @@ class Module_ModuleController extends MVVController
             $this->search_result['Modul'] = $this->module->pluck('id');
         }
 
-        if (sizeof($this->module) == 0) {
-            if (sizeof($this->filter) || $this->search_term) {
+        if (count($this->module) === 0) {
+            if (count($this->filter) || $this->search_term) {
                 PageLayout::postInfo(_('Es wurden keine Module gefunden.'));
             } else {
                 PageLayout::postInfo(_('Es wurden noch keine Module angelegt.'));
             }
         }
         $this->count = Modul::getCount($this->filter);
+        $title = _('Verwaltung der Module - Alle Module');
+        $title .= ' (' . sprintf(ngettext('%s Modul', '%s Module', $this->count), $this->count) . ')';
         $this->show_sidebar_search = true;
         $this->show_sidebar_filter = true;
         $this->setSidebar();
+        PageLayout::setTitle($title);
     }
 
     public function modul_action($modul_id = null, $institut_id = null)
@@ -122,23 +114,42 @@ class Module_ModuleController extends MVVController
             $this->deskriptor = $this->modul->getDeskriptor($this->display_language, true);
             $this->reset_search('Modul');
             if (!$modul_id) {
-                PageLayout::postInfo(sprintf(_('Sie legen ein neues Modul an. Das Modul muss zunächst in der Ausgabesprache <em>%s</em> angelegt werden.'),
-                            $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'][$this->display_language]['name']));
+                PageLayout::postInfo(sprintf(
+                    _('Sie legen ein neues Modul an. Das Modul muss zunächst in der Ausgabesprache <em>%s</em> angelegt werden.'),
+                    $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'][$this->display_language]['name']
+                ));
             }
         } else {
-            PageLayout::setTitle(_('Modul bearbeiten'));
-            $success_message = _('Das Modul "%s" wurde geändert.');
-            $this->display_language = Request::option('display_language',
-                    $this->modul->getDefaultLanguage());
-            $this->deskriptor = $this->modul->getDeskriptor($this->display_language, true);
+            $this->display_language = Request::option(
+                'display_language',
+                $this->modul->getDefaultLanguage()
+            );
 
+            $this->deskriptor = $this->modul->getDeskriptor($this->display_language, true);
+            $this->translations = $this->deskriptor->getAvailableTranslations();
+            if (!in_array($this->display_language, $this->translations)) {
+                PageLayout::setTitle(
+                    sprintf(
+                        _('Modul: <em>%s</em> in der Ausgabesprache <em>%s</em> neu anlegen.'),
+                        $this->modul->getDisplayName(),
+                        $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'][$this->display_language]['name']
+                    )
+                );
+            } else {
+                PageLayout::setTitle(sprintf(
+                    _('Modul: %s bearbeiten'), $this->modul->getDisplayName()
+                ));
+            }
+
+            $success_message = _('Das Modul "%s" wurde geändert.');
             // language selector as sidebar widget
             $template_factory = $this->get_template_factory();
-            $sidebar_template =  $template_factory->render('shared/deskriptor_language', array(
-                    'modul' => $this->modul,
-                    'sprache' => $this->display_language,
-                    'link' => $this->url_for('/modul', $this->modul->id, $this->institut_id),
-                    'url' => $this->url));
+            $sidebar_template = $template_factory->render('shared/deskriptor_language', [
+                'modul'   => $this->modul,
+                'sprache' => $this->display_language,
+                'link'    => $this->url_for('/modul', $this->modul->id, $this->institut_id),
+                'url'     => $this->url]
+            );
 
             $widget  = new SidebarWidget();
             $widget->setTitle(_('Ausgabesprache'));
@@ -146,49 +157,65 @@ class Module_ModuleController extends MVVController
             $sidebar->addWidget($widget, 'language');
 
             $action_widget = $sidebar->getWidget('actions');
-            $action_widget->addLink(_('Download der Modulbeschreibung'),
+            $action_widget->addLink(
+                _('Download der Modulbeschreibung'),
                 $this->url_for('module/download/details', $this->modul->id, $this->display_language),
-                Icon::create('file-word', 'clickable'));
-            $action_widget->addLink( _('Modulbeschreibung als PDF'),
+                Icon::create('file-word')
+            );
+            $action_widget->addLink(
+                _('Modulbeschreibung als PDF'),
                 $this->url_for('module/download/details/' . $this->modul->id . '/' . $this->display_language, ['pdf' => '1']),
-                Icon::create('file-pdf', 'clickable'));
-            $action_widget->addLink( _('Vergleich mit anderem Modul'),
+                Icon::create('file-pdf')
+            );
+            $action_widget->addLink(
+                _('Vergleich mit anderem Modul'),
                 $this->url_for('/diff_select', $this->modul->id),
-                Icon::create('learnmodule', 'clickable'), ['data-dialog' => 'size=auto']);
+                Icon::create('learnmodule'),
+                ['data-dialog' => 'size=auto']
+            );
 
-            if ($this->modul->stat == 'planung' && MvvPerm::haveFieldPermStat($this->modul)) {
-                $action_widget->addLink(_('Modul genehmigen'),
-                $this->url_for('/approve', $this->modul->id),
-                Icon::create('accept', 'clickable'), ['data-dialog' => 'size=auto;buttons=false']);
+            if ($this->modul->stat === 'planung' && MvvPerm::haveFieldPermStat($this->modul)) {
+                $action_widget->addLink(
+                    _('Modul genehmigen'),
+                    $this->url_for('/approve', $this->modul->id),
+                    Icon::create('accept'),
+                    ['data-dialog' => 'size=auto;buttons=false']
+                );
             }
 
-            $action_widget->addLink( _('Log-Einträge dieses Moduls'),
+            $action_widget->addLink(
+                _('Log-Einträge dieses Moduls'),
                 $this->url_for('shared/log_event/show/Modul/' . $this->modul->id,
-                        ['object2_type' => 'ModulDeskriptor', 'object2_id' => $this->deskriptor->id]),
-                Icon::create('log', 'clickable'))->asDialog();
+                    ['object2_type' => 'ModulDeskriptor', 'object2_id' => $this->deskriptor->id]
+                ),
+                Icon::create('log')
+            )->asDialog();
 
             // list all variants
             $variants = $this->modul->getVariants();
-            if (sizeof($variants)) {
+            if (count($variants)) {
                 $widget = new SidebarWidget();
                 $widget->setTitle(_('Varianten'));
                 $widget->addElement(new WidgetElement(
                     $template_factory->render('shared/modul_variants',
-                        array(
+                        [
                             'variants' => $variants,
-                            'link' => $this->url_for('/modul'
-                        )))));
+                            'link'     => $this->url_for('/modul')
+                        ])
+                ));
                 $sidebar->addWidget($widget, 'variants');
             }
         }
         $this->semester = Semester::getAll();
-        $this->def_lang = $this->display_language == $this->modul->getDefaultLanguage();
+        $this->def_lang = $this->display_language === $this->modul->getDefaultLanguage();
         ModuleManagementModel::setContentLanguage($this->display_language);
         if (!$this->def_lang) {
             $action_widget = $sidebar->getWidget('actions');
-            $action_widget->addLink(_('Alle Texte der Originalfassung anzeigen'),
-                '#', Icon::create('consultation', 'clickable'),
-                array('class' => 'mvv-show-all-original'));
+            $action_widget->addLink(
+                _('Alle Texte der Originalfassung anzeigen'),
+                '#', Icon::create('consultation'),
+                ['class' => 'mvv-show-all-original']
+            );
         }
 
         $this->language = $GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'][$this->display_language]['content_language'];
@@ -202,24 +229,20 @@ class Module_ModuleController extends MVVController
                 $this->modul->start = Request::option('start');
                 $this->modul->end = Request::option('end') ?: null;
                 $this->modul->beschlussdatum = strtotime(trim(Request::get('beschlussdatum')));
-                $this->modul->assignLanguagesOfInstruction(
-                        Request::optionArray('language_items'));
+                $this->modul->assignLanguagesOfInstruction(Request::optionArray('language_items'));
                 $this->modul->dauer = trim(Request::get('dauer'));
                 if (Request::get('kap_unbegrenzt')) {
                     $this->modul->kapazitaet = '';
                 } else {
                     $kapazitaet = trim(Request::get('kapazitaet'));
-                    $this->modul->kapazitaet =
-                            $kapazitaet === '' ? null : $kapazitaet;
+                    $this->modul->kapazitaet = $kapazitaet === '' ? null : $kapazitaet;
                 }
                 $this->modul->kp = Request::int('kp');
                 $this->modul->wl_selbst = Request::int('wl_selbst');
                 $this->modul->wl_pruef = Request::int('wl_pruef');
                 $this->modul->pruef_ebene = Request::option('pruef_ebene');
-                $this->modul->faktor_note = StringToFloat(
-                        trim(Request::get('faktor_note')));
-                $this->modul->stat = Request::option('status',
-                        $GLOBALS['MVV_MODUL']['STATUS']['default']);
+                $this->modul->faktor_note = StringToFloat(trim(Request::get('faktor_note')));
+                $this->modul->stat = Request::option('status', $GLOBALS['MVV_MODUL']['STATUS']['default']);
                 $this->modul->kommentar_status = trim(Request::get('kommentar_status'));
                 $this->modul->assignInstitutes(Request::optionArray('institutes_items'));
                 $this->modul->assignResponsibleInstitute(Request::option('responsible_item'));
@@ -232,24 +255,28 @@ class Module_ModuleController extends MVVController
                 $this->modul->assignUsers($grouped_users);
                 $this->modul->verantwortlich = trim(Request::get('verantwortlich'));
             }
-            
+
             $deskriptor_fields = ['bezeichnung', 'verantwortlich',
                 'voraussetzung', 'kompetenzziele', 'inhalte', 'literatur',
                 'links', 'kommentar', 'turnus', 'kommentar_kapazitaet',
                 'kommentar_wl_selbst', 'kommentar_wl_pruef', 'kommentar_sws',
                 'kommentar_note', 'pruef_vorleistung', 'pruef_leistung',
                 'pruef_wiederholung', 'ersatztext'];
-            
+
             foreach ($deskriptor_fields as $deskriptor_field) {
                 if ($this->deskriptor->isI18nField($deskriptor_field)) {
                     $this->deskriptor->$deskriptor_field->setLocalized(
-                        trim(Request::get($deskriptor_field)), $this->language);
+                        trim(Request::get($deskriptor_field)),
+                        $this->language
+                    );
                 } else {
-                    $this->deskriptor->setValue($deskriptor_field,
-                            trim(Request::get($deskriptor_field)));
+                    $this->deskriptor->setValue(
+                        $deskriptor_field,
+                        trim(Request::get($deskriptor_field))
+                    );
                 }
             }
-            
+
             // update datafields
             foreach (Request::getArray('datafields') as $df_key => $df_value) {
                 $df = $this->deskriptor->datafields->findOneBy('datafield_id', $df_key);
@@ -262,27 +289,26 @@ class Module_ModuleController extends MVVController
             }
             if (Request::submitted('store')) {
                 try {
-                        $this->modul->verifyPermission();
-                        $stored = $this->modul->store();
+                    $this->modul->verifyPermission();
+                    $stored = $this->modul->store();
                 } catch (InvalidValuesException $e) {
                     PageLayout::postError(htmlReady($e->getMessage()));
                 }
                 if ($stored !== false) {
-                    PageLayout::postSuccess(sprintf($success_message,
-                        htmlReady($this->modul->getDisplayName())));
+                    PageLayout::postSuccess(sprintf(
+                        $success_message,
+                        htmlReady($this->modul->getDisplayName())
+                    ));
                     $this->redirect($this->url_for('/index'));
                     return;
                 }
             }
         }
 
-        $query = "SELECT modul_id, CONCAT(mmd.bezeichnung, ' (', code, ')')"
-            . 'as name FROM mvv_modul mm '
-            . 'LEFT JOIN mvv_modul_deskriptor mmd USING(modul_id) '
-            . 'WHERE (code LIKE :input OR mmd.bezeichnung LIKE :input) '
-            . 'AND mm.modul_id <> '
-            . DBManager::get()->quote($this->modul->id ?: '')
-            . ' ORDER BY name ASC';
+        $query = "SELECT modul_id, CONCAT(mmd.bezeichnung, ' (', code, ')') as name FROM mvv_modul mm
+                LEFT JOIN mvv_modul_deskriptor mmd USING(modul_id)
+                WHERE (code LIKE :input OR mmd.bezeichnung LIKE :input)
+                AND mm.modul_id <> " . DBManager::get()->quote($this->modul->id ?: ''). " ORDER BY name ASC";
         $sql_search_modul = new SQLSearch($query, _('Modul suchen'));
         $this->qs_id_module = md5(serialize($sql_search_modul));
         $this->search_modul =
@@ -290,10 +316,12 @@ class Module_ModuleController extends MVVController
                 ->fireJSFunctionOnSelect('MVV.Search.addSelected')
                 ->noSelectbox();
 
-
-        $sql_search_user = new PermissionSearch('user', _('Person suchen'),
-                'user_id',
-                ['permission' => words('tutor dozent admin'), 'exclude_user' => '']);
+        $sql_search_user = new PermissionSearch(
+            'user',
+            _('Person suchen'),
+            'user_id',
+            ['permission' => words('tutor dozent admin'), 'exclude_user' => '']
+        );
         $this->qs_id_users = md5(serialize($sql_search_user));
         $qs_users = QuickSearch::get('users', $sql_search_user);
         $this->qs_frame_id_users = $qs_users->getId();
@@ -301,11 +329,10 @@ class Module_ModuleController extends MVVController
                 ->fireJSFunctionOnSelect('MVV.Search.addSelected')
                 ->noSelectbox();
 
-        $query = 'SELECT DISTINCT Institute.Institut_id, Institute.Name AS name '
-                . 'FROM Institute '
-                . 'LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) '
-                . 'WHERE (Institute.Name LIKE :input '
-                . 'OR range_tree.name LIKE :input ) ';
+        $query = 'SELECT DISTINCT Institute.Institut_id, Institute.Name AS name
+                    FROM Institute
+                    LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id)
+                    WHERE (Institute.Name LIKE :input OR range_tree.name LIKE :input )';
         if (count($own_institutes)) {
             $query .= 'AND Institut_id IN('
                     . DBManager::get()->quote($own_institutes) . ') ';
@@ -320,12 +347,12 @@ class Module_ModuleController extends MVVController
                 ->fireJSFunctionOnSelect('MVV.Search.addSelected')
                 ->noSelectbox();
 
-        $query = 'SELECT DISTINCT Institute.Institut_id, Institute.Name AS name '
-                . 'FROM Institute '
-                . 'LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id) '
-                . 'WHERE (Institute.Name LIKE :input '
-                . 'OR range_tree.name LIKE :input ) '
-                . ' ORDER BY Institute.Name';
+        $query = 'SELECT DISTINCT Institute.Institut_id, Institute.Name AS name
+                FROM Institute
+                LEFT JOIN range_tree ON (range_tree.item_id = Institute.Institut_id)
+                WHERE (Institute.Name LIKE :input
+                OR range_tree.name LIKE :input )
+                ORDER BY Institute.Name';
         $sql_search_institutes = new SQLSearch($query, _('Einrichtung suchen'),
                 'Institut_id');
         $this->qs_id_institutes = md5(serialize($sql_search_institutes));
@@ -350,18 +377,20 @@ class Module_ModuleController extends MVVController
     {
         $deskriptor = ModulDeskriptor::find($deskriptor_id);
         if (is_null($deskriptor)) {
-            throw new Trails_Exception(404, _('Unbekannter Deskriptor.'));
+            throw new Trails_Exception(404, _('Unbekannter Deskriptor'));
         }
         $def_lang = $deskriptor->modul->getDefaultLanguage();
-        if ($language == $def_lang) {
+        if ($language === $def_lang) {
             throw new Trails_Exception(403, _('Ein Deskriptor in der Original-Sprache kann nicht gelöscht werden.'));
         }
         if (Request::submitted('delete')) {
             CSRFProtection::verifyUnsafeRequest();
             if ($deskriptor->deleteTranslation($language)) {
-                PageLayout::postSuccess(sprintf(_('Der Deskriptor "%s" des Moduls "%s" wurde gelöscht!'),
-                        htmlReady($deskriptor->getDisplayName()),
-                        htmlReady($deskriptor->modul->getDisplayName())));
+                PageLayout::postSuccess(sprintf(
+                    _('Der Deskriptor "%s" des Moduls "%s" wurde gelöscht!'),
+                    htmlReady($deskriptor->getDisplayName()),
+                    htmlReady($deskriptor->modul->getDisplayName())
+                ));
             }
         }
         $this->redirect($this->url_for('/index'));
@@ -375,7 +404,7 @@ class Module_ModuleController extends MVVController
 
     public function description_action($modul_id)
     {
-        $response = $this->relay('shared/modul/description', $modul_id);
+        $response = $this->relay('shared/modul/description/' . $modul_id);
         if (Request::isXhr()) {
             $this->render_text($response->body);
         } else {
@@ -393,18 +422,16 @@ class Module_ModuleController extends MVVController
             $modul->stat = 'genehmigt';
             $stored = $modul->store(false);
             if ($stored) {
-                PageLayout::postSuccess(sprintf(_('Modul "%s" genehmigt!'),
-                        htmlReady($this->modul->getDisplayName())));
-                $this->redirect($this->url_for('/details', $modul_id));
+                PageLayout::postSuccess(sprintf(
+                    _('Modul "%s" genehmigt!'),
+                    htmlReady($this->modul->getDisplayName())
+                ));
+                $this->redirect($this->url_for('/details/' . $modul_id));
                 return;
             }
         }
         PageLayout::setTitle(_('Modul genehmigen'));
-        if (Request::isXhr()) {
-            $this->set_layout(null);
-        } else {
-            $this->setSidebar();
-        }
+        $this->setSidebar();
         $this->render_template('module/module/approve', $this->layout);
     }
 
@@ -418,10 +445,10 @@ class Module_ModuleController extends MVVController
                 . 'ORDER BY beginn DESC LIMIT 1',
                 [$modul->id, $modul->quelle]));
         if (!$this->modul) {
-            PageLayout::postError(_('Unbekanntes Modul.'));
+            PageLayout::postError(_('Unbekanntes Modul'));
         } else {
             $this->perm = MvvPerm::get($this->modul);
-            $this->submit_url = $this->url_for('/copy', $this->modul->id);
+            $this->submit_url = $this->url_for('/copy/' . $this->modul->id);
             $this->cancel_url = $this->url_for('/index');
         }
         PageLayout::setTitle(_('Modul kopieren'));
@@ -432,7 +459,7 @@ class Module_ModuleController extends MVVController
     {
         $modul = Modul::find($modul_id);
         if (!$modul) {
-            PageLayout::postError( _('Unbekanntes Modul.'));
+            PageLayout::postError(_('Unbekanntes Modul'));
         } else {
             $perm = MvvPerm::get($modul);
             if (Request::submitted('copy')) {
@@ -467,15 +494,14 @@ class Module_ModuleController extends MVVController
                 try {
                     $copy->verifyPermission();
                     // UOL: Don't validate
-                    $store = $copy->store(false);
+                    $copy->store(false);
                     PageLayout::postSuccess(sprintf(
                         _('Das Modul "%s" und alle zugehörigen Modulteile wurden kopiert!'),
                         htmlReady($modul->getDisplayName())
                     ));
                 } catch (InvalidValuesException $e) {
                     PageLayout::postError(
-                        _('Das Modul konnte nicht kopiert werden!')
-                        . ' ' . htmlReady($e->getMessage())
+                        _('Das Modul konnte nicht kopiert werden!') . ' ' . htmlReady($e->getMessage())
                     );
                 } catch (Exception $e) {
                     PageLayout::postError(_('Beim Kopieren trat ein Fehler auf!'));
@@ -494,24 +520,37 @@ class Module_ModuleController extends MVVController
         if (Request::isXhr()) {
             if (Request::option('type') === 'modulteil') {
                 $parent = Modulteil::find(Request::option('id'));
-                $formatted_fields = words('voraussetzung kommentar
-                    kommentar_kapazitaet kommentar_wl_praesenz
-                    kommentar_wl_bereitung kommentar_wl_selbst
-                    kommentar_wl_pruef pruef_vorleistung pruef_leistung');
+                $formatted_fields = [
+                    'voraussetzung',
+                    'kommentar',
+                    'kommentar_kapazitaet',
+                    'kommentar_wl_praesenz',
+                    'kommentar_wl_bereitung',
+                    'kommentar_wl_selbst',
+                    'kommentar_wl_pruef',
+                    'pruef_vorleistung pruef_leistung'];
             } else {
                 $parent = Modul::find(Request::option('id'));
-                $formatted_fields = words('voraussetzung kompetenzziele inhalte
-                    literatur links kommentar kommentar_kapazitaet
-                    kommentar_wl_selbst
-                    kommentar_wl_pruef pruef_vorleistung pruef_leistung
-                    pruef_wiederholung ersatztext');
+                $formatted_fields = [
+                    'voraussetzung',
+                    'kompetenzziele',
+                    'inhalte',
+                    'literatur',
+                    'links',
+                    'kommentar',
+                    'kommentar_kapazitaet',
+                    'kommentar_wl_selbst',
+                    'kommentar_wl_pruef',
+                    'pruef_vorleistung',
+                    'pruef_leistung',
+                    'pruef_wiederholung ersatztext'
+                ];
             }
             if ($parent) {
-                $deskriptor_array = array();
+                $deskriptor_array = [];
                 $deskriptor = $parent->getDeskriptor();
                 foreach ($deskriptor->toArray() as $key => $value) {
-                    if ($deskriptor->isI18nField($key)
-                            && MVVController::trim($value->original()) !== '') {
+                    if ($deskriptor->isI18nField($key) && MVVController::trim($value->original()) !== '') {
                         if (in_array($key, $formatted_fields)) {
                             $deskriptor_array[$key]['value'] = formatReady($value->original());
                         } else {
@@ -526,7 +565,7 @@ class Module_ModuleController extends MVVController
 
                 // datafields
                 foreach ($deskriptor->datafields as $entry) {
-                    if ($entry->lang == '') {
+                    if ($entry->lang === '') {
                         $df = $entry->getTypedDatafield();
                         $value = $df->getDisplayValue();
                         $df_id = 'datafields_' . $entry->datafield_id;
@@ -554,7 +593,7 @@ class Module_ModuleController extends MVVController
         if (!$this->modulteil) {
             $this->modul = Modul::find(Request::option('modul_id'));
             if (!$this->modul) {
-                PageLayout::postError(_('Unbekanntes Modul.'));
+                PageLayout::postError(_('Unbekanntes Modul'));
                 $this->redirect($this->url_for('/index'));
                 return;
             }
@@ -564,17 +603,21 @@ class Module_ModuleController extends MVVController
             $this->modul = $this->modulteil->modul;
         }
 
-        $this->formen = array();
+        $this->formen = [];
         foreach ($GLOBALS['MVV_MODULTEIL']['LERNLEHRFORM']['values'] as $key => $form) {
-            if ($form['parent'] == '') {
+            if ($form['parent'] === '') {
                 if ($form['visible'] || is_null($form['visible'])) {
-                    $this->formen[$key]['group'] = array('key' => $key,
-                        'name' => $form['name']);
+                    $this->formen[$key]['group'] = [
+                        'key'  => $key,
+                        'name' => $form['name']
+                    ];
                 }
             } else {
                 if ($form['visible']) {
-                    $this->formen[$form['parent']]['options'][] = array('key' => $key,
-                        'name' => $form['name']);
+                    $this->formen[$form['parent']]['options'][] = [
+                        'key'  => $key,
+                        'name' => $form['name']
+                    ];
                 }
             }
         }
@@ -584,38 +627,56 @@ class Module_ModuleController extends MVVController
             PageLayout::setTitle(_('Neuen Modulteil anlegen'));
             $success_message = ('Der Modulteil "%s" wurde angelegt.');
             $this->display_language = $this->modulteil->getDefaultLanguage();
-            PageLayout::postInfo(sprintf(_('Sie legen einen neuen Modulteil für das Modul <em>%s</em> an. Der Modulteil muss zunächst in der Ausgabesprache <em>%s</em> angelegt werden.'),
+            $this->deskriptor = $this->modulteil->getDeskriptor($this->display_language, true);
+            PageLayout::postInfo(sprintf(
+                _('Sie legen einen neuen Modulteil für das Modul <em>%s</em> an. Der Modulteil muss zunächst in der Ausgabesprache <em>%s</em> angelegt werden.'),
                 htmlReady($this->modul->getDisplayName()),
-                htmlReady($GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'][$this->display_language]['name'])));
+                htmlReady($GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'][$this->display_language]['name'])
+            ));
         } else {
-            PageLayout::setTitle(_('Modulteil bearbeiten'));
-            $success_message = _('Der Modulteil "%s" wurde geändert.');
-            $this->display_language = Request::option('display_language',
-                    $this->modulteil->getDefaultLanguage());
+            $this->display_language = Request::option('display_language', $this->modulteil->getDefaultLanguage());
+            $this->deskriptor = $this->modulteil->getDeskriptor($this->display_language, true);
+            $this->translations = $this->deskriptor->getAvailableTranslations();
 
+            if (!in_array($this->display_language, $this->translations)) {
+                PageLayout::setTitle(sprintf(
+                    _('Modulteil: "%s" in der Ausgabesprache "%s" neu anlegen.'),
+                    $this->modulteil->getDisplayName(),
+                    $GLOBALS['MVV_MODULTEIL_DESKRIPTOR']['SPRACHE']['values'][$this->display_language]['name']
+                ));
+            } else {
+                PageLayout::setTitle(sprintf(_('Modulteil: %s'), htmlReady($this->modulteil->getDisplayName())));
+            }
+            $success_message = _('Der Modulteil "%s" wurde geändert.');
             // sidebar widget for selecting language
             $template_factory = $this->get_template_factory();
             $sidebar = Sidebar::get();
             $widget = new ListWidget();
             $widget->setTitle(_('Ausgabesprache'));
             $widget_element = new WidgetElement(
-                    $template_factory->render('shared/deskriptor_language', array(
-                    'modul' => $this->modulteil,
-                    'sprache' => $this->display_language,
-                    'link' => $this->url_for('/modulteil', $this->modulteil->id),
-                    'url' => $this->url)));
+                $template_factory->render('shared/deskriptor_language',
+                    [
+                        'modul'   => $this->modulteil,
+                        'sprache' => $this->display_language,
+                        'link'    => $this->url_for('/modulteil', $this->modulteil->id),
+                        'url'     => $this->url
+                    ]
+                )
+            );
             $widget->addElement($widget_element);
             $sidebar->addWidget($widget, 'languages');
         }
-        $this->deskriptor = $this->modulteil->getDeskriptor($this->display_language, true);
 
-        $this->def_lang = $this->display_language == $this->modulteil->getDefaultLanguage();
+        $this->def_lang = $this->display_language === $this->modulteil->getDefaultLanguage();
 
         if (!$this->def_lang) {
             $action_widget = $sidebar->getWidget('actions');
-            $action_widget->addLink(_('Alle Texte der Originalfassung anzeigen'),
-                '#', Icon::create('consultation', 'clickable'),
-                array('class' => 'mvv-show-all-original'));
+            $action_widget->addLink(
+                _('Alle Texte der Originalfassung anzeigen'),
+                '#',
+                Icon::create('consultation'),
+                ['class' => 'mvv-show-all-original']
+            );
         }
 
         $this->language = $GLOBALS['MVV_MODULTEIL_DESKRIPTOR']['SPRACHE']['values'][$this->display_language]['content_language'];
@@ -633,8 +694,7 @@ class Module_ModuleController extends MVVController
                     $this->modulteil->kapazitaet = '';
                 } else {
                     $kapazitaet = trim(Request::get('kapazitaet'));
-                    $this->modulteil->kapazitaet =
-                            $kapazitaet === '' ? null : $kapazitaet;
+                    $this->modulteil->kapazitaet = $kapazitaet === '' ? null : $kapazitaet;
                 }
                 $this->modulteil->kp = Request::int('kp');
                 $this->modulteil->sws = Request::int('sws', 0);
@@ -645,8 +705,7 @@ class Module_ModuleController extends MVVController
                 $this->modulteil->anteil_note = Request::int('anteil_note', 0);
                 $this->modulteil->ausgleichbar = Request::int('ausgleichbar', 0);
                 $this->modulteil->pflicht = Request::int('pflicht', 0);
-                $this->modulteil->assignLanguagesOfInstruction(
-                    Request::optionArray('language_items'));
+                $this->modulteil->assignLanguagesOfInstruction(Request::optionArray('language_items'));
             }
 
             $deskriptor_fields = ['bezeichnung', 'voraussetzung', 'kommentar',
@@ -654,14 +713,15 @@ class Module_ModuleController extends MVVController
                 'kommentar_wl_bereitung', 'kommentar_wl_selbst',
                 'kommentar_wl_pruef', 'pruef_vorleistung', 'pruef_leistung',
                 'kommentar_pflicht'];
-            
+
             foreach ($deskriptor_fields as $deskriptor_field) {
                 if ($this->deskriptor->isI18nField($deskriptor_field)) {
                     $this->deskriptor->$deskriptor_field->setLocalized(
-                            trim(Request::get($deskriptor_field)), $this->language);
+                        trim(Request::get($deskriptor_field)),
+                        $this->language
+                    );
                 } else {
-                    $this->deskriptor->setValue($deskriptor_field,
-                            trim(Request::get($deskriptor_field)));
+                    $this->deskriptor->setValue($deskriptor_field, trim(Request::get($deskriptor_field)));
                 }
             }
 
@@ -680,7 +740,7 @@ class Module_ModuleController extends MVVController
             if ($this->modulteil->isNew()) {
                 $perm = MvvPerm::get($this->modul);
                 if (!$perm->haveFieldPermModulteile(MvvPerm::PERM_CREATE)) {
-                    throw new Exception(_('Keine Berechtigung.'));
+                    throw new AccessDeniedException();
                 }
             }
 
@@ -692,28 +752,34 @@ class Module_ModuleController extends MVVController
             }
             if ($stored !== false) {
                 if ($stored) {
-                    PageLayout::postSuccess(sprintf($success_message,
-                            htmlReady($this->modulteil->getDisplayName())));
+                    PageLayout::postSuccess(sprintf(
+                        $success_message,
+                        htmlReady($this->modulteil->getDisplayName())
+                    ));
                 } else {
                     PageLayout::postInfo(_('Es wurden keine Änderungen vorgenommen.'));
                 }
-                $this->redirect($this->url_for('/details', $this->modulteil->modul_id));
+                $this->redirect($this->url_for('/details/' . $this->modulteil->modul_id));
                 return;
             }
         }
-        if ($this->display_language !== $this->modulteil->getDefaultLanguage()
-                && $this->deskriptor->isNew()) {
-            PageLayout::postInfo(sprintf(_('Neue Beschreibung zum Modulteil "%s" in der Ausgabesprache %s anlegen.'),
-                    htmlReady($this->modulteil->getDisplayName()),
-                    htmlReady($GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'][$language]['name'])));
+        if ($this->display_language !== $this->modulteil->getDefaultLanguage() && $this->deskriptor->isNew()) {
+            PageLayout::postInfo(sprintf(
+                _('Neue Beschreibung zum Modulteil "%s" in der Ausgabesprache %s anlegen.'),
+                htmlReady($this->modulteil->getDisplayName()),
+                htmlReady($GLOBALS['MVV_MODUL_DESKRIPTOR']['SPRACHE']['values'][$this->display_language]['name'])
+            ));
         }
-        $this->cancel_url = $this->url_for('/details', $this->modulteil->modul_id);
+        $this->cancel_url = $this->url_for('/details/' .  $this->modulteil->modul_id);
 
         $action_widget = Sidebar::get()->getWidget('actions');
-        $action_widget->addLink(_('Log-Einträge dieses Modulteils'),
-                $this->url_for('shared/log_event/show/Modulteil/' . $this->modulteil->id,
-                ['object2_type' => 'ModulteilDeskriptor', 'object2_id' => $this->deskriptor->id]),
-                Icon::create('log', 'clickable'))->asDialog();
+        $action_widget->addLink(
+            _('Log-Einträge dieses Modulteils'),
+            $this->url_for('shared/log_event/show/Modulteil/' . $this->modulteil->id,
+                ['object2_type' => 'ModulteilDeskriptor', 'object2_id' => $this->deskriptor->id]
+            ),
+            Icon::create('log')
+        )->asDialog();
 
         $this->render_template('module/module/modulteil', $this->layout);
     }
@@ -728,43 +794,47 @@ class Module_ModuleController extends MVVController
     {
         $deskriptor = ModulteilDeskriptor::find($deskriptor_id);
         if (is_null($deskriptor)) {
-            throw new Trails_Exception(404, _('Unbekannter Deskriptor.'));
+            throw new Trails_Exception(404, _('Unbekannter Deskriptor'));
         }
         $def_lang = $deskriptor->modulteil->getDefaultLanguage();
-        if ($language == $def_lang) {
+        if ($language === $def_lang) {
             throw new Trails_Exception(403, _('Ein Deskriptor in der Original-Sprache kann nicht gelöscht werden.'));
         }
         if (Request::submitted('delete')) {
             CSRFProtection::verifyUnsafeRequest();
             if ($deskriptor->deleteTranslation($language)) {
-                PageLayout::postSuccess(sprintf(_('Der Deskriptor "%s" des Modulteils "%s" wurde gelöscht!'),
-                        htmlReady($deskriptor->getDisplayName()),
-                        htmlReady($deskriptor->modulteil->getDisplayName())));
+                PageLayout::postSuccess(sprintf(
+                    _('Der Deskriptor "%s" des Modulteils "%s" wurde gelöscht!'),
+                    htmlReady($deskriptor->getDisplayName()),
+                    htmlReady($deskriptor->modulteil->getDisplayName())
+                ));
             }
         }
-        $this->redirect($this->url_for('/details', Request::option('modul_id')));
+        $this->redirect($this->url_for('/details/' . Request::option('modul_id')));
     }
 
     public function copy_modulteil_action($modulteil_id)
     {
         $modulteil = Modulteil::find($modulteil_id);
         if (!$modulteil) {
-            PageLayout::postError( _('Unbekannter Modulteil.'));
+            PageLayout::postError(_('Unbekannter Modulteil'));
             $this->redirect($this->url_for('/index'));
             return;
         }
         $copy_modulteil = $modulteil->copy();
         $copy_modulteil->store();
-        PageLayout::postInfo(sprintf(_('Der Modulteil "%s" wurde kopiert. Klicken Sie auf "übernehmen", um Änderungen an der Kopie zu speichern.'),
-                htmlReady($copy_modulteil->getDisplayName())));
-        $this->redirect($this->url_for('/modulteil', $copy_modulteil->id));
+        PageLayout::postInfo(sprintf(
+            _('Der Modulteil "%s" wurde kopiert. Klicken Sie auf "übernehmen", um Änderungen an der Kopie zu speichern.'),
+            htmlReady($copy_modulteil->getDisplayName())
+        ));
+        $this->redirect($this->url_for('/modulteil/' . $copy_modulteil->id));
     }
 
     public function modulteil_lvg_action($modulteil_id)
     {
         $this->modulteil = Modulteil::find($modulteil_id);
         if (is_null($this->modulteil)) {
-            PageLayout::postError( _('Unbekannter Modulteil.'));
+            PageLayout::postError(_('Unbekannter Modulteil'));
             $this->redirect($this->url_for('/index'));
             return;
         } else {
@@ -775,8 +845,7 @@ class Module_ModuleController extends MVVController
             } else {
                 $this->modul = Modul::get($this->modulteil->modul_id);
                 $this->modul_id = $this->modul->getId();
-                $this->perform_relayed('details',
-                        $this->modulteil->modul_id, $this->modulteil->id);
+                $this->perform_relayed('details/' . $this->modulteil->modul_id . '/' . $this->modulteil->id);
             }
         }
     }
@@ -784,79 +853,84 @@ class Module_ModuleController extends MVVController
     private function search_lvgruppe($modulteil_id)
     {
         //Quicksearch
-        $query = 'SELECT lvgruppe_id, name FROM '
-                . 'mvv_lvgruppe WHERE name LIKE :input '
-                . ' AND lvgruppe_id NOT IN(SELECT lvgruppe_id FROM '
-                . 'mvv_lvgruppe_modulteil WHERE modulteil_id = '
-                . DBManager::get()->quote($modulteil_id) . ')';
+        $query = 'SELECT lvgruppe_id, name
+                FROM mvv_lvgruppe WHERE name LIKE :input
+                AND lvgruppe_id NOT IN (
+                    SELECT lvgruppe_id FROM mvv_lvgruppe_modulteil WHERE modulteil_id = ' . DBManager::get()->quote($modulteil_id) .
+            ')';
         $search = new SQLSearch($query, _('LV-Gruppe suchen'));
         $this->qs_search_id = md5(serialize($search));
-        $this->search = QuickSearch::get('lvgruppe_id_'
-                . $modulteil_id, $search)
-                ->setInputStyle('width: 240px')
-                ->noSelectbox();
+        $this->search = QuickSearch::get(
+            'lvgruppe_id_' . $modulteil_id, $search
+        )->setInputStyle('width: 240px')
+            ->noSelectbox();
     }
 
     public function add_lvgruppe_action($modulteil_id)
     {
         $this->modulteil = Modulteil::find($modulteil_id);
         if (is_null($this->modulteil)) {
-            PageLayout::postError(_('Unbekannter Modulteil.'));
+            PageLayout::postError(_('Unbekannter Modulteil'));
             $this->redirect($this->url_for('/index'));
             return;
         } else {
-            $this->lvgruppe = Lvgruppe::find(Request::option(
-                    'lvgruppe_id_' . $this->modulteil->getId()));
+            $this->lvgruppe = Lvgruppe::find(
+                Request::option('lvgruppe_id_' . $this->modulteil->getId())
+            );
             if (!$this->lvgruppe) {
-                PageLayout::postError(_('Unbekannte Lehrveranstaltungsgruppe.'));
+                PageLayout::postError(_('Unbekannte Lehrveranstaltungsgruppe'));
             } else {
                 $this->lvg_modulteil = LvgruppeModulteil::get(
-                        array($this->lvgruppe->getId(),
-                            $this->modulteil->getId()));
+                    [
+                        $this->lvgruppe->getId(),
+                        $this->modulteil->getId()
+                    ]
+                );
                 if ($this->lvg_modulteil->isNew()) {
                     $this->lvg_modulteil->store();
                     PageLayout::postSuccess(sprintf(
-                            _('Die Lehrveranstaltungsgruppe "%s" wurde dem Modulteil "%s" zugeordnet.'),
-                            htmlReady($this->lvgruppe->getDisplayName()),
-                            htmlReady($this->modulteil->getDisplayName())));
+                        _('Die Lehrveranstaltungsgruppe "%s" wurde dem Modulteil "%s" zugeordnet.'),
+                        htmlReady($this->lvgruppe->getDisplayName()),
+                        htmlReady($this->modulteil->getDisplayName())
+                    ));
                 } else {
                     PageLayout::postInfo(sprintf(
-                            _('Die bestehende Zuordnung der Lehrveranstaltungsgruppe "%s" zum Modulteil "%s" wurde nicht geändert.'),
-                            htmlReady($this->lvgruppe->getDisplayName()),
-                            htmlReady($this->modulteil->getDisplayName())));
+                        _('Die bestehende Zuordnung der Lehrveranstaltungsgruppe "%s" zum Modulteil "%s" wurde nicht geändert.'),
+                        htmlReady($this->lvgruppe->getDisplayName()),
+                        htmlReady($this->modulteil->getDisplayName())
+                    ));
                 }
             }
-            $this->redirect($this->url_for('/details',
-                    $this->modulteil->modul_id, $this->modulteil->id));
+            $this->redirect($this->url_for('/details/' . $this->modulteil->modul_id . '/' . $this->modulteil->id));
         }
     }
 
     public function delete_lvgruppe_action($modulteil_id, $lvgruppe_id)
     {
-        $lvg_modulteil = LvgruppeModulteil::find(array($lvgruppe_id,
-            $modulteil_id));
+        $lvg_modulteil = LvgruppeModulteil::find([$lvgruppe_id, $modulteil_id]);
         if (!$lvg_modulteil) {
-            PageLayout::postError(_('Unbekannte Zuordnung.'));
+            PageLayout::postError(_('Unbekannte Zuordnung'));
         } else {
             $lvgruppe = Lvgruppe::find($lvgruppe_id);
             $modulteil = Modulteil::find($modulteil_id);
             if (Request::submitted('delete')) {
                 CSRFProtection::verifyUnsafeRequest();
                 PageLayout::postSuccess(sprintf(
-                        _('Die Lehrveranstaltungsgruppe "%s" wurde vom Modulteil "%s" entfernt.'),
-                        htmlReady($lvgruppe->getDisplayName()),
-                        htmlReady($modulteil->getDisplayName())));
+                    _('Die Lehrveranstaltungsgruppe "%s" wurde vom Modulteil "%s" entfernt.'),
+                    htmlReady($lvgruppe->getDisplayName()),
+                    htmlReady($modulteil->getDisplayName())
+                ));
                 $lvg_modulteil->delete();
             }
         }
-        $this->redirect($this->url_for('/details', $modulteil->modul_id, $modulteil->id));
+        $this->redirect($this->url_for('/details/' . $modulteil->modul_id . '/' . $modulteil->id));
     }
 
     public function lvgruppe_action($modulteil_id, $lvgruppe_id = null)
     {
         $this->modulteil = Modulteil::find($modulteil_id);
         if (is_null($this->modulteil)) {
-            PageLayout::postError( _('Unbekannter Modulteil.'));
+            PageLayout::postError(_('Unbekannter Modulteil'));
             $this->redirect($this->url_for('/index'));
             return;
         } else {
@@ -873,8 +947,7 @@ class Module_ModuleController extends MVVController
                     $this->lvgruppe->getDisplayName());
             }
             $this->cancel_url = $this->url_for('/index');
-            $this->submit_url = $this->url_for('/lvgruppe', $this->modulteil->id,
-                        $this->lvgruppe->id);
+            $this->submit_url = $this->url_for('/lvgruppe' . '/' . $this->modulteil->id . '/' . $this->lvgruppe->id);
             if (Request::submitted('store')) {
                 CSRFProtection::verifyUnsafeRequest();
                 $stored = false;
@@ -883,11 +956,12 @@ class Module_ModuleController extends MVVController
 
                 try {
                     $stored = $this->lvgruppe->store();
-
                     if ($stored) {
                         $this->lvg_modulteil = LvgruppeModulteil::get(
-                            array($this->lvgruppe->getId(),
-                            $this->modulteil->getId())
+                            [
+                                $this->lvgruppe->getId(),
+                                $this->modulteil->getId()
+                            ]
                         );
                         $stored_modulteil = $this->lvg_modulteil->store();
                     }
@@ -896,13 +970,14 @@ class Module_ModuleController extends MVVController
                 }
                 if ($stored !== false && $stored_modulteil !== false) {
                     if ($stored) {
-                        PageLayout::postSuccess(sprintf($success_message,
-                                htmlReady($this->lvgruppe->getDisplayName())));
+                        PageLayout::postSuccess(sprintf(
+                            $success_message,
+                            htmlReady($this->lvgruppe->getDisplayName())
+                        ));
                     } else {
                         PageLayout::postInfo(_('Es wurden keine Änderungen vorgenommen.'));
                     }
-                    $this->relocate('/details',
-                            $this->modulteil->modul_id, $this->modulteil->id);
+                    $this->relocate('/details/' . $this->modulteil->modul_id . '/' . $this->modulteil->id);
                     return;
                 }
             }
@@ -914,16 +989,18 @@ class Module_ModuleController extends MVVController
     {
         $modul = Modul::get($modul_id);
         if ($modul->isNew()) {
-             PageLayout::postError( _('Unbekanntes Modul.'));
+             PageLayout::postError(_('Unbekanntes Modul'));
         } else {
             if (Request::submitted('delete')) {
                 CSRFProtection::verifyUnsafeRequest();
-                PageLayout::postSuccess(sprintf(_('Modul "%s" gelöscht!'),
-                        htmlReady($modul->getDisplayName())));
+                PageLayout::postSuccess(sprintf(
+                    _('Modul "%s" gelöscht!'),
+                    htmlReady($modul->getDisplayName())
+                ));
                 $modul->delete();
             }
         }
-        $this->redirect($this->url_for('/details', $modul->id));
+        $this->redirect($this->url_for('/details/' . $modul->id));
     }
 
     public function delete_modulteil_action($modulteil_id)
@@ -931,16 +1008,18 @@ class Module_ModuleController extends MVVController
         $modulteil = Modulteil::find($modulteil_id);
         $modul_id = $modulteil->modul_id;
         if (!$modulteil) {
-             PageLayout::postError(_('Unbekannter Modulteil.'));
+             PageLayout::postError(_('Unbekannter Modulteil'));
         } else {
             if (Request::submitted('delete')) {
                 CSRFProtection::verifyUnsafeRequest();
-                PageLayout::postSuccess(sprintf(_('Modulteil "%s" gelöscht!'),
-                        htmlReady($modulteil->getDisplayName())));
+                PageLayout::postSuccess(sprintf(
+                    _('Modulteil "%s" gelöscht!'),
+                    htmlReady($modulteil->getDisplayName())
+                ));
                 $modulteil->delete();
             }
         }
-        $this->redirect($this->url_for('/details', $modul_id));
+        $this->redirect($this->url_for('/details/' . $modul_id));
     }
 
     public function details_action($modul_id, $modulteil_id = null)
@@ -964,17 +1043,18 @@ class Module_ModuleController extends MVVController
         $this->modul = Modul::find($modul_id);
         if ($this->modul) {
             // Modulsuche
-            $query = "SELECT mm.modul_id, CONCAT(mmd.bezeichnung, ', ',"
-                   . "IF(ISNULL(mm.code), '', mm.code),"
-                   . "IF(ISNULL(sd1.name), '', CONCAT(', ', IF(ISNULL(sd2.name),"
-                   . "CONCAT('ab ', sd1.name),CONCAT(sd1.name, ' - ', sd2.name))))) AS modul_name "
-                   . 'FROM mvv_modul mm LEFT JOIN mvv_modul_deskriptor mmd '
-                   . "ON mm.modul_id = mmd.modul_id "
-                   . "LEFT JOIN semester_data sd1 ON mm.start = sd1.semester_id "
-                   . 'LEFT JOIN semester_data sd2 ON mm.end = sd2.semester_id '
-                   . "WHERE (mm.code LIKE :input "
-                   . 'OR mmd.bezeichnung LIKE :input) '
-                   . 'AND mm.modul_id <> '
+            $query = "SELECT
+                    mm.modul_id,
+                    CONCAT(mmd.bezeichnung, ', ', IF(ISNULL(mm.code), '', mm.code),
+                    IF(ISNULL(sd1.name), '', CONCAT(', ', IF(ISNULL(sd2.name),
+                    CONCAT('ab ', sd1.name),CONCAT(sd1.name, ' - ', sd2.name))))) AS modul_name
+                    FROM mvv_modul mm LEFT JOIN mvv_modul_deskriptor mmd
+                    ON mm.modul_id = mmd.modul_id
+                    LEFT JOIN semester_data sd1 ON mm.start = sd1.semester_id
+                    LEFT JOIN semester_data sd2 ON mm.end = sd2.semester_id
+                    WHERE (mm.code LIKE :input
+                    OR mmd.bezeichnung LIKE :input)
+                    AND mm.modul_id <> "
                    . DBManager::get()->quote($this->modul->getId())
                    . " ORDER BY modul_name";
             $sql_search_modul = new SQLSearch($query, _('Modul suchen'), 'modul');
@@ -985,7 +1065,7 @@ class Module_ModuleController extends MVVController
             $this->quelle = $this->modul->modul_quelle;
             $this->variante = $this->modul->modul_variante;
         } else {
-            PageLayout::postError(_('Unbekanntes Modul!'));
+            PageLayout::postError(_('Unbekanntes Modul'));
             $this->relocate('/index');
         }
     }
@@ -996,30 +1076,32 @@ class Module_ModuleController extends MVVController
         $old_module = Modul::find(Request::option('old_module_id', $old_id));
 
         if (!$new_module || !$old_module) {
-            PageLayout::postError( _('Unbekanntes Modul!'));
+            PageLayout::postError(_('Unbekanntes Modul'));
             if ($new_module) {
-                $this->redirect($this->url_for('/diff_select', $new_module->id));
+                $this->redirect($this->url_for('/diff_select/' . $new_module->id));
             } else {
                 $this->redirect($this->url_for('/index'));
             }
         } else {
             if (Request::isXhr()) {
-                $this->response->add_header('X-Location', $this->url_for('/diff',
-                        $new_module->id, $old_module->id));
+                $this->response->add_header(
+                    'X-Location',
+                    $this->url_for('/diff/' . $new_module->id . '/' . $old_module->id)
+                );
             }
             $type_new = 1;
             $count_modulteile = count($new_module->modulteile);
-            if ($count_modulteile == 0) {
+            if ($count_modulteile === 0) {
                 $type_new = 3;
-            } else if ($count_modulteile == 1) {
+            } else if ($count_modulteile === 1) {
                 $type_new = 2;
             }
 
             $type_old = 1;
             $count_modulteile = count($old_module->modulteile);
-            if ($count_modulteile == 0) {
+            if ($count_modulteile === 0) {
                 $type_old = 3;
-            } else if ($count_modulteile == 1) {
+            } else if ($count_modulteile === 1) {
                 $type_old = 2;
             }
 
@@ -1059,22 +1141,24 @@ class Module_ModuleController extends MVVController
             }
 
             // set default semester filter
-            if (!isset($this->filter['start_sem.beginn'])
-                    || !isset($this->filter['end_sem.ende'])) {
+            if (!isset($this->filter['start_sem.beginn']) || !isset($this->filter['end_sem.ende'])) {
                 $sem_time_switch = Config::get()->SEMESTER_TIME_SWITCH;
                 // switch semester according to time switch
                 // (n weeks before next semester)
-                $current_sem = Semester::findByTimestamp(time()
-                        + $sem_time_switch * 7 * 24 * 3600);
+                $current_sem = Semester::findByTimestamp(
+                    time() + $sem_time_switch * 7 * 24 * 3600
+                );
                 if ($current_sem) {
                     $this->filter['start_sem.beginn'] = $current_sem->beginn;
                     $this->filter['end_sem.ende'] = $current_sem->beginn;
                 }
             }
 
-            $this->do_search('Modul',
-                    trim(Request::get('modul_suche_parameter')),
-                    Request::get('modul_suche'), $this->filter);
+            $this->do_search(
+                'Modul',
+                trim(Request::get('modul_suche_parameter')),
+                Request::get('modul_suche'), $this->filter
+            );
         }
         $this->redirect($this->url_for('/index'));
     }
@@ -1092,7 +1176,7 @@ class Module_ModuleController extends MVVController
     {
         $target = explode('_', Request::option('list_id'));
         $success = false;
-        if ($target[0] == 'modulteil') {
+        if ($target[0] === 'modulteil') {
             $success = $this->sort_lvgruppen($target[1]);
         } else {
             $success = $this->sort_modulteile($target[0]);
@@ -1117,7 +1201,7 @@ class Module_ModuleController extends MVVController
                 $i = 1;
                 foreach ($orderedIds as $modulteil_id) {
                     $modulteil = $modul->modulteile->find($modulteil_id);
-                    if ($modulteil->position != $i) {
+                    if ($modulteil->position !== $i) {
                         $modulteil->position = $i;
                         $modulteil->store(false);
                     }
@@ -1141,10 +1225,13 @@ class Module_ModuleController extends MVVController
                 $i = 1;
                 foreach ($orderedIds as $id) {
                     list($foo, $lvgruppe_id) = explode('_', $id);
-                    $lvgruppe_modulteil =
-                            LvgruppeModulteil::find(array($lvgruppe_id,
-                                $modulteil->getId()));
-                    if ($lvgruppe_modulteil && $lvgruppe_modulteil->position != $i) {
+                    $lvgruppe_modulteil = LvgruppeModulteil::find(
+                        [
+                            $lvgruppe_id,
+                            $modulteil->getId()
+                        ]
+                    );
+                    if ($lvgruppe_modulteil && $lvgruppe_modulteil->position !== $i) {
                         $lvgruppe_modulteil->position = $i;
                         $lvgruppe_modulteil->store(false);
                     }
@@ -1163,7 +1250,7 @@ class Module_ModuleController extends MVVController
     {
         // Semester
         $semester_id = Request::option('semester_filter', 'all');
-        if ($semester_id != 'all') {
+        if ($semester_id !== 'all') {
             $semester = Semester::find($semester_id);
             $this->filter['start_sem.beginn'] = $semester->beginn;
             $this->filter['end_sem.ende'] = $semester->beginn;
@@ -1173,9 +1260,7 @@ class Module_ModuleController extends MVVController
         }
 
         // module status
-        $this->filter['mvv_modul.stat']
-                = trim(Request::get('status_filter'))
-                ? Request::option('status_filter') : null;
+        $this->filter['mvv_modul.stat'] = trim(Request::get('status_filter')) ? Request::option('status_filter') : null;
 
         // responsible Institutes
         $this->filter['mvv_modul_inst.gruppe'] = 'hauptverantwortlich';
@@ -1194,7 +1279,7 @@ class Module_ModuleController extends MVVController
 
     public function reset_filter_action()
     {
-        $this->filter = array();
+        $this->filter = [];
         $this->reset_page();
         // current semester is set in index_action()
         unset($this->filter['start_sem.beginn']);
@@ -1209,20 +1294,24 @@ class Module_ModuleController extends MVVController
         $sidebar->setImage(Assets::image_path('sidebar/learnmodule-sidebar.png'));
 
         $widget  = new ViewsWidget();
-        $widget->addLink(_('Liste der Module'),
-                $this->url_for('module/module/index'))
-                ->setActive(get_called_class() == 'Module_ModuleController');
-        $widget->addLink(_('Gruppiert nach verantwortlichen Einrichtungen'),
-                $this->url_for('module/institute/index'))
-                ->setActive(get_called_class() == 'Module_InstituteController');
+        $widget->addLink(
+            _('Liste der Module'),
+            $this->url_for('module/module/index')
+        )->setActive(get_called_class() === 'Module_ModuleController');
+        $widget->addLink(
+            _('Gruppiert nach verantwortlichen Einrichtungen'),
+            $this->url_for('module/institute/index')
+        )->setActive(get_called_class() === 'Module_InstituteController');
         $sidebar->addWidget($widget, 'views');
 
         $widget  = new ActionsWidget();
         $widget->setTitle(_('Aktionen'));
         if (MvvPerm::havePermCreate('Modul')) {
-            $widget->addLink(_('Neues Modul anlegen'),
-                    $this->url_for('/modul'),
-                    Icon::create('file+add', 'clickable'));
+            $widget->addLink(
+                _('Neues Modul anlegen'),
+                $this->url_for('/modul'),
+                Icon::create('file+add')
+            );
         }
         $sidebar->addWidget($widget, 'actions');
 
@@ -1251,11 +1340,12 @@ class Module_ModuleController extends MVVController
             unset($this->filter['mvv_modul_inst.institut_id']);
         }
         $modul_filter = array_merge(
-                ['mvv_modul_inst.gruppe' => 'hauptverantwortlich',
-                    'mvv_modul_inst.institut_id' => MvvPerm::getOwnInstitutes()],
-                $this->filter);
-
-        $modul_ids = Modul::findByFilter($modul_filter);
+            [
+                'mvv_modul_inst.gruppe'      => 'hauptverantwortlich',
+                'mvv_modul_inst.institut_id' => MvvPerm::getOwnInstitutes()
+            ],
+            $this->filter
+        );
 
         $template_factory = $this->get_template_factory();
         $template = $template_factory->open('shared/filter');
@@ -1263,33 +1353,26 @@ class Module_ModuleController extends MVVController
         // Status
         $modul_ids = Modul::findByFilter($modul_filter);
         $template->set_attribute('status', Modul::findStatusByIds($modul_ids));
-        $template->set_attribute('selected_status',
-                $this->filter['mvv_modul.stat']);
-        $template->set_attribute('status_array',
-                $GLOBALS['MVV_MODUL']['STATUS']['values']);
+        $template->set_attribute('selected_status', $this->filter['mvv_modul.stat']);
+        $template->set_attribute('status_array', $GLOBALS['MVV_MODUL']['STATUS']['values']);
 
         // Institutes
-        $template->set_attribute('institute',
-                Modul::getAllAssignedInstitutes('name', 'ASC', $modul_filter));
+        $template->set_attribute('institute', Modul::getAllAssignedInstitutes('name', 'ASC', $modul_filter));
         $template->set_attribute('institute_count', 'count_objects');
-        $template->set_attribute('selected_institut',
-                $this->filter['mvv_modul_inst.institut_id']);
+        $template->set_attribute('selected_institut', $this->filter['mvv_modul_inst.institut_id']);
 
         // Semesters
         $semesters = new SimpleCollection(Semester::getAll());
         $semesters = $semesters->orderBy('beginn desc');
-        $selected_semester = $semesters->findOneBy('beginn',
-                $this->filter['start_sem.beginn']);
+        $selected_semester = $semesters->findOneBy('beginn', $this->filter['start_sem.beginn']);
 
 
         $template->set_attribute('semester', $semesters);
         $template->set_attribute('selected_semester', $selected_semester->id);
         $template->set_attribute('default_semester', Semester::findCurrent()->id);
 
-        $template->set_attribute('action',
-                $this->url_for('/set_filter'));
-        $template->set_attribute('action_reset',
-                $this->url_for('/reset_filter'));
+        $template->set_attribute('action', $this->url_for('/set_filter'));
+        $template->set_attribute('action_reset', $this->url_for('/reset_filter'));
 
         $filter_template = $template->render();
 
@@ -1325,12 +1408,14 @@ class Module_ModuleController extends MVVController
 
         $sidebar = Sidebar::get();
         $widget = new SearchWidget($this->url_for('/search'));
-        $widget->addNeedle(_('Modul suchen'), 'modul_suche', true,
-                new SQLSearch($query, $search_term, 'modul_id'),
-                'function () { $(this).closest("form").submit(); }',
-                $this->search_term);
-        $widget->setTitle('Suche');
+        $widget->addNeedle(
+            _('Modul suchen'),
+            'modul_suche',
+            true,
+            new SQLSearch($query, $search_term, 'modul_id'),
+            'function () { $(this).closest("form").submit(); }',
+            $this->search_term
+        );
         $sidebar->addWidget($widget, 'search');
     }
-
 }

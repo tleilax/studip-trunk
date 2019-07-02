@@ -111,12 +111,13 @@ abstract class GlobalSearchModule
         $query = trim($query);
 
         // Replace direct string
-        $result = preg_replace("/{$query}/Si", "<mark>$0</mark>", $string, -1, $found);
+        $quoted = preg_quote($query, '/');
+        $result = preg_replace("/{$quoted}/Si", "<mark>$0</mark>", $string, -1, $found);
 
         if ($found) {
             // Check for overlength
             if ($longtext && mb_strlen($result) > $maxlength) {
-                $start = max(array(0, mb_stripos($result, '<mark>') - 20));
+                $start = max([0, mb_stripos($result, '<mark>') - 20]);
                 return '[...]' . mb_substr($result, $start, $maxlength) . '[...]';
             }
 
@@ -127,7 +128,8 @@ abstract class GlobalSearchModule
         $i = 1;
         $replacement = "${$i}";
         foreach (preg_split('//u', mb_strtoupper($query), -1, PREG_SPLIT_NO_EMPTY) as $letter) {
-            $queryletter[] = "({$letter})";
+            $quoted = preg_quote($letter, '/');
+            $queryletter[] = "({$quoted})";
             $replacement .= '<mark>$' . ++$i . '</mark>$' . ++$i;
         }
 
@@ -137,7 +139,7 @@ abstract class GlobalSearchModule
         if ($found) {
             // Check for overlength
             if ($longtext && mb_strlen($result) > $maxlength) {
-                $start = max(array(0, mb_stripos($result, '<mark>') - 20));
+                $start = max([0, mb_stripos($result, '<mark>') - 20]);
                 $space = mb_stripos($result, ' ', $start);
                 $start = $space < $start + 20 ? $space : $start;
                 return '[...]' . mb_substr($result, $start, $maxlength) . '[...]';
@@ -192,7 +194,7 @@ abstract class GlobalSearchModule
             // return just the sem_types.id (which is equal to seminare.status)
             return substr($sem_class, $pos + 1);
         } else {
-            $type_ids = array();
+            $type_ids = [];
             // return an array containing all sem_types belonging to the chosen sem_class
             $class = $classes[$sem_class];
             foreach ($class->getSemTypes() as $types_id => $types) {
@@ -200,6 +202,21 @@ abstract class GlobalSearchModule
             }
             return $type_ids;
         }
+    }
+
+    /**
+     * Get the current semester considering the given
+     * SEMESTER_TIME_SWITCH in the CONFIG
+     * (n weeks before the next semester)
+     *
+     * @return int The start time of the current semester.
+     */
+    public static function getCurrentSemester()
+    {
+        $sem_time_switch = Config::get()->SEMESTER_TIME_SWITCH;
+        $current_semester = Semester::findByTimestamp(time() + $sem_time_switch * 7 * 24 * 3600);
+
+        return $current_semester['beginn'];
     }
 
     /**

@@ -24,6 +24,7 @@ require_once 'vendor/HTMLPurifier/HTMLPurifier.standalone.php';
 require_once 'htmlpurifier/HTMLPurifier_Injector_ClassifyLinks.php';
 require_once 'htmlpurifier/HTMLPurifier_Injector_ClassifyTables.php';
 require_once 'htmlpurifier/HTMLPurifier_Injector_LinkifyEmail.php';
+require_once 'htmlpurifier/HTMLPurifier_Injector_TransformLinks.php';
 require_once 'htmlpurifier/HTMLPurifier_Injector_Unlinkify.php';
 
 class Markup
@@ -315,10 +316,10 @@ class Markup
             video[controls|src|height|width|style]
         ');
 
-        $config->set('Attr.AllowedFrameTargets', array('_blank'));
-        $config->set('Attr.AllowedRel', array('nofollow'));
+        $config->set('Attr.AllowedFrameTargets', ['_blank']);
+        $config->set('Attr.AllowedRel', ['nofollow']);
         $config->set('Attr.EnableID', true);
-        $config->set('Attr.AllowedClasses', array(
+        $config->set('Attr.AllowedClasses', [
             'author',
             'content',
             'link-extern',
@@ -326,14 +327,14 @@ class Markup
             'math-tex',
             'usercode',
             'wiki-link'
-        ));
-        $config->set('CSS.AllowedFonts', array(
+        ]);
+        $config->set('CSS.AllowedFonts', [
             'serif',
             'sans-serif',
             'monospace',
             'cursive'
-        ));
-        $config->set('CSS.AllowedProperties', array(
+        ]);
+        $config->set('CSS.AllowedProperties', [
             'margin-left',
             'text-align',
             'width',
@@ -341,16 +342,18 @@ class Markup
             'color',
             'background-color', // needed by span, td
             'float'
-        ));
+        ]);
 
         if ($autoformat) {
             $config->set('AutoFormat.Linkify', true);
-            $config->set('AutoFormat.Custom', array(
+            $config->set('AutoFormat.Custom', [
                 'ClassifyLinks',
                 'ClassifyTables',
                 'LinkifyEmail'
-            ));
+            ]);
             $config->set('AutoFormat.RemoveSpansWithoutAttributes', true);
+        } else {
+            $config->set('AutoFormat.Custom', ['TransformLinks']);
         }
 
         // avoid <img src="evil_CSRF_stuff">
@@ -359,19 +362,19 @@ class Markup
         $img->attr_transform_post[]
             = new MarkupPrivate\Purifier\AttrTransform_Image_Source();
 
-        $def->addElement('audio', 'Inline', 'Flow', 'Common', array(
+        $def->addElement('audio', 'Inline', 'Flow', 'Common', [
               'src*' => 'URI',
               'width' => 'Length',
               'height' => 'Length',
               'controls' => 'Text',     // Bool triggers bug in HTMLPurifier
-        ));
+        ]);
 
-        $def->addElement('video', 'Inline', 'Flow', 'Common', array(
+        $def->addElement('video', 'Inline', 'Flow', 'Common', [
               'src*' => 'URI',
               'width' => 'Length',
               'height' => 'Length',
               'controls' => 'Text',     // Bool triggers bug in HTMLPurifier
-        ));
+        ]);
 
         return new \HTMLPurifier($config);
     }
@@ -459,7 +462,7 @@ class Markup
             $config = \HTMLPurifier_Config::createDefault();
             $config->set('Cache.SerializerPath', $GLOBALS['TMP_PATH']);
             $config->set('HTML.Allowed', 'a[href],img[alt|src],br');
-            $config->set('AutoFormat.Custom', array('Unlinkify'));
+            $config->set('AutoFormat.Custom', ['Unlinkify']);
 
             $purifier = new \HTMLPurifier($config);
             $html = $purifier->purify($html);
@@ -658,7 +661,7 @@ function getParsedStudipUrl() {
  */
 function isStudipMediaUrlPath($path) {
     list($path_head) = \explode('/', $path);
-    $valid_paths = array('sendfile.php', 'download', 'assets', 'pictures');
+    $valid_paths = ['sendfile.php', 'download', 'assets', 'pictures'];
     return \mb_strpos(\urldecode($path), '../') === false && \in_array($path_head, $valid_paths);
 }
 

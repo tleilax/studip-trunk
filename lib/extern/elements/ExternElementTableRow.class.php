@@ -1,13 +1,13 @@
-<?
+<?php
 # Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
 /**
 * ExternElementTableRow.class.php
-* 
-* 
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <pthienel@web.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -19,7 +19,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ExternElementTableRow.class.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -39,10 +39,10 @@
 
 class ExternElementTableRow extends ExternElement {
 
-    var $attributes = array("tr_class", "tr_style", "td_height", "td_align",
+    var $attributes = ["tr_class", "tr_style", "td_height", "td_align",
             "td_valign", "td_bgcolor", "td_bgcolor2_", "td_zebratd_",
             "td_class", "td_style", "font_face", "font_size", "font_color",
-            "font_class", "font_style");
+            "font_class", "font_style"];
 
     /**
     * Constructor
@@ -52,16 +52,16 @@ class ExternElementTableRow extends ExternElement {
     function __construct($config = "") {
         if ($config)
             $this->config = $config;
-        
+
         $this->name = "TableRow";
         $this->real_name = _("Datenzeile");
         $this->description = _("Angaben zur Formatierung einer Datenzeile.");
     }
-    
+
     function toString ($args = null) {
         static $i = 0;
         static $j = 0;
-        
+
         if ($args["color"] === 0 || $args["color"] === 1)
             $i = $args["color"];
         if (!$args["main_module"])
@@ -73,21 +73,21 @@ class ExternElementTableRow extends ExternElement {
         $font = $this->config->getTag($this->name, "font", FALSE, TRUE);
         $zebra = $this->config->getValue($this->name, "td_zebratd_");
         $width = $this->config->getValue($args["main_module"], "width");
-        
+
         // "horizontal zebra"
         if ($zebra == "HORIZONTAL")
             $set_td = $attributes[$i % 2];
         else
             $set_td = $attributes[0];
-        
+
         $out = "<tr" . $this->config->getAttributes($this->name, "tr") . ">";
-        
+
         foreach ($order as $column) {
             if ($visible[$column]) {
                 // "vertical zebra"
                 if ($zebra == "VERTICAL")
                     $set_td = $attributes[$j++ % 2];
-                
+
                 if (!$args["content"][$args["data_fields"][$column]])
                     $args["content"][$args["data_fields"][$column]] = "&nbsp;";
                 $out .= "<td$set_td";
@@ -103,10 +103,8 @@ class ExternElementTableRow extends ExternElement {
         }
         $out .= "</tr>\n";
         $i++;
-        
+
         return $out;
     }
-    
-}
 
-?>
+}

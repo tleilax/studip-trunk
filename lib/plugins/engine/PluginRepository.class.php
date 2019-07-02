@@ -19,7 +19,7 @@ class PluginRepository
     /**
      * list and meta data of available plugins
      */
-    private $plugins = array();
+    private $plugins = [];
 
     /**
      * Initialize a new PluginRepository and read meta data from
@@ -92,14 +92,15 @@ class PluginRepository
                     continue;
                 }
 
-                $meta_data = array(
-                    'version'     => (string) $release['version'],
-                    'url'         => (string) $release['url'],
-                    'description' => (string) $plugin['description'],
-                    'plugin_url'  => (string) $plugin['homepage'],
-                    'image'       => (string) $plugin['image'],
-                    'score'       => (string) $plugin['score']
-                );
+                $meta_data = [
+                    'version'         => (string) $release['version'],
+                    'url'             => (string) $release['url'],
+                    'description'     => (string) $plugin['description'],
+                    'plugin_url'      => (string) $plugin['homepage'],
+                    'image'           => (string) $plugin['image'],
+                    'score'           => (float) $plugin['score'],
+                    'marketplace_url' => (string) $plugin['marketplace_url'],
+                ];
 
                 $this->registerPlugin((string) $plugin['name'], $meta_data);
             }
@@ -143,7 +144,7 @@ class PluginRepository
      */
     public function getPlugins($search = NULL)
     {
-        $result = array();
+        $result = [];
 
         foreach ($this->plugins as $name => $data) {
             if ($search === NULL || $search === '' ||

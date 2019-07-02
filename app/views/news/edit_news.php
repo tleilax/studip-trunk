@@ -1,6 +1,6 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <? if(!empty($flash['question_text'])) : ?>
-    <? $form_content = array('news_isvisible' => htmlReady(json_encode($news_isvisible)),
+    <? $form_content = ['news_isvisible' => htmlReady(json_encode($news_isvisible)),
               'news_selectable_areas' => htmlReady(json_encode($area_options_selectable)),
               'news_selected_areas' => htmlReady(json_encode($area_options_selected)),
               'news_basic_js' => '',
@@ -11,7 +11,7 @@
               'news_body' => $news['body'],
               'news_startdate' => ($news['date']) ? date('d.m.Y', $news['date']) : "",
               'news_enddate' => ($news['expire']) ? date('d.m.Y', $news['date']+$news['expire']) : "",
-              'news_allow_comments' => $news['allow_comments']) ?>
+              'news_allow_comments' => $news['allow_comments']] ?>
     <?=createQuestion2($flash['question_text'],
         array_merge($flash['question_param'], $form_content),
         $form_content,
@@ -87,9 +87,9 @@
 
             <input type="number" class="news_date news_prevent_submit"
                    name="news_duration" id="news_duration"
-                   value="<?= $news['expire'] ? round($news['expire'] / (24 * 60 * 60)) : 7 ?>"
+                   value="<?= $news['expire'] ? round($news['expire'] / (24 * 60 * 60)) : 8 ?>"
                    aria-label="<?= _('Laufzeit') ?>"
-                   min="0">
+                   min="1">
         </label>
 
         <? if ($anker == 'news_comments') : ?>
@@ -118,7 +118,7 @@
                         <tfoot>
                             <tr>
                                 <td colspan="3">
-                                    <?=Button::create(_('Markierte Kommentare löschen'), 'delete_marked_comments', array('title' => _('Markierte Kommentare löschen'))) ?>
+                                    <?=Button::create(_('Markierte Kommentare löschen'), 'delete_marked_comments', ['title' => _('Markierte Kommentare löschen')]) ?>
                                 </td>
                             </tr>
                         </tfoot>
@@ -256,7 +256,7 @@
             <?= Button::createAccept(_('Ankündigung erstellen'), 'save_news') ?>
         <? endif ?>
         <? if (Request::isXhr()) : ?>
-            <?= LinkButton::createCancel(_('Schließen'), URLHelper::getURL(''), array('rel' => 'close_dialog')) ?>
+            <?= LinkButton::createCancel(_('Schließen'), URLHelper::getURL(''), ['rel' => 'close_dialog']) ?>
         <? endif ?>
     </footer>
 </form>

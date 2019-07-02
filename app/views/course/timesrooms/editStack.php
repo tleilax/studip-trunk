@@ -2,7 +2,7 @@
       class="default collapsable" data-dialog="size=big">
     <?= CSRFProtection::tokenTag()?>
     <input type="hidden" name="method" value="edit">
-    <input type="hidden" name="checked_dates" value="<?= implode(',',$_SESSION['_checked_dates']); ?>">
+    <input type="hidden" name="checked_dates" value="<?= implode(',', $checked_dates) ?>">
 
     <fieldset>
         <legend><?= _('Raumangaben') ?></legend>
@@ -54,8 +54,8 @@
         <legend><?= _('Terminangaben') ?></legend>
         <label>
             <?= _('Art') ?>
-            <select name="course_type" id="course_type" class="size-s">
-                <option value="no_change"><?= _('-- Keine Änderung --') ?></option>
+            <select name="course_type" id="course_type">
+                <option value=""><?= _('-- Keine Änderung --') ?></option>
                 <? foreach ($GLOBALS['TERMIN_TYP'] as $id => $value) : ?>
                     <option value="<?= $id ?>"><?= htmlReady($value['name']) ?></option>
                 <? endforeach ?>
@@ -103,7 +103,7 @@
     <footer data-dialog-button>
         <?= Studip\Button::createAccept(_('Änderungen speichern'), 'save') ?>
         <? if (Request::int('fromDialog')) : ?>
-            <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
+            <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), ['data-dialog' => 'size=big']) ?>
         <? endif ?>
     </footer>
 </form>

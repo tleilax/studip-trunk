@@ -1,13 +1,7 @@
 <? use Studip\Button, Studip\LinkButton; ?>
 <?= $controller->jsUrl() ?>
 <? $perm = MvvPerm::get($version) ?>
-<h3>
-    <? if ($version->isNew()) : ?>
-    <?= sprintf(_('Neue Version für Studiengangteil: %s'), htmlReady($stgteil->getDisplayName())) ?>
-    <? else : ?>
-    <?= sprintf(_('Version: %s'), htmlReady($version->getDisplayName())) ?>
-    <? endif; ?>
-</h3>
+
 <form class="default" action="<?= $controller->url_for('/version', $stgteil->id, $version->id) ?>" method="post">
     <?= CSRFProtection::tokenTag() ?>
     <fieldset>
@@ -65,7 +59,7 @@
             <select<?= $perm->haveFieldPerm('fassung_nr') ? '' : ' disabled' ?> name="fassung_nr" id="fassung_nr" class="size-s">
                 <option value="">--</option>
             <? foreach (range(1, 30) as $nr) : ?>
-                <option<?= $nr == $version->fassung_nr ? ' selected' : '' ?> value="<?= $nr ?>"><?= $nr ?>.</option>
+                <option<?= $nr === (int)$version->fassung_nr ? ' selected' : '' ?> value="<?= $nr ?>"><?= $nr ?>.</option>
             <? endforeach; ?>
             </select>
             <? if (!$perm->haveFieldPerm('fassung_nr')) : ?>
@@ -74,7 +68,7 @@
             <select<?= $perm->haveFieldPerm('fassung_typ') ? '' : ' disabled' ?> name="fassung_typ">
                 <option value="0">--</option>
             <? foreach ($GLOBALS['MVV_STGTEILVERSION']['FASSUNG_TYP'] as $key => $entry) : ?>
-                <option value="<?= $key ?>"<?= $key == $version->fassung_typ ? ' selected' : '' ?>><?= htmlReady($entry['name']) ?></option>
+                <option value="<?= $key ?>"<?= $key === $version->fassung_typ ? ' selected' : '' ?>><?= htmlReady($entry['name']) ?></option>
             <? endforeach; ?>
             </select>
             <? if (!$perm->haveFieldPerm('fassung_typ')) : ?>
@@ -122,13 +116,13 @@
     <footer data-dialog-button>
         <? if ($version->isNew()) : ?>
             <? if ($perm->havePermCreate()) : ?>
-            <?= Button::createAccept(_('Anlegen'), 'store', array('title' => _('Version anlegen'))) ?>
+            <?= Button::createAccept(_('Anlegen'), 'store', ['title' => _('Version anlegen')]) ?>
             <? endif; ?>
         <? else : ?>
             <? if ($perm->havePermWrite()) : ?>
-            <?= Button::createAccept(_('Übernehmen'), 'store', array('title' => _('Änderungen übernehmen'))) ?>
+            <?= Button::createAccept(_('Übernehmen'), 'store', ['title' => _('Änderungen übernehmen')]) ?>
             <? endif; ?>
         <? endif; ?>
-        <?= LinkButton::createCancel(_('Abbrechen'), $cancel_url, array('title' => _('zurück zur Übersicht'))) ?>
+        <?= LinkButton::createCancel(_('Abbrechen'), $cancel_url, ['title' => _('zurück zur Übersicht')]) ?>
     </footer>
 </form>

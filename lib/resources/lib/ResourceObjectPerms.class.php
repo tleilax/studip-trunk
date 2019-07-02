@@ -43,8 +43,8 @@ Verfuegung
 
 class ResourceObjectPerms {
 
-    function Factory($resource_id, $user_id = false){
-
+    public static function Factory($resource_id, $user_id = false)
+    {
         static $object_pool;
 
         if (!$user_id){
@@ -62,7 +62,7 @@ class ResourceObjectPerms {
     var $db;
     var $db2;
     var $resource_id;
-    var $perm_weight= array("admin" => 4, "tutor" => 2, "autor" => 1);
+    var $perm_weight= ["admin" => 4, "tutor" => 2, "autor" => 1];
 
 
     function __construct($resource_id, $user_id='') {

@@ -43,7 +43,7 @@ class Course_StudyAreasController extends AuthenticatedController
 
         // Init Studyareas-Step for
         $this->step = new StudyAreasWizardStep();
-        $this->values = array();
+        $this->values = [];
         $this->values['StudyAreasWizardStep']['studyareas'] = $this->get_area_ids($this->course->id);
         $this->values['StudyAreasWizardStep']['ajax_url'] = $this->url_for('course/study_areas/ajax');
         $this->values['StudyAreasWizardStep']['no_js_url'] = $this->url_for('course/study_areas/show');
@@ -54,7 +54,7 @@ class Course_StudyAreasController extends AuthenticatedController
 
     function show_action()
     {
-        $this->url_params = array();
+        $this->url_params = [];
         if (Request::get('from')) {
             $this->url_params['from'] = Request::get('from');
         }
@@ -122,7 +122,7 @@ class Course_StudyAreasController extends AuthenticatedController
             throw new Trails_Exception(403);
         }
 
-        $params = array();
+        $params = [];
         if(Request::get('open_node')) {
             $params['open_node'] = Request::get('open_node');
         }
@@ -152,12 +152,7 @@ class Course_StudyAreasController extends AuthenticatedController
             }
 
             try {
-                $msg = null;
-
-                if (!$this->course->setStudyAreas($studyareas)) {
-                    $msg = _('Die Studienbereichszuordnung konnte nicht gespeichert werden.');
-                }
-
+                $this->course->setStudyAreas($studyareas);
             } catch (UnexpectedValueException $e) {
                 PageLayout::postError($e->getMessage());
             }
@@ -185,9 +180,7 @@ class Course_StudyAreasController extends AuthenticatedController
             return _('Sie müssen mindestens einen Studienbereich auswählen');
         }
 
-        if (!$this->course->setStudyAreas($assigned)) {
-            $msg = _('Die Studienbereichszuordnung konnte nicht gespeichert werden.');
-        }
+        $this->course->setStudyAreas($assigned);
 
         return $msg;
     }
@@ -201,9 +194,7 @@ class Course_StudyAreasController extends AuthenticatedController
             $assigned = array_unique(array_merge($assigned, $this->course->study_areas->pluck('sem_tree_id')));
         }
 
-        if (!$this->course->setStudyAreas($assigned)) {
-            $msg = _('Die Studienbereichszuordnung konnte nicht gespeichert werden.');
-        }
+        $this->course->setStudyAreas($assigned);
 
         return $msg;
     }

@@ -88,7 +88,7 @@ class Course extends SimpleORMap implements Range, PrivacyObject
         return null;
     }
 
-    protected static function configure($config = array())
+    protected static function configure($config = [])
     {
         $config['db_table'] = 'seminare';
         $config['has_many']['topics'] = [
@@ -132,7 +132,7 @@ class Course extends SimpleORMap implements Range, PrivacyObject
             'on_delete'  => 'delete',
             'on_store'   => 'store',
         ];
-        $config['has_many']['datafields'] = array(
+        $config['has_many']['datafields'] = [
             'class_name' => 'DatafieldEntryModel',
             'assoc_func' => 'findByModel',
             'assoc_foreign_key' => function ($model, $params) {
@@ -143,7 +143,7 @@ class Course extends SimpleORMap implements Range, PrivacyObject
             },
             'on_delete' => 'delete',
             'on_store'  => 'store',
-        );
+        ];
         $config['has_many']['cycles'] = [
             'class_name' => 'SeminarCycleDate',
             'assoc_func' => 'findBySeminar',
@@ -397,33 +397,42 @@ class Course extends SimpleORMap implements Range, PrivacyObject
         $added = array_diff($ids, $old);
         $removed = array_diff($old, $ids);
 
-        $this->study_areas = SimpleCollection::createFromArray(StudipStudyArea::findMany($ids));
-        if ($this->store() !== false) {
-            NotificationCenter::postNotification('CourseDidChangeStudyArea', $this);
-            $success = true;
-            foreach ($added as $one) {
-                StudipLog::log('SEM_ADD_STUDYAREA', $this->id, $one);
-                $area = $this->study_areas->find($one);
-                if ($area->isModule()) {
-                    NotificationCenter::postNotification(
-                        'CourseAddedToModule',
-                        $area,
-                        ['module_id' => $one, 'course_id' => $this->id]
-                    );
+        if ($added || $removed) {
+
+            $this->study_areas = SimpleCollection::createFromArray(StudipStudyArea::findMany($ids));
+
+            if ($this->store()) {
+                NotificationCenter::postNotification('CourseDidChangeStudyArea', $this);
+                $success = true;
+
+                foreach ($added as $one) {
+                    StudipLog::log('SEM_ADD_STUDYAREA', $this->id, $one);
+
+                    $area = $this->study_areas->find($one);
+                    if ($area->isModule()) {
+                        NotificationCenter::postNotification(
+                            'CourseAddedToModule',
+                            $area,
+                            ['module_id' => $one, 'course_id' => $this->id]
+                        );
+                    }
                 }
-            }
-            foreach ($removed as $one) {
-                StudipLog::log('SEM_DELETE_STUDYAREA', $this->id, $one);
-                $area = StudipStudyArea::find($one);
-                if ($area->isModule()) {
-                    NotificationCenter::postNotification(
-                        'CourseRemovedFromModule',
-                        $area,
-                        ['module_id' => $one, 'course_id' => $this->id]
-                    );
+
+                foreach ($removed as $one) {
+                    StudipLog::log('SEM_DELETE_STUDYAREA', $this->id, $one);
+
+                    $area = StudipStudyArea::find($one);
+                    if ($area->isModule()) {
+                        NotificationCenter::postNotification(
+                            'CourseRemovedFromModule',
+                            $area,
+                            ['module_id' => $one, 'course_id' => $this->id]
+                        );
+                    }
                 }
             }
         }
+
         return $success;
     }
 

@@ -23,7 +23,7 @@ class StudipPDO extends PDO
 
     // Counter for the queries sent to the database
     public $query_count = 0;
-    public $queries = array();
+    public $queries     = [];
 
     /**
      * Verifies that the given SQL query only contains a single statement.
@@ -42,17 +42,25 @@ class StudipPDO extends PDO
         // Count executed queries (this is placed here since this is the only
         // method that is executed on every call to the database)
         $this->query_count += 1;
+
         if ($GLOBALS['DEBUG_ALL_DB_QUERIES']) {
-            if ($GLOBALS['DEBUG_ALL_DB_QUERIES_WITH_TRACE']) {
-                ob_start();
-                debug_print_backtrace();
-                $trace = ob_get_contents();
-                ob_end_clean();
+            $trace = debug_backtrace();
+
+            $classes = [];
+            if (isset($trace[2]['class']) && $trace[2]['class'] === 'SimpleORMap') {
+                $classes[] = 'sorm';
             }
-            $this->queries[] = array(
-                'query' => $statement,
-                'trace' => $GLOBALS['DEBUG_ALL_DB_QUERIES_WITH_TRACE'] ? $trace : null
-            );
+            if (isset($trace[1]) && $trace[1]['function'] === 'prepare') {
+                $classes[] = 'prepared';
+            }
+
+            $this->queries[] = [
+                'query'   => implode("\n", array_filter(array_map('trim', explode("\n", $statement)))),
+                'classes' => implode(' ', $classes),
+                'trace'   => $GLOBALS['DEBUG_ALL_DB_QUERIES_WITH_TRACE']
+                           ? array_slice($trace, 2)
+                           : null,
+            ];
         }
     }
 
@@ -141,7 +149,7 @@ class StudipPDO extends PDO
             case PDO::PARAM_INT:
                 return (int) $value;
             case StudipPDO::PARAM_ARRAY:
-                return is_array($value) && count($value) ? join(',', array_map(array($this, 'quote'), $value)) : 'NULL';
+                return is_array($value) && count($value) ? join(',', array_map([$this, 'quote'], $value)) : 'NULL';
             case StudipPDO::PARAM_COLUMN:
                 return preg_replace('/\\W/', '', $value);
             default:
@@ -180,7 +188,7 @@ class StudipPDO extends PDO
             $stmt = parent::query($statement);
         }
 
-        $studip_stmt = new StudipPDOStatement($this, $statement, array());
+        $studip_stmt = new StudipPDOStatement($this, $statement, []);
         $studip_stmt->setStatement($stmt);
         return $studip_stmt;
     }
@@ -191,7 +199,7 @@ class StudipPDO extends PDO
      * @param string    SQL statement
      * @return object   PDOStatement object
      */
-    public function prepare($statement, $driver_options = array())
+    public function prepare($statement, $driver_options = [])
     {
         $this->verify($statement);
         return new StudipPDOStatement($this, $statement, $driver_options);
@@ -203,7 +211,7 @@ class StudipPDO extends PDO
      * @param string    SQL statement
      * @return object   PDOStatement object
      */
-    public function prepareStatement($statement, $driver_options = array())
+    public function prepareStatement($statement, $driver_options = [])
     {
         return parent::prepare($statement, $driver_options);
     }
@@ -240,7 +248,7 @@ class StudipPDO extends PDO
         $st = $this->prepare($statement);
         $st->execute($input_parameters);
         if (is_callable($callable)) {
-            $data = array();
+            $data = [];
             $st->setFetchMode(PDO::FETCH_ASSOC);
             foreach ($st as $key => $row) {
                 $data[$key] = call_user_func($callable, $row, $key);

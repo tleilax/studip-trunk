@@ -1,7 +1,6 @@
 <?
 # Lifter010: TODO
 use Studip\Button, Studip\LinkButton;
-
 ?>
 
 <form action="<?= $controller->url_for('admin/datafields/edit/' . $item->id) ?>" method="post"
@@ -14,16 +13,19 @@ use Studip\Button, Studip\LinkButton;
         <label>
             <span class="required"><?= _('Name') ?></span>
 
-            <input type="text" name="datafield_name" id="datafield_name"
-                   required size="60" maxlength="254"
-                   value="<?= htmlReady($item->name) ?>">
+            <?= I18N::input('datafield_name', $item->name, [
+                'id'        => 'datafield_name',
+                'required'  => '',
+                'size'      => 60,
+                'maxlength' => 254,
+            ]) ?>
         </label>
 
         <label>
             <?= _('Feldtyp') ?>
 
             <select name="datafield_type" id="datafield_type">
-            <? foreach (DataFieldEntry::getSupportedTypes() as $param): ?>
+            <? foreach (DataFieldEntry::getSupportedTypes($item->object_type) as $param): ?>
                 <option <? if ($item->type === $param) echo 'selected'; ?>>
                      <?= htmlReady($param) ?>
                 </option>
@@ -133,6 +135,20 @@ use Studip\Button, Studip\LinkButton;
                    <? if ($item->system) echo 'checked'; ?>>
         </label>
     <? endif; ?>
+        <label>
+            <?= _('Einrichtung') ?>
+            <select name="institut_id" class="nested-select">
+                <option value="" class="is-placeholder"></option>
+                <? foreach ($institutes as $institute): ?>
+                    <option value="<?= htmlReady($institute['Institut_id']) ?>"
+                        class="<?= $institute['is_fak'] ? 'nested-item-header' : 'nested-item' ?>"
+                            <?= $item->institut_id === $institute['Institut_id'] ? 'selected' : ''?>>
+                        <?= htmlReady(my_substr($institute['Name'],0,80)) ?>
+                    </option>
+                <? endforeach; ?>
+            </select>
+        </label>
+
 
         <label>
             <?= _('Position') ?>
@@ -168,7 +184,7 @@ use Studip\Button, Studip\LinkButton;
     </fieldset>
 
     <footer data-dialog-button>
-        <?= Button::createAccept(_('Übernehmen'), 'uebernehmen', array('title' => _('Änderungen übernehmen')))?>
-        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields/index/'.$item->type.'#'.$item->type), array('title' => _('Zurück zur Übersicht')))?>
+        <?= Button::createAccept(_('Übernehmen'), 'uebernehmen', ['title' => _('Änderungen übernehmen')])?>
+        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields/index/'.$item->type.'#'.$item->type), ['title' => _('Zurück zur Übersicht')])?>
     </footer>
 </form>

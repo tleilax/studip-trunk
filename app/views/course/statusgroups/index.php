@@ -4,10 +4,16 @@
         <h1><?= _('Teilnehmende nach Gruppen') ?></h1>
     </header>
     <?php foreach ($groups as $group) : ?>
-        <?= $this->render_partial('course/statusgroups/_group',
-            array('group' => $group['group'], 'membercount' => $group['membercount'],
-                'members' => $group['members'], 'joinable' => $group['joinable'], 'load' => $group['load'],
-                'order' => $order, 'sort_by' => $sort_by)) ?>
+        <?= $this->render_partial('course/statusgroups/_group', [
+            'group'       => $group['group'],
+            'membercount' => $group['membercount'],
+            'members'     => $group['members'],
+            'joinable'    => $group['joinable'],
+            'load'        => $open_groups ? true : $group['load'],
+            'order'       => $order,
+            'sort_by'     => $sort_by,
+            'open_group'  => $open_groups,
+        ]) ?>
     <?php endforeach ?>
     <?php if ((count($groups) > $ungrouped_count ? 2 : 1) && $is_tutor && !$is_locked) : ?>
         <footer>
@@ -28,7 +34,7 @@
                         <option value="delete"><?= _('Löschen') ?></option>
                     </select>
                 </label>
-                <?= Studip\Button::create(_('Ausführen'), 'batch_groups', array('data-dialog' => 'size=auto', 'disabled' => '', 'id' => 'batch-groups-submit')) ?>
+                <?= Studip\Button::create(_('Ausführen'), 'batch_groups', ['data-dialog' => 'size=auto', 'disabled' => '', 'id' => 'batch-groups-submit']) ?>
             </div>
         </footer>
     <?php endif ?>

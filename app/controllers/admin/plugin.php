@@ -52,6 +52,23 @@ class Admin_PluginController extends AuthenticatedController
 
         $this->plugin_filter = $settings['plugin_filter'];
         $this->core_filter   = $settings['core_filter'];
+
+        $views = Sidebar::get()->addWidget(new ViewsWidget());
+        $views->addLink(
+            _('Pluginverwaltung'),
+            $this->indexURL(),
+            Icon::create('plugin')
+        )->setActive($action === 'index');
+        $views->addLink(
+            _('Weitere Plugins installieren'),
+            $this->searchURL(),
+            Icon::create('search')
+        )->setActive($action === 'search');
+        $views->addLink(
+            _('Vorhandene Plugins registrieren'),
+            $this->unregisteredURL(),
+            Icon::create('plugin+add')
+        )->setActive($action === 'unregistered');
     }
 
     /**
@@ -85,12 +102,12 @@ class Admin_PluginController extends AuthenticatedController
             );
 
             // Read current information from local files
-            $update_info = array();
+            $update_info = [];
             $plugin_manager = PluginManager::getInstance();
             foreach ($plugins as $plugin) {
                 $plugin_path = get_config('PLUGINS_PATH') . '/' . $plugin['path'];
                 $manifest    = $plugin_manager->getPluginManifest($plugin_path);
-                $update_info[$plugin['id']] = array('version' => $manifest['version']);
+                $update_info[$plugin['id']] = ['version' => $manifest['version']];
             }
             return $update_info;
         }
@@ -209,7 +226,7 @@ class Admin_PluginController extends AuthenticatedController
      */
     private function compare_score($plugin1, $plugin2)
     {
-        return ($plugin2['score'] ?: 0) - ($plugin1['score'] ?: 0);
+        return $plugin2['score'] - $plugin1['score'];
     }
 
     /**
@@ -221,14 +238,16 @@ class Admin_PluginController extends AuthenticatedController
         Helpbar::Get()->addPlainText(_('Empfohlene Plugins'), _('In der Liste "Empfohlene Plugins" finden Sie von anderen Betreibern empfohlene Plugins.'), Icon::create('info'));
         Helpbar::Get()->addPlainText(_('Upload'), _('Alternativ können Plugins und Plugin-Updates auch als ZIP-Datei hochgeladen werden.'), Icon::create('info'));
 
-        $search = Request::get('search');
+        $search = Request::int('reset-search')
+                ? null
+                : Request::get('search');
 
         // search for plugins in all repositories
         try {
             $repository = new PluginRepository();
             $search_results = $repository->getPlugins($search);
         } catch (Exception $ex) {
-            $search_results = array();
+            $search_results = [];
         }
 
         $plugins = PluginManager::getInstance()->getPluginInfos();
@@ -240,9 +259,9 @@ class Admin_PluginController extends AuthenticatedController
             }
         }
 
-        if ($search === NULL) {
+        if ($search === null) {
             // sort plugins by score
-            uasort($search_results, array($this, 'compare_score'));
+            uasort($search_results, [$this, 'compare_score']);
             $search_results = array_slice($search_results, 0, 6);
         } else {
             // sort plugins by name
@@ -252,21 +271,19 @@ class Admin_PluginController extends AuthenticatedController
         $this->search         = $search;
         $this->search_results = $search_results;
         $this->plugins        = $plugins;
-        $this->unknown_plugins = $this->plugin_admin->scanPluginDirectory();
 
-        $actions = new ActionsWidget();
-        $actions->addLink(
-            _('Pluginverwaltung'),
-            $this->url_for('admin/plugin'),
-            Icon::create('plugin', 'clickable')
-        );
-        $actions->addLink(
+        $search_widget = Sidebar::get()->addWidget(new SearchWidget());
+        $search_widget->setTitle(_('Plugins suchen'));
+        $search_widget->addNeedle(_('Pluginname'), 'search', true, null, null, $search);
+
+        $links = Sidebar::get()->addWidget(new LinksWidget());
+        $links->setTitle(_('Verweise'));
+        $links->addLink(
             _('Alle Plugins im Plugin-Marktplatz'),
             'http://plugins.studip.de/',
-            Icon::create('export', 'clickable'),
+            Icon::create('export'),
             ['target' => '_blank', 'rel' => 'noopener noreferrer']
         );
-        Sidebar::Get()->addWidget($actions);
     }
 
     /**
@@ -434,7 +451,7 @@ class Admin_PluginController extends AuthenticatedController
         $update_info = $this->plugin_admin->getUpdateInfo($plugins);
 
         $update = $this->flash['update'];
-        $update_status = array();
+        $update_status = [];
 
         // update each plugin in turn
         foreach ($update as $id) {
@@ -546,6 +563,11 @@ class Admin_PluginController extends AuthenticatedController
         $this->redirect('admin/plugin?plugin_filter=' . $plugin_filter);
     }
 
+    public function unregistered_action()
+    {
+        $this->unknown_plugins = $this->plugin_admin->scanPluginDirectory();
+    }
+
     /**
      * register a plugin in database when it
      * already exists in file system
@@ -571,7 +593,7 @@ class Admin_PluginController extends AuthenticatedController
     {
         $this->plugin = $plugin_id
                         ? PluginManager::getInstance()->getPluginInfoById($plugin_id)
-                        : array();
+                        : [];
         if (Request::isPost()) {
             CSRFProtection::verifyUnsafeRequest();
             $this->check_ticket();
@@ -586,11 +608,11 @@ class Admin_PluginController extends AuthenticatedController
                     automatic_update_secret = :secret
                 WHERE pluginid = :id
             ");
-            $statement->execute(array(
+            $statement->execute([
                 'id' => $plugin_id,
                 'url' => Request::get("automatic_update_url"),
                 'secret' => Request::get("use_security_token") ? $token : null
-            ));
+            ]);
             PageLayout::postMessage(MessageBox::success(_("Daten gespeichert.")));
             if (Request::get("use_security_token")) {
                 PageLayout::postMessage(MessageBox::info(_("Unten können Sie den Security Token jetzt heraus kopieren.")));

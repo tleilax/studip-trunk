@@ -52,7 +52,7 @@ class ToolsNavigation extends Navigation
             $navigation = new Navigation(_('Fragebögen'), 'dispatch.php/questionnaire/overview');
             $this->addSubNavigation('questionnaire', $navigation);
 
-            $navigation = new Navigation(_('Evaluationen'), 'admin_evaluation.php', array('rangeID' => $username));
+            $navigation = new Navigation(_('Evaluationen'), 'admin_evaluation.php', ['rangeID' => $username]);
             $this->addSubNavigation('evaluation', $navigation);
         }
 
@@ -65,7 +65,7 @@ class ToolsNavigation extends Navigation
                 $navigation->addSubNavigation('edit_list', new Navigation(_('Literatur bearbeiten'), 'dispatch.php/literature/edit_list?_range_id=self'));
                 $navigation->addSubNavigation('search', new Navigation(_('Literatur suchen'), 'dispatch.php/literature/search?return_range=self'));
             } elseif (get_config('LITERATURE_ENABLE')) {
-                $navigation = new Navigation(_('Literatur'), 'dispatch.php/literature/edit_list.php', array('_range_id' => 'self'));
+                $navigation = new Navigation(_('Literatur'), 'dispatch.php/literature/edit_list.php', ['_range_id' => 'self']);
                 $this->addSubNavigation('literature', $navigation);
                 $navigation->addSubNavigation('edit_list', new Navigation(_('Literatur bearbeiten'), 'dispatch.php/literature/edit_list?_range_id=self'));
                 $navigation->addSubNavigation('search', new Navigation(_('Literatur suchen'), 'dispatch.php/literature/search?return_range=self'));
@@ -90,6 +90,15 @@ class ToolsNavigation extends Navigation
             $navigation->addSubNavigation('sets', new Navigation(_('Anmeldesets verwalten'), 'dispatch.php/admission/courseset/index'));
             $navigation->addSubNavigation('userlists', new Navigation(_('Personenlisten'), 'dispatch.php/admission/userlist/index'));
             $navigation->addSubNavigation('restricted_courses', new Navigation(_('teilnahmebeschränkte Veranstaltungen'), 'dispatch.php/admission/restricted_courses'));
+        }
+
+        if (!$GLOBALS['perm']->have_perm('root') && $GLOBALS['user']->getAuthenticatedUser()->hasRole('Hilfe-Administrator(in)')) {
+            $navigation = new Navigation(_('Hilfe'), 'dispatch.php/help_content/admin_overview');
+            $this->addSubNavigation('help_admin', $navigation);
+            if (Config::get()->TOURS_ENABLE) {
+                $navigation->addSubNavigation('tour', new Navigation(_('Touren'), 'dispatch.php/tour/admin_overview'));
+            }
+            $navigation->addSubNavigation('help_content', new Navigation(_('Hilfe-Texte'), 'dispatch.php/help_content/admin_overview'));
         }
 
     }

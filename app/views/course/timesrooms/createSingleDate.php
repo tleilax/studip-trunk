@@ -48,11 +48,11 @@
                     <? endif ?>
                 </select>
                 <?= Icon::create('room-clear', 'clickable',
-                    array(
+                    [
                             'class' => "bookable_rooms_action",
                             'title' => _("Nur buchbare Räume anzeigen"),
                             "style" => "float: right; top: -23px; position: relative;"
-                        )
+                        ]
                     ); ?>
             </label>
         <? endif ?>
@@ -98,9 +98,9 @@
     </fieldset>
 
     <footer data-dialog-button>
-        <?= Studip\Button::createAccept(_('Speichern'), 'save') ?>
+        <?= Studip\Button::createAccept(_('Speichern'), 'save', ['data-dialog' => 'size=600']) ?>
         <? if (Request::get('fromDialog')) : ?>
-            <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), array('data-dialog' => 'size=big')) ?>
+            <?= Studip\LinkButton::create(_('Zurück zur Übersicht'), $controller->url_for('course/timesrooms/index'), ['data-dialog' => 'size=big']) ?>
         <? endif ?>
     </footer>
 </form>

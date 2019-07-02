@@ -46,10 +46,10 @@ class Admin_StatusgroupsController extends AuthenticatedController
         }
 
         // Include url for ajax moving of members in group to page header
-        PageLayout::addHeadElement('meta', array(
+        PageLayout::addHeadElement('meta', [
             'name'    => 'statusgroups-ajax-movable-endpoint',
             'content' => $this->url_for('admin/statusgroups/move'),
-        ));
+        ]);
 
         $this->setType();
         // Check if the viewing user should get the admin interface
@@ -125,12 +125,12 @@ class Admin_StatusgroupsController extends AuthenticatedController
             if ($group->isNew()) {
                 $group->range_id = Context::getId();
             } else {
-                DataFieldEntry::removeAll(array('', $group->statusgruppe_id));
+                DataFieldEntry::removeAll(['', $group->statusgruppe_id]);
             }
 
-            $group->name       = Request::get('name');
-            $group->name_w     = Request::get('name_w');
-            $group->name_m     = Request::get('name_m');
+            $group->name       = Request::i18n('name');
+            $group->name_w     = Request::i18n('name_w');
+            $group->name_m     = Request::i18n('name_m');
             $group->size       = Request::int('size', 0);
             $group->range_id   = Request::option('range_id', $group->range_id);
             $group->position   = Request::int('position', $group->position);
@@ -148,6 +148,9 @@ class Admin_StatusgroupsController extends AuthenticatedController
         }
 
         $this->group = new Statusgruppen($group_id);
+        if ($this->group->isNew()) {
+            $this->group->range_id = Context::getId();
+        }
         $this->loadGroups();
     }
 
@@ -254,7 +257,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
             //remove users
             $this->group->removeAllUsers();
             //remove datafields
-            DataFieldEntry::removeAll(array('', $this->group->statusgruppe_id));
+            DataFieldEntry::removeAll(['', $this->group->statusgruppe_id]);
 
             //goodbye group
             $this->group->delete();
@@ -344,7 +347,7 @@ class Admin_StatusgroupsController extends AuthenticatedController
     private function setType()
     {
 
-        if (get_object_type(Context::getId(), array('inst', 'fak'))) {
+        if (get_object_type(Context::getId(), ['inst', 'fak'])) {
             $type = 'inst';
         }
         $types = $this->types();
@@ -365,11 +368,11 @@ class Admin_StatusgroupsController extends AuthenticatedController
      */
     private function types()
     {
-        return array(
-            'inst' => array(
+        return [
+            'inst' => [
                 'name' => _('Institut'),
                 'after_user_add' => function ($user_id) {
-                    $newInstUser = new InstituteMember(array($user_id, Context::getId()));
+                    $newInstUser = new InstituteMember([$user_id, Context::getId()]);
                     if ($newInstUser->isNew() || $newInstUser->inst_perms == 'user') {
                         $user = new User($user_id);
                         $newInstUser->inst_perms = $user->perms;
@@ -397,13 +400,13 @@ class Admin_StatusgroupsController extends AuthenticatedController
                     require_once 'lib/admin_search.inc.php';
                     die(); //must not return
                 },
-                'groups' => array(
-                    'members' => array(
+                'groups' => [
+                    'members' => [
                         'name' => _('Mitglieder'),
-                    )
-                )
-            )
-        );
+                    ]
+                ]
+            ]
+        ];
     }
 
 }

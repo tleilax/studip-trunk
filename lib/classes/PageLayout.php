@@ -48,7 +48,7 @@ class PageLayout
     /**
      * array of HTML HEAD elements (initialized with default set)
      */
-    private static $head_elements = array();
+    private static $head_elements = [];
 
     /**
      * extra HTML text included in the BODY element (initially empty)
@@ -76,9 +76,9 @@ class PageLayout
      * This is used for often used but "deprecated" assets that got
      * renamed or moved into a squeeze package.
      */
-    private static $compatibility_lookup = array(
+    private static $compatibility_lookup = [
         'jquery/jquery.tablesorter.js' => 'tablesorter', // @since 3.4
-    );
+    ];
 
     /**
      * Initialize default page layout. This should only be called once
@@ -97,6 +97,8 @@ class PageLayout
         self::addHeadElement('link', ['rel' => 'icon', 'type' => 'image/png', 'sizes' => '16x16', 'href' => Assets::image_path('favicon-16x16.png')]);
         self::addHeadElement('link', ['rel' => 'manifest', 'href' => Assets::image_path('manifest.json')]);
         self::addHeadElement('link', ['rel' => 'mask-icon', 'href' => Assets::image_path('safari-pinned-tab.svg')]);
+        self::addHeadElement('link', ['rel' => 'preload', 'href' => Assets::url('fonts/LatoLatin/LatoLatin-Regular.woff2'), 'as' => 'font', 'type' => 'font/woff2', 'crossorigin' => 'anonymous']);
+        self::addHeadElement('link', ['rel' => 'preload', 'href' => Assets::url('fonts/LatoLatin/LatoLatin-Bold.woff2'), 'as' => 'font', 'type' => 'font/woff2', 'crossorigin' => 'anonymous']);
         self::addHeadElement('meta', ['name' => 'TileColor', 'content' => '#2b5797']);
         self::addHeadElement('meta', ['name' => 'TileImage', 'content' => Assets::image_path('mstile-144x144.png')]);
         self::addHeadElement('meta', ['name' => 'msapplication-config', 'content' => Assets::image_path('browserconfig.xml')]);
@@ -124,7 +126,6 @@ class PageLayout
             self::addStylesheet('studip-wysiwyg.css?v=' . $v);
             self::addScript('studip-wysiwyg.js?v=' . $v);
         }
-        self::addScript('mathjax/MathJax.js?config=TeX-AMS_HTML,default&v=' . $v);
     }
 
     /**
@@ -225,9 +226,9 @@ class PageLayout
      */
     public static function addStyle($content, $media = '')
     {
-        $attr = array();
+        $attr = [];
         if($media) {
-            $attr = array('media' => $media);
+            $attr = ['media' => $media];
         }
         self::addHeadElement('style', $attr, $content);
     }
@@ -238,7 +239,7 @@ class PageLayout
      * @param string $source     style sheet URL or file in assets folder
      * @param array  $attributes additional attributes for LINK element
      */
-    public static function addStylesheet($source, $attributes = array())
+    public static function addStylesheet($source, $attributes = [])
     {
         $attributes['rel']  = 'stylesheet';
         $attributes['href'] = Assets::stylesheet_path($source);
@@ -252,7 +253,7 @@ class PageLayout
      * @param string $source     style sheet URL or file in assets folder
      * @param array  $attributes additional attributes for LINK element
      */
-    public static function removeStylesheet($source, $attributes = array())
+    public static function removeStylesheet($source, $attributes = [])
     {
         $attributes['rel']  = 'stylesheet';
         $attributes['href'] = Assets::stylesheet_path($source);
@@ -266,7 +267,7 @@ class PageLayout
      * @param string $source     URL of JS file or file in assets folder
      * @param array $attributes  Additional parameters for the script tag
      */
-    public static function addScript($source, $attributes = array())
+    public static function addScript($source, $attributes = [])
     {
         // Check for compatibility lookup entry and rename file resp.
         // add according squeeze package (if lookup element does not
@@ -290,7 +291,7 @@ class PageLayout
      * @param string $source     URL of JS file or file in assets folder
      * @param array $attributes  Additional parameters for the script tag
      */
-    public static function removeScript($source, $attributes = array())
+    public static function removeScript($source, $attributes = [])
     {
         $attributes['src'] = Assets::javascript_path($source);
 
@@ -308,7 +309,7 @@ class PageLayout
      * @param array  $attributes additional attributes for the element
      * @param string $content    element contents, if any
      */
-    public static function addHeadElement($name, $attributes = array(), $content = NULL)
+    public static function addHeadElement($name, $attributes = [], $content = NULL)
     {
         self::$head_elements[] = compact('name', 'attributes', 'content');
     }
@@ -326,9 +327,9 @@ class PageLayout
      * Remove a particular style sheet LINK by href:
      * PageLayout::removeHeadElement('link', array('href' => '...'));
      */
-    public static function removeHeadElement($name, $attributes = array())
+    public static function removeHeadElement($name, $attributes = [])
     {
-        $result = array();
+        $result = [];
 
         foreach (self::$head_elements as $element) {
             $remove = false;
@@ -390,7 +391,7 @@ class PageLayout
 
         if (isset($GLOBALS['_include_stylesheet'])) {
             unset($package_elements['base-style.css']);
-            self::addStylesheet($GLOBALS['_include_stylesheet'], array('media' => 'screen, print'));
+            self::addStylesheet($GLOBALS['_include_stylesheet'], ['media' => 'screen, print']);
         }
 
         $head_elements = array_merge($package_elements, self::$head_elements);
@@ -607,7 +608,7 @@ class PageLayout
      */
     public static function getMessages()
     {
-        $messages = array();
+        $messages = [];
 
         if (isset($_SESSION['messages'])) {
             $messages = $_SESSION['messages'];

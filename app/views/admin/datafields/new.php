@@ -22,7 +22,7 @@ use Studip\Button, Studip\LinkButton;
             <?= _('Feldtyp') ?>
 
             <select name="datafield_type">
-           <? foreach (DataFieldEntry::getSupportedTypes() as $param): ?>
+           <? foreach (DataFieldEntry::getSupportedTypes($object_typ) as $param): ?>
                 <option><?= htmlReady($param) ?></option>
             <? endforeach; ?>
             </select>
@@ -97,6 +97,20 @@ use Studip\Button, Studip\LinkButton;
             </select>
         </label>
 
+        <label>
+            <?= _('Einrichtung') ?>
+            <select name="institut_id" class="nested-select">
+                <option value="" class="is-placeholder"></option>
+                <? foreach ($institutes as $institute): ?>
+                    <option value="<?= htmlReady($institute['Institut_id']) ?>"
+                        class="<?= $institute['is_fak'] ? 'nested-item-header' : 'nested-item' ?>"
+                            <?= $item->institut_id === $institute['Institut_id'] ? 'selected' : ''?>>
+                        <?= htmlReady(my_substr($institute['Name'],0,80)) ?>
+                    </option>
+                <? endforeach; ?>
+            </select>
+        </label>
+
     <? if ($object_typ === 'user') :?>
         <label>
             <input type="hidden" name="system" value="0">
@@ -144,7 +158,7 @@ use Studip\Button, Studip\LinkButton;
     </fieldset>
 
     <footer data-dialog-button>
-        <?= Button::createAccept(_('Anlegen'), 'anlegen', array('title' => _('Neues Datenfeld anlegen'))) ?>
-        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields'), array('title' => _('Zurück zur Übersicht'))) ?>
+        <?= Button::createAccept(_('Anlegen'), 'anlegen', ['title' => _('Neues Datenfeld anlegen')]) ?>
+        <?= LinkButton::createCancel(_('Abbrechen'), $controller->url_for('admin/datafields'), ['title' => _('Zurück zur Übersicht')]) ?>
     </footer>
 </form>

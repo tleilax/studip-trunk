@@ -54,7 +54,7 @@ a.button, button.button {
     white-space: nowrap;
 
     &::before {
-        background: no-repeat;
+        background-repeat: no-repeat;
         content: " ";
         float: left;
         height: 16px;
@@ -108,6 +108,10 @@ a.button, button.button {
 
 .button.download {
   .button-with-icon("download", "clickable", "info_alt");
+}
+
+.button.search {
+  .button-with-icon("search", "clickable", "info_alt");
 }
 
 /* Grouped Buttons */

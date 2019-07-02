@@ -24,7 +24,10 @@ class Course_FilesController extends AuthenticatedController
         checkObjectModule('documents');
         object_set_visit_module('documents');
 
-        $this->course = Course::findCurrent();
+        if (!Context::isCourse()) {
+            throw new CheckObjectException(_('Es wurde keine passende Veranstaltung gefunden.'));
+        }
+        $this->course = Context::get();
         $this->last_visitdate = object_get_visit($this->course->id, 'documents');
 
         PageLayout::setHelpKeyword('Basis.Dateien');
@@ -45,7 +48,7 @@ class Course_FilesController extends AuthenticatedController
                 _("Ordner bearbeiten"),
                 $this->url_for("file/edit_folder/".$this->topFolder->getId()),
                 Icon::create("edit", "clickable"),
-                array('data-dialog' => 1)
+                ['data-dialog' => 1]
             );
         }
 
@@ -114,7 +117,7 @@ class Course_FilesController extends AuthenticatedController
 
         $this->topFolder = $folder->getTypedFolder();
 
-        if (!$this->topFolder->isVisible($GLOBALS['user']->id)) {
+        if (!$this->topFolder->isVisible($GLOBALS['user']->id) || $this->topFolder->range_id !== $this->course->id) {
             throw new AccessDeniedException();
         }
         $this->buildSidebar('index');

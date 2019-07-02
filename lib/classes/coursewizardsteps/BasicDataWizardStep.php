@@ -45,13 +45,13 @@ class BasicDataWizardStep implements CourseWizardStep
         // We only need our own stored values here.
         $values = $values[__CLASS__];
         // Get all available course types and their categories.
-        $typestruct = array();
+        $typestruct = [];
         foreach (SemType::getTypes() as $type) {
             $class = $type->getClass();
             // Creates a studygroup.
             if ($values['studygroup']) {
                 // Get all studygroup types.
-                if ($class['studygroup_mode'] && !$class['course_creation_forbidden']) {
+                if ($class['studygroup_mode']) {
                     $typestruct[$class['name']][] = $type;
                 }
                 // Pre-set institute for studygroup assignment.
@@ -74,7 +74,7 @@ class BasicDataWizardStep implements CourseWizardStep
         }
 
         // Semester selection.
-        $semesters = array();
+        $semesters = [];
         $now = mktime();
         // Allow only current or future semesters for selection.
         foreach (Semester::getAll() as $s) {
@@ -126,21 +126,11 @@ class BasicDataWizardStep implements CourseWizardStep
                 if ($GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT && Request::isXhr()) {
                     $values['institute'] = $GLOBALS['user']->cfg->MY_INSTITUTES_DEFAULT;
                 } else {
-                    $user = User::find($GLOBALS['user']->id);
+                    $values['institute'] = InstituteMember::getDefaultInstituteIdForUser($GLOBALS['user']->id);
 
-                    // get default institute
-                    foreach ($user->institute_memberships as $institute_membership) {
-                        if ($institute_membership->inst_perms !== 'user') {
-                            if ($institute_membership->externdefault == 1) {
-                                $values['institute'] = $institute_membership->institut_id;
-                            }
-                        }
-                    }
-
-                    // if for some reason no default institute has beend found, use the first one listed
+                    // if for some reason no default institute is set, use the first one listed
                     if (!$values['institute']) {
-                        $inst_membership = $user->institute_memberships[0];
-                        $values['institute'] = $inst_membership->institut_id;
+                        $values['institute'] = $institutes[0]['Institut_id'];
                     }
                 }
             }
@@ -169,11 +159,11 @@ class BasicDataWizardStep implements CourseWizardStep
             'part_inst_id'
         );
         $tpl->set_attribute('instsearch', QuickSearch::get('part_inst_id', $instsearch)
-            ->withButton(array('search_button_name' => 'search_part_inst', 'reset_button_name' => 'reset_instsearch'))
+            ->withButton(['search_button_name' => 'search_part_inst', 'reset_button_name' => 'reset_instsearch'])
             ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addParticipatingInst')
             ->render());
         if (!$values['participating']) {
-            $values['participating'] = array();
+            $values['participating'] = [];
         }
 
         // Quicksearch for lecturers.
@@ -200,7 +190,7 @@ class BasicDataWizardStep implements CourseWizardStep
             }
             // Add your own default deputies if applicable.
             if ($deputies && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
-                $values['deputies'] = array_merge($values['deputies'] ?: array(),
+                $values['deputies'] = array_merge($values['deputies'] ?: [],
                     array_flip(array_keys(getDeputies($GLOBALS['user']->id))));
             }
         }
@@ -209,15 +199,15 @@ class BasicDataWizardStep implements CourseWizardStep
             $values['lecturers'][$GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER] = true;
             // Add this lecturer's default deputies if applicable.
             if ($deputies && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
-                $values['deputies'] = array_merge($values['deputies'] ?: array(),
+                $values['deputies'] = array_merge($values['deputies'] ?: [],
                     array_flip(array_keys(getDeputies($GLOBALS['user']->cfg->ADMIN_COURSES_TEACHERFILTER))));
             }
         }
         if (!$values['lecturers']) {
-            $values['lecturers'] = array();
+            $values['lecturers'] = [];
         }
         if ($deputies && !$values['deputies']) {
-            $values['deputies'] = array();
+            $values['deputies'] = [];
         }
 
 
@@ -234,21 +224,21 @@ class BasicDataWizardStep implements CourseWizardStep
             $deputysearch = new PermissionSearch('user',
                 _('Vertretung hinzufügen'),
                 'user_id',
-                array('permission' => 'dozent',
-                    'exclude_user' => array_keys($values['deputies']))
+                ['permission' => 'dozent',
+                    'exclude_user' => array_keys($values['deputies'])]
             );
             $tpl->set_attribute('dsearch', QuickSearch::get('deputy_id', $deputysearch)
-                ->withButton(array('search_button_name' => 'search_deputy', 'reset_button_name' => 'reset_dsearch'))
+                ->withButton(['search_button_name' => 'search_deputy', 'reset_button_name' => 'reset_dsearch'])
                 ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addDeputy')
                 ->render());
         }
 
         if (!$values['tutors']) {
-            $values['tutors'] = array();
+            $values['tutors'] = [];
         }
 
         list($lsearch, $tsearch)  = array_values($this->getSearch($values['coursetype'],
-            array_merge(array($values['institute']), array_keys($values['participating'])),
+            array_merge([$values['institute']], array_keys($values['participating'])),
             array_keys($values['lecturers']), array_keys($values['tutors'])));
         // Quicksearch for lecturers.
         $tpl->set_attribute('lsearch', $lsearch);
@@ -290,7 +280,7 @@ class BasicDataWizardStep implements CourseWizardStep
             unset($values['lecturer_id_parameter']);
             // Add default deputies if applicable.
             if (Config::get()->DEPUTIES_ENABLE && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
-                $values['deputies'] = array_merge($values['deputies'] ?: array(),
+                $values['deputies'] = array_merge($values['deputies'] ?: [],
                     array_flip(array_keys(Request::option('lecturer_id'))));
             }
         }
@@ -337,7 +327,7 @@ class BasicDataWizardStep implements CourseWizardStep
         // We only need our own stored values here.
         $values = $values[__CLASS__];
         $ok = true;
-        $errors = array();
+        $errors = [];
         if (!trim($values['name'])) {
             $errors[] = _('Bitte geben Sie den Namen der Veranstaltung an.');
         }
@@ -435,7 +425,7 @@ class BasicDataWizardStep implements CourseWizardStep
         }
         if ($course->store()) {
             StudipLog::log('SEM_CREATE', $course->id, null, 'Veranstaltung mit Assistent angelegt');
-            $institutes = array($values['institute']);
+            $institutes = [$values['institute']];
             if (isset($values['participating']) && is_array($values['participating'])) {
                 $institutes = array_merge($institutes, array_keys($values['participating']));
             }
@@ -485,14 +475,14 @@ class BasicDataWizardStep implements CourseWizardStep
      */
     public function copy($course, $values)
     {
-        $data = array(
+        $data = [
             'coursetype' => $course->status,
             'start_time' => $course->start_time,
             'name' => $course->name,
             'number' => $course->veranstaltungsnummer,
             'institute' => $course->institut_id,
             'description' => $course->beschreibung
-        );
+        ];
         $lecturers = $course->members->findBy('status', 'dozent')->pluck('user_id');
         $data['lecturers'] = array_flip($lecturers);
         $tutors = $course->members->findBy('status', 'tutor')->pluck('user_id');
@@ -518,20 +508,20 @@ class BasicDataWizardStep implements CourseWizardStep
     {
         if (Config::get()->DEPUTIES_ENABLE && Config::get()->DEPUTIES_DEFAULTENTRY_ENABLE) {
             $deputies = getDeputies($user_id, 'full_rev_username');
-            $result = array();
+            $result = [];
             foreach ($deputies as $d) {
-                $result[] = array(
+                $result[] = [
                     'id' => $d['user_id'],
                     'name' => $d['fullname']
-                );
+                ];
             }
             return $result;
         } else {
-            return array();
+            return [];
         }
     }
 
-    public function getSearch($course_type, $institute_ids, $exclude_lecturers = array(),$exclude_tutors = array())
+    public function getSearch($course_type, $institute_ids, $exclude_lecturers = [],$exclude_tutors = [])
     {
         if (SeminarCategories::getByTypeId($course_type)->only_inst_user) {
             $search = 'user_inst';
@@ -544,7 +534,7 @@ class BasicDataWizardStep implements CourseWizardStep
             __CLASS__ . '::lsearchHelper'
         );
         $lsearch = QuickSearch::get('lecturer_id', $psearch)
-            ->withButton(array('search_button_name' => 'search_lecturer', 'reset_button_name' => 'reset_lsearch'))
+            ->withButton(['search_button_name' => 'search_lecturer', 'reset_button_name' => 'reset_lsearch'])
             ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addLecturer')
             ->render();
 
@@ -554,7 +544,7 @@ class BasicDataWizardStep implements CourseWizardStep
             __CLASS__ . '::tsearchHelper'
         );
         $tsearch = QuickSearch::get('tutor_id', $tutor_psearch)
-            ->withButton(array('search_button_name' => 'search_tutor', 'reset_button_name' => 'reset_tsearch'))
+            ->withButton(['search_button_name' => 'search_tutor', 'reset_button_name' => 'reset_tsearch'])
             ->fireJSFunctionOnSelect('STUDIP.CourseWizard.addTutor')
             ->render();
 
@@ -563,9 +553,9 @@ class BasicDataWizardStep implements CourseWizardStep
 
     public static function tsearchHelper($psearch, $context)
     {
-        $ret['permission'] = array('tutor', 'dozent');
+        $ret['permission'] = ['tutor', 'dozent'];
         $ret['exclude_user'] = array_keys((array)$context['tutors']);
-        $ret['institute'] = array_merge(array($context['institute']), array_keys((array)$context['participating']));
+        $ret['institute'] = array_merge([$context['institute']], array_keys((array)$context['participating']));
         return $ret;
     }
 
@@ -573,7 +563,7 @@ class BasicDataWizardStep implements CourseWizardStep
     {
         $ret['permission'] = 'dozent';
         $ret['exclude_user'] = array_keys((array)$context['lecturers']);
-        $ret['institute'] = array_merge(array($context['institute']), array_keys((array)$context['participating']));
+        $ret['institute'] = array_merge([$context['institute']], array_keys((array)$context['participating']));
         return $ret;
     }
 

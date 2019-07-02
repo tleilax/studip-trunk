@@ -1,4 +1,4 @@
-<?
+<?php
 # Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
@@ -39,9 +39,9 @@
 
 class ExternElementSelectSubjectAreas extends ExternElement {
 
-    var $attributes = array();
+    var $attributes = [];
     var $selector;
-    var $all_ranges = array();
+    var $all_ranges = [];
 
     /**
     * Constructor
@@ -55,7 +55,7 @@ class ExternElementSelectSubjectAreas extends ExternElement {
         $this->name = "SelectSubjectAreas";
         $this->real_name = _("Auswahl der anzuzeigenden Studienbereiche");
         $this->description = _("Sie können hier die Studienbereiche auswählen, die auf der externen Seite ausgegeben werden sollen.");
-        $this->attributes = array('subjectareasselected', 'selectallsubjectareas', 'reverseselection');
+        $this->attributes = ['subjectareasselected', 'selectallsubjectareas', 'reverseselection'];
 
     }
 
@@ -76,7 +76,7 @@ class ExternElementSelectSubjectAreas extends ExternElement {
             $edit_form = "", $anker = "") {
 
         if ($faulty_values == '')
-            $faulty_values = array();
+            $faulty_values = [];
         $out = '';
         $table = '';
         if ($edit_form == '')
@@ -85,14 +85,14 @@ class ExternElementSelectSubjectAreas extends ExternElement {
         $edit_form->setElementName($this->getName());
         $element_headline = $this->getEditFormHeadline($edit_form);
 
-        $title = _("Alle Studienbereiche anzeigen:");
+        $title = _('Alle Studienbereiche anzeigen') . ':';
         $info = _("Wählen Sie diese Option, wenn alle Veranstaltungen aus allen Studienbereichen angezeigt werden sollen - unabhängig von unten vorgenommener Auswahl.");
         $values = '1';
         $names = '';
         $table = $edit_form->editCheckboxGeneric('selectallsubjectareas', $title, $info, $values, $names);
         $table .= $edit_form->editSelectSubjectAreas(new StudipSemTreeSearch('dummy', 'SelectSubjectAreas', FALSE));
 
-        $title = _("Auswahl umkehren:");
+        $title = _('Auswahl umkehren') . ':';
         $info = _("Wählen Sie diese Option, wenn Veranstaltungen aus den ausgewählten Bereichen nicht angezeigt werden sollen.");
         $values = '1';
         $names = '';
@@ -157,5 +157,3 @@ class ExternElementSelectSubjectAreas extends ExternElement {
     }
 
 }
-
-?>

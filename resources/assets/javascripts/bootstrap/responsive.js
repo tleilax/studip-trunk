@@ -74,6 +74,10 @@ function responsify() {
             $('#layout-sidebar').removeClass('visible-sidebar');
             $('#responsive-navigation').toggleClass('visible', this.checked);
         });
+    } else {
+        $('#responsive-toggle').on('change', function() {
+            $('#responsive-navigation').toggleClass('visible', this.checked);
+        });
     }
 
     $('#responsive-navigation :checkbox').on('change', function () {
@@ -126,7 +130,7 @@ function setResponsiveDisplay(state = true) {
 }
 
 // Build responsive menu on domready or resize
-$(document).ready(function() {
+STUDIP.domReady(() => {
     const cache = STUDIP.Cache.getInstance('responsive.');
     if (STUDIP.Navigation.navigation !== undefined) {
         cache.set('navigation', STUDIP.Navigation.navigation);

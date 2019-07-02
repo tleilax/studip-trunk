@@ -1,4 +1,4 @@
-<?
+<?php
 # Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
@@ -40,8 +40,8 @@
 
 class ExternElementStudipLink extends ExternElement {
 
-    var $attributes = array("linktext", "imageurl", "image", "a_class", "a_style", "font_face",
-            "font_size", "font_color", "font_class", "font_style", "align");
+    var $attributes = ["linktext", "imageurl", "image", "a_class", "a_style", "font_face",
+            "font_size", "font_color", "font_class", "font_style", "align"];
 
     /**
     * Constructor
@@ -62,12 +62,12 @@ class ExternElementStudipLink extends ExternElement {
     */
     function getDefaultConfig () {
 
-        $config = array(
+        $config = [
             "linktext" => _("Daten ändern"),
             "imageurl" => "",
             "image" => "1",
             "align" => "left"
-        );
+        ];
 
         return $config;
     }
@@ -76,7 +76,7 @@ class ExternElementStudipLink extends ExternElement {
             $edit_form = "", $anker = "") {
 
         if ($faulty_values == '')
-            $faulty_values = array();
+            $faulty_values = [];
         $out = '';
         $tag_headline = '';
         $table = '';
@@ -93,16 +93,16 @@ class ExternElementStudipLink extends ExternElement {
 
         $content = $edit_form->editAlign("align");
 
-        $title = _("Linktext:");
+        $title = _('Linktext') . ':';
         $info = _("Geben Sie den Text für den Link ein.");
         $content .= $edit_form->editTextfieldGeneric("linktext", $title, $info, 40, 150);
 
-        $title = _("Bild anzeigen:");
+        $title = _('Bild anzeigen') . ':';
         $info = _("Anwählen, wenn ein Bild als Link angezeigt werden soll.");
         $value = "1";
         $content .= $edit_form->editCheckboxGeneric("image", $title, $info, $value, "");
 
-        $title = _("Bild-URL:");
+        $title = _('Bild-URL') . ':';
         $info = _("Geben Sie die URL eines Bildes ein, dass als Link dienen soll. Wenn Sie keine URL angeben, wird ein Standard-Bild (Pfeile) ausgegeben.");
         $content .= $edit_form->editTextfieldGeneric("imageurl", $title, $info, 40, 150);
 
@@ -163,5 +163,3 @@ class ExternElementStudipLink extends ExternElement {
     }
 
 }
-
-?>

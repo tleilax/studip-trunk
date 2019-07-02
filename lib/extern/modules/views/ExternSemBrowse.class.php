@@ -54,17 +54,17 @@ class ExternSemBrowse extends SemBrowse {
         $all_semester = SemesterData::getAllSemesterData();
         array_unshift($all_semester,0);
 
-        $this->group_by_fields = array( array('name' => _("Semester"), 'group_field' => 'sem_number'),
-                                        array('name' => _("Bereich"), 'group_field' => 'bereich'),
-                                        array('name' => _("Lehrende"), 'group_field' => 'fullname', 'unique_field' => 'username'),
-                                        array('name' => _("Typ"), 'group_field' => 'status'),
-                                        array('name' => _("Einrichtung"), 'group_field' => 'Institut', 'unique_field' => 'Institut_id'));
+        $this->group_by_fields = [ ['name' => _("Semester"), 'group_field' => 'sem_number'],
+                                        ['name' => _("Bereich"), 'group_field' => 'bereich'],
+                                        ['name' => _("Lehrende"), 'group_field' => 'fullname', 'unique_field' => 'username'],
+                                        ['name' => _("Typ"), 'group_field' => 'status'],
+                                        ['name' => _("Einrichtung"), 'group_field' => 'Institut', 'unique_field' => 'Institut_id']];
 
         $this->module = $module;
         $this->config = $this->module->config;
         $this->sem_browse_data["group_by"] = $this->config->getValue("Main", "grouping");
         $this->sem_dates = $all_semester;
-        $this->sem_dates[0] = array("name" => sprintf(_("vor dem %s"),$this->sem_dates[1]['name']));
+        $this->sem_dates[0] = ["name" => sprintf(_("vor dem %s"),$this->sem_dates[1]['name'])];
 
         // reorganize the $SEM_TYPE-array
         foreach ($SEM_CLASS as $key_class => $class) {
@@ -130,7 +130,7 @@ class ExternSemBrowse extends SemBrowse {
                     $the_tree =& $this->sem_tree->tree;
                 }
                 $the_tree->buildIndex();
-                $selected_ranges = array_merge(array($stid), $the_tree->getKidsKids($stid));
+                $selected_ranges = array_merge([$stid], $the_tree->getKidsKids($stid));
             }
             if (!$this->config->getValue('SelectSubjectAreas', 'selectallsubjectareas')
                     && count($selected_ranges)) {
@@ -146,9 +146,9 @@ class ExternSemBrowse extends SemBrowse {
             // show only selected SemTypes
             $selected_semtypes = $this->config->getValue('ReplaceTextSemType', 'visibility');
             if (Request::get('semstatus')) {
-                $selected_semtypes = array(Request::get('semstatus'));
+                $selected_semtypes = [Request::get('semstatus')];
             }
-            $sem_types_array = array();
+            $sem_types_array = [];
             if (count($selected_semtypes)) {
                 //for ($i = 0; $i < count($selected_semtypes); $i++) {
                 foreach ($selected_semtypes as $i => $active) {
@@ -217,7 +217,7 @@ class ExternSemBrowse extends SemBrowse {
             $sem_data = $snap->getGroupedResult("Seminar_id");
 
             if ($this->sem_browse_data['group_by'] == 0){
-                $group_by_duration = $snap->getGroupedResult("sem_number_end", array("sem_number","Seminar_id"));
+                $group_by_duration = $snap->getGroupedResult("sem_number_end", ["sem_number","Seminar_id"]);
                 foreach ($group_by_duration as $sem_number_end => $detail){
                     if ($sem_number_end != -1 && ($detail['sem_number'][$sem_number_end - 1] && count($detail['sem_number']) == 1)){
                         continue;
@@ -267,37 +267,39 @@ class ExternSemBrowse extends SemBrowse {
 
             switch ($this->sem_browse_data["group_by"]){
                     case 0:
-                    krsort($group_by_data, SORT_NUMERIC);
-                    break;
+                        krsort($group_by_data, SORT_NUMERIC);
+                        break;
 
                     case 1:
-                    uksort($group_by_data, create_function('$a,$b',
-                            '$the_tree = TreeAbstract::GetInstance("StudipSemTree");
-                            return (int)($the_tree->tree_data[$a]["index"] - $the_tree->tree_data[$b]["index"]);
-                            '));
-
-                    break;
+                        uksort($group_by_data, function ($a, $b) {
+                            $the_tree = TreeAbstract::GetInstance('StudipSemTree');
+                            return $the_tree->tree_data[$a]['index'] - $the_tree->tree_data[$b]['index'];
+                        });
+                        break;
 
                     case 3:
-                    if ($order = $this->module->config->getValue("ReplaceTextSemType", "order")) {
-                        foreach ($order as $position) {
-                            if (isset($group_by_data[$position]))
-                                $group_by_data_tmp[$position] = $group_by_data[$position];
+                        if ($order = $this->module->config->getValue("ReplaceTextSemType", "order")) {
+                            foreach ($order as $position) {
+                                if (isset($group_by_data[$position]))
+                                    $group_by_data_tmp[$position] = $group_by_data[$position];
+                            }
+                            $group_by_data = $group_by_data_tmp;
+                            unset($group_by_data_tmp);
                         }
-                        $group_by_data = $group_by_data_tmp;
-                        unset($group_by_data_tmp);
-                    }
-                    else {
-                        uksort($group_by_data, create_function('$a,$b',
-                                'global $SEM_CLASS,$SEM_TYPE;
-                                return strnatcasecmp($SEM_TYPE[$a]["name"]." (". $SEM_CLASS[$SEM_TYPE[$a]["class"]]["name"].")",
-                                                $SEM_TYPE[$b]["name"]." (". $SEM_CLASS[$SEM_TYPE[$b]["class"]]["name"].")");'));
-                    }
-                    break;
+                        else {
+                            uksort($group_by_data, function ($a, $b) {
+                                global $SEM_CLASS,$SEM_TYPE;
+                                return strnatcasecmp(
+                                    $SEM_TYPE[$a]['name'] . ' (' . $SEM_CLASS[$SEM_TYPE[$a]['class']]['name'] . ')',
+                                    $SEM_TYPE[$b]['name'] . ' (' . $SEM_CLASS[$SEM_TYPE[$b]['class']]['name'] . ')'
+                                );
+                            });
+                        }
+                        break;
 
                     default:
-                    uksort($group_by_data, 'strnatcasecmp');
-                    break;
+                        uksort($group_by_data, 'strnatcasecmp');
+                        break;
             }
 
             $show_time = $this->config->getValue("Main", "time");
@@ -465,7 +467,7 @@ class ExternSemBrowse extends SemBrowse {
             $sem_link["content"] = htmlReady($sem_name);
             $this->module->elements["SemLink"]->printout($sem_link);
             echo "</font>";
-            $children = array();
+            $children = [];
             if (in_array(key($sem_data[$seminar_id]['status']), $table_data['group_sem_types'])) {
                 $children = array_filter(Course::findByParent_Course($seminar_id), function ($c) {
                     return $c->visible == 1;
@@ -479,7 +481,7 @@ class ExternSemBrowse extends SemBrowse {
             }
             echo "</td></tr>\n";
             //create Turnus field
-            $temp_turnus_string = Seminar::GetInstance($seminar_id)->getDatesExport(array('show_room' => true));
+            $temp_turnus_string = Seminar::GetInstance($seminar_id)->getDatesExport(['show_room' => true]);
             //Shorten, if string too long (add link for details.php)
             if (mb_strlen($temp_turnus_string) > 70) {
                 $temp_turnus_string = mb_substr($temp_turnus_string, 0,

@@ -18,14 +18,14 @@
 
 class Admin_DatafieldsController extends AuthenticatedController
 {
-    public $user_status = array(
+    public $user_status = [
         'user'   =>  1,
         'autor'  =>  2,
         'tutor'  =>  4,
         'dozent' =>  8,
         'admin'  => 16,
         'root'   => 32,
-    );
+    ];
 
     /**
      * Common tasks for all actions.
@@ -56,24 +56,20 @@ class Admin_DatafieldsController extends AuthenticatedController
     public function index_action($class = null)
     {
         if ($this->class_filter) {
-            $this->datafields_list = array(
+            $this->datafields_list = [
                 $this->class_filter => DataField::getDataFields($this->class_filter),
-            );
+            ];
         } else {
-            $this->datafields_list = array(
-                'sem'          => DataField::getDataFields('sem'),
-                'inst'         => DataField::getDataFields('inst'),
-                'user'         => DataField::getDataFields('user'),
-                'userinstrole' => DataField::getDataFields('userinstrole'),
-                'usersemdata'  => DataField::getDataFields('usersemdata'),
-                'roleinstdata' => DataField::getDataFields('roleinstdata')
-            );
-
-            $this->datafields_list['moduldeskriptor'] =
-                    DataField::getDataFields('moduldeskriptor');
-            $this->datafields_list['modulteildeskriptor'] =
-                    DataField::getDataFields('modulteildeskriptor');
-
+            $this->datafields_list = [
+                'sem'                 => DataField::getDataFields('sem'),
+                'inst'                => DataField::getDataFields('inst'),
+                'user'                => DataField::getDataFields('user'),
+                'userinstrole'        => DataField::getDataFields('userinstrole'),
+                'usersemdata'         => DataField::getDataFields('usersemdata'),
+                'roleinstdata'        => DataField::getDataFields('roleinstdata'),
+                'moduldeskriptor'     => DataField::getDataFields('moduldeskriptor'),
+                'modulteildeskriptor' => DataField::getDataFields('modulteildeskriptor')
+            ];
         }
 
         // set variables for view
@@ -99,7 +95,7 @@ class Admin_DatafieldsController extends AuthenticatedController
 
         if (Request::submitted('uebernehmen')) {
             if (Request::get('datafield_name')) {
-                $datafield->name          = Request::get('datafield_name');
+                $datafield->name          = Request::i18n('datafield_name');
                 if ($datafield->object_type === 'moduldeskriptor'
                         || $datafield->object_type === 'modulteildeskriptor') {
                     $object_class = implode(',', Request::getArray('object_class'));
@@ -107,14 +103,15 @@ class Admin_DatafieldsController extends AuthenticatedController
                 } else {
                     $datafield->object_class  = array_sum(Request::getArray('object_class')) ?: null;
                 }
-                $datafield->edit_perms    = Request::get('edit_perms');
-                $datafield->view_perms    = Request::get('visibility_perms');
-                $datafield->system        = Request::int('system') ?: 0;
-                $datafield->priority      = Request::int('priority') ?: 0;
-                $datafield->type          = Request::get('datafield_type');
-                $datafield->is_required   = Request::int('is_required') ?: 0;
-                $datafield->description   = Request::get('description', $datafield->description);
-                $datafield->is_userfilter = Request::int('is_userfilter') ?: 0;
+                $datafield->edit_perms     = Request::get('edit_perms');
+                $datafield->view_perms     = Request::get('visibility_perms');
+                $datafield->institut_id    = Request::get('institut_id') ?: null;
+                $datafield->system         = Request::int('system') ?: 0;
+                $datafield->priority       = Request::int('priority') ?: 0;
+                $datafield->type           = Request::get('datafield_type');
+                $datafield->is_required    = Request::int('is_required') ?: 0;
+                $datafield->description    = Request::get('description', $datafield->description);
+                $datafield->is_userfilter  = Request::int('is_userfilter') ?: 0;
                 $datafield_entry->setValueFromSubmit(Request::getInstance()->offsetGet('default_value'));
                 $datafield->default_value = $datafield_entry->getValue();
                 $datafield->store();
@@ -124,10 +121,10 @@ class Admin_DatafieldsController extends AuthenticatedController
             } else {
                 PageLayout::postError(_('Es wurde keine Bezeichnung eingetragen!'));
             }
-
         }
 
         // set variables for view
+        $this->institutes = Institute::getMyInstitutes();
         $this->item         = $datafield;
         $this->datafield_id = $datafield->id;
         $this->type         = $datafield->type;
@@ -157,6 +154,7 @@ class Admin_DatafieldsController extends AuthenticatedController
                 }
                 $datafield->edit_perms    = Request::get('edit_perms');
                 $datafield->view_perms    = Request::get('visibility_perms');
+                $datafield->institut_id   = Request::get('institut_id') ?: null;
                 $datafield->system        = Request::int('system') ?: 0;
                 $datafield->priority      = Request::int('priority') ?: 0;
                 $datafield->type          = Request::get('datafield_type');
@@ -182,7 +180,7 @@ class Admin_DatafieldsController extends AuthenticatedController
 
         $this->type_name  = $this->allclasses[$type];
         $this->object_typ = $type;
-
+        $this->institutes = Institute::getMyInstitutes();
         if (!$this->object_typ) {
             $this->render_action('type_select');
         }

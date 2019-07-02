@@ -46,9 +46,8 @@ use Studip\Button, Studip\LinkButton;
         <label class="col-2">
             <?= _('Globaler Status') ?>
 
-            <select id="permission"
-                <?= StudipAuthAbstract::CheckField('auth_user_md5.perms', $user->auth_plugin)
-                    ? 'readonly' : 'name="perms[]"' ?>>
+            <select name="perms[]" id="permission"
+                <?= StudipAuthAbstract::CheckField('auth_user_md5.perms', $user->auth_plugin) ? 'disabled' : '' ?>>
                 <? foreach (array_keys($GLOBALS['perm']->permissions) as $permission): ?>
                     <option <? if ($permission === $user->perms) echo 'selected'; ?>>
                         <?= htmlReady($permission) ?>
@@ -98,9 +97,9 @@ use Studip\Button, Studip\LinkButton;
             <? endif ?>
 
             <div class="hgroup">
-                <select id="title_front" class="size-s"
+                <select name="title_front_chooser" id="title_front" class="size-s"
                         onchange="jQuery(this).next().val(this.value);"
-                        <?= $disable_field ? 'readonly' : 'name="title_front_chooser"' ?>>
+                        <?= $disable_field ? 'disabled' : '' ?>>
                 <? foreach (Config::get()->TITLE_FRONT_TEMPLATE as $title): ?>
                     <option value="<?= htmlReady($title) ?>" <? if ($title === $user->title_front) echo 'selected'; ?>>
                         <?= htmlReady($title) ?>
@@ -123,9 +122,9 @@ use Studip\Button, Studip\LinkButton;
             <? endif ?>
 
             <div class="hgroup">
-                <select id="title_rear" class="size-s"
+                <select name="title_rear_chooser" id="title_rear" class="size-s"
                         onchange="jQuery(this).next().val(this.value);"
-                         <?= $disable_field ? 'readonly' : 'name="title_rear_chooser"' ?>>
+                         <?= $disable_field ? 'disabled' : '' ?>>
                 <? foreach (Config::get()->TITLE_REAR_TEMPLATE as $rtitle): ?>
                     <option value="<?= htmlReady($rtitle) ?>" <? if ($rtitle === $user->title_rear) echo 'selected'; ?>>
                         <?= htmlReady($rtitle) ?>
@@ -163,27 +162,27 @@ use Studip\Button, Studip\LinkButton;
 
             <div class="hgroup">
                 <label>
-                    <input type="radio" value="0"
+                    <input type="radio" name="geschlecht" value="0"
                             <? if (!$user->geschlecht) echo 'checked'; ?>
-                             <?= $disable_field ? 'readonly' : 'name="geschlecht"' ?>>
+                             <?= $disable_field ? 'disabled' : '' ?>>
                     <?= _('unbekannt') ?>
                 </label>
                 <label>
-                    <input type="radio" value="1"
+                    <input type="radio" name="geschlecht" value="1"
                             <? if ($user->geschlecht == 1) echo 'checked'; ?>
-                             <?= $disable_field ? 'readonly' : 'name="geschlecht"' ?>>
+                             <?= $disable_field ? 'disabled' : '' ?>>
                     <?= _('männlich') ?>
                 </label>
                 <label>
-                    <input type="radio" value="2"
+                    <input type="radio" name="geschlecht" value="2"
                             <? if ($user->geschlecht == 2) echo 'checked'; ?>
-                            <?= $disable_field ? 'readonly' : 'name="geschlecht"' ?>>
+                            <?= $disable_field ? 'disabled' : '' ?>>
                     <?= _('weiblich') ?>
                 </label>
                 <label>
-                    <input type="radio" value="3"
+                    <input type="radio" name="geschlecht" value="3"
                             <? if ($user->geschlecht == 3) echo 'checked'; ?>
-                            <?= $disable_field ? 'readonly' : 'name="geschlecht"' ?>>
+                            <?= $disable_field ? 'disabled' : '' ?>>
                     <?= _('divers') ?>
                 </label>
             </div>
@@ -206,13 +205,13 @@ use Studip\Button, Studip\LinkButton;
 
             <label class="col-2">
                 <?= _('Neues Passwort') ?>
-                <input class="user_form" name="pass_1" type="password" id="pass_1">
+                <input class="user_form" name="pass_1" type="password" id="pass_1" autocomplete="new-password">
             </label>
 
             <label class="col-2">
                 <?= _('Passwortwiederholung') ?>
 
-                <input class="user_form" name="pass_2" type="password" id="pass_2"
+                <input class="user_form" name="pass_2" type="password" id="pass_2" autocomplete="new-password"
                        onkeyup="jQuery('#pw_success').toggle(jQuery('#pass_1').val() === $('#pass_2').val())">
            </label>
 
@@ -426,7 +425,7 @@ use Studip\Button, Studip\LinkButton;
             </ol>
         </section>
         <? endif ?>
-        
+
         <? if (isset($student_institutes) && count($student_institutes)) : ?>
         <section class="col-3">
             <ol class="default">
@@ -586,7 +585,7 @@ use Studip\Button, Studip\LinkButton;
 
                 <? if ($entry->isEditable() && !LockRules::Check($user->user_id, $entry->getId())) : ?>
                     <section class="col-3">
-                    <?= $entry->getHTML('datafields', array('tooltip' => $text)) ?>
+                    <?= $entry->getHTML('datafields', ['tooltip' => $text]) ?>
                 </section>
                 <? else : ?>
                     <section class="col-3">
@@ -602,7 +601,7 @@ use Studip\Button, Studip\LinkButton;
     <footer>
         <label>
             <input name="u_edit_send_mail" value="1" checked type="checkbox">
-            <?= _('Emailbenachrichtigung bei Änderung der Daten verschicken?') ?>
+            <?= _('E-Mail-Benachrichtigung bei Änderung der Daten verschicken?') ?>
         </label>
         <br>
 

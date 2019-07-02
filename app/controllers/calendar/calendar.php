@@ -29,11 +29,11 @@ class Calendar_CalendarController extends AuthenticatedController
         $this->last_view = Request::option('last_view',
                 $this->settings['view']);
         $this->action = $action;
-        $this->restrictions = array(
+        $this->restrictions = [
             'STUDIP_CATEGORY'     => $this->category ?: null,
             // hide events with status 3 (CalendarEvent::PARTSTAT_DECLINED)
-            'STUDIP_GROUP_STATUS' => $this->settings['show_declined'] ? null : array(0,1,2,5)
-        );
+            'STUDIP_GROUP_STATUS' => $this->settings['show_declined'] ? null : [0,1,2,5]
+        ];
         if ($this->category) {
             URLHelper::bindLinkParam('category', $this->category);
         }
@@ -102,9 +102,9 @@ class Calendar_CalendarController extends AuthenticatedController
             $filters->addCheckbox(_('Abgelehnte Termine anzeigen'),
                     $this->settings['show_declined'],
                     $this->url_for($this->base . 'show_declined',
-                            array('show_declined' => 1)),
+                            ['show_declined' => 1]),
                     $this->url_for($this->base . 'show_declined',
-                            array('show_declined' => 0)));
+                            ['show_declined' => 0]));
         }
         Sidebar::get()->addWidget($filters);
     }
@@ -119,7 +119,7 @@ class Calendar_CalendarController extends AuthenticatedController
             Context::close();
 
             $this->redirect(URLHelper::getURL('dispatch.php/' . $this->base
-                . $default_view . '/' . $GLOBALS['user']->id, array(), true));
+                . $default_view . '/' . $GLOBALS['user']->id, [], true));
         } else {
             $this->redirect(URLHelper::getURL('dispatch.php/' . $this->base
                 . $default_view));
@@ -157,14 +157,14 @@ class Calendar_CalendarController extends AuthenticatedController
                 if (!$this->event instanceof CourseEvent && $this->event->attendees->count() > 1) {
                     if ($this->event->group_status) {
                         $this->redirect($this->url_for('calendar/single/edit_status/' . implode('/',
-                            array($this->range_id, $this->event->event_id))));
+                            [$this->range_id, $this->event->event_id])));
                     } else {
                         $this->redirect($this->url_for('calendar/single/event/' . implode('/',
-                            array($this->range_id, $this->event->event_id))));
+                            [$this->range_id, $this->event->event_id])));
                     }
                 } else {
                     $this->redirect($this->url_for('calendar/single/event/' . implode('/',
-                            array($this->range_id, $this->event->event_id))));
+                            [$this->range_id, $this->event->event_id])));
                 }
                 return null;
             }
@@ -271,11 +271,11 @@ class Calendar_CalendarController extends AuthenticatedController
                     exit;
                 } else {
                     PageLayout::postMessage(MessageBox::success(_('Der Termin wurde nicht geändert.')));
-                    $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+                    $this->relocate('calendar/single/' . $this->last_view, ['atime' => $this->atime]);
                 }
             } else {
                 PageLayout::postMessage(MessageBox::success(_('Der Termin wurde gespeichert.')));
-                $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+                $this->relocate('calendar/single/' . $this->last_view, ['atime' => $this->atime]);
             }
         }
 
@@ -316,7 +316,7 @@ class Calendar_CalendarController extends AuthenticatedController
                         exit;
                     } else {
                         PageLayout::postMessage(MessageBox::success(_('Der Teilnahmestatus wurde nicht geändert.')));
-                        $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+                        $this->relocate('calendar/single/' . $this->last_view, ['atime' => $this->atime]);
                     }
                 } else {
                     // send message to organizer...
@@ -334,36 +334,36 @@ class Calendar_CalendarController extends AuthenticatedController
                         }
                         $subject = sprintf(_('Terminvorschlag am %s von %s %s'),
                                 strftime('%c', $this->event->getStart()), get_fullname(), $this->event->toStringGroupStatus());
-                        $msg_text .= "\n\n**" . _('Beginn:') . '** ';
+                        $msg_text .= "\n\n**" . _('Beginn') . ':** ';
                         if ($this->event->isDayEvent()) {
                             $msg_text .= strftime('%x ', $this->event->getStart());
                             $msg_text .= _('ganztägig');
                         } else {
                             $msg_text .= strftime('%c', $this->event->getStart());
                         }
-                        $msg_text .= "\n**" . _('Ende:') . '** ';
+                        $msg_text .= "\n**" . _('Ende') . ':** ';
                         if ($this->event->isDayEvent()) {
                             $msg_text .= strftime('%x ', $this->event->getEnd());
                         } else {
                             $msg_text .= strftime('%c', $this->event->getEnd());
                         }
-                        $msg_text .= "\n**" . _('Zusammenfassung:') . '** ' . $this->event->getTitle() . "\n";
+                        $msg_text .= "\n**" . _('Zusammenfassung') . ':** ' . $this->event->getTitle() . "\n";
                         if ($event_data = $this->event->getDescription()) {
-                            $msg_text .= '**' . _('Beschreibung:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Beschreibung') . ":** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringCategories()) {
-                            $msg_text .= '**' . _('Kategorie:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Kategorie') . ":** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringPriority()) {
-                            $msg_text .= '**' . _('Priorität:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Priorität') . ":** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringAccessibility()) {
-                            $msg_text .= '**' . _('Zugriff:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Zugriff') . ":** $event_data\n";
                         }
                         if ($event_data = $this->event->toStringRecurrence()) {
-                            $msg_text .= '**' . _('Wiederholung:') . "** $event_data\n";
+                            $msg_text .= '**' . _('Wiederholung') . ":** $event_data\n";
                         }
-                        $member = array();
+                        $member = [];
                         foreach ($this->event->attendees as $attendee) {
                             if ($attendee->range_id == $this->event->getAuthorId()) {
                                 $member[] = $attendee->user->getFullName()
@@ -374,19 +374,19 @@ class Calendar_CalendarController extends AuthenticatedController
                                         . ')';
                             }
                         }
-                        $msg_text .= '**' . _('Teilnehmende:') . '** ' . implode(', ', $member);
+                        $msg_text .= '**' . _('Teilnehmende') . ':** ' . implode(', ', $member);
                         $msg_text .= "\n\n" . _('Hier kommen Sie direkt zum Termin in Ihrem Kalender:') . "\n";
                         $msg_text .= URLHelper::getURL('dispatch.php/calendar/single/edit/'
                                 . $this->event->getAuthorId() . '/' . $this->event->event_id);
                         $message->insert_message(
                                 addslashes($msg_text),
-                                array(get_username($this->event->getAuthorId())),
+                                [get_username($this->event->getAuthorId())],
                                 $this->event->range_id,
                                 '', '', '', '', addslashes($subject));
                         restoreLanguage();
                     }
                     PageLayout::postMessage(MessageBox::success(_('Der Teilnahmestatus wurde gespeichert.')));
-                    $this->relocate('calendar/single/' . $this->last_view, array('atime' => $this->atime));
+                    $this->relocate('calendar/single/' . $this->last_view, ['atime' => $this->atime]);
                 }
             }
         }
@@ -433,7 +433,7 @@ class Calendar_CalendarController extends AuthenticatedController
         $action = Request::option('action', 'week');
         $this->range_id = $this->range_id ?: $GLOBALS['user']->id;
         $this->redirect($this->url_for($this->base . $action,
-                array('atime' => $atime, 'range_id' => $this->range_id)));
+                ['atime' => $atime, 'range_id' => $this->range_id]));
     }
 
     public function show_declined_action ()
@@ -445,11 +445,12 @@ class Calendar_CalendarController extends AuthenticatedController
         $action = Request::option('action', 'week');
         $this->range_id = $this->range_id ?: $GLOBALS['user']->id;
         $this->redirect($this->url_for($this->base . $action,
-                array('range_id' => $this->range_id)));
+                ['range_id' => $this->range_id]));
     }
 
     protected function storeEventData(CalendarEvent $event, SingleCalendar $calendar)
     {
+        $messages = [];
         if (Request::int('isdayevent')) {
             $dt_string = Request::get('start_date') . ' 00:00:00';
         } else {
@@ -497,7 +498,7 @@ class Calendar_CalendarController extends AuthenticatedController
 
         $rec_type = Request::option('recurrence', 'single');
         $expire = Request::option('exp_c', 'never');
-        $rrule = array(
+        $rrule = [
             'linterval' => null,
             'sinterval' => null,
             'wdays' => null,
@@ -506,7 +507,7 @@ class Calendar_CalendarController extends AuthenticatedController
             'rtype' => 'SINGLE',
             'count' => null,
             'expire' => null
-        );
+        ];
         if ($expire == 'count') {
             $rrule['count'] = Request::int('exp_count', 10);
         } else if ($expire == 'date') {
@@ -532,7 +533,7 @@ class Calendar_CalendarController extends AuthenticatedController
             case 'weekly':
                 $rrule['linterval'] = Request::int('linterval_w', 1);
                 $rrule['wdays'] = implode('', Request::intArray('wdays',
-                        array(strftime('%u', $event->getStart()))));
+                        [strftime('%u', $event->getStart())]));
                 $rrule['rtype'] = 'WEEKLY';
                 break;
             case 'monthly':
@@ -594,8 +595,8 @@ class Calendar_CalendarController extends AuthenticatedController
      * @return array An array of unix timestamps.
      */
     protected function parseExceptions($exc_dates) {
-        $matches = array();
-        $dates = array();
+        $matches = [];
+        $dates = [];
         preg_match_all('%(\d{1,2})\h*([/.])\h*(\d{1,2})\h*([/.])\h*(\d{4})\s*%',
                 implode(' ', $exc_dates), $matches, PREG_SET_ORDER);
         foreach ($matches as $match) {

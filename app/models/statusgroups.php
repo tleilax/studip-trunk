@@ -32,12 +32,12 @@ class StatusgroupsModel
      * @throws Exception
      */
     public static function updateGroup($id, $name, $position, $range_id, $size, $selfassign,
-                                       $selfassign_start, $selfassign_end, $makefolder, $dates = array())
+                                       $selfassign_start, $selfassign_end, $makefolder, $dates = [])
     {
         $group = new Statusgruppen($id);
 
         $group->name = $name;
-        $group->position = $position ?: null;
+        $group->position = $position;
         $group->range_id = $range_id;
         $group->size = $size;
         $group->selfassign = $selfassign;

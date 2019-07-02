@@ -38,7 +38,7 @@ function lastActivity ($sem_id)
     // Cache query generation
     static $query = null;
     if ($query === null) {
-        $queries = array(
+        $queries = [
             // Veranstaltungs-data
             "SELECT chdate FROM seminare WHERE Seminar_id = :id",
             // Folders
@@ -56,7 +56,7 @@ function lastActivity ($sem_id)
             "SELECT MAX(`date`) AS chdate FROM news_range LEFT JOIN news USING (news_id) WHERE range_id = :id",
             // Literature
             "SELECT MAX(chdate) AS chdate FROM lit_list WHERE range_id = :id",
-        );
+        ];
 
         // Votes
         if (get_config('VOTE_ENABLE')) {
@@ -104,7 +104,7 @@ function dump_sem($sem_id, $print_view = false)
               FROM seminare
               WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
+    $statement->execute([$sem_id]);
     $seminar = $statement->fetch(PDO::FETCH_ASSOC);
 
     $sem_type = $seminar['status'];
@@ -129,21 +129,21 @@ function dump_sem($sem_id, $print_view = false)
     };
 
     //Grunddaten des Seminars, wie in den seminar_main
-    $dumpRow(_('Untertitel:'), $seminar['Untertitel'], true);
+    $dumpRow(_('Untertitel') . ':', $seminar['Untertitel'], true);
 
     if ($data = $sem->getDatesExport()) {
-        $dumpRow(_('Zeit:'), nl2br($data));
+        $dumpRow(_('Zeit') . ':', nl2br($data));
     }
 
-    $dumpRow(_('Semester:'), get_semester($sem_id));
-    $dumpRow(_('Erster Termin:'), veranstaltung_beginn($sem_id, 'export'));
+    $dumpRow(_('Semester') . ':', get_semester($sem_id));
+    $dumpRow(_('Erster Termin') . ':', veranstaltung_beginn($sem_id, 'export'));
 
     if ($temp = vorbesprechung($sem_id, 'export')) {
-        $dumpRow(_('Vorbesprechung:'), htmlReady($temp));
+        $dumpRow(_('Vorbesprechung') . ':', htmlReady($temp));
     }
 
     if ($data = $sem->getDatesTemplate('dates/seminar_export_location')) {
-        $dumpRow(_('Ort:'), nl2br($data));
+        $dumpRow(_('Ort') . ':', nl2br($data));
     }
 
     //wer macht den Dozenten?
@@ -154,7 +154,7 @@ function dump_sem($sem_id, $print_view = false)
               WHERE Seminar_id = ? AND status = 'dozent'
               ORDER BY position, Nachname, Vorname";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
+    $statement->execute([$sem_id]);
     $teachers = $statement->fetchAll(PDO::FETCH_COLUMN);
     if (count($teachers) > 0) {
         $title = get_title_for_status('dozent', count($teachers), $sem_type);
@@ -169,7 +169,7 @@ function dump_sem($sem_id, $print_view = false)
               WHERE Seminar_id = ? AND status = 'tutor'
               ORDER BY position, Nachname, Vorname";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
+    $statement->execute([$sem_id]);
     $tutors = $statement->fetchAll(PDO::FETCH_COLUMN);
     if (count($tutors) > 0) {
         $title = get_title_for_status('tutor', count($tutors), $sem_type);
@@ -183,14 +183,14 @@ function dump_sem($sem_id, $print_view = false)
         $dumpRow(_('Typ der Veranstaltung'), $content);
     }
 
-    $dumpRow(_('Art der Veranstaltung:'), $seminar['art'], true);
-    $dumpRow(_('VeranstaltungsNummer:'), htmlReady($seminar['VeranstaltungsNummer']));
-    $dumpRow(_('ECTS-Punkte:'), htmlReady($seminar['ects']));
-    $dumpRow(_('Beschreibung:'), $seminar['Beschreibung'], true);
-    $dumpRow(_('Teilnehmende:'), $seminar['teilnehmende'], true);
-    $dumpRow(_('Voraussetzungen:'), $seminar['vorrausetzungen'], true);
-    $dumpRow(_('Lernorganisation:'), $seminar['lernorga'], true);
-    $dumpRow(_('Leistungsnachweis:'), $seminar['leistungsnachweis'], true);
+    $dumpRow(_('Art der Veranstaltung') . ':', $seminar['art'], true);
+    $dumpRow(_('VeranstaltungsNummer') . ':', htmlReady($seminar['VeranstaltungsNummer']));
+    $dumpRow(_('ECTS-Punkte') . ':', htmlReady($seminar['ects']));
+    $dumpRow(_('Beschreibung') . ':', $seminar['Beschreibung'], true);
+    $dumpRow(_('Teilnehmende') . ':', $seminar['teilnehmende'], true);
+    $dumpRow(_('Voraussetzungen') . ':', $seminar['vorrausetzungen'], true);
+    $dumpRow(_('Lernorganisation') . ':', $seminar['lernorga'], true);
+    $dumpRow(_('Leistungsnachweis') . ':', $seminar['leistungsnachweis'], true);
 
     //add the free adminstrable datafields
     $localEntries = DataFieldEntry::getDataFieldEntries($sem_id);
@@ -198,7 +198,7 @@ function dump_sem($sem_id, $print_view = false)
         $dumpRow($entry->getName(), $entry->getDisplayValue());
     }
 
-    $dumpRow(_('Sonstiges:'), $seminar['Sonstiges'], true);
+    $dumpRow(_('Sonstiges') . ':', $seminar['Sonstiges'], true);
 
     // Fakultaeten...
     $query = "SELECT DISTINCT c.Name
@@ -207,48 +207,48 @@ function dump_sem($sem_id, $print_view = false)
               LEFT JOIN Institute AS c ON (c.Institut_id = b.fakultaets_id)
               WHERE a.seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
+    $statement->execute([$sem_id]);
     $faculties = $statement->fetchAll(PDO::FETCH_COLUMN);
     if (count($faculties) > 0) {
-        $dumpRow(_('Fakultät(en):'), implode('<br>', array_map('htmlReady', $faculties)));
+        $dumpRow(_('Fakultät(en)') . ':', implode('<br>', array_map('htmlReady', $faculties)));
     }
 
     //Studienbereiche
     if (isset($SEM_TYPE[$seminar['status']]) && $SEM_CLASS[$SEM_TYPE[$seminar['status']]['class']]['bereiche']) {
-        $sem_path = get_sem_tree_path($sem_id) ?: array();
+        $sem_path = get_sem_tree_path($sem_id) ?: [];
         $dumpRow(_('Studienbereiche') . ':', implode('<br>', array_map('htmlReady', $sem_path)));
     }
 
     $iid = $seminar['Institut_id'];
     $query = "SELECT Name FROM Institute WHERE Institut_id = ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($iid));
+    $statement->execute([$iid]);
     $inst_name = $statement->fetchColumn();
-    $dumpRow(_('Heimat-Einrichtung:'), $inst_name, true);
+    $dumpRow(_('Heimat-Einrichtung') . ':', $inst_name, true);
 
     $query = "SELECT Name
               FROM seminar_inst
               LEFT JOIN Institute USING (institut_id)
               WHERE seminar_id = ? AND Institute.institut_id != ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id, $iid));
+    $statement->execute([$sem_id, $iid]);
     $other_institutes = $statement->fetchAll(PDO::FETCH_COLUMN);
     if (count($other_institutes) > 0) {
-        $title = (count($other_institutes) == 1)
-               ? _('Beteiligte Einrichtung:')
-               : _('Beteiligte Einrichtungen:');
+        $title = count($other_institutes) === 1
+               ? _('Beteiligte Einrichtung') . ':'
+               : _('Beteiligte Einrichtungen') . ':';
         $dumpRow($title, implode(', ', array_map('htmlReady', $other_institutes)));
     }
 
     //Teilnehmeranzahl
-    $dumpRow(_('max. Personenanzahl:'), $seminar['admission_turnout']);
+    $dumpRow(_('max. Personenanzahl') . ':', $seminar['admission_turnout']);
 
     //Statistikfunktionen
     $query = "SELECT COUNT(*) FROM seminar_user WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
+    $statement->execute([$sem_id]);
     $count = $statement->fetchColumn();
-    $dumpRow(_('Anzahl der angemeldeten Personen:'), $count);
+    $dumpRow(_('Anzahl der angemeldeten Personen') . ':', $count);
 
     // number of postings for all forum-modules in this seminar
     $count = 0;
@@ -256,7 +256,7 @@ function dump_sem($sem_id, $print_view = false)
     foreach ($forum_modules as $plugin) {
         $count += $plugin->getNumberOfPostingsForSeminar($sem_id);
     }
-    $dumpRow(_('Forenbeiträge:'), $count);
+    $dumpRow(_('Forenbeiträge') . ':', $count);
 
     $num_files = 0;
     $course_top_folder = Folder::findTopFolder($sem_id);
@@ -292,7 +292,7 @@ function dump_sem($sem_id, $print_view = false)
         }
     }
 
-    $dumpRow(_('Dokumente:'), $num_files ? $num_files : 0);
+    $dumpRow(_('Dokumente') . ':', $num_files ? $num_files : 0);
 
     $dump.= '</table>' . "\n";
 
@@ -349,7 +349,7 @@ function dump_sem($sem_id, $print_view = false)
                 $dump .= '<br>';
                 $dump .= '<table width="100%" border="1" cellpadding="2" cellspacing="0">';
                 $dump .= '<tr><td align="left" colspan="3" class="table_header_bold">';
-                $dump .= '<h2 class="table_header_bold">&nbsp;' . _('Dateien:') . '</h2>';
+                $dump .= '<h2 class="table_header_bold">&nbsp;' . _('Dateien') . ':' . '</h2>';
                 $dump .= '</td></tr>' . "\n";
 
                 foreach ($file_refs as $file_ref) {
@@ -388,7 +388,7 @@ function dump_sem($sem_id, $print_view = false)
         foreach (words('dozent tutor autor user') as $key) {
             // die eigentliche Teil-Tabelle
 
-            $user_statement->execute(array($sem_id, $key));
+            $user_statement->execute([$sem_id, $key]);
             $users = $user_statement->fetchAll(PDO::FETCH_ASSOC);
             $user_statement->closeCursor();
 
@@ -451,7 +451,7 @@ function dumpRegularDatesSchedule($sem_id)
               WHERE range_id = ? AND date_typ IN {$presence_type_clause}
               ORDER BY date";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
+    $statement->execute([$sem_id]);
     $data = $statement->fetchAll(PDO::FETCH_ASSOC);
 
     return dumpScheduleTable($data, _('Ablaufplan'));
@@ -472,7 +472,7 @@ function dumpExtraDatesSchedule($sem_id)
               WHERE range_id = ? AND date_typ NOT IN {$presence_type_clause}
               ORDER BY date";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
+    $statement->execute([$sem_id]);
     $data = $statement->fetchAll(PDO::FETCH_ASSOC);
 
     return dumpScheduleTable($data, _('zusätzliche Termine'));
@@ -570,7 +570,7 @@ function in_archiv ($sem_id)
               FROM seminare
               WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($sem_id));
+    $statement->execute([$sem_id]);
     $row = $statement->fetch(PDO::FETCH_ASSOC);
 
     $seminar_id     = $row['Seminar_id'];
@@ -599,7 +599,7 @@ function in_archiv ($sem_id)
     // das Heimatinstitut als erstes
     $query = "SELECT Name FROM Institute WHERE Institut_id = ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($heimat_inst_id));
+    $statement->execute([$heimat_inst_id]);
     $institute = $statement->fetchColumn();
 
     // jetzt den Rest
@@ -608,7 +608,7 @@ function in_archiv ($sem_id)
               LEFT JOIN seminar_inst USING (institut_id)
               WHERE seminar_id = ? AND Institute.Institut_id != ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($seminar_id, $heimat_inst_id));
+    $statement->execute([$seminar_id, $heimat_inst_id]);
     while ($temp = $statement->fetchColumn()) {
         $institute .= ', ' . $temp;
     }
@@ -619,7 +619,7 @@ function in_archiv ($sem_id)
               LEFT JOIN user_info USING (user_id)
               WHERE seminar_id = ? AND seminar_user.status = 'dozent'";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($seminar_id));
+    $statement->execute([$seminar_id]);
     $dozenten = $statement->fetchColumn();
 
     $query = "SELECT fakultaets_id
@@ -627,7 +627,7 @@ function in_archiv ($sem_id)
               LEFT JOIN Institute USING (Institut_id)
               WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($seminar_id));
+    $statement->execute([$seminar_id]);
     $fakultaet_id = $statement->fetchColumn();
 
     $query = "SELECT GROUP_CONCAT(DISTINCT c.Name SEPARATOR ' | ')
@@ -636,7 +636,7 @@ function in_archiv ($sem_id)
               LEFT JOIN Institute AS c ON (c.Institut_id = b.fakultaets_id)
               WHERE a.seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($seminar_id));
+    $statement->execute([$seminar_id]);
     $fakultaet = $statement->fetchColumn();
 
     setTempLanguage();  // use DEFAULT_LANGUAGE for archiv-dumps
@@ -658,7 +658,7 @@ function in_archiv ($sem_id)
     $query = "INSERT IGNORE INTO archiv_user (seminar_id, user_id, status)
               SELECT Seminar_id, user_id, status FROM seminar_user WHERE Seminar_id = ?";
     $statement = DBManager::get()->prepare($query);
-    $statement->execute(array($seminar_id));
+    $statement->execute([$seminar_id]);
 
     // Eventuelle Vertretungen in der Veranstaltung haben weiterhin Zugriff mit Dozentenrechten
     if (get_config('DEPUTIES_ENABLE')) {
@@ -667,7 +667,7 @@ function in_archiv ($sem_id)
         $query = "INSERT IGNORE INTO archiv_user SET seminar_id = ?, user_id = ?, status = 'dozent'";
         $statement = DBManager::get()->prepare($query);
         foreach ($deputies as $deputy) {
-            $statement->execute(array($seminar_id, $deputy['user_id']));
+            $statement->execute([$seminar_id, $deputy['user_id']]);
         }
     }
 
@@ -767,7 +767,7 @@ function in_archiv ($sem_id)
               VALUES
                 (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP())";
     $statement = DBManager::get()->prepare($query);
-    $success = $statement->execute(array(
+    $success = $statement->execute([
         $seminar_id,
         $name ?: '',
         $untertitel ?: '',
@@ -784,7 +784,7 @@ function in_archiv ($sem_id)
         $forumdump ?: '',
         $wikidump ?: '',
         $studienbereiche ?: '',
-    ));
+    ]);
     if ($success) {
         NotificationCenter::postNotification('CourseDidArchive', $seminar_id);
     }

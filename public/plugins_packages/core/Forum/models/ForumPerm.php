@@ -48,9 +48,9 @@ class ForumPerm {
      * @param string $user_id     the user to check for
      * @return boolean  true, if the user has the perms, false otherwise
      */
-    static function has($perm, $seminar_id, $user_id = null)
+    public static function has($perm, $seminar_id, $user_id = null)
     {
-        static $permissions = array();
+        static $permissions = [];
 
         // if no user-id is passed, use the current user (for your convenience)
         if (!$user_id) {
@@ -126,7 +126,7 @@ class ForumPerm {
      *
      * @throws AccessDeniedException
      */
-    function check($perm, $seminar_id, $topic_id = null)
+    public static function check($perm, $seminar_id, $topic_id = null)
     {
         if (!self::has($perm, $seminar_id)) {
             throw new AccessDeniedException(sprintf(
@@ -151,9 +151,9 @@ class ForumPerm {
      *
      * @return bool true if the user has the necessary perms, false otherwise
      */
-    static function hasEditPerms($topic_id)
+    public static function hasEditPerms($topic_id)
     {
-        static $perms = array();
+        static $perms = [];
 
         if (!$perms[$topic_id]) {
             // find out if the posting is the last in the thread
@@ -161,7 +161,7 @@ class ForumPerm {
 
             $stmt = DBManager::get()->prepare("SELECT user_id, seminar_id
                 FROM forum_entries WHERE topic_id = ?");
-            $stmt->execute(array($topic_id));
+            $stmt->execute([$topic_id]);
 
             $data = $stmt->fetch();
 
@@ -182,7 +182,7 @@ class ForumPerm {
      * @param type $seminar_id   id of the seminar, the category should belong to
      * @param type $category_id  the id of the category to check
      */
-    static function checkCategoryId($seminar_id, $category_id)
+    public static function checkCategoryId($seminar_id, $category_id)
     {
         $data = ForumCat::get($category_id);
 
@@ -201,7 +201,7 @@ class ForumPerm {
      * @param type $seminar_id  id of the seminar, the category should belong to
      * @param type $topic_id    the id of the topic to check
      */
-    static function checkTopicId($seminar_id, $topic_id)
+    public static function checkTopicId($seminar_id, $topic_id)
     {
         $data = ForumEntry::getConstraints($topic_id);
 

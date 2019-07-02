@@ -389,6 +389,10 @@ table.default {
         word-break: break-all;
     }
 
+    .font-size-adjusted{
+        font-size: 1.1em;
+    }
+
     th, td, caption {
         padding: 5px;
         text-align: left;
@@ -715,4 +719,86 @@ table#schedule_data {
 // Responsive helper
 .table-scrollbox-horizontal {
   .scrollbox-horizontal();
+}
+
+//New table form for Course Search
+table.course-search{
+    @max-width-s: 8em;
+    @max-width-m: 48em;
+    @max-width-l: 100%;
+    border: 1px solid @content-color-40;
+    padding: 0px;
+    border-top: 0;
+    caption.legend {
+        box-sizing: border-box;
+        background-color: @fieldset-header;
+        border: 1px solid @content-color-40;
+        border-bottom: 0;
+        color: @brand-color-dark;
+        font-size: 12pt;
+        font-weight: bold;
+        line-height: 2em;
+        padding: 0;
+        text-align: left;
+        text-indent: 15px;
+    }
+}
+
+//Show Tree Table
+table.show-tree {
+    width:100%;
+    padding: 0px 10px 10px 10px;
+    td.b-top-va-center {
+        border-top: 1px solid @content-color-40;
+        padding-top: 10px;
+        vertical-align:center;
+    }
+    img[role=root-icon]{
+        position: relative;
+        top: 1px;
+    }
+    div.sem-root-icon{
+        display: inline-block;
+        vertical-align: top;
+    }
+    div.sem-path{
+        display: inline-block;
+        padding-left: 5px;
+        div.sem-path-dir{
+            // padding-left: 5px;
+        }
+        div.sem_path_info{
+            // margin-left:30px;
+            padding-top:10px;
+            div.sem_path_title{
+                font-weight: bold;
+                font-size: 1.4em;
+                margin: 3px 0px 5px 0px;
+            }
+            div.sem_path_text{
+                padding-top:2px;
+            }
+        }
+    }
+    table.show-tree-kids{
+        width: 100%;
+        td.kids-tree-row{
+            width: 50%;
+        }
+        ul.semtree{
+            padding-left: 0px !important;
+            a{
+                padding-top: 5px !important;
+                padding-bottom: 3px !important;
+                padding-left: 14px !important;
+                margin-left: -4px !important;
+                display: block;
+            }
+            a:hover{
+                background-color: @fieldset-header !important;
+                color: @base-color !important;
+            }
+        }
+        
+    }
 }

@@ -142,7 +142,7 @@ class Ilias3ConnectedCMS extends ConnectedCMS
         echo "</td></tr><tr><td  width=30% align=\"left\"><font size=\"-1\">";
 
         $cat = $this->soap_client->getObjectByReference( $this->main_category_node_id );
-        echo "<b>" . _("Kategorie: ") . "</b>";
+        echo '<b>' . _('Kategorie') . ':</b>';
         echo "</td><td>";
         echo "<input type=\"text\" size=\"20\" border=0 value=\"" . $cat["title"] . "\" name=\"cat_name\">&nbsp;";
         echo Icon::create('info-circle', 'inactive', ['title' => _('Geben Sie hier den Namen einer bestehenden ILIAS 3 - Kategorie ein, in der die Lernmodule und User-Kategorien abgelegt werden sollen.')])->asImg();
@@ -258,7 +258,7 @@ class Ilias3ConnectedCMS extends ConnectedCMS
     {
         global $connected_cms;
 
-        $types = array();
+        $types = [];
         foreach ($this->types as $type => $name)
         {
             $types[] = $type;
@@ -266,7 +266,7 @@ class Ilias3ConnectedCMS extends ConnectedCMS
         if ($this->user->getCategory() == false)
             return false;
         $result = $this->soap_client->getTreeChilds($this->user->getCategory(), $types, $connected_cms[$this->cms_type]->user->getId());
-        $obj_ids = array();
+        $obj_ids = [];
         if (is_array($result))
             foreach($result as $key => $object_data)
                 if (is_array($object_data["operations"]))
@@ -294,7 +294,7 @@ class Ilias3ConnectedCMS extends ConnectedCMS
     {
         global $connected_cms;
 
-        $types = array();
+        $types = [];
         foreach ($this->types as $type => $name)
         {
             $types[] = $type;

@@ -203,25 +203,17 @@ $configurations = ExternConfig::GetAllConfigurations($range_id);
 $module_types_ordered = ExternModule::GetOrderedModuleTypes();
 
 $choose_module_form = '';
-// remove global configuration
-array_shift($module_types_ordered);
 foreach ($module_types_ordered as $i) {
-    if (isset($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][$i]['module']])
-        && count($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][$i]['module']]) < $EXTERN_MAX_CONFIGURATIONS
-        && ExternModule::HaveAccessModuleType(Request::option('view'), $i))
-    {
+    if (isset($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][$i]['module']])) {
+        $count = count($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][$i]['module']]);
+        $have_config = TRUE;
+    } else {
+        $count = 0;
+    }
+    if ($i && $count < $EXTERN_MAX_CONFIGURATIONS && ExternModule::HaveAccessModuleType(Request::option('view'), $i)) {
         $choose_module_form .= "<option value=\"{$GLOBALS['EXTERN_MODULE_TYPES'][$i]['module']}\">"
                 . $GLOBALS['EXTERN_MODULE_TYPES'][$i]['name'] . "</option>\n";
     }
-    if (isset($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][$i]["module"]])) {
-        $have_config = TRUE;
-    }
-}
-// add global configuration on first position
-array_unshift($module_types_ordered, 0);
-// check for global configurations
-if (isset($configurations[$GLOBALS['EXTERN_MODULE_TYPES'][0]["module"]])) {
-    $have_config = TRUE;
 }
 
 $sidebar = Sidebar::get();
@@ -253,7 +245,7 @@ if ($choose_module_form != '') {
         echo "<footer>" . Button::create(_("Anlegen")) . "</footer>\n";
         echo "</form><br>\n";
 
-        $conf_institutes = ExternConfig::GetInstitutesWithConfigurations(($GLOBALS['perm']->have_perm('root') && Request::option('view') == 'extern_global') ? 'global' : array('inst', 'fak'));
+        $conf_institutes = ExternConfig::GetInstitutesWithConfigurations(($GLOBALS['perm']->have_perm('root') && Request::option('view') == 'extern_global') ? 'global' : ['inst', 'fak']);
         if (sizeof($conf_institutes)) {
             echo '<form method="post" action="' . URLHelper::getLink('?com=copychoose') . '" class="default">';
             echo CSRFProtection::tokenTag();

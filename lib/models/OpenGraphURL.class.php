@@ -33,10 +33,12 @@ class OpenGraphURL extends SimpleORMap
      *
      * @param Array $config Configuration array
      */
-    protected static function configure($config = array())
+    protected static function configure($config = [])
     {
         $config['db_table'] = 'opengraphdata';
+
         $config['serialized_fields']['data'] = 'JSONArrayObject';
+
         parent::configure($config);
     }
 
@@ -60,6 +62,18 @@ class OpenGraphURL extends SimpleORMap
     }
 
     /**
+     * Specialized findOneByURL function that uses the hash to find the
+     * appropriate record instead.
+     *
+     * @param  string $url URL to find record for
+     * @return mixed instance of OpenGraphURL if available, null otherwise
+     */
+    public static function findOneByURL($url)
+    {
+        return self::findOneByHash(md5($url));
+    }
+
+    /**
      * Constructor of the object. Provides a fallback if a url is passed
      * instead of the usually expected numeric id in order to not break
      * backward compatibility.
@@ -79,7 +93,28 @@ class OpenGraphURL extends SimpleORMap
                 $id = $temp->id;
             }
         }
+
         parent::__construct($id);
+    }
+
+    /**
+     * Sets value of a column. Overwritten so that the hash is also set when
+     * the url is set.
+     *
+     * @param string $field
+     * @param string $value
+     * @return string
+     * @see SimpleORMap::setValue
+     */
+    public function setValue($field, $value)
+    {
+        $ret = parent::setValue($field, $value);
+
+        if ($field === 'url') {
+            $this->content['hash'] = md5($value);
+        }
+
+        return $ret;
     }
 
     /**
@@ -129,25 +164,25 @@ class OpenGraphURL extends SimpleORMap
                 $currentEncoding = 'UTF-8';
             }
 
-            $context = stream_context_create(array(
-                'http' => array(
+            $context = stream_context_create([
+                'http' => [
                     'method' => 'GET',
                     'header' => sprintf("User-Agent: Stud.IP v%s OpenGraph Parser\r\n", $GLOBALS['SOFTWARE_VERSION']),
-                ),
-            ));
+                ],
+            ]);
 
             $content = file_get_contents($this['url'], false, $context);
-            $content = mb_encode_numericentity($content, array(0x80, 0xffff, 0, 0xffff), $currentEncoding);
+            $content = mb_encode_numericentity($content, [0x80, 0xffff, 0, 0xffff], $currentEncoding);
             $old_libxml_error = libxml_use_internal_errors(true);
             $doc = new DOMDocument();
             $doc->loadHTML($content);
             libxml_use_internal_errors($old_libxml_error);
 
             $metatags = $doc->getElementsByTagName('meta');
-            $reservedTags = array('url', 'chdate', 'mkdate', 'last_update', 'is_opengraph', 'data');
+            $reservedTags = ['url', 'chdate', 'mkdate', 'last_update', 'is_opengraph', 'data'];
             $isOpenGraph = false;
-            $ogTags = array();
-            $data = array();
+            $ogTags = [];
+            $data = [];
             foreach ($metatags as $tag) {
                 $key = false;
                 if ($tag->hasAttribute('property')
@@ -162,7 +197,7 @@ class OpenGraphURL extends SimpleORMap
                 }
                 if ($key) {
                     $content = $tag->getAttribute('content');
-                    $data[] = array('og:'.$key => $content);
+                    $data[] = ['og:'.$key => $content];
                     $ogTags[$key] = $content;
                     $isOpenGraph = true;
                 }
@@ -242,35 +277,35 @@ class OpenGraphURL extends SimpleORMap
      */
     protected function getMediaFiles($type)
     {
-        $files = array();
-        $media = array();
-        $secure_media = array();
-        $media_types = array();
+        $files = [];
+        $media = [];
+        $secure_media = [];
+        $media_types = [];
         foreach ($this['data'] as $meta) {
             foreach ($meta as $key => $value) {
                 switch ($key) {
-                    case "og:$type:url":
+                    case "og:{$type}:url":
                         $media[] = $value;
                         break;
-                    case "og:$type":
+                    case "og:{$type}":
                         $media[] = $value;
                         break;
-                    case "og:$type:secure_url":
+                    case "og:{$type}:secure_url":
                         $secure_media[] = $value;
                         break;
-                    case "og:$type:type":
+                    case "og:{$type}:type":
                         $media_types[] = $value;
                         break;
                 }
             }
         }
-        if ($_SERVER['HTTPS'] === 'on' && count($secure_media)) {
+        if ($_SERVER['HTTPS'] === 'on' && count($secure_media) > 0) {
             foreach ($secure_media as $index => $url) {
-                $files[] = array($url, $media_types[$index]);
+                $files[] = [$url, $media_types[$index]];
             }
         } else {
             foreach ($media as $index => $url) {
-                $files[] = array($url, $media_types[$index]);
+                $files[] = [$url, $media_types[$index]];
             }
         }
         return $files;

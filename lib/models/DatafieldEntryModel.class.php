@@ -37,39 +37,51 @@ class DatafieldEntryModel extends SimpleORMap implements PrivacyObject
      */
     public static function findByModel(SimpleORMap $model, $datafield_id = null)
     {
-        $mask = array("user" => 1, "autor" => 2, "tutor" => 4, "dozent" => 8, "admin" => 16, "root" => 32);
+        $mask = ["user" => 1, "autor" => 2, "tutor" => 4, "dozent" => 8, "admin" => 16, "root" => 32];
 
         if (is_a($model, "Course")) {
+            $params[':institution_ids'] = $model->institutes->pluck('institut_id');
             $object_class = SeminarCategories::GetByTypeId($model->status)->id;
             $object_type = 'sem';
             $range_id = $model->getId();
         } elseif(is_a($model, "Institute")) {
+            $params[':institution_ids'] = [$model->Institut_id];
             $object_class = $model->type;
             $object_type = 'inst';
             $range_id = $model->getId();
         } elseif(is_a($model, "User")) {
+            $params[':institution_ids'] = $model->institute_memberships->pluck('institut_id');
             $object_class = $mask[$model->perms];
             $object_type = 'user';
             $range_id = $model->getId();
         } elseif(is_a($model, "CourseMember")) {
+            $params[':institution_ids'] = $model->course->institutes->pluck('institut_id');
             $object_class = $mask[$model->status];
             $object_type = 'usersemdata';
             $range_id = $model->user_id;
             $sec_range_id = $model->seminar_id;
         } elseif(is_a($model, "InstituteMember")) {
+            $params[':institution_ids'] = [$model->institut_id];
             $object_class = $mask[$model->inst_perms];
             $object_type = 'userinstrole';
             $range_id = $model->user_id;
             $sec_range_id = $model->institut_id;
         } elseif (is_a($model, 'ModulDeskriptor')) {
+            $params[':institution_ids'] = [$model->modul->responsible_institute->institut_id];
             $object_class = $model->getVariant();
             $object_type = 'moduldeskriptor';
             $range_id = $model->deskriptor_id;
         } elseif (is_a($model, 'ModulteilDeskriptor')) {
+            $params[':institution_ids'] = [$model->modulteil->modul->responsible_institute->institut_id];
             $object_class = $model->getVariant();
             $object_type = 'modulteildeskriptor';
             $range_id = $model->deskriptor_id;
         } elseif ($model instanceof StatusgruppeUser) {
+            if ($model->range_object && is_a($model->range_object, 'Course')) {
+                $params[':institution_ids'] = $model->range_object->institutes->pluck('institut_id');
+            } elseif ($model->range_object && is_a($model->range_object, 'Institute')) {
+                $params[':institution_ids'] = [$model->range_id];
+            }
             $object_class = 255;
             $object_type = 'userinstrole';
             $range_id = $model->user_id;
@@ -84,30 +96,30 @@ class DatafieldEntryModel extends SimpleORMap implements PrivacyObject
         }
 
         $query = "SELECT a.*, b.*,a.datafield_id,b.datafield_id as isset_content ";
-        $query .= "FROM datafields a LEFT JOIN datafields_entries b ON (a.datafield_id=b.datafield_id AND range_id = ? AND sec_range_id = ?) ";
-        $query .= "WHERE object_type = ?";
+        $query .= "FROM datafields a LEFT JOIN datafields_entries b ON (a.datafield_id=b.datafield_id AND range_id = :range_id AND sec_range_id = :sec_range_id) ";
+        $query .= "WHERE object_type = :object_type AND (a.institut_id IS NULL OR a.institut_id IN (:institution_ids))";
 
         if ($object_type === 'moduldeskriptor' || $object_type === 'modulteildeskriptor') {
             // find datafields by language (string)
-            $query .= "AND (LOCATE(?, object_class) OR object_class IS NULL) $one_datafield ORDER BY priority";
-            $params = array(
-                (string) $range_id,
-                (string) $sec_range_id,
-                $object_type,
-                (string) $object_class);
+            $query .= "AND (LOCATE(:object_class, object_class) OR object_class IS NULL) $one_datafield ORDER BY priority";
+            $params = array_merge($params,[
+                ':range_id' => (string) $range_id,
+                ':sec_range_id' => (string) $sec_range_id,
+                ':object_type' => $object_type,
+                ':object_class' => (string) $object_class]);
         } else {
             // find datafields by perms or status (int)
-            $query .= "AND ((object_class & ?) OR object_class IS NULL) $one_datafield ORDER BY priority";
-            $params = array(
-                (string) $range_id,
-                (string) $sec_range_id,
-                $object_type,
-                (int) $object_class);
+            $query .= "AND ((object_class & :object_class) OR object_class IS NULL) $one_datafield ORDER BY priority";
+            $params = array_merge($params, [
+                ':range_id' => (string) $range_id,
+                ':sec_range_id' => (string) $sec_range_id,
+                ':object_type' => $object_type,
+                ':object_class' => (int) $object_class]);
         }
 
         $st = DBManager::get()->prepare($query);
         $st->execute($params);
-        $ret = array();
+        $ret = [];
         $c = 0;
         $df_entry = new DatafieldEntryModel();
         $df_entry_i18n = new DatafieldEntryModelI18N();
@@ -140,14 +152,14 @@ class DatafieldEntryModel extends SimpleORMap implements PrivacyObject
         return $ret;
     }
 
-    protected static function configure($config = array())
+    protected static function configure($config = [])
     {
         $config['db_table'] = 'datafields_entries';
-        $config['belongs_to']['datafield'] = array(
+        $config['belongs_to']['datafield'] = [
             'class_name' => 'DataField',
             'foreign_key' => 'datafield_id'
-        );
-        $config['additional_fields']['name'] = array('datafield', 'name');
+        ];
+        $config['additional_fields']['name'] = ['datafield', 'name'];
         parent::configure($config);
     }
 

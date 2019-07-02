@@ -19,26 +19,26 @@ class Search_AngebotController extends MVVController
     public function before_filter(&$action, &$args)
     {
         $this->allow_nobody = Config::get()->COURSE_SEARCH_IS_VISIBLE_NOBODY;
-        
+
         parent::before_filter($action, $args);
-        
+
         // set navigation
         Navigation::activateItem('/search/courses/module');
-        
+
         PageLayout::setTitle(_('Modulverzeichnis - Studienangebot von A bis Z'));
-        
+
         $sidebar = Sidebar::get();
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
-        
+
         $views = new ViewsWidget();
         $views->addLink(_('Modulsuche'), $this->url_for('search/module'));
         $views->addLink(_('Studienangebot'), $this->url_for('search/angebot'))
                 ->setActive();
         $views->addLink(_('Studiengänge'), $this->url_for('search/studiengaenge'));
         $views->addLink(_('Fach-Abschluss-Kombinationen'), $this->url_for('search/stgtable'));
-        
+
         $sidebar->addWidget($views);
-        
+
         $this->breadcrumb = new BreadCrumb();
         $this->action = $action;
     }
@@ -66,19 +66,19 @@ class Search_AngebotController extends MVVController
         }
         ksort($faecher_sort, SORT_LOCALE_STRING);
 
-        $result = array();
-        $chars = array();
+        $result = [];
+        $chars = [];
         foreach ($faecher_sort as $fach) {
             $char = mb_substr($fach->name, 0, 1);
 
             foreach ($fach->abschluesse as $abschluss) {
                 if (count(Studiengang::findByFachAbschluss($fach->getId(), $abschluss->getId(), $filter))) {
-                    $result[$char][] = array(
+                    $result[$char][] = [
                         'abschluss_id' => $abschluss->getId(),
                         'fach_id' => $fach->getId(),
                         'name' => sprintf('%s - %s', $fach->name,
                                 $abschluss->getDisplayName())
-                    );
+                    ];
                 }
             }
 
@@ -112,17 +112,17 @@ class Search_AngebotController extends MVVController
             return null;
         }
         $name = $abschluss_kategorie->name;
-        $faecher = array();
+        $faecher = [];
 
-        $result = array();
+        $result = [];
         foreach ($faecher as $fach) {
             foreach ($fach->abschluesse as $abschluss) {
                 $kategorie = AbschlussKategorie::findByAbschluss($abschluss->getId());
-                $result [$fach->name][$kategorie->getId()] = array(
+                $result [$fach->name][$kategorie->getId()] = [
                     'abschluss_id' => $abschluss->getId(),
                     'fach_id' => $fach->getId(),
                     'name' => sprintf('%s - %s (%s)', $fach->name, $abschluss->name, $abschluss->name_kurz)
-                );
+                ];
             }
         }
 
@@ -177,7 +177,7 @@ class Search_AngebotController extends MVVController
     {
         $this->studiengang = Studiengang::find($studiengang_id);
         if (!$this->studiengang || !$this->studiengang->getPublicStatus()) {
-            throw new Exception('Unbekannter Studiengang!');
+            throw new Exception('Unbekannter Studiengang');
         }
     }
 

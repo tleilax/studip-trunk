@@ -45,13 +45,13 @@ class DataFieldSelectboxEntry extends DataFieldEntry
      * @param Array  $variables Additional variables
      * @return String containing the required html
      */
-    public function getHTML($name = '', $variables = array())
+    public function getHTML($name = '', $variables = [])
     {
-        $variables = array_merge(array(
+        $variables = array_merge([
             'multiple'   => false,
             'type_param' => $this->type_param,
             'is_assoc'   => $this->is_assoc_param,
-        ), $variables);
+        ], $variables);
 
         return parent::getHTML($name, $variables);
     }
@@ -63,10 +63,10 @@ class DataFieldSelectboxEntry extends DataFieldEntry
      */
     public function getParameters()
     {
-        $params = explode("\n", trim($this->model->typeparam));
+        $params = explode("\n", rtrim($this->model->typeparam));
         $params = array_map('trim', $params);
 
-        $ret = array();
+        $ret = [];
         $is_assoc = false;
 
         foreach ($params as $i => $p) {
@@ -79,7 +79,7 @@ class DataFieldSelectboxEntry extends DataFieldEntry
                 $ret[$i] = $p;
             }
         }
-        return array($ret, $is_assoc);
+        return [$ret, $is_assoc];
     }
 
     /**

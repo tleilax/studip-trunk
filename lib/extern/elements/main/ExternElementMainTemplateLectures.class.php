@@ -1,4 +1,4 @@
-<?
+<?php
 # Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
@@ -45,11 +45,11 @@ class ExternElementMainTemplateLectures extends ExternElementMain {
     *
     */
     function __construct($module_name, &$data_fields, &$field_names, &$config) {
-        $this->attributes = array(
+        $this->attributes = [
                 'name', 'grouping', 'semstart', 'semrange', 'semswitch', 'allseminars', 'rangepathlevel',
                 'time', 'lecturer', 'semclasses', 'textnogroups', 'aliasesgrouping', 'nameformat',
                 'language', "nodatatext"
-        );
+        ];
         $this->real_name = _("Grundeinstellungen");
         $this->description = _("In den Grundeinstellungen können Sie allgemeine Daten des Moduls ändern.");
         parent::__construct($module_name, $data_fields, $field_names, $config);
@@ -61,7 +61,7 @@ class ExternElementMainTemplateLectures extends ExternElementMain {
     */
     function getDefaultConfig () {
 
-        $config = array(
+        $config = [
             "name" => "",
             "grouping" => "3",
             "semstart" => "",
@@ -79,7 +79,7 @@ class ExternElementMainTemplateLectures extends ExternElementMain {
             "nameformat" => "",
             "language" => "",
             "nodatatext" => _("Keine Veranstaltungen in diesem Bereich vorhanden.")
-        );
+        ];
 
         get_default_generic_datafields($config, 'sem');
 
@@ -114,27 +114,27 @@ class ExternElementMainTemplateLectures extends ExternElementMain {
 
         $headline = $edit_form->editHeadline(_("Allgemeine Angaben Seitenaufbau"));
 
-        $title = _("Gruppierung:");
+        $title = _('Gruppierung') . ':';
         $info = _("Wählen Sie, wie die Veranstaltungen gruppiert werden sollen.");
-        $values = array("0", "1", "2", "3", "4");
-        $names = array(_("Semester"), _("Bereich"), _("Lehrende"),
-                _("Typ"), _("Einrichtung"));
+        $values = ["0", "1", "2", "3", "4"];
+        $names = [_("Semester"), _("Bereich"), _("Lehrende"),
+                _("Typ"), _("Einrichtung")];
         $table = $edit_form->editOptionGeneric("grouping", $title, $info, $values, $names);
 
-        $title = _("Startsemester:");
+        $title = _('Startsemester') . ':';
         $info = _("Geben Sie das erste anzuzeigende Semester an. Die Angaben \"vorheriges\", \"aktuelles\" und \"nächstes\" beziehen sich immer auf das laufende Semester und werden automatisch angepasst.");
         $current_sem = get_sem_num_sem_browse();
         if ($current_sem === FALSE) {
-            $names = array(_("keine Auswahl"), _("aktuelles"), _("nächstes"));
-            $values = array("", "current", "next");
+            $names = [_("keine Auswahl"), _("aktuelles"), _("nächstes")];
+            $values = ["", "current", "next"];
         }
         else if ($current_sem === TRUE) {
-            $names = array(_("keine Auswahl"), _("vorheriges"), _("aktuelles"));
-            $values = array("", "previous", "current");
+            $names = [_("keine Auswahl"), _("vorheriges"), _("aktuelles")];
+            $values = ["", "previous", "current"];
         }
         else {
-            $names = array(_("keine Auswahl"), _("vorheriges"), _("aktuelles"), "nächstes");
-            $values = array("", "previous", "current", "next");
+            $names = [_("keine Auswahl"), _("vorheriges"), _("aktuelles"), "nächstes"];
+            $values = ["", "previous", "current", "next"];
         }
         foreach ($semester_data as $sem_num => $sem) {
             $names[] = $sem["name"];
@@ -142,10 +142,10 @@ class ExternElementMainTemplateLectures extends ExternElementMain {
         }
         $table .= $edit_form->editOptionGeneric("semstart", $title, $info, $values, $names);
 
-        $title = _("Anzahl der anzuzeigenden Semester:");
+        $title = _('Anzahl der anzuzeigenden Semester') . ':';
         $info = _("Geben Sie an, wieviele Semester (ab o.a. Startsemester) angezeigt werden sollen.");
-        $names = array(_("keine Auswahl"));
-        $values = array("");
+        $names = [_("keine Auswahl")];
+        $values = [""];
         $i = 1;
         foreach ($semester_data as $sem_num => $sem) {
             $names[] = $i++;
@@ -153,24 +153,24 @@ class ExternElementMainTemplateLectures extends ExternElementMain {
         }
         $table .= $edit_form->editOptionGeneric("semrange", $title, $info, $values, $names);
 
-        $title = _("Umschalten des aktuellen Semesters:");
+        $title = _('Umschalten des aktuellen Semesters') . ':';
         $info = _("Geben Sie an, wieviele Wochen vor Semesterende automatisch auf das nächste Semester umgeschaltet werden soll.");
-        $names = array(_("keine Auswahl"), _("am Semesterende"), _("1 Woche vor Semesterende"));
+        $names = [_("keine Auswahl"), _("am Semesterende"), _("1 Woche vor Semesterende")];
         for ($i = 2; $i < 13; $i++)
             $names[] = sprintf(_("%s Wochen vor Semesterende"), $i);
-        $values = array("", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
+        $values = ["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
         $table .= $edit_form->editOptionGeneric("semswitch", $title, $info, $values, $names);
 
-        $title = _("Veranstaltungen beteiligter Institute anzeigen:");
+        $title = _('Veranstaltungen beteiligter Institute anzeigen') . ':';
         $info = _("Wählen Sie diese Option, um Veranstaltungen anzuzeigen, bei denen diese Einrichtung als beteiligtes Institut eingetragen ist.");
         $values = "1";
         $names = "";
         $table .= $edit_form->editCheckboxGeneric("allseminars", $title, $info, $values, $names);
 
-        $title = _("Bereichspfad ab Ebene:");
+        $title = _('Bereichspfad ab Ebene') . ':';
         $info = _("Wählen Sie, ab welcher Ebene der Bereichspfad ausgegeben werden soll.");
-        $values = array("1", "2", "3", "4", "5");
-        $names = array("1", "2", "3", "4", "5");
+        $values = ["1", "2", "3", "4", "5"];
+        $names = ["1", "2", "3", "4", "5"];
         $table .= $edit_form->editOptionGeneric("rangepathlevel", $title, $info, $values, $names);
 
         $content_table .= $edit_form->editContentTable($headline, $table);
@@ -194,11 +194,11 @@ class ExternElementMainTemplateLectures extends ExternElementMain {
 
         $headline = $edit_form->editHeadline(_("Textersetzungen"));
 
-        $title = _("&quot;Keine Studienbereiche&quot;:");
+        $title = _('&quot;Keine Studienbereiche&quot;') . ':';
         $info = _("Geben Sie einen Text ein, der Angezeigt wird, wenn Lehrveranstaltungen vorliegen, die keinem Bereich zugeordnet sind. Nur wirksam in Gruppierung nach Bereich.");
         $table = $edit_form->editTextfieldGeneric("textnogroups", $title, $info, 40, 150);
 
-        $titles = array(_("Semester"), _("Bereich"), _("Lehrende"), _("Typ"), _("Einrichtung"));
+        $titles = [_("Semester"), _("Bereich"), _("Lehrende"), _("Typ"), _("Einrichtung")];
         $info = _("Geben Sie eine Bezeichnung für die entsprechende Gruppierungsart ein.");
         $table .= $edit_form->editTextfieldGeneric("aliasesgrouping", $titles, $info, 40, 150);
 
@@ -207,20 +207,20 @@ class ExternElementMainTemplateLectures extends ExternElementMain {
 
         $headline = $edit_form->editHeadline(_("Weitere Angaben"));
 
-        $title = _("Namensformat:");
+        $title = _('Namensformat') . ':';
         $info = _("Wählen Sie, wie Personennamen formatiert werden sollen.");
-        $values = array("", "no_title_short", "no_title", "no_title_rev", "full", "full_rev");
-        $names = array(_("keine Auswahl"), _("Meyer, P."), _("Peter Meyer"), _("Meyer Peter"),
-                _("Dr. Peter Meyer"), _("Meyer, Peter, Dr."));
+        $values = ["", "no_title_short", "no_title", "no_title_rev", "full", "full_rev"];
+        $names = [_("keine Auswahl"), _("Meyer, P."), _("Peter Meyer"), _("Meyer Peter"),
+                _("Dr. Peter Meyer"), _("Meyer, Peter, Dr.")];
         $table = $edit_form->editOptionGeneric("nameformat", $title, $info, $values, $names);
 
-        $title = _("Sprache:");
+        $title = _('Sprache') . ':';
         $info = _("Wählen Sie eine Sprache für die Datumsangaben aus.");
-        $values = array("", "de_DE", "en_GB");
-        $names = array(_("keine Auswahl"), _("Deutsch"), _("Englisch"));
+        $values = ["", "de_DE", "en_GB"];
+        $names = [_("keine Auswahl"), _("Deutsch"), _("Englisch")];
         $table .= $edit_form->editOptionGeneric("language", $title, $info, $values, $names);
 
-        $title = _("Keine Veranstaltungen:");
+        $title = _('Keine Veranstaltungen') . ':';
         $info = _("Dieser Text wird an Stelle der Tabelle ausgegeben, wenn keine Veranstaltungen vorhanden sind.");
         $table .= $edit_form->editTextareaGeneric("nodatatext", $title, $info, 3, 50);
 
@@ -251,5 +251,3 @@ class ExternElementMainTemplateLectures extends ExternElementMain {
     }
 
 }
-
-?>

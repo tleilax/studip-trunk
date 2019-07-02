@@ -1,9 +1,10 @@
-jQuery(function ($) {
+STUDIP.domReady(() => {
     var cache = STUDIP.Search.getCache();
     // initially hide all filters except for the semester filter
     $('#reset-search').hide();
     STUDIP.Search.hideAllFilters();
     $('div#semester_filter').show();
+    STUDIP.Search.setActiveCategory('show_all_categories');
 
     // searchterm and category can be passed by URL parameters (e.g. through the quicksearch)
     var searchterm = $('#search-results').data('searchterm');
@@ -12,10 +13,7 @@ jQuery(function ($) {
         cache.set('searchterm', searchterm);
         if (category) {
             STUDIP.Search.setActiveCategory(category);
-        } else {
-            STUDIP.Search.setActiveCategory('show_all_categories');
         }
-        STUDIP.Search.setFilter('semester', '');
     }
 
     // Clear search term
@@ -58,9 +56,7 @@ jQuery(function ($) {
     });
 
     // perform a new search when another filter is selected by the user
-    $('select').filter(function(){
-        return  this.id.match(/.*_select/);
-    }).on('change', function () {
+    $('#globalsearch-page select[id$="_select"]').on('change', function () {
         STUDIP.Search.doSearch(STUDIP.Search.getFilter());
         return false;
     }).closest('form').on('submit', function(e) {

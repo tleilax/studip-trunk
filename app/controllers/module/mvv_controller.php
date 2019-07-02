@@ -1,73 +1,64 @@
 <?php
 /**
- * MVV.class.php - Main controller class for the MVV backend and module search.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
  * @author      Peter Thienel <thienel@data-quest.de>
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL version 2
- * @category    Stud.IP
+ * @license     GPL2 or any later version
  * @since       3.5
  */
 
 class MVVController extends AuthenticatedController
 {
-
     /**
      * The maximum number of items listed on a page.
      * If the list is longer pagination is displayed.
-     * 
+     *
      * @var int
      */
     public static $items_per_page;
-    
+
     /**
      * Array of ids of mvv object found by search action.
-     * 
+     *
      * @var array
      */
-    public $search_result = array();
-    
+    public $search_result = [];
+
     /**
      * Holds the last search term.
-     * 
+     *
      * @var string
      */
     public $search_term = '';
-    
+
     /**
      * Holds the last id of an mvv object selected in quick search.
-     * 
+     *
      * @var string
      */
     public $search_id = null;
-    
+
     /**
      * TRUE if sidebar is already rendered.
-     * 
+     *
      * @var bool
      */
     protected $sidebar_rendered = false;
-    
+
     /**
      * The key of an index name used to store values in the session.
      * It is the top level key of an multidimensional array that holds all
      * values stored in the session by the current controller.
      * One part of the key is the name of the controller.
-     * 
+     *
      * @var string
      */
     protected $session_key;
-    
-    
+
+
     /**
-     * The second level key of the array that holds values in the session from 
+     * The second level key of the array that holds values in the session from
      * current controller. It is derived from the name of the current
      * action normally.
-     * 
+     *
      * @var string
      */
     public $param_suffix = '';
@@ -81,15 +72,14 @@ class MVVController extends AuthenticatedController
         }
 
         PageLayout::setTitle(_('Module'));
-        
+
         // Setup flash instance
         $this->flash = Trails_Flash::instance();
 
-        $this->me = 'mvv';
+        $this->me             = 'mvv';
         self::$items_per_page = Config::get()->getValue('ENTRIES_PER_PAGE');
 
-        $this->session_key = $this->me . '_'
-                . mb_substr(get_class($this), 0, -10);
+        $this->session_key = $this->me . '_' . mb_substr(get_class($this), 0, -10);
     }
 
     /**
@@ -102,7 +92,7 @@ class MVVController extends AuthenticatedController
     public function paramSuffix($action = '')
     {
         $param_suffix = mb_strtolower(preg_filter(
-                array('/^.*_/', '/Controller$/'), '', get_called_class(), 1));
+            ['/^.*_/', '/Controller$/'], '', get_called_class(), 1));
         return $action ? '_' . $param_suffix . '_' . $action : '_' . $param_suffix;
     }
 
@@ -115,11 +105,13 @@ class MVVController extends AuthenticatedController
     protected function initSearchParams($action = '')
     {
         $this->search_params_suffix = $this->paramSuffix($action);
-        $this->search_term = Request::get('search_term' . $this->search_params_suffix,
-                $this->sessGet('search_term'));
+
+        $this->search_term = Request::get('search_term' . $this->search_params_suffix, $this->sessGet('search_term'));
+
         URLHelper::bindLinkParam('search_term' . $this->search_params_suffix, $this->search_term);
-        $this->search_id = Request::option('search_id' . $this->search_params_suffix,
-                $this->sessGet('search_id'));
+
+        $this->search_id = Request::option('search_id' . $this->search_params_suffix, $this->sessGet('search_id'));
+
         URLHelper::bindLinkParam('search_id' . $this->search_params_suffix, $this->search_id);
     }
 
@@ -133,27 +125,30 @@ class MVVController extends AuthenticatedController
     {
         $this->page_params_suffix = $this->paramSuffix($action);
         $action = $action ? '_' . $action : '';
-
         URLHelper::bindLinkParam('page' . $this->page_params_suffix, $this->page);
-        $this->page = Request::int('page' . $this->page_params_suffix,
-                $this->sessGet('page' . $this->page_params_suffix));
+        $this->page = Request::int(
+            'page' . $this->page_params_suffix,
+            $this->sessGet('page' . $this->page_params_suffix)
+        );
         $this->page = intval($this->page) > 1 ? $this->page : 1;
         $this->sessSet('page' . $this->page_params_suffix, $this->page);
-
         URLHelper::bindLinkParam('sortby' . $this->page_params_suffix, $this->sortby);
-        $this->sortby = Request::get('sortby' . $this->page_params_suffix,
-                $this->sessGet('sortby' . $this->page_params_suffix));
+        $this->sortby = Request::get(
+            'sortby' . $this->page_params_suffix,
+            $this->sessGet('sortby' . $this->page_params_suffix)
+        );
         $this->sessSet('sortby' . $this->page_params_suffix, $this->sortby);
-
         URLHelper::bindLinkParam('order' . $this->page_params_suffix, $this->order);
-        $this->order = Request::get('order' . $this->page_params_suffix,
-                $this->sessGet('order' . $this->page_params_suffix));
+        $this->order = Request::get(
+            'order' . $this->page_params_suffix,
+            $this->sessGet('order' . $this->page_params_suffix)
+        );
         $this->sessSet('order' . $this->page_params_suffix, $this->order);
     }
 
     /**
      * Determines the visibility of this controller.
-     * 
+     *
      * @return bool True if the controller is visible.
      */
     protected static function IsVisible()
@@ -163,7 +158,7 @@ class MVVController extends AuthenticatedController
 
     /**
      * Renders a html snippet with a sort link used in table headers.
-     * 
+     *
      * @param string $action The action called by this link.
      * @param string $text The text of the link.
      * @param string $field The sort to sort by.
@@ -174,61 +169,64 @@ class MVVController extends AuthenticatedController
     {
         $template = $this->get_template_factory()->open('shared/sort_link');
         $template->set_attributes(
-                array('controller' => $this,
-                    'action' => $action,
-                    'text' => $text,
-                    'field' => $field,
-                    'attributes' => (array) $attributes));
+            [
+                'controller' => $this,
+                'action'     => $action,
+                'text'       => $text,
+                'field'      => $field,
+                'attributes' => (array)$attributes
+            ]);
         return $template->render();
     }
 
     /**
      * Sets the sidebar with all widgets and set value of sidebar_rendered
      * to true.
-     * 
+     *
      */
     protected function setSidebar()
     {
         $this->sidebar_rendered = true;
-        $sidebar = Sidebar::get();
+        $sidebar                = Sidebar::get();
         $sidebar->setImage('sidebar/learnmodule-sidebar.png');
     }
 
     /**
      * Renders a html snippet containing an url. This url is used by
      * java script.
-     * 
+     *
      * @param string $to A string containing a controller and optionally
      * an action. Default is the current controller.
      * @param array $params An array with url parameters.
      * @return string The html used in templates
      */
-    public function jsUrl($to = '', $params = array())
+    public function jsUrl($to = '', $params = [])
     {
-        if($to === '') {
+        if ($to === '') {
             $to = str_replace('_', '/', mb_substr(mb_strtolower(get_class($this)),
                     0, -10)) . '/';
         }
         $to = $this->url_for($to);
         list($url, $query) = explode('?', $to);
-        $url = URLHelper::getUrl($url, $params, true);
+        $url      = URLHelper::getUrl($url, $params, true);
         $template = $this->get_template_factory()->open('shared/js_url');
-        $template->set_attributes(array('url' => $url));
+        $template->set_attributes(['url' => $url]);
         return $template->render();
     }
 
     /**
      * This action is used to show a select box instead of an input field
      * if the user has clicked on the magnifier icon of a quicksearch.
-     * 
+     *
      * @throws Trails_Exception
      */
     public function qs_result_action()
     {
         if (Request::isPost()) {
             $this->render_json(self::getQsResult(
-                    Request::option('qs_id'),
-                    Request::get('qs_term')));
+                Request::option('qs_id'),
+                Request::get('qs_term')
+            ));
         } else {
             throw new Trails_Exception(404);
         }
@@ -236,23 +234,24 @@ class MVVController extends AuthenticatedController
 
     /**
      * Retrieves the result set of quicksearch to show a select box.
-     * 
+     *
      * @param string $qs_id The id of the quicksearch.
      * @param string $qs_term The search term.
      * @return null|array The result set.
      */
     private static function getQsResult($qs_id, $qs_term)
     {
-        $result = array();
         $search = self::getSearch($qs_id);
         if ($search) {
-            $results[] = array('id' => '',
-                    'name' => _('-- bitte wählen --'));
-            foreach ($search->getResults($qs_term)
-                    as $result) {
+            $results[] = [
+                'id'   => '',
+                'name' => '-- ' . _('Bitte wählen') . ' --',
+            ];
+            foreach ($search->getResults($qs_term) as $result) {
                 $results[] = [
-                    'id' => $result[0],
-                    'name' => $result[1]];
+                    'id'   => $result[0],
+                    'name' => $result[1]
+                ];
             }
             return $results;
         }
@@ -266,7 +265,8 @@ class MVVController extends AuthenticatedController
      * @param string $qs_id The quick search id of the search object.
      * @return object A search object.
      */
-    private static function getSearch($qs_id) {
+    private static function getSearch($qs_id)
+    {
         $search = null;
         if ($qs_id) {
             try {
@@ -283,7 +283,7 @@ class MVVController extends AuthenticatedController
      * Uses the findBySearchTerm method with its parameters $search_term and
      * $filter. If $search_id is given, only this item will be found.
      * Sets info messages with number of hits to page layout.
-     * 
+     *
      * @see ModuleManagementModel::findBySearchTerm()
      * @param string $class_name The name of an mvv object class.
      * @param string $search_term The search term.
@@ -291,40 +291,43 @@ class MVVController extends AuthenticatedController
      * @param array $filter An array with filter options feeded to search
      * function to restrict search result.
      */
-    protected function do_search($class_name, $search_term = null,
-            $search_id = null, $filter = null)
+    protected function do_search($class_name, $search_term = null, $search_id = null, $filter = null)
     {
-        if (!sizeof($this->search_result)) {
+        if (!count($this->search_result)) {
             $search_id = $search_id ?: $this->search_id;
             if ($search_id) {
                 $found_object = $class_name::find($search_id);
                 if ($found_object) {
-                    $this->search_result = array($found_object->getId());
-                    $this->search_term = $found_object->getDisplayName();
+                    $this->search_result = [$found_object->getId()];
+                    $this->search_term   = $found_object->getDisplayName();
                     if (!$this->search_id) {
-                        PageLayout::postInfo(sprintf(_('"%s" ausgewählt.'),
-                                htmlReady($found_object->getDisplayName())));
+                        PageLayout::postInfo(sprintf(
+                            _('"%s" ausgewählt.'),
+                            htmlReady($found_object->getDisplayName())
+                        ));
                     }
                     $this->search_id = $search_id;
                     $this->sessSet('search_id', $this->search_id);
                 }
             } else {
                 $search_term = $search_term ?: $this->search_term;
-                $filter = $filter ?: $this->filter;
+                $filter      = $filter ?: $this->filter;
                 if ($search_term) {
                     $this->search_result =
-                            $class_name::findBySearchTerm($search_term, $filter)->pluck('id');
-                    if ($this->current_action == 'search') {
+                        $class_name::findBySearchTerm($search_term, $filter)->pluck('id');
+                    if ($this->current_action === 'search') {
                         if (count($this->search_result)) {
-                            PageLayout::postInfo(
-                                    sprintf(_('%s Treffer für die Suche nach "%s".'),
-                                            count($this->search_result),
-                                            htmlReady($search_term)));
+                            PageLayout::postInfo(sprintf(
+                                _('%s Treffer für die Suche nach "%s".'),
+                                count($this->search_result),
+                                htmlReady($search_term)
+                            ));
                             $this->search_term = $search_term;
                         } else {
-                            PageLayout::postInfo(
-                                    sprintf(_('Keine Treffer für die Suche nach "%s".'),
-                                            htmlReady($search_term)));
+                            PageLayout::postInfo(sprintf(
+                                _('Keine Treffer für die Suche nach "%s".'),
+                                htmlReady($search_term)
+                            ));
                         }
                         unset($this->search_id);
                         $this->sessRemove('search_id');
@@ -345,7 +348,7 @@ class MVVController extends AuthenticatedController
     protected function getSearchResult($class_name)
     {
         $this->do_search($class_name);
-        
+
         return $this->search_result;
     }
 
@@ -361,7 +364,7 @@ class MVVController extends AuthenticatedController
         $this->search_params_suffix = $this->paramSuffix($action);
 
         // reset search
-        $this->search_result = array();
+        $this->search_result = [];
         unset($this->search_term);
         URLHelper::removeLinkParam('search_term' . $this->search_params_suffix);
         $this->sessRemove('search_term');
@@ -373,14 +376,14 @@ class MVVController extends AuthenticatedController
     /**
      * Resets the main page parameters for pagination and sorting for the given
      * action.
-     * 
+     *
      * @param string $action The name of the action that uses the pagination and
      * sorting.
      */
     protected function reset_page($action = '')
     {
         $this->page_params_suffix = $this->paramSuffix($action);
-        
+
         // reset page chooser
         $this->page = 1;
         $this->sessRemove('page' . $this->page_params_suffix);
@@ -417,8 +420,8 @@ class MVVController extends AuthenticatedController
     protected function sessGet($key, $default = null)
     {
         return (isset($_SESSION[$this->session_key][$key])
-                ? $_SESSION[$this->session_key][$key]
-                : $default);
+            ? $_SESSION[$this->session_key][$key]
+            : $default);
     }
 
     /**
@@ -429,7 +432,7 @@ class MVVController extends AuthenticatedController
     protected function sessRemove($keys)
     {
         if (!is_array($keys)) {
-            $keys = array($keys);
+            $keys = [$keys];
         }
         foreach ($keys as $key) {
             unset($_SESSION[$this->session_key][$key]);
@@ -455,7 +458,8 @@ class MVVController extends AuthenticatedController
      * @return string An empty string, if the content is an empty diff
      * or an empty string
      */
-    public static function trim($text) {
+    public static function trim($text)
+    {
         $text = trim($text);
         return preg_match('%\<div.*?\>\</div\>%', $text) ? '' : $text;
     }

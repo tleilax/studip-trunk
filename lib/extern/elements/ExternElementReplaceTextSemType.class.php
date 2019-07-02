@@ -1,13 +1,13 @@
-<?
+<?php
 # Lifter002: TODO
 # Lifter007: TODO
 # Lifter003: TODO
 # Lifter010: TODO
 /**
 * ExternElementReplaceTextSemType.class.php
-* 
-* 
-* 
+*
+*
+*
 *
 * @author       Peter Thienel <pthienel@web.de>, Suchi & Berg GmbH <info@data-quest.de>
 * @access       public
@@ -19,7 +19,7 @@
 // +---------------------------------------------------------------------------+
 // This file is part of Stud.IP
 // ExternElementReplaceTextSemType.class.php
-// 
+//
 // Copyright (C) 2003 Peter Thienel <pthienel@web.de>,
 // Suchi & Berg GmbH <info@data-quest.de>
 // +---------------------------------------------------------------------------+
@@ -40,7 +40,7 @@
 
 class ExternElementReplaceTextSemType extends ExternElement {
 
-    var $attributes = array();
+    var $attributes = [];
     var $isset_visibilities = FALSE;
 
     /**
@@ -52,22 +52,22 @@ class ExternElementReplaceTextSemType extends ExternElement {
         if ($config) {
             $this->config = $config;
         }
-        
+
         $this->name = "ReplaceTextSemType";
         $this->real_name = _("Textersetzungen für Veranstaltungstypen");
         $this->description = _("Ersetzt die Bezeichnung der Veranstaltungstypen.");
-        $this->attributes = array('order', 'visibility');
+        $this->attributes = ['order', 'visibility'];
         for ($i = 1; $i <= sizeof($GLOBALS["SEM_CLASS"]); $i++) {
             $this->attributes[] = "class_" . $i;
         }
     }
-    
+
     /**
-    * 
+    *
     */
     function getDefaultConfig () {
         global $SEM_TYPE, $SEM_CLASS;
-        $config = array();
+        $config = [];
         foreach ($SEM_CLASS as $class_index => $class) {
             foreach ($SEM_TYPE as $type_index => $type) {
                 if ($type["class"] == $class_index) {
@@ -76,49 +76,49 @@ class ExternElementReplaceTextSemType extends ExternElement {
                 }
             }
         }
-        
+
         foreach ($SEM_TYPE as $type_index => $foo) {
             $config['order'] .= "|$type_index";
             $config['visibility'] .= "|1";
         }
-        
+
         return $config;
     }
-    
+
     function toStringEdit ($post_vars = "", $faulty_values = "",
             $edit_form = "", $anker = "") {
-        
+
         global $SEM_TYPE;
-        
+
         $order = $this->config->getValue($this->name, "order");
         if (!is_array($order) || array_diff(array_keys($SEM_TYPE), $order)) {
             $this->config->setValue($this->name, "order", array_keys($SEM_TYPE));
             $this->config->store();
         }
-                    
+
         if ($faulty_values == '')
-            $faulty_values = array();   
+            $faulty_values = [];
         $out = '';
         $table = '';
         if ($edit_form == '')
             $edit_form = new ExternEditHtml($this->config, $post_vars, $faulty_values, $anker);
-        
+
         $edit_form->setElementName($this->getName());
         $element_headline = $this->getEditFormHeadline($edit_form);
-        
+
         $table = $edit_form->editSemTypes();
-        
+
         $content_table .= $edit_form->editContentTable($headline, $table);
         $content_table .= $edit_form->editBlankContent();
-        
+
         $submit = $edit_form->editSubmit($this->config->getName(),
                 $this->config->getId(), $this->getName());
         $out = $edit_form->editContent($content_table, $submit);
         $out .= $edit_form->editBlank();
-        
+
         return  $element_headline . $out;
     }
-    
+
     function checkValue ($attribute, $value) {
         if ($this->isset_visibilities) {
             return FALSE;
@@ -137,7 +137,5 @@ class ExternElementReplaceTextSemType extends ExternElement {
         }
         return FALSE;
     }
-    
-}
 
-?>
+}
