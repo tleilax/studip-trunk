@@ -119,6 +119,7 @@ const Messages = {
         }
     },
     upload_file: function(formdata, statusbar) {
+        $(".ui-dialog-buttonset button:first-child, footer[data-dialog-button] button:first-child").attr("disabled", "disabled");
         $.ajax({
             xhr: function() {
                 var xhrobj = $.ajaxSettings.xhr();
@@ -152,6 +153,7 @@ const Messages = {
             dataType: 'json'
         })
             .done(function(data) {
+                $(".ui-dialog-buttonset button:first-child, footer[data-dialog-button] button:first-child").removeAttr("disabled");
                 statusbar.find('.progress').css({ 'min-width': '100%', 'max-width': '100%' });
                 var file = jQuery('#attachments .files > .file')
                     .first()
@@ -212,7 +214,7 @@ const Messages = {
         var container = jQuery('#message_' + message_id)
                 .find('.tag-container')
                 .empty(),
-            template = _.template('<a href="<%= url %>" class="message-tag"><%= tag %></a>');
+            template = _.template('<a href="<%- url %>" class="message-tag"><%- tag %></a>');
 
         jQuery.each(tags, function(index, tag) {
             var html = template({
@@ -226,7 +228,7 @@ const Messages = {
     },
     setAllTags: function(tags) {
         var container = $('#messages-tags ul');
-        var template = _.template('<li><a href="<%= url %>" class="tag"><%= tag %></a></li>');
+        var template = _.template('<li><a href="<%- url %>" class="tag"><%- tag %></a></li>');
 
         container.children('li:not(:has(.all-tags))').remove();
 

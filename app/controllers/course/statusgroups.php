@@ -208,9 +208,9 @@ class Course_StatusgroupsController extends AuthenticatedController
         // Set default sidebar image
         $sidebar->setImage('sidebar/person-sidebar.png');
 
+        $actions = new ActionsWidget();
         if ($this->is_tutor) {
             if (!$this->is_locked) {
-                $actions = new ActionsWidget();
                 $actions->addLink(
                     _('Neue Gruppe anlegen'),
                     $this->url_for('course/statusgroups/edit'),
@@ -221,8 +221,6 @@ class Course_StatusgroupsController extends AuthenticatedController
                     $this->url_for('course/statusgroups/create_groups'),
                     Icon::create('group2+add')
                 )->asDialog('size=auto');
-
-                $sidebar->addWidget($actions);
             }
             if (Config::get()->EXPORT_ENABLE) {
 
@@ -234,7 +232,7 @@ class Course_StatusgroupsController extends AuthenticatedController
                     'csv', 'csv-gruppen', 'status',
                     _('Gruppen als CSV-Dokument exportieren'),
                     'passthrough');
-                $element = LinkElement::fromHTML($csvExport, Icon::create('file-office', 'clickable'));
+                $element = LinkElement::fromHTML($csvExport, Icon::create('file-office'));
                 $export->addElement($element);
 
                 // create rtf-export link
@@ -243,30 +241,35 @@ class Course_StatusgroupsController extends AuthenticatedController
                     'rtf', 'rtf-gruppen', 'status',
                     _('Gruppen als RTF-Dokument exportieren'),
                     'passthrough');
-                $element = LinkElement::fromHTML($rtfExport, Icon::create('file-text', 'clickable'));
+                $element = LinkElement::fromHTML($rtfExport, Icon::create('file-text'));
                 $export->addElement($element);
 
                 $sidebar->addWidget($export);
             }
         // Current user may join at least one group => show sidebar action.
         } else if ($joinable) {
-            $actions = new ActionsWidget();
-            $actions->addLink(_('In eine Gruppe eintragen'),
+            $actions->addLink(
+                _('In eine Gruppe eintragen'),
                 $this->url_for('course/statusgroups/joinables'),
-                    Icon::create('door-enter', 'clickable'))->asDialog('size=auto');
-            $sidebar->addWidget($actions);
+                Icon::create('door-enter')
+            )->asDialog('size=auto');
         }
 
-        $views = $sidebar->addWidget(new ViewsWidget());
-        $views->addLink(
-            _('Alle Gruppen zugeklappt'),
-            $this->url_for('course/statusgroups')
-        )->setActive(!$this->open_groups);
+        if ($this->open_groups) {
+            $actions->addLink(
+                _('Alle Gruppen zuklappen'),
+                $this->url_for('course/statusgroups'),
+                Icon::create('arr_2up')
+            );
+        } else {
+            $actions->addLink(
+                _('Alle Gruppen aufklappen'),
+                $this->url_for('course/statusgroups', ['open_groups' => '1']),
+                Icon::create('arr_2down')
+            );
+        }
 
-        $views->addLink(
-            _('Alle Gruppen aufgeklappt'),
-            $this->url_for('course/statusgroups', ['open_groups' => '1'])
-        )->setActive($this->open_groups);
+        $sidebar->addWidget($actions);
     }
 
     /**

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitb41c1174a5cdd6050367fa7bb2fe43ba
+class ComposerStaticInit6473f01de0108359f91ac788374346a3
 {
     public static $files = array (
         'a4ecaeafb8cfb009ad0e052c90355e98' => __DIR__ . '/..' . '/beberlei/assert/lib/Assert/functions.php',
@@ -18,6 +18,10 @@ class ComposerStaticInitb41c1174a5cdd6050367fa7bb2fe43ba
         'O' => 
         array (
             'OTPHP\\' => 6,
+        ),
+        'L' => 
+        array (
+            'Leafo\\ScssPhp\\' => 14,
         ),
         'A' => 
         array (
@@ -34,6 +38,10 @@ class ComposerStaticInitb41c1174a5cdd6050367fa7bb2fe43ba
         array (
             0 => __DIR__ . '/..' . '/spomky-labs/otphp/src',
         ),
+        'Leafo\\ScssPhp\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/leafo/scssphp/src',
+        ),
         'Assert\\' => 
         array (
             0 => __DIR__ . '/..' . '/beberlei/assert/lib/Assert',
@@ -43,8 +51,8 @@ class ComposerStaticInitb41c1174a5cdd6050367fa7bb2fe43ba
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitb41c1174a5cdd6050367fa7bb2fe43ba::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitb41c1174a5cdd6050367fa7bb2fe43ba::$prefixDirsPsr4;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit6473f01de0108359f91ac788374346a3::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit6473f01de0108359f91ac788374346a3::$prefixDirsPsr4;
 
         }, null, ClassLoader::class);
     }

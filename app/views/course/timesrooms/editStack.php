@@ -2,6 +2,7 @@
       class="default collapsable" data-dialog="size=big">
     <?= CSRFProtection::tokenTag()?>
     <input type="hidden" name="method" value="edit">
+    <input type="hidden" name="checked_dates" value="<?= implode(',', $checked_dates) ?>">
 
     <fieldset>
         <legend><?= _('Raumangaben') ?></legend>

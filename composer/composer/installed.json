@@ -1,17 +1,17 @@
 [
     {
         "name": "beberlei/assert",
-        "version": "v3.2.0",
-        "version_normalized": "3.2.0.0",
+        "version": "v3.2.1",
+        "version_normalized": "3.2.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/beberlei/assert.git",
-            "reference": "fd82f4c8592c8128dd74481034c31da71ebafc56"
+            "reference": "ce139b6bf8f07fb8389d2c8e15b98dc24fdd93c7"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/beberlei/assert/zipball/fd82f4c8592c8128dd74481034c31da71ebafc56",
-            "reference": "fd82f4c8592c8128dd74481034c31da71ebafc56",
+            "url": "https://api.github.com/repos/beberlei/assert/zipball/ce139b6bf8f07fb8389d2c8e15b98dc24fdd93c7",
+            "reference": "ce139b6bf8f07fb8389d2c8e15b98dc24fdd93c7",
             "shasum": ""
         },
         "require": {
@@ -20,9 +20,9 @@
         "require-dev": {
             "friendsofphp/php-cs-fixer": "*",
             "phpstan/phpstan-shim": "*",
-            "phpunit/phpunit": "*"
+            "phpunit/phpunit": ">=6.0.0 <8"
         },
-        "time": "2018-12-24T15:25:25+00:00",
+        "time": "2019-05-28T15:18:28+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -54,6 +54,62 @@
             "assert",
             "assertion",
             "validation"
+        ]
+    },
+    {
+        "name": "leafo/scssphp",
+        "version": "v0.8.4",
+        "version_normalized": "0.8.4.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/leafo/scssphp.git",
+            "reference": "b9cdea3e42c3bcb1a9faafd04ccce4e8ec860ad9"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/leafo/scssphp/zipball/b9cdea3e42c3bcb1a9faafd04ccce4e8ec860ad9",
+            "reference": "b9cdea3e42c3bcb1a9faafd04ccce4e8ec860ad9",
+            "shasum": ""
+        },
+        "require": {
+            "php": "^5.4.0 || ^7"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.6",
+            "squizlabs/php_codesniffer": "~2.5",
+            "twbs/bootstrap": "~4.3",
+            "zurb/foundation": "~6.5"
+        },
+        "time": "2019-06-18T21:15:44+00:00",
+        "bin": [
+            "bin/pscss"
+        ],
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Leafo\\ScssPhp\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Leaf Corcoran",
+                "email": "leafot@gmail.com",
+                "homepage": "http://leafo.net"
+            }
+        ],
+        "description": "scssphp is a compiler for SCSS written in PHP.",
+        "homepage": "http://leafo.github.io/scssphp/",
+        "keywords": [
+            "css",
+            "less",
+            "sass",
+            "scss",
+            "stylesheet"
         ]
     },
     {
