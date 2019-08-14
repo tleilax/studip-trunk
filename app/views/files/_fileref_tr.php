@@ -118,11 +118,14 @@ if ($current_folder->isFileDownloadable($file_ref->id, $GLOBALS['user']->id)) {
             );
         }
         if ($current_folder->isFileWritable($file_ref->id, $GLOBALS['user']->id)) {
-            $actionMenu->addLink(
-                $controller->url_for('file/delete/' . $file_ref->id),
+            $actionMenu->addButton(
+                'delete',
                 _('Datei löschen'),
                 Icon::create('trash', Icon::ROLE_CLICKABLE, ['size' => 20]),
-                ['onclick' => "return STUDIP.Dialog.confirmAsPost('" . sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->name)) . "', this.href);"]
+                [
+                    'formaction'   => $controller->url_for("file/delete/{$file_ref->id}"),
+                    'data-confirm' => sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), $file_ref->name),
+                ]
             );
         }
     ?>

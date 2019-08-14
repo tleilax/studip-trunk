@@ -56,3 +56,51 @@ STUDIP.domReady(() => {
         return searchMoreFiles(this);
     });
 });
+
+jQuery(document).on('ajaxComplete', function (event, xhr) {
+    if (!xhr.getResponseHeader('X-Filesystem-Changes')) {
+        return;
+    }
+
+    var changes = JSON.parse(xhr.getResponseHeader('X-Filesystem-Changes'));
+    var payload = false;
+
+    function process(key, handler) {
+        if (!changes.hasOwnProperty(key)) {
+            return;
+        }
+
+        var values = changes[key];
+        if (values === null && xhr.getResponseHeader('Content-Type').match(/json/)) {
+            try {
+                if (payload === false) {
+                    payload = JSON.parse(xhr.responseText);
+                }
+                if (payload.hasOwnProperty(key)) {
+                    values = payload[key];
+                }
+            } catch (e) {
+            }
+        }
+
+        handler(values);
+    }
+
+    process('removed_files', function (id) {
+        if (!Array.isArray(id)) {
+            id = [id];
+        }
+        id.forEach(STUDIP.Files.removeFileDisplay);
+    });
+    process('added_files', STUDIP.Files.addFileDisplay);
+    process('added_folders', STUDIP.Files.addFolderDisplay);
+    process('redirect', STUDIP.Dialog.fromURL);
+    process('message', function (html) {
+        $('.file_upload_window .uploadbar')
+            .hide()
+            .parent()
+            .append(html);
+    });
+    process('close_dialog', STUDIP.Dialog.close);
+
+});
