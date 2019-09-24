@@ -178,9 +178,13 @@ class UserDomain extends SimpleORMap
     {
         if ($domains_owned instanceof StudipArrayObject) {
             $domains_owned = $domains_owned->getArrayCopy();
+        } else {
+            $domains_owned = (array) $domains_owned;
         }
         if ($domains_to_check instanceof StudipArrayObject) {
             $domains_to_check = $domains_to_check->getArrayCopy();
+        } else {
+            $domains_to_check = (array) $domains_to_check;
         }
 
         // Empty sets of domains on both sides
