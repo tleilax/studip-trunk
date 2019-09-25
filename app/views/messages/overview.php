@@ -24,7 +24,7 @@
             <col>
             <col>
             <col class="hidden-small-down">
-            <col style="width: 120px">
+            <col style="width: 20ex">
             <col class="hidden-small-down">
         </colgroup>
         <thead>
@@ -35,7 +35,7 @@
                 <th></th>
                 <th></th>
                 <th><?= _("Betreff") ?></th>
-                <th  class="hidden-small-down"><?= $received ? _("Gesendet") : _("Empfänger") ?></th>
+                <th  class="hidden-small-down"><?= $received ? _('Absender') : _('Empfänger') ?></th>
                 <th><?= _("Zeit") ?></th>
                 <th class="hidden-small-down"><?= _("Schlagworte") ?></th>
             </tr>

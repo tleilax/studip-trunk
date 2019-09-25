@@ -267,6 +267,8 @@ class ExportPDF extends TCPDF implements ExportDocument {
         $ht = ($ht == '' ? $this->h_title : $ht);
         $hs = ($hs == '' ? $this->h_string : $hs);
 
+        parent::resetHeaderTemplate();
+
         parent::setHeaderData($ln, $lw, $ht, $hs);
     }
 
@@ -282,7 +284,7 @@ class ExportPDF extends TCPDF implements ExportDocument {
      */
     public function writeHTML ($html, $ln = true, $fill = false, $reseth = false, $cell = false, $align = '')
     {
-        $html = preg_replace_callback('/src="(.*)"/U', function ($m) {return $this->convertURL($m[1]);}, $html);
+        $html = preg_replace_callback('/src="([^@].*)"/U', function ($m) {return $this->convertURL($m[1]);}, $html);
         parent::writeHTML($html, $ln, $fill, $reseth, $cell, $align);
     }
 
@@ -331,7 +333,10 @@ class ExportPDF extends TCPDF implements ExportDocument {
                 }
             }
         }
-        return 'src="' . $convurl . '"';
+
+        $file_content = @file_get_contents($convurl);
+        $file_content = base64_encode($file_content);
+        return 'src="@' . $file_content . '"';
     }
 
     /**

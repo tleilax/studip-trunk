@@ -51,6 +51,16 @@ class ConsultationBlock extends SimpleORMap implements PrivacyObject
                 [$block->id]
             ) > 0;
         };
+        $config['additional_fields']['is_expired']['get'] = function ($block) {
+            $expired_slots = 0;
+            foreach ($block->slots as $slot) {
+                if ($slot->is_expired) {
+                    $expired_slots += 1;
+                }
+            }
+
+            return count($block->slots) === $expired_slots;
+        };
 
         parent::configure($config);
     }
@@ -92,12 +102,38 @@ class ConsultationBlock extends SimpleORMap implements PrivacyObject
         return self::countBySQL($condition, $parameters);
     }
 
+    /**
+     * Returns all visible courses to the user that the teacher has created
+     * blocks for.
+     *
+     * @param  string $user_id    User id to find the courses for
+     * @param  string $teacher_id User id of the teacher
+     * @return array
+     */
+    public static function findVisibleCoursesForUserByTeacherId($user_id, $teacher_id)
+    {
+        $condition = "JOIN consultation_blocks ON seminar_id = course_id
+                      JOIN seminar_user USING (seminar_id)
+                      WHERE course_id IS NOT NULL
+                        AND teacher_id = :teacher_id
+                        AND user_id = :user_id";
+
+        $order = Config::get()->IMPORTANT_SEMNUMBER
+               ? 'ORDER BY VeranstaltungsNummer, Name'
+               : 'ORDER BY Name';
+
+        return Course::findBySQL("{$condition} {$order}", [
+            ':user_id'    => $user_id,
+            ':teacher_id' => $teacher_id,
+        ]);
+    }
+
     private static function prepareConditionAndParametersForVisibleBlocks($user_id, $teacher_id, $course_id)
     {
         $conditions = [
             'course_id IS NULL OR seminar_user.user_id IS NOT NULL',
             'teacher_id = :teacher_id',
-            'start > UNIX_TIMESTAMP()'
+            'end > UNIX_TIMESTAMP()'
         ];
         $parameters = [
             ':user_id'    => $user_id,
@@ -111,7 +147,8 @@ class ConsultationBlock extends SimpleORMap implements PrivacyObject
 
         $condition = "LEFT JOIN seminar_user
                         ON (course_id = seminar_id AND seminar_user.user_id = :user_id)
-                      WHERE (" . implode(') AND (', $conditions) . ')';
+                      WHERE (" . implode(') AND (', $conditions) . ")
+                      ORDER BY start ASC";
 
         return [$condition, $parameters];
     }
@@ -296,5 +333,54 @@ class ConsultationBlock extends SimpleORMap implements PrivacyObject
                 $storage->addTabularData(_('Sprechstunden'), 'consultation_slots', $slots);
             }
         }
+    }
+
+    /**
+     * Finds all blocks of a teacher. Specialized version of the sorm method
+     * that excludes expired blocks by default and may be used to explicitely
+     * select expired blocks.
+     *
+     * @param  string  $teacher_id Id of the teacher
+     * @param  string  $order      Optional order
+     * @param  boolean $expired    Select expired blocks
+     * @return array
+     */
+    public static function findByTeacher_id($teacher_id, $order = '', $expired = false)
+    {
+        if ($expired) {
+            return parent::findBySQL(
+                "teacher_id = ? AND end <= UNIX_TIMESTAMP() {$order}",
+                [$teacher_id]
+            );
+        }
+
+        return parent::findBySQL(
+            "teacher_id = ? AND end > UNIX_TIMESTAMP() {$order}",
+            [$teacher_id]
+        );
+    }
+
+    /**
+     * Count all blocks of a teacher. Specialized version of the sorm method
+     * that excludes expired blocks by default and may be used to explicitely
+     * select expired blocks.
+     *
+     * @param  string  $teacher_id Id of the teacher
+     * @param  boolean $expired    Select expired blocks
+     * @return array
+     */
+    public static function countByTeacher_id($teacher_id, $expired = false)
+    {
+        if ($expired) {
+            return parent::countBySQL(
+                "teacher_id = ? AND end <= UNIX_TIMESTAMP()",
+                [$teacher_id]
+            );
+        }
+
+        return parent::countBySQL(
+            "teacher_id = ? AND end > UNIX_TIMESTAMP()",
+            [$teacher_id]
+        );
     }
 }

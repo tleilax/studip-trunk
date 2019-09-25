@@ -50,7 +50,35 @@ class ConsultationSlot extends SimpleORMap
             }
         };
 
+        $config['additional_fields']['has_bookings']['get'] = function ($slot) {
+            return count($slot->bookings) > 0;
+        };
+        $config['additional_fields']['is_expired']['get'] = function ($slot) {
+            return $slot->end_time < time();
+        };
+
         parent::configure($config);
+    }
+
+    /**
+     * Find all occupied slots for a given user and teacher combination.
+     *
+     * @param  string $user_id    Id of the user
+     * @param  string $teacher_id Id of the teacher
+     * @return array
+     */
+    public static function findOccupiedSlotsByUserAndTeacher($user_id, $teacher_id)
+    {
+        $condition = "JOIN consultation_blocks USING (block_id)
+                      JOIN consultation_bookings USING (slot_id)
+                      WHERE user_id = :user_id
+                        AND teacher_id = :teacher_id
+                        AND end > UNIX_TIMESTAMP()
+                      ORDER BY start_time ASC";
+        return self::findBySQL($condition, [
+            ':user_id'    => $user_id,
+            ':teacher_id' => $teacher_id,
+        ]);
     }
 
     /**
@@ -114,40 +142,54 @@ class ConsultationSlot extends SimpleORMap
      */
     public function updateEvent()
     {
-        if (!$this->event) {
+        if (count($this->bookings) === 0 && !$this->block->calendar_events) {
+            if ($this->event) {
+                $this->event->delete();
+
+                $this->teacher_event_id = null;
+                $this->store();
+            }
             return;
+        }
+
+        $event = $this->event;
+        if (!$event) {
+            $event = $this->createEvent($this->block->teacher);
+
+            $this->teacher_event_id = $event->id;
+            $this->store();
         }
 
         setTempLanguage($this->block->teacher_id);
 
-        if (count($this->bookings) === 0) {
-            $this->event->category_intern = 9;
-            $this->event->summary         = _('Freier Sprechstundentermin');
-            $this->event->description     = _('Dieser Sprechstundentermin ist noch nicht belegt.');
-        } else {
-            $this->event->category_intern = 1;
+        if (count($this->bookings) > 0) {
+            $event->category_intern = 1;
 
             if (count($this->bookings) === 1) {
                 $booking = $this->bookings->first();
 
-                $this->event->summary     = sprintf(
+                $event->summary = sprintf(
                     _('Sprechstundentermin mit %s'),
                     $booking->user->getFullName()
                 );
-                $this->event->description = $booking->reason;
+                $event->description = $booking->reason;
             } else {
-                $this->event->summary     = sprintf(
+                $event->summary = sprintf(
                     _('Sprechstundentermin mit %u Personen'),
                     count($this->bookings)
                 );
-                $this->event->description = implode("\n\n----\n\n", $this->bookings->map(function ($booking) {
+                $event->description = implode("\n\n----\n\n", $this->bookings->map(function ($booking) {
                     return "- {$booking->user->getFullName()}:\n{$booking->reason}";
                 }));
             }
+        } else {
+            $event->category_intern = 9;
+            $event->summary         = _('Freier Sprechstundentermin');
+            $event->description     = _('Dieser Sprechstundentermin ist noch nicht belegt.');
         }
 
         restoreLanguage();
 
-        $this->event->store();
+        $event->store();
     }
 }

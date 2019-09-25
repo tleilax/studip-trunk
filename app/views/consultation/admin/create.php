@@ -47,7 +47,7 @@ $intervals = [
             <input required type="text" name="end-date" id="end-date"
                    value="<?= htmlReady(Request::get('end-date', strftime('%d.%m.%Y', strtotime('+4 weeks'))))  ?>"
                    placeholder="<?= _('tt.mm.jjjj') ?>"
-                   data-date-picker='{">":"#start-date"}'>
+                   data-date-picker='{">=":"#start-date"}'>
         </label>
 
         <label class="col-3">
@@ -106,7 +106,7 @@ $intervals = [
         </label>
 
         <label>
-            <?= _('Anmerkung zu den Terminen in diesem Block') ?>
+            <?= _('Information zu den Terminen in diesem Block') ?>
             <textarea name="note"><?= htmlReady(Request::get('note')) ?></textarea>
         </label>
 

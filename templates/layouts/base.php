@@ -86,14 +86,43 @@ if ($navigation) {
 
     <? include 'lib/include/header.php' ?>
 
-    <div id="layout_page">
+    <? if ($_SESSION['NEW_CONTEXT']) {
+        unset($_SESSION['NEW_CONTEXT']);
+        $new_context = true;
+    } ?>
+    <div id="layout_page"<?= Context::get() ? ($new_context ? ' class="new_context contextless"' : '') : ' class="contextless"' ?>>
+
         <? if (PageLayout::isHeaderEnabled() && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody' && Navigation::hasItem('/course') && Navigation::getItem('/course')->isActive() && $_SESSION['seminar_change_view_'.Context::getId()]) : ?>
             <?= $this->render_partial('change_view', ['changed_status' => $_SESSION['seminar_change_view_'.Context::getId()]]) ?>
         <? endif ?>
 
+    <? if (Context::get() || PageLayout::isHeaderEnabled()): ?>
+        <nav class="secondary-navigation">
+        <? if (is_object($GLOBALS['perm']) && !$GLOBALS['perm']->have_perm('admin') && Context::get()) : ?>
+            <? $membership = CourseMember::find([Context::get()->id, $GLOBALS['user']->id]) ?>
+            <? if ($membership) : ?>
+                <a href="<?= URLHelper::getLink('dispatch.php/my_courses/groups') ?>"
+                   data-dialog
+                   class="colorblock gruppe<?= $membership ? $membership['gruppe'] : 1 ?>"></a>
+            <? endif ?>
+        <? endif ?>
+        <? if (Context::get()) : ?>
+            <div id="layout_context_title">
+            <? if (Context::isCourse()) : ?>
+                <?= Icon::create('seminar', Icon::ROLE_INFO)->asImg(20, ['class' => 'context_icon']) ?>
+                <?= htmlReady($GLOBALS['SEM_TYPE'][Context::get()->status]['name'] . ': ' . Context::get()->name) ?>
+            <? elseif (Context::isInstitute()) : ?>
+                <?= Icon::create('institute', Icon::ROLE_INFO)->asImg(20, ['class' => 'context_icon']) ?>
+                <?= htmlReady(Context::get()->name) ?>
+            <? endif ?>
+            </div>
+        <? endif ?>
+
         <? if (PageLayout::isHeaderEnabled() /*&& isset($navigation)*/) : ?>
-            <?= $this->render_partial('tabs', compact('navigation')) ?>
+            <?= $this->render_partial('tabs', compact('navigation', 'membership')) ?>
         <? endif; ?>
+        </nav>
+    <? endif; ?>
 
         <?
         if (is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') {
@@ -112,13 +141,6 @@ if ($navigation) {
             }
         }
         ?>
-        <div id="page_title_container">
-            <div id="current_page_title">
-                <?= htmlReady(PageLayout::getTitle()) ?>
-                <?= $public_hint ? '(' . htmlReady($public_hint) . ')' : '' ?>
-            </div>
-
-         </div>
 
         <div id="layout_container">
             <?= Sidebar::get()->render() ?>

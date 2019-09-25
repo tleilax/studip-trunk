@@ -165,12 +165,12 @@ class FileManager
     /**
      * Returns the icon for a given file ref.
      *
-     * @param FileRef $ref        The file ref whose icon is requested.
-     * @param string  $role       The requested role
-     * @param array   $attributes Optional additional attributes
-     * @return Icon The icon for the file ref.
+     * @param FileRef|stdClass $ref        The file ref whose icon is requested.
+     * @param string           $role       The requested role
+     * @param array            $attributes Optional additional attributes
+     * @return Icon                        The icon for the file ref.
      */
-    public static function getIconForFileRef(FileRef $ref, $role = Icon::ROLE_CLICKABLE, array $attributes = [])
+    public static function getIconForFileRef($ref, $role = Icon::ROLE_CLICKABLE, array $attributes = [])
     {
         if ($ref->is_link) {
             return Icon::create('link-extern', $role, $attributes);
@@ -437,8 +437,7 @@ class FileManager
         $data_file = null;
 
         if (!$source->file) {
-            if ($update_other_references) {
-            } else {
+            if (!$update_other_references) {
                 if (!$update_filename) {
                     $uploaded_file_data['name'] = $source->name;
                 } else {
@@ -474,6 +473,7 @@ class FileManager
             if ($update_filename) {
                 $data_file->name = $uploaded_file_data['name'];
             }
+            $data_file->user_id = $user->id;
             $data_file->store();
         } else {
             // If we want to keep the old version of the file in all other
@@ -531,6 +531,16 @@ class FileManager
                 }
             }
         }
+
+        // Update author
+        FileRef::findEachBySQL(
+            function ($ref) use ($user) {
+                $ref->user_id = $user->id;
+                $ref->store();
+            },
+            'file_id = :file_id',
+            ['file_id' => $source->file_id]
+         );
 
         //Everything went fine: Return the updated $source FileRef:
         return $source;
