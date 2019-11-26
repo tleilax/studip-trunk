@@ -189,11 +189,7 @@ class FilesController extends AuthenticatedController
         $this->buildSidebar($this->topFolder);
 
         //check for INBOX and OUTBOX folder:
-
-        //first the INBOX folder:
-        $inbox_folder = FileManager::getInboxFolder($this->user);
-
-        //then the OUTBOX folder:
+        $inbox_folder  = FileManager::getInboxFolder($this->user);
         $outbox_folder = FileManager::getOutboxFolder($this->user);
     }
 

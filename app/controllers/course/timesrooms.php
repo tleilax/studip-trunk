@@ -331,7 +331,9 @@ class Course_TimesroomsController extends AuthenticatedController
         $assigned_groups       = Request::optionArray('assigned_groups');
         $termin->statusgruppen = Statusgruppen::findMany($assigned_groups);
 
-        if ($termin->store()) {
+        $termin->store();
+
+        if ($time_changed) {
             NotificationCenter::postNotification('CourseDidChangeSchedule', $this->course);
         }
 
@@ -620,13 +622,16 @@ class Course_TimesroomsController extends AuthenticatedController
         $group_action    = Request::get('related_groups_action');
         $lecture_changed = false;
         $groups_changed  = false;
+        $singledates     = [];
 
-        foreach ($_SESSION['_checked_dates'] as $singledate_id) {
-            $singledate = CourseDate::find($singledate_id);
-            if (!isset($singledate)) {
-                $singledate = CourseExDate::find($singledate_id);
+        if (is_array($_SESSION['_checked_dates'])) {
+            foreach ($_SESSION['_checked_dates'] as $singledate_id) {
+                $singledate = CourseDate::find($singledate_id);
+                if (!isset($singledate)) {
+                    $singledate = CourseExDate::find($singledate_id);
+                }
+                $singledates[] = $singledate;
             }
-            $singledates[] = $singledate;
         }
 
         // Update related persons
@@ -839,24 +844,19 @@ class Course_TimesroomsController extends AuthenticatedController
             $cycle->end_offset = NULL;
         }
 
-        if ($cycle->store()) {
+        $cycle->store();
 
-            if(Request::int('course_type')) {
-                $cycle->setSingleDateType(Request::int('course_type'));
-            }
-
-            $cycle_info = $cycle->toString();
-            NotificationCenter::postNotification('CourseDidChangeSchedule', $this->course);
-
-            $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit %s wurde hinzugefügt!'), $cycle_info));
-            $this->displayMessages();
-            $this->relocate('course/timesrooms/index');
-        } else {
-            $this->storeRequest();
-            $this->course->createError(_('Die regelmäßige Veranstaltungszeit konnte nicht hinzugefügt werden! Bitte überprüfen Sie Ihre Eingabe.'));
-            $this->displayMessages();
-            $this->redirect('course/timesrooms/createCycle');
+        if(Request::int('course_type')) {
+            $cycle->setSingleDateType(Request::int('course_type'));
         }
+
+        $cycle_info = $cycle->toString();
+        NotificationCenter::postNotification('CourseDidChangeSchedule', $this->course);
+
+        $this->course->createMessage(sprintf(_('Die regelmäßige Veranstaltungszeit %s wurde hinzugefügt!'), $cycle_info));
+        $this->displayMessages();
+
+        $this->relocate('course/timesrooms/index');
     }
 
     /**
@@ -904,12 +904,14 @@ class Course_TimesroomsController extends AuthenticatedController
                     _('Die Art des Termins wurde bei %u Terminen geändert'),
                     $changed_dates
                 ), $changed_dates));
+            } else {
+                PageLayout::postSuccess(_('Änderungen gespeichert!'));
             }
         } else {
             PageLayout::postInfo(_('Es wurden keine Änderungen vorgenommen'));
         }
 
-        $this->redirect('course/timesrooms/index');
+        $this->relocate('course/timesrooms/index');
     }
 
     /**

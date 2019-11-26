@@ -18,6 +18,12 @@ class Institute_OverviewController extends AuthenticatedController
 
     function before_filter(&$action, &$args) {
 
+        //Check if anonymous access is really allowed:
+        $config = Config::get();
+        if (($config->ENABLE_FREE_ACCESS && ($config->ENABLE_FREE_ACCESS == 'courses_only'))) {
+            $this->allow_nobody = false;
+        }
+
         if (Request::option('auswahl')) {
             Request::set('cid', Request::option('auswahl'));
         }
@@ -42,7 +48,7 @@ class Institute_OverviewController extends AuthenticatedController
             list( , $where_to) = explode('=', array_shift($query_parts));
             $new_query = $where_to . '?' . join('&', $query_parts);
             page_close();
-            $new_query = preg_replace('/[^:0-9a-z+_\-.#?&=\/]/i', '', $new_query);
+            $new_query = preg_replace('/[^:0-9a-z+_\-\.#?&=\/]/i', '', $new_query);
             header('Location: '.URLHelper::getURL($new_query, ['cid' => $this->institute_id]));
             die;
         }

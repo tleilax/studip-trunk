@@ -1,8 +1,14 @@
-<div>
-    <div><?= _('Ein unsichtbarer Ordner, welcher nur von Lehrenden und TutorInnen gesehen werden kann.') ?></div>
-</div>
-<? if ($folderdata['description']) : ?>
+<div style="font-style: italic">
+    <?= _('Ein unsichtbarer Ordner, welcher nur von Lehrenden und TutorInnen gesehen werden kann.') ?>
+    <? if ($folder->download_allowed) : ?>
     <div>
-        <?= formatReady($folderdata['description']) ?>
+        <?= _('Dateien aus diesem Ordner können heruntergeladen werden, wenn ein Downloadlink bekannt ist.')?>
+    </div>
+    <? endif ?>
+</div>
+<? if ($folder->description) : ?>
+<hr>
+    <div>
+        <?= formatReady($folder->description) ?>
     </div>
 <? endif ?>

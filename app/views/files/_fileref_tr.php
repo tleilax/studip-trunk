@@ -51,6 +51,11 @@ if ($current_folder->isFileDownloadable($file_ref->id, $GLOBALS['user']->id)) {
         <?= relSize($file_ref->size, false) ?>
     <? endif ?>
     </td>
+<? if ($show_downloads) : ?>
+    <td data-sort-value="<?= htmlReady($file_ref->downloads) ?>" class="responsive-hidden">
+        <?= htmlReady($file_ref->downloads) ?>
+    </td>
+<? endif ?>
     <td data-sort-value="<?= htmlReady($file_ref->author_name) ?>" class="responsive-hidden">
     <? if ($file_ref->user_id !== $GLOBALS['user']->id && $file_ref->owner): ?>
         <a href="<?= URLHelper::getLink('dispatch.php/profile?username=' . $file_ref->owner->username) ?>">
@@ -119,7 +124,7 @@ if ($current_folder->isFileDownloadable($file_ref->id, $GLOBALS['user']->id)) {
         }
         if ($current_folder->isFileWritable($file_ref->id, $GLOBALS['user']->id)) {
             $actionMenu->addLink(
-                $controller->url_for('file/delete/' . $file_ref->id),
+                $controller->url_for('file/delete/' . $file_ref->id, $flat_view ? ['from_flat_view' => 1] : []),
                 _('Datei löschen'),
                 Icon::create('trash', Icon::ROLE_CLICKABLE, ['size' => 20]),
                 ['onclick' => "return STUDIP.Dialog.confirmAsPost('" . sprintf(_('Soll die Datei "%s" wirklich gelöscht werden?'), htmlReady($file_ref->name)) . "', this.href);"]

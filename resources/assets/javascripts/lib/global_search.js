@@ -11,6 +11,7 @@ const GlobalSearch = {
         $('#globalsearch-searchbar').toggleClass('is-visible', visible);
         $('#globalsearch-input').toggleClass('hidden-small-down', !visible);
         $('#globalsearch-icon').toggleClass('hidden-small-down', visible);
+        $('#globalsearch-clear').toggleClass('hidden-small-down', !visible);
 
         if (!visible && cleanup) {
             GlobalSearch.lastSearch = null;
@@ -19,7 +20,7 @@ const GlobalSearch = {
             $('#globalsearch-input').blur().val('');
         }
 
-        $('html.responsive-display').toggleClass('globalsearch-visible', visible);
+        $('html:not(.size-large)').toggleClass('globalsearch-visible', visible);
 
         return false;
     },

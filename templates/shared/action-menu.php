@@ -1,4 +1,5 @@
-<nav class="action-menu">
+<? // class "action-menu" will be set from API ?>
+<nav <?= arrayToHtmlAttributes($attributes) ?>>
     <a class="action-menu-icon" title="<?= _('Aktionen') ?>" aria-expanded="false" aria-label="<?= _("Aktionsmenü") ?>" href="#">
         <div></div>
         <div></div>
@@ -10,7 +11,7 @@
         </div>
         <ul class="action-menu-list">
         <? foreach ($actions as $action): ?>
-            <li class="action-menu-item">
+            <li class="action-menu-item <? if (isset($action['attributes']['disabled'])) echo 'action-menu-item-disabled'; ?>">
             <? if ($action['type'] === 'link'): ?>
                 <a href="<?= $action['link'] ?>" <?= arrayToHtmlAttributes($action['attributes']) ?>>
                     <? if ($action['icon']): ?>

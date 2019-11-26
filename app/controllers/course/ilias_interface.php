@@ -47,6 +47,7 @@ class Course_IliasInterfaceController extends AuthenticatedController
         $this->edit_permission = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id);
         $this->author_permission = false;
         $this->change_course_permission = $GLOBALS['auth']->auth["perm"] == "root" || ($GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id) && $this->ilias_interface_config['allow_change_course']);
+        $this->add_own_course_permission = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id) && $this->ilias_interface_config['allow_add_own_course'];
         $this->course_permission = $GLOBALS['perm']->have_studip_perm('tutor', $this->seminar_id);
 
         $this->sidebar = Sidebar::get();
@@ -135,6 +136,12 @@ class Course_IliasInterfaceController extends AuthenticatedController
                         Icon::create('seminar+add', 'clickable'),
                         ['data-dialog' => 'size=auto;reload-on-close']
                         );
+                if ($this->change_course_permission) $widget->addLink(
+                        _('Eigenen ILIAS-Kurs zuordnen'),
+                        $this->url_for('course/ilias_interface/add_object/assign_own_course'),
+                        Icon::create('seminar+add', 'clickable'),
+                        ['data-dialog' => 'size=auto;reload-on-close']
+                        );
             }
         }
         foreach ($this->courses as $ilias_index => $crs_id) {
@@ -159,7 +166,7 @@ class Course_IliasInterfaceController extends AuthenticatedController
             $widget = new ActionsWidget();
             if ($this->edit_permission && $this->ilias_interface_config['add_statusgroups']) {
                 $widget->addLink(
-                        _('Statusgruppen übertragen'),
+                        _('Gruppen übertragen'),
                         $this->url_for('course/ilias_interface/add_groups'),
                         Icon::create('group2+refresh', 'clickable'),
                         ['data-dialog' => 'size=auto']
@@ -253,7 +260,7 @@ class Course_IliasInterfaceController extends AuthenticatedController
             }
         }
 
-        if (($mode == 'new_course') || ($mode == 'assign_course')) {
+        if (($mode == 'new_course') || ($mode == 'assign_course') || ($mode == 'assign_own_course')) {
             // allow add course only if no course exists
             foreach ($this->ilias_list as $ilias_index => $ilias) {
                 if (IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $ilias_index)) {
@@ -334,9 +341,28 @@ class Course_IliasInterfaceController extends AuthenticatedController
                 }
 
                 if (Request::get('cmd') ==  'assign_course') {
-                    $crs_id = IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $this->index);
+                    $crs_id = IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $this->ilias_index);
                     if (!$crs_id) {
-                        IliasObjectConnections::setConnection($this->seminar_id, Request::get(ilias_course_id), "crs", $this->index);
+                        IliasObjectConnections::setConnection($this->seminar_id, Request::get(ilias_course_id), "crs", $this->ilias_index);
+                        PageLayout::postInfo(_('Kurs wurde zugeordnet.'));
+                        $this->redirect($this->url_for('course/ilias_interface'));
+                    }
+                }
+            } elseif ($mode == 'assign_own_course') {
+                $own_courses = $this->ilias->soap_client->getCoursesForUser($this->ilias->user->getId(), 12);
+                if (is_array($own_courses) && count($own_courses)) {
+                    $this->submit_text = _('Kurs zuordnen');
+                    foreach ($own_courses as $own_course_id => $own_course_name) {
+                        $this->studip_course_list[$own_course_id] = my_substr($own_course_name,0,60)." ".sprintf(_("(Kurs-ID %s)"), $own_course_id);
+                    }
+                } else {
+                    $this->submit_text = '';
+                }
+
+                if (Request::get('cmd') ==  'assign_course') {
+                    $crs_id = IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $this->ilias_index);
+                    if (!$crs_id) {
+                        IliasObjectConnections::setConnection($this->seminar_id, Request::get(ilias_course_id), "crs", $this->ilias_index);
                         PageLayout::postInfo(_('Kurs wurde zugeordnet.'));
                         $this->redirect($this->url_for('course/ilias_interface'));
                     }
@@ -361,7 +387,7 @@ class Course_IliasInterfaceController extends AuthenticatedController
      */
     public function add_groups_action($index = '')
     {
-        PageLayout::setTitle(_('Statusgruppen anlegen'));
+        PageLayout::setTitle(_('Gruppen übertragen'));
 
         if (!$this->edit_permission) {
             throw new AccessDeniedException();
@@ -393,7 +419,8 @@ class Course_IliasInterfaceController extends AuthenticatedController
             $this->ilias = $this->ilias_list[$index];
             $this->ilias_index = $index;
             $this->ilias_groups = [];
-            $this->submit_text =  _('Gruppen übertragen');
+            $this->groups_exist = false;
+            $this->submit_text =  _('Gruppen anlegen');
             $course_id = IliasObjectConnections::getConnectionModuleId($this->seminar_id, "crs", $this->ilias_index);
 
             if ((Request::get('cmd') == 'create_groups') && $course_id) {
@@ -448,6 +475,13 @@ class Course_IliasInterfaceController extends AuthenticatedController
                     }
                 }
                 $this->redirect($this->url_for('course/ilias_interface'));
+            } else {
+                foreach ($this->groups as $group) {
+                    if ($group_id = IliasObjectConnections::getConnectionModuleId($group->getId(), "group", $this->ilias_index)) {
+                        $this->submit_text =  _('Gruppen aktualisieren');
+                        $this->groups_exist = true;
+                    }
+                }
             }
 
             // show error messages

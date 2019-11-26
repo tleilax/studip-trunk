@@ -119,7 +119,7 @@ class StandardFolder implements FolderType
      * @param string $user_id
      * @return bool
      */
-    private function isVisibleNonRecursive($user_id)
+    protected function isVisibleNonRecursive($user_id)
     {
         $visible = false;
 
@@ -128,7 +128,9 @@ class StandardFolder implements FolderType
         }
 
         if ($this->range_type === 'institute' ) {
-            $visible = Config::get()->ENABLE_FREE_ACCESS || Seminar_Perm::get()->have_perm('user', $user_id);
+            $visible = (Config::get()->ENABLE_FREE_ACCESS
+                     && (Config::get()->ENABLE_FREE_ACCESS != 'courses_only')) ||
+                       Seminar_Perm::get()->have_perm('user', $user_id);
         }
 
         if ($this->range_type === 'course') {

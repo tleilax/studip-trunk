@@ -24,6 +24,14 @@
                 <? endif ?>
                 </td>
             </tr>
+            <tr>
+                <td><?= _('Anz. Dateien') ?></td>
+                <td><?= number_format($folder_file_amount, 0, ',', '.') ?></td>
+            </tr>
+            <tr>
+                <td><?= _('Größe') ?></td>
+                <td><?= relsize($folder_size, false) ?></td>
+            </tr>
         </tbody>
     </table>
 </aside>

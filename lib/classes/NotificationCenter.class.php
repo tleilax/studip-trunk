@@ -117,10 +117,11 @@ class NotificationCenter
     {
         $current_observers = [];
         foreach (self::$observers as $e => $l) {
-            if ($e === '' || fnmatch($e, $event)) {
+            if ($e === '' || fnmatch($e, $event, FNM_NOESCAPE)) {
                 $current_observers = array_merge($current_observers, $l);
             }
         }
+
         foreach ($current_observers as $list) {
             if (!$list['predicate'] || $list['predicate']($object)) {
                 call_user_func($list['observer'], $event, $object, $user_data);
@@ -159,6 +160,12 @@ class NotificationCenter
      */
     public static function off($event, Callable $callback, $object = null)
     {
-        static::removeObserver($callback, $event, $object);
+        if ($callback instanceof Closure || is_object($callback)) {
+            static::removeObserver($callback, $event, $object);
+        } elseif (is_array($callback)) {
+            static::removeObserver($callback[0], $event, $object);
+        } elseif (is_string($callback)) {
+            throw new Exception('Strings as callable may not be passed to ' . __METHOD__);
+        }
     }
 }
