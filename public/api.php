@@ -19,14 +19,16 @@
 namespace {
     require_once '../lib/bootstrap.php';
 
-    page_open(['sess' => 'Seminar_Session',
-                    'auth' => 'Seminar_Default_Auth',
-                    'perm' => 'Seminar_Perm',
-                    'user' => 'Seminar_User']);
+    page_open([
+        'sess' => 'Seminar_Session',
+        'auth' => 'Seminar_Default_Auth',
+        'perm' => 'Seminar_Perm',
+        'user' => 'Seminar_User',
+    ]);
 }
 
 namespace RESTAPI {
-    use User, Seminar_Auth, Seminar_User, Seminar_Perm, Config;
+    use Config;
 
     // A potential api exception will lead to an according response with the
     // exception code and name as the http status.
@@ -53,13 +55,13 @@ namespace RESTAPI {
         // Get router instance
         $router = Router::getInstance();
 
-        $user_id = setupAuth($router);
+        $api_user = $router->setupAuth();
 
         // Actual dispatch
         $response = $router->dispatch($uri);
 
         // Tear down
-        if ($user_id) {
+        if ($api_user) {
             restoreLanguage();
         }
 
@@ -82,43 +84,12 @@ namespace RESTAPI {
             echo $status;
         }
     } catch (\Exception $e) {
+        $message = explode("\n", $e->getMessage())[0];
         header('Content-Type: application/json; charset=UTF-8');
-        header("{$_SERVER['SERVER_PROTOCOL']} 500 {$e->getMessage()}");
+        header("{$_SERVER['SERVER_PROTOCOL']} 500 {$message}");
         echo $GLOBALS['template_factory']->render('json_exception', [
             'exception' => $e,
             'status'    => 500,
         ]);
     }
-
-    function setupAuth($router)
-    {
-        // Detect consumer
-        $consumer = Consumer\Base::detectConsumer();
-        if (!$consumer) {
-            throw new RouterException(401, 'Unauthorized (no consumer)');
-        }
-
-        // Set authentication if present
-        if ($user = $consumer->getUser()) {
-            // Skip fake authentication if user is already logged in
-            if ($GLOBALS['user']->id !== $user->id) {
-
-                $GLOBALS['auth'] = new Seminar_Auth();
-                $GLOBALS['auth']->auth = [
-                    'uid'   => $user->user_id,
-                    'uname' => $user->username,
-                    'perm'  => $user->perms,
-                ];
-
-                $GLOBALS['user'] = new Seminar_User($user->user_id);
-
-                $GLOBALS['perm'] = new Seminar_Perm();
-                $GLOBALS['MAIL_VALIDATE_BOX'] = false;
-            }
-            setTempLanguage($GLOBALS['user']->id);
-        }
-
-        return $consumer->getUser();
-    }
-
 }

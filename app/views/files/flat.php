@@ -1,11 +1,14 @@
+<?php
+$show_downloads = in_array(Config::get()->DISPLAY_DOWNLOAD_COUNTER, ['always', 'flat']);
+?>
 <form method="post" action="<?= $controller->link_for('file/bulk/' . $topFolder->getId()) ?>">
     <?= CSRFProtection::tokenTag() ?>
-    <table class="default documents sortable-table flat" data-sortlist="[[5, 1]]">
-        <?= $this->render_partial('files/_files_thead.php') ?>
+    <table class="default documents sortable-table flat" data-sortlist="[[<?= $show_downloads ? 6 : 5 ?>, 1]]">
+        <?= $this->render_partial('files/_files_thead.php', compact('show_downloads')) ?>
         <tbody>
         <? if (count($files) === 0): ?>
             <tr>
-                <td colspan="7" class="empty">
+                <td colspan="<?= $show_downloads ? 8 : 7 ?>" class="empty">
                     <?= _('Keine Dateien vorhanden.') ?>
                 </td>
             </tr>
@@ -13,7 +16,9 @@
             <? foreach ($files as $file_ref): ?>
                 <?= $this->render_partial('files/_fileref_tr', [
                     'file_ref'       => $file_ref,
-                    'current_folder' => $folders[$file_ref->folder_id] ?: $file_ref->folder->getTypedFolder()
+                    'current_folder' => $folders[$file_ref->folder_id] ?: $file_ref->folder->getTypedFolder(),
+                    'show_downloads' => $show_downloads,
+                    'flat_view'      => true
                 ]) ?>
             <? endforeach ?>
         <? endif; ?>
@@ -21,7 +26,7 @@
         <? if ($GLOBALS['user']->id !== 'nobody') : ?>
         <tfoot>
         <tr>
-            <td colspan="7">
+            <td colspan="<?= $show_downloads ? 8 : 7 ?>">
                 <span class="multibuttons">
                     <?= Studip\Button::create(_('Herunterladen'), 'download', [
                         'data-activates-condition' => 'table.documents tr[data-permissions*=d] :checkbox:checked'

@@ -493,10 +493,19 @@
 
     // Apply defaults including date picker handlers
     defaults = $.extend(locale, {
-        beforeShow: function () {
+        beforeShow: function (input, inst) {
             STUDIP.UI.Datepicker.refresh();
             STUDIP.UI.DateTimepicker.refresh();
             STUDIP.UI.Timepicker.refresh();
+
+            if ($(input).parents('.ui-dialog').length > 0) {
+                return;
+            }
+
+            $(input).css({
+                'position': 'relative',
+                'z-index': 1002
+            });
         },
         onSelect: function (value, instance) {
             if (value !== instance.lastVal) {

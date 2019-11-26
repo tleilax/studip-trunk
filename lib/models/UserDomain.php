@@ -9,7 +9,7 @@
  */
 class UserDomain extends SimpleORMap
 {
-    const REGEXP = '^[\\w.-]{1,32}$';
+    const REGEXP = '^[\\w\.\-]{1,32}$';
 
     protected static function configure($config = [])
     {

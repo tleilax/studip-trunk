@@ -6,6 +6,7 @@ if (!$controllerpath) {
         $controllerpath = $topFolder->range_type . '/' . $controllerpath;
     }
 }
+$show_downloads = Config::get()->DISPLAY_DOWNLOAD_COUNTER === 'always';
 ?>
 
 <form method="post" action="<?= $controller->link_for('file/bulk/' . $topFolder->getId()) ?>">
@@ -49,12 +50,11 @@ if (!$controllerpath) {
         <? endif; ?>
         </div>
     </caption>
-    <?= $this->render_partial('files/_files_thead.php') ?>
-
+    <?= $this->render_partial('files/_files_thead.php', compact('show_downloads')) ?>
 
     <tbody class="subfolders">
         <tr class="empty" data-sort-fixed <?= count($topFolder->getFiles()) + count($topFolder->getSubfolders()) > 0 ? ' style="display: none;"' : "" ?>>
-            <td colspan="7">
+            <td colspan="<?= $show_downloads ? 8 : 7 ?>">
                 <?= _('Dieser Ordner ist leer') ?>
             </td>
         </tr>
@@ -64,6 +64,7 @@ if (!$controllerpath) {
             'folder'             => $folder,
             'marked_element_ids' => $marked_element_ids,
             'controllerpath'     => $controllerpath,
+            'show_downloads'     => $show_downloads,
         ]) ?>
     <? endforeach ?>
     </tbody>
@@ -73,7 +74,8 @@ if (!$controllerpath) {
             <?= $this->render_partial('files/_fileref_tr', [
                 'file_ref'       => $file_ref,
                 'current_folder' => $topFolder,
-                'controllerpath' => $controllerpath
+                'controllerpath' => $controllerpath,
+                'show_downloads' => $show_downloads,
             ]) ?>
         <? endforeach; ?>
     <? endif; ?>
@@ -81,7 +83,7 @@ if (!$controllerpath) {
     <? if ($GLOBALS['user']->id !== 'nobody') : ?>
         <tfoot>
             <tr>
-                <td colspan="7">
+                <td colspan="<?= $show_downloads ? 8 : 7 ?>">
                     <span class="multibuttons">
                         <?= Studip\Button::create(_('Herunterladen'), 'download', [
                             'data-activates-condition' => 'table.documents tr[data-permissions*=d] :checkbox:checked'

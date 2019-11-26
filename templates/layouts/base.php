@@ -78,27 +78,23 @@ if ($navigation) {
     </script>
 </head>
 
-<body id="<?= $body_id ?: PageLayout::getBodyElementId() ?>">
+<body id="<?= $body_id ?: PageLayout::getBodyElementId() ?>" <? if (SkipLinks::isEnabled()) echo 'class="enable-skiplinks"'; ?>>
 <div id="layout_wrapper">
     <? SkipLinks::insertContainer() ?>
-    <? SkipLinks::addIndex(_("Hauptinhalt"), 'layout_content', 100, true) ?>
+    <? SkipLinks::addIndex(_('Hauptinhalt'), 'layout_content', 100, true) ?>
     <?= PageLayout::getBodyElements() ?>
 
     <? include 'lib/include/header.php' ?>
 
-    <? if ($_SESSION['NEW_CONTEXT']) {
-        unset($_SESSION['NEW_CONTEXT']);
-        $new_context = true;
-    } ?>
-    <div id="layout_page"<?= Context::get() ? ($new_context ? ' class="new_context contextless"' : '') : ' class="contextless"' ?>>
+    <div id="layout_page" <? if (!Context::get()) echo 'class="contextless"'; ?>>
 
-        <? if (PageLayout::isHeaderEnabled() && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody' && Navigation::hasItem('/course') && Navigation::getItem('/course')->isActive() && $_SESSION['seminar_change_view_'.Context::getId()]) : ?>
-            <?= $this->render_partial('change_view', ['changed_status' => $_SESSION['seminar_change_view_'.Context::getId()]]) ?>
-        <? endif ?>
+    <? if (PageLayout::isHeaderEnabled() && is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody' && Navigation::hasItem('/course') && Navigation::getItem('/course')->isActive() && $_SESSION['seminar_change_view_'.Context::getId()]) : ?>
+        <?= $this->render_partial('change_view', ['changed_status' => $_SESSION['seminar_change_view_'.Context::getId()]]) ?>
+    <? endif ?>
 
     <? if (Context::get() || PageLayout::isHeaderEnabled()): ?>
         <nav class="secondary-navigation">
-        <? if (!$GLOBALS['perm']->have_perm('admin') && Context::get()) : ?>
+        <? if (is_object($GLOBALS['perm']) && !$GLOBALS['perm']->have_perm('admin') && Context::get()) : ?>
             <? $membership = CourseMember::find([Context::get()->id, $GLOBALS['user']->id]) ?>
             <? if ($membership) : ?>
                 <a href="<?= URLHelper::getLink('dispatch.php/my_courses/groups') ?>"
@@ -127,7 +123,11 @@ if ($navigation) {
         <?
         if (is_object($GLOBALS['user']) && $GLOBALS['user']->id != 'nobody') {
             // only mark course if user is logged in and free access enabled
-            if (Config::get()->ENABLE_FREE_ACCESS
+            $is_public_course = Context::isCourse() && Config::get()->ENABLE_FREE_ACCESS;
+            $is_public_institute = Context::isInstitute()
+                                && Config::get()->ENABLE_FREE_ACCESS
+                                && Config::get()->ENABLE_FREE_ACCESS != 'courses_only';
+            if (($is_public_course || $is_public_institute)
                 && Navigation::hasItem('/course')
                 && Navigation::getItem('/course')->isActive())
             {
@@ -141,6 +141,16 @@ if ($navigation) {
             }
         }
         ?>
+        <div id="page_title_container" class="hidden-medium-up">
+            <div id="current_page_title">
+                <? if (Context::get() && strpos(PageLayout::getTitle(), Context::getHeaderLine() . ' - ') !== FALSE) : ?>
+                    <?= htmlReady(str_replace(Context::getHeaderLine() . ' - ' , '', PageLayout::getTitle())) ?>
+                <? else: ?>
+                    <?= htmlReady( PageLayout::getTitle()) ?>
+                <? endif ?>
+                <?= $public_hint ? '(' . htmlReady($public_hint) . ')' : '' ?>
+            </div>
+        </div>
 
         <div id="layout_container">
             <?= Sidebar::get()->render() ?>

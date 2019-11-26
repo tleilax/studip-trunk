@@ -3,7 +3,7 @@
         <input type="checkbox" name="q[]" value="<?= htmlReady($questionnaire->id) ?>">
     </td>
     <td>
-        <a href="<?= $controller->link_for('questionnaire/evaluate/' . $questionnaire->id) ?>" data-dialog>
+        <a href="<?= $controller->link_for('questionnaire/answer/' . $questionnaire->id) ?>" data-dialog>
             <?= htmlReady($questionnaire['title']) ?>
         </a>
         <span>
@@ -98,8 +98,7 @@
         $menu->addLink(
             $controller->url_for('questionnaire/export/'  .$questionnaire->id),
             _('Export als CSV'),
-            Icon::create('file-excel', 'clickable'),
-            ['data-dialog' => '']
+            Icon::create('file-excel', 'clickable')
         );
         $menu->addLink(
             $controller->url_for('questionnaire/delete/'  .$questionnaire->id),

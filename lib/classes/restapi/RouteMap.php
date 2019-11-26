@@ -24,6 +24,20 @@ use Request, Config, DocBlock;
  *  public function anyMethodName($id, $other_id = null) {}
  * @endcode
  *
+ * By default, all API routes are unaccessible for nobody users.
+ * To explicitly allow access for nobody users, add the allow_nobody
+ * tag to the handler method's DocBlock. Example:
+ *
+ * @code
+ * / * *
+ *  * Another example handler method
+ *  *
+ *  * @get /foo
+ *  *
+ *  * @allow_nobody
+ *  * /
+ * @endcode
+ *
  * As soon as the Router matches a HTTP request to a handler defined
  * in a RouteMap, it calls RouteMap::init to initialize it and
  * especially the instance field `$this->response` of type
@@ -962,8 +976,11 @@ abstract class RouteMap
 
             // Iterate through all possible methods in order to identify
             // any according docblock tags
+            $allow_nobody = isset($docblock->tags['allow_nobody']);
             foreach (array_keys($routes) as $http_method) {
                 if (!isset($docblock->tags[$http_method])) {
+                    //The tag for the current HTTP method cannot be found
+                    //in the route's DocBlock tags.
                     continue;
                 }
 
@@ -971,9 +988,10 @@ abstract class RouteMap
                 // the according methods of the object.
                 foreach ($docblock->tags[$http_method] as $uri_template) {
                     $routes[$http_method][$uri_template] = [
-                        'handler'     => [$this, $ref_method->name],
-                        'conditions'  => $conditions,
-                        'description' => $docblock->desc ?: false,
+                        'handler'      => [$this, $ref_method->name],
+                        'conditions'   => $conditions,
+                        'description'  => $docblock->desc ?: false,
+                        'allow_nobody' => $allow_nobody
                     ];
                 }
             }

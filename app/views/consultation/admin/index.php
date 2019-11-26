@@ -37,57 +37,61 @@
         </tr>
     </thead>
 <? foreach ($blocks as $block): ?>
-    <tbody id="block-<?= htmlReady($block->id) ?>" <? if ($block->is_expired) echo 'class="block-is-expired"'; ?>>
+    <tbody id="block-<?= htmlReady($block['block']->id) ?>" <? if ($block['block']->is_expired) echo 'class="block-is-expired"'; ?>>
         <tr>
             <th>
-                <input type="checkbox" name="block-id[]" id="slots-<?= htmLReady($block->id) ?>"
+                <input type="checkbox" id="slots-<?= htmLReady($block['block']->id) ?>"
                        class="studip-checkbox"
-                       value="<?= htmlReady($block->id) ?>"
-                       data-proxyfor="#block-<?= htmlReady($block->id) ?> :checkbox[name^=slot]"
-                       <? if ($block->has_bookings && !$block->is_expired) echo 'disabled'; ?>>
-                <label for="slots-<?= htmlReady($block->id) ?>"></label>
+                       data-proxyfor="#block-<?= htmlReady($block['block']->id) ?> :checkbox[name^=slot]"
+                       <? if ($block['block']->has_bookings && !$block['block']->is_expired) echo 'disabled'; ?>>
+                <label for="slots-<?= htmlReady($block['block']->id) ?>"></label>
             </th>
             <th colspan="3">
-                <?= $this->render_partial('consultation/block-description.php', compact('block')) ?>
+                <?= $this->render_partial('consultation/block-description.php', ['block' => $block['block']]) ?>
             </th>
             <th class="actions">
                 <?= ActionMenu::get()->addLink(
-                    $controller->edit_roomURL($block, $page),
+                    $controller->edit_roomURL($block['block'], $page),
                     _('Raum bearbeiten'),
                     Icon::create('edit'),
                     ['data-dialog' => 'size=auto']
                 )->addLink(
-                    $controller->noteURL($block, 0, $page),
-                    _('Anmerkung bearbeiten'),
+                    $controller->noteURL($block['block'], 0, $page),
+                    _('Information bearbeiten'),
                     Icon::create('edit'),
                     ['data-dialog' => 'size=auto']
                 )->addLink(
-                    $controller->url_for("consultation/export/print/{$block->id}"),
+                    $controller->url_for("consultation/export/print/{$block['block']->id}"),
                     _('Druckansicht anzeigen'),
                     Icon::create('print'),
                     ['target' => '_blank']
-                )->condition($block->has_bookings && !$block->is_expired)->addLink(
-                    $controller->cancel_blockURL($block, $page),
+                )->condition($block['block']->has_bookings)->addLink(
+                    $controller->mailURL($block['block']),
+                    _('Nachricht schreiben'),
+                    Icon::create('mail'),
+                    ['data-dialog' => 'size=50%']
+                )->condition($block['block']->has_bookings && !$block['block']->is_expired)->addLink(
+                    $controller->cancel_blockURL($block['block'], $page),
                     _('Sprechstundentermine absagen'),
                     Icon::create('consultation+remove'),
                     ['data-dialog' => 'size=auto']
-                )->condition(!$block->has_bookings || $block->is_expired)->addButton(
+                )->condition(!$block['block']->has_bookings || $block['block']->is_expired)->addButton(
                     'remove',
                     _('Sprechstundentermine entfernen'),
                     Icon::create('trash'),
                     [
-                        'formaction'   => $controller->removeURL($block, 0, $page),
-                        'data-confirm' => _('Wollen Sie diese Sprechtstundentermine wirklich löschen?'),
+                        'formaction'   => $controller->removeURL($block['block'], 0, $page),
+                        'data-confirm' => _('Wollen Sie diese Sprechstundentermine wirklich löschen?'),
                     ]
                 ) ?>
             </th>
         </tr>
-    <? foreach ($block->slots as $slot): ?>
+    <? foreach ($block['slots'] as $slot): ?>
         <tr <? if ($slot->is_expired) echo 'class="slot-is-expired"'; ?>>
             <td>
                 <input type="checkbox" name="slot-id[]" id="slot-<?= htmLReady($slot->id) ?>"
                        class="studip-checkbox"
-                       value="<?= htmlReady($block->id) ?>-<?= htmlReady($slot->id) ?>"
+                       value="<?= htmlReady($block['block']->id) ?>-<?= htmlReady($slot->id) ?>"
                        <? if (count($slot->bookings) > 0 && !$slot->is_expired) echo 'disabled'; ?>>
                 <label for="slot-<?= htmlReady($slot->id) ?>"></label>
             </td>
@@ -104,7 +108,6 @@
                 &ndash;
             <? else: ?>
                 <? if ($slot->note): ?>
-                    <?= _('Anmerkung') ?>:
                     <?= htmlReady($slot->note) ?>
                     <br>
                 <? endif; ?>
@@ -132,22 +135,27 @@
             </td>
             <td class="actions">
                 <?= ActionMenu::get()->addLink(
-                    $controller->noteURL($block, $slot, $page),
-                    _('Anmerkung bearbeiten'),
+                    $controller->noteURL($block['block'], $slot, $page),
+                    _('Information bearbeiten'),
                     Icon::create('edit'),
                     ['data-dialog' => 'size=auto']
                 )->condition(!$slot->is_expired && count($slot->bookings) < $slot->block->size)->addLink(
-                    $controller->bookURL($block, $slot, $page),
+                    $controller->bookURL($block['block'], $slot, $page),
                     _('Sprechstundentermin reservieren'),
                     Icon::create('consultation+add'),
                     ['data-dialog' => 'size=auto']
                 )->condition($slot->has_bookings)->addLink(
-                    $controller->reasonURL($block, $slot, $slot->bookings->first(), $page),
+                    $controller->reasonURL($block['block'], $slot, $slot->bookings->first(), $page),
                     _('Grund bearbeiten'),
                     Icon::create('edit'),
                     ['data-dialog' => 'size=auto']
+                )->condition($slot->has_bookings)->addLink(
+                    $controller->mailURL($block['block'], $slot),
+                    _('Nachricht schreiben'),
+                    Icon::create('mail'),
+                    ['data-dialog' => 'size=50%']
                 )->condition($slot->has_bookings && !$slot->is_expired)->addLink(
-                    $controller->cancel_slotURL($block, $slot, $page),
+                    $controller->cancel_slotURL($block['block'], $slot, $page),
                     _('Sprechstundentermin absagen'),
                     Icon::create('consultation+remove'),
                     ['data-dialog' => 'size=auto']
@@ -156,7 +164,7 @@
                     _('Sprechstundentermin entfernen'),
                     Icon::create('trash'),
                     [
-                        'formaction'   => $controller->removeURL($block, $slot, $page),
+                        'formaction'   => $controller->removeURL($block['block'], $slot, $page),
                         'data-confirm' => _('Wollen Sie diesen Sprechstundentermin wirklich entfernen?'),
                     ]
                 ) ?>
@@ -169,7 +177,7 @@
         <tr>
             <td colspan="3">
                 <?= Studip\Button::create(_('Löschen'), 'delete', [
-                    'data-confirm' => _('Wollen Sie diese Sprechtstundentermine wirklich löschen?'),
+                    'data-confirm' => _('Wollen Sie diese Sprechstundentermine wirklich löschen?'),
                 ]) ?>
             </td>
             <td colspan="2" class="actions">
@@ -177,7 +185,7 @@
                     'num_postings' => $count,
                     'perPage'      => $limit,
                     'page'         => $page,
-                    'pagelink'     => str_replace('§u', '%u', str_replace('%', '%%', $controller->indexURL('§u'))),
+                    'pagelink'     => str_replace('§u', '%u', str_replace('%', '%%', $controller->url_for("consultation/admin/{$current_action}/§u"))),
                 ]) ?>
             </td>
         </tr>

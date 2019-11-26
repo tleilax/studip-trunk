@@ -133,6 +133,15 @@ $translations = array(
     'Dialog wird geladen...' => _('Dialog wird geladen...'),
     'Fehler beim Aufruf des News-Controllers' => _('Fehler beim Aufruf des News-Controllers'),
 
+    // resources/assets/javascripts/lib/overlapping.js
+    'Studiengangteil suchen' => _('Studiengangteil suchen'),
+    'Optional weitere Studiengangteile (max. 5)' => _('Optional weitere Studiengangteile (max. 5)'),
+    'Fachsemester auswählen (optional)' => _('Fachsemester auswählen (optional)'),
+    'Veranstaltungstyp auswählen (optional)' => _('Veranstaltungstyp auswählen (optional)'),
+    'Keine weitere Auswahl möglich' => _('Keine weitere Auswahl möglich'),
+    'Veranstaltung berücksichtigen' => _('Veranstaltung berücksichtigen'),
+    'Veranstaltung nicht berücksichtigen' => _('Veranstaltung nicht berücksichtigen'),
+
     // resources/assets/javascripts/lib/quick_search.js
     'Kein Ergebnis gefunden.' => _('Kein Ergebnis gefunden.'),
     'Bitte wählen Sie einen gültigen Wert aus!' => _('Bitte wählen Sie einen gültigen Wert aus!'),
