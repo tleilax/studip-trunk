@@ -17,6 +17,10 @@ form.default {
         }
     }
 
+    fieldset > section:last-child {
+        margin-bottom: @gap;
+    }
+
     ol.default {
         padding-left: 20px;
 
@@ -154,7 +158,7 @@ form.default {
 
         // Insert invisible element that corrects double padding/margin at the
         // bottom
-        &::after {
+        &:not(.collapsed)::after {
             content: '';
             display: block;
             margin-top: -@gap;
@@ -254,7 +258,8 @@ form.default {
     }
 
     // Group elements in a row
-    .hgroup, .hgroup-btn {
+    .hgroup,
+    .hgroup-btn {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
@@ -291,6 +296,11 @@ form.default {
                 margin-top: 0;
                 width: auto;
             }
+        }
+
+        .button {
+            margin-bottom: 0;
+            margin-top: 0;
         }
     }
 
@@ -404,6 +414,16 @@ form.narrow {
     }
     &:indeterminate + label {
         .icon('before', 'checkbox-indeterminate', 'clickable', 16, 5px);
+    }
+
+    &[disabled] {
+        + label {
+            .icon('before', 'checkbox-unchecked', 'inactive', 16, 5px);
+        }
+
+        &:checked + label {
+            .icon('before', 'checkbox-checked', 'inactive', 16, 5px);
+        }
     }
 }
 

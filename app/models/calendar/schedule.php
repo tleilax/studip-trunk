@@ -543,8 +543,8 @@ class CalendarScheduleModel
      * @return array
      */
     static function addDayChooser($entries, $days, $controller = 'schedule') {
-        $day_names  = [_("Montag"),_("Dienstag"),_("Mittwoch"),
-            _("Donnerstag"),_("Freitag"),_("Samstag"),_("Sonntag")];
+        $day_names  = [_("Mo"),_("Di"),_("Mi"),
+            _("Do"),_("Fr"),_("Sa"),_("So")];
 
         $ret = [];
 
@@ -675,6 +675,27 @@ class CalendarScheduleModel
     }
 
     /**
+     * Transforms day settings from SCHEDULE_SETTINGS::glb_days to valid
+     * days that can be displayed.
+     *
+     * @param  array  $input Input from SCHEDULE_SETTINGS
+     * @return array
+     */
+    public static function getDisplayedDays(array $input)
+    {
+        $days = [];
+        foreach ($input as $key => $value) {
+            // Fallback for old entries (["mo": true, ...])
+            if (!is_numeric($key) || !is_numeric($value)) {
+                $days = [6, 0, 1, 2, 3];
+                break;
+            }
+            $days[$key] = ($value + 6) % 7;
+        }
+        return $days;
+    }
+
+    /**
      * Return the semester-entry for the current semester
      *
      * @return mixed the current semester
@@ -704,10 +725,7 @@ class CalendarScheduleModel
         }
 
         if (!$days) {
-            $days = $schedule_settings['glb_days'];
-            foreach ($days as $key => $day_number) {
-                $days[$key] = ($day_number + 6) % 7;
-            }
+            $days = self::getDisplayedDays($schedule_settings['glb_days']);
         }
 
         $user_id = $GLOBALS['user']->id;
@@ -752,10 +770,7 @@ class CalendarScheduleModel
         }
 
         if (!$days) {
-            $days = $schedule_settings['glb_days'];
-            foreach ($days as $key => $day_number) {
-                $days[$key] = ($day_number + 6) % 7;
-            }
+            $days = self::getDisplayedDays($schedule_settings['glb_days']);
         }
 
         $entries = CalendarScheduleModel::getEntries(

@@ -45,9 +45,7 @@
             <tr>
                 <td style="width:1px"></td>
                 <td>
-                    <?=
-                    (InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, tooltip2(htmlReady($values['name']))) != '' ? Icon::create('institute', 'clickable', ['title' => htmlReady($values['name'])])->asImg(20) :
-                        InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, tooltip2(htmlReady($values['name'])))) ?>
+                    <?= InstituteAvatar::getAvatar($instid)->getImageTag(Avatar::SMALL, ['title' => $values['name']]) ?>
                 </td>
 
                 <td style="text-align: left">

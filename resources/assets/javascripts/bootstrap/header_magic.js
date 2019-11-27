@@ -4,7 +4,3 @@ STUDIP.domReady(() => {
         STUDIP.HeaderMagic.enable();
     }
 });
-$(document).on('click', '#avatar-arrow', function (event) {
-    event.stopPropagation();
-    $('#header_avatar_menu .action-menu-icon').trigger('mousedown');
-});

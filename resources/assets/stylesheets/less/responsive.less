@@ -10,13 +10,13 @@
 // Responsive main navigation (hamburger navigation to the left)
 #responsive-container {
     display: none;
-
     user-select: none;
 
     input[type="checkbox"] {
         display: none;
     }
-    label {
+    label[for="responsive-toggle"]:first-child {
+        .icon('before', 'hamburger-icon', 'info_alt', 20);
         cursor: pointer;
     }
 
@@ -50,10 +50,19 @@
         border-right: 1px solid @brand-color-lighter;
         padding-right: 2px;
     }
-}
 
-label[for="responsive-toggle"] {
-    .icon('before', 'hamburger-icon', 'info_alt', 20);
+    // Create second, invisible toggle that closes the menu when clicked/touched
+    // outside of the menu
+    label[for="responsive-toggle"]:last-child {
+        display: none;
+
+        position: fixed;
+        top: @header-bar-container-height;
+        right: 0;
+        bottom: 0;
+        left: @responsive-menu-width;
+        height: 100vh;
+    }
 }
 
 #responsive-navigation {
@@ -65,6 +74,10 @@ label[for="responsive-toggle"] {
     left: (-@responsive-menu-width - @responsive-menu-shadow-width);
     &.visible {
         left: 0;
+
+        + label[for="responsive-toggle"] {
+            display: initial;
+        }
     }
 
     position: fixed;
@@ -105,7 +118,11 @@ label[for="responsive-toggle"] {
 
     .nav-title {
         display: block;
-        padding: 5px 5px 5px 39px;
+        padding-left: 34px;
+        a {
+            display: block;
+            padding: 5px;
+        }
     }
 
     ul {
@@ -157,8 +174,46 @@ label[for="responsive-toggle"] {
 .media-breakpoint-small-down({
     #header, #flex-header, #barTopFont, #barTopMenu,
     #barBottomLeft .current_page, #barBottommiddle, #barBottomLeft, #barBottomArrow,
-    #tabs, .sidebar-image, #sidebar-navigation:not(.show), #barTopFont, #footer, .sidebar-widget-header {
+    #tabs, .sidebar-image, #sidebar-navigation:not(.show), #barTopFont, #footer, .sidebar-widget-header,
+    .tabs_wrapper .colorblock {
         display: none !important;
+    }
+    #layout_wrapper #layout_page {
+        .secondary-navigation {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+
+            background-color: @dark-gray-color-10;
+            border-bottom: 1px solid @dark-gray-color-40;
+
+            .colorblock,
+            #layout_context_title,
+            .context_icon,
+            .tabs_wrapper {
+                transition: unset;
+            }
+
+            #layout_context_title,
+            .tabs_wrapper {
+                background: transparent;
+                border-width: 0;
+                flex: 1;
+            }
+
+            #layout_context_title {
+                flex: 1;
+
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+
+                + .tabs_wrapper {
+                    flex: 0;
+                    align-self: flex-end;
+                }
+            }
+        }
     }
     #layout_wrapper #layout_page .tabs_wrapper {
         justify-content: flex-end;
@@ -189,10 +244,6 @@ label[for="responsive-toggle"] {
         line-height: 20px !important;
 
         #header_avatar_menu {
-            display: none;
-        }
-
-        #avatar-arrow {
             display: none;
         }
 
@@ -282,6 +333,10 @@ label[for="responsive-toggle"] {
     .visible-sidebar {
         right: 0 !important;
         transition: right 300ms;
+
+        #layout-sidebar& #sidebar-shadow-toggle {
+            display: initial;
+        }
     }
 
     #layout-sidebar {
@@ -324,6 +379,19 @@ label[for="responsive-toggle"] {
                 display: none;
             }
             margin-right: 0;
+        }
+
+        // Create second, invisible toggle that closes the menu when
+        // clicked/touched outside of the menu
+        #sidebar-shadow-toggle {
+            position: fixed;
+            top: @header-bar-container-height;
+            right: @responsive-menu-width;
+            bottom: 0;
+            left: 0;
+            height: 100vh;
+
+            display: none;
         }
     }
     #index,
@@ -416,5 +484,10 @@ label[for="responsive-toggle"] {
     table.default tfoot .button {
         margin-top: 0.5em;
         margin-bottom: 0.5em;
+    }
+
+    .ui-dialog.ui-widget.ui-widget-content.studip-confirmation {
+        min-width: 20vw;
+        max-width: 100vw;
     }
 }

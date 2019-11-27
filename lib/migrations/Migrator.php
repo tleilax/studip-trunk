@@ -116,7 +116,7 @@
  */
 class Migrator
 {
-    const FILE_REGEXP = '/\b(\d+)([_-][_a-z0-9]+)+\.php$/';
+    const FILE_REGEXP = '/\b(\d+)([_\-][_a-z0-9]+)+\.php$/';
 
     /**
      * Direction of migration, either "up" or "down"
@@ -286,22 +286,26 @@ class Migrator
      */
     public function relevantMigrations($target_version)
     {
+        // Load migrations
+        $migrations = $this->migrationClasses();
+
+        // Determine correct target version
         $this->target_version = $target_version === null
                               ? $this->topVersion()
                               : (int) $target_version;
 
-        # migrate up
-        if ($this->target_version > 0
-            && $this->target_version >= $this->schema_version->get())
-        {
+        // Determine max version (might differ from max schema version in db in
+        // development systems)
+        $max_version = min($this->topVersion(), $this->schema_version->get());
+
+        // Determine migration direction
+        if ($this->target_version > 0 && $this->target_version >= $max_version) {
             $this->direction = 'up';
-        }
-        # migrate down
-        else {
+        } else {
             $this->direction = 'down';
         }
 
-        $migrations = $this->migrationClasses();
+        // Sort migrations in correct order
         if ($this->isUp()) {
             ksort($migrations);
         } else {
@@ -309,7 +313,6 @@ class Migrator
         }
 
         $result = [];
-
         foreach ($migrations as $version => $migration_file_and_class) {
             if (!$this->relevantMigration($version)) {
                 continue;

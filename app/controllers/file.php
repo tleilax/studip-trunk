@@ -43,6 +43,32 @@ class FileController extends AuthenticatedController
         }
     }
 
+
+    /**
+     * This helper method redirects to the flat view of the file area
+     * that is displayed.
+     */
+    protected function redirectToFlatView($folder)
+    {
+        switch ($folder->range_type) {
+            case 'course':
+            case 'institute':
+                $this->relocate(
+                    $folder->range_type . '/files/flat',
+                    ['cid' => $folder->range_id]
+                );
+                break;
+            case 'user':
+                $this->relocate('files/flat', ['cid' => null]);
+                break;
+            default:
+                //Plugins should not be available in the flat view.
+                $this->relocate('files/system/' . $folder->range_type . '/' . $folder->getId(), ['cid' => null]);
+                break;
+        }
+    }
+
+
     public function upload_window_action()
     {
         // just send the template
@@ -336,7 +362,14 @@ class FileController extends AuthenticatedController
                 throw new AccessDeniedException();
             }
 
-            //file system object is a Folder
+            //The file system object is a folder.
+            //Calculate the files and the folder size:
+            $this->folder_size = 0;
+            $this->folder_file_amount = 0;
+            foreach ($this->folder->getFiles() as $file_ref) {
+                $this->folder_file_amount++;
+                $this->folder_size += $file_ref['size'];
+            }
             PageLayout::setTitle($this->folder->name);
             $this->render_action('folder_details');
         }
@@ -372,34 +405,86 @@ class FileController extends AuthenticatedController
         }
 
         $this->content_terms_of_use_entries = ContentTermsOfUse::findAll();
+        $this->show_force_button = false;
+
         if (Request::isPost()) {
             //form was sent
             CSRFProtection::verifyUnsafeRequest();
             $this->errors = [];
 
-            $new_name = trim(Request::get('name'));
-            $new_description = Request::get('description');
-            $new_content_terms_of_use_id = Request::get('content_terms_of_use_id');
+            $force_save = Request::submitted('force_save');
+            $this->name = trim(Request::get('name'));
+            $this->url = null;
+            if ($this->file_ref->isLink()) {
+                $this->url = Request::get('url');
+            }
+            $this->description = Request::get('description');
+            $this->content_terms_of_use_id = Request::get('content_terms_of_use_id');
 
             //Check if the FileRef is unmodified:
-            if (($new_name == $this->file_ref->name) &&
-                ($new_description == $this->file_ref->description) &&
-                ($new_content_terms_of_use_id == $this->file_ref->content_terms_of_use_id)) {
-                //The FileRef is unmodified. We can redirect to the folder
-                //where the FileRef is stored in.
-                $this->redirectToFolder($this->folder);
+            if (($this->name == $this->file_ref->name) &&
+                ($this->description == $this->file_ref->description) &&
+                ($this->content_terms_of_use_id == $this->file_ref->content_terms_of_use_id)) {
+                $unmodified = false;
+                if ($this->file_ref->isLink() && $this->url == $this->file_ref->file->getURL()) {
+                    $unmodified = true;
+                } elseif(!$this->file_ref->isLink()) {
+                    $unmodified = true;
+                }
+                if ($unmodified) {
+                    //The FileRef is unmodified. We can redirect to the folder
+                    //where the FileRef is stored in.
+                    $this->redirectToFolder($this->folder);
+                    return;
+                }
+            }
+            //Check if the file extension has changed:
+            $old_file_extension = pathinfo($this->file_ref->name, PATHINFO_EXTENSION);
+            $new_file_extension = pathinfo($this->name, PATHINFO_EXTENSION);
+            if ($old_file_extension !== $new_file_extension && !$force_save) {
+                if (!$new_file_extension) {
+                    PageLayout::postWarning(
+                        sprintf(
+                            _('Die Dateiendung "%1$s" wird entfernt. Soll die Datei trotzdem gespeichert werden?'),
+                            htmlReady($old_file_extension)
+                        )
+                    );
+                } elseif (!$old_file_extension) {
+                    PageLayout::postWarning(
+                        sprintf(
+                            _('Die Dateiendung wird auf "%1$s" gesetzt. Soll die Datei trotzdem gespeichert werden?'),
+                            htmlReady($new_file_extension)
+                        )
+                    );
+                } else {
+                    PageLayout::postWarning(
+                        sprintf(
+                            _('Die Dateiendung wird von "%1$s" auf "%2$s" geändert. Soll die Datei trotzdem gespeichert werden?'),
+                            htmlReady($old_file_extension),
+                            htmlReady($new_file_extension)
+                        )
+                    );
+                }
+                $this->show_force_button = true;
                 return;
             }
 
             if (Request::get("from_plugin")) {
-                $result = $this->folder->editFile($file_ref_id, $new_name, $new_description, $new_content_terms_of_use_id);
+                $result = $this->folder->editFile(
+                    $file_ref_id,
+                    $this->name,
+                    $this->description,
+                    $this->content_terms_of_use_id,
+                    ($this->file_ref->isLink() ? $this->url : null)
+                );
             } else {
                 $result = FileManager::editFileRef(
                     $this->file_ref,
                     User::findCurrent(),
-                    $new_name,
-                    $new_description,
-                    $new_content_terms_of_use_id
+                    $this->name,
+                    $this->description,
+                    $this->content_terms_of_use_id,
+                    ($this->file_ref->isLink() ? $this->url : null)
                 );
             }
 
@@ -420,8 +505,14 @@ class FileController extends AuthenticatedController
                 PageLayout::postSuccess(_('Änderungen gespeichert!'));
                 $this->redirectToFolder($this->folder);
             }
-
         }
+
+        $this->name = $this->file_ref->name;
+        if ($this->file_ref->isLink()) {
+            $this->url = $this->file_ref->file->getURL();
+        }
+        $this->description = $this->file_ref->description;
+        $this->content_terms_of_use_id = $this->file_ref->content_terms_of_use_id;
     }
 
     /**
@@ -844,7 +935,11 @@ class FileController extends AuthenticatedController
         } else {
             PageLayout::postError(_('Datei konnte nicht gelöscht werden.'));
         }
-        $this->redirectToFolder($folder);
+        if (Request::submitted('from_flat_view')) {
+            $this->redirectToFlatView($folder);
+        } else {
+            $this->redirectToFolder($folder);
+        }
     }
 
     public function add_files_window_action($folder_id)
@@ -1024,9 +1119,17 @@ class FileController extends AuthenticatedController
                 }
             }
         } else {
-            $this->top_folder = new StandardFolder(new Folder($folder_id));
-            if (!$this->top_folder->isReadable($GLOBALS['user']->id)) {
-                throw new AccessDeniedException();
+            //Load the folder by its ID.
+            $folder = new Folder($folder_id);
+            $folder_type = $folder->folder_type;
+            //Check if the specified folder type is a FolderType implementation.
+            if (is_a($folder_type, 'FolderType', true)) {
+                //Get an instance of the FolderType implementation
+                //and use it in the code below this point.
+                $this->top_folder = new $folder_type($folder);
+                if (!$this->top_folder->isReadable($GLOBALS['user']->id)) {
+                    throw new AccessDeniedException();
+                }
             }
         }
 
@@ -1089,9 +1192,14 @@ class FileController extends AuthenticatedController
         }
         $this->file_refs = FileRef::findMany($file_ref_ids);
         $this->folder = $this->file_refs[0]->folder;
+        $this->show_description_field = Config::get()->ENABLE_DESCRIPTION_ENTRY_ON_UPLOAD;
         if (Request::isPost()) {
+            $description = Request::get('description');
             foreach ($this->file_refs as $file_ref) {
                 $file_ref['content_terms_of_use_id'] = Request::option('content_terms_of_use_id');
+                if ($this->show_description_field && $description) {
+                    $file_ref['description'] = $description;
+                }
                 $file_ref->store();
             }
             if (Request::isXhr()) {
@@ -1150,6 +1258,7 @@ class FileController extends AuthenticatedController
 
     public function add_url_action($folder_id)
     {
+        $this->content_terms_of_use_entries = ContentTermsOfUse::findAll();
         if (Request::get("to_plugin")) {
             $folder_id = substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], "dispatch.php/file/add_url/") + strlen("dispatch.php/file/add_url/"));
             if (strpos($folder_id, "?") !== false) {
@@ -1172,6 +1281,7 @@ class FileController extends AuthenticatedController
             CSRFProtection::verifyUnsafeRequest();
             $url = trim(Request::get('url'));
             $url_parts = parse_url($url);
+            $content_terms_of_use_id = Request::get('content_terms_of_use_id');
             if (filter_var($url, FILTER_VALIDATE_URL) !== false && in_array($url_parts['scheme'], ['http', 'https','ftp'])) {
                 if (Request::get('access_type') === 'redirect') {
                     if (in_array($url_parts['scheme'], ['http', 'https'])) {
@@ -1214,6 +1324,17 @@ class FileController extends AuthenticatedController
                     $file['user_id'] = $GLOBALS['user']->id;
 
                     $this->file_ref = $this->top_folder->createFile($file);
+                    if ($this->file_ref instanceof FileRef) {
+                        //It is probably a file from the Stud.IP core system
+                        //and not a file from a plugin.
+                        if ($this->file_ref->file instanceof File) {
+                            //It is definetly a file from the core system.
+                            $this->file_ref->content_terms_of_use_id = $content_terms_of_use_id;
+                            if ($this->file_ref->isDirty()) {
+                                $this->file_ref->store();
+                            }
+                        }
+                    }
                     $payload = [];
 
                     $this->current_folder = $this->top_folder;
@@ -1276,6 +1397,7 @@ class FileController extends AuthenticatedController
         $this->name = Request::get('name');
         $this->description = Request::get('description');
         $this->folder_types = [];
+        $this->show_confirmation_button = false;
 
         foreach ($folder_types as $folder_type) {
             $folder_type_instance = new $folder_type(
@@ -1291,8 +1413,13 @@ class FileController extends AuthenticatedController
             ];
         }
 
-        if (Request::submitted('create')) {
+        if (Request::submitted('create') || Request::submitted('force_creation')) {
             CSRFProtection::verifyUnsafeRequest();
+
+            $force_creation = false;
+            if (Request::submitted('force_creation')) {
+                $force_creation = true;
+            }
 
             //Get class name of folder type and check if the class
             //is a subclass of FolderType before initialising it:
@@ -1310,8 +1437,28 @@ class FileController extends AuthenticatedController
                  'parent_id' => $parent_folder->getId()]
             );
             $result = $new_folder->setDataFromEditTemplate($request);
+
             if ($result instanceof FolderType) {
                 $new_folder->user_id = User::findCurrent()->id;
+                if (($result instanceof CourseDateFolder) && !$force_creation) {
+                    //Check if there is already a folder for the
+                    //selected course date:
+                    $course_date = $result->getDate();
+                    if ($course_date instanceof CourseDate) {
+                        $other_folders_exist = count($course_date->folders) > 0;
+                        if ($other_folders_exist) {
+                            PageLayout::postWarning(
+                                sprintf(
+                                    _('Für den Termin am %s existiert bereits ein Sitzungs-Ordner. Möchten Sie trotzdem einen weiteren Sitzungs-Ordner erstellen?'),
+                                    $course_date->getFullname()
+                                )
+                            );
+                            $this->show_confirmation_button = true;
+                            $this->folder = $new_folder ?: new StandardFolder();
+                            return;
+                        }
+                    }
+                }
                 if ($parent_folder->createSubfolder($new_folder)) {
                     PageLayout::postSuccess(_('Der Ordner wurde angelegt.'));
                     $this->response->add_header('X-Dialog-Close', '1');

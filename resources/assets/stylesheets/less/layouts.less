@@ -38,7 +38,7 @@
     background-color: white;
     border-radius: 0 0 2px 2px;
     /*margin: 0;*/
-    padding-top: 15px;
+    padding-top: 25px;
 }
 
 #page_title_container {
@@ -50,6 +50,56 @@
     min-height: 45px;
 }
 
+.secondary-navigation {
+    position: relative;
+    .colorblock {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: @page-margin;
+    }
+
+    #layout_context_title {
+        font-size: 1.1em;
+        height: 30px;
+        padding-left: @page-margin;
+        max-height: 30px;
+        overflow: hidden;
+
+        background: linear-gradient(to bottom, @dark-gray-color-5, @dark-gray-color-10);
+
+        > .context_icon {
+            margin: 7px 1px 0 9px;
+            vertical-align: text-bottom;
+        }
+    }
+
+    .tabs_wrapper {
+        padding-left: 27px;
+    }
+
+    .contextless & {
+        .colorblock {
+            width: 0px;
+        }
+
+        #layout_context_title {
+            color: rgba(0, 0, 0, 0);
+            height: 0px;
+            max-height: 35px;
+            // text-indent: -100%;
+            //
+            > .context_icon {
+                opacity: 0;
+            }
+        }
+
+        .tabs_wrapper {
+            padding-left: 0px;
+        }
+    }
+}
 #current_page_title {
     font-weight: bold;
     font-size: 1.4em;
@@ -132,6 +182,7 @@
         min-width: @site-width;
 
         flex: 0 1 auto;
+        border-bottom: 1px solid @light-gray-color-40;
 
         #barTopMenu {                   // column 1 of flex-header
             flex: 1 1 auto;
@@ -149,7 +200,7 @@
         z-index: 1001; // High enough so it will be above the sidebar
     }
 
-    #layout_page {              // third row of flex-main
+    #layout_page { // third row of flex-main
         display: flex;
         flex-direction: column;
         flex-wrap: nowrap;
@@ -164,18 +215,20 @@
         .tabs_wrapper {
             display: flex;
             flex-direction: row;
-            align-items: flex-start;
+            align-items: stretch;
             justify-content: space-between;
             background-color: @dark-gray-color-10;
-            padding: 0 2px 0 7px;
-
-            border-top: 1px solid @dark-gray-color-40;
+            font-size: 0.9em;
             border-bottom: 1px solid @dark-gray-color-40;
         }
-        #tabs {                     // row 1 of layout_page
-            min-height: 30px;
-            float: none;
+
+        #tabs { // row 1 of layout_page
+            width: 100%;
             flex: 0 1 auto;
+            padding-left: @page-margin;
+            transition: margin-left;
+            transition-duration: 300ms;
+            transition-delay: 500ms;
         }
 
         #layout_container {          // row 3 of layout_page

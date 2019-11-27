@@ -1,3 +1,4 @@
+import ActionMenu from './lib/actionmenu.js';
 import admin_sem_class from './lib/admin_sem_class.js';
 import Admission from './lib/admission.js';
 import Arbeitsgruppen from './lib/arbeitsgruppen.js';
@@ -38,6 +39,7 @@ import MultiSelect from './lib/multi_select.js';
 import NavigationShrinker from './lib/navigation_shrinker.js';
 import News from './lib/news.js';
 import OldUpload from './lib/old_upload.js';
+import Overlapping from './lib/overlapping.js';
 import Overlay from './lib/overlay.js';
 import parseOptions from './lib/parse_options.js';
 import PersonalNotifications from './lib/personal_notifications.js';
@@ -69,6 +71,7 @@ const configURLHelper = _.get(window, 'STUDIP.URLHelper', {});
 const URLHelper = createURLHelper(configURLHelper);
 
 window.STUDIP = _.assign(window.STUDIP || {}, {
+    ActionMenu,
     admin_sem_class,
     Admission,
     api,
@@ -109,6 +112,7 @@ window.STUDIP = _.assign(window.STUDIP || {}, {
     NavigationShrinker,
     News,
     OldUpload,
+    Overlapping,
     Overlay,
     parseOptions,
     PersonalNotifications,
