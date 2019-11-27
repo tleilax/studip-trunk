@@ -169,7 +169,7 @@ function get_vis_query($table_alias = 'auth_user_md5', $context = '') {
 }
 
 function get_ext_vis_query($table_alias = 'aum') {
-    $allowed = ['global', 'always'];
+    $allowed = ['global', 'always', 'yes'];
     if (Config::get()->USER_VISIBILITY_UNKNOWN) {
         $allowed[] = 'unknown';
     }
