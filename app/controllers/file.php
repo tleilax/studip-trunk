@@ -171,7 +171,7 @@ class FileController extends AuthenticatedController
                     foreach ($storedFiles as $file_ref) {
                         $ref_ids[] = $file_ref->getId();
                     }
-                    $changes['redirect'] = $this->url_for('file/edit_license', [
+                    $changes['redirect'] = $this->url_for("file/edit_license/{$folder->getId()}", [
                         'file_refs' => $ref_ids,
                     ]);
                 } else {
@@ -234,7 +234,7 @@ class FileController extends AuthenticatedController
             if (Request::isXhr()) {
                 $topFolder = null;
 
-                $changes['redirect'] = $this->url_for('file/edit_license');
+                $changes['redirect'] = $this->url_for("file/edit_license/{$this->current_folder->getId()}");
                 $changes['added_files'] = null;
                 $changes['added_folders'] = null;
 
@@ -279,7 +279,7 @@ class FileController extends AuthenticatedController
                 );
                 $this->render_json($payload);
             } else {
-                $this->redirect('file/edit_license');
+                $this->redirect("file/edit_license/{$this->current_folder->getId()}");
             }
         }
     }
@@ -1058,7 +1058,10 @@ class FileController extends AuthenticatedController
             }
             if ($file_ref instanceof FileRef) {
                 if (in_array($this->to_folder_type->range_type, ['course', 'institute']) && !$file_ref->content_terms_of_use_id) {
-                    $this->redirect($this->url_for('file/edit_license', ['file_refs' => [$file_ref->id]]));
+                    $this->redirect($this->url_for(
+                        "file/edit_license/{$this->to_folder_type->getId()}",
+                        ['file_refs' => [$file_ref->id]]
+                    ));
                     return;
                 } elseif (Request::isXhr()) {
                     $this->file_ref = $file_ref;
@@ -1075,7 +1078,7 @@ class FileController extends AuthenticatedController
                         }
                     }
                     $payload = [
-                        'html'     => $this->render_template_as_string("files/_fileref_tr"),
+                        'html'     => $this->render_template_as_string('files/_fileref_tr'),
                         'redirect' => $redirects[0],
                         'url'      => $this->generateFilesUrl($this->current_folder, $this->file_ref),
                     ];
@@ -1182,7 +1185,7 @@ class FileController extends AuthenticatedController
         }
     }
 
-    public function edit_license_action()
+    public function edit_license_action($folder_id = null)
     {
         $file_ref_ids = Request::getArray('file_refs');
         if (!$file_ref_ids) {
@@ -1193,6 +1196,7 @@ class FileController extends AuthenticatedController
         $this->file_refs = FileRef::findMany($file_ref_ids);
         $this->folder = $this->file_refs[0]->folder;
         $this->show_description_field = Config::get()->ENABLE_DESCRIPTION_ENTRY_ON_UPLOAD;
+        $this->origin_folder_id = $folder_id;
         if (Request::isPost()) {
             $description = Request::get('description');
             foreach ($this->file_refs as $file_ref) {
@@ -1205,6 +1209,13 @@ class FileController extends AuthenticatedController
             if (Request::isXhr()) {
                 $payload = ['html' => []];
                 foreach ($this->file_refs as $file_ref) {
+                    $folder = $file_ref->folder->getTypedFolder();
+
+                    // Skip files not in current folder (during archive extract)
+                    if ($folder_id && $folder_id !== $folder->getId()) {
+                        continue;
+                    }
+
                     $this->file_ref = $file_ref;
                     $this->current_folder = $file_ref->folder->getTypedFolder();
                     $this->marked_element_ids = [];
@@ -1242,16 +1253,14 @@ class FileController extends AuthenticatedController
             }
         }
 
-        PageLayout::setTitle(
-            sprintf(
-                ngettext(
-                    'Lizent auswählen',
-                    'Lizenz auswählen: %s Dateien',
-                    count($this->file_refs)
-                ),
+        PageLayout::setTitle(sprintf(
+            ngettext(
+                'Lizenz auswählen',
+                'Lizenz auswählen: %s Dateien',
                 count($this->file_refs)
-            )
-        );
+            ),
+            count($this->file_refs)
+        ));
 
         $this->licenses = ContentTermsOfUse::findBySQL("1 ORDER BY position ASC, id ASC");
     }

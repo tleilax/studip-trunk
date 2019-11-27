@@ -1,3 +1,5 @@
+/*jslint esversion: 6*/
+
 import Dialog from './dialog.js';
 
 const Files = {
@@ -103,9 +105,9 @@ const Files = {
             $('.file_upload_window .uploadbar').hide();
         }
     },
-    addFile: function(payload, delay = 0, hide_dialog = true) {
-        var redirect = false,
-            html = [];
+    addFile: (payload, delay = 0, hide_dialog = true) => {
+        var redirect = false;
+        var html = [];
 
         if (payload.hasOwnProperty('html') && payload.html !== undefined) {
             redirect = payload.redirect;
@@ -122,15 +124,13 @@ const Files = {
             // on files page
 
             Files.addFileDisplay(html, delay);
-        } else {
+        } else if (payload.url) {
             //not on files page
 
-            if (payload.url) {
-                Dialog.handlers.header['X-Location'](payload.url);
-            }
+            Dialog.handlers.header['X-Location'](payload.url);
         }
     },
-    addFileDisplay: function (html, delay = 0) {
+    addFileDisplay: (html, delay = 0) => {
         if (!Array.isArray(html)) {
             html = [html];
         }
