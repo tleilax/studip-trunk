@@ -3,6 +3,11 @@
     <section>
         <? if ($found_courses): ?>
             <table class="default">
+                <colgroup>
+                    <col width="30px">
+                    <col>
+                    <col>
+                </colgroup>
                 <thead>
                     <tr>
                         <th>
