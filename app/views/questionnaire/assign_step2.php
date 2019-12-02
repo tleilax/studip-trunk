@@ -25,6 +25,11 @@
     <header><h1><?= _('Auswählbare Fragebögen') ?></h1></header>
     <section>
         <table class="default sortable-table" data-sortlist="[[2, 1]]">
+            <colgroup>
+                <col width="30px">
+                <col>
+                <col>
+            </colgroup>
             <thead>
                 <tr>
                     <th>
